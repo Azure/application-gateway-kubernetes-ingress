@@ -2,6 +2,7 @@
 package utils
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -29,4 +30,9 @@ func IntsToString(l []int, delim string) string {
 		out[i] = strconv.Itoa(v)
 	}
 	return strings.Join(out, delim)
+}
+
+// GetResourceKey generates the key in k8s format for a given resource
+func GetResourceKey(namespace, name string) string {
+	return fmt.Sprintf("%v/%v", namespace, name)
 }
