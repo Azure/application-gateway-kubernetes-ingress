@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-11-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 )
@@ -59,6 +60,10 @@ func (agw Identifier) frontendIPID(fipName string) string {
 
 func (agw Identifier) frontendPortID(portName string) string {
 	return agw.gatewayResourceID("frontEndPorts", portName)
+}
+
+func (agw Identifier) sslCertificateID(certname string) string {
+	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
 func (agw Identifier) httpSettingsID(settingsName string) string {
