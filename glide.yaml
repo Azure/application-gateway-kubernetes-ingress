@@ -3,7 +3,7 @@ import:
 - package: github.com/Azure/azure-sdk-for-go
   version: ^19.0.0
   subpackages:
-  - services/network/mgmt/2017-11-01/network
+  - services/network/mgmt/2018-06-01/network
 - package: github.com/Azure/go-autorest
   version: ^10.14.0
   subpackages:

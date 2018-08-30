@@ -22,4 +22,4 @@ RUN locale-gen en_US.UTF-8
 # install glide
 RUN curl https://glide.sh/get | sh
 
-WORKDIR /gopath/src/github.com/Azure/Network-AppGW-k8s
+WORKDIR /gopath/src/github.com/Azure/Networking-AppGW-k8s

@@ -7,7 +7,12 @@ set(devenv_image_name ${project_name_lowercase})
 set(devenv_workpath "/gopath/src/${package_name}")
 set(deployment_image_name ${project_name_lowercase})
 
-set(deployment_image_version "1")
+set(deployment_push_prefix "" 
+    CACHE STRING "string <prefix> for docker tag/push <prefix>/${deployment_image_name}")
+set(deployment_image_version "latest"
+    CACHE STRING "version of the deployment image")
+
+message("[image name] ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}")
 
 add_custom_command(
     OUTPUT  ${CMAKE_SOURCE_DIR}/vendor/vendor.stamp
@@ -15,7 +20,7 @@ add_custom_command(
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
             -w ${devenv_workpath}
             --name ${devenv_image_name}-devenv ${devenv_image_name}
-            rm -rf vendor && glide install -v
+            /bin/bash -c "rm -rf vendor && glide install -v"
     COMMAND cmake -E touch vendor/vendor.stamp
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS glide.yaml devenv
@@ -35,6 +40,11 @@ add_custom_target(devenv
 )
 
 add_custom_command(
+    OUTPUT .always_rebuild
+    COMMAND cmake -E echo
+)
+
+add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
     COMMAND docker run --rm --security-opt seccomp:unconfined  -t
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
@@ -42,7 +52,7 @@ add_custom_command(
             --name ${devenv_image_name}-devenv ${devenv_image_name}
             /bin/bash -c './scripts/build.sh'
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS devenv vendor
+    DEPENDS devenv vendor .always_rebuild
     COMMENT "compiling project in devenv"
 )
 
@@ -54,8 +64,14 @@ add_custom_target(dockerize
     COMMENT "building deployment docker image"
 )
 
+add_custom_target(dockerpush
+    COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
+    COMMAND docker push ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
+    DEPENDS dockerize
+    COMMENT "pushing to container registry"
+)
 
 add_custom_target(appgw-ingress
     ALL
-    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress dockerize
+    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress dockerize dockerpush
 )
