@@ -120,7 +120,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 			Name: &sslCertificateName,
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
 				Data:     cert,
-				Password: to.StringPtr(""),
+				Password: to.StringPtr("msazure"),
 			},
 		})
 	}
@@ -179,6 +179,10 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(sslCertificateName)
 
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
+
+			if len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) != 0 {
+				httpListener.RequireServerNameIndication = to.BoolPtr(true)
+			}
 		}
 
 		if len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) != 0 {

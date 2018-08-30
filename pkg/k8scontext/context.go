@@ -243,8 +243,8 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		}
 
 		secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
+		context.CertificateSecretStore.eraseSecret(secKey)
 		if context.ingressSecretsMap.ContainsValue(secKey) {
-			context.CertificateSecretStore.eraseSecret(secKey)
 			context.UpdateChannel.In() <- Event{
 				Type:  Delete,
 				Value: obj,

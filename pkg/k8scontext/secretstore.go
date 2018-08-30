@@ -99,7 +99,7 @@ func (s *secretStore) convertSecret(secretKey string, secret *v1.Secret) bool {
 
 	// both cert and key are in temp file now, call openssl
 	var cout, cerr bytes.Buffer
-	cmd := exec.Command("openssl", "pkcs12", "-export", "-in", tempfileCert.Name(), "-inkey", tempfileKey.Name(), "-password", "pass:")
+	cmd := exec.Command("openssl", "pkcs12", "-export", "-in", tempfileCert.Name(), "-inkey", tempfileKey.Name(), "-password", "pass:msazure")
 	cmd.Stderr = &cerr
 	cmd.Stdout = &cout
 
