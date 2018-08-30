@@ -1,6 +1,8 @@
 package appgw
 
 import (
+	"errors"
+
 	"github.com/Azure/Networking-AppGW-k8s/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -17,7 +19,7 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.I
 		endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 		if endpoints == nil {
 			glog.Warningf("unable to get endpoints for service key [%s]", backendID.serviceKey())
-			return builder, error.Error("unable to get endpoints for service")
+			return builder, errors.New("unable to get endpoints for service")
 		}
 		for _, subset := range endpoints.Subsets {
 			endpointsPortsSet := utils.NewUnorderedSet()

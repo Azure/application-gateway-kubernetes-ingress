@@ -1,6 +1,7 @@
 package appgw
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Azure/Networking-AppGW-k8s/pkg/utils"
@@ -103,7 +104,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 	})
 
 	if len(unresolvedBackendID) > 0 {
-		return builder, error.Error("unable to resolve backend port for some services")
+		return builder, errors.New("unable to resolve backend port for some services")
 	}
 
 	httpSettingsCollection := make([](network.ApplicationGatewayBackendHTTPSettings), 0)
@@ -115,7 +116,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			// more than one possible backend port exposed through ingress
 			glog.Warningf("service:port [%s:%s] has more than one service-backend port binding",
 				backendID.serviceKey(), backendID.ServicePort.String())
-			return builder, error.Error("more than one sevice-backend port binding is not allowed")
+			return builder, errors.New("more than one sevice-backend port binding is not allowed")
 		}
 		var uniquePair serviceBackendPortPair
 		serviceBackendPairs.ForEach(func(pairI interface{}) {
