@@ -49,7 +49,7 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 	// Get current application gateway config
 	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
 	if err != nil {
-		glog.Errorf("unable to get specified ApplicationGateway [%v], check ApplicationGateway identifier", c.appGwIdentifier.AppGwName)
+		glog.Errorf("unable to get specified ApplicationGateway [%v], check ApplicationGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
 		return false, errors.New("unable to get specified ApplicationGateway")
 	}
 
@@ -93,6 +93,7 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 	glog.V(1).Info("~~~~~~~~ ↓ ApplicationGateway deployment ↓ ~~~~~~~~")
 	defer glog.V(1).Info("~~~~~~~~ ↑ ApplicationGateway deployment ↑ ~~~~~~~~")
 
+	deploymentStart := time.Now()
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
@@ -102,6 +103,9 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
+	deploymentElapsed := time.Now().Sub(deploymentStart)
+	glog.V(1).Infof("deployment took %v", deploymentElapsed.String())
+
 	if err != nil {
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
 		return false, errors.New("unable to deploy ApplicationGateway")
@@ -117,7 +121,7 @@ func (c *AppGwIngressController) Start() {
 	go c.eventQueue.Run(time.Second, c.stopChannel)
 
 	// Starts k8scontext which contains all the informers
-	go c.k8sContext.Run()
+	c.k8sContext.Run()
 
 	// Continue to enqueue events into eventqueue until stopChannel is closed
 	for {
