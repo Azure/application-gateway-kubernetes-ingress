@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	go_flag "flag"
 	"os"
 	"time"
@@ -43,13 +44,44 @@ func main() {
 	setLoggingOptions()
 
 	kubeClient := kubeClient()
-	azureAuth := azAuthFromConfigMap(kubeClient, "azure-config")
-	// azureConfig := azureConfigFromConfigMap(kubeClient, "azure-config")
+
+	fileLocation := os.Getenv("AZURE_AUTH_LOCATION")
+
+	var err error
+	var azureAuth autorest.Authorizer
+
+	if fileLocation == "" {
+		// requires aad-pod-identity to be deployed in the AKS cluster
+		// see https://github.com/Azure/aad-pod-identity for more information
+		glog.V(1).Infoln("Creating authorizer from MSI")
+		azureAuth, err = auth.NewAuthorizerFromEnvironment()
+	} else {
+		glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
+		azureAuth, err = auth.NewAuthorizerFromFile(network.DefaultBaseURI)
+	}
+
+	if err != nil || azureAuth == nil {
+		glog.Fatalf("Error creating Azure client from config: %v", err)
+	}
 
 	appGwIdentifier := appgw.NewIdentifierFromEnv()
 
 	appGwClient := network.NewApplicationGatewaysClient(appGwIdentifier.SubscriptionID)
 	appGwClient.Authorizer = azureAuth
+
+	// wait until azureAuth becomes valid
+	for true {
+		ctx := context.Background()
+		_, err := appGwClient.Get(ctx, appGwIdentifier.ResourceGroup, appGwIdentifier.AppGwName)
+		if err == nil {
+			break
+		} else {
+			glog.Errorf("unable to get specified ApplicationGateway [%v], error=[%v]", appGwIdentifier.AppGwName, err.Error())
+		}
+		retryTime := 10 * time.Second
+		glog.Infof("Retrying in %v", retryTime.String())
+		time.Sleep(retryTime)
+	}
 
 	ctx := k8scontext.NewContext(kubeClient, "default", *resyncPeriod)
 	appGwController := controller.NewAppGwIngressController(kubeClient, appGwClient, appGwIdentifier, ctx)
@@ -98,13 +130,4 @@ func getKubeClientConfig() *rest.Config {
 	}
 
 	return config
-}
-
-func azAuthFromConfigMap(kubeclient kubernetes.Interface, mapName string) autorest.Authorizer {
-	authn, err := auth.NewAuthorizerFromFile(network.DefaultBaseURI)
-	if err != nil {
-		glog.Fatalf("Error creating Azure client from config: %v", err)
-	}
-
-	return authn
 }
