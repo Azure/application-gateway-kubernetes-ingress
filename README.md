@@ -9,6 +9,7 @@ This is a CMake-based project. Build targets include:
 - `vendor` installs dependency using `glide` in a docker container with image from `devenv` target
 - `appgw-ingress` builds the binary for this controller in a docker container with image from `devenv` target
 - `dockerize` builds a docker image with the binary from `appgw-ingress` target
+- `dockerpush` pushes the docker image to a container registry with prefix defined in CMake variable `<deployment_push_prefix>`
 
 To run the CMake targets:
 

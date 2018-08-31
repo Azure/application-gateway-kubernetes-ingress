@@ -73,5 +73,5 @@ add_custom_target(dockerpush
 
 add_custom_target(appgw-ingress
     ALL
-    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress dockerize dockerpush
+    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress dockerize
 )
