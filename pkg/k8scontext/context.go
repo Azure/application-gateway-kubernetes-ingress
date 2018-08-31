@@ -104,6 +104,10 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 	ingressAddFunc := func(obj interface{}) {
 		ing := obj.(*v1beta1.Ingress)
 
+		if !IsIngressApplicationGateway(ing) {
+			return
+		}
+
 		if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
 			ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 			for _, tls := range ing.Spec.TLS {
@@ -135,7 +139,11 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		if reflect.DeepEqual(oldObj, newObj) {
 			return
 		}
+		oldIng := oldObj.(*v1beta1.Ingress)
 		ing := newObj.(*v1beta1.Ingress)
+		if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
+			return
+		}
 		if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
 			ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 			context.ingressSecretsMap.Clear(ingKey)
@@ -178,7 +186,9 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		if ing == nil {
 			return
 		}
-
+		if !IsIngressApplicationGateway(ing) {
+			return
+		}
 		ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 		context.ingressSecretsMap.Erase(ingKey)
 
@@ -288,7 +298,8 @@ func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
 				break
 			}
 		}
-		if hasHTTPRule {
+
+		if hasHTTPRule && IsIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
@@ -376,4 +387,9 @@ func (i *InformerCollection) Run(stopCh chan struct{}) {
 // Stop function stops all informers in the context.
 func (c *Context) Stop() {
 	c.stopChannel <- struct{}{}
+}
+
+func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+	controllerName := ingress.Annotations["kubernetes.io/ingress.class"]
+	return controllerName == "azure/application-gateway"
 }
