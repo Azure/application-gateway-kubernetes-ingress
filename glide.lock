@@ -1,5 +1,5 @@
-hash: 13ca91213452a9ac00bbf632641a78c08e116bb83218a2c86cec0e574bbb069b
-updated: 2018-08-27T17:40:45.5994897-07:00
+hash: 5ee6f8c2dbed5b0c51125b87be01db8e29632df73ac318b46eaabf286daefdbb
+updated: 2018-08-31T17:13:16.8858455-07:00
 imports:
 - name: github.com/Azure/azure-sdk-for-go
   version: 4e8cbbfb1aeab140cd0fa97fd16b64ee18c3ca6a
@@ -7,7 +7,7 @@ imports:
   - services/network/mgmt/2018-06-01/network
   - version
 - name: github.com/Azure/go-autorest
-  version: 39013ecb48eaf6ced3f4e3e1d95515140ce6b3cf
+  version: a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a
   subpackages:
   - autorest
   - autorest/adal
@@ -77,13 +77,11 @@ imports:
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
   - context
-  - html
-  - html/atom
+  - context/ctxhttp
   - http2
   - http2/hpack
   - idna
   - lex/httplex
-  - websocket
 - name: golang.org/x/sys
   version: 95c6576299259db960f6c5b9b69ea52422860fce
   subpackages:
