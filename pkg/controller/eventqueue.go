@@ -3,7 +3,7 @@ package controller
 import (
 	"time"
 
-	"github.com/Azure/Networking-AppGW-k8s/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.9)
-project(Networking-AppGW-k8s)
+project(application-gateway-kubernetes-ingress)
 string(TOLOWER ${CMAKE_PROJECT_NAME} project_name_lowercase)
 
-set(package_name "github.com/Azure/Networking-AppGW-k8s")
+set(package_name "github.com/Azure/application-gateway-kubernetes-ingress")
 set(devenv_image_name ${project_name_lowercase})
 set(devenv_workpath "/gopath/src/${package_name}")
 set(deployment_image_name ${project_name_lowercase})

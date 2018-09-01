@@ -1,4 +1,4 @@
-package: github.com/Azure/Networking-AppGW-k8s
+package: github.com/Azure/application-gateway-kubernetes-ingress
 import:
 - package: github.com/Azure/azure-sdk-for-go
   version: ^19.0.0

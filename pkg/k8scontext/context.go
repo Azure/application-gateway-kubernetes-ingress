@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/Azure/Networking-AppGW-k8s/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 

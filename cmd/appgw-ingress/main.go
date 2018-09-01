@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 
-	"github.com/Azure/Networking-AppGW-k8s/pkg/appgw"
-	"github.com/Azure/Networking-AppGW-k8s/pkg/controller"
-	"github.com/Azure/Networking-AppGW-k8s/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
