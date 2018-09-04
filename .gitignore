@@ -39,3 +39,6 @@ jsconfig.json
 ######### Project Specific ########
 # ignore binary directory
 /bin/
+
+# Build directory
+build/
