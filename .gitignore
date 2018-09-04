@@ -1,3 +1,12 @@
+
+### code ###
+# visual studio code - https://code.visualstudio.com/
+.settings/
+.vscode/
+tsconfig.json
+jsconfig.json
+
+### Go ###
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -10,3 +19,26 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# go dep
+/vendor/
+/Godeps/
+
+### Vim ###
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+
+######### Project Specific ########
+# ignore binary directory
+/bin/
+
+# Build directory
+build/
