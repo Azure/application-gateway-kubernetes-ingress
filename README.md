@@ -1,5 +1,7 @@
 # Azure Application Gateway Kubernetes Ingress Controller
 
+This is the ingress controller for an Azure Kubernetes Service (AKS) cluster, that can consume ingress resources in a kubernetes cluster and programme an Azure Application Gateway to act as the ingress for the AKS cluster.
+
 ## Building
 
 This is a CMake-based project. Build targets include:
