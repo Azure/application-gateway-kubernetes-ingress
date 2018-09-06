@@ -20,8 +20,8 @@ add_custom_command(
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
             -w ${devenv_workpath}
             --name ${devenv_image_name}-devenv ${devenv_image_name}
-            /bin/bash -c "rm -rf vendor && glide install -v"
-    COMMAND cmake -E touch vendor/vendor.stamp
+            /bin/bash -c './scripts/vendor.sh'
+    COMMAND cmake -E touch ${CMAKE_SOURCE_DIR}/vendor/vendor.stamp
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS glide.yaml devenv
     COMMENT "running glide install -v"
