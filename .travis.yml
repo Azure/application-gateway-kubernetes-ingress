@@ -12,7 +12,7 @@ services:
       # - docker pull appgwreg.azurecr.io/modsecurity:latest
 
 script:
-    - chmod -R scripts/*
+    - chmod u+x scripts/*
     - mkdir build
     - cd build
     - cmake ..
