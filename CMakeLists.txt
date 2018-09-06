@@ -3,7 +3,7 @@ project(application-gateway-kubernetes-ingress)
 string(TOLOWER ${CMAKE_PROJECT_NAME} project_name_lowercase)
 
 set(package_name "github.com/Azure/application-gateway-kubernetes-ingress")
-set(devenv_image_name ${project_name_lowercase})
+set(devenv_image_name "${project_name_lowercase}-dev")
 set(devenv_workpath "/gopath/src/${package_name}")
 set(deployment_image_name ${project_name_lowercase})
 
@@ -19,7 +19,7 @@ add_custom_command(
     COMMAND docker run --rm --security-opt seccomp:unconfined  -t
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
             -w ${devenv_workpath}
-            --name ${devenv_image_name}-devenv ${devenv_image_name}
+            --name ${devenv_image_name} ${devenv_image_name}
             /bin/bash -c './scripts/vendor.sh'
     COMMAND cmake -E touch ${CMAKE_SOURCE_DIR}/vendor/vendor.stamp
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
