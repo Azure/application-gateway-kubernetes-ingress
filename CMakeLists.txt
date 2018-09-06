@@ -56,13 +56,19 @@ add_custom_command(
     COMMENT "compiling project in devenv"
 )
 
+add_custom_target(
+    appgw-ingress
+    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
+)
+
 add_custom_target(dockerize
     COMMAND docker build -t ${deployment_image_name}:${deployment_image_version}
             -f dockerfiles/deploy.Dockerfile ${CMAKE_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
     COMMENT "building deployment docker image"
 )
+
+add_dependencies(dockerize appgw-ingress)
 
 add_custom_target(dockerpush
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
@@ -71,7 +77,7 @@ add_custom_target(dockerpush
     COMMENT "pushing to container registry"
 )
 
-add_custom_target(appgw-ingress
+add_custom_target(appgw-ingress-all
     ALL
-    DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress dockerize
+    DEPENDS appgw-ingress dockerize
 )
