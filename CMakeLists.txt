@@ -5,10 +5,11 @@ string(TOLOWER ${CMAKE_PROJECT_NAME} project_name_lowercase)
 set(package_name "github.com/Azure/application-gateway-kubernetes-ingress")
 set(devenv_image_name "${project_name_lowercase}-dev")
 set(devenv_workpath "/gopath/src/${package_name}")
-set(deployment_image_name ${project_name_lowercase})
 
+set(deployment_image_name ${project_name_lowercase}
+    CACHE STRING "string <deployment_image_name> for docker tag/push <prefix>/<deployment_image_name>")
 set(deployment_push_prefix "" 
-    CACHE STRING "string <prefix> for docker tag/push <prefix>/${deployment_image_name}")
+    CACHE STRING "string <prefix> for docker tag/push <prefix>/<deployment_image_name>")
 set(deployment_image_version "latest"
     CACHE STRING "version of the deployment image")
 
@@ -73,7 +74,6 @@ add_dependencies(dockerize appgw-ingress)
 add_custom_target(dockerpush
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
     COMMAND docker push ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
-    DEPENDS dockerize
     COMMENT "pushing to container registry"
 )
 
