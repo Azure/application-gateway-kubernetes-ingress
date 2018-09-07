@@ -1,0 +1,25 @@
+# This file contains the essential configs for the ingress controller helm chart
+
+################################################################################
+# Specify which application gateway the ingress controller will manage
+#
+appgw:
+  subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  resourceGroup: myResourceGroup
+  name: myApplicationGateway
+
+
+################################################################################
+# Specify the authentication with Azure Resource Manager
+#
+# Two authentication methods are available:
+# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
+armAuth:
+  type: aadPodIdentity
+  binding: appgw-ingress
+
+# - Option 2: ServicePrincipal as a kubernetes secret
+# armAuth:
+#   type: servicePrincipal
+#   secretName: networking-appgw-k8s-azure-service-principal
+#   secretKey: ServicePrincipal.json

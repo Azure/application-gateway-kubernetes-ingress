@@ -1,0 +1,50 @@
+{{- if required "A valid armAuth entry is required!" .Values.armAuth }}
+{{- end}}
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+  labels:
+    app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+    chart: {{ template "application-gateway-kubernetes-ingress.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+        release: {{ .Release.Name }}
+        {{- if eq .Values.armAuth.type "aadPodIdentity"}}
+        aadpodidbinding: {{ required "armAuth.binding is required if using aadPodIdentity" .Values.armAuth.binding }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+      {{- if eq .Values.armAuth.type "servicePrincipal"}}
+        env:
+          - name: AZURE_AUTH_LOCATION
+            value: /etc/Azure/Networking-AppGW/auth/{{ required "armAuth.secretKey is required if using servicePrincipal" .Values.armAuth.secretKey }}
+      {{- end}}
+        envFrom:
+        - configMapRef:
+            name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
+      {{- if eq .Values.armAuth.type "servicePrincipal"}}
+        volumeMounts:
+          - name: {{ required "armAuth.secretName is required if using servicePrincipal" .Values.armAuth.secretName }}-mount
+            mountPath: /etc/Azure/Networking-AppGW/auth
+            readOnly: true
+      volumes:
+        - name: {{ .Values.armAuth.secretName }}-mount
+          secret:
+            secretName: {{ .Values.armAuth.secretName }}
+      {{- end}}

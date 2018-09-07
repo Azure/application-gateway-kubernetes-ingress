@@ -1,0 +1,23 @@
+Thank you for installing {{ .Chart.Name }}:{{ .Chart.Version }}. 
+
+Your release is named {{ .Release.Name }}. 
+The controller is deployed in deployment {{ template "application-gateway-kubernetes-ingress.fullname" . }}.
+
+Configuration Details:
+----------------------
+ * AzureRM Authentication Method: 
+{{- if eq .Values.armAuth.type "aadPodIdentity"}}
+    - Use AAD-Pod-Identity
+{{- else if eq .Values.armAuth.type "servicePrincipal"}}
+    - Use Service Principal
+{{- else }}
+    - ERROR!
+{{- end }}
+ * Application Gateway:
+    - Subscription ID : {{ .Values.appgw.subscriptionId }}
+    - Resource Group  : {{ .Values.appgw.resourceGroup }}
+    - Application Gateway Name : {{ .Values.appgw.name }}
+{{ if eq .Values.armAuth.type "aadPodIdentity"}}
+Please make sure the associated aadpodidentity and aadpodidbiding is configured.
+For more information on AAD-Pod-Identity, please visit https://github.com/Azure/aad-pod-identity
+{{ end }}

@@ -1,0 +1,15 @@
+{{- if required "A valid appgw entry is required!" .Values.appgw }}
+{{- end }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
+  labels:
+    chart: {{ template "application-gateway-kubernetes-ingress.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  APPGW_SUBSCRIPTION_ID: {{ required "A valid appgw entry is required!" .Values.appgw.subscriptionId }}
+  APPGW_RESOURCE_GROUP:  {{ required "A valid appgw entry is required!" .Values.appgw.resourceGroup }}
+  APPGW_NAME:            {{ required "A valid appgw entry is required!" .Values.appgw.name }}
