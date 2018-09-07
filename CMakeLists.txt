@@ -73,7 +73,9 @@ add_dependencies(dockerize appgw-ingress)
 
 add_custom_target(dockerpush
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
+    COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:latest
     COMMAND docker push ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
+    COMMAND docker push ${deployment_push_prefix}/${deployment_image_name}:latest
     COMMENT "pushing to container registry"
 )
 
