@@ -28,4 +28,4 @@ deploy:
   on:
     repo: Azure/application-gateway-kubernetes-ingress
     tags: true
-    branch: yifei/travis-fix
+    branch: master
