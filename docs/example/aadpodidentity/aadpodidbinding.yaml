@@ -1,0 +1,8 @@
+# Please see https://github.com/Azure/aad-pod-identity for more inromation
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentityBinding
+metadata:
+  name: azure-identity-binding-appgw-ingress
+spec: 
+  AzureIdentity: azure-identity-appgw-ingress # metadata.name defined in aadpodidentity.yaml
+  Selector: appgw-ingress                     # will be used by helm, identifies the pod using aadpodidbinding label

@@ -4,9 +4,9 @@
 # Specify which application gateway the ingress controller will manage
 #
 appgw:
-  subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  resourceGroup: myResourceGroup
-  name: myApplicationGateway
+  subscriptionId: <subscription-id>
+  resourceGroup: <resourcegroup-name>
+  name: <applicationgateway-name>
 
 
 ################################################################################
