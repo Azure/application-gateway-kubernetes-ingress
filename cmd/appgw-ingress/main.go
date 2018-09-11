@@ -17,6 +17,7 @@ import (
 
 	"github.com/golang/glog"
 	flag "github.com/spf13/pflag"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -61,7 +62,7 @@ func main() {
 	}
 
 	if err != nil || azureAuth == nil {
-		glog.Fatalf("Error creating Azure client from config: %v", err)
+		glog.Fatalf("Error creating Azure client from config: %v", err.Error())
 	}
 
 	appGwIdentifier := appgw.NewIdentifierFromEnv()
@@ -83,7 +84,17 @@ func main() {
 		time.Sleep(retryTime)
 	}
 
-	ctx := k8scontext.NewContext(kubeClient, "default", *resyncPeriod)
+	namespace := os.Getenv("KUBERNETES_WATCHNAMESPACE")
+
+	if len(namespace) == 0 {
+		glog.Fatal("Error creating informers, namespce is not specified")
+	}
+	_, err = kubeClient.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	if err != nil {
+		glog.Fatalf("Error creating informers, namespce [%v] is not found: %v", namespace, err.Error())
+	}
+
+	ctx := k8scontext.NewContext(kubeClient, namespace, *resyncPeriod)
 	appGwController := controller.NewAppGwIngressController(kubeClient, appGwClient, appGwIdentifier, ctx)
 
 	go appGwController.Start()
@@ -103,7 +114,7 @@ func kubeClient() kubernetes.Interface {
 
 	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("Failed to create client: %v", err)
+		glog.Fatalf("Failed to create client: %v", err.Error())
 	}
 
 	return kubeClient
@@ -113,7 +124,7 @@ func getKubeClientConfig() *rest.Config {
 	if *inCluster {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			glog.Fatalf("Error creating client configuration: %v", err)
+			glog.Fatalf("Error creating client configuration: %v", err.Error())
 		}
 		return config
 	}
@@ -126,7 +137,7 @@ func getKubeClientConfig() *rest.Config {
 	config, err := clientcmd.BuildConfigFromFlags(*apiServerHost, *kubeConfigFile)
 
 	if err != nil {
-		glog.Fatalf("error creating client configuration: %v", err)
+		glog.Fatalf("error creating client configuration: %v", err.Error())
 	}
 
 	return config

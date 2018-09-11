@@ -122,7 +122,7 @@ kubectl create -f deploy/infra/deployment.yaml
 3. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress
+    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/application-gateway-kubernetes-ingress
     ```
 
 4. Check the log of the newly created pod to verify if it started properly

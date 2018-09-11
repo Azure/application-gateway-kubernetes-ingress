@@ -17,6 +17,8 @@ Configuration Details:
     - Subscription ID : {{ .Values.appgw.subscriptionId }}
     - Resource Group  : {{ .Values.appgw.resourceGroup }}
     - Application Gateway Name : {{ .Values.appgw.name }}
+ * Kubernetes:
+    - Watch Namespace : {{ .Values.kubernetes.watchNamespace }}
 {{ if eq .Values.armAuth.type "aadPodIdentity"}}
 Please make sure the associated aadpodidentity and aadpodidbiding is configured.
 For more information on AAD-Pod-Identity, please visit https://github.com/Azure/aad-pod-identity
