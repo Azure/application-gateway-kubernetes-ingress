@@ -8,6 +8,12 @@ appgw:
   resourceGroup: <resourcegroup-name>
   name: <applicationgateway-name>
 
+################################################################################
+# Specify which kubernetes namespace the ingress controller will watch
+# Default value is "default"
+#
+# kubernetes:
+#   watchNamespace: <namespace>
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
