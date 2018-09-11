@@ -22,7 +22,8 @@ appgw:
 # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
 armAuth:
   type: aadPodIdentity
-  binding: appgw-ingress
+  identityResourceID: <identity-resource-id>
+  identityClientID:  <identity-client-id>
 
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
