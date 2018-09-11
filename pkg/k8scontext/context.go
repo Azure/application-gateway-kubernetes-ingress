@@ -11,12 +11,11 @@ import (
 
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-
-	informerv1 "k8s.io/client-go/informers/core/v1"
-	informerv1beta1 "k8s.io/client-go/informers/extensions/v1beta1"
 )
 
 // InformerCollection : all the informers for k8s resources we care about.
@@ -49,14 +48,14 @@ type Context struct {
 
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod time.Duration) *Context {
-	indexer := cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
+	informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
 
 	context := &Context{
 		informers: &InformerCollection{
-			Ingress:   informerv1beta1.NewIngressInformer(kubeClient, namespace, resyncPeriod, indexer),
-			Service:   informerv1.NewServiceInformer(kubeClient, namespace, resyncPeriod, indexer),
-			Endpoints: informerv1.NewEndpointsInformer(kubeClient, namespace, resyncPeriod, indexer),
-			Secret:    informerv1.NewSecretInformer(kubeClient, namespace, resyncPeriod, indexer),
+			Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+			Service:   informerFactory.Core().V1().Services().Informer(),
+			Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+			Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		},
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &CacheCollection{},
