@@ -1,24 +1,21 @@
-# Azure Application Gateway Kubernetes Ingress Controller
+# Azure Application Gateway Ingress Controller
+The Application Gateway Ingress Controller allows the Azure Application Gateway to be used as the ingress for an AKS (Azure Kubernetes Service) cluster. As shown in the figure below, the ingress controller runs as a pod within the AKS cluster. It consumes [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) and converts them to an Azure Application Gateway configuration which allows the gateway to load-balance traffic to Kubernetes pods.
+![Azure Applicatieon Gateway + AKS](docs/images/architecture.png)
 
-## Building
+## Setup and Usage
+Refer to the [Documentation](docs/README.md) to find instructions on installing the ingress controller on an AKS cluster, as well as tutorials on using it to configure an existing Azure Applicaton Gateway to act as an ingress to AKS.
 
-This is a CMake-based project. Build targets include:
-
-- `ALL_BUILD` (default target) builds `appgw-ingress` and `dockerize` target
-- `devenv` builds a docker image with configured development environment
-- `vendor` installs dependency using `glide` in a docker container with image from `devenv` target
-- `appgw-ingress` builds the binary for this controller in a docker container with image from `devenv` target
-- `dockerize` builds a docker image with the binary from `appgw-ingress` target
-- `dockerpush` pushes the docker image to a container registry with prefix defined in CMake variable `<deployment_push_prefix>`
-
-To run the CMake targets:
-
-1. `mkdir build && cd build` creates and enters a build directory
-2. `cmake ..` generates project configuration in the build directory
-3. `cmake --build .` to build the default target,
-    or `cmake --build . --target <target_name>` to specify a target to run from above
+## Reporting Issues
+The best way to report an issue is to create a Github Issue for the project. Please include the following information when creating the issue:
+* Subscription ID for AKS cluster.
+* Subscription ID for Application Gateway.
+* AKS cluster name/ARM Resource ID.
+* Application Gateway name/ARM Resource ID.
+* Ingress resource definition that might causing the problem.
+* The Helm configuration used to install the ingress controller.
 
 ## Contributing
+This is a Golang project. You can find the build instructions of the project in the [Developer Guide](docs/build.md).
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
