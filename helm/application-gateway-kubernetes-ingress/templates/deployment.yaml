@@ -22,7 +22,7 @@ spec:
         app: {{ template "application-gateway-kubernetes-ingress.name" . }}
         release: {{ .Release.Name }}
         {{- if eq .Values.armAuth.type "aadPodIdentity"}}
-        aadpodidbinding: {{ required "armAuth.binding is required if using aadPodIdentity" .Values.armAuth.binding }}
+        aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
         {{- end }}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
