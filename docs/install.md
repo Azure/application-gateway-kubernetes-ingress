@@ -24,7 +24,6 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     az identity create -g <resourcegroup> -n <identity-name>
     ```
 2. Find the principal, resource and client ID for this identity
-
     ```bash
     az identity show -g <resourcegroup> -n <identity-name>
     ```
@@ -76,11 +75,11 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
         identityResourceID: <identity-resource-id>
         identityClientID:  <identity-client-id>
     ```
-    **NOTE:** The <identity-resource-id> and <identity-client-id> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>
         ```
-        Where <resourcegroup> is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
+        Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
 
 3. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
