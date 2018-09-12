@@ -1,84 +1,41 @@
-# Install
+# Setting up Application Gateway ingress controller on AKS
+The Application Gateway Ingress controller runs as pod within the AKS cluster. It listens to [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) from the Kubernetes API server and converts them to Azure Application Gateway configuration and updates the Application Gateway through the Azure Resource Manager (ARM).
 
-## Authentication with Azure Resource Manager
+In order to install the ingress controller on AKS we use [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm). 
 
-The ingress controller supports two ways of authenticating with the Azure Resource Manager
+## Assumptions
+* An existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant).
+* An existing Azure Kubernetes Service cluster with the following properties:
+** RBAC is diabled in the cluster.
+** The AKS service is launched with Advanced Networking.
+* The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service is installed on the AKS cluster.
 
-1. Manually create a Azure SDK authentication JSON file and upload it to the AKS cluster as a secret
-2. **(Prefered)** Use [AAD-Pod-Identity](https://github.com/Azure/aad-pod-identity), see below
+## Setting up Authentication with Azure Resource Manager (ARM)
+Since the ingress controller needs to talk to the Kubernetes API server and the Azure Resource Manager it will need an identity to access both these entities. Since we are currently supporting only a non-RBAC cluster, the ingress controller currently does not need an identity to talk to the Kubernetes API server but needs and identity to talk to ARM. 
 
-## Get Started
+### Setting up aad-pod-identity
+The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean way of exposing an existing Azure AD identity to a pod. Kindly follow the [aad-pod-identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to deploy the aad-pod-identity service on your AKS cluster. This is a pre-requiste for installing the ingress controller.
 
-In this example, we will be deploying the ingress controller with `AAD-Pod-Identity` as the authentication with ARM
-
-### Prerequisites
-
-- Created an application gateway and an AKS cluster
-- Configured networking of the application gateway and the AKS cluster so that the pods are accessible by the application gateway
-- Installed `helm` in the AKS cluster
-
-### Configuring AAD-Pod-Identity
-
-#### Deploy `aad-pod-identity` infra 
-
-Please see https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra for more inromation
-
-```bash
-kubectl create -f deploy/infra/deployment.yaml
-```
-
-#### Create and Install Azure Identity
+#### Create Azure Identity on ARM
 
 1. Create an Azure identity **in the same resource group as the AKS nodes** (typically the resource group with a `MC_` prefix string)
 
     ```bash
     az identity create -g <resourcegroup> -n <identity-name>
     ```
-
-2. Assign this new identity `Contributor` acess on the application gateway
-3. Find the resource and client ID for this identity
+2. Find the principal, resource and client ID for this identity
 
     ```bash
     az identity show -g <resourcegroup> -n <identity-name>
     ```
-
-4. Edit [aadpodidentity.yaml](example/aadpodidentity/aadpodidentity.yaml) to include values from the Azure identity
-
-    ```yaml
-    # Please see https://github.com/Azure/aad-pod-identity for more inromation
-    apiVersion: "aadpodidentity.k8s.io/v1"
-    kind: AzureIdentity
-    metadata:
-      name: azure-identity-appgw-ingress          # will be used by aadpodidbinding.yaml
-    spec:
-      type: 0
-      ResourceID: "/subscriptions/<subscription-id>/resourceGroups/<mc-resourcegroup-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
-      ClientID: "<identity-client-id>"
-    ```
-
-5. Edit [aadpodidbinding.yaml](example/aadpodidentity/aadpodidbinding.yaml) to match the `aadpodidentity.yaml`
-
-    ```yaml
-    # Please see https://github.com/Azure/aad-pod-identity for more inromation
-    apiVersion: "aadpodidentity.k8s.io/v1"
-    kind: AzureIdentityBinding
-    metadata:
-      name: azure-identity-binding-appgw-ingress
-    spec:
-      AzureIdentity: azure-identity-appgw-ingress # metadata.name defined in aadpodidentity.yaml
-      Selector: appgw-ingress                     # will be used by helm, identifies the pod using aadpodidbinding label
-    ```
-
-6. Apply `aadpodidentity.yaml` and `aadpodidbinding.yaml`
-
+3. Assign this new identity `Contributor` access on the application gateway
     ```bash
-    kubectl apply -f aadpodidentity.yaml
-    kubectl apply -f aadpodidbinding.yaml
+    az role assignment create --role Contributor --assignee <principal ID from the command above> --scope <Resource ID of Application Gateway>
     ```
-
-    These two resources establishes binding between the Azure identity and the ingress controller pod that we will be creating.
-
-    In this example, the `aad-pod-identity` infra will automatically attach  the Azure identity to the pod identified by label `aadpodidbinding:appgw-ingress`.
+4. Assign this new identity `Reader` access on the resource group that the application gateway belongs to
+    ```bash
+    az role assignment create --role Reader --assignee <principal ID from the command above> --scope <Resource ID of Application Gateway Resource Group>
+    ```
 
 ### Install Ingress Controller as a Helm Chart
 
@@ -89,7 +46,7 @@ kubectl create -f deploy/infra/deployment.yaml
     helm repo update
     ```
 
-2. Edit [helm-config.yaml](example/helm-config.yaml) and fill in the values to match your use case
+2. Edit [helm-config.yaml](example/helm-config.yaml) and fill in the values for `appgw` and `armAuth`
 
     ```yaml
     # This file contains the essential configs for the ingress controller helm chart
@@ -98,10 +55,16 @@ kubectl create -f deploy/infra/deployment.yaml
     # Specify which application gateway the ingress controller will manage
     #
     appgw:
-      subscriptionId: <subscription-id>
-      resourceGroup: <resourcegroup-name>
-      name: <applicationgateway-name>
+        subscriptionId: <subscription-id>
+        resourceGroup: <resourcegroup-name>
+        name: <applicationgateway-name>
 
+    ################################################################################
+    # Specify which kubernetes namespace the ingress controller will watch
+    # Default value is "default"
+    #
+    # kubernetes:
+    #   watchNamespace: <namespace>
 
     ################################################################################
     # Specify the authentication with Azure Resource Manager
@@ -109,15 +72,15 @@ kubectl create -f deploy/infra/deployment.yaml
     # Two authentication methods are available:
     # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
     armAuth:
-      type: aadPodIdentity
-      binding: appgw-ingress  # the Selector defined in aadpodidbinding.yaml
-
-    # - Option 2: ServicePrincipal as a kubernetes secret
-    # armAuth:
-    #   type: servicePrincipal
-    #   secretName: networking-appgw-k8s-azure-service-principal
-    #   secretKey: ServicePrincipal.json
+        type: aadPodIdentity
+        identityResourceID: <identity-resource-id>
+        identityClientID:  <identity-client-id>
     ```
+    **NOTE:** The <identity-resource-id> and <identity-client-id> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
+        ```bash
+        az identity show -g <resourcegroup> -n <identity-name>
+        ```
+        Where <resourcegroup> is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
 
 3. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
