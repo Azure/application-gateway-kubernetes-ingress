@@ -35,7 +35,7 @@ var (
 	kubeConfigFile = flags.String("kubeconfig", "",
 		"Path to kubeconfig file with authorization and master location information.")
 
-	resyncPeriod = flags.Duration("sync-period", 50*time.Second,
+	resyncPeriod = flags.Duration("sync-period", 2*time.Minute,
 		"Interval at which to re-list and confirm cloud resources.")
 )
 
