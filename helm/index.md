@@ -1,6 +1,6 @@
 # Helm Repository
 
-This is the helm repository for `application-gateway-kubernetes-ingress`.
+This is the helm repository for `ingress-azure`.
 
 To add this repository
 
