@@ -10,7 +10,7 @@ This example will also demonstrate how to set up TLS on the same service.
 
 ## Deploy `guestbook` application
 
-1. Download `guestbook-all-in-one.yaml` from [here](https://github.com/kubernetes/examples/blob/master/guestbook/all-in-one/guestbook-all-in-one.yaml)
+1. Download `guestbook-all-in-one.yaml` from [here](https://raw.githubusercontent.com/kubernetes/examples/master/guestbook/all-in-one/guestbook-all-in-one.yaml)
 2. Deploy `guestbook-all-in-one.yaml` into your AKS cluster by running
 
     ```bash
@@ -28,7 +28,7 @@ We will be using [ing-guestbook.yaml](example/guestbook/ing-guestbook.yaml) as t
 This ingress will expose the `frontend` service of the `guestbook-all-in-one` deployment
 as a default backend of the Application Gateway.
 
-1. Deploy `ing-guestbook.yaml` by running
+1. Deploy [ing-guestbook.yaml](example/guestbook/ing-guestbook.yaml) by running
 
     ```bash
     kubectl apply -f ing-guestbook.yaml
@@ -43,7 +43,7 @@ public address of the Application Gateway.
 
 ### Without specified hostname
 
-Without specifying hostname, the guestbook service will be availble on through all the hostnames pointing to the application gateway.
+Without specifying hostname, the guestbook service will be availble on all the hostnames pointing to the application gateway.
 
 1. Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key.
     You can create a kubernetes secret by running
@@ -63,7 +63,7 @@ Without specifying hostname, the guestbook service will be availble on through a
     ...
     ```
 
-3. Deploy `ing-guestbook-tls.yaml` by running
+3. Deploy [ing-guestbook-tls.yaml](example/guestbook/ing-guestbook-tls.yaml) by running
 
     ```bash
     kubectl apply -f ing-guestbook-tls.yaml
