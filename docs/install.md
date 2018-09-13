@@ -84,7 +84,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
 3. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/application-gateway-kubernetes-ingress
+    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
     ```
 
 4. Check the log of the newly created pod to verify if it started properly

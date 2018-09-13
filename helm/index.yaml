@@ -1,34 +1,14 @@
 apiVersion: v1
 entries:
-  application-gateway-kubernetes-ingress:
+  ingress-azure:
   - apiVersion: v1
     appVersion: "1.0"
-    created: 2018-09-13T11:57:04.9604478-07:00
+    created: 2018-09-13T12:43:02.1802783-07:00
     description: Use Azure Application Gateway as the ingress for an Azure Kubernetes
       Service cluster.
-    digest: 501f43739d6ae5a9faaec73285331a0989b13131c30d99db1fe733f187f0f53b
-    name: application-gateway-kubernetes-ingress
+    digest: 9664986a6affd3487d5a41772c7e92b23d79693e89d37143e094fec0fbcec1c2
+    name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/application-gateway-kubernetes-ingress-0.1.2.tgz
+    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.1.2.tgz
     version: 0.1.2
-  - apiVersion: v1
-    appVersion: "1.0"
-    created: 2018-09-13T11:57:04.9604478-07:00
-    description: Use Azure Application Gateway as the ingress for an Azure Kubernetes
-      Service cluster.
-    digest: 7997c4b1cf5548dd1beac238a7bc27ece00219df8067acecace404dcad369a2c
-    name: application-gateway-kubernetes-ingress
-    urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/application-gateway-kubernetes-ingress-0.1.1.tgz
-    version: 0.1.1
-  - apiVersion: v1
-    appVersion: "1.0"
-    created: 2018-09-13T11:57:04.9574189-07:00
-    description: Use Azure Application Gateway as the ingress for an Azure Kubernetes
-      Service cluster.
-    digest: 2b69c2ce65458c1e8536abc83629cd7ccc0bc422a81e93c1a198e80ce7666ebd
-    name: application-gateway-kubernetes-ingress
-    urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/application-gateway-kubernetes-ingress-0.1.0.tgz
-    version: 0.1.0
-generated: 2018-09-13T11:57:04.9494482-07:00
+generated: 2018-09-13T12:43:02.1792823-07:00

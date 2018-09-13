@@ -5,7 +5,7 @@ This example will also demonstrate how to set up TLS on the same service.
 
 ## Prerequisite
 
-- Installed `application-gateway-kubernetes-ingress` helm chart (see [here](install))
+- Installed `ingress-azure` helm chart (see [here](install))
 - If you want to use HTTPS on this application, you will need a x509 certificate and its private key.
 
 ## Deploy `guestbook` application
