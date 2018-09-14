@@ -1,3 +1,9 @@
+- [Assumptions](#assumptions)
+- [Setting up Authentication with Azure Resource Manager (ARM)](#setting-up-authentication-with-azure-resource-manager)
+    * [Setting up aad-pod-identity](#setting-up-aad-pod-identity)
+        + [Create Azure Identity on ARM](#create-azure-identity-on-arm)
+- [Install Ingress Controller using Helm](#install-ingress-controller-as-a-helm-chart)
+
 # Setting up Application Gateway ingress controller on AKS
 The Application Gateway Ingress controller runs as pod within the AKS cluster. It listens to [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) from the Kubernetes API server and converts them to Azure Application Gateway configuration and updates the Application Gateway through the Azure Resource Manager (ARM).
 
@@ -10,7 +16,7 @@ In order to install the ingress controller on AKS we use [Helm](https://docs.mic
     * The AKS service is launched with Advanced Networking.
 * The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service is installed on the AKS cluster.
 
-## Setting up Authentication with Azure Resource Manager (ARM)
+## Setting up Authentication with Azure Resource Manager
 Since the ingress controller needs to talk to the Kubernetes API server and the Azure Resource Manager it will need an identity to access both these entities. Since we are currently supporting only a non-RBAC cluster, the ingress controller currently does not need an identity to talk to the Kubernetes API server but needs and identity to talk to ARM. 
 
 ### Setting up aad-pod-identity
@@ -36,7 +42,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     az role assignment create --role Reader --assignee <principal ID from the command above> --scope <Resource ID of Application Gateway Resource Group>
     ```
 
-### Install Ingress Controller as a Helm Chart
+## Install Ingress Controller as a Helm Chart
 
 1. Add the `application-gateway-kubernetes-ingress` helm repo and perform a helm update
 
