@@ -6,10 +6,6 @@ language: c
 services:
     - docker
 
-install:
-    # Setting up docker credentials.
-    - echo "$DOCKER_PASSWORD" | docker login $ACR_REGISTRY -u "$DOCKER_USERNAME" --password-stdin
-
 script:
     - cd $TRAVIS_BUILD_DIR
     - chmod u+x scripts/*
@@ -24,7 +20,9 @@ script:
 deploy:
   provider: script
   skip_cleanup: true
-  script: cd $TRAVIS_BUILD_DIR/build && cmake --build . --target dockerpush
+  script:
+    - echo "$DOCKER_PASSWORD" | docker login $ACR_REGISTRY -u "$DOCKER_USERNAME" --password-stdin
+    - cd $TRAVIS_BUILD_DIR/build && cmake --build . --target dockerpush
   on:
     repo: Azure/application-gateway-kubernetes-ingress
     tags: true
