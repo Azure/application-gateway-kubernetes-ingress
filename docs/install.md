@@ -12,7 +12,7 @@ In order to install the ingress controller on AKS we use [Helm](https://docs.mic
 ## Assumptions
 * An existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant).
 * An existing Azure Kubernetes Service cluster with the following properties:
-    * RBAC is diabled in the cluster.
+    * RBAC is disabled in the cluster.
     * The AKS service is launched with Advanced Networking.
 * The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service is installed on the AKS cluster.
 
