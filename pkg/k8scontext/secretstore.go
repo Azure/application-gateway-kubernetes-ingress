@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// SecretStore is the interface definition for secret store
 type SecretStore interface {
 	GetPfxCertificate(secretKey string) []byte
 	convertSecret(secretKey string, secret *v1.Secret) bool
@@ -30,6 +31,7 @@ type secretStore struct {
 	Cache          cache.ThreadSafeStore
 }
 
+// NewSecretStore creates a new Secret Store object
 func NewSecretStore() SecretStore {
 	return &secretStore{
 		Cache: cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{}),

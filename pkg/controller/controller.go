@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package controller
 
 import (
@@ -58,7 +59,7 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewAppGwConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat)
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat)
 
 	// Get all the ingresses
 	ingressList := c.k8sContext.GetHTTPIngressList()

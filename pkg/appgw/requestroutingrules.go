@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -72,7 +73,7 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 	return urlPathMap
 }
 
-func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error) {
+func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	urlPathMaps := make(map[frontendListenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	for _, ingress := range ingressList {
 		defaultAddressPoolID := builder.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)

@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -15,7 +16,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error) {
+func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	addressPools := make([](network.ApplicationGatewayBackendAddressPool), 0)
 	addressPools = append(addressPools, defaultBackendAddressPool())
 

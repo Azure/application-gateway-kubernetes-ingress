@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -35,7 +36,7 @@ func (builder *appGwConfigBuilder) getCertificate(ingressKey string, hostname st
 	return cert, &secID
 }
 
-func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error) {
+func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	frontendListeners := utils.NewUnorderedSet()
 	frontendPortsSet := utils.NewUnorderedSet()
 	builder.secretIDCertificateMap = make(map[secretIdentifier]*string)

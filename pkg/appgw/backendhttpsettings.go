@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -18,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error) {
+func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := utils.NewUnorderedSet()
 	serviceBackendPairsMap := make(map[backendIdentifier](utils.UnorderedSet))
 

@@ -108,7 +108,7 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 	ingressAddFunc := func(obj interface{}) {
 		ing := obj.(*v1beta1.Ingress)
 
-		if !IsIngressApplicationGateway(ing) {
+		if !isIngressApplicationGateway(ing) {
 			return
 		}
 
@@ -145,7 +145,7 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		}
 		oldIng := oldObj.(*v1beta1.Ingress)
 		ing := newObj.(*v1beta1.Ingress)
-		if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
+		if !isIngressApplicationGateway(ing) && !isIngressApplicationGateway(oldIng) {
 			return
 		}
 		if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
@@ -190,7 +190,7 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		if ing == nil {
 			return
 		}
-		if !IsIngressApplicationGateway(ing) {
+		if !isIngressApplicationGateway(ing) {
 			return
 		}
 		ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
@@ -303,7 +303,7 @@ func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
 			}
 		}
 
-		if hasHTTPRule && IsIngressApplicationGateway(ingress) {
+		if hasHTTPRule && isIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
@@ -393,7 +393,7 @@ func (c *Context) Stop() {
 	c.stopChannel <- struct{}{}
 }
 
-func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	controllerName := ingress.Annotations["kubernetes.io/ingress.class"]
 	return controllerName == "azure/application-gateway"
 }
