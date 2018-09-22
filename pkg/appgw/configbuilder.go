@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -12,13 +13,13 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// AppGwConfigBuilder is a builder for application gateway configuration
-type AppGwConfigBuilder interface {
+// ConfigBuilder is a builder for application gateway configuration
+type ConfigBuilder interface {
 	// builder pattern
-	BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error)
-	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error)
-	HTTPListeners(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error)
-	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (AppGwConfigBuilder, error)
+	BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 
 	Build() *network.ApplicationGatewayPropertiesFormat
 }
@@ -41,8 +42,8 @@ type appGwConfigBuilder struct {
 	appGwConfig     network.ApplicationGatewayPropertiesFormat
 }
 
-// NewAppGwConfigBuilder construct a builder
-func NewAppGwConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat) AppGwConfigBuilder {
+// NewConfigBuilder construct a builder
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat) ConfigBuilder {
 	return &appGwConfigBuilder{
 		serviceBackendPairMap:         make(map[backendIdentifier](serviceBackendPortPair)),
 		httpListenersMap:              make(map[frontendListenerIdentifier](*network.ApplicationGatewayHTTPListener)),
