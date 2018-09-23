@@ -16,6 +16,10 @@ RUN mkdir -p /gopath/bin
 ENV GOPATH /gopath
 ENV PATH "${PATH}:${GOPATH}/bin:/usr/local/go/bin"
 
+# configure ginko and gomega
+RUN go get github.com/onsi/ginkgo/ginkgo
+RUN go get github.com/onsi/gomega/...
+
 RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 
