@@ -315,7 +315,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) *v1.Endpoints {
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get endpoints from store, error occured %s", err.Error())
+		glog.V(1).Infof("unable to get endpoints from store, error occurred %s", err.Error())
 		return nil
 	}
 
@@ -333,7 +333,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get service from store, error occured %s", err.Error())
+		glog.V(1).Infof("unable to get service from store, error occurred %s", err.Error())
 		return nil
 	}
 
@@ -351,7 +351,7 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get secret from store, error occured %s", err.Error())
+		glog.V(1).Infof("unable to get secret from store, error occurred %s", err.Error())
 		return nil
 	}
 
@@ -364,7 +364,7 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	return secret
 }
 
-// Run function starts all the infomers and waits for an initial sync.
+// Run function starts all the informers and waits for an initial sync.
 func (i *InformerCollection) Run(stopCh chan struct{}) {
 	go i.Endpoints.Run(stopCh)
 	go i.Service.Run(stopCh)

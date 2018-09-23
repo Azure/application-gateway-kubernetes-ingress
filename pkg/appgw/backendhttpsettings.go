@@ -120,7 +120,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			// more than one possible backend port exposed through ingress
 			glog.Warningf("service:port [%s:%s] has more than one service-backend port binding",
 				backendID.serviceKey(), backendID.ServicePort.String())
-			return builder, errors.New("more than one sevice-backend port binding is not allowed")
+			return builder, errors.New("more than one service-backend port binding is not allowed")
 		}
 		var uniquePair serviceBackendPortPair
 		serviceBackendPairs.ForEach(func(pairI interface{}) {

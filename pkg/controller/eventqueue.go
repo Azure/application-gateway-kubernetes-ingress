@@ -67,7 +67,7 @@ func (q *EventQueue) EnqueueCanSkip(el interface{}, skip bool) {
 	q.queue.Add(v)
 }
 
-// Enqueue adds an non-skippable event with parameter el as payload.
+// Enqueue adds an non-skipable event with parameter el as payload.
 func (q *EventQueue) Enqueue(el interface{}) {
 	q.EnqueueCanSkip(el, false)
 }

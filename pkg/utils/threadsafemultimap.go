@@ -64,7 +64,7 @@ func (m *threadsafeMultiMap) Erase(key interface{}) bool {
 	return false
 }
 
-// EraseValue removes all the occurences of a particular value from the multimap.
+// EraseValue removes all the occurrences of a particular value from the multimap.
 func (m *threadsafeMultiMap) EraseValue(value interface{}) bool {
 	m.Lock()
 	defer m.Unlock()

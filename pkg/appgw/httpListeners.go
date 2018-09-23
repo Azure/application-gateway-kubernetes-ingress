@@ -29,7 +29,7 @@ func (builder *appGwConfigBuilder) getCertificate(ingressKey string, hostname st
 	}
 	cert, exists := builder.secretIDCertificateMap[secID]
 	if !exists {
-		// secret refered does not correspond to a certificate
+		// secret referred does not correspond to a certificate
 		return nil, nil
 	}
 	return cert, &secID
