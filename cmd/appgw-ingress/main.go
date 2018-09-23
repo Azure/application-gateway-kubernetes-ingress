@@ -91,11 +91,11 @@ func main() {
 	namespace := os.Getenv("KUBERNETES_WATCHNAMESPACE")
 
 	if len(namespace) == 0 {
-		glog.Fatal("Error creating informers, namespce is not specified")
+		glog.Fatal("Error creating informers, namespace is not specified")
 	}
 	_, err = kubeClient.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 	if err != nil {
-		glog.Fatalf("Error creating informers, namespce [%v] is not found: %v", namespace, err.Error())
+		glog.Fatalf("Error creating informers, namespace [%v] is not found: %v", namespace, err.Error())
 	}
 
 	ctx := k8scontext.NewContext(kubeClient, namespace, *resyncPeriod)

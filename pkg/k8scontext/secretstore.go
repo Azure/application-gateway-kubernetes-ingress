@@ -117,7 +117,7 @@ func (s *secretStore) convertSecret(secretKey string, secret *v1.Secret) bool {
 	pfxCert := cout.Bytes()
 
 	glog.V(1).Infof("converted secret [%v]", secretKey)
-	// TODO i'm not sure if comparision against existing certificate can help
+	// TODO i'm not sure if comparison against existing certificate can help
 	// us optimize by eliminating some events
 	_, exists := s.Cache.Get(secretKey)
 	if exists {

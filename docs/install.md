@@ -20,7 +20,7 @@ In order to install the ingress controller on AKS we use [Helm](https://docs.mic
 Since the ingress controller needs to talk to the Kubernetes API server and the Azure Resource Manager it will need an identity to access both these entities. Since we are currently supporting only a non-RBAC cluster, the ingress controller currently does not need an identity to talk to the Kubernetes API server but needs and identity to talk to ARM. 
 
 ### Setting up aad-pod-identity
-The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean way of exposing an existing Azure AD identity to a pod. Kindly follow the [aad-pod-identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to deploy the aad-pod-identity service on your AKS cluster. This is a pre-requiste for installing the ingress controller.
+The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean way of exposing an existing Azure AD identity to a pod. Kindly follow the [aad-pod-identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to deploy the aad-pod-identity service on your AKS cluster. This is a pre-requisite for installing the ingress controller.
 
 #### Create Azure Identity on ARM
 

@@ -4,7 +4,7 @@
 - [Expose services over HTTPS](#expose-services-over-https)
   * [Without specified hostname](#without-specified-hostname)
   * [With specified hostname](#with-specified-hostname)
-- [Inegrate with other services](#integrate-with-other-services)
+- [Integrate with other services](#integrate-with-other-services)
 
 # Tutorials
 These tutorials help illustrate the usage of [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) to expose an example Kubernetes service through the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) over HTTP or HTTPS.
@@ -16,7 +16,7 @@ These tutorials help illustrate the usage of [Kubernetes Ingress Resources](http
 
 ## Deploy `guestbook` application
 
-The guestbook application is a cannoical Kubernetes application that composes of a Web UI frontend, a backend and a Redis database. By default, `guestbook` exposes its application through a service with name `frontend` on port `80`. Without a Kubernetes Ingress Resource the service is not accessible from outside the AKS cluster. We will use the application and setup Ingress Resources to access the application through HTTP and HTTPS.
+The guestbook application is a canonical Kubernetes application that composes of a Web UI frontend, a backend and a Redis database. By default, `guestbook` exposes its application through a service with name `frontend` on port `80`. Without a Kubernetes Ingress Resource the service is not accessible from outside the AKS cluster. We will use the application and setup Ingress Resources to access the application through HTTP and HTTPS.
 
 Follow the instructions below to deploy the guestbook application.
 
@@ -70,7 +70,7 @@ public address of the Application Gateway.
 
 ### Without specified hostname
 
-Without specifying hostname, the guestbook service will be availble on all the hostnames pointing to the application gateway.
+Without specifying hostname, the guestbook service will be available on all the host-names pointing to the application gateway.
 
 1. Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key.
     You can create a kubernetes secret by running
@@ -110,11 +110,11 @@ Without specifying hostname, the guestbook service will be availble on all the h
 
 4. Check the log of the ingress controller for deployment status.
 
-Now the `guestbook` application will be availble on both HTTP and HTTPS.
+Now the `guestbook` application will be available on both HTTP and HTTPS.
 
 ### With specified hostname
 
-You can also sepcify the hostname on the ingress in order to multiplex TLS configurations and services.
+You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
 By specifying hostname, the guestbook service will only be availble on the specified host.
 
 1. Define the following ingress.
@@ -149,7 +149,7 @@ By specifying hostname, the guestbook service will only be availble on the speci
 
 3. Check the log of the ingress controller for deployment status.
 
-Now the `guestbook` application will be availble on both HTTP and HTTPS only on the specified host (`<guestbook.contoso.com>` in this example).
+Now the `guestbook` application will be available on both HTTP and HTTPS only on the specified host (`<guestbook.contoso.com>` in this example).
 
 ## Integrate with other services
 

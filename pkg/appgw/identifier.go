@@ -38,7 +38,7 @@ func NewIdentifierFromEnv() Identifier {
 	appgwName := os.Getenv("APPGW_NAME")
 
 	if len(subscriptionID) == 0 || len(resourceGroup) == 0 || len(appgwName) == 0 {
-		glog.Fatalf("Errors in environment varaibles: all values must be defined")
+		glog.Fatalf("Errors in environment variables: all values must be defined")
 	}
 
 	return NewIdentifier(subscriptionID, resourceGroup, appgwName)
