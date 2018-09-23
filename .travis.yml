@@ -7,16 +7,16 @@ services:
     - docker
 
 script:
-    - cd $TRAVIS_BUILD_DIR
-    - chmod u+x scripts/*
-    - mkdir build
-    - cd build
-    - IMAGE_VERSION=${TRAVIS_TAG:-latest}
-    - cmake .. -Ddeployment_push_prefix="$ACR_REGISTRY" 
-               -Ddeployment_image_name="public/azure-application-gateway/kubernetes-ingress" 
-               -Ddeployment_image_version="$IMAGE_VERSION" 
-    - cmake --build .
-
+  - cd $TRAVIS_BUILD_DIR
+  - chmod u+x scripts/*
+  - mkdir build
+  - cd build
+  - IMAGE_VERSION=${TRAVIS_TAG:-latest}
+  - cmake .. -Ddeployment_push_prefix="$ACR_REGISTRY" 
+              -Ddeployment_image_name="public/azure-application-gateway/kubernetes-ingress" 
+              -Ddeployment_image_version="$IMAGE_VERSION" 
+  - cmake --build .
+  
 deploy:
   provider: script
   skip_cleanup: true

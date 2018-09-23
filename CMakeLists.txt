@@ -69,7 +69,6 @@ add_custom_target(test-pkg-utils
             -w ${devenv_workpath}
             --name ${devenv_image_name}-devenv ${devenv_image_name}
             ginkgo -v pkg/utils
-            #go test ${package_name}/pkg/utils --ginkgo.v -ginkgo.progress 
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
