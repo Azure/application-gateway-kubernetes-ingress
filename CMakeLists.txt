@@ -62,6 +62,24 @@ add_custom_target(
     DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
 )
 
+# Adding test targets.
+add_custom_target(test-pkg-utils
+    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
+            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
+            -w ${devenv_workpath}
+            --name ${devenv_image_name}-devenv ${devenv_image_name}
+            ginkgo -v pkg/utils
+            #go test ${package_name}/pkg/utils --ginkgo.v -ginkgo.progress 
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+add_custom_target(go-tests
+    DEPENDS test-pkg-utils
+)
+
+add_dependencies(go-tests appgw-ingress)
+
+
 add_custom_target(dockerize
     COMMAND docker build -t ${deployment_image_name}:${deployment_image_version}
             -f dockerfiles/deploy.Dockerfile ${CMAKE_SOURCE_DIR}
@@ -69,7 +87,7 @@ add_custom_target(dockerize
     COMMENT "building deployment docker image"
 )
 
-add_dependencies(dockerize appgw-ingress)
+add_dependencies(dockerize go-tests)
 
 add_custom_target(dockerpush
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
@@ -79,7 +97,8 @@ add_custom_target(dockerpush
     COMMENT "pushing to container registry"
 )
 
+
 add_custom_target(appgw-ingress-all
     ALL
-    DEPENDS appgw-ingress dockerize
+    DEPENDS appgw-ingress go-tests dockerize
 )
