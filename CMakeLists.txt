@@ -53,7 +53,7 @@ add_custom_command(
             --name ${devenv_image_name}-devenv ${devenv_image_name}
             /bin/bash -c './scripts/build.sh'
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS devenv vendor .always_rebuild
+    DEPENDS devenv .always_rebuild
     COMMENT "compiling project in devenv"
 )
 
