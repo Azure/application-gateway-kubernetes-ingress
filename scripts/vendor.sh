@@ -1,4 +1,4 @@
 #!/bin/bash
 rm -rf vendor
-glide install -v
+glide update -v
 chmod -R 777 vendor
