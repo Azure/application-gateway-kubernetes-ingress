@@ -51,6 +51,16 @@ type Context struct {
 	UpdateChannel *channels.RingChannel
 }
 
+const (
+	// IngressClass defines the key of the annotation which needs to be set in order to specify
+	// that this is an ingress resource meant for the application gateway ingress controller.
+	IngressClass = "kubernetes.io/ingress.class"
+
+	// IngressControllerName defines the value of the `IngressClass` annotation that will tell the ingress controller
+	// whether it should act on this ingress resource or not.
+	IngressControllerName = "azure/application-gateway"
+)
+
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod time.Duration) *Context {
 	informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
@@ -394,6 +404,6 @@ func (c *Context) Stop() {
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
-	controllerName := ingress.Annotations["kubernetes.io/ingress.class"]
-	return controllerName == "azure/application-gateway"
+	controllerName := ingress.Annotations[IngressClass]
+	return controllerName == IngressControllerName
 }
