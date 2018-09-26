@@ -28,11 +28,13 @@ add_custom_command(
     COMMENT "running glide install -v"
 )
 
+# Go vendoring
 add_custom_target(
     vendor
     DEPENDS ${CMAKE_SOURCE_DIR}/vendor/vendor.stamp
 )
 
+# Docker image for build environment
 add_custom_target(devenv
     COMMAND docker build -t ${devenv_image_name}
             -f dockerfiles/devenv.Dockerfile ${CMAKE_SOURCE_DIR}
@@ -45,6 +47,7 @@ add_custom_command(
     COMMAND cmake -E echo
 )
 
+# Custom command to generate the GoLang binaries
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
     COMMAND docker run --rm --security-opt seccomp:unconfined  -t
@@ -57,37 +60,49 @@ add_custom_command(
     COMMENT "compiling project in devenv"
 )
 
+# Build target for building the GoLang binaries
 add_custom_target(
     appgw-ingress
     DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
 )
 
-# Adding test targets.
+# Test target for pkg/utils
 add_custom_target(test-pkg-utils
     COMMAND docker run --rm --security-opt seccomp:unconfined  -t
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
             -w ${devenv_workpath}
             --name ${devenv_image_name}-devenv ${devenv_image_name}
             ginkgo -v pkg/utils
+    DEPENDS appgw-ingress
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-add_custom_target(go-tests
-    DEPENDS test-pkg-utils
+# Test target for pkg/k8scontext
+add_custom_target(test-pkg-k8scontext
+    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
+            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
+            -w ${devenv_workpath}
+            --name ${devenv_image_name}-devenv ${devenv_image_name}
+            ginkgo -v pkg/k8scontext
+    DEPENDS appgw-ingress
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-add_dependencies(go-tests appgw-ingress)
+# Top-level test target for running all go tests
+add_custom_target(go-tests
+    DEPENDS test-pkg-utils test-pkg-k8scontext
+)
 
-
+# Target for building a docker image for deploying on a Kubernetes cluster.
 add_custom_target(dockerize
     COMMAND docker build -t ${deployment_image_name}:${deployment_image_version}
             -f dockerfiles/deploy.Dockerfile ${CMAKE_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS go-tests
     COMMENT "building deployment docker image"
 )
 
-add_dependencies(dockerize go-tests)
-
+# Target for pushing the docker image of the Kuberentes pod to a container registry.
 add_custom_target(dockerpush
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:${deployment_image_version}
     COMMAND docker tag ${deployment_image_name}:${deployment_image_version} ${deployment_push_prefix}/${deployment_image_name}:latest
@@ -96,8 +111,8 @@ add_custom_target(dockerpush
     COMMENT "pushing to container registry"
 )
 
-
+# Target to capture ALL semantics.
 add_custom_target(appgw-ingress-all
     ALL
-    DEPENDS appgw-ingress go-tests dockerize
+    DEPENDS appgw-ingress go-tests
 )
