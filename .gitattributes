@@ -6,9 +6,6 @@
 *.ini text
 *.json text
 *.txt text
-*.xml text
-*.yml text
-*.yaml text
 
 # Denote all files that are truly binary and should not be modified.
 *.dll binary
