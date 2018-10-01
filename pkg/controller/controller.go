@@ -32,7 +32,7 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(kubeclient kubernetes.Interface, appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient: appGwClient,
 		appGwIdentifier:  appGwIdentifier,
