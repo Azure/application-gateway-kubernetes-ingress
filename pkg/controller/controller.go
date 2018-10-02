@@ -15,7 +15,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-	"k8s.io/client-go/kubernetes"
 )
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
@@ -32,14 +31,14 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(kubeclient kubernetes.Interface, appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
 	controller := &AppGwIngressController{
+		appGwClient: appGwClient,
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
 	}
 	controller.eventQueue = NewEventQueue(controller.processEvent)
-	controller.appGwClient = appGwClient
 	return controller
 }
 

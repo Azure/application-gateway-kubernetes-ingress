@@ -100,7 +100,7 @@ func main() {
 	}
 
 	ctx := k8scontext.NewContext(kubeClient, namespace, *resyncPeriod)
-	appGwController := controller.NewAppGwIngressController(kubeClient, appGwClient, appGwIdentifier, ctx)
+	appGwController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx)
 
 	go appGwController.Start()
 
