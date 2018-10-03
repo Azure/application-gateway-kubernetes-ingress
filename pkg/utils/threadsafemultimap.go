@@ -18,7 +18,10 @@ type ThreadsafeMultiMap interface {
 }
 
 type threadsafeMultiMap struct {
-	sync.Mutex
+
+	// TODO: Evaluate if sync.Map is needed here
+	//       for our usage pattern.
+	sync.RWMutex
 	v map[interface{}]UnorderedSet
 }
 
@@ -82,8 +85,8 @@ func (m *threadsafeMultiMap) EraseValue(value interface{}) bool {
 
 // ContainsPair checks if a particular key value pair exists in the multimap.
 func (m *threadsafeMultiMap) ContainsPair(key interface{}, value interface{}) bool {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	if m.v[key] != nil && m.v[key].Contains(value) {
 		return true
@@ -94,8 +97,8 @@ func (m *threadsafeMultiMap) ContainsPair(key interface{}, value interface{}) bo
 
 // ContainsValue checks if a particular value exists in the multimap.
 func (m *threadsafeMultiMap) ContainsValue(value interface{}) bool {
-	m.Lock()
-	defer m.Unlock()
+	m.RLock()
+	defer m.RUnlock()
 
 	for i := range m.v {
 		if m.v[i] != nil && m.v[i].Contains(value) {
