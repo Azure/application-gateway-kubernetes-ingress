@@ -7,6 +7,7 @@ import (
 )
 
 var _ = Describe("Utils", func() {
+
 	Describe("Testing `UnorderedSets`", func() {
 		var testSet utils.UnorderedSet
 		BeforeEach(func() {
@@ -36,6 +37,37 @@ var _ = Describe("Utils", func() {
 			It("Should erase all elements", func() {
 				testSet.Clear()
 				Expect(testSet.Size()).To(Equal(0))
+				Expect(testSet.IsEmpty()).To(BeTrue())
+			})
+		})
+
+		Context("Testing union of sets", func() {
+			set := utils.NewUnorderedSet()
+			set.Insert(5)
+			set.Insert(6)
+			set.Insert(7)
+
+			It("Should contain union of both sets", func() {
+				uSet := testSet.Union(set)
+				Expect(uSet.Size()).To(Equal(7))
+				Expect(uSet.Contains(5)).To(BeTrue())
+				Expect(uSet.Contains(6)).To(BeTrue())
+				Expect(uSet.Contains(7)).To(BeTrue())
+			})
+		})
+
+		Context("Testing intersection of sets", func() {
+			set := utils.NewUnorderedSet()
+			set.Insert(3)
+			set.Insert(4)
+
+			It("Should only contain intersection of both sets", func() {
+				iSet := testSet.Intersect(set)
+				Expect(iSet.Size()).To(Equal(2))
+				Expect(iSet.Contains(3)).To(BeTrue())
+				Expect(iSet.Contains(4)).To(BeTrue())
+				Expect(iSet.Contains(1)).To(BeFalse())
+				Expect(iSet.Contains(2)).To(BeFalse())
 			})
 		})
 
