@@ -15,7 +15,7 @@ To create the pre-requisite Azure resources, You can use the following template.
 Steps:
 
 1) Create a service principal that will be assigned to aks cluster in the template.
-    ```
+    ```bash
     az ad sp create-for-rbac --skip-assignment
     Note: appId and password.
     az ad sp show --id <appId>
@@ -42,13 +42,17 @@ Once, we have the created the resources in Azure, we need to deploy following po
 Steps:
 
 1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials in kubeconfig and set the context.  
-    `az aks get-credentials --resource-group <rg> --name <aksClusterName>`
-
-2) Add aad pod identity service to the cluster using the following command. This service will be used  by controller . You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  
-    `kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml`
-
-3) Create the ingress controller in the cluster. This ingress controller will communicate updates the Application Gateway.
+    ```bash
+    az aks get-credentials --resource-group <rg> --name <aksClusterName>`
     ```
+
+2) Add aad pod identity service to the cluster using the following command. This service will be used by the controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  
+    ```bash
+    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml`
+    ```
+
+3) Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
+    ```bash
     helm init
     helm repo add application-gateway-kubernetes-ingress https://azure.github.io/application-gateway-kubernetes-ingress/helm/
     helm repo update
@@ -85,4 +89,6 @@ Steps:
     ```
 
     Then execute the following to the install the Application Gateway ingress controller package.  
-    `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
+    ```bash
+    helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
+    ```
