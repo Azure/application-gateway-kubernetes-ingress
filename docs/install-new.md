@@ -12,7 +12,7 @@ To create the pre-requisite Azure resources, You can use the following template.
 5) Set required RBACs.
 
 
-Let's start! Follow the steps.
+Steps:
 
 1) Create a service principal that will be assigned to aks cluster in the template.
     ```
@@ -35,7 +35,11 @@ After the deployment completes, you can look at the Output window for parameters
 
 ## Setting up the Azure Kubernetes Cluster
 
-Once, we have the azure resources created, we can proceed with configuring `aad pod identity` and `application gateway ingress controller`.
+Once, we have the azure resources created, we need to deploy following pods on the cluster:
+1) `aad pod identity` - This controller uses user assigned identity and provide ARM access token to the controller.
+2) `application gateway ingress controller` - This controller communicates ingress realted events to the Application Gateway resource.
+
+Steps:
 
 1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials n kubeconfig and set the context.  
     `az aks get-credentials --resource-group <rg> --name <aksClusterName>`
