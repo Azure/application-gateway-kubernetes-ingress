@@ -7,7 +7,7 @@
 To create the pre-requisite Azure resources, You can use the following template. It creates:
 1) Azure Virtual Network with 2 subnets.
 2) Azure Application Gateway v2
-3) Azure Kubernetes Service cluster with required permission to deploy nodes in the vnet.
+3) Azure Kubernetes Service cluster with required permission to deploy nodes in the Virtual Network.
 4) User Assigned Identity to initialize the aad-pod-identity service and ingress controller.
 5) Set required RBACs.
 
@@ -24,30 +24,30 @@ Steps:
 
 2) After the above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password, objectId in the parameters.
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+        <img src="http://azuredeploy.net/deploybutton.png"/>
+    </a>
+    <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+        <img src="http://armviz.io/visualizebutton.png"/>
+    </a>
 
-After the deployment completes, you can look at the Output window for parameters needed in the following steps.
+    After the deployment completes, you can look at the Output window for parameters needed in the following steps.
 
 ## Setting up the Azure Kubernetes Cluster
 
-Once, we have the azure resources created, we need to deploy following pods on the cluster:
+Once, we have the created the resources in Azure, we need to deploy following pods on the cluster:
 1) `aad pod identity` - This controller uses user assigned identity and provide ARM access token to the controller.
-2) `application gateway ingress controller` - This controller communicates ingress realted events to the Application Gateway resource.
+2) `application gateway ingress controller` - This controller communicates ingress related events to the Application Gateway resource.
 
 Steps:
 
-1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials n kubeconfig and set the context.  
+1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials in kubeconfig and set the context.  
     `az aks get-credentials --resource-group <rg> --name <aksClusterName>`
 
-2) Add aad pod idenitty service to the cluster using the following command. This service will be used  by controller . You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  
+2) Add aad pod identity service to the cluster using the following command. This service will be used  by controller . You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  
     `kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml`
 
-3) Create the ingress controller in the cluster. This ingress controller will communicate updates the applcation gateway.
+3) Create the ingress controller in the cluster. This ingress controller will communicate updates the Application Gateway.
     ```
     helm init
     helm repo add application-gateway-kubernetes-ingress https://azure.github.io/application-gateway-kubernetes-ingress/helm/
@@ -84,5 +84,5 @@ Steps:
         identityClientID:  <identity-client-id. You can refer the template deployment output.>
     ```
 
-    Then execute the following to the install the Applicaiton Gateway ingress controller package.  
+    Then execute the following to the install the Application Gateway ingress controller package.  
     `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
