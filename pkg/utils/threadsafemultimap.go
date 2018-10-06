@@ -11,100 +11,73 @@ import "sync"
 type ThreadsafeMultiMap interface {
 	Insert(key interface{}, value interface{})
 	Clear(key interface{})
-	Erase(key interface{}) bool
-	EraseValue(value interface{}) bool
+	Erase(key interface{})
+	EraseValue(value interface{})
 	ContainsPair(key interface{}, value interface{}) bool
 	ContainsValue(value interface{}) bool
 }
 
 type threadsafeMultiMap struct {
-
-	// TODO: Evaluate if sync.Map is needed here
-	//       for our usage pattern.
-	sync.RWMutex
-	v map[interface{}]UnorderedSet
+	sync.Map
 }
 
 // NewThreadsafeMultimap creates a ThreadsafeMultiMap.
 func NewThreadsafeMultimap() ThreadsafeMultiMap {
-	return &threadsafeMultiMap{
-		v: make(map[interface{}]UnorderedSet),
-	}
+	return &threadsafeMultiMap{}
 }
 
 // Insert inserts a key value pair into the multimap.
 func (m *threadsafeMultiMap) Insert(key interface{}, value interface{}) {
-	m.Lock()
-	defer m.Unlock()
-
-	if m.v[key] == nil {
-		m.v[key] = NewUnorderedSet()
-	}
-	m.v[key].Insert(value)
+	set, _ := m.LoadOrStore(key, &sync.Map{})
+	set.(*sync.Map).Store(value, struct{}{})
 }
 
 // Clear removes all the values associated with a key.
 func (m *threadsafeMultiMap) Clear(key interface{}) {
-	m.Lock()
-	defer m.Unlock()
-
-	if m.v[key] != nil {
-		m.v[key].Clear()
-	}
+	m.Store(key, &sync.Map{})
 }
 
 // Erase removes a key from the multimap.
-func (m *threadsafeMultiMap) Erase(key interface{}) bool {
-	m.Lock()
-	defer m.Unlock()
-
-	_, exists := m.v[key]
-	if exists {
-		delete(m.v, key)
-		return true
-	}
-
-	return false
+func (m *threadsafeMultiMap) Erase(key interface{}) {
+	m.Delete(key)
 }
 
 // EraseValue removes all the occurrences of a particular value from the multimap.
-func (m *threadsafeMultiMap) EraseValue(value interface{}) bool {
-	m.Lock()
-	defer m.Unlock()
-
-	erased := false
-	for i := range m.v {
-		if m.v[i] != nil && m.v[i].Contains(value) {
-			erased = true
-			m.v[i].Erase(value)
-		}
-	}
-
-	return erased
+func (m *threadsafeMultiMap) EraseValue(value interface{}) {
+	m.Range(func(k, v interface{}) bool {
+		v.(*sync.Map).Delete(value)
+		return true
+	})
 }
 
 // ContainsPair checks if a particular key value pair exists in the multimap.
 func (m *threadsafeMultiMap) ContainsPair(key interface{}, value interface{}) bool {
-	m.RLock()
-	defer m.RUnlock()
-
-	if m.v[key] != nil && m.v[key].Contains(value) {
-		return true
+	set, ok := m.Load(key)
+	if !ok {
+		return false
 	}
 
-	return false
+	s, ok := set.(*sync.Map)
+	if !ok {
+		return false
+	}
+
+	_, ok = s.Load(value)
+	return ok
 }
 
 // ContainsValue checks if a particular value exists in the multimap.
 func (m *threadsafeMultiMap) ContainsValue(value interface{}) bool {
-	m.RLock()
-	defer m.RUnlock()
-
-	for i := range m.v {
-		if m.v[i] != nil && m.v[i].Contains(value) {
-			return true
+	found := false
+	m.Range(func(k, v interface{}) bool {
+		_, ok := v.(*sync.Map).Load(value)
+		if ok {
+			found = true
+			return false
 		}
-	}
 
-	return false
+		return true
+	})
+
+	return found
 }
