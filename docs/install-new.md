@@ -1,12 +1,12 @@
 # Content
-- [Creating Application Gateway and Azure Kubernetes Cluster using Azure Resource Manager (ARM) template](#deploying-the-infrastructure)
+- [Deploying the infrastructure on Azure](#deploying-the-infrastructure-on-azure)
 - [Setting up the Azure Kubernetes Cluster](#setting-up-the-azure-kubernetes-cluster)
 
-## Deploying the infrastructure
+## Deploying the infrastructure on Azure
 
 To create the pre-requisite Azure resources, You can use the following template. It creates:
 1) Azure Virtual Network with 2 subnets.
-2) Azure Application Gateway v2
+2) Azure Application Gateway v2.
 3) Azure Kubernetes Service cluster with required permission to deploy nodes in the Virtual Network.
 4) User Assigned Identity to initialize the aad-pod-identity service and ingress controller.
 5) Set required RBACs.
@@ -18,7 +18,7 @@ Steps:
     ```bash
     az ad sp create-for-rbac --skip-assignment
     Note: appId and password.
-    az ad sp show --id <appId>
+    az ad sp show --id <appId> --query "objectId"
     Note: objectId.
     ```
 
@@ -43,7 +43,7 @@ Steps:
 
 1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials in kubeconfig and set the context.  
     ```bash
-    az aks get-credentials --resource-group <rg> --name <aksClusterName>`
+    az aks get-credentials --resource-group "<resource group>" --name "<aksClusterName>"`
     ```
 
 2) Add aad pod identity service to the cluster using the following command. This service will be used by the controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  

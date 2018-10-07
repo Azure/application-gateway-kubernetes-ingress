@@ -1,9 +1,9 @@
 appgw:
   subscriptionId: 86501df2-2fc5-4fc3-b193-d305572e416f
-  resourceGroup: new1
-  name: appgw
+  resourceGroup: <resource group>
+  name: <application gateway>
 
 armAuth:
   type: aadPodIdentity
-  identityResourceID: /subscriptions/86501df2-2fc5-4fc3-b193-d305572e416f/resourceGroups/new1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/useridentity
-  identityClientID:  216b1859-219e-46d7-8990-8013e1518ae8
+  identityResourceID: <user assigned identity for application gateway ingress controller>
+  identityClientID:  <user assigned identity client Id.>
