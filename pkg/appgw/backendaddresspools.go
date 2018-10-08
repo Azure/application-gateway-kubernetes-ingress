@@ -8,12 +8,13 @@ package appgw
 import (
 	"errors"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
