@@ -310,10 +310,10 @@
         }
     },
     "variables": {
-        "resgpguid": "[replace(guid(resourceGroup().id), '-', '')]",
+        "resgpguid": "[substring(replace(guid(resourceGroup().id), '-', ''), 0, 4)]",
         "vnetName": "[concat('virtualnetwork' , variables('resgpguid'))]",
         "applicationGatewayName": "[concat('applicationgateway' , variables('resgpguid'))]",
-        "identityName": "appgwControllerIdentity",
+        "identityName": "[concat('appgwContrIdentity' , variables('resgpguid'))]",
         "applicationGatewayPublicIpName": "[concat('appgwpublicip' , variables('resgpguid'))]",
         "kubernetesSubnetName": "kubesubnet",
         "applicationGatewaySubnetName": "appgwsubnet",
@@ -605,17 +605,25 @@
         }
     ],
     "outputs": {
-        "identityResourceID": {
+        "subscriptionId": {
             "type": "string",
-            "value": "[variables('identityId')]"
+            "value": "[subscription().subscriptionId]"
         },
-        "identityClientID": {
+        "resourceGroupName": {
             "type": "string",
-            "value": "[reference(variables('identityID'), '2015-08-31-PREVIEW').clientId]"
+            "value": "[resourceGroup().name]"
         },
         "applicationGatewayName": {
             "type": "string",
-            "value": "[parameters('applicationGatewayName')]"
+            "value": "[variables('applicationGatewayName')]"
+        },
+        "identityResourceId": {
+            "type": "string",
+            "value": "[variables('identityId')]"
+        },
+        "identityClientId": {
+            "type": "string",
+            "value": "[reference(variables('identityID'), '2015-08-31-PREVIEW').clientId]"
         }
     }
 }

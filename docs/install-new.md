@@ -1,6 +1,6 @@
-# Content
+# Table of Contents
 - [Deploying the infrastructure on Azure](#deploying-the-infrastructure-on-azure)
-- [Setting up the Azure Kubernetes Cluster](#setting-up-the-azure-kubernetes-cluster)
+- [Setting up Application Gateway Ingress Controller on AKS](#setting-up-application-gateway-ingress-controller-on-aks)
 
 ## Deploying the infrastructure on Azure
 
@@ -17,10 +17,9 @@ Steps:
 1) Create a service principal that will be assigned to aks cluster in the template.
     ```bash
     az ad sp create-for-rbac --skip-assignment
-    Note: appId and password.
     az ad sp show --id <appId> --query "objectId"
-    Note: objectId.
     ```
+    **Note the appId, password and objectId.**
 
 2) After the above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password, objectId in the parameters.
 
@@ -33,20 +32,17 @@ Steps:
 
     After the deployment completes, you can look at the Output window for parameters needed in the following steps.
 
-## Setting up the Azure Kubernetes Cluster
+## Setting up Application Gateway Ingress Controller on AKS
 
-Once, we have the created the resources in Azure, we need to deploy following pods on the cluster:
+Once, we have the created the resources in Azure, we need to deploy following controllers on the cluster:
 1) `aad pod identity` - This controller uses user assigned identity and provide ARM access token to the controller.
 2) `application gateway ingress controller` - This controller communicates ingress related events to the Application Gateway resource.
 
 Steps:
 
-1) Get credentials for the newly created Azure Kubernetes Cluster. This will cache the credentials in kubeconfig and set the context.  
-    ```bash
-    az aks get-credentials --resource-group "<resource group>" --name "<aksClusterName>"`
-    ```
+1) To configure kubectl to connect to the deployed Azure Kubernetes Cluster, follow these [instructions](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
-2) Add aad pod identity service to the cluster using the following command. This service will be used by the controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity).  
+2) Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.  
     ```bash
     kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml`
     ```
@@ -66,9 +62,9 @@ Steps:
     # Specify which application gateway the ingress controller will manage
     #
     appgw:
-        subscriptionId: <subscription-id>
-        resourceGroup: <resourcegroup-name>
-        name: <applicationgateway-name>
+        subscriptionId: <subscriptionId>
+        resourceGroup: <rresourceGroupName>
+        name: <applicationGatewayName>
 
     ################################################################################
     # Specify which kubernetes namespace the ingress controller will watch
@@ -84,8 +80,8 @@ Steps:
     # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
     armAuth:
         type: aadPodIdentity
-        identityResourceID: <identity-resource-id. You can refer the template deployment output.>
-        identityClientID:  <identity-client-id. You can refer the template deployment output.>
+        identityResourceID: <identityResourceId>
+        identityClientID:  <identityClientId>
     ```
 
     Then execute the following to the install the Application Gateway ingress controller package.  

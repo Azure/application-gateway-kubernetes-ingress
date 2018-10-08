@@ -1,9 +1,32 @@
-appgw:
-  subscriptionId: 86501df2-2fc5-4fc3-b193-d305572e416f
-  resourceGroup: <resource group>
-  name: <application gateway>
+# This file contains the essential configs for the ingress controller helm chart
 
+################################################################################
+# Specify which application gateway the ingress controller will manage
+#
+appgw:
+    subscriptionId: <subscriptionId>
+    resourceGroup: <rresourceGroupName>
+    name: <applicationGatewayName>
+
+################################################################################
+# Specify which kubernetes namespace the ingress controller will watch
+# Default value is "default"
+#
+# kubernetes:
+#   watchNamespace: <namespace>
+
+################################################################################
+# Specify the authentication with Azure Resource Manager
+#
+# Two authentication methods are available:
+# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
 armAuth:
-  type: aadPodIdentity
-  identityResourceID: <user assigned identity for application gateway ingress controller>
-  identityClientID:  <user assigned identity client Id.>
+    type: aadPodIdentity
+    identityResourceID: <identityResourceId>
+    identityClientID:  <identityClientId>
+
+# - Option 2: ServicePrincipal as a kubernetes secret
+# armAuth:
+#   type: servicePrincipal
+#   secretName: networking-appgw-k8s-azure-service-principal
+#   secretKey: ServicePrincipal.json
