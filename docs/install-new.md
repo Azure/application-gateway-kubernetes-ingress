@@ -32,6 +32,9 @@ Steps:
 
     After the deployment completes, you can look at the Output window for parameters needed in the following steps.
 
+    Example:
+    ![Deployment Output](images/deployment-output.png)
+
 ## Setting up Application Gateway Ingress Controller on AKS
 
 Once, we have the created the resources in Azure, we need to deploy following controllers on the cluster:
