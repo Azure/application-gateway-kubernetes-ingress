@@ -624,6 +624,10 @@
         "identityClientId": {
             "type": "string",
             "value": "[reference(variables('identityID'), '2015-08-31-PREVIEW').clientId]"
+        },
+        "aksClusterName": {
+            "type": "string",
+            "value": "[variables('aksClusterName')]"
         }
     }
 }

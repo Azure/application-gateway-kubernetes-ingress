@@ -4,7 +4,7 @@
 
 ## Deploying the infrastructure on Azure
 
-To create the pre-requisite Azure resources, You can use the following template. It creates:
+To create the pre-requisite Azure resources, you can use the following template. It creates:
 1) Azure Virtual Network with 2 subnets.
 2) Azure Application Gateway v2.
 3) Azure Kubernetes Service cluster with required permission to deploy nodes in the Virtual Network.
@@ -14,19 +14,19 @@ To create the pre-requisite Azure resources, You can use the following template.
 
 Steps:
 
-1) Create a service principal that will be assigned to aks cluster in the template.
+1) Create a service principal that will be assigned to the AKS cluster in the template.
     ```bash
     az ad sp create-for-rbac --skip-assignment
     az ad sp show --id <appId> --query "objectId"
     ```
     **Note the appId, password and objectId.**
 
-2) After the above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password, objectId in the parameters.
+2) After creating the service principal in the step above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password and objectId in the parameters.
 
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
         <img src="http://azuredeploy.net/deploybutton.png"/>
     </a>
-    <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fakshaysngupta%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+    <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
         <img src="http://armviz.io/visualizebutton.png"/>
     </a>
 
@@ -65,9 +65,9 @@ Steps:
     # Specify which application gateway the ingress controller will manage
     #
     appgw:
-        subscriptionId: <subscriptionId>
-        resourceGroup: <rresourceGroupName>
-        name: <applicationGatewayName>
+        subscriptionId: <subscription-id>
+        resourceGroup: <resourcegroup-name>
+        name: <applicationgateway-name>
 
     ################################################################################
     # Specify which kubernetes namespace the ingress controller will watch
@@ -83,9 +83,14 @@ Steps:
     # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
     armAuth:
         type: aadPodIdentity
-        identityResourceID: <identityResourceId>
-        identityClientID:  <identityClientId>
+        identityResourceID: <identity-resource-id>
+        identityClientID:  <identity-client-id>
     ```
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:  
+        ```bash
+        az identity show -g <resourcegroup> -n <identity-name>
+        ```  
+        Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
 
     Then execute the following to the install the Application Gateway ingress controller package.  
     ```bash
