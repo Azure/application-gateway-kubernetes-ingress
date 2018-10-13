@@ -1,3 +1,4 @@
+# Table of Contents
 - [Assumptions](#assumptions)
 - [Setting up Authentication with Azure Resource Manager (ARM)](#setting-up-authentication-with-azure-resource-manager)
     * [Setting up aad-pod-identity](#setting-up-aad-pod-identity)

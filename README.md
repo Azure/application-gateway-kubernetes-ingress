@@ -6,8 +6,8 @@ The Application Gateway Ingress Controller allows the [Azure Application Gateway
 ![Azure Application Gateway + AKS](docs/images/architecture.png)
 
 ## Setup
-* If you have an existing AKS cluster and Application Gateway, refer to the [installation](docs/install-existing.md) instructions to install the ingress controller on an AKS cluster.
-* If you want to start from scratch, refer to the [installation](docs/install-new.md) instructions to install the ingress controller on an AKS cluster.
+* If you have an existing AKS cluster and Application Gateway, refer to these [installation](docs/install-existing.md) instructions to install application gateway ingress controller on the AKS cluster.
+* If you are starting from scratch, refer to these [installation](docs/install-new.md) instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
 
 ## Usage
 Refer to the [tutorials](docs/tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
