@@ -4,9 +4,9 @@
 # Specify which application gateway the ingress controller will manage
 #
 appgw:
-  subscriptionId: <subscription-id>
-  resourceGroup: <resourcegroup-name>
-  name: <applicationgateway-name>
+    subscriptionId: <subscriptionId>
+    resourceGroup: <rresourceGroupName>
+    name: <applicationGatewayName>
 
 ################################################################################
 # Specify which kubernetes namespace the ingress controller will watch
@@ -21,9 +21,9 @@ appgw:
 # Two authentication methods are available:
 # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
 armAuth:
-  type: aadPodIdentity
-  identityResourceID: <identity-resource-id>
-  identityClientID:  <identity-client-id>
+    type: aadPodIdentity
+    identityResourceID: <identityResourceId>
+    identityClientID:  <identityClientId>
 
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
