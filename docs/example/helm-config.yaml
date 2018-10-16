@@ -25,6 +25,9 @@ armAuth:
     identityResourceID: <identityResourceId>
     identityClientID:  <identityClientId>
 
+rbac:
+    enabled: false
+
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
 #   type: servicePrincipal
