@@ -4,9 +4,10 @@ import (
 	go_flag "flag"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 
 	"github.com/getlantern/deepcopy"
 	"k8s.io/api/core/v1"

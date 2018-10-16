@@ -1,9 +1,10 @@
 package utils_test
 
 import (
-	utils "github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	utils "github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 var _ = Describe("Utils", func() {

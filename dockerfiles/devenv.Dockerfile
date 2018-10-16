@@ -16,12 +16,13 @@ RUN mkdir -p /gopath/bin
 ENV GOPATH /gopath
 ENV PATH "${PATH}:${GOPATH}/bin:/usr/local/go/bin"
 
-# configure ginko and gomega
+# get ginkgo, gomega
 RUN go get github.com/onsi/ginkgo/ginkgo
 RUN go get github.com/onsi/gomega/...
 
-# get golint
+# get golint, goimports
 RUN go get -u golang.org/x/lint/golint
+RUN go get -u golang.org/x/tools/cmd/goimports
 
 RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN locale-gen en_US.UTF-8
