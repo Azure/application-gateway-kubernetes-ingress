@@ -15,5 +15,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ .Values.kubernetes.watchNamespace }}
 {{- end -}}
