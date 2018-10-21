@@ -307,6 +307,13 @@
             "metadata": {
                 "description": "A CIDR notation IP for Docker bridge."
             }
+        },
+        "aksEnableRBAC": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable RBAC on the AKS cluster."
+            }
         }
     },
     "variables": {
@@ -565,7 +572,7 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
-                "enableRBAC": false,
+                "enableRBAC": "[parameters('aksEnableRBAC')]",
                 "dnsPrefix": "[parameters('aksDnsPrefix')]",
                 "addonProfiles": {
                     "httpApplicationRouting": {
