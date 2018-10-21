@@ -8,10 +8,11 @@ package controller
 import (
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // EventQueue is a queue accepting events and run callback function

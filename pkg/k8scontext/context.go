@@ -10,9 +10,10 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"

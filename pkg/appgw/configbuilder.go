@@ -6,9 +6,10 @@
 package appgw
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 
 	"k8s.io/api/extensions/v1beta1"
 )
