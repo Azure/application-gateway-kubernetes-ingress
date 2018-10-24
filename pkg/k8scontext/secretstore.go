@@ -7,14 +7,12 @@ package k8scontext
 
 import (
 	"bytes"
-
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"sync"
 
 	"github.com/golang/glog"
-
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
