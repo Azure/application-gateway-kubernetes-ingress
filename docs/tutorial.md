@@ -115,7 +115,7 @@ Now the `guestbook` application will be available on both HTTP and HTTPS.
 ### With specified hostname
 
 You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
-By specifying hostname, the guestbook service will only be availble on the specified host.
+By specifying hostname, the guestbook service will only be available on the specified host.
 
 1. Define the following ingress.
     In the ingress, specify the name of the secret in the `secretName` section and replace the hostname in the `hosts` section accordingly.
