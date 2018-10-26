@@ -60,12 +60,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
-				v1beta1.IngressRule{
+				{
 					Host: domainName,
 					IngressRuleValue: v1beta1.IngressRuleValue{
 						HTTP: &v1beta1.HTTPIngressRuleValue{
 							Paths: []v1beta1.HTTPIngressPath{
-								v1beta1.HTTPIngressPath{
+								{
 									Path: hiPath,
 									Backend: v1beta1.IngressBackend{
 										ServiceName: serviceName,
@@ -248,7 +248,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			// Retrieve the implementation of the `ConfigBuilder` interface.
 			appGW = configBuilder.Build()
-			// Ingress allows listners on port 80 or port 443. Therefore in this particular case we would have only a single listener
+			// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 			Expect(len(*appGW.HTTPListeners)).To(Equal(1), "Expected a single HTTP listener, but got: %d", len(*appGW.HTTPListeners))
 
 			// Test the listener.
