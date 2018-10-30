@@ -4,18 +4,17 @@ import (
 	go_flag "flag"
 	"time"
 
+	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-
-	"github.com/getlantern/deepcopy"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var _ = Describe("K8scontext", func() {

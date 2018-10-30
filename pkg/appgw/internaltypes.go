@@ -8,8 +8,6 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/Azure/go-autorest/autorest/to"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -109,11 +107,7 @@ func defaultBackendAddressPool() network.ApplicationGatewayBackendAddressPool {
 	return network.ApplicationGatewayBackendAddressPool{
 		Name: &defBackendAddressPool,
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-			BackendAddresses: &[]network.ApplicationGatewayBackendAddress{
-				network.ApplicationGatewayBackendAddress{
-					Fqdn: to.StringPtr("nonexistent.placeholder"),
-				},
-			},
+			BackendAddresses: &[]network.ApplicationGatewayBackendAddress{},
 		},
 	}
 }

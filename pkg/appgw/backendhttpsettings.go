@@ -9,12 +9,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
-
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -44,56 +42,58 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 	unresolvedBackendID := make([]backendIdentifier, 0)
 	backendIDs.ForEach(func(backendIDInterface interface{}) {
 		backendID := backendIDInterface.(backendIdentifier)
+		resolvedBackendPorts := utils.NewUnorderedSet()
 
 		service := builder.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
 			glog.V(1).Infof("unable to get the service [%s]", backendID.serviceKey())
-			unresolvedBackendID = append(unresolvedBackendID, backendID)
-			return
-		}
+			resolvedBackendPorts.Insert(serviceBackendPortPair{
+				ServicePort: backendID.ServicePort.IntVal,
+				BackendPort: backendID.ServicePort.IntVal,
+			})
+		} else {
+			for _, sp := range service.Spec.Ports {
+				// find the backend port number
+				// check if any service ports matches the specified ports
+				if sp.Protocol != v1.ProtocolTCP {
+					// ignore UDP ports
+					continue
+				}
+				if fmt.Sprint(sp.Port) == backendID.ServicePort.String() ||
+					sp.Name == backendID.ServicePort.String() ||
+					sp.TargetPort.String() == backendID.ServicePort.String() {
+					// matched a service port with a port from the service
 
-		// find the backend port number
-		resolvedBackendPorts := utils.NewUnorderedSet()
-		for _, sp := range service.Spec.Ports {
-			// check if any service ports matches the specified ports
-			if sp.Protocol != v1.ProtocolTCP {
-				// ignore UDP ports
-				continue
-			}
-			if fmt.Sprint(sp.Port) == backendID.ServicePort.String() ||
-				sp.Name == backendID.ServicePort.String() ||
-				sp.TargetPort.String() == backendID.ServicePort.String() {
-				// matched a service port with a port from the service
-
-				if sp.TargetPort.String() == "" {
-					// targetPort is not defined, by default targetPort == port
-					resolvedBackendPorts.Insert(serviceBackendPortPair{
-						ServicePort: sp.Port,
-						BackendPort: sp.Port,
-					})
-				} else {
-					// target port is defined as name or port number
-					if sp.TargetPort.Type == intstr.Int {
-						// port is defined as port number
+					if sp.TargetPort.String() == "" {
+						// targetPort is not defined, by default targetPort == port
 						resolvedBackendPorts.Insert(serviceBackendPortPair{
 							ServicePort: sp.Port,
-							BackendPort: sp.TargetPort.IntVal,
+							BackendPort: sp.Port,
 						})
 					} else {
-						// if service port is defined by name, need to resolve
-						targetPortName := sp.TargetPort.StrVal
-						glog.V(1).Infof("resolving port name %s", targetPortName)
-						targetPortsResolved := builder.resolvePortName(targetPortName, &backendID)
-						targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
-							targetPort := targetPortInterface.(int32)
+						// target port is defined as name or port number
+						if sp.TargetPort.Type == intstr.Int {
+							// port is defined as port number
 							resolvedBackendPorts.Insert(serviceBackendPortPair{
 								ServicePort: sp.Port,
-								BackendPort: targetPort,
+								BackendPort: sp.TargetPort.IntVal,
 							})
-						})
+						} else {
+							// if service port is defined by name, need to resolve
+							targetPortName := sp.TargetPort.StrVal
+							glog.V(1).Infof("resolving port name %s", targetPortName)
+							targetPortsResolved := builder.resolvePortName(targetPortName, &backendID)
+							targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
+								targetPort := targetPortInterface.(int32)
+								resolvedBackendPorts.Insert(serviceBackendPortPair{
+									ServicePort: sp.Port,
+									BackendPort: targetPort,
+								})
+							})
+						}
 					}
+					break
 				}
-				break
 			}
 		}
 
