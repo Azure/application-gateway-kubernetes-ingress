@@ -11,7 +11,9 @@ These tutorials help illustrate the usage of [Kubernetes Ingress Resources](http
 
 ## Prerequisites
 
-- Installed `ingress-azure` helm chart. Please refer to the [installation](install.md) instructions to install the Azure Application Gateway Ingress controller on your AKS cluster.f
+- Installed `ingress-azure` helm chart.
+    - **Greenfield Deployment**: If you are starting from scratch, refer to these [installation](install-new.md) instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
+    - **Brownfield Deployment**: If you have an existing AKS cluster and Application Gateway, refer to these [installation](install-existing.md) instructions to install application gateway ingress controller on the AKS cluster.
 - If you want to use HTTPS on this application, you will need a x509 certificate and its private key.
 
 ## Deploy `guestbook` application
