@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.1.2
+  tag: 0.1.4
   pullPolicy: Always
 
 ################################################################################
@@ -34,3 +34,13 @@ kubernetes:
 #   type: servicePrincipal
 #   secretName: networking-appgw-k8s-azure-service-principal
 #   secretKey: ServicePrincipal.json
+
+################################################################################
+# Specify if the cluster is RBAC enabled or not
+# rbac:
+#     enabled: false # true/false
+
+################################################################################
+# Specify if the cluster is RBAC enabled or not
+# clusterConfiguration:
+#     apiServerAddress: <>

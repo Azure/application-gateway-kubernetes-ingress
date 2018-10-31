@@ -81,7 +81,18 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
         type: aadPodIdentity
         identityResourceID: <identity-resource-id>
         identityClientID:  <identity-client-id>
+
+    ################################################################################
+    # Specify if the cluster is RBAC enabled or not
+    rbac:
+        enabled: false # true/false
+
+    ################################################################################
+    # Specify if cluster related information
+    clusterConfiguration:
+        apiServerAddress: <aks-api-server-address>
     ```
+
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>

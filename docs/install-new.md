@@ -108,6 +108,11 @@ Steps:
     # Specify if the cluster is RBAC enabled or not
     rbac:
         enabled: false # true/false
+
+    ################################################################################
+    # Specify if cluster related information
+    clusterConfiguration:
+        apiServerAddress: <aks-api-server-address>
     ```
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:  
         ```bash
