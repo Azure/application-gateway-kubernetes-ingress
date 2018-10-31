@@ -16,13 +16,11 @@ script:
               -Ddeployment_image_name="public/azure-application-gateway/kubernetes-ingress" 
               -Ddeployment_image_version="$IMAGE_VERSION" 
   - cmake --build .
-  
+
 deploy:
   provider: script
   skip_cleanup: true
-  script:
-    - echo "$DOCKER_PASSWORD" | docker login $ACR_REGISTRY -u "$DOCKER_USERNAME" --password-stdin
-    - cd $TRAVIS_BUILD_DIR/build && cmake --build . --target dockerpush
+  script: $TRAVIS_BUILD_DIR/scripts/deploy.sh
   on:
     repo: Azure/application-gateway-kubernetes-ingress
     tags: true
