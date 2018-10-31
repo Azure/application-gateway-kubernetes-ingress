@@ -4,6 +4,7 @@ echo "$DOCKER_PASSWORD" | docker login $ACR_REGISTRY -u "$DOCKER_USERNAME" --pas
 echo "Login successful. Getting ready to deploy."
 
 set -x
-popd $TRAVIS_BUILD_DIR/build
+pushd $TRAVIS_BUILD_DIR/build
 cmake --build . --target dockerpush
+popd
 set +x
