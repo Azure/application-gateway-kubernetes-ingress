@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -16,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
