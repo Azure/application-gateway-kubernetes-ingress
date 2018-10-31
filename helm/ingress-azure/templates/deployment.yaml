@@ -43,6 +43,15 @@ spec:
           - name: {{ required "armAuth.secretName is required if using servicePrincipal" .Values.armAuth.secretName }}-mount
             mountPath: /etc/Azure/Networking-AppGW/auth
             readOnly: true
+        env:
+          - name: KUBERNETES_PORT_443_TCP_ADDR
+            value: {{ .Values.clusterConfiguration.apiServerAddress }}
+          - name: KUBERNETES_PORT
+            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
+          - name: KUBERNETES_PORT_443_TCP
+            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
+          - name: KUBERNETES_SERVICE_HOST
+            value: {{ .Values.clusterConfiguration.apiServerAddress }}
       volumes:
         - name: {{ .Values.armAuth.secretName }}-mount
           secret:
