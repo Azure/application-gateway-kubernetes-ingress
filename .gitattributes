@@ -45,9 +45,6 @@ CMakeLists.txt text eol=lf
 *.py text eol=lf
 *.go text eol=lf
 
-# Text files
-*.md text eol=lf
-
 # Patch files.
 *.patch text eol=lf
 
