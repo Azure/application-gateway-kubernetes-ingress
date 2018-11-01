@@ -88,7 +88,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
         enabled: false # true/false
 
     ################################################################################
-    # Specify if cluster related information
+    # Specify aks cluster related information
     clusterConfiguration:
         apiServerAddress: <aks-api-server-address>
     ```

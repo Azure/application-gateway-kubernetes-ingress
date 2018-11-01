@@ -28,6 +28,9 @@ armAuth:
 rbac:
     enabled: false
 
+aksClusterConfiguration:
+    apiServerAddress: <aks-api-server-address>
+
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
 #   type: servicePrincipal

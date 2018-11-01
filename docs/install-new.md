@@ -110,8 +110,8 @@ Steps:
         enabled: false # true/false
 
     ################################################################################
-    # Specify if cluster related information
-    clusterConfiguration:
+    # Specify aks cluster related information
+    aksClusterConfiguration:
         apiServerAddress: <aks-api-server-address>
     ```
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:  

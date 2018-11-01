@@ -45,13 +45,13 @@ spec:
             readOnly: true
         env:
           - name: KUBERNETES_PORT_443_TCP_ADDR
-            value: {{ .Values.clusterConfiguration.apiServerAddress }}
+            value: {{ .Values.aksClusterConfiguration.apiServerAddress }}
           - name: KUBERNETES_PORT
-            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
+            value: tcp://{{ .Values.aksClusterConfiguration.apiServerAddress }}:443
           - name: KUBERNETES_PORT_443_TCP
-            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
+            value: tcp://{{ .Values.aksClusterConfiguration.apiServerAddress }}:443
           - name: KUBERNETES_SERVICE_HOST
-            value: {{ .Values.clusterConfiguration.apiServerAddress }}
+            value: {{ .Values.aksClusterConfiguration.apiServerAddress }}
       volumes:
         - name: {{ .Values.armAuth.secretName }}-mount
           secret:

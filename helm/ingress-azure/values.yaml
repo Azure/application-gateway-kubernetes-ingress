@@ -42,5 +42,5 @@ kubernetes:
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
-# clusterConfiguration:
+# aksClusterConfiguration:
 #     apiServerAddress: <>
