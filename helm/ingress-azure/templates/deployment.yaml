@@ -30,28 +30,29 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-      {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
+          - name: KUBERNETES_PORT_443_TCP_ADDR
+            value: {{ required "aksClusterConfiguration.apiServerAddress is required" .Values.aksClusterConfiguration.apiServerAddress }}
+          - name: KUBERNETES_PORT
+            value: tcp://{{ required "aksClusterConfiguration.apiServerAddress is required" .Values.aksClusterConfiguration.apiServerAddress }}:443
+          - name: KUBERNETES_PORT_443_TCP
+            value: tcp://{{ required "aksClusterConfiguration.apiServerAddress is required" .Values.aksClusterConfiguration.apiServerAddress }}:443
+          - name: KUBERNETES_SERVICE_HOST
+            value: {{ required "aksClusterConfiguration.apiServerAddress is required" .Values.aksClusterConfiguration.apiServerAddress }}
+          {{- if eq .Values.armAuth.type "servicePrincipal"}}
           - name: AZURE_AUTH_LOCATION
             value: /etc/Azure/Networking-AppGW/auth/{{ required "armAuth.secretKey is required if using servicePrincipal" .Values.armAuth.secretKey }}
-      {{- end}}
+          {{- end}}
         envFrom:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
-      {{- if eq .Values.armAuth.type "servicePrincipal"}}
+        {{- if eq .Values.armAuth.type "servicePrincipal"}}
         volumeMounts:
           - name: {{ required "armAuth.secretName is required if using servicePrincipal" .Values.armAuth.secretName }}-mount
             mountPath: /etc/Azure/Networking-AppGW/auth
             readOnly: true
-        env:
-          - name: KUBERNETES_PORT_443_TCP_ADDR
-            value: {{ .Values.clusterConfiguration.apiServerAddress }}
-          - name: KUBERNETES_PORT
-            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
-          - name: KUBERNETES_PORT_443_TCP
-            value: tcp://{{ .Values.clusterConfiguration.apiServerAddress }}:443
-          - name: KUBERNETES_SERVICE_HOST
-            value: {{ .Values.clusterConfiguration.apiServerAddress }}
+        {{- end}}
+      {{- if eq .Values.armAuth.type "servicePrincipal"}}
       volumes:
         - name: {{ .Values.armAuth.secretName }}-mount
           secret:
