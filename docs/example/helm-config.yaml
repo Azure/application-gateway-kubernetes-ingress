@@ -20,6 +20,11 @@ appgw:
 #
 # Two authentication methods are available:
 # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
+# - Option 2: ServicePrincipal as a kubernetes secret
+# armAuth:
+#   type: servicePrincipal
+#   secretName: networking-appgw-k8s-azure-service-principal
+#   secretKey: ServicePrincipal.json
 armAuth:
     type: aadPodIdentity
     identityResourceID: <identityResourceId>
@@ -30,9 +35,3 @@ rbac:
 
 aksClusterConfiguration:
     apiServerAddress: <aks-api-server-address>
-
-# - Option 2: ServicePrincipal as a kubernetes secret
-# armAuth:
-#   type: servicePrincipal
-#   secretName: networking-appgw-k8s-azure-service-principal
-#   secretKey: ServicePrincipal.json
