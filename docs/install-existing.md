@@ -89,7 +89,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
 
     ################################################################################
     # Specify aks cluster related information
-    clusterConfiguration:
+    aksClusterConfiguration:
         apiServerAddress: <aks-api-server-address>
     ```
 
