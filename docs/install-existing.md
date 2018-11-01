@@ -106,3 +106,5 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     ```
 
 4. Check the log of the newly created pod to verify if it started properly
+
+Refer to the [tutorials](tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
