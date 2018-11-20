@@ -118,7 +118,7 @@ Steps:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>
         ```  
-        Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
+        Where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
 
     Then execute the following to the install the Application Gateway ingress controller package.  
     ```bash
