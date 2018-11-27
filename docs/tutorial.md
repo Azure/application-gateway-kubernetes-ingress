@@ -123,24 +123,24 @@ By specifying hostname, the guestbook service will only be available on the spec
     In the ingress, specify the name of the secret in the `secretName` section and replace the hostname in the `hosts` section accordingly.
 
     ```yaml
-  apiVersion: extensions/v1beta1
-  kind: Ingress
-  metadata:
-    name: guestbook
-    annotations:
-      kubernetes.io/ingress.class: azure/application-gateway
-  spec:
-    tls:
-      - hosts:
-        - <guestbook.contoso.com>
-        secretName: <guestbook-secret-name>
-    rules:
-    - host: <guestbook.contoso.com>
-      http:
-        paths:
-        - backend:
-            serviceName: frontend
-            servicePort: 80
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: guestbook
+      annotations:
+        kubernetes.io/ingress.class: azure/application-gateway
+    spec:
+      tls:
+        - hosts:
+          - <guestbook.contoso.com>
+          secretName: <guestbook-secret-name>
+      rules:
+      - host: <guestbook.contoso.com>
+        http:
+          paths:
+          - backend:
+              serviceName: frontend
+              servicePort: 80
     ```
 
 2. Deploy `ing-guestbook-tls-sni.yaml` by running
