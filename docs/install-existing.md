@@ -11,7 +11,7 @@ The Application Gateway Ingress controller runs as pod within the AKS cluster. I
 In order to install the ingress controller on AKS we use [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm). 
 
 ## Assumptions
-* An existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant).
+* An existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant) with manual scaling configured (not set to AutoScale).
 * An existing Azure Kubernetes Service cluster with Advanced Networking enabled.
 * The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service is installed on the AKS cluster.
 
