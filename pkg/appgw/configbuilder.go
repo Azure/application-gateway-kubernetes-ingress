@@ -82,6 +82,7 @@ func generateBackendID(ingress *v1beta1.Ingress, backend *v1beta1.IngressBackend
 			Name:      backendServiceName,
 		},
 		ServicePort: backendServicePort,
+		Ingress:     ingress,
 	}
 	return backendID
 }
