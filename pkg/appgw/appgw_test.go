@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
@@ -55,7 +56,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name:      ingressName,
 			Namespace: ingressNS,
 			Annotations: map[string]string{
-				k8scontext.IngressClass: k8scontext.IngressControllerName,
+				annotations.IngressClassKey:   annotations.IngressControllerName,
+				annotations.BackendPathPrefix: "/",
 			},
 		},
 		Spec: v1beta1.IngressSpec{
@@ -209,6 +211,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 					Protocol: network.HTTP,
 					Port:     &backendPort,
+					Path:     to.StringPtr("/"),
 				},
 			}
 
@@ -329,6 +332,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 					Protocol: network.HTTP,
 					Port:     &servicePort,
+					Path:     to.StringPtr("/"),
 				},
 			}
 

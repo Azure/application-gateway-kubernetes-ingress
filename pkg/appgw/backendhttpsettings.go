@@ -16,6 +16,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -125,6 +126,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 				backendID.serviceKey(), backendID.ServicePort.String())
 			return builder, errors.New("more than one service-backend port binding is not allowed")
 		}
+
 		var uniquePair serviceBackendPortPair
 		serviceBackendPairs.ForEach(func(pairI interface{}) {
 			uniquePair = pairI.(serviceBackendPortPair)
@@ -134,12 +136,15 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.ServicePort.String(), uniquePair.BackendPort)
 		httpSettingsPort := uniquePair.BackendPort
+		ingressAnnotations := annotations.FromIngress(backendID.Ingress)
+		backendPathPrefix := to.StringPtr(ingressAnnotations.BackendPathPrefix())
 		httpSettings := network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				Protocol: network.HTTP,
 				Port:     &httpSettingsPort,
+				Path:     backendPathPrefix,
 			},
 		}
 		// other settings should come from annotations
