@@ -9,12 +9,14 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
+	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type backendIdentifier struct {
 	serviceIdentifier
 	ServicePort intstr.IntOrString
+	Ingress     *v1beta1.Ingress
 }
 
 type serviceBackendPortPair struct {
