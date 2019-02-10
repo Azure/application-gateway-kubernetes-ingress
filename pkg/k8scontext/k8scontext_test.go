@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
@@ -37,7 +38,7 @@ var _ = Describe("K8scontext", func() {
 			Name:      ingressName,
 			Namespace: ingressNS,
 			Annotations: map[string]string{
-				k8scontext.IngressClass: k8scontext.IngressControllerName,
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 		},
 		Spec: v1beta1.IngressSpec{
@@ -159,7 +160,7 @@ var _ = Describe("K8scontext", func() {
 			deepcopy.Copy(nonAppGWIngress, ingress)
 			nonAppGWIngress.Name = ingressName + "123"
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
-			nonAppGWIngress.Annotations[k8scontext.IngressClass] = k8scontext.IngressControllerName + "123"
+			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
 			_, err := k8sClient.Extensions().Ingresses(ingressNS).Create(nonAppGWIngress)
 			Expect(err).Should(BeNil(), "Unable to create non-Application Gateway ingress resource due to: %v", err)

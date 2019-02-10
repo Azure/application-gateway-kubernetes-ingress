@@ -395,7 +395,5 @@ func (c *Context) Stop() {
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
-	ingressAnnotations := annotations.FromIngress(ingress)
-	controllerName := ingressAnnotations.IngressClass()
-	return controllerName == annotations.IngressControllerName
+	return annotations.IsApplicationGatewayIngress(ingress)
 }
