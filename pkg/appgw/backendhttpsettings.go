@@ -134,10 +134,9 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
 
-		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.ServicePort.String(), uniquePair.BackendPort)
+		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
 		httpSettingsPort := uniquePair.BackendPort
-		ingressAnnotations := annotations.FromIngress(backendID.Ingress)
-		backendPathPrefix := to.StringPtr(ingressAnnotations.BackendPathPrefix())
+		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
 		httpSettings := network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
