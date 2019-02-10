@@ -56,8 +56,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name:      ingressName,
 			Namespace: ingressNS,
 			Annotations: map[string]string{
-				annotations.IngressClassKey:   annotations.IngressControllerName,
-				annotations.BackendPathPrefix: "/",
+				annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+				annotations.BackendPathPrefixKey: "/test",
 			},
 		},
 		Spec: v1beta1.IngressSpec{
@@ -204,14 +204,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(2), "Expected two HTTP setting, but got: %d", len(*appGW.BackendHTTPSettingsCollection))
 
 			expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
+			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 			httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 				Etag: to.StringPtr("*"),
 				Name: &httpSettingsName,
 				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 					Protocol: network.HTTP,
 					Port:     &backendPort,
-					Path:     to.StringPtr("/"),
+					Path:     to.StringPtr("/test"),
 				},
 			}
 
@@ -325,14 +325,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(2), "Expected two HTTP setting, but got: %d", len(*appGW.BackendHTTPSettingsCollection))
 
 			expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort)
+			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
 			httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 				Etag: to.StringPtr("*"),
 				Name: &httpSettingsName,
 				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 					Protocol: network.HTTP,
 					Port:     &servicePort,
-					Path:     to.StringPtr("/"),
+					Path:     to.StringPtr("/test"),
 				},
 			}
 

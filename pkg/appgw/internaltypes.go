@@ -65,8 +65,8 @@ func getResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
 }
 
-func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32) string {
-	return fmt.Sprintf("k8s-%v-%v-bp-%v", serviceName, servicePort, backendPortNo)
+func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
+	return fmt.Sprintf("k8s-%v-%v-bp-%v-%s", serviceName, servicePort, backendPortNo, ingress)
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
