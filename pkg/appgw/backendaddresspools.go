@@ -16,9 +16,9 @@ import (
 )
 
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	addressPools := make([](network.ApplicationGatewayBackendAddressPool), 0)
+	addressPools := make(map[string](network.ApplicationGatewayBackendAddressPool))
 	emptyPool := defaultBackendAddressPool()
-	addressPools = append(addressPools, emptyPool)
+	addressPools[*emptyPool.Name] = emptyPool
 
 	for backendID, serviceBackendPair := range builder.serviceBackendPairMap {
 		endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
@@ -39,34 +39,48 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.I
 
 			if endpointsPortsSet.Contains(serviceBackendPair.BackendPort) {
 				addressPoolName := generateAddressPoolName(backendID.serviceFullName(), backendID.ServicePort.String(), serviceBackendPair.BackendPort)
-				addressPoolAddresses := make([](network.ApplicationGatewayBackendAddress), 0)
-				for _, address := range subset.Addresses {
-					ip := address.IP
-					hostname := address.Hostname
-					// prefer IP address
-					if len(ip) != 0 {
-						// address specified by ip
-						addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{IPAddress: &ip})
-					} else if len(address.Hostname) != 0 {
-						// address specified by hostname
-						addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{Fqdn: &hostname})
+				// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
+				// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
+				addressPool, ok := addressPools[addressPoolName]
+
+				if !ok {
+					addressPoolAddresses := make([](network.ApplicationGatewayBackendAddress), 0)
+					for _, address := range subset.Addresses {
+						ip := address.IP
+						hostname := address.Hostname
+						// prefer IP address
+						if len(ip) != 0 {
+							// address specified by ip
+							addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{IPAddress: &ip})
+						} else if len(address.Hostname) != 0 {
+							// address specified by hostname
+							addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{Fqdn: &hostname})
+						}
 					}
+
+					addressPool = network.ApplicationGatewayBackendAddressPool{
+						Etag: to.StringPtr("*"),
+						Name: &addressPoolName,
+						ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+							BackendAddresses: &addressPoolAddresses,
+						},
+					}
+
+					addressPools[*addressPool.Name] = addressPool
 				}
-				addressPool := network.ApplicationGatewayBackendAddressPool{
-					Etag: to.StringPtr("*"),
-					Name: &addressPoolName,
-					ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-						BackendAddresses: &addressPoolAddresses,
-					},
-				}
-				addressPools = append(addressPools, addressPool)
+
 				builder.backendPoolMap[backendID] = &addressPool
 				break
 			}
 		}
 	}
 
-	builder.appGwConfig.BackendAddressPools = &addressPools
+	backendPools := make([](network.ApplicationGatewayBackendAddressPool), 0)
+	for _, addressPool := range addressPools {
+		backendPools = append(backendPools, addressPool)
+	}
+
+	builder.appGwConfig.BackendAddressPools = &backendPools
 
 	return builder, nil
 }
