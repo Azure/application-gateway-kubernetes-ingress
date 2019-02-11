@@ -10,6 +10,7 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
 data:
   APPGW_SUBSCRIPTION_ID: {{ required "A valid appgw entry is required!" .Values.appgw.subscriptionId }}
   APPGW_RESOURCE_GROUP:  {{ required "A valid appgw entry is required!" .Values.appgw.resourceGroup }}
