@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	// BackendPathPrefixKey defines the value for Path which should be used as a prefix for all HTTP requests.
+	// BackendPathPrefixKey defines the key for Path which should be used as a prefix for all HTTP requests.
 	// Null means no path will be prefixed. Default value is null.
 	BackendPathPrefixKey = "appgw.ingress.kubernetes.io/backend-path-prefix"
 
