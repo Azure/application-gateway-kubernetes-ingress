@@ -39,6 +39,10 @@ type secretIdentifier struct {
 	Name      string
 }
 
+const (
+	agPrefix = "k8s-ag-ingress"
+)
+
 // create xxx -> xxxconfiguration mappings to contain all the information
 type frontendListenerAzureConfig struct {
 	Protocol network.ApplicationGatewayProtocol
@@ -66,31 +70,31 @@ func getResourceKey(namespace, name string) string {
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return fmt.Sprintf("k8s-%v-%v-bp-%v-%s", serviceName, servicePort, backendPortNo, ingress)
+	return fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return fmt.Sprintf("k8s-%v-%v-bp-%v-pool", serviceName, servicePort, backendPortNo)
+	return fmt.Sprintf("%s-%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo)
 }
 
 func generateFrontendPortName(port int32) string {
-	return fmt.Sprintf("k8s-fp-%v", port)
+	return fmt.Sprintf("%s-fp-%v", agPrefix, port)
 }
 
 func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("k8s-%v-%v-fl", frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return fmt.Sprintf("%s-%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
 }
 
 func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("k8s-%v-%v-url", frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return fmt.Sprintf("%s-%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
 }
 
 func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("k8s-%v-%v-rr", frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return fmt.Sprintf("%s-%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
 }
 
-const defaultBackendHTTPSettingsName = "k8s-defaulthttpsetting"
-const defaultBackendAddressPoolName = "k8s-defaultaddresspool"
+const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
+const defaultBackendAddressPoolName = agPrefix + "-defaultaddresspool"
 
 func defaultBackendHTTPSettings() network.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
