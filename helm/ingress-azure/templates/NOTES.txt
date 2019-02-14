@@ -20,6 +20,6 @@ Configuration Details:
  * Kubernetes:
     - Watch Namespace : {{ .Values.kubernetes.watchNamespace }}
 {{ if eq .Values.armAuth.type "aadPodIdentity"}}
-Please make sure the associated aadpodidentity and aadpodidbiding is configured.
+Please make sure the associated aadpodidentity and aadpodidbinding is configured.
 For more information on AAD-Pod-Identity, please visit https://github.com/Azure/aad-pod-identity
 {{ end }}
