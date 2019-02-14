@@ -5,7 +5,7 @@
 #
 appgw:
     subscriptionId: <subscriptionId>
-    resourceGroup: <rresourceGroupName>
+    resourceGroup: <resourceGroupName>
     name: <applicationGatewayName>
 
 ################################################################################
