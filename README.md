@@ -12,6 +12,9 @@ The Application Gateway Ingress Controller allows the [Azure Application Gateway
 ## Usage
 Refer to the [tutorials](docs/tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
+## Annotations
+The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to the [annotations](docs/annotations.md) to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
+
 ## Reporting Issues
 The best way to report an issue is to create a Github Issue for the project. Please include the following information when creating the issue:
 * Subscription ID for AKS cluster.
