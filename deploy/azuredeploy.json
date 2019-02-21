@@ -21,21 +21,21 @@
             }
         },
         "virtualNetworkAddressPrefix": {
-            "defaultValue": "15.0.0.0/8",
+            "defaultValue": "10.0.0.0/8",
             "type": "string",
             "metadata": {
                 "description": "Containers DNS server IP address."
             }
         },
         "aksSubnetAddressPrefix": {
-            "defaultValue": "15.0.0.0/16",
+            "defaultValue": "10.0.0.0/16",
             "type": "string",
             "metadata": {
                 "description": "Containers DNS server IP address."
             }
         },
         "applicationGatewaySubnetAddressPrefix": {
-            "defaultValue": "15.1.0.0/16",
+            "defaultValue": "10.1.0.0/16",
             "type": "string",
             "metadata": {
                 "description": "Containers DNS server IP address."
@@ -281,21 +281,21 @@
             }
         },
         "kubernetesVersion": {
-            "defaultValue": "1.11.5",
+            "defaultValue": "1.12.5",
             "type": "string",
             "metadata": {
                 "description": "The version of Kubernetes."
             }
         },
         "aksServiceCIDR": {
-            "defaultValue": "10.0.0.0/16",
+            "defaultValue": "10.2.0.0/16",
             "type": "string",
             "metadata": {
                 "description": "A CIDR notation IP range from which to assign service cluster IPs."
             }
         },
         "aksDnsServiceIP": {
-            "defaultValue": "10.0.0.10",
+            "defaultValue": "10.2.0.10",
             "type": "string",
             "metadata": {
                 "description": "Containers DNS server IP address."
