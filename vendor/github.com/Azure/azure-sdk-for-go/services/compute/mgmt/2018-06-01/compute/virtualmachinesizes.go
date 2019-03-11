@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -40,10 +41,21 @@ func NewVirtualMachineSizesClientWithBaseURI(baseURI string, subscriptionID stri
 	return VirtualMachineSizesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists all available virtual machine sizes for a subscription in a location.
+// List this API is deprecated. Use [Resources
+// Skus](https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list)
 // Parameters:
 // location - the location upon which virtual-machine-sizes is queried.
 func (client VirtualMachineSizesClient) List(ctx context.Context, location string) (result VirtualMachineSizeListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineSizesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: location,
 			Constraints: []validation.Constraint{{Target: "location", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {

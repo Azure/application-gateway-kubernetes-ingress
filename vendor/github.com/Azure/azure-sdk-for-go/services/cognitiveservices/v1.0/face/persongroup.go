@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -31,8 +32,8 @@ type PersonGroupClient struct {
 }
 
 // NewPersonGroupClient creates an instance of the PersonGroupClient client.
-func NewPersonGroupClient(azureRegion AzureRegions) PersonGroupClient {
-	return PersonGroupClient{New(azureRegion)}
+func NewPersonGroupClient(endpoint string) PersonGroupClient {
+	return PersonGroupClient{New(endpoint)}
 }
 
 // Create create a new person group with specified personGroupId, name and user-provided userData.
@@ -40,6 +41,16 @@ func NewPersonGroupClient(azureRegion AzureRegions) PersonGroupClient {
 // personGroupID - id referencing a particular person group.
 // body - request body for creating new person group.
 func (client PersonGroupClient) Create(ctx context.Context, personGroupID string, body NameAndUserDataContract) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -76,7 +87,7 @@ func (client PersonGroupClient) Create(ctx context.Context, personGroupID string
 // CreatePreparer prepares the Create request.
 func (client PersonGroupClient) CreatePreparer(ctx context.Context, personGroupID string, body NameAndUserDataContract) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -86,7 +97,7 @@ func (client PersonGroupClient) CreatePreparer(ctx context.Context, personGroupI
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}", pathParameters),
 		autorest.WithJSON(body))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -111,11 +122,21 @@ func (client PersonGroupClient) CreateResponder(resp *http.Response) (result aut
 	return
 }
 
-// Delete delete an existing person group. Persisted face images of all people in the person group will also be
+// Delete delete an existing person group. Persisted face features of all people in the person group will also be
 // deleted.
 // Parameters:
 // personGroupID - id referencing a particular person group.
 func (client PersonGroupClient) Delete(ctx context.Context, personGroupID string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -147,7 +168,7 @@ func (client PersonGroupClient) Delete(ctx context.Context, personGroupID string
 // DeletePreparer prepares the Delete request.
 func (client PersonGroupClient) DeletePreparer(ctx context.Context, personGroupID string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -156,7 +177,7 @@ func (client PersonGroupClient) DeletePreparer(ctx context.Context, personGroupI
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -184,6 +205,16 @@ func (client PersonGroupClient) DeleteResponder(resp *http.Response) (result aut
 // Parameters:
 // personGroupID - id referencing a particular person group.
 func (client PersonGroupClient) Get(ctx context.Context, personGroupID string) (result PersonGroup, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -215,7 +246,7 @@ func (client PersonGroupClient) Get(ctx context.Context, personGroupID string) (
 // GetPreparer prepares the Get request.
 func (client PersonGroupClient) GetPreparer(ctx context.Context, personGroupID string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -224,7 +255,7 @@ func (client PersonGroupClient) GetPreparer(ctx context.Context, personGroupID s
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -253,6 +284,16 @@ func (client PersonGroupClient) GetResponder(resp *http.Response) (result Person
 // Parameters:
 // personGroupID - id referencing a particular person group.
 func (client PersonGroupClient) GetTrainingStatus(ctx context.Context, personGroupID string) (result TrainingStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.GetTrainingStatus")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -284,7 +325,7 @@ func (client PersonGroupClient) GetTrainingStatus(ctx context.Context, personGro
 // GetTrainingStatusPreparer prepares the GetTrainingStatus request.
 func (client PersonGroupClient) GetTrainingStatusPreparer(ctx context.Context, personGroupID string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -293,7 +334,7 @@ func (client PersonGroupClient) GetTrainingStatusPreparer(ctx context.Context, p
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}/training", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -323,6 +364,16 @@ func (client PersonGroupClient) GetTrainingStatusResponder(resp *http.Response) 
 // start - list person groups from the least personGroupId greater than the "start".
 // top - the number of person groups to list.
 func (client PersonGroupClient) List(ctx context.Context, start string, top *int32) (result ListPersonGroup, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: start,
 			Constraints: []validation.Constraint{{Target: "start", Name: validation.MaxLength, Rule: 64, Chain: nil}}},
@@ -358,7 +409,7 @@ func (client PersonGroupClient) List(ctx context.Context, start string, top *int
 // ListPreparer prepares the List request.
 func (client PersonGroupClient) ListPreparer(ctx context.Context, start string, top *int32) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -373,7 +424,7 @@ func (client PersonGroupClient) ListPreparer(ctx context.Context, start string, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPath("/persongroups"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -403,6 +454,16 @@ func (client PersonGroupClient) ListResponder(resp *http.Response) (result ListP
 // Parameters:
 // personGroupID - id referencing a particular person group.
 func (client PersonGroupClient) Train(ctx context.Context, personGroupID string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.Train")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -434,7 +495,7 @@ func (client PersonGroupClient) Train(ctx context.Context, personGroupID string)
 // TrainPreparer prepares the Train request.
 func (client PersonGroupClient) TrainPreparer(ctx context.Context, personGroupID string) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -443,7 +504,7 @@ func (client PersonGroupClient) TrainPreparer(ctx context.Context, personGroupID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}/train", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -473,6 +534,16 @@ func (client PersonGroupClient) TrainResponder(resp *http.Response) (result auto
 // personGroupID - id referencing a particular person group.
 // body - request body for updating person group.
 func (client PersonGroupClient) Update(ctx context.Context, personGroupID string, body NameAndUserDataContract) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PersonGroupClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: personGroupID,
 			Constraints: []validation.Constraint{{Target: "personGroupID", Name: validation.MaxLength, Rule: 64, Chain: nil},
@@ -504,7 +575,7 @@ func (client PersonGroupClient) Update(ctx context.Context, personGroupID string
 // UpdatePreparer prepares the Update request.
 func (client PersonGroupClient) UpdatePreparer(ctx context.Context, personGroupID string, body NameAndUserDataContract) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"AzureRegion": client.AzureRegion,
+		"Endpoint": client.Endpoint,
 	}
 
 	pathParameters := map[string]interface{}{
@@ -514,7 +585,7 @@ func (client PersonGroupClient) UpdatePreparer(ctx context.Context, personGroupI
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
-		autorest.WithCustomBaseURL("https://{AzureRegion}.api.cognitive.microsoft.com/face/v1.0", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}/face/v1.0", urlParameters),
 		autorest.WithPathParameters("/persongroups/{personGroupId}", pathParameters),
 		autorest.WithJSON(body))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

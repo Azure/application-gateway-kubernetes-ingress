@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"io"
 	"net/http"
 )
@@ -33,21 +34,13 @@ import (
 // Text can be at most 1024 characters long.
 // If the content passed to the text API or the image API exceeds the size limits, the API will return an error code
 // that informs about the issue.
-//
-// This API is currently available in:
-//
-// * West US - westus.api.cognitive.microsoft.com
-// * East US 2 - eastus2.api.cognitive.microsoft.com
-// * West Central US - westcentralus.api.cognitive.microsoft.com
-// * West Europe - westeurope.api.cognitive.microsoft.com
-// * Southeast Asia - southeastasia.api.cognitive.microsoft.com .
 type TextModerationClient struct {
 	BaseClient
 }
 
 // NewTextModerationClient creates an instance of the TextModerationClient client.
-func NewTextModerationClient(baseURL AzureRegionBaseURL) TextModerationClient {
-	return TextModerationClient{New(baseURL)}
+func NewTextModerationClient(endpoint string) TextModerationClient {
+	return TextModerationClient{New(endpoint)}
 }
 
 // DetectLanguage this operation will detect the language of given input content. Returns the <a
@@ -57,6 +50,16 @@ func NewTextModerationClient(baseURL AzureRegionBaseURL) TextModerationClient {
 // textContentType - the content type.
 // textContent - content to screen.
 func (client TextModerationClient) DetectLanguage(ctx context.Context, textContentType string, textContent io.ReadCloser) (result DetectedLanguage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TextModerationClient.DetectLanguage")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DetectLanguagePreparer(ctx, textContentType, textContent)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.TextModerationClient", "DetectLanguage", nil, "Failure preparing request")
@@ -81,13 +84,13 @@ func (client TextModerationClient) DetectLanguage(ctx context.Context, textConte
 // DetectLanguagePreparer prepares the DetectLanguage request.
 func (client TextModerationClient) DetectLanguagePreparer(ctx context.Context, textContentType string, textContent io.ReadCloser) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("text/plain"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessText/DetectLanguage"),
 		autorest.WithFile(textContent),
 		autorest.WithHeader("Content-Type", autorest.String(textContentType)))
@@ -124,6 +127,16 @@ func (client TextModerationClient) DetectLanguageResponder(resp *http.Response) 
 // listID - the list Id.
 // classify - classify input.
 func (client TextModerationClient) ScreenText(ctx context.Context, textContentType string, textContent io.ReadCloser, language string, autocorrect *bool, pii *bool, listID string, classify *bool) (result Screen, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TextModerationClient.ScreenText")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ScreenTextPreparer(ctx, textContentType, textContent, language, autocorrect, pii, listID, classify)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.TextModerationClient", "ScreenText", nil, "Failure preparing request")
@@ -148,7 +161,7 @@ func (client TextModerationClient) ScreenText(ctx context.Context, textContentTy
 // ScreenTextPreparer prepares the ScreenText request.
 func (client TextModerationClient) ScreenTextPreparer(ctx context.Context, textContentType string, textContent io.ReadCloser, language string, autocorrect *bool, pii *bool, listID string, classify *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -177,7 +190,7 @@ func (client TextModerationClient) ScreenTextPreparer(ctx context.Context, textC
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("text/plain"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessText/Screen/"),
 		autorest.WithFile(textContent),
 		autorest.WithQueryParameters(queryParameters),
