@@ -18,13 +18,18 @@ package containerinstance
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
+
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
 
 // ContainerGroupNetworkProtocol enumerates the values for container group network protocol.
 type ContainerGroupNetworkProtocol string
@@ -103,6 +108,21 @@ func PossibleOperationsOriginValues() []OperationsOrigin {
 	return []OperationsOrigin{System, User}
 }
 
+// Scheme enumerates the values for scheme.
+type Scheme string
+
+const (
+	// HTTP ...
+	HTTP Scheme = "http"
+	// HTTPS ...
+	HTTPS Scheme = "https"
+)
+
+// PossibleSchemeValues returns an array of possible values for the Scheme const type.
+func PossibleSchemeValues() []Scheme {
+	return []Scheme{HTTP, HTTPS}
+}
+
 // AzureFileVolume the properties of the Azure File volume. Azure File shares are mounted as volumes.
 type AzureFileVolume struct {
 	// ShareName - The name of the Azure File share to be mounted as a volume.
@@ -168,7 +188,13 @@ func (c *Container) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ContainerExecRequest the start container exec request.
+// ContainerExec the container execution command, for liveness or readiness probe
+type ContainerExec struct {
+	// Command - The commands to execute within the container.
+	Command *[]string `json:"command,omitempty"`
+}
+
+// ContainerExecRequest the container exec request.
 type ContainerExecRequest struct {
 	// Command - The command to be executed.
 	Command *string `json:"command,omitempty"`
@@ -178,10 +204,10 @@ type ContainerExecRequest struct {
 
 // ContainerExecRequestTerminalSize the size of the terminal.
 type ContainerExecRequestTerminalSize struct {
-	// Row - The row size of the terminal
-	Row *int32 `json:"row,omitempty"`
-	// Column - The column size of the terminal
-	Column *int32 `json:"column,omitempty"`
+	// Rows - The row size of the terminal
+	Rows *int32 `json:"rows,omitempty"`
+	// Cols - The column size of the terminal
+	Cols *int32 `json:"cols,omitempty"`
 }
 
 // ContainerExecResponse the information for the container exec command.
@@ -302,6 +328,12 @@ func (cg *ContainerGroup) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ContainerGroupDiagnostics container group diagnostic information.
+type ContainerGroupDiagnostics struct {
+	// LogAnalytics - Container group log analytics information.
+	LogAnalytics *LogAnalytics `json:"logAnalytics,omitempty"`
+}
+
 // ContainerGroupListResult the container group list response that contains the container group properties.
 type ContainerGroupListResult struct {
 	autorest.Response `json:"-"`
@@ -317,20 +349,37 @@ type ContainerGroupListResultIterator struct {
 	page ContainerGroupListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *ContainerGroupListResultIterator) Next() error {
+func (iter *ContainerGroupListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerGroupListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ContainerGroupListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -352,6 +401,11 @@ func (iter ContainerGroupListResultIterator) Value() ContainerGroup {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the ContainerGroupListResultIterator type.
+func NewContainerGroupListResultIterator(page ContainerGroupListResultPage) ContainerGroupListResultIterator {
+	return ContainerGroupListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (cglr ContainerGroupListResult) IsEmpty() bool {
 	return cglr.Value == nil || len(*cglr.Value) == 0
@@ -359,11 +413,11 @@ func (cglr ContainerGroupListResult) IsEmpty() bool {
 
 // containerGroupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (cglr ContainerGroupListResult) containerGroupListResultPreparer() (*http.Request, error) {
+func (cglr ContainerGroupListResult) containerGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if cglr.NextLink == nil || len(to.String(cglr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(cglr.NextLink)))
@@ -371,19 +425,36 @@ func (cglr ContainerGroupListResult) containerGroupListResultPreparer() (*http.R
 
 // ContainerGroupListResultPage contains a page of ContainerGroup values.
 type ContainerGroupListResultPage struct {
-	fn   func(ContainerGroupListResult) (ContainerGroupListResult, error)
+	fn   func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)
 	cglr ContainerGroupListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *ContainerGroupListResultPage) Next() error {
-	next, err := page.fn(page.cglr)
+func (page *ContainerGroupListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerGroupListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.cglr)
 	if err != nil {
 		return err
 	}
 	page.cglr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ContainerGroupListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -402,6 +473,11 @@ func (page ContainerGroupListResultPage) Values() []ContainerGroup {
 		return nil
 	}
 	return *page.cglr.Value
+}
+
+// Creates a new instance of the ContainerGroupListResultPage type.
+func NewContainerGroupListResultPage(getNextPage func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)) ContainerGroupListResultPage {
+	return ContainerGroupListResultPage{fn: getNextPage}
 }
 
 // ContainerGroupProperties ...
@@ -426,6 +502,8 @@ type ContainerGroupProperties struct {
 	Volumes *[]Volume `json:"volumes,omitempty"`
 	// InstanceView - The instance view of the container group. Only valid in response.
 	InstanceView *ContainerGroupPropertiesInstanceView `json:"instanceView,omitempty"`
+	// Diagnostics - The diagnostic information for a container group.
+	Diagnostics *ContainerGroupDiagnostics `json:"diagnostics,omitempty"`
 }
 
 // ContainerGroupPropertiesInstanceView the instance view of the container group. Only valid in response.
@@ -436,8 +514,8 @@ type ContainerGroupPropertiesInstanceView struct {
 	State *string `json:"state,omitempty"`
 }
 
-// ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ContainerGroupsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -465,12 +543,63 @@ func (future *ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroups
 	return
 }
 
+// ContainerGroupsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ContainerGroupsRestartFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ContainerGroupsRestartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsRestartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ContainerHTTPGet the container Http Get settings, for liveness or readiness probe
+type ContainerHTTPGet struct {
+	// Path - The path to probe.
+	Path *string `json:"path,omitempty"`
+	// Port - The port number to probe.
+	Port *int32 `json:"port,omitempty"`
+	// Scheme - The scheme. Possible values include: 'HTTP', 'HTTPS'
+	Scheme Scheme `json:"scheme,omitempty"`
+}
+
 // ContainerPort the port exposed on the container instance.
 type ContainerPort struct {
 	// Protocol - The protocol associated with the port. Possible values include: 'ContainerNetworkProtocolTCP', 'ContainerNetworkProtocolUDP'
 	Protocol ContainerNetworkProtocol `json:"protocol,omitempty"`
 	// Port - The port number exposed within the container group.
 	Port *int32 `json:"port,omitempty"`
+}
+
+// ContainerProbe the container probe, for liveness or readiness
+type ContainerProbe struct {
+	// Exec - The execution command to probe
+	Exec *ContainerExec `json:"exec,omitempty"`
+	// HTTPGet - The Http Get settings to probe
+	HTTPGet *ContainerHTTPGet `json:"httpGet,omitempty"`
+	// InitialDelaySeconds - The initial delay seconds.
+	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
+	// PeriodSeconds - The period seconds.
+	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
+	// FailureThreshold - The failure threshold.
+	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
+	// SuccessThreshold - The success threshold.
+	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
+	// TimeoutSeconds - The timeout seconds.
+	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
 }
 
 // ContainerProperties the container instance properties.
@@ -489,6 +618,10 @@ type ContainerProperties struct {
 	Resources *ResourceRequirements `json:"resources,omitempty"`
 	// VolumeMounts - The volume mounts available to the container instance.
 	VolumeMounts *[]VolumeMount `json:"volumeMounts,omitempty"`
+	// LivenessProbe - The liveness probe.
+	LivenessProbe *ContainerProbe `json:"livenessProbe,omitempty"`
+	// ReadinessProbe - The readiness probe.
+	ReadinessProbe *ContainerProbe `json:"readinessProbe,omitempty"`
 }
 
 // ContainerPropertiesInstanceView the instance view of the container instance. Only valid in response.
@@ -523,6 +656,8 @@ type EnvironmentVariable struct {
 	Name *string `json:"name,omitempty"`
 	// Value - The value of the environment variable.
 	Value *string `json:"value,omitempty"`
+	// SecureValue - The value of the secure environment variable.
+	SecureValue *string `json:"secureValue,omitempty"`
 }
 
 // Event a container group or container instance event.
@@ -575,6 +710,14 @@ type IPAddress struct {
 	Fqdn *string `json:"fqdn,omitempty"`
 }
 
+// LogAnalytics container group log analytics information.
+type LogAnalytics struct {
+	// WorkspaceID - The workspace id for log analytics
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// WorkspaceKey - The workspace key for log analytics
+	WorkspaceKey *string `json:"workspaceKey,omitempty"`
+}
+
 // Logs the logs.
 type Logs struct {
 	autorest.Response `json:"-"`
@@ -604,8 +747,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult the operation list response that contains all operations for Azure Container Instance
-// service.
+// OperationListResult the operation list response that contains all operations for Azure Container
+// Instance service.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of operations.
@@ -730,7 +873,9 @@ func (vVar Volume) MarshalJSON() ([]byte, error) {
 	if vVar.AzureFile != nil {
 		objectMap["azureFile"] = vVar.AzureFile
 	}
-	objectMap["emptyDir"] = vVar.EmptyDir
+	if vVar.EmptyDir != nil {
+		objectMap["emptyDir"] = vVar.EmptyDir
+	}
 	if vVar.Secret != nil {
 		objectMap["secret"] = vVar.Secret
 	}

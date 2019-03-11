@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
 	"net/http"
 )
@@ -32,13 +33,8 @@ type ExamplesClient struct {
 }
 
 // NewExamplesClient creates an instance of the ExamplesClient client.
-func NewExamplesClient() ExamplesClient {
-	return NewExamplesClientWithBaseURI(DefaultBaseURI)
-}
-
-// NewExamplesClientWithBaseURI creates an instance of the ExamplesClient client.
-func NewExamplesClientWithBaseURI(baseURI string) ExamplesClient {
-	return ExamplesClient{NewWithBaseURI(baseURI)}
+func NewExamplesClient(endpoint string) ExamplesClient {
+	return ExamplesClient{New(endpoint)}
 }
 
 // Add adds a labeled example to the application.
@@ -47,6 +43,16 @@ func NewExamplesClientWithBaseURI(baseURI string) ExamplesClient {
 // versionID - the version ID.
 // exampleLabelObject - an example label with the expected intent and entities.
 func (client ExamplesClient) Add(ctx context.Context, appID uuid.UUID, versionID string, exampleLabelObject ExampleLabelObject) (result LabelExampleResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExamplesClient.Add")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddPreparer(ctx, appID, versionID, exampleLabelObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ExamplesClient", "Add", nil, "Failure preparing request")
@@ -70,6 +76,10 @@ func (client ExamplesClient) Add(ctx context.Context, appID uuid.UUID, versionID
 
 // AddPreparer prepares the Add request.
 func (client ExamplesClient) AddPreparer(ctx context.Context, appID uuid.UUID, versionID string, exampleLabelObject ExampleLabelObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -78,7 +88,7 @@ func (client ExamplesClient) AddPreparer(ctx context.Context, appID uuid.UUID, v
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/example", pathParameters),
 		autorest.WithJSON(exampleLabelObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -110,6 +120,16 @@ func (client ExamplesClient) AddResponder(resp *http.Response) (result LabelExam
 // versionID - the version ID.
 // exampleLabelObjectArray - array of examples.
 func (client ExamplesClient) Batch(ctx context.Context, appID uuid.UUID, versionID string, exampleLabelObjectArray []ExampleLabelObject) (result ListBatchLabelExample, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExamplesClient.Batch")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: exampleLabelObjectArray,
 			Constraints: []validation.Constraint{{Target: "exampleLabelObjectArray", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -139,6 +159,10 @@ func (client ExamplesClient) Batch(ctx context.Context, appID uuid.UUID, version
 
 // BatchPreparer prepares the Batch request.
 func (client ExamplesClient) BatchPreparer(ctx context.Context, appID uuid.UUID, versionID string, exampleLabelObjectArray []ExampleLabelObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -147,7 +171,7 @@ func (client ExamplesClient) BatchPreparer(ctx context.Context, appID uuid.UUID,
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/examples", pathParameters),
 		autorest.WithJSON(exampleLabelObjectArray))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -179,6 +203,16 @@ func (client ExamplesClient) BatchResponder(resp *http.Response) (result ListBat
 // versionID - the version ID.
 // exampleID - the example ID.
 func (client ExamplesClient) Delete(ctx context.Context, appID uuid.UUID, versionID string, exampleID int32) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExamplesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, appID, versionID, exampleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ExamplesClient", "Delete", nil, "Failure preparing request")
@@ -202,6 +236,10 @@ func (client ExamplesClient) Delete(ctx context.Context, appID uuid.UUID, versio
 
 // DeletePreparer prepares the Delete request.
 func (client ExamplesClient) DeletePreparer(ctx context.Context, appID uuid.UUID, versionID string, exampleID int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"exampleId": autorest.Encode("path", exampleID),
@@ -210,7 +248,7 @@ func (client ExamplesClient) DeletePreparer(ctx context.Context, appID uuid.UUID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/examples/{exampleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -242,6 +280,16 @@ func (client ExamplesClient) DeleteResponder(resp *http.Response) (result Operat
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ExamplesClient) List(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListLabeledUtterance, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExamplesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -277,6 +325,10 @@ func (client ExamplesClient) List(ctx context.Context, appID uuid.UUID, versionI
 
 // ListPreparer prepares the List request.
 func (client ExamplesClient) ListPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -296,7 +348,7 @@ func (client ExamplesClient) ListPreparer(ctx context.Context, appID uuid.UUID, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/examples", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

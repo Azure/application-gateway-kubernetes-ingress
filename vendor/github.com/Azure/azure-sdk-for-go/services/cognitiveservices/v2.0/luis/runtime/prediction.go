@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -31,13 +32,8 @@ type PredictionClient struct {
 }
 
 // NewPredictionClient creates an instance of the PredictionClient client.
-func NewPredictionClient() PredictionClient {
-	return NewPredictionClientWithBaseURI(DefaultBaseURI)
-}
-
-// NewPredictionClientWithBaseURI creates an instance of the PredictionClient client.
-func NewPredictionClientWithBaseURI(baseURI string) PredictionClient {
-	return PredictionClient{NewWithBaseURI(baseURI)}
+func NewPredictionClient(endpoint string) PredictionClient {
+	return PredictionClient{New(endpoint)}
 }
 
 // Resolve gets predictions for a given utterance, in the form of intents and entities. The current maximum query size
@@ -52,6 +48,16 @@ func NewPredictionClientWithBaseURI(baseURI string) PredictionClient {
 // bingSpellCheckSubscriptionKey - the subscription key to use when enabling bing spell check
 // logParameter - log query (default is true)
 func (client PredictionClient) Resolve(ctx context.Context, appID string, query string, timezoneOffset *float64, verbose *bool, staging *bool, spellCheck *bool, bingSpellCheckSubscriptionKey string, logParameter *bool) (result LuisResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PredictionClient.Resolve")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: query,
 			Constraints: []validation.Constraint{{Target: "query", Name: validation.MaxLength, Rule: 500, Chain: nil}}}}); err != nil {
@@ -81,6 +87,10 @@ func (client PredictionClient) Resolve(ctx context.Context, appID string, query 
 
 // ResolvePreparer prepares the Resolve request.
 func (client PredictionClient) ResolvePreparer(ctx context.Context, appID string, query string, timezoneOffset *float64, verbose *bool, staging *bool, spellCheck *bool, bingSpellCheckSubscriptionKey string, logParameter *bool) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId": autorest.Encode("path", appID),
 	}
@@ -108,7 +118,7 @@ func (client PredictionClient) ResolvePreparer(ctx context.Context, appID string
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}", pathParameters),
 		autorest.WithJSON(query),
 		autorest.WithQueryParameters(queryParameters))

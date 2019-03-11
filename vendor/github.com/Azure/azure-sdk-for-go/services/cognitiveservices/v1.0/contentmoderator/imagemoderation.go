@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"io"
 	"net/http"
 )
@@ -33,21 +34,13 @@ import (
 // Text can be at most 1024 characters long.
 // If the content passed to the text API or the image API exceeds the size limits, the API will return an error code
 // that informs about the issue.
-//
-// This API is currently available in:
-//
-// * West US - westus.api.cognitive.microsoft.com
-// * East US 2 - eastus2.api.cognitive.microsoft.com
-// * West Central US - westcentralus.api.cognitive.microsoft.com
-// * West Europe - westeurope.api.cognitive.microsoft.com
-// * Southeast Asia - southeastasia.api.cognitive.microsoft.com .
 type ImageModerationClient struct {
 	BaseClient
 }
 
 // NewImageModerationClient creates an instance of the ImageModerationClient client.
-func NewImageModerationClient(baseURL AzureRegionBaseURL) ImageModerationClient {
-	return ImageModerationClient{New(baseURL)}
+func NewImageModerationClient(endpoint string) ImageModerationClient {
+	return ImageModerationClient{New(endpoint)}
 }
 
 // EvaluateFileInput returns probabilities of the image containing racy or adult content.
@@ -55,6 +48,16 @@ func NewImageModerationClient(baseURL AzureRegionBaseURL) ImageModerationClient 
 // imageStream - the image file.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) EvaluateFileInput(ctx context.Context, imageStream io.ReadCloser, cacheImage *bool) (result Evaluate, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.EvaluateFileInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.EvaluateFileInputPreparer(ctx, imageStream, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "EvaluateFileInput", nil, "Failure preparing request")
@@ -79,7 +82,7 @@ func (client ImageModerationClient) EvaluateFileInput(ctx context.Context, image
 // EvaluateFileInputPreparer prepares the EvaluateFileInput request.
 func (client ImageModerationClient) EvaluateFileInputPreparer(ctx context.Context, imageStream io.ReadCloser, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -90,7 +93,7 @@ func (client ImageModerationClient) EvaluateFileInputPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("image/gif"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Evaluate"),
 		autorest.WithFile(imageStream),
 		autorest.WithQueryParameters(queryParameters))
@@ -121,6 +124,16 @@ func (client ImageModerationClient) EvaluateFileInputResponder(resp *http.Respon
 // Parameters:
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) EvaluateMethod(ctx context.Context, cacheImage *bool) (result Evaluate, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.EvaluateMethod")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.EvaluateMethodPreparer(ctx, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "EvaluateMethod", nil, "Failure preparing request")
@@ -145,7 +158,7 @@ func (client ImageModerationClient) EvaluateMethod(ctx context.Context, cacheIma
 // EvaluateMethodPreparer prepares the EvaluateMethod request.
 func (client ImageModerationClient) EvaluateMethodPreparer(ctx context.Context, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -155,7 +168,7 @@ func (client ImageModerationClient) EvaluateMethodPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Evaluate"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -187,6 +200,16 @@ func (client ImageModerationClient) EvaluateMethodResponder(resp *http.Response)
 // imageURL - the image url.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) EvaluateURLInput(ctx context.Context, contentType string, imageURL BodyModel, cacheImage *bool) (result Evaluate, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.EvaluateURLInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.EvaluateURLInputPreparer(ctx, contentType, imageURL, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "EvaluateURLInput", nil, "Failure preparing request")
@@ -211,7 +234,7 @@ func (client ImageModerationClient) EvaluateURLInput(ctx context.Context, conten
 // EvaluateURLInputPreparer prepares the EvaluateURLInput request.
 func (client ImageModerationClient) EvaluateURLInputPreparer(ctx context.Context, contentType string, imageURL BodyModel, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -222,7 +245,7 @@ func (client ImageModerationClient) EvaluateURLInputPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Evaluate"),
 		autorest.WithJSON(imageURL),
 		autorest.WithQueryParameters(queryParameters),
@@ -254,6 +277,16 @@ func (client ImageModerationClient) EvaluateURLInputResponder(resp *http.Respons
 // Parameters:
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) FindFaces(ctx context.Context, cacheImage *bool) (result FoundFaces, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.FindFaces")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.FindFacesPreparer(ctx, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "FindFaces", nil, "Failure preparing request")
@@ -278,7 +311,7 @@ func (client ImageModerationClient) FindFaces(ctx context.Context, cacheImage *b
 // FindFacesPreparer prepares the FindFaces request.
 func (client ImageModerationClient) FindFacesPreparer(ctx context.Context, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -288,7 +321,7 @@ func (client ImageModerationClient) FindFacesPreparer(ctx context.Context, cache
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/FindFaces"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -319,6 +352,16 @@ func (client ImageModerationClient) FindFacesResponder(resp *http.Response) (res
 // imageStream - the image file.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) FindFacesFileInput(ctx context.Context, imageStream io.ReadCloser, cacheImage *bool) (result FoundFaces, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.FindFacesFileInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.FindFacesFileInputPreparer(ctx, imageStream, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "FindFacesFileInput", nil, "Failure preparing request")
@@ -343,7 +386,7 @@ func (client ImageModerationClient) FindFacesFileInput(ctx context.Context, imag
 // FindFacesFileInputPreparer prepares the FindFacesFileInput request.
 func (client ImageModerationClient) FindFacesFileInputPreparer(ctx context.Context, imageStream io.ReadCloser, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -354,7 +397,7 @@ func (client ImageModerationClient) FindFacesFileInputPreparer(ctx context.Conte
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("image/gif"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/FindFaces"),
 		autorest.WithFile(imageStream),
 		autorest.WithQueryParameters(queryParameters))
@@ -387,6 +430,16 @@ func (client ImageModerationClient) FindFacesFileInputResponder(resp *http.Respo
 // imageURL - the image url.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) FindFacesURLInput(ctx context.Context, contentType string, imageURL BodyModel, cacheImage *bool) (result FoundFaces, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.FindFacesURLInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.FindFacesURLInputPreparer(ctx, contentType, imageURL, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "FindFacesURLInput", nil, "Failure preparing request")
@@ -411,7 +464,7 @@ func (client ImageModerationClient) FindFacesURLInput(ctx context.Context, conte
 // FindFacesURLInputPreparer prepares the FindFacesURLInput request.
 func (client ImageModerationClient) FindFacesURLInputPreparer(ctx context.Context, contentType string, imageURL BodyModel, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -422,7 +475,7 @@ func (client ImageModerationClient) FindFacesURLInputPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/FindFaces"),
 		autorest.WithJSON(imageURL),
 		autorest.WithQueryParameters(queryParameters),
@@ -463,6 +516,16 @@ func (client ImageModerationClient) FindFacesURLInputResponder(resp *http.Respon
 // listID - the list Id.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) MatchFileInput(ctx context.Context, imageStream io.ReadCloser, listID string, cacheImage *bool) (result MatchResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.MatchFileInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.MatchFileInputPreparer(ctx, imageStream, listID, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "MatchFileInput", nil, "Failure preparing request")
@@ -487,7 +550,7 @@ func (client ImageModerationClient) MatchFileInput(ctx context.Context, imageStr
 // MatchFileInputPreparer prepares the MatchFileInput request.
 func (client ImageModerationClient) MatchFileInputPreparer(ctx context.Context, imageStream io.ReadCloser, listID string, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -501,7 +564,7 @@ func (client ImageModerationClient) MatchFileInputPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("image/gif"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Match"),
 		autorest.WithFile(imageStream),
 		autorest.WithQueryParameters(queryParameters))
@@ -540,6 +603,16 @@ func (client ImageModerationClient) MatchFileInputResponder(resp *http.Response)
 // listID - the list Id.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) MatchMethod(ctx context.Context, listID string, cacheImage *bool) (result MatchResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.MatchMethod")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.MatchMethodPreparer(ctx, listID, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "MatchMethod", nil, "Failure preparing request")
@@ -564,7 +637,7 @@ func (client ImageModerationClient) MatchMethod(ctx context.Context, listID stri
 // MatchMethodPreparer prepares the MatchMethod request.
 func (client ImageModerationClient) MatchMethodPreparer(ctx context.Context, listID string, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -577,7 +650,7 @@ func (client ImageModerationClient) MatchMethodPreparer(ctx context.Context, lis
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Match"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -617,6 +690,16 @@ func (client ImageModerationClient) MatchMethodResponder(resp *http.Response) (r
 // listID - the list Id.
 // cacheImage - whether to retain the submitted image for future use; defaults to false if omitted.
 func (client ImageModerationClient) MatchURLInput(ctx context.Context, contentType string, imageURL BodyModel, listID string, cacheImage *bool) (result MatchResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.MatchURLInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.MatchURLInputPreparer(ctx, contentType, imageURL, listID, cacheImage)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "MatchURLInput", nil, "Failure preparing request")
@@ -641,7 +724,7 @@ func (client ImageModerationClient) MatchURLInput(ctx context.Context, contentTy
 // MatchURLInputPreparer prepares the MatchURLInput request.
 func (client ImageModerationClient) MatchURLInputPreparer(ctx context.Context, contentType string, imageURL BodyModel, listID string, cacheImage *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{}
@@ -655,7 +738,7 @@ func (client ImageModerationClient) MatchURLInputPreparer(ctx context.Context, c
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/Match"),
 		autorest.WithJSON(imageURL),
 		autorest.WithQueryParameters(queryParameters),
@@ -696,6 +779,16 @@ func (client ImageModerationClient) MatchURLInputResponder(resp *http.Response) 
 //
 // Note: This impacts the response time.
 func (client ImageModerationClient) OCRFileInput(ctx context.Context, language string, imageStream io.ReadCloser, cacheImage *bool, enhanced *bool) (result OCR, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.OCRFileInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.OCRFileInputPreparer(ctx, language, imageStream, cacheImage, enhanced)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "OCRFileInput", nil, "Failure preparing request")
@@ -720,7 +813,7 @@ func (client ImageModerationClient) OCRFileInput(ctx context.Context, language s
 // OCRFileInputPreparer prepares the OCRFileInput request.
 func (client ImageModerationClient) OCRFileInputPreparer(ctx context.Context, language string, imageStream io.ReadCloser, cacheImage *bool, enhanced *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{
@@ -738,7 +831,7 @@ func (client ImageModerationClient) OCRFileInputPreparer(ctx context.Context, la
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("image/gif"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/OCR"),
 		autorest.WithFile(imageStream),
 		autorest.WithQueryParameters(queryParameters))
@@ -777,6 +870,16 @@ func (client ImageModerationClient) OCRFileInputResponder(resp *http.Response) (
 //
 // Note: This impacts the response time.
 func (client ImageModerationClient) OCRMethod(ctx context.Context, language string, cacheImage *bool, enhanced *bool) (result OCR, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.OCRMethod")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.OCRMethodPreparer(ctx, language, cacheImage, enhanced)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "OCRMethod", nil, "Failure preparing request")
@@ -801,7 +904,7 @@ func (client ImageModerationClient) OCRMethod(ctx context.Context, language stri
 // OCRMethodPreparer prepares the OCRMethod request.
 func (client ImageModerationClient) OCRMethodPreparer(ctx context.Context, language string, cacheImage *bool, enhanced *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{
@@ -818,7 +921,7 @@ func (client ImageModerationClient) OCRMethodPreparer(ctx context.Context, langu
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/OCR"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -858,6 +961,16 @@ func (client ImageModerationClient) OCRMethodResponder(resp *http.Response) (res
 //
 // Note: This impacts the response time.
 func (client ImageModerationClient) OCRURLInput(ctx context.Context, language string, contentType string, imageURL BodyModel, cacheImage *bool, enhanced *bool) (result OCR, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ImageModerationClient.OCRURLInput")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.OCRURLInputPreparer(ctx, language, contentType, imageURL, cacheImage, enhanced)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "contentmoderator.ImageModerationClient", "OCRURLInput", nil, "Failure preparing request")
@@ -882,7 +995,7 @@ func (client ImageModerationClient) OCRURLInput(ctx context.Context, language st
 // OCRURLInputPreparer prepares the OCRURLInput request.
 func (client ImageModerationClient) OCRURLInputPreparer(ctx context.Context, language string, contentType string, imageURL BodyModel, cacheImage *bool, enhanced *bool) (*http.Request, error) {
 	urlParameters := map[string]interface{}{
-		"baseUrl": client.BaseURL,
+		"Endpoint": client.Endpoint,
 	}
 
 	queryParameters := map[string]interface{}{
@@ -900,7 +1013,7 @@ func (client ImageModerationClient) OCRURLInputPreparer(ctx context.Context, lan
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithCustomBaseURL("https://{baseUrl}", urlParameters),
+		autorest.WithCustomBaseURL("{Endpoint}", urlParameters),
 		autorest.WithPath("/contentmoderator/moderate/v1.0/ProcessImage/OCR"),
 		autorest.WithJSON(imageURL),
 		autorest.WithQueryParameters(queryParameters),
