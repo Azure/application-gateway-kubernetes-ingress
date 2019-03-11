@@ -20,6 +20,19 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
+type appGWSettingsChecker struct {
+	total   int                                               // Number of expected sub-resources of this setting.
+	checker func(*network.ApplicationGatewayPropertiesFormat) // A method to test the values with this setting. Will be run if the checker is not null.
+}
+
+type appGwConfigSettings struct {
+	backendHTTPSettingsCollection appGWSettingsChecker // Number of backend HTTP settings.
+	backendAddressPools           appGWSettingsChecker // Number of backend address pool.
+	hTTPListeners                 appGWSettingsChecker // Number of HTTP Listeners
+	requestRoutingRules           appGWSettingsChecker // Number of routing rules.
+	uRLPathMaps                   appGWSettingsChecker // Number of URL path maps.
+}
+
 var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	var k8sClient kubernetes.Interface
 	var ctxt *k8scontext.Context
@@ -56,8 +69,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name:      ingressName,
 			Namespace: ingressNS,
 			Annotations: map[string]string{
-				annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
-				annotations.BackendPathPrefixKey: "/test",
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 		},
 		Spec: v1beta1.IngressSpec{
@@ -142,6 +154,151 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
 
+	// Method to test all the ingress that have been added to the K8s context.
+	testIngress := func() []*v1beta1.Ingress {
+		// Get all the ingresses
+		ingressList := ctxt.GetHTTPIngressList()
+		// There should be only one ingress
+		Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
+		// Make sure it is the ingress we stored.
+		Expect(ingressList[0]).To(Equal(ingress))
+
+		return ingressList
+	}
+
+	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+		httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
+			Etag: to.StringPtr("*"),
+			Name: &httpSettingsName,
+			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+				Protocol: network.HTTP,
+				Port:     &backendPort,
+				Path:     to.StringPtr(""),
+			},
+		}
+
+		// Test the default backend HTTP settings.
+		Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+		// Test the ingress backend HTTP setting that we installed.
+		Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+	}
+
+	defaultBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+		addressPoolName := generateAddressPoolName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
+		addressPoolAddresses := [](network.ApplicationGatewayBackendAddress){{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
+
+		addressPool := &network.ApplicationGatewayBackendAddressPool{
+			Etag: to.StringPtr("*"),
+			Name: &addressPoolName,
+			ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+				BackendAddresses: &addressPoolAddresses,
+			},
+		}
+
+		// Test the default backend address pool.
+		Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
+		// Test the ingress backend address pool that we installed.
+		Expect((*appGW.BackendAddressPools)[1]).To(Equal(*addressPool))
+	}
+
+	defaultHTTPListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		// Test the listener.
+		appGwIdentifier := Identifier{}
+		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
+		httpListenerName := generateHTTPListenerName(frontendListenerIdentifier{80, domainName})
+		httpListener := &network.ApplicationGatewayHTTPListener{
+			Etag: to.StringPtr("*"),
+			Name: &httpListenerName,
+			ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
+				FrontendIPConfiguration: resourceRef("*"),
+				FrontendPort:            resourceRef(frontendPortID),
+				Protocol:                network.HTTP,
+				HostName:                &domainName,
+			},
+		}
+
+		Expect((*appGW.HTTPListeners)[0]).To(Equal(*httpListener))
+	}
+
+	defaultRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{80, domainName})))
+		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(network.PathBasedRouting))
+	}
+
+	defaultURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{80, domainName})))
+		// Check the `pathRule` stored within the `urlPathMap`.
+		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
+
+		pathRule := (*((*appGW.URLPathMaps)[0].PathRules))[0]
+		Expect(len(*(pathRule.Paths))).To(Equal(1), "Expected a single path in path-based rules, but got: %d", len(*(pathRule.Paths)))
+		// Check the exact path that was set.
+		Expect((*pathRule.Paths)[0]).To(Equal("/hi"))
+	}
+
+	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
+		// Add HTTP settings.
+		configBuilder, err := configBuilder.BackendHTTPSettingsCollection(ingressList)
+		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
+
+		// Retrieve the implementation of the `ConfigBuilder` interface.
+		appGW := configBuilder.Build()
+		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
+		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
+
+		// Test the value of the backend HTTP settings if the checker has been setup.
+		if settings.backendHTTPSettingsCollection.checker != nil {
+			settings.backendHTTPSettingsCollection.checker(appGW)
+		}
+
+		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
+		configBuilder, err = configBuilder.BackendAddressPools(ingressList)
+		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
+
+		// Retrieve the implementation of the `ConfigBuilder` interface.
+		appGW = configBuilder.Build()
+		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
+		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
+
+		if settings.backendAddressPools.checker != nil {
+			settings.backendAddressPools.checker(appGW)
+		}
+
+		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
+		configBuilder, err = configBuilder.HTTPListeners(ingressList)
+		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
+
+		// Retrieve the implementation of the `ConfigBuilder` interface.
+		appGW = configBuilder.Build()
+		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
+		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.hTTPListeners.total), "Did not find expected number of HTTP listeners")
+
+		if settings.hTTPListeners.checker != nil {
+			settings.hTTPListeners.checker(appGW)
+		}
+
+		// RequestRoutingRules depends on the previous operations
+		configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
+		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
+
+		// Retrieve the implementation of the `ConfigBuilder` interface.
+		appGW = configBuilder.Build()
+		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total), "Did not find expected number of request routing rules")
+
+		if settings.requestRoutingRules.checker != nil {
+			settings.requestRoutingRules.checker(appGW)
+		}
+
+		// Check the `urlPathMaps`
+		Expect(len(*appGW.URLPathMaps)).To(Equal(settings.uRLPathMaps.total), "Did not find expected number of URL path maps")
+		if settings.uRLPathMaps.checker != nil {
+			settings.uRLPathMaps.checker(appGW)
+		}
+	}
+
 	BeforeEach(func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
@@ -184,113 +341,33 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Application Gateway Configuration", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress", func() {
-			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
 
-			// Get all the ingresses
-			ingressList := ctxt.GetHTTPIngressList()
-			// There should be only one ingress
-			Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
-			// Make sure it is the ingress we stored.
-			Expect(ingressList[0]).To(Equal(ingress))
+			// Start the informers. This will sync the cache with the latest ingress.
+			ingressList := testIngress()
 
-			// Add HTTP settings.
-			configBuilder, err := configBuilder.BackendHTTPSettingsCollection(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW := configBuilder.Build()
-			// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
-			Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(2), "Expected two HTTP setting, but got: %d", len(*appGW.BackendHTTPSettingsCollection))
-
-			expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
-			httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
-				Etag: to.StringPtr("*"),
-				Name: &httpSettingsName,
-				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-					Protocol: network.HTTP,
-					Port:     &backendPort,
-					Path:     to.StringPtr("/test"),
+			testAGConfig(ingressList, appGwConfigSettings{
+				backendHTTPSettingsCollection: appGWSettingsChecker{
+					total:   2,
+					checker: defaultBackendHTTPSettingsChecker,
 				},
-			}
-
-			// Test the default backend HTTP settings.
-			Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
-			// Test the ingress backend HTTP setting that we installed.
-			Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
-
-			// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-			configBuilder, err = configBuilder.BackendAddressPools(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
-			Expect(len(*appGW.BackendAddressPools)).To(Equal(2), "Expected two backend address pools, but got: %d", len(*appGW.BackendAddressPools))
-
-			addressPoolName := generateAddressPoolName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
-			addressPoolAddresses := [](network.ApplicationGatewayBackendAddress){{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
-
-			addressPool := &network.ApplicationGatewayBackendAddressPool{
-				Etag: to.StringPtr("*"),
-				Name: &addressPoolName,
-				ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-					BackendAddresses: &addressPoolAddresses,
+				backendAddressPools: appGWSettingsChecker{
+					total:   2,
+					checker: defaultBackendAddressPoolChecker,
 				},
-			}
-
-			// Test the default backend address pool.
-			Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
-			// Test the ingress backend address pool that we installed.
-			Expect((*appGW.BackendAddressPools)[1]).To(Equal(*addressPool))
-
-			// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-			configBuilder, err = configBuilder.HTTPListeners(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
-			Expect(len(*appGW.HTTPListeners)).To(Equal(1), "Expected a single HTTP listener, but got: %d", len(*appGW.HTTPListeners))
-
-			// Test the listener.
-			appGwIdentifier := Identifier{}
-			frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-			httpListenerName := generateHTTPListenerName(frontendListenerIdentifier{80, domainName})
-			httpListener := &network.ApplicationGatewayHTTPListener{
-				Etag: to.StringPtr("*"),
-				Name: &httpListenerName,
-				ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
-					FrontendIPConfiguration: resourceRef("*"),
-					FrontendPort:            resourceRef(frontendPortID),
-					Protocol:                network.HTTP,
-					HostName:                &domainName,
+				hTTPListeners: appGWSettingsChecker{
+					total:   1,
+					checker: defaultHTTPListenersChecker,
 				},
-			}
-
-			Expect((*appGW.HTTPListeners)[0]).To(Equal(*httpListener))
-
-			// RequestRoutingRules depends on the previous operations
-			configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			Expect(len(*appGW.RequestRoutingRules)).To(Equal(1), "Expected one routing rule, but got: %d", len(*appGW.RequestRoutingRules))
-			Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{80, domainName})))
-			Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(network.PathBasedRouting))
-
-			// Check the `urlPathMaps`
-			Expect(len(*appGW.URLPathMaps)).To(Equal(1), "Expected one URL path map routing, but got: %d", len(*appGW.URLPathMaps))
-			Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{80, domainName})))
-			// Check the `pathRule` stored within the `urlPathMap`.
-			Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
-
-			pathRule := (*((*appGW.URLPathMaps)[0].PathRules))[0]
-			Expect(len(*(pathRule.Paths))).To(Equal(1), "Expected a single path in path-based rules, but got: %d", len(*(pathRule.Paths)))
-			// Check the exact path that was set.
-			Expect((*pathRule.Paths)[0]).To(Equal("/hi"))
+				requestRoutingRules: appGWSettingsChecker{
+					total:   1,
+					checker: defaultRequestRoutingRulesChecker,
+				},
+				uRLPathMaps: appGWSettingsChecker{
+					total:   1,
+					checker: defaultURLPathMapsChecker,
+				},
+			})
 		})
 	})
 
@@ -309,96 +386,130 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ctxt.Run()
 
 			// Get all the ingresses
-			ingressList := ctxt.GetHTTPIngressList()
-			// There should be only one ingress
-			Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
-			// Make sure it is the ingress we stored.
-			Expect(ingressList[0]).To(Equal(ingress))
+			ingressList := testIngress()
 
-			// Add HTTP settings.
-			configBuilder, err := configBuilder.BackendHTTPSettingsCollection(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
+			EmptyBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
+				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
+					Etag: to.StringPtr("*"),
+					Name: &httpSettingsName,
+					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+						Protocol: network.HTTP,
+						Port:     &servicePort,
+						Path:     to.StringPtr(""),
+					},
+				}
 
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW := configBuilder.Build()
-			// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
-			Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(2), "Expected two HTTP setting, but got: %d", len(*appGW.BackendHTTPSettingsCollection))
-
-			expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-			httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
-			httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
-				Etag: to.StringPtr("*"),
-				Name: &httpSettingsName,
-				ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-					Protocol: network.HTTP,
-					Port:     &servicePort,
-					Path:     to.StringPtr("/test"),
-				},
+				// Test the default backend HTTP settings.
+				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+				// Test the ingress backend HTTP setting that we installed.
+				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
 			}
 
-			// Test the default backend HTTP settings.
-			Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
-			// Test the ingress backend HTTP setting that we installed.
-			Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
-
-			// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-			configBuilder, err = configBuilder.BackendAddressPools(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
-			Expect(len(*appGW.BackendAddressPools)).To(Equal(1), "Expected two backend address pools, but got: %d", len(*appGW.BackendAddressPools))
-
-			// Test the default backend address pool.
-			Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
-
-			// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-			configBuilder, err = configBuilder.HTTPListeners(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			// Ingress allows listners on port 80 or port 443. Therefore in this particular case we would have only a single listener
-			Expect(len(*appGW.HTTPListeners)).To(Equal(1), "Expected a single HTTP listener, but got: %d", len(*appGW.HTTPListeners))
-
-			// Test the listener.
-			appGwIdentifier := Identifier{}
-			frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-			httpListenerName := generateHTTPListenerName(frontendListenerIdentifier{80, domainName})
-			httpListener := &network.ApplicationGatewayHTTPListener{
-				Etag: to.StringPtr("*"),
-				Name: &httpListenerName,
-				ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
-					FrontendIPConfiguration: resourceRef("*"),
-					FrontendPort:            resourceRef(frontendPortID),
-					Protocol:                network.HTTP,
-					HostName:                &domainName,
-				},
+			EmptyBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				// Test the default backend address pool.
+				Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
 			}
 
-			Expect((*appGW.HTTPListeners)[0]).To(Equal(*httpListener))
+			testAGConfig(ingressList, appGwConfigSettings{
+				backendHTTPSettingsCollection: appGWSettingsChecker{
+					total:   2,
+					checker: EmptyBackendHTTPSettingsChecker,
+				},
+				backendAddressPools: appGWSettingsChecker{
+					total:   1,
+					checker: EmptyBackendAddressPoolChecker,
+				},
+				hTTPListeners: appGWSettingsChecker{
+					total:   1,
+					checker: defaultHTTPListenersChecker,
+				},
+				requestRoutingRules: appGWSettingsChecker{
+					total:   1,
+					checker: defaultRequestRoutingRulesChecker,
+				},
+				uRLPathMaps: appGWSettingsChecker{
+					total:   1,
+					checker: defaultURLPathMapsChecker,
+				},
+			})
 
-			// RequestRoutingRules depends on the previous operations
-			configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
-			Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
-
-			// Retrieve the implementation of the `ConfigBuilder` interface.
-			appGW = configBuilder.Build()
-			Expect(len(*appGW.RequestRoutingRules)).To(Equal(1), "Expected one routing rule, but got: %d", len(*appGW.RequestRoutingRules))
-			Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{80, domainName})))
-			Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(network.PathBasedRouting))
-
-			// Check the `urlPathMaps`
-			Expect(len(*appGW.URLPathMaps)).To(Equal(1), "Expected one URL path map routing, but got: %d", len(*appGW.URLPathMaps))
-			Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{80, domainName})))
-			// Check the `pathRule` stored within the `urlPathMap`.
-			Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
-
-			pathRule := (*((*appGW.URLPathMaps)[0].PathRules))[0]
-			Expect(len(*(pathRule.Paths))).To(Equal(1), "Expected a single path in path-based rules, but got: %d", len(*(pathRule.Paths)))
-			// Check the exact path that was set.
-			Expect((*pathRule.Paths)[0]).To(Equal("/hi"))
 		})
 	})
+	Context("Tests Ingress Controller Annotations", func() {
+		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
+			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+
+			// Set the ingress annotation for this ingress.
+			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
+
+			// Update the ingress.
+			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+
+			// Start the informers. This will sync the cache with the latest ingress.
+			ctxt.Run()
+
+			// Method to test all the ingress that have been added to the K8s context.
+			backendPrefixIngress := func() []*v1beta1.Ingress {
+				// Get all the ingresses
+				ingressList := ctxt.GetHTTPIngressList()
+				// There should be only one ingress
+				Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
+				// Make sure it is the ingress we stored.
+				Expect(ingressList[0]).To(Equal(ingress))
+
+				return ingressList
+			}
+
+			// Get all the ingresses
+			ingressList := backendPrefixIngress()
+
+			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
+					Etag: to.StringPtr("*"),
+					Name: &httpSettingsName,
+					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+						Protocol: network.HTTP,
+						Port:     &backendPort,
+						Path:     to.StringPtr("/test"),
+					},
+				}
+
+				// Test the default backend HTTP settings.
+				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+				// Test the ingress backend HTTP setting that we installed.
+				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+			}
+
+			testAGConfig(ingressList, appGwConfigSettings{
+				backendHTTPSettingsCollection: appGWSettingsChecker{
+					total:   2,
+					checker: backendPrefixHTTPSettingsChecker,
+				},
+				backendAddressPools: appGWSettingsChecker{
+					total:   2,
+					checker: defaultBackendAddressPoolChecker,
+				},
+				hTTPListeners: appGWSettingsChecker{
+					total:   1,
+					checker: defaultHTTPListenersChecker,
+				},
+				requestRoutingRules: appGWSettingsChecker{
+					total:   1,
+					checker: defaultRequestRoutingRulesChecker,
+				},
+				uRLPathMaps: appGWSettingsChecker{
+					total:   1,
+					checker: defaultURLPathMapsChecker,
+				},
+			})
+
+		})
+	})
+
 })
