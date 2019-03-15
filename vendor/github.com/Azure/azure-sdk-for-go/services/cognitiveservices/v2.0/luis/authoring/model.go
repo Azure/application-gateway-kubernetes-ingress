@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
 	"net/http"
 )
@@ -32,13 +33,8 @@ type ModelClient struct {
 }
 
 // NewModelClient creates an instance of the ModelClient client.
-func NewModelClient() ModelClient {
-	return NewModelClientWithBaseURI(DefaultBaseURI)
-}
-
-// NewModelClientWithBaseURI creates an instance of the ModelClient client.
-func NewModelClientWithBaseURI(baseURI string) ModelClient {
-	return ModelClient{NewWithBaseURI(baseURI)}
+func NewModelClient(endpoint string) ModelClient {
+	return ModelClient{New(endpoint)}
 }
 
 // AddClosedList adds a closed list model to the application.
@@ -48,6 +44,16 @@ func NewModelClientWithBaseURI(baseURI string) ModelClient {
 // closedListModelCreateObject - a model containing the name and words for the new closed list entity
 // extractor.
 func (client ModelClient) AddClosedList(ctx context.Context, appID uuid.UUID, versionID string, closedListModelCreateObject ClosedListModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddClosedList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddClosedListPreparer(ctx, appID, versionID, closedListModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddClosedList", nil, "Failure preparing request")
@@ -71,6 +77,10 @@ func (client ModelClient) AddClosedList(ctx context.Context, appID uuid.UUID, ve
 
 // AddClosedListPreparer prepares the AddClosedList request.
 func (client ModelClient) AddClosedListPreparer(ctx context.Context, appID uuid.UUID, versionID string, closedListModelCreateObject ClosedListModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -79,7 +89,7 @@ func (client ModelClient) AddClosedListPreparer(ctx context.Context, appID uuid.
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists", pathParameters),
 		autorest.WithJSON(closedListModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -111,6 +121,16 @@ func (client ModelClient) AddClosedListResponder(resp *http.Response) (result UU
 // versionID - the version ID.
 // compositeModelCreateObject - a model containing the name and children of the new entity extractor.
 func (client ModelClient) AddCompositeEntity(ctx context.Context, appID uuid.UUID, versionID string, compositeModelCreateObject CompositeEntityModel) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddCompositeEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddCompositeEntityPreparer(ctx, appID, versionID, compositeModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddCompositeEntity", nil, "Failure preparing request")
@@ -134,6 +154,10 @@ func (client ModelClient) AddCompositeEntity(ctx context.Context, appID uuid.UUI
 
 // AddCompositeEntityPreparer prepares the AddCompositeEntity request.
 func (client ModelClient) AddCompositeEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, compositeModelCreateObject CompositeEntityModel) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -142,7 +166,7 @@ func (client ModelClient) AddCompositeEntityPreparer(ctx context.Context, appID 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities", pathParameters),
 		autorest.WithJSON(compositeModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -175,6 +199,16 @@ func (client ModelClient) AddCompositeEntityResponder(resp *http.Response) (resu
 // cEntityID - the composite entity extractor ID.
 // compositeChildModelCreateObject - a model object containing the name of the new composite child model.
 func (client ModelClient) AddCompositeEntityChild(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, compositeChildModelCreateObject CompositeChildModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddCompositeEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddCompositeEntityChildPreparer(ctx, appID, versionID, cEntityID, compositeChildModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddCompositeEntityChild", nil, "Failure preparing request")
@@ -198,6 +232,10 @@ func (client ModelClient) AddCompositeEntityChild(ctx context.Context, appID uui
 
 // AddCompositeEntityChildPreparer prepares the AddCompositeEntityChild request.
 func (client ModelClient) AddCompositeEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, compositeChildModelCreateObject CompositeChildModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -207,7 +245,7 @@ func (client ModelClient) AddCompositeEntityChildPreparer(ctx context.Context, a
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/children", pathParameters),
 		autorest.WithJSON(compositeChildModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -239,6 +277,16 @@ func (client ModelClient) AddCompositeEntityChildResponder(resp *http.Response) 
 // versionID - the version ID.
 // prebuiltDomainObject - a prebuilt domain create object containing the name of the domain.
 func (client ModelClient) AddCustomPrebuiltDomain(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainObject PrebuiltDomainCreateBaseObject) (result ListUUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddCustomPrebuiltDomain")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddCustomPrebuiltDomainPreparer(ctx, appID, versionID, prebuiltDomainObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddCustomPrebuiltDomain", nil, "Failure preparing request")
@@ -262,6 +310,10 @@ func (client ModelClient) AddCustomPrebuiltDomain(ctx context.Context, appID uui
 
 // AddCustomPrebuiltDomainPreparer prepares the AddCustomPrebuiltDomain request.
 func (client ModelClient) AddCustomPrebuiltDomainPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainObject PrebuiltDomainCreateBaseObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -270,7 +322,7 @@ func (client ModelClient) AddCustomPrebuiltDomainPreparer(ctx context.Context, a
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltdomains", pathParameters),
 		autorest.WithJSON(prebuiltDomainObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -303,6 +355,16 @@ func (client ModelClient) AddCustomPrebuiltDomainResponder(resp *http.Response) 
 // prebuiltDomainModelCreateObject - a model object containing the name of the custom prebuilt entity and the
 // name of the domain to which this model belongs.
 func (client ModelClient) AddCustomPrebuiltEntity(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainModelCreateObject PrebuiltDomainModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddCustomPrebuiltEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddCustomPrebuiltEntityPreparer(ctx, appID, versionID, prebuiltDomainModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddCustomPrebuiltEntity", nil, "Failure preparing request")
@@ -326,6 +388,10 @@ func (client ModelClient) AddCustomPrebuiltEntity(ctx context.Context, appID uui
 
 // AddCustomPrebuiltEntityPreparer prepares the AddCustomPrebuiltEntity request.
 func (client ModelClient) AddCustomPrebuiltEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainModelCreateObject PrebuiltDomainModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -334,7 +400,7 @@ func (client ModelClient) AddCustomPrebuiltEntityPreparer(ctx context.Context, a
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities", pathParameters),
 		autorest.WithJSON(prebuiltDomainModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -367,6 +433,16 @@ func (client ModelClient) AddCustomPrebuiltEntityResponder(resp *http.Response) 
 // prebuiltDomainModelCreateObject - a model object containing the name of the custom prebuilt intent and the
 // name of the domain to which this model belongs.
 func (client ModelClient) AddCustomPrebuiltIntent(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainModelCreateObject PrebuiltDomainModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddCustomPrebuiltIntent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddCustomPrebuiltIntentPreparer(ctx, appID, versionID, prebuiltDomainModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddCustomPrebuiltIntent", nil, "Failure preparing request")
@@ -390,6 +466,10 @@ func (client ModelClient) AddCustomPrebuiltIntent(ctx context.Context, appID uui
 
 // AddCustomPrebuiltIntentPreparer prepares the AddCustomPrebuiltIntent request.
 func (client ModelClient) AddCustomPrebuiltIntentPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltDomainModelCreateObject PrebuiltDomainModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -398,7 +478,7 @@ func (client ModelClient) AddCustomPrebuiltIntentPreparer(ctx context.Context, a
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltintents", pathParameters),
 		autorest.WithJSON(prebuiltDomainModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -424,12 +504,22 @@ func (client ModelClient) AddCustomPrebuiltIntentResponder(resp *http.Response) 
 	return
 }
 
-// AddEntity adds an entity extractor to the application.
+// AddEntity adds a simple entity extractor to the application.
 // Parameters:
 // appID - the application ID.
 // versionID - the version ID.
-// modelCreateObject - a model object containing the name for the new entity extractor.
+// modelCreateObject - a model object containing the name for the new simple entity extractor.
 func (client ModelClient) AddEntity(ctx context.Context, appID uuid.UUID, versionID string, modelCreateObject ModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddEntityPreparer(ctx, appID, versionID, modelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddEntity", nil, "Failure preparing request")
@@ -453,6 +543,10 @@ func (client ModelClient) AddEntity(ctx context.Context, appID uuid.UUID, versio
 
 // AddEntityPreparer prepares the AddEntity request.
 func (client ModelClient) AddEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, modelCreateObject ModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -461,7 +555,7 @@ func (client ModelClient) AddEntityPreparer(ctx context.Context, appID uuid.UUID
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities", pathParameters),
 		autorest.WithJSON(modelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -494,6 +588,16 @@ func (client ModelClient) AddEntityResponder(resp *http.Response) (result UUID, 
 // entityID - the Pattern.Any entity extractor ID.
 // item - the new explicit list item.
 func (client ModelClient) AddExplicitListItem(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, item ExplicitListItemCreateObject) (result Int32, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddExplicitListItem")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddExplicitListItemPreparer(ctx, appID, versionID, entityID, item)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddExplicitListItem", nil, "Failure preparing request")
@@ -517,6 +621,10 @@ func (client ModelClient) AddExplicitListItem(ctx context.Context, appID uuid.UU
 
 // AddExplicitListItemPreparer prepares the AddExplicitListItem request.
 func (client ModelClient) AddExplicitListItemPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, item ExplicitListItemCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -526,7 +634,7 @@ func (client ModelClient) AddExplicitListItemPreparer(ctx context.Context, appID
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/explicitlist", pathParameters),
 		autorest.WithJSON(item))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -558,6 +666,16 @@ func (client ModelClient) AddExplicitListItemResponder(resp *http.Response) (res
 // versionID - the version ID.
 // hierarchicalModelCreateObject - a model containing the name and children of the new entity extractor.
 func (client ModelClient) AddHierarchicalEntity(ctx context.Context, appID uuid.UUID, versionID string, hierarchicalModelCreateObject HierarchicalEntityModel) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddHierarchicalEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddHierarchicalEntityPreparer(ctx, appID, versionID, hierarchicalModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddHierarchicalEntity", nil, "Failure preparing request")
@@ -581,6 +699,10 @@ func (client ModelClient) AddHierarchicalEntity(ctx context.Context, appID uuid.
 
 // AddHierarchicalEntityPreparer prepares the AddHierarchicalEntity request.
 func (client ModelClient) AddHierarchicalEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, hierarchicalModelCreateObject HierarchicalEntityModel) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -589,7 +711,7 @@ func (client ModelClient) AddHierarchicalEntityPreparer(ctx context.Context, app
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities", pathParameters),
 		autorest.WithJSON(hierarchicalModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -622,6 +744,16 @@ func (client ModelClient) AddHierarchicalEntityResponder(resp *http.Response) (r
 // hEntityID - the hierarchical entity extractor ID.
 // hierarchicalChildModelCreateObject - a model object containing the name of the new hierarchical child model.
 func (client ModelClient) AddHierarchicalEntityChild(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hierarchicalChildModelCreateObject HierarchicalChildModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddHierarchicalEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddHierarchicalEntityChildPreparer(ctx, appID, versionID, hEntityID, hierarchicalChildModelCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddHierarchicalEntityChild", nil, "Failure preparing request")
@@ -645,6 +777,10 @@ func (client ModelClient) AddHierarchicalEntityChild(ctx context.Context, appID 
 
 // AddHierarchicalEntityChildPreparer prepares the AddHierarchicalEntityChild request.
 func (client ModelClient) AddHierarchicalEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hierarchicalChildModelCreateObject HierarchicalChildModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -654,7 +790,7 @@ func (client ModelClient) AddHierarchicalEntityChildPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/children", pathParameters),
 		autorest.WithJSON(hierarchicalChildModelCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -686,6 +822,16 @@ func (client ModelClient) AddHierarchicalEntityChildResponder(resp *http.Respons
 // versionID - the version ID.
 // intentCreateObject - a model object containing the name of the new intent classifier.
 func (client ModelClient) AddIntent(ctx context.Context, appID uuid.UUID, versionID string, intentCreateObject ModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddIntent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddIntentPreparer(ctx, appID, versionID, intentCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddIntent", nil, "Failure preparing request")
@@ -709,6 +855,10 @@ func (client ModelClient) AddIntent(ctx context.Context, appID uuid.UUID, versio
 
 // AddIntentPreparer prepares the AddIntent request.
 func (client ModelClient) AddIntentPreparer(ctx context.Context, appID uuid.UUID, versionID string, intentCreateObject ModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -717,7 +867,7 @@ func (client ModelClient) AddIntentPreparer(ctx context.Context, appID uuid.UUID
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents", pathParameters),
 		autorest.WithJSON(intentCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -749,6 +899,16 @@ func (client ModelClient) AddIntentResponder(resp *http.Response) (result UUID, 
 // versionID - the version ID.
 // prebuiltExtractorNames - an array of prebuilt entity extractor names.
 func (client ModelClient) AddPrebuilt(ctx context.Context, appID uuid.UUID, versionID string, prebuiltExtractorNames []string) (result ListPrebuiltEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddPrebuilt")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: prebuiltExtractorNames,
 			Constraints: []validation.Constraint{{Target: "prebuiltExtractorNames", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -778,6 +938,10 @@ func (client ModelClient) AddPrebuilt(ctx context.Context, appID uuid.UUID, vers
 
 // AddPrebuiltPreparer prepares the AddPrebuilt request.
 func (client ModelClient) AddPrebuiltPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltExtractorNames []string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -786,7 +950,7 @@ func (client ModelClient) AddPrebuiltPreparer(ctx context.Context, appID uuid.UU
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts", pathParameters),
 		autorest.WithJSON(prebuiltExtractorNames))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -819,6 +983,16 @@ func (client ModelClient) AddPrebuiltResponder(resp *http.Response) (result List
 // clEntityID - the closed list entity extractor ID.
 // wordListCreateObject - words list.
 func (client ModelClient) AddSubList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, wordListCreateObject WordListObject) (result Int32, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.AddSubList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddSubListPreparer(ctx, appID, versionID, clEntityID, wordListCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "AddSubList", nil, "Failure preparing request")
@@ -842,6 +1016,10 @@ func (client ModelClient) AddSubList(ctx context.Context, appID uuid.UUID, versi
 
 // AddSubListPreparer prepares the AddSubList request.
 func (client ModelClient) AddSubListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, wordListCreateObject WordListObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -851,7 +1029,7 @@ func (client ModelClient) AddSubListPreparer(ctx context.Context, appID uuid.UUI
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}/sublists", pathParameters),
 		autorest.WithJSON(wordListCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -884,6 +1062,16 @@ func (client ModelClient) AddSubListResponder(resp *http.Response) (result Int32
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateClosedListEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateClosedListEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateClosedListEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateClosedListEntityRole", nil, "Failure preparing request")
@@ -907,6 +1095,10 @@ func (client ModelClient) CreateClosedListEntityRole(ctx context.Context, appID 
 
 // CreateClosedListEntityRolePreparer prepares the CreateClosedListEntityRole request.
 func (client ModelClient) CreateClosedListEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -916,7 +1108,7 @@ func (client ModelClient) CreateClosedListEntityRolePreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -949,6 +1141,16 @@ func (client ModelClient) CreateClosedListEntityRoleResponder(resp *http.Respons
 // cEntityID - the composite entity extractor ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateCompositeEntityRole(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateCompositeEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateCompositeEntityRolePreparer(ctx, appID, versionID, cEntityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateCompositeEntityRole", nil, "Failure preparing request")
@@ -972,6 +1174,10 @@ func (client ModelClient) CreateCompositeEntityRole(ctx context.Context, appID u
 
 // CreateCompositeEntityRolePreparer prepares the CreateCompositeEntityRole request.
 func (client ModelClient) CreateCompositeEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -981,7 +1187,7 @@ func (client ModelClient) CreateCompositeEntityRolePreparer(ctx context.Context,
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1014,6 +1220,16 @@ func (client ModelClient) CreateCompositeEntityRoleResponder(resp *http.Response
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateCustomPrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateCustomPrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateCustomPrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateCustomPrebuiltEntityRole", nil, "Failure preparing request")
@@ -1037,6 +1253,10 @@ func (client ModelClient) CreateCustomPrebuiltEntityRole(ctx context.Context, ap
 
 // CreateCustomPrebuiltEntityRolePreparer prepares the CreateCustomPrebuiltEntityRole request.
 func (client ModelClient) CreateCustomPrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1046,7 +1266,7 @@ func (client ModelClient) CreateCustomPrebuiltEntityRolePreparer(ctx context.Con
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1079,6 +1299,16 @@ func (client ModelClient) CreateCustomPrebuiltEntityRoleResponder(resp *http.Res
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateEntityRole", nil, "Failure preparing request")
@@ -1102,6 +1332,10 @@ func (client ModelClient) CreateEntityRole(ctx context.Context, appID uuid.UUID,
 
 // CreateEntityRolePreparer prepares the CreateEntityRole request.
 func (client ModelClient) CreateEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1111,7 +1345,7 @@ func (client ModelClient) CreateEntityRolePreparer(ctx context.Context, appID uu
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1144,6 +1378,16 @@ func (client ModelClient) CreateEntityRoleResponder(resp *http.Response) (result
 // hEntityID - the hierarchical entity extractor ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateHierarchicalEntityRole(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateHierarchicalEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateHierarchicalEntityRolePreparer(ctx, appID, versionID, hEntityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateHierarchicalEntityRole", nil, "Failure preparing request")
@@ -1167,6 +1411,10 @@ func (client ModelClient) CreateHierarchicalEntityRole(ctx context.Context, appI
 
 // CreateHierarchicalEntityRolePreparer prepares the CreateHierarchicalEntityRole request.
 func (client ModelClient) CreateHierarchicalEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -1176,7 +1424,7 @@ func (client ModelClient) CreateHierarchicalEntityRolePreparer(ctx context.Conte
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1209,6 +1457,16 @@ func (client ModelClient) CreateHierarchicalEntityRoleResponder(resp *http.Respo
 // extractorCreateObject - a model object containing the name and explicit list for the new Pattern.Any entity
 // extractor.
 func (client ModelClient) CreatePatternAnyEntityModel(ctx context.Context, appID uuid.UUID, versionID string, extractorCreateObject PatternAnyModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreatePatternAnyEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePatternAnyEntityModelPreparer(ctx, appID, versionID, extractorCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreatePatternAnyEntityModel", nil, "Failure preparing request")
@@ -1232,6 +1490,10 @@ func (client ModelClient) CreatePatternAnyEntityModel(ctx context.Context, appID
 
 // CreatePatternAnyEntityModelPreparer prepares the CreatePatternAnyEntityModel request.
 func (client ModelClient) CreatePatternAnyEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, extractorCreateObject PatternAnyModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -1240,7 +1502,7 @@ func (client ModelClient) CreatePatternAnyEntityModelPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities", pathParameters),
 		autorest.WithJSON(extractorCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1273,6 +1535,16 @@ func (client ModelClient) CreatePatternAnyEntityModelResponder(resp *http.Respon
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreatePatternAnyEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreatePatternAnyEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePatternAnyEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreatePatternAnyEntityRole", nil, "Failure preparing request")
@@ -1296,6 +1568,10 @@ func (client ModelClient) CreatePatternAnyEntityRole(ctx context.Context, appID 
 
 // CreatePatternAnyEntityRolePreparer prepares the CreatePatternAnyEntityRole request.
 func (client ModelClient) CreatePatternAnyEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1305,7 +1581,7 @@ func (client ModelClient) CreatePatternAnyEntityRolePreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1338,6 +1614,16 @@ func (client ModelClient) CreatePatternAnyEntityRoleResponder(resp *http.Respons
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreatePrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreatePrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreatePrebuiltEntityRole", nil, "Failure preparing request")
@@ -1361,6 +1647,10 @@ func (client ModelClient) CreatePrebuiltEntityRole(ctx context.Context, appID uu
 
 // CreatePrebuiltEntityRolePreparer prepares the CreatePrebuiltEntityRole request.
 func (client ModelClient) CreatePrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1370,7 +1660,7 @@ func (client ModelClient) CreatePrebuiltEntityRolePreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1403,6 +1693,16 @@ func (client ModelClient) CreatePrebuiltEntityRoleResponder(resp *http.Response)
 // regexEntityExtractorCreateObj - a model object containing the name and regex pattern for the new regex
 // entity extractor.
 func (client ModelClient) CreateRegexEntityModel(ctx context.Context, appID uuid.UUID, versionID string, regexEntityExtractorCreateObj RegexModelCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateRegexEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateRegexEntityModelPreparer(ctx, appID, versionID, regexEntityExtractorCreateObj)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateRegexEntityModel", nil, "Failure preparing request")
@@ -1426,6 +1726,10 @@ func (client ModelClient) CreateRegexEntityModel(ctx context.Context, appID uuid
 
 // CreateRegexEntityModelPreparer prepares the CreateRegexEntityModel request.
 func (client ModelClient) CreateRegexEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, regexEntityExtractorCreateObj RegexModelCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -1434,7 +1738,7 @@ func (client ModelClient) CreateRegexEntityModelPreparer(ctx context.Context, ap
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities", pathParameters),
 		autorest.WithJSON(regexEntityExtractorCreateObj))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1467,6 +1771,16 @@ func (client ModelClient) CreateRegexEntityModelResponder(resp *http.Response) (
 // entityID - the entity model ID.
 // entityRoleCreateObject - an entity role object containing the name of role.
 func (client ModelClient) CreateRegexEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (result UUID, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.CreateRegexEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateRegexEntityRolePreparer(ctx, appID, versionID, entityID, entityRoleCreateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "CreateRegexEntityRole", nil, "Failure preparing request")
@@ -1490,6 +1804,10 @@ func (client ModelClient) CreateRegexEntityRole(ctx context.Context, appID uuid.
 
 // CreateRegexEntityRolePreparer prepares the CreateRegexEntityRole request.
 func (client ModelClient) CreateRegexEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, entityRoleCreateObject EntityRoleCreateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1499,7 +1817,7 @@ func (client ModelClient) CreateRegexEntityRolePreparer(ctx context.Context, app
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{entityId}/roles", pathParameters),
 		autorest.WithJSON(entityRoleCreateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -1531,6 +1849,16 @@ func (client ModelClient) CreateRegexEntityRoleResponder(resp *http.Response) (r
 // versionID - the version ID.
 // clEntityID - the closed list model ID.
 func (client ModelClient) DeleteClosedList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteClosedList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteClosedListPreparer(ctx, appID, versionID, clEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteClosedList", nil, "Failure preparing request")
@@ -1554,6 +1882,10 @@ func (client ModelClient) DeleteClosedList(ctx context.Context, appID uuid.UUID,
 
 // DeleteClosedListPreparer prepares the DeleteClosedList request.
 func (client ModelClient) DeleteClosedListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -1562,7 +1894,7 @@ func (client ModelClient) DeleteClosedListPreparer(ctx context.Context, appID uu
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1594,6 +1926,16 @@ func (client ModelClient) DeleteClosedListResponder(resp *http.Response) (result
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteClosedListEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteClosedListEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteClosedListEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteClosedListEntityRole", nil, "Failure preparing request")
@@ -1617,6 +1959,10 @@ func (client ModelClient) DeleteClosedListEntityRole(ctx context.Context, appID 
 
 // DeleteClosedListEntityRolePreparer prepares the DeleteClosedListEntityRole request.
 func (client ModelClient) DeleteClosedListEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1626,7 +1972,7 @@ func (client ModelClient) DeleteClosedListEntityRolePreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1657,6 +2003,16 @@ func (client ModelClient) DeleteClosedListEntityRoleResponder(resp *http.Respons
 // versionID - the version ID.
 // cEntityID - the composite entity extractor ID.
 func (client ModelClient) DeleteCompositeEntity(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteCompositeEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteCompositeEntityPreparer(ctx, appID, versionID, cEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteCompositeEntity", nil, "Failure preparing request")
@@ -1680,6 +2036,10 @@ func (client ModelClient) DeleteCompositeEntity(ctx context.Context, appID uuid.
 
 // DeleteCompositeEntityPreparer prepares the DeleteCompositeEntity request.
 func (client ModelClient) DeleteCompositeEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -1688,7 +2048,7 @@ func (client ModelClient) DeleteCompositeEntityPreparer(ctx context.Context, app
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1720,6 +2080,16 @@ func (client ModelClient) DeleteCompositeEntityResponder(resp *http.Response) (r
 // cEntityID - the composite entity extractor ID.
 // cChildID - the hierarchical entity extractor child ID.
 func (client ModelClient) DeleteCompositeEntityChild(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, cChildID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteCompositeEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteCompositeEntityChildPreparer(ctx, appID, versionID, cEntityID, cChildID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteCompositeEntityChild", nil, "Failure preparing request")
@@ -1743,6 +2113,10 @@ func (client ModelClient) DeleteCompositeEntityChild(ctx context.Context, appID 
 
 // DeleteCompositeEntityChildPreparer prepares the DeleteCompositeEntityChild request.
 func (client ModelClient) DeleteCompositeEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, cChildID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cChildId":  autorest.Encode("path", cChildID),
@@ -1752,7 +2126,7 @@ func (client ModelClient) DeleteCompositeEntityChildPreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/children/{cChildId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1784,6 +2158,16 @@ func (client ModelClient) DeleteCompositeEntityChildResponder(resp *http.Respons
 // cEntityID - the composite entity extractor ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteCompositeEntityRole(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteCompositeEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteCompositeEntityRolePreparer(ctx, appID, versionID, cEntityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteCompositeEntityRole", nil, "Failure preparing request")
@@ -1807,6 +2191,10 @@ func (client ModelClient) DeleteCompositeEntityRole(ctx context.Context, appID u
 
 // DeleteCompositeEntityRolePreparer prepares the DeleteCompositeEntityRole request.
 func (client ModelClient) DeleteCompositeEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -1816,7 +2204,7 @@ func (client ModelClient) DeleteCompositeEntityRolePreparer(ctx context.Context,
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1848,6 +2236,16 @@ func (client ModelClient) DeleteCompositeEntityRoleResponder(resp *http.Response
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteCustomEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteCustomEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteCustomEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteCustomEntityRole", nil, "Failure preparing request")
@@ -1871,6 +2269,10 @@ func (client ModelClient) DeleteCustomEntityRole(ctx context.Context, appID uuid
 
 // DeleteCustomEntityRolePreparer prepares the DeleteCustomEntityRole request.
 func (client ModelClient) DeleteCustomEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -1880,7 +2282,7 @@ func (client ModelClient) DeleteCustomEntityRolePreparer(ctx context.Context, ap
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1911,6 +2313,16 @@ func (client ModelClient) DeleteCustomEntityRoleResponder(resp *http.Response) (
 // versionID - the version ID.
 // domainName - domain name.
 func (client ModelClient) DeleteCustomPrebuiltDomain(ctx context.Context, appID uuid.UUID, versionID string, domainName string) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteCustomPrebuiltDomain")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteCustomPrebuiltDomainPreparer(ctx, appID, versionID, domainName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteCustomPrebuiltDomain", nil, "Failure preparing request")
@@ -1934,6 +2346,10 @@ func (client ModelClient) DeleteCustomPrebuiltDomain(ctx context.Context, appID 
 
 // DeleteCustomPrebuiltDomainPreparer prepares the DeleteCustomPrebuiltDomain request.
 func (client ModelClient) DeleteCustomPrebuiltDomainPreparer(ctx context.Context, appID uuid.UUID, versionID string, domainName string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"domainName": autorest.Encode("path", domainName),
@@ -1942,7 +2358,7 @@ func (client ModelClient) DeleteCustomPrebuiltDomainPreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltdomains/{domainName}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1973,6 +2389,16 @@ func (client ModelClient) DeleteCustomPrebuiltDomainResponder(resp *http.Respons
 // versionID - the version ID.
 // entityID - the entity extractor ID.
 func (client ModelClient) DeleteEntity(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteEntityPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteEntity", nil, "Failure preparing request")
@@ -1996,6 +2422,10 @@ func (client ModelClient) DeleteEntity(ctx context.Context, appID uuid.UUID, ver
 
 // DeleteEntityPreparer prepares the DeleteEntity request.
 func (client ModelClient) DeleteEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2004,7 +2434,7 @@ func (client ModelClient) DeleteEntityPreparer(ctx context.Context, appID uuid.U
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2036,6 +2466,16 @@ func (client ModelClient) DeleteEntityResponder(resp *http.Response) (result Ope
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteEntityRole", nil, "Failure preparing request")
@@ -2059,6 +2499,10 @@ func (client ModelClient) DeleteEntityRole(ctx context.Context, appID uuid.UUID,
 
 // DeleteEntityRolePreparer prepares the DeleteEntityRole request.
 func (client ModelClient) DeleteEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2068,7 +2512,7 @@ func (client ModelClient) DeleteEntityRolePreparer(ctx context.Context, appID uu
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2100,6 +2544,16 @@ func (client ModelClient) DeleteEntityRoleResponder(resp *http.Response) (result
 // entityID - the pattern.any entity id.
 // itemID - the explicit list item which will be deleted.
 func (client ModelClient) DeleteExplicitListItem(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteExplicitListItem")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteExplicitListItemPreparer(ctx, appID, versionID, entityID, itemID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteExplicitListItem", nil, "Failure preparing request")
@@ -2123,6 +2577,10 @@ func (client ModelClient) DeleteExplicitListItem(ctx context.Context, appID uuid
 
 // DeleteExplicitListItemPreparer prepares the DeleteExplicitListItem request.
 func (client ModelClient) DeleteExplicitListItemPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2132,7 +2590,7 @@ func (client ModelClient) DeleteExplicitListItemPreparer(ctx context.Context, ap
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/explicitlist/{itemId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2163,6 +2621,16 @@ func (client ModelClient) DeleteExplicitListItemResponder(resp *http.Response) (
 // versionID - the version ID.
 // hEntityID - the hierarchical entity extractor ID.
 func (client ModelClient) DeleteHierarchicalEntity(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteHierarchicalEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteHierarchicalEntityPreparer(ctx, appID, versionID, hEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteHierarchicalEntity", nil, "Failure preparing request")
@@ -2186,6 +2654,10 @@ func (client ModelClient) DeleteHierarchicalEntity(ctx context.Context, appID uu
 
 // DeleteHierarchicalEntityPreparer prepares the DeleteHierarchicalEntity request.
 func (client ModelClient) DeleteHierarchicalEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -2194,7 +2666,7 @@ func (client ModelClient) DeleteHierarchicalEntityPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2226,6 +2698,16 @@ func (client ModelClient) DeleteHierarchicalEntityResponder(resp *http.Response)
 // hEntityID - the hierarchical entity extractor ID.
 // hChildID - the hierarchical entity extractor child ID.
 func (client ModelClient) DeleteHierarchicalEntityChild(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteHierarchicalEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteHierarchicalEntityChildPreparer(ctx, appID, versionID, hEntityID, hChildID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteHierarchicalEntityChild", nil, "Failure preparing request")
@@ -2249,6 +2731,10 @@ func (client ModelClient) DeleteHierarchicalEntityChild(ctx context.Context, app
 
 // DeleteHierarchicalEntityChildPreparer prepares the DeleteHierarchicalEntityChild request.
 func (client ModelClient) DeleteHierarchicalEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hChildId":  autorest.Encode("path", hChildID),
@@ -2258,7 +2744,7 @@ func (client ModelClient) DeleteHierarchicalEntityChildPreparer(ctx context.Cont
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/children/{hChildId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2290,6 +2776,16 @@ func (client ModelClient) DeleteHierarchicalEntityChildResponder(resp *http.Resp
 // hEntityID - the hierarchical entity extractor ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteHierarchicalEntityRole(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteHierarchicalEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteHierarchicalEntityRolePreparer(ctx, appID, versionID, hEntityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteHierarchicalEntityRole", nil, "Failure preparing request")
@@ -2313,6 +2809,10 @@ func (client ModelClient) DeleteHierarchicalEntityRole(ctx context.Context, appI
 
 // DeleteHierarchicalEntityRolePreparer prepares the DeleteHierarchicalEntityRole request.
 func (client ModelClient) DeleteHierarchicalEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -2322,7 +2822,7 @@ func (client ModelClient) DeleteHierarchicalEntityRolePreparer(ctx context.Conte
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2355,6 +2855,16 @@ func (client ModelClient) DeleteHierarchicalEntityRoleResponder(resp *http.Respo
 // deleteUtterances - also delete the intent's utterances (true). Or move the utterances to the None intent
 // (false - the default value).
 func (client ModelClient) DeleteIntent(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, deleteUtterances *bool) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteIntent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteIntentPreparer(ctx, appID, versionID, intentID, deleteUtterances)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteIntent", nil, "Failure preparing request")
@@ -2378,6 +2888,10 @@ func (client ModelClient) DeleteIntent(ctx context.Context, appID uuid.UUID, ver
 
 // DeleteIntentPreparer prepares the DeleteIntent request.
 func (client ModelClient) DeleteIntentPreparer(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, deleteUtterances *bool) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"intentId":  autorest.Encode("path", intentID),
@@ -2393,7 +2907,7 @@ func (client ModelClient) DeleteIntentPreparer(ctx context.Context, appID uuid.U
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents/{intentId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -2425,6 +2939,16 @@ func (client ModelClient) DeleteIntentResponder(resp *http.Response) (result Ope
 // versionID - the version ID.
 // entityID - the Pattern.Any entity extractor ID.
 func (client ModelClient) DeletePatternAnyEntityModel(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeletePatternAnyEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePatternAnyEntityModelPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeletePatternAnyEntityModel", nil, "Failure preparing request")
@@ -2448,6 +2972,10 @@ func (client ModelClient) DeletePatternAnyEntityModel(ctx context.Context, appID
 
 // DeletePatternAnyEntityModelPreparer prepares the DeletePatternAnyEntityModel request.
 func (client ModelClient) DeletePatternAnyEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2456,7 +2984,7 @@ func (client ModelClient) DeletePatternAnyEntityModelPreparer(ctx context.Contex
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2488,6 +3016,16 @@ func (client ModelClient) DeletePatternAnyEntityModelResponder(resp *http.Respon
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeletePatternAnyEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeletePatternAnyEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePatternAnyEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeletePatternAnyEntityRole", nil, "Failure preparing request")
@@ -2511,6 +3049,10 @@ func (client ModelClient) DeletePatternAnyEntityRole(ctx context.Context, appID 
 
 // DeletePatternAnyEntityRolePreparer prepares the DeletePatternAnyEntityRole request.
 func (client ModelClient) DeletePatternAnyEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2520,7 +3062,7 @@ func (client ModelClient) DeletePatternAnyEntityRolePreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2551,6 +3093,16 @@ func (client ModelClient) DeletePatternAnyEntityRoleResponder(resp *http.Respons
 // versionID - the version ID.
 // prebuiltID - the prebuilt entity extractor ID.
 func (client ModelClient) DeletePrebuilt(ctx context.Context, appID uuid.UUID, versionID string, prebuiltID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeletePrebuilt")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePrebuiltPreparer(ctx, appID, versionID, prebuiltID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeletePrebuilt", nil, "Failure preparing request")
@@ -2574,6 +3126,10 @@ func (client ModelClient) DeletePrebuilt(ctx context.Context, appID uuid.UUID, v
 
 // DeletePrebuiltPreparer prepares the DeletePrebuilt request.
 func (client ModelClient) DeletePrebuiltPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"prebuiltId": autorest.Encode("path", prebuiltID),
@@ -2582,7 +3138,7 @@ func (client ModelClient) DeletePrebuiltPreparer(ctx context.Context, appID uuid
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{prebuiltId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2614,6 +3170,16 @@ func (client ModelClient) DeletePrebuiltResponder(resp *http.Response) (result O
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeletePrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeletePrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeletePrebuiltEntityRole", nil, "Failure preparing request")
@@ -2637,6 +3203,10 @@ func (client ModelClient) DeletePrebuiltEntityRole(ctx context.Context, appID uu
 
 // DeletePrebuiltEntityRolePreparer prepares the DeletePrebuiltEntityRole request.
 func (client ModelClient) DeletePrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2646,7 +3216,7 @@ func (client ModelClient) DeletePrebuiltEntityRolePreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2677,6 +3247,16 @@ func (client ModelClient) DeletePrebuiltEntityRoleResponder(resp *http.Response)
 // versionID - the version ID.
 // regexEntityID - the regex entity extractor ID.
 func (client ModelClient) DeleteRegexEntityModel(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteRegexEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteRegexEntityModelPreparer(ctx, appID, versionID, regexEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteRegexEntityModel", nil, "Failure preparing request")
@@ -2700,6 +3280,10 @@ func (client ModelClient) DeleteRegexEntityModel(ctx context.Context, appID uuid
 
 // DeleteRegexEntityModelPreparer prepares the DeleteRegexEntityModel request.
 func (client ModelClient) DeleteRegexEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":         autorest.Encode("path", appID),
 		"regexEntityId": autorest.Encode("path", regexEntityID),
@@ -2708,7 +3292,7 @@ func (client ModelClient) DeleteRegexEntityModelPreparer(ctx context.Context, ap
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{regexEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2740,6 +3324,16 @@ func (client ModelClient) DeleteRegexEntityModelResponder(resp *http.Response) (
 // entityID - the entity ID.
 // roleID - the entity role Id.
 func (client ModelClient) DeleteRegexEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteRegexEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteRegexEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteRegexEntityRole", nil, "Failure preparing request")
@@ -2763,6 +3357,10 @@ func (client ModelClient) DeleteRegexEntityRole(ctx context.Context, appID uuid.
 
 // DeleteRegexEntityRolePreparer prepares the DeleteRegexEntityRole request.
 func (client ModelClient) DeleteRegexEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -2772,7 +3370,7 @@ func (client ModelClient) DeleteRegexEntityRolePreparer(ctx context.Context, app
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2804,6 +3402,16 @@ func (client ModelClient) DeleteRegexEntityRoleResponder(resp *http.Response) (r
 // clEntityID - the closed list entity extractor ID.
 // subListID - the sublist ID.
 func (client ModelClient) DeleteSubList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, subListID int32) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.DeleteSubList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeleteSubListPreparer(ctx, appID, versionID, clEntityID, subListID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "DeleteSubList", nil, "Failure preparing request")
@@ -2827,6 +3435,10 @@ func (client ModelClient) DeleteSubList(ctx context.Context, appID uuid.UUID, ve
 
 // DeleteSubListPreparer prepares the DeleteSubList request.
 func (client ModelClient) DeleteSubListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, subListID int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -2836,7 +3448,7 @@ func (client ModelClient) DeleteSubListPreparer(ctx context.Context, appID uuid.
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}/sublists/{subListId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2869,6 +3481,16 @@ func (client ModelClient) DeleteSubListResponder(resp *http.Response) (result Op
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ExamplesMethod(ctx context.Context, appID uuid.UUID, versionID string, modelID string, skip *int32, take *int32) (result ListLabelTextObject, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ExamplesMethod")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -2904,6 +3526,10 @@ func (client ModelClient) ExamplesMethod(ctx context.Context, appID uuid.UUID, v
 
 // ExamplesMethodPreparer prepares the ExamplesMethod request.
 func (client ModelClient) ExamplesMethodPreparer(ctx context.Context, appID uuid.UUID, versionID string, modelID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"modelId":   autorest.Encode("path", modelID),
@@ -2924,7 +3550,7 @@ func (client ModelClient) ExamplesMethodPreparer(ctx context.Context, appID uuid
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/models/{modelId}/examples", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -2956,6 +3582,16 @@ func (client ModelClient) ExamplesMethodResponder(resp *http.Response) (result L
 // versionID - the version ID.
 // clEntityID - the closed list model ID.
 func (client ModelClient) GetClosedList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID) (result ClosedListEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetClosedList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetClosedListPreparer(ctx, appID, versionID, clEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetClosedList", nil, "Failure preparing request")
@@ -2979,6 +3615,10 @@ func (client ModelClient) GetClosedList(ctx context.Context, appID uuid.UUID, ve
 
 // GetClosedListPreparer prepares the GetClosedList request.
 func (client ModelClient) GetClosedListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -2987,7 +3627,7 @@ func (client ModelClient) GetClosedListPreparer(ctx context.Context, appID uuid.
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3019,6 +3659,16 @@ func (client ModelClient) GetClosedListResponder(resp *http.Response) (result Cl
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetClosedListEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetClosedListEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetClosedListEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetClosedListEntityRole", nil, "Failure preparing request")
@@ -3042,6 +3692,10 @@ func (client ModelClient) GetClosedListEntityRole(ctx context.Context, appID uui
 
 // GetClosedListEntityRolePreparer prepares the GetClosedListEntityRole request.
 func (client ModelClient) GetClosedListEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3051,7 +3705,7 @@ func (client ModelClient) GetClosedListEntityRolePreparer(ctx context.Context, a
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3082,6 +3736,16 @@ func (client ModelClient) GetClosedListEntityRoleResponder(resp *http.Response) 
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetClosedListEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetClosedListEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetClosedListEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetClosedListEntityRoles", nil, "Failure preparing request")
@@ -3105,6 +3769,10 @@ func (client ModelClient) GetClosedListEntityRoles(ctx context.Context, appID uu
 
 // GetClosedListEntityRolesPreparer prepares the GetClosedListEntityRoles request.
 func (client ModelClient) GetClosedListEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3113,7 +3781,7 @@ func (client ModelClient) GetClosedListEntityRolesPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3144,6 +3812,16 @@ func (client ModelClient) GetClosedListEntityRolesResponder(resp *http.Response)
 // versionID - the version ID.
 // cEntityID - the composite entity extractor ID.
 func (client ModelClient) GetCompositeEntity(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (result CompositeEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetCompositeEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetCompositeEntityPreparer(ctx, appID, versionID, cEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetCompositeEntity", nil, "Failure preparing request")
@@ -3167,6 +3845,10 @@ func (client ModelClient) GetCompositeEntity(ctx context.Context, appID uuid.UUI
 
 // GetCompositeEntityPreparer prepares the GetCompositeEntity request.
 func (client ModelClient) GetCompositeEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -3175,7 +3857,7 @@ func (client ModelClient) GetCompositeEntityPreparer(ctx context.Context, appID 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3207,6 +3889,16 @@ func (client ModelClient) GetCompositeEntityResponder(resp *http.Response) (resu
 // cEntityID - the composite entity extractor ID.
 // roleID - entity role ID.
 func (client ModelClient) GetCompositeEntityRole(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetCompositeEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetCompositeEntityRolePreparer(ctx, appID, versionID, cEntityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetCompositeEntityRole", nil, "Failure preparing request")
@@ -3230,6 +3922,10 @@ func (client ModelClient) GetCompositeEntityRole(ctx context.Context, appID uuid
 
 // GetCompositeEntityRolePreparer prepares the GetCompositeEntityRole request.
 func (client ModelClient) GetCompositeEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -3239,7 +3935,7 @@ func (client ModelClient) GetCompositeEntityRolePreparer(ctx context.Context, ap
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3270,6 +3966,16 @@ func (client ModelClient) GetCompositeEntityRoleResponder(resp *http.Response) (
 // versionID - the version ID.
 // cEntityID - the composite entity extractor ID.
 func (client ModelClient) GetCompositeEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetCompositeEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetCompositeEntityRolesPreparer(ctx, appID, versionID, cEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetCompositeEntityRoles", nil, "Failure preparing request")
@@ -3293,6 +3999,10 @@ func (client ModelClient) GetCompositeEntityRoles(ctx context.Context, appID uui
 
 // GetCompositeEntityRolesPreparer prepares the GetCompositeEntityRoles request.
 func (client ModelClient) GetCompositeEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -3301,7 +4011,7 @@ func (client ModelClient) GetCompositeEntityRolesPreparer(ctx context.Context, a
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3333,6 +4043,16 @@ func (client ModelClient) GetCompositeEntityRolesResponder(resp *http.Response) 
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetCustomEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetCustomEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetCustomEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetCustomEntityRole", nil, "Failure preparing request")
@@ -3356,6 +4076,10 @@ func (client ModelClient) GetCustomEntityRole(ctx context.Context, appID uuid.UU
 
 // GetCustomEntityRolePreparer prepares the GetCustomEntityRole request.
 func (client ModelClient) GetCustomEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3365,7 +4089,7 @@ func (client ModelClient) GetCustomEntityRolePreparer(ctx context.Context, appID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3396,6 +4120,16 @@ func (client ModelClient) GetCustomEntityRoleResponder(resp *http.Response) (res
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetCustomPrebuiltEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetCustomPrebuiltEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetCustomPrebuiltEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetCustomPrebuiltEntityRoles", nil, "Failure preparing request")
@@ -3419,6 +4153,10 @@ func (client ModelClient) GetCustomPrebuiltEntityRoles(ctx context.Context, appI
 
 // GetCustomPrebuiltEntityRolesPreparer prepares the GetCustomPrebuiltEntityRoles request.
 func (client ModelClient) GetCustomPrebuiltEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3427,7 +4165,7 @@ func (client ModelClient) GetCustomPrebuiltEntityRolesPreparer(ctx context.Conte
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3458,6 +4196,16 @@ func (client ModelClient) GetCustomPrebuiltEntityRolesResponder(resp *http.Respo
 // versionID - the version ID.
 // entityID - the entity extractor ID.
 func (client ModelClient) GetEntity(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result EntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetEntityPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetEntity", nil, "Failure preparing request")
@@ -3481,6 +4229,10 @@ func (client ModelClient) GetEntity(ctx context.Context, appID uuid.UUID, versio
 
 // GetEntityPreparer prepares the GetEntity request.
 func (client ModelClient) GetEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3489,7 +4241,7 @@ func (client ModelClient) GetEntityPreparer(ctx context.Context, appID uuid.UUID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3521,6 +4273,16 @@ func (client ModelClient) GetEntityResponder(resp *http.Response) (result Entity
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetEntityRole", nil, "Failure preparing request")
@@ -3544,6 +4306,10 @@ func (client ModelClient) GetEntityRole(ctx context.Context, appID uuid.UUID, ve
 
 // GetEntityRolePreparer prepares the GetEntityRole request.
 func (client ModelClient) GetEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3553,7 +4319,7 @@ func (client ModelClient) GetEntityRolePreparer(ctx context.Context, appID uuid.
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3584,6 +4350,16 @@ func (client ModelClient) GetEntityRoleResponder(resp *http.Response) (result En
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetEntityRoles", nil, "Failure preparing request")
@@ -3607,6 +4383,10 @@ func (client ModelClient) GetEntityRoles(ctx context.Context, appID uuid.UUID, v
 
 // GetEntityRolesPreparer prepares the GetEntityRoles request.
 func (client ModelClient) GetEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3615,7 +4395,7 @@ func (client ModelClient) GetEntityRolesPreparer(ctx context.Context, appID uuid
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3647,6 +4427,16 @@ func (client ModelClient) GetEntityRolesResponder(resp *http.Response) (result L
 // entityID - the target entity extractor model to enhance.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) GetEntitySuggestions(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, take *int32) (result ListEntitiesSuggestionExample, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetEntitySuggestions")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: take,
 			Constraints: []validation.Constraint{{Target: "take", Name: validation.Null, Rule: false,
@@ -3679,6 +4469,10 @@ func (client ModelClient) GetEntitySuggestions(ctx context.Context, appID uuid.U
 
 // GetEntitySuggestionsPreparer prepares the GetEntitySuggestions request.
 func (client ModelClient) GetEntitySuggestionsPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3694,7 +4488,7 @@ func (client ModelClient) GetEntitySuggestionsPreparer(ctx context.Context, appI
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/suggest", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -3726,6 +4520,16 @@ func (client ModelClient) GetEntitySuggestionsResponder(resp *http.Response) (re
 // versionID - the version ID.
 // entityID - the Pattern.Any entity id.
 func (client ModelClient) GetExplicitList(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListExplicitListItem, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetExplicitList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetExplicitListPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetExplicitList", nil, "Failure preparing request")
@@ -3749,6 +4553,10 @@ func (client ModelClient) GetExplicitList(ctx context.Context, appID uuid.UUID, 
 
 // GetExplicitListPreparer prepares the GetExplicitList request.
 func (client ModelClient) GetExplicitListPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3757,7 +4565,7 @@ func (client ModelClient) GetExplicitListPreparer(ctx context.Context, appID uui
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/explicitlist", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3789,6 +4597,16 @@ func (client ModelClient) GetExplicitListResponder(resp *http.Response) (result 
 // entityID - the Pattern.Any entity Id.
 // itemID - the explicit list item Id.
 func (client ModelClient) GetExplicitListItem(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64) (result ExplicitListItem, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetExplicitListItem")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetExplicitListItemPreparer(ctx, appID, versionID, entityID, itemID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetExplicitListItem", nil, "Failure preparing request")
@@ -3812,6 +4630,10 @@ func (client ModelClient) GetExplicitListItem(ctx context.Context, appID uuid.UU
 
 // GetExplicitListItemPreparer prepares the GetExplicitListItem request.
 func (client ModelClient) GetExplicitListItemPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -3821,7 +4643,7 @@ func (client ModelClient) GetExplicitListItemPreparer(ctx context.Context, appID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/explicitlist/{itemId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3852,6 +4674,16 @@ func (client ModelClient) GetExplicitListItemResponder(resp *http.Response) (res
 // versionID - the version ID.
 // hEntityID - the hierarchical entity extractor ID.
 func (client ModelClient) GetHierarchicalEntity(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (result HierarchicalEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetHierarchicalEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetHierarchicalEntityPreparer(ctx, appID, versionID, hEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetHierarchicalEntity", nil, "Failure preparing request")
@@ -3875,6 +4707,10 @@ func (client ModelClient) GetHierarchicalEntity(ctx context.Context, appID uuid.
 
 // GetHierarchicalEntityPreparer prepares the GetHierarchicalEntity request.
 func (client ModelClient) GetHierarchicalEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -3883,7 +4719,7 @@ func (client ModelClient) GetHierarchicalEntityPreparer(ctx context.Context, app
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3915,6 +4751,16 @@ func (client ModelClient) GetHierarchicalEntityResponder(resp *http.Response) (r
 // hEntityID - the hierarchical entity extractor ID.
 // hChildID - the hierarchical entity extractor child ID.
 func (client ModelClient) GetHierarchicalEntityChild(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID) (result HierarchicalChildEntity, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetHierarchicalEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetHierarchicalEntityChildPreparer(ctx, appID, versionID, hEntityID, hChildID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetHierarchicalEntityChild", nil, "Failure preparing request")
@@ -3938,6 +4784,10 @@ func (client ModelClient) GetHierarchicalEntityChild(ctx context.Context, appID 
 
 // GetHierarchicalEntityChildPreparer prepares the GetHierarchicalEntityChild request.
 func (client ModelClient) GetHierarchicalEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hChildId":  autorest.Encode("path", hChildID),
@@ -3947,7 +4797,7 @@ func (client ModelClient) GetHierarchicalEntityChildPreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/children/{hChildId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3979,6 +4829,16 @@ func (client ModelClient) GetHierarchicalEntityChildResponder(resp *http.Respons
 // hEntityID - the hierarchical entity extractor ID.
 // roleID - entity role ID.
 func (client ModelClient) GetHierarchicalEntityRole(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetHierarchicalEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetHierarchicalEntityRolePreparer(ctx, appID, versionID, hEntityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetHierarchicalEntityRole", nil, "Failure preparing request")
@@ -4002,6 +4862,10 @@ func (client ModelClient) GetHierarchicalEntityRole(ctx context.Context, appID u
 
 // GetHierarchicalEntityRolePreparer prepares the GetHierarchicalEntityRole request.
 func (client ModelClient) GetHierarchicalEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -4011,7 +4875,7 @@ func (client ModelClient) GetHierarchicalEntityRolePreparer(ctx context.Context,
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4042,6 +4906,16 @@ func (client ModelClient) GetHierarchicalEntityRoleResponder(resp *http.Response
 // versionID - the version ID.
 // hEntityID - the hierarchical entity extractor ID.
 func (client ModelClient) GetHierarchicalEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetHierarchicalEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetHierarchicalEntityRolesPreparer(ctx, appID, versionID, hEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetHierarchicalEntityRoles", nil, "Failure preparing request")
@@ -4065,6 +4939,10 @@ func (client ModelClient) GetHierarchicalEntityRoles(ctx context.Context, appID 
 
 // GetHierarchicalEntityRolesPreparer prepares the GetHierarchicalEntityRoles request.
 func (client ModelClient) GetHierarchicalEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -4073,7 +4951,7 @@ func (client ModelClient) GetHierarchicalEntityRolesPreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4104,6 +4982,16 @@ func (client ModelClient) GetHierarchicalEntityRolesResponder(resp *http.Respons
 // versionID - the version ID.
 // intentID - the intent classifier ID.
 func (client ModelClient) GetIntent(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID) (result IntentClassifier, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetIntent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetIntentPreparer(ctx, appID, versionID, intentID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetIntent", nil, "Failure preparing request")
@@ -4127,6 +5015,10 @@ func (client ModelClient) GetIntent(ctx context.Context, appID uuid.UUID, versio
 
 // GetIntentPreparer prepares the GetIntent request.
 func (client ModelClient) GetIntentPreparer(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"intentId":  autorest.Encode("path", intentID),
@@ -4135,7 +5027,7 @@ func (client ModelClient) GetIntentPreparer(ctx context.Context, appID uuid.UUID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents/{intentId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4167,6 +5059,16 @@ func (client ModelClient) GetIntentResponder(resp *http.Response) (result Intent
 // intentID - the intent classifier ID.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) GetIntentSuggestions(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, take *int32) (result ListIntentsSuggestionExample, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetIntentSuggestions")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: take,
 			Constraints: []validation.Constraint{{Target: "take", Name: validation.Null, Rule: false,
@@ -4199,6 +5101,10 @@ func (client ModelClient) GetIntentSuggestions(ctx context.Context, appID uuid.U
 
 // GetIntentSuggestionsPreparer prepares the GetIntentSuggestions request.
 func (client ModelClient) GetIntentSuggestionsPreparer(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"intentId":  autorest.Encode("path", intentID),
@@ -4214,7 +5120,7 @@ func (client ModelClient) GetIntentSuggestionsPreparer(ctx context.Context, appI
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents/{intentId}/suggest", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -4246,6 +5152,16 @@ func (client ModelClient) GetIntentSuggestionsResponder(resp *http.Response) (re
 // versionID - the version ID.
 // entityID - the entity extractor ID.
 func (client ModelClient) GetPatternAnyEntityInfo(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result PatternAnyEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPatternAnyEntityInfo")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPatternAnyEntityInfoPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPatternAnyEntityInfo", nil, "Failure preparing request")
@@ -4269,6 +5185,10 @@ func (client ModelClient) GetPatternAnyEntityInfo(ctx context.Context, appID uui
 
 // GetPatternAnyEntityInfoPreparer prepares the GetPatternAnyEntityInfo request.
 func (client ModelClient) GetPatternAnyEntityInfoPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4277,7 +5197,7 @@ func (client ModelClient) GetPatternAnyEntityInfoPreparer(ctx context.Context, a
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4309,6 +5229,16 @@ func (client ModelClient) GetPatternAnyEntityInfoResponder(resp *http.Response) 
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) GetPatternAnyEntityInfos(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListPatternAnyEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPatternAnyEntityInfos")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -4344,6 +5274,10 @@ func (client ModelClient) GetPatternAnyEntityInfos(ctx context.Context, appID uu
 
 // GetPatternAnyEntityInfosPreparer prepares the GetPatternAnyEntityInfos request.
 func (client ModelClient) GetPatternAnyEntityInfosPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -4363,7 +5297,7 @@ func (client ModelClient) GetPatternAnyEntityInfosPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -4396,6 +5330,16 @@ func (client ModelClient) GetPatternAnyEntityInfosResponder(resp *http.Response)
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetPatternAnyEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPatternAnyEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPatternAnyEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPatternAnyEntityRole", nil, "Failure preparing request")
@@ -4419,6 +5363,10 @@ func (client ModelClient) GetPatternAnyEntityRole(ctx context.Context, appID uui
 
 // GetPatternAnyEntityRolePreparer prepares the GetPatternAnyEntityRole request.
 func (client ModelClient) GetPatternAnyEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4428,7 +5376,7 @@ func (client ModelClient) GetPatternAnyEntityRolePreparer(ctx context.Context, a
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4459,6 +5407,16 @@ func (client ModelClient) GetPatternAnyEntityRoleResponder(resp *http.Response) 
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetPatternAnyEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPatternAnyEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPatternAnyEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPatternAnyEntityRoles", nil, "Failure preparing request")
@@ -4482,6 +5440,10 @@ func (client ModelClient) GetPatternAnyEntityRoles(ctx context.Context, appID uu
 
 // GetPatternAnyEntityRolesPreparer prepares the GetPatternAnyEntityRoles request.
 func (client ModelClient) GetPatternAnyEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4490,7 +5452,7 @@ func (client ModelClient) GetPatternAnyEntityRolesPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4521,6 +5483,16 @@ func (client ModelClient) GetPatternAnyEntityRolesResponder(resp *http.Response)
 // versionID - the version ID.
 // prebuiltID - the prebuilt entity extractor ID.
 func (client ModelClient) GetPrebuilt(ctx context.Context, appID uuid.UUID, versionID string, prebuiltID uuid.UUID) (result PrebuiltEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPrebuilt")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPrebuiltPreparer(ctx, appID, versionID, prebuiltID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPrebuilt", nil, "Failure preparing request")
@@ -4544,6 +5516,10 @@ func (client ModelClient) GetPrebuilt(ctx context.Context, appID uuid.UUID, vers
 
 // GetPrebuiltPreparer prepares the GetPrebuilt request.
 func (client ModelClient) GetPrebuiltPreparer(ctx context.Context, appID uuid.UUID, versionID string, prebuiltID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"prebuiltId": autorest.Encode("path", prebuiltID),
@@ -4552,7 +5528,7 @@ func (client ModelClient) GetPrebuiltPreparer(ctx context.Context, appID uuid.UU
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{prebuiltId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4584,6 +5560,16 @@ func (client ModelClient) GetPrebuiltResponder(resp *http.Response) (result Preb
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetPrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPrebuiltEntityRole", nil, "Failure preparing request")
@@ -4607,6 +5593,10 @@ func (client ModelClient) GetPrebuiltEntityRole(ctx context.Context, appID uuid.
 
 // GetPrebuiltEntityRolePreparer prepares the GetPrebuiltEntityRole request.
 func (client ModelClient) GetPrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4616,7 +5606,7 @@ func (client ModelClient) GetPrebuiltEntityRolePreparer(ctx context.Context, app
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4647,6 +5637,16 @@ func (client ModelClient) GetPrebuiltEntityRoleResponder(resp *http.Response) (r
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetPrebuiltEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetPrebuiltEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPrebuiltEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetPrebuiltEntityRoles", nil, "Failure preparing request")
@@ -4670,6 +5670,10 @@ func (client ModelClient) GetPrebuiltEntityRoles(ctx context.Context, appID uuid
 
 // GetPrebuiltEntityRolesPreparer prepares the GetPrebuiltEntityRoles request.
 func (client ModelClient) GetPrebuiltEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4678,7 +5682,7 @@ func (client ModelClient) GetPrebuiltEntityRolesPreparer(ctx context.Context, ap
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4709,6 +5713,16 @@ func (client ModelClient) GetPrebuiltEntityRolesResponder(resp *http.Response) (
 // versionID - the version ID.
 // regexEntityID - the regex entity model ID.
 func (client ModelClient) GetRegexEntityEntityInfo(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID) (result RegexEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetRegexEntityEntityInfo")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetRegexEntityEntityInfoPreparer(ctx, appID, versionID, regexEntityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetRegexEntityEntityInfo", nil, "Failure preparing request")
@@ -4732,6 +5746,10 @@ func (client ModelClient) GetRegexEntityEntityInfo(ctx context.Context, appID uu
 
 // GetRegexEntityEntityInfoPreparer prepares the GetRegexEntityEntityInfo request.
 func (client ModelClient) GetRegexEntityEntityInfoPreparer(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":         autorest.Encode("path", appID),
 		"regexEntityId": autorest.Encode("path", regexEntityID),
@@ -4740,7 +5758,7 @@ func (client ModelClient) GetRegexEntityEntityInfoPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{regexEntityId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4772,6 +5790,16 @@ func (client ModelClient) GetRegexEntityEntityInfoResponder(resp *http.Response)
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) GetRegexEntityInfos(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListRegexEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetRegexEntityInfos")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -4807,6 +5835,10 @@ func (client ModelClient) GetRegexEntityInfos(ctx context.Context, appID uuid.UU
 
 // GetRegexEntityInfosPreparer prepares the GetRegexEntityInfos request.
 func (client ModelClient) GetRegexEntityInfosPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -4826,7 +5858,7 @@ func (client ModelClient) GetRegexEntityInfosPreparer(ctx context.Context, appID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -4859,6 +5891,16 @@ func (client ModelClient) GetRegexEntityInfosResponder(resp *http.Response) (res
 // entityID - entity ID.
 // roleID - entity role ID.
 func (client ModelClient) GetRegexEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (result EntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetRegexEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetRegexEntityRolePreparer(ctx, appID, versionID, entityID, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetRegexEntityRole", nil, "Failure preparing request")
@@ -4882,6 +5924,10 @@ func (client ModelClient) GetRegexEntityRole(ctx context.Context, appID uuid.UUI
 
 // GetRegexEntityRolePreparer prepares the GetRegexEntityRole request.
 func (client ModelClient) GetRegexEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4891,7 +5937,7 @@ func (client ModelClient) GetRegexEntityRolePreparer(ctx context.Context, appID 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{entityId}/roles/{roleId}", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4922,6 +5968,16 @@ func (client ModelClient) GetRegexEntityRoleResponder(resp *http.Response) (resu
 // versionID - the version ID.
 // entityID - entity Id
 func (client ModelClient) GetRegexEntityRoles(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (result ListEntityRole, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.GetRegexEntityRoles")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetRegexEntityRolesPreparer(ctx, appID, versionID, entityID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "GetRegexEntityRoles", nil, "Failure preparing request")
@@ -4945,6 +6001,10 @@ func (client ModelClient) GetRegexEntityRoles(ctx context.Context, appID uuid.UU
 
 // GetRegexEntityRolesPreparer prepares the GetRegexEntityRoles request.
 func (client ModelClient) GetRegexEntityRolesPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -4953,7 +6013,7 @@ func (client ModelClient) GetRegexEntityRolesPreparer(ctx context.Context, appID
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{entityId}/roles", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -4985,6 +6045,16 @@ func (client ModelClient) GetRegexEntityRolesResponder(resp *http.Response) (res
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListClosedLists(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListClosedListEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListClosedLists")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5020,6 +6090,10 @@ func (client ModelClient) ListClosedLists(ctx context.Context, appID uuid.UUID, 
 
 // ListClosedListsPreparer prepares the ListClosedLists request.
 func (client ModelClient) ListClosedListsPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5039,7 +6113,7 @@ func (client ModelClient) ListClosedListsPreparer(ctx context.Context, appID uui
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5072,6 +6146,16 @@ func (client ModelClient) ListClosedListsResponder(resp *http.Response) (result 
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListCompositeEntities(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListCompositeEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListCompositeEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5107,6 +6191,10 @@ func (client ModelClient) ListCompositeEntities(ctx context.Context, appID uuid.
 
 // ListCompositeEntitiesPreparer prepares the ListCompositeEntities request.
 func (client ModelClient) ListCompositeEntitiesPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5126,7 +6214,7 @@ func (client ModelClient) ListCompositeEntitiesPreparer(ctx context.Context, app
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5157,6 +6245,16 @@ func (client ModelClient) ListCompositeEntitiesResponder(resp *http.Response) (r
 // appID - the application ID.
 // versionID - the version ID.
 func (client ModelClient) ListCustomPrebuiltEntities(ctx context.Context, appID uuid.UUID, versionID string) (result ListEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListCustomPrebuiltEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListCustomPrebuiltEntitiesPreparer(ctx, appID, versionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "ListCustomPrebuiltEntities", nil, "Failure preparing request")
@@ -5180,6 +6278,10 @@ func (client ModelClient) ListCustomPrebuiltEntities(ctx context.Context, appID 
 
 // ListCustomPrebuiltEntitiesPreparer prepares the ListCustomPrebuiltEntities request.
 func (client ModelClient) ListCustomPrebuiltEntitiesPreparer(ctx context.Context, appID uuid.UUID, versionID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5187,7 +6289,7 @@ func (client ModelClient) ListCustomPrebuiltEntitiesPreparer(ctx context.Context
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -5217,6 +6319,16 @@ func (client ModelClient) ListCustomPrebuiltEntitiesResponder(resp *http.Respons
 // appID - the application ID.
 // versionID - the version ID.
 func (client ModelClient) ListCustomPrebuiltIntents(ctx context.Context, appID uuid.UUID, versionID string) (result ListIntentClassifier, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListCustomPrebuiltIntents")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListCustomPrebuiltIntentsPreparer(ctx, appID, versionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "ListCustomPrebuiltIntents", nil, "Failure preparing request")
@@ -5240,6 +6352,10 @@ func (client ModelClient) ListCustomPrebuiltIntents(ctx context.Context, appID u
 
 // ListCustomPrebuiltIntentsPreparer prepares the ListCustomPrebuiltIntents request.
 func (client ModelClient) ListCustomPrebuiltIntentsPreparer(ctx context.Context, appID uuid.UUID, versionID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5247,7 +6363,7 @@ func (client ModelClient) ListCustomPrebuiltIntentsPreparer(ctx context.Context,
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltintents", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -5277,6 +6393,16 @@ func (client ModelClient) ListCustomPrebuiltIntentsResponder(resp *http.Response
 // appID - the application ID.
 // versionID - the version ID.
 func (client ModelClient) ListCustomPrebuiltModels(ctx context.Context, appID uuid.UUID, versionID string) (result ListCustomPrebuiltModel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListCustomPrebuiltModels")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListCustomPrebuiltModelsPreparer(ctx, appID, versionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "ListCustomPrebuiltModels", nil, "Failure preparing request")
@@ -5300,6 +6426,10 @@ func (client ModelClient) ListCustomPrebuiltModels(ctx context.Context, appID uu
 
 // ListCustomPrebuiltModelsPreparer prepares the ListCustomPrebuiltModels request.
 func (client ModelClient) ListCustomPrebuiltModelsPreparer(ctx context.Context, appID uuid.UUID, versionID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5307,7 +6437,7 @@ func (client ModelClient) ListCustomPrebuiltModelsPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltmodels", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -5339,6 +6469,16 @@ func (client ModelClient) ListCustomPrebuiltModelsResponder(resp *http.Response)
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListEntities(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5374,6 +6514,10 @@ func (client ModelClient) ListEntities(ctx context.Context, appID uuid.UUID, ver
 
 // ListEntitiesPreparer prepares the ListEntities request.
 func (client ModelClient) ListEntitiesPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5393,7 +6537,7 @@ func (client ModelClient) ListEntitiesPreparer(ctx context.Context, appID uuid.U
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5426,6 +6570,16 @@ func (client ModelClient) ListEntitiesResponder(resp *http.Response) (result Lis
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListHierarchicalEntities(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListHierarchicalEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListHierarchicalEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5461,6 +6615,10 @@ func (client ModelClient) ListHierarchicalEntities(ctx context.Context, appID uu
 
 // ListHierarchicalEntitiesPreparer prepares the ListHierarchicalEntities request.
 func (client ModelClient) ListHierarchicalEntitiesPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5480,7 +6638,7 @@ func (client ModelClient) ListHierarchicalEntitiesPreparer(ctx context.Context, 
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5513,6 +6671,16 @@ func (client ModelClient) ListHierarchicalEntitiesResponder(resp *http.Response)
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListIntents(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListIntentClassifier, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListIntents")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5548,6 +6716,10 @@ func (client ModelClient) ListIntents(ctx context.Context, appID uuid.UUID, vers
 
 // ListIntentsPreparer prepares the ListIntents request.
 func (client ModelClient) ListIntentsPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5567,7 +6739,7 @@ func (client ModelClient) ListIntentsPreparer(ctx context.Context, appID uuid.UU
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5600,6 +6772,16 @@ func (client ModelClient) ListIntentsResponder(resp *http.Response) (result List
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListModels(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListModelInfoResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListModels")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5635,6 +6817,10 @@ func (client ModelClient) ListModels(ctx context.Context, appID uuid.UUID, versi
 
 // ListModelsPreparer prepares the ListModels request.
 func (client ModelClient) ListModelsPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5654,7 +6840,7 @@ func (client ModelClient) ListModelsPreparer(ctx context.Context, appID uuid.UUI
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/models", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5685,6 +6871,16 @@ func (client ModelClient) ListModelsResponder(resp *http.Response) (result ListM
 // appID - the application ID.
 // versionID - the version ID.
 func (client ModelClient) ListPrebuiltEntities(ctx context.Context, appID uuid.UUID, versionID string) (result ListAvailablePrebuiltEntityModel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListPrebuiltEntities")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPrebuiltEntitiesPreparer(ctx, appID, versionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "ListPrebuiltEntities", nil, "Failure preparing request")
@@ -5708,6 +6904,10 @@ func (client ModelClient) ListPrebuiltEntities(ctx context.Context, appID uuid.U
 
 // ListPrebuiltEntitiesPreparer prepares the ListPrebuiltEntities request.
 func (client ModelClient) ListPrebuiltEntitiesPreparer(ctx context.Context, appID uuid.UUID, versionID string) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5715,7 +6915,7 @@ func (client ModelClient) ListPrebuiltEntitiesPreparer(ctx context.Context, appI
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/listprebuilts", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -5747,6 +6947,16 @@ func (client ModelClient) ListPrebuiltEntitiesResponder(resp *http.Response) (re
 // skip - the number of entries to skip. Default value is 0.
 // take - the number of entries to return. Maximum page size is 500. Default is 100.
 func (client ModelClient) ListPrebuilts(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (result ListPrebuiltEntityExtractor, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.ListPrebuilts")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
@@ -5782,6 +6992,10 @@ func (client ModelClient) ListPrebuilts(ctx context.Context, appID uuid.UUID, ve
 
 // ListPrebuiltsPreparer prepares the ListPrebuilts request.
 func (client ModelClient) ListPrebuiltsPreparer(ctx context.Context, appID uuid.UUID, versionID string, skip *int32, take *int32) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"versionId": autorest.Encode("path", versionID),
@@ -5801,7 +7015,7 @@ func (client ModelClient) ListPrebuiltsPreparer(ctx context.Context, appID uuid.
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5834,6 +7048,16 @@ func (client ModelClient) ListPrebuiltsResponder(resp *http.Response) (result Li
 // clEntityID - the closed list model ID.
 // closedListModelPatchObject - a words list batch.
 func (client ModelClient) PatchClosedList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, closedListModelPatchObject ClosedListModelPatchObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.PatchClosedList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.PatchClosedListPreparer(ctx, appID, versionID, clEntityID, closedListModelPatchObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "PatchClosedList", nil, "Failure preparing request")
@@ -5857,6 +7081,10 @@ func (client ModelClient) PatchClosedList(ctx context.Context, appID uuid.UUID, 
 
 // PatchClosedListPreparer prepares the PatchClosedList request.
 func (client ModelClient) PatchClosedListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, closedListModelPatchObject ClosedListModelPatchObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -5866,7 +7094,7 @@ func (client ModelClient) PatchClosedListPreparer(ctx context.Context, appID uui
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}", pathParameters),
 		autorest.WithJSON(closedListModelPatchObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5899,6 +7127,16 @@ func (client ModelClient) PatchClosedListResponder(resp *http.Response) (result 
 // clEntityID - the closed list model ID.
 // closedListModelUpdateObject - the new entity name and words list.
 func (client ModelClient) UpdateClosedList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, closedListModelUpdateObject ClosedListModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateClosedList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateClosedListPreparer(ctx, appID, versionID, clEntityID, closedListModelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateClosedList", nil, "Failure preparing request")
@@ -5922,6 +7160,10 @@ func (client ModelClient) UpdateClosedList(ctx context.Context, appID uuid.UUID,
 
 // UpdateClosedListPreparer prepares the UpdateClosedList request.
 func (client ModelClient) UpdateClosedListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, closedListModelUpdateObject ClosedListModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -5931,7 +7173,7 @@ func (client ModelClient) UpdateClosedListPreparer(ctx context.Context, appID uu
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}", pathParameters),
 		autorest.WithJSON(closedListModelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -5965,6 +7207,16 @@ func (client ModelClient) UpdateClosedListResponder(resp *http.Response) (result
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateClosedListEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateClosedListEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateClosedListEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateClosedListEntityRole", nil, "Failure preparing request")
@@ -5988,6 +7240,10 @@ func (client ModelClient) UpdateClosedListEntityRole(ctx context.Context, appID 
 
 // UpdateClosedListEntityRolePreparer prepares the UpdateClosedListEntityRole request.
 func (client ModelClient) UpdateClosedListEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -5998,7 +7254,7 @@ func (client ModelClient) UpdateClosedListEntityRolePreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6031,6 +7287,16 @@ func (client ModelClient) UpdateClosedListEntityRoleResponder(resp *http.Respons
 // cEntityID - the composite entity extractor ID.
 // compositeModelUpdateObject - a model object containing the new entity extractor name and children.
 func (client ModelClient) UpdateCompositeEntity(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, compositeModelUpdateObject CompositeEntityModel) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateCompositeEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateCompositeEntityPreparer(ctx, appID, versionID, cEntityID, compositeModelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateCompositeEntity", nil, "Failure preparing request")
@@ -6054,6 +7320,10 @@ func (client ModelClient) UpdateCompositeEntity(ctx context.Context, appID uuid.
 
 // UpdateCompositeEntityPreparer prepares the UpdateCompositeEntity request.
 func (client ModelClient) UpdateCompositeEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, compositeModelUpdateObject CompositeEntityModel) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -6063,7 +7333,7 @@ func (client ModelClient) UpdateCompositeEntityPreparer(ctx context.Context, app
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}", pathParameters),
 		autorest.WithJSON(compositeModelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6097,6 +7367,16 @@ func (client ModelClient) UpdateCompositeEntityResponder(resp *http.Response) (r
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateCompositeEntityRole(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateCompositeEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateCompositeEntityRolePreparer(ctx, appID, versionID, cEntityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateCompositeEntityRole", nil, "Failure preparing request")
@@ -6120,6 +7400,10 @@ func (client ModelClient) UpdateCompositeEntityRole(ctx context.Context, appID u
 
 // UpdateCompositeEntityRolePreparer prepares the UpdateCompositeEntityRole request.
 func (client ModelClient) UpdateCompositeEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, cEntityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"cEntityId": autorest.Encode("path", cEntityID),
@@ -6130,7 +7414,7 @@ func (client ModelClient) UpdateCompositeEntityRolePreparer(ctx context.Context,
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/compositeentities/{cEntityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6164,6 +7448,16 @@ func (client ModelClient) UpdateCompositeEntityRoleResponder(resp *http.Response
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateCustomPrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateCustomPrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateCustomPrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateCustomPrebuiltEntityRole", nil, "Failure preparing request")
@@ -6187,6 +7481,10 @@ func (client ModelClient) UpdateCustomPrebuiltEntityRole(ctx context.Context, ap
 
 // UpdateCustomPrebuiltEntityRolePreparer prepares the UpdateCustomPrebuiltEntityRole request.
 func (client ModelClient) UpdateCustomPrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6197,7 +7495,7 @@ func (client ModelClient) UpdateCustomPrebuiltEntityRolePreparer(ctx context.Con
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/customprebuiltentities/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6230,6 +7528,16 @@ func (client ModelClient) UpdateCustomPrebuiltEntityRoleResponder(resp *http.Res
 // entityID - the entity extractor ID.
 // modelUpdateObject - a model object containing the new entity extractor name.
 func (client ModelClient) UpdateEntity(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, modelUpdateObject ModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateEntityPreparer(ctx, appID, versionID, entityID, modelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateEntity", nil, "Failure preparing request")
@@ -6253,6 +7561,10 @@ func (client ModelClient) UpdateEntity(ctx context.Context, appID uuid.UUID, ver
 
 // UpdateEntityPreparer prepares the UpdateEntity request.
 func (client ModelClient) UpdateEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, modelUpdateObject ModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6262,7 +7574,7 @@ func (client ModelClient) UpdateEntityPreparer(ctx context.Context, appID uuid.U
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}", pathParameters),
 		autorest.WithJSON(modelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6296,6 +7608,16 @@ func (client ModelClient) UpdateEntityResponder(resp *http.Response) (result Ope
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateEntityRole", nil, "Failure preparing request")
@@ -6319,6 +7641,10 @@ func (client ModelClient) UpdateEntityRole(ctx context.Context, appID uuid.UUID,
 
 // UpdateEntityRolePreparer prepares the UpdateEntityRole request.
 func (client ModelClient) UpdateEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6329,7 +7655,7 @@ func (client ModelClient) UpdateEntityRolePreparer(ctx context.Context, appID uu
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/entities/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6363,6 +7689,16 @@ func (client ModelClient) UpdateEntityRoleResponder(resp *http.Response) (result
 // itemID - the explicit list item ID.
 // item - the new explicit list item.
 func (client ModelClient) UpdateExplicitListItem(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64, item ExplicitListItemUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateExplicitListItem")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateExplicitListItemPreparer(ctx, appID, versionID, entityID, itemID, item)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateExplicitListItem", nil, "Failure preparing request")
@@ -6386,6 +7722,10 @@ func (client ModelClient) UpdateExplicitListItem(ctx context.Context, appID uuid
 
 // UpdateExplicitListItemPreparer prepares the UpdateExplicitListItem request.
 func (client ModelClient) UpdateExplicitListItemPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, itemID int64, item ExplicitListItemUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6396,7 +7736,7 @@ func (client ModelClient) UpdateExplicitListItemPreparer(ctx context.Context, ap
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/explicitlist/{itemId}", pathParameters),
 		autorest.WithJSON(item))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6429,6 +7769,16 @@ func (client ModelClient) UpdateExplicitListItemResponder(resp *http.Response) (
 // hEntityID - the hierarchical entity extractor ID.
 // hierarchicalModelUpdateObject - model containing names of the children of the hierarchical entity.
 func (client ModelClient) UpdateHierarchicalEntity(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hierarchicalModelUpdateObject HierarchicalEntityModel) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateHierarchicalEntity")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateHierarchicalEntityPreparer(ctx, appID, versionID, hEntityID, hierarchicalModelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateHierarchicalEntity", nil, "Failure preparing request")
@@ -6452,6 +7802,10 @@ func (client ModelClient) UpdateHierarchicalEntity(ctx context.Context, appID uu
 
 // UpdateHierarchicalEntityPreparer prepares the UpdateHierarchicalEntity request.
 func (client ModelClient) UpdateHierarchicalEntityPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hierarchicalModelUpdateObject HierarchicalEntityModel) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -6461,7 +7815,7 @@ func (client ModelClient) UpdateHierarchicalEntityPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}", pathParameters),
 		autorest.WithJSON(hierarchicalModelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6495,6 +7849,16 @@ func (client ModelClient) UpdateHierarchicalEntityResponder(resp *http.Response)
 // hChildID - the hierarchical entity extractor child ID.
 // hierarchicalChildModelUpdateObject - model object containing new name of the hierarchical entity child.
 func (client ModelClient) UpdateHierarchicalEntityChild(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID, hierarchicalChildModelUpdateObject HierarchicalChildModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateHierarchicalEntityChild")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateHierarchicalEntityChildPreparer(ctx, appID, versionID, hEntityID, hChildID, hierarchicalChildModelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateHierarchicalEntityChild", nil, "Failure preparing request")
@@ -6518,6 +7882,10 @@ func (client ModelClient) UpdateHierarchicalEntityChild(ctx context.Context, app
 
 // UpdateHierarchicalEntityChildPreparer prepares the UpdateHierarchicalEntityChild request.
 func (client ModelClient) UpdateHierarchicalEntityChildPreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, hChildID uuid.UUID, hierarchicalChildModelUpdateObject HierarchicalChildModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hChildId":  autorest.Encode("path", hChildID),
@@ -6528,7 +7896,7 @@ func (client ModelClient) UpdateHierarchicalEntityChildPreparer(ctx context.Cont
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/children/{hChildId}", pathParameters),
 		autorest.WithJSON(hierarchicalChildModelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6562,6 +7930,16 @@ func (client ModelClient) UpdateHierarchicalEntityChildResponder(resp *http.Resp
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateHierarchicalEntityRole(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateHierarchicalEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateHierarchicalEntityRolePreparer(ctx, appID, versionID, hEntityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateHierarchicalEntityRole", nil, "Failure preparing request")
@@ -6585,6 +7963,10 @@ func (client ModelClient) UpdateHierarchicalEntityRole(ctx context.Context, appI
 
 // UpdateHierarchicalEntityRolePreparer prepares the UpdateHierarchicalEntityRole request.
 func (client ModelClient) UpdateHierarchicalEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, hEntityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"hEntityId": autorest.Encode("path", hEntityID),
@@ -6595,7 +7977,7 @@ func (client ModelClient) UpdateHierarchicalEntityRolePreparer(ctx context.Conte
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/hierarchicalentities/{hEntityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6628,6 +8010,16 @@ func (client ModelClient) UpdateHierarchicalEntityRoleResponder(resp *http.Respo
 // intentID - the intent classifier ID.
 // modelUpdateObject - a model object containing the new intent classifier name.
 func (client ModelClient) UpdateIntent(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, modelUpdateObject ModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateIntent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateIntentPreparer(ctx, appID, versionID, intentID, modelUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateIntent", nil, "Failure preparing request")
@@ -6651,6 +8043,10 @@ func (client ModelClient) UpdateIntent(ctx context.Context, appID uuid.UUID, ver
 
 // UpdateIntentPreparer prepares the UpdateIntent request.
 func (client ModelClient) UpdateIntentPreparer(ctx context.Context, appID uuid.UUID, versionID string, intentID uuid.UUID, modelUpdateObject ModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"intentId":  autorest.Encode("path", intentID),
@@ -6660,7 +8056,7 @@ func (client ModelClient) UpdateIntentPreparer(ctx context.Context, appID uuid.U
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/intents/{intentId}", pathParameters),
 		autorest.WithJSON(modelUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6693,6 +8089,16 @@ func (client ModelClient) UpdateIntentResponder(resp *http.Response) (result Ope
 // entityID - the Pattern.Any entity extractor ID.
 // patternAnyUpdateObject - an object containing the explicit list of the Pattern.Any entity.
 func (client ModelClient) UpdatePatternAnyEntityModel(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, patternAnyUpdateObject PatternAnyModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdatePatternAnyEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePatternAnyEntityModelPreparer(ctx, appID, versionID, entityID, patternAnyUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdatePatternAnyEntityModel", nil, "Failure preparing request")
@@ -6716,6 +8122,10 @@ func (client ModelClient) UpdatePatternAnyEntityModel(ctx context.Context, appID
 
 // UpdatePatternAnyEntityModelPreparer prepares the UpdatePatternAnyEntityModel request.
 func (client ModelClient) UpdatePatternAnyEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, patternAnyUpdateObject PatternAnyModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6725,7 +8135,7 @@ func (client ModelClient) UpdatePatternAnyEntityModelPreparer(ctx context.Contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}", pathParameters),
 		autorest.WithJSON(patternAnyUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6759,6 +8169,16 @@ func (client ModelClient) UpdatePatternAnyEntityModelResponder(resp *http.Respon
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdatePatternAnyEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdatePatternAnyEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePatternAnyEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdatePatternAnyEntityRole", nil, "Failure preparing request")
@@ -6782,6 +8202,10 @@ func (client ModelClient) UpdatePatternAnyEntityRole(ctx context.Context, appID 
 
 // UpdatePatternAnyEntityRolePreparer prepares the UpdatePatternAnyEntityRole request.
 func (client ModelClient) UpdatePatternAnyEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6792,7 +8216,7 @@ func (client ModelClient) UpdatePatternAnyEntityRolePreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/patternanyentities/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6826,6 +8250,16 @@ func (client ModelClient) UpdatePatternAnyEntityRoleResponder(resp *http.Respons
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdatePrebuiltEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdatePrebuiltEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePrebuiltEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdatePrebuiltEntityRole", nil, "Failure preparing request")
@@ -6849,6 +8283,10 @@ func (client ModelClient) UpdatePrebuiltEntityRole(ctx context.Context, appID uu
 
 // UpdatePrebuiltEntityRolePreparer prepares the UpdatePrebuiltEntityRole request.
 func (client ModelClient) UpdatePrebuiltEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6859,7 +8297,7 @@ func (client ModelClient) UpdatePrebuiltEntityRolePreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/prebuilts/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6892,6 +8330,16 @@ func (client ModelClient) UpdatePrebuiltEntityRoleResponder(resp *http.Response)
 // regexEntityID - the regex entity extractor ID.
 // regexEntityUpdateObject - an object containing the new entity name and regex pattern.
 func (client ModelClient) UpdateRegexEntityModel(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID, regexEntityUpdateObject RegexModelUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateRegexEntityModel")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateRegexEntityModelPreparer(ctx, appID, versionID, regexEntityID, regexEntityUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateRegexEntityModel", nil, "Failure preparing request")
@@ -6915,6 +8363,10 @@ func (client ModelClient) UpdateRegexEntityModel(ctx context.Context, appID uuid
 
 // UpdateRegexEntityModelPreparer prepares the UpdateRegexEntityModel request.
 func (client ModelClient) UpdateRegexEntityModelPreparer(ctx context.Context, appID uuid.UUID, versionID string, regexEntityID uuid.UUID, regexEntityUpdateObject RegexModelUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":         autorest.Encode("path", appID),
 		"regexEntityId": autorest.Encode("path", regexEntityID),
@@ -6924,7 +8376,7 @@ func (client ModelClient) UpdateRegexEntityModelPreparer(ctx context.Context, ap
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{regexEntityId}", pathParameters),
 		autorest.WithJSON(regexEntityUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -6958,6 +8410,16 @@ func (client ModelClient) UpdateRegexEntityModelResponder(resp *http.Response) (
 // roleID - the entity role ID.
 // entityRoleUpdateObject - the new entity role.
 func (client ModelClient) UpdateRegexEntityRole(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateRegexEntityRole")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateRegexEntityRolePreparer(ctx, appID, versionID, entityID, roleID, entityRoleUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateRegexEntityRole", nil, "Failure preparing request")
@@ -6981,6 +8443,10 @@ func (client ModelClient) UpdateRegexEntityRole(ctx context.Context, appID uuid.
 
 // UpdateRegexEntityRolePreparer prepares the UpdateRegexEntityRole request.
 func (client ModelClient) UpdateRegexEntityRolePreparer(ctx context.Context, appID uuid.UUID, versionID string, entityID uuid.UUID, roleID uuid.UUID, entityRoleUpdateObject EntityRoleUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":     autorest.Encode("path", appID),
 		"entityId":  autorest.Encode("path", entityID),
@@ -6991,7 +8457,7 @@ func (client ModelClient) UpdateRegexEntityRolePreparer(ctx context.Context, app
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/regexentities/{entityId}/roles/{roleId}", pathParameters),
 		autorest.WithJSON(entityRoleUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -7025,6 +8491,16 @@ func (client ModelClient) UpdateRegexEntityRoleResponder(resp *http.Response) (r
 // subListID - the sublist ID.
 // wordListBaseUpdateObject - a sublist update object containing the new canonical form and the list of words.
 func (client ModelClient) UpdateSubList(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, subListID int32, wordListBaseUpdateObject WordListBaseUpdateObject) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ModelClient.UpdateSubList")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateSubListPreparer(ctx, appID, versionID, clEntityID, subListID, wordListBaseUpdateObject)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.ModelClient", "UpdateSubList", nil, "Failure preparing request")
@@ -7048,6 +8524,10 @@ func (client ModelClient) UpdateSubList(ctx context.Context, appID uuid.UUID, ve
 
 // UpdateSubListPreparer prepares the UpdateSubList request.
 func (client ModelClient) UpdateSubListPreparer(ctx context.Context, appID uuid.UUID, versionID string, clEntityID uuid.UUID, subListID int32, wordListBaseUpdateObject WordListBaseUpdateObject) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId":      autorest.Encode("path", appID),
 		"clEntityId": autorest.Encode("path", clEntityID),
@@ -7058,7 +8538,7 @@ func (client ModelClient) UpdateSubListPreparer(ctx context.Context, appID uuid.
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/versions/{versionId}/closedlists/{clEntityId}/sublists/{subListId}", pathParameters),
 		autorest.WithJSON(wordListBaseUpdateObject))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

@@ -23,6 +23,9 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/face"
+
 // AccessoryType enumerates the values for accessory type.
 type AccessoryType string
 
@@ -77,49 +80,6 @@ const (
 // PossibleAttributeTypeValues returns an array of possible values for the AttributeType const type.
 func PossibleAttributeTypeValues() []AttributeType {
 	return []AttributeType{AttributeTypeAccessories, AttributeTypeAge, AttributeTypeBlur, AttributeTypeEmotion, AttributeTypeExposure, AttributeTypeFacialHair, AttributeTypeGender, AttributeTypeGlasses, AttributeTypeHair, AttributeTypeHeadPose, AttributeTypeMakeup, AttributeTypeNoise, AttributeTypeOcclusion, AttributeTypeSmile}
-}
-
-// AzureRegions enumerates the values for azure regions.
-type AzureRegions string
-
-const (
-	// Australiaeast ...
-	Australiaeast AzureRegions = "australiaeast"
-	// Brazilsouth ...
-	Brazilsouth AzureRegions = "brazilsouth"
-	// Canadacentral ...
-	Canadacentral AzureRegions = "canadacentral"
-	// Centralindia ...
-	Centralindia AzureRegions = "centralindia"
-	// Eastasia ...
-	Eastasia AzureRegions = "eastasia"
-	// Eastus ...
-	Eastus AzureRegions = "eastus"
-	// Eastus2 ...
-	Eastus2 AzureRegions = "eastus2"
-	// Japaneast ...
-	Japaneast AzureRegions = "japaneast"
-	// Northeurope ...
-	Northeurope AzureRegions = "northeurope"
-	// Southcentralus ...
-	Southcentralus AzureRegions = "southcentralus"
-	// Southeastasia ...
-	Southeastasia AzureRegions = "southeastasia"
-	// Uksouth ...
-	Uksouth AzureRegions = "uksouth"
-	// Westcentralus ...
-	Westcentralus AzureRegions = "westcentralus"
-	// Westeurope ...
-	Westeurope AzureRegions = "westeurope"
-	// Westus ...
-	Westus AzureRegions = "westus"
-	// Westus2 ...
-	Westus2 AzureRegions = "westus2"
-)
-
-// PossibleAzureRegionsValues returns an array of possible values for the AzureRegions const type.
-func PossibleAzureRegionsValues() []AzureRegions {
-	return []AzureRegions{Australiaeast, Brazilsouth, Canadacentral, Centralindia, Eastasia, Eastus, Eastus2, Japaneast, Northeurope, Southcentralus, Southeastasia, Uksouth, Westcentralus, Westeurope, Westus, Westus2}
 }
 
 // BlurLevel enumerates the values for blur level.
@@ -177,15 +137,13 @@ type Gender string
 const (
 	// Female ...
 	Female Gender = "female"
-	// Genderless ...
-	Genderless Gender = "genderless"
 	// Male ...
 	Male Gender = "male"
 )
 
 // PossibleGenderValues returns an array of possible values for the Gender const type.
 func PossibleGenderValues() []Gender {
-	return []Gender{Female, Genderless, Male}
+	return []Gender{Female, Male}
 }
 
 // GlassesType enumerates the values for glasses type.
@@ -251,23 +209,74 @@ func PossibleNoiseLevelValues() []NoiseLevel {
 	return []NoiseLevel{NoiseLevelHigh, NoiseLevelLow, NoiseLevelMedium}
 }
 
+// OperationStatusType enumerates the values for operation status type.
+type OperationStatusType string
+
+const (
+	// Failed ...
+	Failed OperationStatusType = "failed"
+	// Notstarted ...
+	Notstarted OperationStatusType = "notstarted"
+	// Running ...
+	Running OperationStatusType = "running"
+	// Succeeded ...
+	Succeeded OperationStatusType = "succeeded"
+)
+
+// PossibleOperationStatusTypeValues returns an array of possible values for the OperationStatusType const type.
+func PossibleOperationStatusTypeValues() []OperationStatusType {
+	return []OperationStatusType{Failed, Notstarted, Running, Succeeded}
+}
+
+// SnapshotApplyMode enumerates the values for snapshot apply mode.
+type SnapshotApplyMode string
+
+const (
+	// CreateNew ...
+	CreateNew SnapshotApplyMode = "CreateNew"
+)
+
+// PossibleSnapshotApplyModeValues returns an array of possible values for the SnapshotApplyMode const type.
+func PossibleSnapshotApplyModeValues() []SnapshotApplyMode {
+	return []SnapshotApplyMode{CreateNew}
+}
+
+// SnapshotObjectType enumerates the values for snapshot object type.
+type SnapshotObjectType string
+
+const (
+	// SnapshotObjectTypeFaceList ...
+	SnapshotObjectTypeFaceList SnapshotObjectType = "FaceList"
+	// SnapshotObjectTypeLargeFaceList ...
+	SnapshotObjectTypeLargeFaceList SnapshotObjectType = "LargeFaceList"
+	// SnapshotObjectTypeLargePersonGroup ...
+	SnapshotObjectTypeLargePersonGroup SnapshotObjectType = "LargePersonGroup"
+	// SnapshotObjectTypePersonGroup ...
+	SnapshotObjectTypePersonGroup SnapshotObjectType = "PersonGroup"
+)
+
+// PossibleSnapshotObjectTypeValues returns an array of possible values for the SnapshotObjectType const type.
+func PossibleSnapshotObjectTypeValues() []SnapshotObjectType {
+	return []SnapshotObjectType{SnapshotObjectTypeFaceList, SnapshotObjectTypeLargeFaceList, SnapshotObjectTypeLargePersonGroup, SnapshotObjectTypePersonGroup}
+}
+
 // TrainingStatusType enumerates the values for training status type.
 type TrainingStatusType string
 
 const (
-	// Failed ...
-	Failed TrainingStatusType = "failed"
-	// Nonstarted ...
-	Nonstarted TrainingStatusType = "nonstarted"
-	// Running ...
-	Running TrainingStatusType = "running"
-	// Succeeded ...
-	Succeeded TrainingStatusType = "succeeded"
+	// TrainingStatusTypeFailed ...
+	TrainingStatusTypeFailed TrainingStatusType = "failed"
+	// TrainingStatusTypeNonstarted ...
+	TrainingStatusTypeNonstarted TrainingStatusType = "nonstarted"
+	// TrainingStatusTypeRunning ...
+	TrainingStatusTypeRunning TrainingStatusType = "running"
+	// TrainingStatusTypeSucceeded ...
+	TrainingStatusTypeSucceeded TrainingStatusType = "succeeded"
 )
 
 // PossibleTrainingStatusTypeValues returns an array of possible values for the TrainingStatusType const type.
 func PossibleTrainingStatusTypeValues() []TrainingStatusType {
-	return []TrainingStatusType{Failed, Nonstarted, Running, Succeeded}
+	return []TrainingStatusType{TrainingStatusTypeFailed, TrainingStatusTypeNonstarted, TrainingStatusTypeRunning, TrainingStatusTypeSucceeded}
 }
 
 // Accessory accessory item and corresponding confidence level.
@@ -283,11 +292,19 @@ type APIError struct {
 	Error *Error `json:"error,omitempty"`
 }
 
+// ApplySnapshotRequest request body for applying snapshot operation.
+type ApplySnapshotRequest struct {
+	// ObjectID - User specified target object id to be created from the snapshot.
+	ObjectID *string `json:"objectId,omitempty"`
+	// Mode - Snapshot applying mode. Currently only CreateNew is supported, which means the apply operation will fail if target subscription already contains an object of same type and using the same objectId. Users can specify the "objectId" in request body to avoid such conflicts. Possible values include: 'CreateNew'
+	Mode SnapshotApplyMode `json:"mode,omitempty"`
+}
+
 // Attributes face Attributes
 type Attributes struct {
 	// Age - Age in years
 	Age *float64 `json:"age,omitempty"`
-	// Gender - Possible gender of the face. Possible values include: 'Male', 'Female', 'Genderless'
+	// Gender - Possible gender of the face. Possible values include: 'Male', 'Female'
 	Gender Gender `json:"gender,omitempty"`
 	// Smile - Smile intensity, a number between [0,1]
 	Smile *float64 `json:"smile,omitempty"`
@@ -376,9 +393,11 @@ type FacialHair struct {
 type FindSimilarRequest struct {
 	// FaceID - FaceId of the query face. User needs to call Face - Detect first to get a valid faceId. Note that this faceId is not persisted and will expire 24 hours after the detection call
 	FaceID *uuid.UUID `json:"faceId,omitempty"`
-	// FaceListID - An existing user-specified unique candidate face list, created in Face List - Create a Face List. Face list contains a set of persistedFaceIds which are persisted and will never expire. Parameter faceListId and faceIds should not be provided at the same time
+	// FaceListID - An existing user-specified unique candidate face list, created in Face List - Create a Face List. Face list contains a set of persistedFaceIds which are persisted and will never expire. Parameter faceListId, largeFaceListId and faceIds should not be provided at the same time.
 	FaceListID *string `json:"faceListId,omitempty"`
-	// FaceIds - An array of candidate faceIds. All of them are created by Face - Detect and the faceIds will expire 24 hours after the detection call.
+	// LargeFaceListID - An existing user-specified unique candidate large face list, created in LargeFaceList - Create. Large face list contains a set of persistedFaceIds which are persisted and will never expire. Parameter faceListId, largeFaceListId and faceIds should not be provided at the same time.
+	LargeFaceListID *string `json:"largeFaceListId,omitempty"`
+	// FaceIds - An array of candidate faceIds. All of them are created by Face - Detect and the faceIds will expire 24 hours after the detection call. The number of faceIds is limited to 1000. Parameter faceListId, largeFaceListId and faceIds should not be provided at the same time.
 	FaceIds *[]uuid.UUID `json:"faceIds,omitempty"`
 	// MaxNumOfCandidatesReturned - The number of top similar faces returned. The valid range is [1, 1000].
 	MaxNumOfCandidatesReturned *int32 `json:"maxNumOfCandidatesReturned,omitempty"`
@@ -436,10 +455,12 @@ type IdentifyCandidate struct {
 
 // IdentifyRequest request body for identify face operation.
 type IdentifyRequest struct {
-	// PersonGroupID - PersonGroupId of the target person group, created by PersonGroups.Create
-	PersonGroupID *string `json:"personGroupId,omitempty"`
 	// FaceIds - Array of query faces faceIds, created by the Face - Detect. Each of the faces are identified independently. The valid number of faceIds is between [1, 10].
 	FaceIds *[]uuid.UUID `json:"faceIds,omitempty"`
+	// PersonGroupID - PersonGroupId of the target person group, created by PersonGroup - Create. Parameter personGroupId and largePersonGroupId should not be provided at the same time.
+	PersonGroupID *string `json:"personGroupId,omitempty"`
+	// LargePersonGroupID - LargePersonGroupId of the target large person group, created by LargePersonGroup - Create. Parameter personGroupId and largePersonGroupId should not be provided at the same time.
+	LargePersonGroupID *string `json:"largePersonGroupId,omitempty"`
 	// MaxNumOfCandidatesReturned - The range of maxNumOfCandidatesReturned is between 1 and 5 (default is 1).
 	MaxNumOfCandidatesReturned *int32 `json:"maxNumOfCandidatesReturned,omitempty"`
 	// ConfidenceThreshold - Confidence threshold of identification, used to judge whether one face belong to one person. The range of confidenceThreshold is [0, 1] (default specified by algorithm).
@@ -460,7 +481,8 @@ type ImageURL struct {
 	URL *string `json:"url,omitempty"`
 }
 
-// Landmarks a collection of 27-point face landmarks pointing to the important positions of face components.
+// Landmarks a collection of 27-point face landmarks pointing to the important positions of face
+// components.
 type Landmarks struct {
 	PupilLeft           *Coordinate `json:"pupilLeft,omitempty"`
 	PupilRight          *Coordinate `json:"pupilRight,omitempty"`
@@ -491,6 +513,28 @@ type Landmarks struct {
 	UnderLipBottom      *Coordinate `json:"underLipBottom,omitempty"`
 }
 
+// LargeFaceList large face list object.
+type LargeFaceList struct {
+	autorest.Response `json:"-"`
+	// LargeFaceListID - LargeFaceListId of the target large face list.
+	LargeFaceListID *string `json:"largeFaceListId,omitempty"`
+	// Name - User defined name, maximum length is 128.
+	Name *string `json:"name,omitempty"`
+	// UserData - User specified data. Length should not exceed 16KB.
+	UserData *string `json:"userData,omitempty"`
+}
+
+// LargePersonGroup large person group object.
+type LargePersonGroup struct {
+	autorest.Response `json:"-"`
+	// LargePersonGroupID - LargePersonGroupId of the target large person groups
+	LargePersonGroupID *string `json:"largePersonGroupId,omitempty"`
+	// Name - User defined name, maximum length is 128.
+	Name *string `json:"name,omitempty"`
+	// UserData - User specified data. Length should not exceed 16KB.
+	UserData *string `json:"userData,omitempty"`
+}
+
 // List face list object.
 type List struct {
 	autorest.Response `json:"-"`
@@ -516,10 +560,28 @@ type ListIdentifyResult struct {
 	Value             *[]IdentifyResult `json:"value,omitempty"`
 }
 
+// ListLargeFaceList ...
+type ListLargeFaceList struct {
+	autorest.Response `json:"-"`
+	Value             *[]LargeFaceList `json:"value,omitempty"`
+}
+
+// ListLargePersonGroup ...
+type ListLargePersonGroup struct {
+	autorest.Response `json:"-"`
+	Value             *[]LargePersonGroup `json:"value,omitempty"`
+}
+
 // ListList ...
 type ListList struct {
 	autorest.Response `json:"-"`
 	Value             *[]List `json:"value,omitempty"`
+}
+
+// ListPersistedFace ...
+type ListPersistedFace struct {
+	autorest.Response `json:"-"`
+	Value             *[]PersistedFace `json:"value,omitempty"`
 }
 
 // ListPerson ...
@@ -540,6 +602,12 @@ type ListSimilarFace struct {
 	Value             *[]SimilarFace `json:"value,omitempty"`
 }
 
+// ListSnapshot ...
+type ListSnapshot struct {
+	autorest.Response `json:"-"`
+	Value             *[]Snapshot `json:"value,omitempty"`
+}
+
 // Makeup properties describing present makeups on a given face.
 type Makeup struct {
 	// EyeMakeup - A boolean value describing whether eye makeup is present on a face.
@@ -548,8 +616,8 @@ type Makeup struct {
 	LipMakeup *bool `json:"lipMakeup,omitempty"`
 }
 
-// NameAndUserDataContract a combination of user defined name and user specified data for the person, personGroup,
-// and faceList
+// NameAndUserDataContract a combination of user defined name and user specified data for the person,
+// largePersonGroup/personGroup, and largeFaceList/faceList.
 type NameAndUserDataContract struct {
 	// Name - User defined name, maximum length is 128.
 	Name *string `json:"name,omitempty"`
@@ -573,6 +641,22 @@ type Occlusion struct {
 	EyeOccluded *bool `json:"eyeOccluded,omitempty"`
 	// MouthOccluded - A boolean value indicating whether the mouth is occluded.
 	MouthOccluded *bool `json:"mouthOccluded,omitempty"`
+}
+
+// OperationStatus operation status object. Operation refers to the asynchronous backend task including
+// taking a snapshot and applying a snapshot.
+type OperationStatus struct {
+	autorest.Response `json:"-"`
+	// Status - Operation status: notstarted, running, succeeded, failed. If the operation is requested and waiting to perform, the status is notstarted. If the operation is ongoing in backend, the status is running. Status succeeded means the operation is completed successfully, specifically for snapshot taking operation, it illustrates the snapshot is well taken and ready to apply, and for snapshot applying operation, it presents the target object has finished creating by the snapshot and ready to be used. Status failed is often caused by editing the source object while taking the snapshot or editing the target object while applying the snapshot before completion, see the field "message" to check the failure reason. Possible values include: 'Notstarted', 'Running', 'Succeeded', 'Failed'
+	Status OperationStatusType `json:"status,omitempty"`
+	// CreatedTime - A combined UTC date and time string that describes the time when the operation (take or apply a snapshot) is requested. E.g. 2018-12-25T11:41:02.2331413Z.
+	CreatedTime *date.Time `json:"createdTime,omitempty"`
+	// LastActionTime - A combined UTC date and time string that describes the last time the operation (take or apply a snapshot) is actively migrating data. The lastActionTime will keep increasing until the operation finishes. E.g. 2018-12-25T11:51:27.8705696Z.
+	LastActionTime *date.Time `json:"lastActionTime,omitempty"`
+	// ResourceLocation - When the operation succeeds successfully, for snapshot taking operation the snapshot id will be included in this field, and for snapshot applying operation, the path to get the target object will be returned in this field.
+	ResourceLocation *string `json:"resourceLocation,omitempty"`
+	// Message - Show failure message when operation fails (omitted when operation succeeds).
+	Message *string `json:"message,omitempty"`
 }
 
 // PersistedFace personFace object.
@@ -600,7 +684,7 @@ type Person struct {
 // PersonGroup person group object.
 type PersonGroup struct {
 	autorest.Response `json:"-"`
-	// PersonGroupID - PersonGroupId of the existing person groups.
+	// PersonGroupID - PersonGroupId of the target person group.
 	PersonGroupID *string `json:"personGroupId,omitempty"`
 	// Name - User defined name, maximum length is 128.
 	Name *string `json:"name,omitempty"`
@@ -630,26 +714,68 @@ type SimilarFace struct {
 	Confidence *float64 `json:"confidence,omitempty"`
 }
 
+// Snapshot snapshot object.
+type Snapshot struct {
+	autorest.Response `json:"-"`
+	// ID - Snapshot id.
+	ID *uuid.UUID `json:"id,omitempty"`
+	// Account - Azure Cognitive Service Face account id of the subscriber who created the snapshot by Snapshot - Take.
+	Account *string `json:"account,omitempty"`
+	// Type - Type of the source object in the snapshot, specified by the subscriber who created the snapshot when calling Snapshot - Take. Currently FaceList, PersonGroup, LargeFaceList and LargePersonGroup are supported. Possible values include: 'SnapshotObjectTypeFaceList', 'SnapshotObjectTypeLargeFaceList', 'SnapshotObjectTypeLargePersonGroup', 'SnapshotObjectTypePersonGroup'
+	Type SnapshotObjectType `json:"type,omitempty"`
+	// ApplyScope - Array of the target Face subscription ids for the snapshot, specified by the user who created the snapshot when calling Snapshot - Take. For each snapshot, only subscriptions included in the applyScope of Snapshot - Take can apply it.
+	ApplyScope *[]uuid.UUID `json:"applyScope,omitempty"`
+	// UserData - User specified data about the snapshot for any purpose. Length should not exceed 16KB.
+	UserData *string `json:"userData,omitempty"`
+	// CreatedTime - A combined UTC date and time string that describes the created time of the snapshot. E.g. 2018-12-25T11:41:02.2331413Z.
+	CreatedTime *date.Time `json:"createdTime,omitempty"`
+	// LastUpdateTime - A combined UTC date and time string that describes the last time when the snapshot was created or updated by Snapshot - Update. E.g. 2018-12-25T11:51:27.8705696Z.
+	LastUpdateTime *date.Time `json:"lastUpdateTime,omitempty"`
+}
+
+// TakeSnapshotRequest request body for taking snapshot operation.
+type TakeSnapshotRequest struct {
+	// Type - User specified type for the source object to take snapshot from. Currently FaceList, PersonGroup, LargeFaceList and LargePersonGroup are supported. Possible values include: 'SnapshotObjectTypeFaceList', 'SnapshotObjectTypeLargeFaceList', 'SnapshotObjectTypeLargePersonGroup', 'SnapshotObjectTypePersonGroup'
+	Type SnapshotObjectType `json:"type,omitempty"`
+	// ObjectID - User specified source object id to take snapshot from.
+	ObjectID *string `json:"objectId,omitempty"`
+	// ApplyScope - User specified array of target Face subscription ids for the snapshot. For each snapshot, only subscriptions included in the applyScope of Snapshot - Take can apply it.
+	ApplyScope *[]uuid.UUID `json:"applyScope,omitempty"`
+	// UserData - User specified data about the snapshot for any purpose. Length should not exceed 16KB.
+	UserData *string `json:"userData,omitempty"`
+}
+
 // TrainingStatus training status object.
 type TrainingStatus struct {
 	autorest.Response `json:"-"`
-	// Status - Training status: notstarted, running, succeeded, failed. If the training process is waiting to perform, the status is notstarted. If the training is ongoing, the status is running. Status succeed means this person group is ready for Face - Identify. Status failed is often caused by no person or no persisted face exist in the person group. Possible values include: 'Nonstarted', 'Running', 'Succeeded', 'Failed'
+	// Status - Training status: notstarted, running, succeeded, failed. If the training process is waiting to perform, the status is notstarted. If the training is ongoing, the status is running. Status succeed means this person group or large person group is ready for Face - Identify, or this large face list is ready for Face - Find Similar. Status failed is often caused by no person or no persisted face exist in the person group or large person group, or no persisted face exist in the large face list. Possible values include: 'TrainingStatusTypeNonstarted', 'TrainingStatusTypeRunning', 'TrainingStatusTypeSucceeded', 'TrainingStatusTypeFailed'
 	Status TrainingStatusType `json:"status,omitempty"`
-	// Created - A combined UTC date and time string that describes person group created time.
+	// Created - A combined UTC date and time string that describes the created time of the person group, large person group or large face list.
 	Created *date.Time `json:"createdDateTime,omitempty"`
-	// LastAction - Person group last modify time in the UTC, could be null value when the person group is not successfully trained.
+	// LastAction - A combined UTC date and time string that describes the last modify time of the person group, large person group or large face list, could be null value when the group is not successfully trained.
 	LastAction *date.Time `json:"lastActionDateTime,omitempty"`
+	// LastSuccessfulTraining - A combined UTC date and time string that describes the last successful training time of the person group, large person group or large face list.
+	LastSuccessfulTraining *date.Time `json:"lastSuccessfulTrainingDateTime,omitempty"`
 	// Message - Show failure message when training failed (omitted when training succeed).
 	Message *string `json:"message,omitempty"`
 }
 
-// UpdatePersonFaceRequest request to update person face data.
-type UpdatePersonFaceRequest struct {
+// UpdateFaceRequest request to update face data.
+type UpdateFaceRequest struct {
 	// UserData - User-provided data attached to the face. The size limit is 1KB.
 	UserData *string `json:"userData,omitempty"`
 }
 
-// VerifyFaceToFaceRequest request body for verify operation.
+// UpdateSnapshotRequest request body for updating a snapshot, with a combination of user defined apply
+// scope and user specified data.
+type UpdateSnapshotRequest struct {
+	// ApplyScope - Array of the target Face subscription ids for the snapshot, specified by the user who created the snapshot when calling Snapshot - Take. For each snapshot, only subscriptions included in the applyScope of Snapshot - Take can apply it.
+	ApplyScope *[]uuid.UUID `json:"applyScope,omitempty"`
+	// UserData - User specified data about the snapshot for any purpose. Length should not exceed 16KB.
+	UserData *string `json:"userData,omitempty"`
+}
+
+// VerifyFaceToFaceRequest request body for face to face verification.
 type VerifyFaceToFaceRequest struct {
 	// FaceID1 - FaceId of the first face, comes from Face - Detect
 	FaceID1 *uuid.UUID `json:"faceId1,omitempty"`
@@ -657,13 +783,15 @@ type VerifyFaceToFaceRequest struct {
 	FaceID2 *uuid.UUID `json:"faceId2,omitempty"`
 }
 
-// VerifyFaceToPersonRequest request body for verify operation.
+// VerifyFaceToPersonRequest request body for face to person verification.
 type VerifyFaceToPersonRequest struct {
-	// FaceID - FaceId the face, comes from Face - Detect
+	// FaceID - FaceId of the face, comes from Face - Detect
 	FaceID *uuid.UUID `json:"faceId,omitempty"`
-	// PersonGroupID - Using existing personGroupId and personId for fast loading a specified person. personGroupId is created in Person Groups.Create.
+	// PersonGroupID - Using existing personGroupId and personId for fast loading a specified person. personGroupId is created in PersonGroup - Create. Parameter personGroupId and largePersonGroupId should not be provided at the same time.
 	PersonGroupID *string `json:"personGroupId,omitempty"`
-	// PersonID - Specify a certain person in a person group. personId is created in Persons.Create.
+	// LargePersonGroupID - Using existing largePersonGroupId and personId for fast loading a specified person. largePersonGroupId is created in LargePersonGroup - Create. Parameter personGroupId and largePersonGroupId should not be provided at the same time.
+	LargePersonGroupID *string `json:"largePersonGroupId,omitempty"`
+	// PersonID - Specify a certain person in a person group or a large person group. personId is created in PersonGroup Person - Create or LargePersonGroup Person - Create.
 	PersonID *uuid.UUID `json:"personId,omitempty"`
 }
 

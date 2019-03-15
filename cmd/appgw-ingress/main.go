@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
@@ -137,7 +137,7 @@ func getKubeClientConfig() *rest.Config {
 	}
 
 	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags(*apiServerHost, *kubeConfigFile)
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
 
 	if err != nil {
 		glog.Fatalf("error creating client configuration: %v", err.Error())

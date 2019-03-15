@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
 	"net/http"
 )
@@ -31,13 +32,8 @@ type PermissionsClient struct {
 }
 
 // NewPermissionsClient creates an instance of the PermissionsClient client.
-func NewPermissionsClient() PermissionsClient {
-	return NewPermissionsClientWithBaseURI(DefaultBaseURI)
-}
-
-// NewPermissionsClientWithBaseURI creates an instance of the PermissionsClient client.
-func NewPermissionsClientWithBaseURI(baseURI string) PermissionsClient {
-	return PermissionsClient{NewWithBaseURI(baseURI)}
+func NewPermissionsClient(endpoint string) PermissionsClient {
+	return PermissionsClient{New(endpoint)}
 }
 
 // Add adds a user to the allowed list of users to access this LUIS application. Users are added using their email
@@ -46,6 +42,16 @@ func NewPermissionsClientWithBaseURI(baseURI string) PermissionsClient {
 // appID - the application ID.
 // userToAdd - a model containing the user's email address.
 func (client PermissionsClient) Add(ctx context.Context, appID uuid.UUID, userToAdd UserCollaborator) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PermissionsClient.Add")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.AddPreparer(ctx, appID, userToAdd)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.PermissionsClient", "Add", nil, "Failure preparing request")
@@ -69,6 +75,10 @@ func (client PermissionsClient) Add(ctx context.Context, appID uuid.UUID, userTo
 
 // AddPreparer prepares the Add request.
 func (client PermissionsClient) AddPreparer(ctx context.Context, appID uuid.UUID, userToAdd UserCollaborator) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId": autorest.Encode("path", appID),
 	}
@@ -76,7 +86,7 @@ func (client PermissionsClient) AddPreparer(ctx context.Context, appID uuid.UUID
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/permissions", pathParameters),
 		autorest.WithJSON(userToAdd))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -108,6 +118,16 @@ func (client PermissionsClient) AddResponder(resp *http.Response) (result Operat
 // appID - the application ID.
 // userToDelete - a model containing the user's email address.
 func (client PermissionsClient) Delete(ctx context.Context, appID uuid.UUID, userToDelete UserCollaborator) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PermissionsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, appID, userToDelete)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.PermissionsClient", "Delete", nil, "Failure preparing request")
@@ -131,6 +151,10 @@ func (client PermissionsClient) Delete(ctx context.Context, appID uuid.UUID, use
 
 // DeletePreparer prepares the Delete request.
 func (client PermissionsClient) DeletePreparer(ctx context.Context, appID uuid.UUID, userToDelete UserCollaborator) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId": autorest.Encode("path", appID),
 	}
@@ -138,7 +162,7 @@ func (client PermissionsClient) DeletePreparer(ctx context.Context, appID uuid.U
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsDelete(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/permissions", pathParameters),
 		autorest.WithJSON(userToDelete))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -168,6 +192,16 @@ func (client PermissionsClient) DeleteResponder(resp *http.Response) (result Ope
 // Parameters:
 // appID - the application ID.
 func (client PermissionsClient) List(ctx context.Context, appID uuid.UUID) (result UserAccessList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PermissionsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, appID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.PermissionsClient", "List", nil, "Failure preparing request")
@@ -191,13 +225,17 @@ func (client PermissionsClient) List(ctx context.Context, appID uuid.UUID) (resu
 
 // ListPreparer prepares the List request.
 func (client PermissionsClient) ListPreparer(ctx context.Context, appID uuid.UUID) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId": autorest.Encode("path", appID),
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/permissions", pathParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -228,6 +266,16 @@ func (client PermissionsClient) ListResponder(resp *http.Response) (result UserA
 // appID - the application ID.
 // collaborators - a model containing a list of user's email addresses.
 func (client PermissionsClient) Update(ctx context.Context, appID uuid.UUID, collaborators CollaboratorsArray) (result OperationStatus, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PermissionsClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePreparer(ctx, appID, collaborators)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authoring.PermissionsClient", "Update", nil, "Failure preparing request")
@@ -251,6 +299,10 @@ func (client PermissionsClient) Update(ctx context.Context, appID uuid.UUID, col
 
 // UpdatePreparer prepares the Update request.
 func (client PermissionsClient) UpdatePreparer(ctx context.Context, appID uuid.UUID, collaborators CollaboratorsArray) (*http.Request, error) {
+	urlParameters := map[string]interface{}{
+		"Endpoint": client.Endpoint,
+	}
+
 	pathParameters := map[string]interface{}{
 		"appId": autorest.Encode("path", appID),
 	}
@@ -258,7 +310,7 @@ func (client PermissionsClient) UpdatePreparer(ctx context.Context, appID uuid.U
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithCustomBaseURL("{Endpoint}/luis/api/v2.0", urlParameters),
 		autorest.WithPathParameters("/apps/{appId}/permissions", pathParameters),
 		autorest.WithJSON(collaborators))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

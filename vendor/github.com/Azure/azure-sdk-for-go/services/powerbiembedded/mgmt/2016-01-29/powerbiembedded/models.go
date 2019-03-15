@@ -23,6 +23,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbiembedded/mgmt/2016-01-29/powerbiembedded"
+
 // AccessKeyName enumerates the values for access key name.
 type AccessKeyName string
 
@@ -105,9 +108,9 @@ func (cwcr CreateWorkspaceCollectionRequest) MarshalJSON() ([]byte, error) {
 
 // Display ...
 type Display struct {
-	// Provider - The localized friendly form of the resource provider name. This form is also expected to include the publisher/company responsible. Use Title Casing. Begin with “Microsoft” for 1st party services.
+	// Provider - The localized friendly form of the resource provider name. This form is also expected to include the publisher/company responsible. Use Title Casing. Begin with "Microsoft" for 1st party services.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The localized friendly form of the resource type related to this action/operation. This form should match the public documentation for the resource provider. Use Title Casing. For examples, refer to the “name” section.
+	// Resource - The localized friendly form of the resource type related to this action/operation. This form should match the public documentation for the resource provider. Use Title Casing. For examples, refer to the "name" section.
 	Resource *string `json:"resource,omitempty"`
 	// Operation - The localized friendly name for the operation as shown to the user. This name should be concise (to fit in drop downs), but clear (self-documenting). Use Title Casing and include the entity/resource to which it applies.
 	Operation *string `json:"operation,omitempty"`
@@ -220,7 +223,9 @@ func (wc WorkspaceCollection) MarshalJSON() ([]byte, error) {
 	if wc.Sku != nil {
 		objectMap["sku"] = wc.Sku
 	}
-	objectMap["properties"] = wc.Properties
+	if wc.Properties != nil {
+		objectMap["properties"] = wc.Properties
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -245,8 +250,8 @@ type WorkspaceCollectionList struct {
 	Value             *[]WorkspaceCollection `json:"value,omitempty"`
 }
 
-// WorkspaceCollectionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WorkspaceCollectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type WorkspaceCollectionsDeleteFuture struct {
 	azure.Future
 }

@@ -1,6 +1,6 @@
 // +build go1.9
 
-// Copyright 2018 Microsoft Corporation
+// Copyright 2019 Microsoft Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,30 +21,6 @@ package contentmoderator
 
 import original "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v1.0/contentmoderator"
 
-type BaseClient = original.BaseClient
-type ImageModerationClient = original.ImageModerationClient
-type ListManagementImageClient = original.ListManagementImageClient
-type ListManagementImageListsClient = original.ListManagementImageListsClient
-type ListManagementTermClient = original.ListManagementTermClient
-type ListManagementTermListsClient = original.ListManagementTermListsClient
-type AzureRegionBaseURL = original.AzureRegionBaseURL
-
-const (
-	Australiaeastapicognitivemicrosoftcom  AzureRegionBaseURL = original.Australiaeastapicognitivemicrosoftcom
-	Brazilsouthapicognitivemicrosoftcom    AzureRegionBaseURL = original.Brazilsouthapicognitivemicrosoftcom
-	ContentmoderatortestazureApinet        AzureRegionBaseURL = original.ContentmoderatortestazureApinet
-	Eastasiaapicognitivemicrosoftcom       AzureRegionBaseURL = original.Eastasiaapicognitivemicrosoftcom
-	Eastus2apicognitivemicrosoftcom        AzureRegionBaseURL = original.Eastus2apicognitivemicrosoftcom
-	Eastusapicognitivemicrosoftcom         AzureRegionBaseURL = original.Eastusapicognitivemicrosoftcom
-	Northeuropeapicognitivemicrosoftcom    AzureRegionBaseURL = original.Northeuropeapicognitivemicrosoftcom
-	Southcentralusapicognitivemicrosoftcom AzureRegionBaseURL = original.Southcentralusapicognitivemicrosoftcom
-	Southeastasiaapicognitivemicrosoftcom  AzureRegionBaseURL = original.Southeastasiaapicognitivemicrosoftcom
-	Westcentralusapicognitivemicrosoftcom  AzureRegionBaseURL = original.Westcentralusapicognitivemicrosoftcom
-	Westeuropeapicognitivemicrosoftcom     AzureRegionBaseURL = original.Westeuropeapicognitivemicrosoftcom
-	Westus2apicognitivemicrosoftcom        AzureRegionBaseURL = original.Westus2apicognitivemicrosoftcom
-	Westusapicognitivemicrosoftcom         AzureRegionBaseURL = original.Westusapicognitivemicrosoftcom
-)
-
 type StatusEnum = original.StatusEnum
 
 const (
@@ -60,10 +36,10 @@ const (
 	TypeText  Type = original.TypeText
 )
 
-type Address = original.Address
 type APIError = original.APIError
+type Address = original.Address
+type BaseClient = original.BaseClient
 type Body = original.Body
-type BodyMetadata = original.BodyMetadata
 type BodyModel = original.BodyModel
 type Candidate = original.Candidate
 type Classification = original.Classification
@@ -87,83 +63,82 @@ type Face = original.Face
 type FoundFaces = original.FoundFaces
 type Frame = original.Frame
 type Frames = original.Frames
+type IPA = original.IPA
 type Image = original.Image
 type ImageAdditionalInfoItem = original.ImageAdditionalInfoItem
 type ImageIds = original.ImageIds
 type ImageList = original.ImageList
-type ImageListMetadata = original.ImageListMetadata
-type IPA = original.IPA
+type ImageModerationClient = original.ImageModerationClient
 type Job = original.Job
 type JobExecutionReportDetails = original.JobExecutionReportDetails
 type JobID = original.JobID
 type JobListResult = original.JobListResult
 type KeyValuePair = original.KeyValuePair
 type ListImageList = original.ListImageList
+type ListManagementImageClient = original.ListManagementImageClient
+type ListManagementImageListsClient = original.ListManagementImageListsClient
+type ListManagementTermClient = original.ListManagementTermClient
+type ListManagementTermListsClient = original.ListManagementTermListsClient
 type ListString = original.ListString
 type ListTermList = original.ListTermList
 type Match = original.Match
 type MatchResponse = original.MatchResponse
 type OCR = original.OCR
-type Phone = original.Phone
 type PII = original.PII
+type Phone = original.Phone
 type RefreshIndex = original.RefreshIndex
-type RefreshIndexAdvancedInfoItem = original.RefreshIndexAdvancedInfoItem
 type Review = original.Review
+type ReviewsClient = original.ReviewsClient
+type SSN = original.SSN
 type Screen = original.Screen
 type SetObject = original.SetObject
-type SSN = original.SSN
 type Status = original.Status
 type String = original.String
 type Tag = original.Tag
 type TermList = original.TermList
-type TermListMetadata = original.TermListMetadata
 type Terms = original.Terms
 type TermsData = original.TermsData
 type TermsInList = original.TermsInList
 type TermsPaging = original.TermsPaging
+type TextModerationClient = original.TextModerationClient
 type TranscriptModerationBodyItem = original.TranscriptModerationBodyItem
 type TranscriptModerationBodyItemTermsItem = original.TranscriptModerationBodyItemTermsItem
 type VideoFrameBodyItem = original.VideoFrameBodyItem
 type VideoFrameBodyItemMetadataItem = original.VideoFrameBodyItemMetadataItem
 type VideoFrameBodyItemReviewerResultTagsItem = original.VideoFrameBodyItemReviewerResultTagsItem
-type ReviewsClient = original.ReviewsClient
-type TextModerationClient = original.TextModerationClient
 
-func New(baseURL AzureRegionBaseURL) BaseClient {
-	return original.New(baseURL)
+func New(endpoint string) BaseClient {
+	return original.New(endpoint)
 }
-func NewWithoutDefaults(baseURL AzureRegionBaseURL) BaseClient {
-	return original.NewWithoutDefaults(baseURL)
+func NewImageModerationClient(endpoint string) ImageModerationClient {
+	return original.NewImageModerationClient(endpoint)
 }
-func NewImageModerationClient(baseURL AzureRegionBaseURL) ImageModerationClient {
-	return original.NewImageModerationClient(baseURL)
+func NewListManagementImageClient(endpoint string) ListManagementImageClient {
+	return original.NewListManagementImageClient(endpoint)
 }
-func NewListManagementImageClient(baseURL AzureRegionBaseURL) ListManagementImageClient {
-	return original.NewListManagementImageClient(baseURL)
+func NewListManagementImageListsClient(endpoint string) ListManagementImageListsClient {
+	return original.NewListManagementImageListsClient(endpoint)
 }
-func NewListManagementImageListsClient(baseURL AzureRegionBaseURL) ListManagementImageListsClient {
-	return original.NewListManagementImageListsClient(baseURL)
+func NewListManagementTermClient(endpoint string) ListManagementTermClient {
+	return original.NewListManagementTermClient(endpoint)
 }
-func NewListManagementTermClient(baseURL AzureRegionBaseURL) ListManagementTermClient {
-	return original.NewListManagementTermClient(baseURL)
+func NewListManagementTermListsClient(endpoint string) ListManagementTermListsClient {
+	return original.NewListManagementTermListsClient(endpoint)
 }
-func NewListManagementTermListsClient(baseURL AzureRegionBaseURL) ListManagementTermListsClient {
-	return original.NewListManagementTermListsClient(baseURL)
+func NewReviewsClient(endpoint string) ReviewsClient {
+	return original.NewReviewsClient(endpoint)
 }
-func PossibleAzureRegionBaseURLValues() []AzureRegionBaseURL {
-	return original.PossibleAzureRegionBaseURLValues()
+func NewTextModerationClient(endpoint string) TextModerationClient {
+	return original.NewTextModerationClient(endpoint)
+}
+func NewWithoutDefaults(endpoint string) BaseClient {
+	return original.NewWithoutDefaults(endpoint)
 }
 func PossibleStatusEnumValues() []StatusEnum {
 	return original.PossibleStatusEnumValues()
 }
 func PossibleTypeValues() []Type {
 	return original.PossibleTypeValues()
-}
-func NewReviewsClient(baseURL AzureRegionBaseURL) ReviewsClient {
-	return original.NewReviewsClient(baseURL)
-}
-func NewTextModerationClient(baseURL AzureRegionBaseURL) TextModerationClient {
-	return original.NewTextModerationClient(baseURL)
 }
 func UserAgent() string {
 	return original.UserAgent() + " profiles/preview"

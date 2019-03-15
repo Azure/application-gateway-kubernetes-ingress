@@ -1,6 +1,6 @@
 // +build go1.9
 
-// Copyright 2018 Microsoft Corporation
+// Copyright 2019 Microsoft Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,16 +21,6 @@ package authoring
 
 import original "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/v2.0/luis/authoring"
 
-type AppsClient = original.AppsClient
-
-const (
-	DefaultBaseURI = original.DefaultBaseURI
-)
-
-type BaseClient = original.BaseClient
-type ExamplesClient = original.ExamplesClient
-type FeaturesClient = original.FeaturesClient
-type ModelClient = original.ModelClient
 type OperationStatusType = original.OperationStatusType
 
 const (
@@ -221,14 +211,19 @@ const (
 	Trained       TrainingStatus = original.Trained
 )
 
+type AppVersionSettingObject = original.AppVersionSettingObject
 type ApplicationCreateObject = original.ApplicationCreateObject
 type ApplicationInfoResponse = original.ApplicationInfoResponse
 type ApplicationPublishObject = original.ApplicationPublishObject
-type ApplicationSettings = original.ApplicationSettings
 type ApplicationSettingUpdateObject = original.ApplicationSettingUpdateObject
+type ApplicationSettings = original.ApplicationSettings
 type ApplicationUpdateObject = original.ApplicationUpdateObject
+type AppsClient = original.AppsClient
 type AvailableCulture = original.AvailableCulture
 type AvailablePrebuiltEntityModel = original.AvailablePrebuiltEntityModel
+type AzureAccountInfoObject = original.AzureAccountInfoObject
+type AzureAccountsClient = original.AzureAccountsClient
+type BaseClient = original.BaseClient
 type BatchLabelExample = original.BatchLabelExample
 type ChildEntity = original.ChildEntity
 type ClosedList = original.ClosedList
@@ -254,10 +249,12 @@ type EntityRoleCreateObject = original.EntityRoleCreateObject
 type EntityRoleUpdateObject = original.EntityRoleUpdateObject
 type ErrorResponse = original.ErrorResponse
 type ExampleLabelObject = original.ExampleLabelObject
+type ExamplesClient = original.ExamplesClient
 type ExplicitListItem = original.ExplicitListItem
 type ExplicitListItemCreateObject = original.ExplicitListItemCreateObject
 type ExplicitListItemUpdateObject = original.ExplicitListItemUpdateObject
 type FeatureInfoObject = original.FeatureInfoObject
+type FeaturesClient = original.FeaturesClient
 type FeaturesResponseObject = original.FeaturesResponseObject
 type HierarchicalChildEntity = original.HierarchicalChildEntity
 type HierarchicalChildModelCreateObject = original.HierarchicalChildModelCreateObject
@@ -273,12 +270,14 @@ type JSONEntity = original.JSONEntity
 type JSONModelFeature = original.JSONModelFeature
 type JSONRegexFeature = original.JSONRegexFeature
 type JSONUtterance = original.JSONUtterance
-type LabeledUtterance = original.LabeledUtterance
 type LabelExampleResponse = original.LabelExampleResponse
 type LabelTextObject = original.LabelTextObject
+type LabeledUtterance = original.LabeledUtterance
+type ListAppVersionSettingObject = original.ListAppVersionSettingObject
 type ListApplicationInfoResponse = original.ListApplicationInfoResponse
 type ListAvailableCulture = original.ListAvailableCulture
 type ListAvailablePrebuiltEntityModel = original.ListAvailablePrebuiltEntityModel
+type ListAzureAccountInfoObject = original.ListAzureAccountInfoObject
 type ListBatchLabelExample = original.ListBatchLabelExample
 type ListClosedListEntityExtractor = original.ListClosedListEntityExtractor
 type ListCompositeEntityExtractor = original.ListCompositeEntityExtractor
@@ -290,8 +289,8 @@ type ListExplicitListItem = original.ListExplicitListItem
 type ListHierarchicalEntityExtractor = original.ListHierarchicalEntityExtractor
 type ListIntentClassifier = original.ListIntentClassifier
 type ListIntentsSuggestionExample = original.ListIntentsSuggestionExample
-type ListLabeledUtterance = original.ListLabeledUtterance
 type ListLabelTextObject = original.ListLabelTextObject
+type ListLabeledUtterance = original.ListLabeledUtterance
 type ListModelInfoResponse = original.ListModelInfoResponse
 type ListModelTrainingInfo = original.ListModelTrainingInfo
 type ListPatternAnyEntityExtractor = original.ListPatternAnyEntityExtractor
@@ -304,6 +303,7 @@ type ListString = original.ListString
 type ListUUID = original.ListUUID
 type ListVersionInfo = original.ListVersionInfo
 type LuisApp = original.LuisApp
+type ModelClient = original.ModelClient
 type ModelCreateObject = original.ModelCreateObject
 type ModelInfo = original.ModelInfo
 type ModelInfoResponse = original.ModelInfoResponse
@@ -316,6 +316,7 @@ type PatternAny = original.PatternAny
 type PatternAnyEntityExtractor = original.PatternAnyEntityExtractor
 type PatternAnyModelCreateObject = original.PatternAnyModelCreateObject
 type PatternAnyModelUpdateObject = original.PatternAnyModelUpdateObject
+type PatternClient = original.PatternClient
 type PatternCreateObject = original.PatternCreateObject
 type PatternFeatureInfo = original.PatternFeatureInfo
 type PatternRule = original.PatternRule
@@ -323,9 +324,10 @@ type PatternRuleCreateObject = original.PatternRuleCreateObject
 type PatternRuleInfo = original.PatternRuleInfo
 type PatternRuleUpdateObject = original.PatternRuleUpdateObject
 type PatternUpdateObject = original.PatternUpdateObject
+type PermissionsClient = original.PermissionsClient
 type PersonalAssistantsResponse = original.PersonalAssistantsResponse
-type PhraselistCreateObject = original.PhraselistCreateObject
 type PhraseListFeatureInfo = original.PhraseListFeatureInfo
+type PhraselistCreateObject = original.PhraselistCreateObject
 type PhraselistUpdateObject = original.PhraselistUpdateObject
 type PrebuiltDomain = original.PrebuiltDomain
 type PrebuiltDomainCreateBaseObject = original.PrebuiltDomainCreateBaseObject
@@ -336,70 +338,72 @@ type PrebuiltDomainObject = original.PrebuiltDomainObject
 type PrebuiltEntity = original.PrebuiltEntity
 type PrebuiltEntityExtractor = original.PrebuiltEntityExtractor
 type ProductionOrStagingEndpointInfo = original.ProductionOrStagingEndpointInfo
-type PublishSettings = original.PublishSettings
 type PublishSettingUpdateObject = original.PublishSettingUpdateObject
+type PublishSettings = original.PublishSettings
 type ReadCloser = original.ReadCloser
 type RegexEntity = original.RegexEntity
 type RegexEntityExtractor = original.RegexEntityExtractor
 type RegexModelCreateObject = original.RegexModelCreateObject
 type RegexModelUpdateObject = original.RegexModelUpdateObject
 type SetString = original.SetString
+type SettingsClient = original.SettingsClient
 type String = original.String
 type SubClosedList = original.SubClosedList
 type SubClosedListResponse = original.SubClosedListResponse
 type TaskUpdateObject = original.TaskUpdateObject
+type TrainClient = original.TrainClient
+type UUID = original.UUID
 type UserAccessList = original.UserAccessList
 type UserCollaborator = original.UserCollaborator
-type UUID = original.UUID
 type VersionInfo = original.VersionInfo
+type VersionsClient = original.VersionsClient
 type WordListBaseUpdateObject = original.WordListBaseUpdateObject
 type WordListObject = original.WordListObject
-type PatternClient = original.PatternClient
-type PermissionsClient = original.PermissionsClient
-type TrainClient = original.TrainClient
-type VersionsClient = original.VersionsClient
 
-func NewAppsClient() AppsClient {
-	return original.NewAppsClient()
+func New(endpoint string) BaseClient {
+	return original.New(endpoint)
 }
-func NewAppsClientWithBaseURI(baseURI string) AppsClient {
-	return original.NewAppsClientWithBaseURI(baseURI)
+func NewAppsClient(endpoint string) AppsClient {
+	return original.NewAppsClient(endpoint)
 }
-func New() BaseClient {
-	return original.New()
+func NewAzureAccountsClient(endpoint string) AzureAccountsClient {
+	return original.NewAzureAccountsClient(endpoint)
 }
-func NewWithBaseURI(baseURI string) BaseClient {
-	return original.NewWithBaseURI(baseURI)
+func NewExamplesClient(endpoint string) ExamplesClient {
+	return original.NewExamplesClient(endpoint)
 }
-func NewExamplesClient() ExamplesClient {
-	return original.NewExamplesClient()
+func NewFeaturesClient(endpoint string) FeaturesClient {
+	return original.NewFeaturesClient(endpoint)
 }
-func NewExamplesClientWithBaseURI(baseURI string) ExamplesClient {
-	return original.NewExamplesClientWithBaseURI(baseURI)
+func NewModelClient(endpoint string) ModelClient {
+	return original.NewModelClient(endpoint)
 }
-func NewFeaturesClient() FeaturesClient {
-	return original.NewFeaturesClient()
+func NewPatternClient(endpoint string) PatternClient {
+	return original.NewPatternClient(endpoint)
 }
-func NewFeaturesClientWithBaseURI(baseURI string) FeaturesClient {
-	return original.NewFeaturesClientWithBaseURI(baseURI)
+func NewPermissionsClient(endpoint string) PermissionsClient {
+	return original.NewPermissionsClient(endpoint)
 }
-func NewModelClient() ModelClient {
-	return original.NewModelClient()
+func NewSettingsClient(endpoint string) SettingsClient {
+	return original.NewSettingsClient(endpoint)
 }
-func NewModelClientWithBaseURI(baseURI string) ModelClient {
-	return original.NewModelClientWithBaseURI(baseURI)
+func NewTrainClient(endpoint string) TrainClient {
+	return original.NewTrainClient(endpoint)
+}
+func NewVersionsClient(endpoint string) VersionsClient {
+	return original.NewVersionsClient(endpoint)
+}
+func NewWithoutDefaults(endpoint string) BaseClient {
+	return original.NewWithoutDefaults(endpoint)
 }
 func PossibleOperationStatusTypeValues() []OperationStatusType {
 	return original.PossibleOperationStatusTypeValues()
 }
-func PossibleReadableTypeValues() []ReadableType {
-	return original.PossibleReadableTypeValues()
+func PossibleReadableType10Values() []ReadableType10 {
+	return original.PossibleReadableType10Values()
 }
 func PossibleReadableType1Values() []ReadableType1 {
 	return original.PossibleReadableType1Values()
-}
-func PossibleReadableType10Values() []ReadableType10 {
-	return original.PossibleReadableType10Values()
 }
 func PossibleReadableType2Values() []ReadableType2 {
 	return original.PossibleReadableType2Values()
@@ -425,42 +429,21 @@ func PossibleReadableType8Values() []ReadableType8 {
 func PossibleReadableType9Values() []ReadableType9 {
 	return original.PossibleReadableType9Values()
 }
-func PossibleStatusValues() []Status {
-	return original.PossibleStatusValues()
+func PossibleReadableTypeValues() []ReadableType {
+	return original.PossibleReadableTypeValues()
 }
 func PossibleStatus1Values() []Status1 {
 	return original.PossibleStatus1Values()
 }
+func PossibleStatusValues() []Status {
+	return original.PossibleStatusValues()
+}
 func PossibleTrainingStatusValues() []TrainingStatus {
 	return original.PossibleTrainingStatusValues()
-}
-func NewPatternClient() PatternClient {
-	return original.NewPatternClient()
-}
-func NewPatternClientWithBaseURI(baseURI string) PatternClient {
-	return original.NewPatternClientWithBaseURI(baseURI)
-}
-func NewPermissionsClient() PermissionsClient {
-	return original.NewPermissionsClient()
-}
-func NewPermissionsClientWithBaseURI(baseURI string) PermissionsClient {
-	return original.NewPermissionsClientWithBaseURI(baseURI)
-}
-func NewTrainClient() TrainClient {
-	return original.NewTrainClient()
-}
-func NewTrainClientWithBaseURI(baseURI string) TrainClient {
-	return original.NewTrainClientWithBaseURI(baseURI)
 }
 func UserAgent() string {
 	return original.UserAgent() + " profiles/preview"
 }
 func Version() string {
 	return original.Version()
-}
-func NewVersionsClient() VersionsClient {
-	return original.NewVersionsClient()
-}
-func NewVersionsClientWithBaseURI(baseURI string) VersionsClient {
-	return original.NewVersionsClientWithBaseURI(baseURI)
 }

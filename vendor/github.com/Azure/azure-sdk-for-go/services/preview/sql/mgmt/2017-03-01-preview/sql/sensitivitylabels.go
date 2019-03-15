@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -52,6 +53,16 @@ func NewSensitivityLabelsClientWithBaseURI(baseURI string, subscriptionID string
 // columnName - the name of the column.
 // parameters - the column sensitivity label resource.
 func (client SensitivityLabelsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, schemaName string, tableName string, columnName string, parameters SensitivityLabel) (result SensitivityLabel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, schemaName, tableName, columnName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -131,6 +142,16 @@ func (client SensitivityLabelsClient) CreateOrUpdateResponder(resp *http.Respons
 // tableName - the name of the table.
 // columnName - the name of the column.
 func (client SensitivityLabelsClient) Delete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, schemaName string, tableName string, columnName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, databaseName, schemaName, tableName, columnName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "Delete", nil, "Failure preparing request")
@@ -208,6 +229,16 @@ func (client SensitivityLabelsClient) DeleteResponder(resp *http.Response) (resu
 // columnName - the name of the column.
 // sensitivityLabelSource - the source of the sensitivity label.
 func (client SensitivityLabelsClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string, schemaName string, tableName string, columnName string, sensitivityLabelSource SensitivityLabelSource) (result SensitivityLabel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName, schemaName, tableName, columnName, sensitivityLabelSource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "Get", nil, "Failure preparing request")
@@ -275,38 +306,48 @@ func (client SensitivityLabelsClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// ListByDatabase gets the sensitivity labels of a given database
+// ListCurrentByDatabase gets the sensitivity labels of a given database
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 // databaseName - the name of the database.
 // filter - an OData filter expression that filters elements in the collection.
-func (client SensitivityLabelsClient) ListByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (result SensitivityLabelListResultPage, err error) {
-	result.fn = client.listByDatabaseNextResults
-	req, err := client.ListByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName, filter)
+func (client SensitivityLabelsClient) ListCurrentByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (result SensitivityLabelListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.ListCurrentByDatabase")
+		defer func() {
+			sc := -1
+			if result.sllr.Response.Response != nil {
+				sc = result.sllr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listCurrentByDatabaseNextResults
+	req, err := client.ListCurrentByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListByDatabase", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListCurrentByDatabase", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByDatabaseSender(req)
+	resp, err := client.ListCurrentByDatabaseSender(req)
 	if err != nil {
 		result.sllr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListByDatabase", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListCurrentByDatabase", resp, "Failure sending request")
 		return
 	}
 
-	result.sllr, err = client.ListByDatabaseResponder(resp)
+	result.sllr, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListByDatabase", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListCurrentByDatabase", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// ListByDatabasePreparer prepares the ListByDatabase request.
-func (client SensitivityLabelsClient) ListByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (*http.Request, error) {
+// ListCurrentByDatabasePreparer prepares the ListCurrentByDatabase request.
+func (client SensitivityLabelsClient) ListCurrentByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -325,21 +366,21 @@ func (client SensitivityLabelsClient) ListByDatabasePreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/sensitivityLabels", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/currentSensitivityLabels", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByDatabaseSender sends the ListByDatabase request. The method will close the
+// ListCurrentByDatabaseSender sends the ListCurrentByDatabase request. The method will close the
 // http.Response Body if it receives an error.
-func (client SensitivityLabelsClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
+func (client SensitivityLabelsClient) ListCurrentByDatabaseSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
+// ListCurrentByDatabaseResponder handles the response to the ListCurrentByDatabase request. The method always
 // closes the http.Response Body.
-func (client SensitivityLabelsClient) ListByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
+func (client SensitivityLabelsClient) ListCurrentByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -350,29 +391,164 @@ func (client SensitivityLabelsClient) ListByDatabaseResponder(resp *http.Respons
 	return
 }
 
-// listByDatabaseNextResults retrieves the next set of results, if any.
-func (client SensitivityLabelsClient) listByDatabaseNextResults(lastResults SensitivityLabelListResult) (result SensitivityLabelListResult, err error) {
-	req, err := lastResults.sensitivityLabelListResultPreparer()
+// listCurrentByDatabaseNextResults retrieves the next set of results, if any.
+func (client SensitivityLabelsClient) listCurrentByDatabaseNextResults(ctx context.Context, lastResults SensitivityLabelListResult) (result SensitivityLabelListResult, err error) {
+	req, err := lastResults.sensitivityLabelListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listByDatabaseNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listCurrentByDatabaseNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByDatabaseSender(req)
+	resp, err := client.ListCurrentByDatabaseSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listByDatabaseNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listCurrentByDatabaseNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByDatabaseResponder(resp)
+	result, err = client.ListCurrentByDatabaseResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listCurrentByDatabaseNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByDatabaseComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SensitivityLabelsClient) ListByDatabaseComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (result SensitivityLabelListResultIterator, err error) {
-	result.page, err = client.ListByDatabase(ctx, resourceGroupName, serverName, databaseName, filter)
+// ListCurrentByDatabaseComplete enumerates all values, automatically crossing page boundaries as required.
+func (client SensitivityLabelsClient) ListCurrentByDatabaseComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, filter string) (result SensitivityLabelListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.ListCurrentByDatabase")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListCurrentByDatabase(ctx, resourceGroupName, serverName, databaseName, filter)
+	return
+}
+
+// ListRecommendedByDatabase gets the sensitivity labels of a given database
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the database.
+// filter - an OData filter expression that filters elements in the collection.
+func (client SensitivityLabelsClient) ListRecommendedByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string, skipToken string, filter string) (result SensitivityLabelListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.ListRecommendedByDatabase")
+		defer func() {
+			sc := -1
+			if result.sllr.Response.Response != nil {
+				sc = result.sllr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listRecommendedByDatabaseNextResults
+	req, err := client.ListRecommendedByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName, skipToken, filter)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListRecommendedByDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListRecommendedByDatabaseSender(req)
+	if err != nil {
+		result.sllr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListRecommendedByDatabase", resp, "Failure sending request")
+		return
+	}
+
+	result.sllr, err = client.ListRecommendedByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "ListRecommendedByDatabase", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListRecommendedByDatabasePreparer prepares the ListRecommendedByDatabase request.
+func (client SensitivityLabelsClient) ListRecommendedByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, skipToken string, filter string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2017-03-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/recommendedSensitivityLabels", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListRecommendedByDatabaseSender sends the ListRecommendedByDatabase request. The method will close the
+// http.Response Body if it receives an error.
+func (client SensitivityLabelsClient) ListRecommendedByDatabaseSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListRecommendedByDatabaseResponder handles the response to the ListRecommendedByDatabase request. The method always
+// closes the http.Response Body.
+func (client SensitivityLabelsClient) ListRecommendedByDatabaseResponder(resp *http.Response) (result SensitivityLabelListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listRecommendedByDatabaseNextResults retrieves the next set of results, if any.
+func (client SensitivityLabelsClient) listRecommendedByDatabaseNextResults(ctx context.Context, lastResults SensitivityLabelListResult) (result SensitivityLabelListResult, err error) {
+	req, err := lastResults.sensitivityLabelListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listRecommendedByDatabaseNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListRecommendedByDatabaseSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listRecommendedByDatabaseNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListRecommendedByDatabaseResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.SensitivityLabelsClient", "listRecommendedByDatabaseNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListRecommendedByDatabaseComplete enumerates all values, automatically crossing page boundaries as required.
+func (client SensitivityLabelsClient) ListRecommendedByDatabaseComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, skipToken string, filter string) (result SensitivityLabelListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SensitivityLabelsClient.ListRecommendedByDatabase")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListRecommendedByDatabase(ctx, resourceGroupName, serverName, databaseName, skipToken, filter)
 	return
 }
