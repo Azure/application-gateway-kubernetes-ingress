@@ -314,6 +314,17 @@
             "metadata": {
                 "description": "Enable RBAC on the AKS cluster."
             }
+        },
+        "applicationGatewaySku": {  
+            "defaultValue": "Standard_v2",
+            "allowedValues": [
+                "Standard_v2",
+                "WAF_v2"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "The sku of the Application Gateway."
+            }
         }
     },
     "variables": {
@@ -390,8 +401,8 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "sku": {
-                    "name": "Standard_v2",
-                    "tier": "Standard_v2",
+                    "name": "[parameters('applicationGatewaySku')]",
+                    "tier": "[parameters('applicationGatewaySku')]",
                     "capacity": 2
                 },
                 "gatewayIPConfigurations": [
