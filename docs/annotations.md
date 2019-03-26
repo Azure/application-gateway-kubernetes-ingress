@@ -15,7 +15,7 @@ appgw.ingress.kubernetes.io/backend-path-prefix: <path prefix>
 
 ### Example
 ```yaml
-piVersion: extensions/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
