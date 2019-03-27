@@ -93,17 +93,10 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 				httpsAvailable = true
 			}
 
-			// TODO skip this part if HTTP is disabled in annotation
-			listenerConfigHTTP := frontendListenerAzureConfig{
-				Protocol: network.HTTP,
-			}
-			listenerIDHTTP := generateFrontendListenerID(&rule, listenerConfigHTTP.Protocol, nil)
-			frontendListeners.Insert(listenerIDHTTP)
-			frontendPortsSet.Insert(listenerIDHTTP.FrontendPort)
-			builder.httpListenersAzureConfigMap[listenerIDHTTP] = &listenerConfigHTTP
-
-			// HTTPS is also available
+			// If a cert is a available it is implied that we should enable only HTTPS.
+			// TODO: Once we introduce an `ssl-redirect` annotation we should enable HTTP for HTTPS rules as well, with the correct SSL redirect configurations setup.
 			if httpsAvailable {
+				// HTTPS
 				listenerConfigHTTPS := frontendListenerAzureConfig{
 					Protocol: network.HTTPS,
 					Secret:   *secID,
@@ -112,6 +105,15 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 				frontendListeners.Insert(listenerIDHTTPS)
 				frontendPortsSet.Insert(listenerIDHTTPS.FrontendPort)
 				builder.httpListenersAzureConfigMap[listenerIDHTTPS] = &listenerConfigHTTPS
+			} else {
+				// HTTP
+				listenerConfigHTTP := frontendListenerAzureConfig{
+					Protocol: network.HTTP,
+				}
+				listenerIDHTTP := generateFrontendListenerID(&rule, listenerConfigHTTP.Protocol, nil)
+				frontendListeners.Insert(listenerIDHTTP)
+				frontendPortsSet.Insert(listenerIDHTTP.FrontendPort)
+				builder.httpListenersAzureConfigMap[listenerIDHTTP] = &listenerConfigHTTP
 			}
 		}
 	}
