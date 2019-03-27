@@ -314,6 +314,17 @@
             "metadata": {
                 "description": "Enable RBAC on the AKS cluster."
             }
+        },
+        "applicationGatewaySku": {
+            "defaultValue": "WAF_v2",
+            "allowedValues": [
+                "Standard_v2",
+                "WAF_v2"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "The sku of the Application Gateway. Default: WAF_v2 (Detection mode). In order to further customize WAF, use azure portal or cli."
+            }
         }
     },
     "variables": {
@@ -335,7 +346,11 @@
         "networkContributorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "contributorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "managedIdentityOperatorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f1a07417-d97a-45cb-824c-7a7467783830')]",
-        "readerRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+        "readerRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "webApplicationFirewallConfiguration": {
+          "enabled": "true",
+          "firewallMode": "Detection"
+        }
     },
     "resources": [
         {
@@ -390,8 +405,8 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "sku": {
-                    "name": "Standard_v2",
-                    "tier": "Standard_v2",
+                    "name": "[parameters('applicationGatewaySku')]",
+                    "tier": "[parameters('applicationGatewaySku')]",
                     "capacity": 2
                 },
                 "gatewayIPConfigurations": [
@@ -474,7 +489,8 @@
                             }
                         }
                     }
-                ]
+                ],
+                "webApplicationFirewallConfiguration": "[if(equals(parameters('applicationGatewaySku'), 'WAF_v2'), variables('webApplicationFirewallConfiguration'), json('null'))]"
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
