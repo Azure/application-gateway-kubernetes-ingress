@@ -3,6 +3,7 @@ package appgw
 import (
 	go_flag "flag"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 type appGWSettingsChecker struct {
@@ -199,9 +201,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Test the default backend address pool.
-		Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
+		Expect((*appGW.BackendAddressPools)).To(ContainElement(defaultBackendAddressPool()))
 		// Test the ingress backend address pool that we installed.
-		Expect((*appGW.BackendAddressPools)[1]).To(Equal(*addressPool))
+		Expect((*appGW.BackendAddressPools)).To(ContainElement(*addressPool))
 	}
 
 	defaultHTTPListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
@@ -223,13 +225,21 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect((*appGW.HTTPListeners)[0]).To(Equal(*httpListener))
 	}
 
-	defaultRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
-		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{80, domainName})))
+	baseRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat, listener int32, host string) {
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{listener, host})))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(network.PathBasedRouting))
 	}
 
-	defaultURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{80, domainName})))
+	defaultRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		baseRequestRoutingRulesChecker(appGW, 80, domainName)
+	}
+
+	defaultHTTPSRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		baseRequestRoutingRulesChecker(appGW, 443, domainName)
+	}
+
+	baseURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat, listener int32, host string) {
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{listener, host})))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
@@ -237,6 +247,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(len(*(pathRule.Paths))).To(Equal(1), "Expected a single path in path-based rules, but got: %d", len(*(pathRule.Paths)))
 		// Check the exact path that was set.
 		Expect((*pathRule.Paths)[0]).To(Equal("/hi"))
+	}
+
+	defaultURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		baseURLPathMapsChecker(appGW, 80, domainName)
+	}
+
+	defaultHTTPSURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		baseURLPathMapsChecker(appGW, 443, domainName)
 	}
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
@@ -299,6 +317,19 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 	}
 
+	ingressEvent := func() {
+		for {
+			select {
+			case obj := <-ctxt.UpdateChannel.Out():
+				event := obj.(k8scontext.Event)
+				// Check if we got an event of type secret.
+				if _, ok := event.Value.(*v1beta1.Ingress); ok {
+					return
+				}
+			}
+		}
+	}
+
 	BeforeEach(func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
@@ -341,9 +372,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Application Gateway Configuration", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress", func() {
+			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
 
-			// Start the informers. This will sync the cache with the latest ingress.
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
+
 			ingressList := testIngress()
 
 			testAGConfig(ingressList, appGwConfigSettings{
@@ -384,6 +418,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
+
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
 
 			// Get all the ingresses
 			ingressList := testIngress()
@@ -437,6 +474,133 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		})
 	})
+
+	Context("Tests Ingress Controller TLS", func() {
+		It("Should be able to create Application Gateway Configuration from Ingress with TLS.", func() {
+			// Test setup ........................
+			// 1. Create secrets object in the Kubernetes secret store.
+			ingressSecret := &v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-ag-secret",
+					Namespace: ingressNS,
+				},
+				Type: "kubernetes.io/tls",
+				Data: make(map[string][]byte),
+			}
+
+			key, err := ioutil.ReadFile("../../tests/data/k8s.cert.key")
+			Expect(err).Should(BeNil(), "Unable to read the cert key: %v", err)
+			ingressSecret.Data["tls.key"] = key
+
+			cert, err := ioutil.ReadFile("../../tests/data/k8s.x509.cert")
+			Expect(err).Should(BeNil(), "Unable to read the cert key: %v", err)
+			ingressSecret.Data["tls.crt"] = cert
+
+			// Create a secret in Kubernetes.
+			_, err = k8sClient.CoreV1().Secrets(ingressNS).Create(ingressSecret)
+			Expect(err).Should(BeNil(), "Unable to create the secret object in K8s: %v", err)
+
+			// 2. Update the ingress TLS spec with a secret from the k8s secret store.
+			ingressTLS := v1beta1.IngressTLS{
+				SecretName: "test-ag-secret",
+			}
+
+			// Currently, when TLS spec is specified for an ingress the expectation is that we will not have any HTTP listeners configured for that ingress.
+			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
+			// after the introduction of the `ssl-redirect` annotation.
+			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+
+			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
+
+			// Update the ingress.
+			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+
+			// Start the informers. This will sync the cache with the latest ingress.
+			ctxt.Run()
+
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
+
+			// Make sure the ctxt cached the secret.
+			secKey := utils.GetResourceKey(ingressNS, "test-ag-secret")
+
+			ctxtSecret := ctxt.GetSecret(secKey)
+			Expect(ctxtSecret).To(Equal(ingressSecret))
+
+			pfxCert := ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
+			Expect(pfxCert).ShouldNot(BeNil())
+
+			httpsOnlyListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				// Test the listener.
+				appGwIdentifier := Identifier{}
+				secretID := secretIdentifier{
+					Namespace: ingressNS,
+					Name:      "test-ag-secret",
+				}
+
+				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
+				httpsListenerName := generateHTTPListenerName(frontendListenerIdentifier{443, domainName})
+				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
+				requireServerNameIndication := true
+				httpsListener := &network.ApplicationGatewayHTTPListener{
+					Etag: to.StringPtr("*"),
+					Name: &httpsListenerName,
+					ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
+						FrontendIPConfiguration:     resourceRef("*"),
+						FrontendPort:                resourceRef(frontendPortID),
+						SslCertificate:              resourceRef(sslCert),
+						Protocol:                    network.HTTPS,
+						HostName:                    &domainName,
+						RequireServerNameIndication: &requireServerNameIndication,
+					},
+				}
+
+				Expect((*appGW.HTTPListeners)).Should(ConsistOf(*httpsListener))
+			}
+
+			// Method to test all the ingress that have been added to the K8s context.
+			testTLSIngress := func() []*v1beta1.Ingress {
+				// Get all the ingresses
+				ingressList := ctxt.GetHTTPIngressList()
+				// There should be only one ingress
+				Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
+				// Make sure it is the ingress we stored.
+				Expect(ingressList).To(ContainElement(ingress))
+
+				return ingressList
+			}
+
+			// Get all the ingresses
+			ingressList := testTLSIngress()
+
+			testAGConfig(ingressList, appGwConfigSettings{
+				backendHTTPSettingsCollection: appGWSettingsChecker{
+					total:   2,
+					checker: defaultBackendHTTPSettingsChecker,
+				},
+				backendAddressPools: appGWSettingsChecker{
+					total:   2,
+					checker: defaultBackendAddressPoolChecker,
+				},
+				hTTPListeners: appGWSettingsChecker{
+					total:   1,
+					checker: httpsOnlyListenersChecker,
+				},
+				requestRoutingRules: appGWSettingsChecker{
+					total:   1,
+					checker: defaultHTTPSRequestRoutingRulesChecker,
+				},
+				uRLPathMaps: appGWSettingsChecker{
+					total:   1,
+					checker: defaultHTTPSURLPathMapsChecker,
+				},
+			})
+
+		})
+	})
+
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
 			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
@@ -451,6 +615,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
+
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
 
 			// Method to test all the ingress that have been added to the K8s context.
 			backendPrefixIngress := func() []*v1beta1.Ingress {
@@ -511,5 +678,4 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		})
 	})
-
 })
