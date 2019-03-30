@@ -60,6 +60,16 @@ add_custom_command(
     COMMENT "compiling project in devenv"
 )
 
+# Generate a new helm release.
+add_custom_target(helm-release
+    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
+    -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
+    -w ${devenv_workpath}/helm
+    --name ${devenv_image_name}-devenv ${devenv_image_name}
+    /bin/bash -c './release.sh'
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 # Build target for building the GoLang binaries
 add_custom_target(
     appgw-ingress
