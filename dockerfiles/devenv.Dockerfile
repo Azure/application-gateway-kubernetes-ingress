@@ -2,7 +2,7 @@
 
 FROM buildpack-deps:xenial
 
-RUN apt-get update && apt-get -y install apt-transport-https curl
+RUN apt-get update && apt-get -y install apt-transport-https curl ca-certificates openssl
 RUN curl -o /tmp/helm-v2.13.1-linux-amd64.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
 RUN tar -C /tmp/ -zxvf /tmp/helm-v2.13.1-linux-amd64.tar.gz \
     && mv /tmp/linux-amd64/helm /usr/local/bin/helm \
