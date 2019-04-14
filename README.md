@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> This feature is currently in preview. Previews are made available to you on the condition that you agree to the [supplemental terms of use][terms-of-use]. Some aspects of this feature may change prior to general availability (GA).
-
 ![Ingress Controller - Status](https://img.shields.io/badge/project--status-beta-orange.svg)
 [![Build Status](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress.svg?branch=master)](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress)
 
