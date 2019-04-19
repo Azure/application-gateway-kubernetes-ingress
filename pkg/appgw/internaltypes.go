@@ -70,7 +70,13 @@ func getResourceKey(namespace, name string) string {
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
+	httpSettingsName := fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
+	if len(httpSettingsName) > 80 {
+		exceededLength := int(len(httpSettingsName) - 80)
+		httpSettingsName = fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName,servicePort, backendPortNo,
+			ingress[:len(ingress)-exceededLength])
+	} 
+	return httpSettingsName
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {

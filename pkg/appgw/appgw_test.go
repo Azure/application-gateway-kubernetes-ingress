@@ -678,4 +678,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		})
 	})
+
+	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
+		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
+			// Start the informers. This will sync the cache with the latest ingress.
+			ctxt.Run()
+
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
+
+			serviceName := "test-cm-acme-http-solver-j7sxh"
+			servicePort := "8089"
+			var backendPortNo int32 = 8089
+			ingress := "cm-acme-http-solver-t8rnf"
+
+			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort , backendPortNo , ingress) 
+			Expect(len(httpSettingsName)).To(Equal(80), "Expected App Gateway Backend Pool with 80 Character but got one with: %d", len(httpSettingsName))
+		})
+	})
 })
