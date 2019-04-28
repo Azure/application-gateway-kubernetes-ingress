@@ -42,7 +42,7 @@ func IsApplicationGatewayIngress(ing *v1beta1.Ingress) bool {
 	return controllerName == ApplicationGatewayIngressClass
 }
 
-// IsSslRedirect for HTTP end points.
+// IsSslRedirect for HTTP end points
 func IsSslRedirect(ing *v1beta1.Ingress) bool {
 	val, ok := ing.Annotations[SslRedirectKey]
 	return ok && val == "true"
