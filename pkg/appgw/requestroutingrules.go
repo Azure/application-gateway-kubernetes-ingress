@@ -8,6 +8,8 @@ package appgw
 import (
 	"strconv"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/api/extensions/v1beta1"
@@ -133,7 +135,6 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 				httpsAvailable = true
 			}
 
-			// TODO check annotations for disabling http
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
@@ -141,10 +142,26 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
+
 				// need to eliminate non-unique paths
 				urlPathMaps[listenerHTTPID] = builder.pathMaps(ingress, &rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
+
+				httpURLPathMap := urlPathMaps[listenerHTTPID]
+
+				// if ssl-redirect annotation is present setup the correct redirect configuration.
+				if annotations.IsSslRedirect(ingress) {
+					sslRedirectConfigID := builder.appGwIdentifier.redirectConfigurationID(generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name))
+					if len(*httpURLPathMap.PathRules) == 0 {
+						// No paths. Basic
+						httpURLPathMap.DefaultRedirectConfiguration = resourceRef(sslRedirectConfigID)
+					} else {
+						for _, pathRule := range *httpURLPathMap.PathRules {
+							pathRule.RedirectConfiguration = resourceRef(sslRedirectConfigID)
+						}
+					}
+				}
 			}
 
 			if httpsAvailable {
@@ -154,6 +171,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
+
 				// need to eliminate non-unique paths
 				urlPathMaps[listenerHTTPSID] = builder.pathMaps(ingress, &rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
@@ -191,11 +209,17 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 				Etag: to.StringPtr("*"),
 				Name: &requestRoutingRuleName,
 				ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-					RuleType:            network.Basic,
-					HTTPListener:        &httpListenerSubResource,
-					BackendAddressPool:  urlPathMap.DefaultBackendAddressPool,
-					BackendHTTPSettings: urlPathMap.DefaultBackendHTTPSettings,
+					RuleType:              network.Basic,
+					HTTPListener:          &httpListenerSubResource,
+					RedirectConfiguration: urlPathMap.DefaultRedirectConfiguration,
 				},
+			}
+
+			// We setup the default backend address pools and default backend HTTP settings only if
+			// this rule does not have an `ssl-redirect` configuration.
+			if rule.RedirectConfiguration == nil {
+				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
+				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
 			}
 		} else {
 			// Path-based Rule

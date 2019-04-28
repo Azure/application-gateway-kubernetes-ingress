@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -42,6 +43,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 	frontendPortsSet := utils.NewUnorderedSet()
 	builder.secretIDCertificateMap = make(map[secretIdentifier]*string)
 	builder.ingressKeyHostnameSecretIDMap = make(map[string](map[string]secretIdentifier))
+
 	for _, ingress := range ingressList {
 		hostnameSecretIDMap := make(map[string](secretIdentifier))
 		if len(ingress.Spec.TLS) > 0 {
@@ -78,6 +80,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 				}
 			}
 		}
+
 		ingressKey := getResourceKey(ingress.Namespace, ingress.Name)
 		builder.ingressKeyHostnameSecretIDMap[ingressKey] = hostnameSecretIDMap
 
@@ -88,6 +91,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 			}
 
 			httpsAvailable := false
+			sslRedirect := annotations.IsSslRedirect(ingress)
 			cert, secID := builder.getCertificate(ingressKey, rule.Host)
 			if cert != nil {
 				httpsAvailable = true
@@ -100,13 +104,16 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 				listenerConfigHTTPS := frontendListenerAzureConfig{
 					Protocol: network.HTTPS,
 					Secret:   *secID,
+					SslRedirectConfigurationName: generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name),
 				}
 				listenerIDHTTPS := generateFrontendListenerID(&rule, listenerConfigHTTPS.Protocol, nil)
 				frontendListeners.Insert(listenerIDHTTPS)
 				frontendPortsSet.Insert(listenerIDHTTPS.FrontendPort)
 				builder.httpListenersAzureConfigMap[listenerIDHTTPS] = &listenerConfigHTTPS
-			} else {
-				// HTTP
+			}
+
+			if sslRedirect || !httpsAvailable {
+				// Enable HTTP only if HTTPS has not been specified or if an SSL-redirect annotation has been set to `true`.
 				listenerConfigHTTP := frontendListenerAzureConfig{
 					Protocol: network.HTTP,
 				}
@@ -135,6 +142,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 
 	httpListeners := []network.ApplicationGatewayHTTPListener{}
 	frontendPorts := []network.ApplicationGatewayFrontendPort{}
+	sslRedirectConfigurations := []network.ApplicationGatewayRedirectConfiguration{}
 
 	// fallback to default listener as placeholder if no listener is available
 	if frontendPortsSet.IsEmpty() {
@@ -191,6 +199,24 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 			if len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) != 0 {
 				httpListener.RequireServerNameIndication = to.BoolPtr(true)
 			}
+
+			// Check if ssl-redirect needs to be setup.
+			if frontendListenerConfig.SslRedirectConfigurationName != "" {
+				includePath := true
+				includeQueryString := true
+				sslRedirectConfigurationName := frontendListenerConfig.SslRedirectConfigurationName
+				sslRedirectConfiguration := network.ApplicationGatewayRedirectConfiguration{
+					Etag: to.StringPtr("*"),
+					Name: &sslRedirectConfigurationName,
+					ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
+						RedirectType:       network.Permanent,
+						TargetListener:     resourceRef(builder.appGwIdentifier.httpListenerID(httpListenerName)),
+						IncludePath:        &includePath,
+						IncludeQueryString: &includeQueryString,
+					},
+				}
+				sslRedirectConfigurations = append(sslRedirectConfigurations, sslRedirectConfiguration)
+			}
 		}
 
 		if len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) != 0 {
@@ -205,5 +231,6 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 	builder.appGwConfig.SslCertificates = &sslCertificates
 	builder.appGwConfig.FrontendPorts = &frontendPorts
 	builder.appGwConfig.HTTPListeners = &httpListeners
+	builder.appGwConfig.RedirectConfigurations = &sslRedirectConfigurations
 	return builder, nil
 }
