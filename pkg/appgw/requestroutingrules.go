@@ -159,6 +159,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 					} else {
 						for _, pathRule := range *httpURLPathMap.PathRules {
 							pathRule.RedirectConfiguration = resourceRef(sslRedirectConfigID)
+							pathRule.BackendAddressPool = nil
+							pathRule.BackendHTTPSettings = nil
 						}
 					}
 				}
