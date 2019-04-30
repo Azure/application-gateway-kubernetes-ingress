@@ -34,6 +34,7 @@ jsconfig.json
 # Other editors
 .idea/
 *~
+*#*
 
 ######### Project Specific ########
 # ignore binary directory
