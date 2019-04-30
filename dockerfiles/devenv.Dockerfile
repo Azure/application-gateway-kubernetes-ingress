@@ -32,7 +32,4 @@ RUN go get -u golang.org/x/tools/cmd/goimports
 RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 
-# install glide
-RUN curl https://glide.sh/get | sh
-
 WORKDIR /gopath/src/github.com/Azure/application-gateway-kubernetes-ingress

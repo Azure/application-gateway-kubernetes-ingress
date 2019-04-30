@@ -8,7 +8,7 @@ set(devenv_workpath "/gopath/src/${package_name}")
 
 set(deployment_image_name ${project_name_lowercase}
     CACHE STRING "string <deployment_image_name> for docker tag/push <prefix>/<deployment_image_name>")
-set(deployment_push_prefix "" 
+set(deployment_push_prefix ""
     CACHE STRING "string <prefix> for docker tag/push <prefix>/<deployment_image_name>")
 set(deployment_image_version "latest"
     CACHE STRING "version of the deployment image")
@@ -24,8 +24,8 @@ add_custom_command(
             /bin/bash -c './scripts/vendor.sh'
     COMMAND cmake -E touch ${CMAKE_SOURCE_DIR}/vendor/vendor.stamp
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS glide.yaml devenv
-    COMMENT "running glide install -v"
+    DEPENDS go.mod devenv
+    COMMENT "running go mod vendor"
 )
 
 # Go vendoring
