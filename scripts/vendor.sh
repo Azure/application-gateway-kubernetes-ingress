@@ -1,4 +1,4 @@
 #!/bin/bash
 rm -rf vendor
-glide update -v
+go mod vendor
 chmod -R 777 vendor
