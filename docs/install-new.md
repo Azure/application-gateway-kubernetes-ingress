@@ -14,14 +14,12 @@ To create the pre-requisite Azure resources, you can use the following template.
 
 Steps:
 
-1) Create a service principal that will be assigned to the AKS cluster in the template.
-    ```bash
-    az ad sp create-for-rbac --skip-assignment
-    az ad sp show --id <appId> --query "objectId"
-    ```
-    **Note the appId, password and objectId.**
+1. Create an Azure Active Directory (Azure AD) [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) object. This object will be assigned to the AKS cluster in the template. As a result of executing the commands below you will have an `appId`, `password`, and `objectId` values. Execute the following commands:
+    1. `az login` - will [log you in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli?view=azure-cli-latest#sign-in-interactively) to your Azure account
+    1. `az ad sp create-for-rbac --skip-assignment` - creates an AD service principal object. Record and securely store the values for the `appId` and `password` keys from the JSON output of this command. ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview))
+    1. `az ad sp show --id <appId> --query "objectId"` - retrieves the `objectId` of the newly created service principal. Replace `<appId>` with the value for the `appId` key from the JSON output of the previous command. Record the `objectId` value returned.
 
-2) After creating the service principal in the step above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password and objectId in the parameters.
+2. After creating the service principal in the step above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password and objectId in the parameters.
     Note: For deploying an *RBAC* enabled cluster, set `aksEnabledRBAC` parameter to `true`.
 
     <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
