@@ -38,7 +38,7 @@ Steps:
       - [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview)
       - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
-    After the deployment completes, you will find the parameters needed for the steps belw in the Azure Portal's Output window. (You can navigate to the deployment's output by following this Path in the [Azure portal](https://portal.azure.com/): `Home 🠆 *resource group* 🠆 Deployments 🠆 *new deployment* 🠆 Outputs`)
+    After the deployment completes, you will find the parameters needed for the steps below in the deployment outputs window. (Navigate to the deployment's output by following this path in the [Azure portal](https://portal.azure.com/): `Home 🠆 *resource group* 🠆 Deployments 🠆 *new deployment* 🠆 Outputs`)
 
     Example:
     ![Deployment Output](images/deployment-output.png)
