@@ -12,7 +12,15 @@ To create the pre-requisite Azure resources, you can use the following template.
 5) Set required RBACs.
 
 
-Steps:
+## Prerequisites
+
+The steps below require the following software to be installed on your workstation:
+  1. `az` - Azure CLI: [installation instructions](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+  1. `kubectl` - Kubernetes command-line tool: [installation instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl)
+  1. `helm` - tool for managing pre-configured Kubernetes resources: [installation instructions](https://github.com/helm/helm/releases/latest)
+
+
+## Steps
 
 1. Create an Azure Active Directory (Azure AD) [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) object. This object will be assigned to the AKS cluster in the template. As a result of executing the commands below you will have an `appId`, `password`, and `objectId` values. Execute the following commands:
     1. `az login` - will [log you in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli?view=azure-cli-latest#sign-in-interactively) to your Azure account
