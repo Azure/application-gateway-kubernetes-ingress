@@ -37,7 +37,14 @@ The steps below require the following software to be installed on your workstati
         <img src="http://armviz.io/visualizebutton.png"/>
     </a>
 
-    After the deployment completes, you can look at the Output window for parameters needed in the following steps.
+    The templated deployment will create:
+      - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
+      - [Virtual Network](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview)
+      - [Public IP Address](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address)
+      - [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview)
+      - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
+
+    After the deployment completes, you will find the parameters needed for the steps below in the deployment outputs window. (Navigate to the deployment's output by following this path in the [Azure portal](https://portal.azure.com/): `Home 🠆 *resource group* 🠆 Deployments 🠆 *new deployment* 🠆 Outputs`)
 
     Example:
     ![Deployment Output](images/deployment-output.png)
