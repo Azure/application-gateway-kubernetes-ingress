@@ -23,7 +23,6 @@ The steps below require the following software to be installed on your workstati
 ## Steps
 
 1. Create an Azure Active Directory (Azure AD) [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) object. This object will be assigned to the AKS cluster in the template. As a result of executing the commands below you will have an `appId`, `password`, and `objectId` values. Execute the following commands:
-    1. `az login` - will [log you in](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli?view=azure-cli-latest#sign-in-interactively) to your Azure account
     1. `az ad sp create-for-rbac --skip-assignment` - creates an AD service principal object. Record and securely store the values for the `appId` and `password` keys from the JSON output of this command. ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview))
     1. `az ad sp show --id <appId> --query "objectId"` - retrieves the `objectId` of the newly created service principal. Replace `<appId>` with the value for the `appId` key from the JSON output of the previous command. Record the `objectId` value returned.
 
@@ -59,7 +58,7 @@ Steps:
 
 1) To configure kubectl to connect to the deployed Azure Kubernetes Cluster, follow these [instructions](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
-2) Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.  
+2) Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.
     * *RBAC disabled* AKS cluster -
     ```bash
     kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
@@ -127,13 +126,13 @@ Steps:
     aksClusterConfiguration:
         apiServerAddress: <aks-api-server-address>
     ```
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:  
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>
-        ```  
+        ```
         Where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
 
-    Then execute the following to the install the Application Gateway ingress controller package.  
+    Then execute the following to the install the Application Gateway ingress controller package.
     ```bash
     helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
     ```
