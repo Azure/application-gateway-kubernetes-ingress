@@ -50,9 +50,13 @@ The steps below require the following software to be installed on your workstati
 
 ## Setting up Application Gateway Ingress Controller on AKS
 
-Once, we have the created the resources in Azure, we need to deploy following controllers on the cluster:
-1) `aad pod identity` - This controller uses user assigned identity and provide ARM access token to the controller.
-2) `application gateway ingress controller` - This controller communicates ingress related events to the Application Gateway resource.
+### Overview
+With the instructions in the previous section we created and configured a new Azure Kubernetes Service (AKS) cluster. We are now ready to deploy to our new Kubernetes infrastructure. The instructions below will guide us through the proccess of installing the following 2 components on our new AKS:
+1. **Azure Active Directory Pod Identity** - Provides token-based access to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview) via user-assigned identity. Adding this system will result in the installation of the following within your AKS cluster:
+   1. Custom Kubernetes resource definitions: `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
+   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
+   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
+1. **Application Gateway Ingress Controller** - This is the controller which monitors ingress-related events and actively keeps your Azure Application Gateway installation in sync with the changes within the AKS cluster.
 
 Steps:
 
