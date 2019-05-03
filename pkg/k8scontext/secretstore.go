@@ -17,21 +17,22 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// SecretStore is the interface definition for secret store
-type SecretStore interface {
+// SecretsKeeper is the interface definition for secret store
+type SecretsKeeper interface {
 	GetPfxCertificate(secretKey string) []byte
 	convertSecret(secretKey string, secret *v1.Secret) bool
 	eraseSecret(secretKey string)
 }
 
-type secretStore struct {
+// SecretsStore maintains a cache of the deployment secrets.
+type SecretsStore struct {
 	conversionSync sync.Mutex
 	Cache          cache.ThreadSafeStore
 }
 
-// NewSecretStore creates a new Secret Store object
-func NewSecretStore() SecretStore {
-	return &secretStore{
+// NewSecretStore creates a new SecretsKeeper object
+func NewSecretStore() SecretsKeeper {
+	return &SecretsStore{
 		Cache: cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{}),
 	}
 }
@@ -46,7 +47,8 @@ func writeFileDecode(data []byte, fileHandle *os.File) error {
 	return nil
 }
 
-func (s *secretStore) GetPfxCertificate(secretKey string) []byte {
+// GetPfxCertificate returns the certificate for the given secret key.
+func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
 	certInterface, exists := s.Cache.Get(secretKey)
 	if exists {
 		if cert, ok := certInterface.([]byte); ok {
@@ -56,14 +58,14 @@ func (s *secretStore) GetPfxCertificate(secretKey string) []byte {
 	return nil
 }
 
-func (s *secretStore) eraseSecret(secretKey string) {
+func (s *SecretsStore) eraseSecret(secretKey string) {
 	s.conversionSync.Lock()
 	defer s.conversionSync.Unlock()
 
 	s.Cache.Delete(secretKey)
 }
 
-func (s *secretStore) convertSecret(secretKey string, secret *v1.Secret) bool {
+func (s *SecretsStore) convertSecret(secretKey string, secret *v1.Secret) bool {
 	s.conversionSync.Lock()
 	defer s.conversionSync.Unlock()
 
