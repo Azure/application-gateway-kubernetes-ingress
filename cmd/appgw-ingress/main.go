@@ -11,6 +11,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -20,10 +23,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var (
@@ -45,11 +44,17 @@ var (
 func main() {
 	flags.Parse(os.Args)
 
+	envVariables := NewEnvVariables()
+	glog.Infof("Environment Variables:\n%+v", envVariables)
+	if len(envVariables.SubscriptionID) == 0 || len(envVariables.ResourceGroupName) == 0 || len(envVariables.AppGwName) == 0 || len(envVariables.WatchNamespace) == 0 {
+		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
+	}
+
 	setLoggingOptions()
 
 	kubeClient := kubeClient()
 
-	fileLocation := os.Getenv("AZURE_AUTH_LOCATION")
+	fileLocation := envVariables.AuthLocation
 
 	var err error
 	var azureAuth autorest.Authorizer
@@ -68,7 +73,11 @@ func main() {
 		glog.Fatalf("Error creating Azure client from config: %v", err.Error())
 	}
 
-	appGwIdentifier := appgw.NewIdentifierFromEnv()
+	appGwIdentifier := appgw.Identifier{
+		SubscriptionID: envVariables.SubscriptionID,
+		ResourceGroup:  envVariables.ResourceGroupName,
+		AppGwName:      envVariables.AppGwName,
+	}
 
 	appGwClient := network.NewApplicationGatewaysClient(appGwIdentifier.SubscriptionID)
 	appGwClient.Authorizer = azureAuth
@@ -87,7 +96,7 @@ func main() {
 		time.Sleep(retryTime)
 	}
 
-	namespace := os.Getenv("KUBERNETES_WATCHNAMESPACE")
+	namespace := envVariables.WatchNamespace
 
 	if len(namespace) == 0 {
 		glog.Fatal("Error creating informers, namespace is not specified")
