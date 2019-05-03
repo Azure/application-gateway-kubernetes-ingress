@@ -24,6 +24,7 @@ type SecretsKeeper interface {
 	eraseSecret(secretKey string)
 }
 
+// SecretsStore maintains a cache of the deployment secrets.
 type SecretsStore struct {
 	conversionSync sync.Mutex
 	Cache          cache.ThreadSafeStore
@@ -46,6 +47,7 @@ func writeFileDecode(data []byte, fileHandle *os.File) error {
 	return nil
 }
 
+// GetPfxCertificate returns the certificate for the given secret key.
 func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
 	certInterface, exists := s.Cache.Get(secretKey)
 	if exists {
