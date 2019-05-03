@@ -7,7 +7,7 @@ package main
 
 import "os"
 
-type EnvVariables struct {
+type envVariables struct {
 	SubscriptionID    string
 	ResourceGroupName string
 	AppGwName         string
@@ -15,8 +15,8 @@ type EnvVariables struct {
 	WatchNamespace    string
 }
 
-func NewEnvVariables() EnvVariables {
-	return EnvVariables{
+func newEnvVariables() envVariables {
+	return envVariables{
 		SubscriptionID:    os.Getenv("APPGW_SUBSCRIPTION_ID"),
 		ResourceGroupName: os.Getenv("APPGW_RESOURCE_GROUP"),
 		AppGwName:         os.Getenv("APPGW_NAME"),

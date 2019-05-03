@@ -11,9 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -23,6 +20,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var (
@@ -44,7 +45,7 @@ var (
 func main() {
 	flags.Parse(os.Args)
 
-	envVariables := NewEnvVariables()
+	envVariables := newEnvVariables()
 	glog.Infof("Environment Variables:\n%+v", envVariables)
 	if len(envVariables.SubscriptionID) == 0 || len(envVariables.ResourceGroupName) == 0 || len(envVariables.AppGwName) == 0 || len(envVariables.WatchNamespace) == 0 {
 		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
