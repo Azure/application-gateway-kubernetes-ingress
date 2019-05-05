@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"time"
 
 	"github.com/golang/glog"
@@ -19,23 +20,23 @@ import (
 // for each events.
 type EventQueue struct {
 	queue              workqueue.RateLimitingInterface
-	process            func(interface{}) (bool, error)
+	process            func(queuedEvent) error
 	workerFinished     chan struct{}
 	lastEventTimestamp int64
 }
 
-// eventQueueElement encapsulates an event with timestamp and a canSkip
+// queuedEvent encapsulates an event with timestamp and a canSkip
 // configuration. CanSkip specifies if this event can be skipped if a previous
 // event is processed at a later time.
-type eventQueueElement struct {
-	Element   interface{}
+type queuedEvent struct {
+	Event     k8scontext.Event
 	Timestamp int64
 	CanSkip   bool
 }
 
 // NewEventQueue creates an EventQueue with a callback function. The callback
 // function processFunc is executed for each event in the queue.
-func NewEventQueue(processFunc func(interface{}) (bool, error)) *EventQueue {
+func NewEventQueue(processFunc func(queuedEvent) error) *EventQueue {
 	q := &EventQueue{
 		queue:              workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		process:            processFunc,
@@ -48,7 +49,7 @@ func NewEventQueue(processFunc func(interface{}) (bool, error)) *EventQueue {
 
 // EnqueueCanSkip adds an event with parameter el as payload. User can specify if
 // this event should be skippable by setting the boolean parameter skip.
-func (q *EventQueue) EnqueueCanSkip(el interface{}, skip bool) {
+func (q *EventQueue) EnqueueCanSkip(el k8scontext.Event, skip bool) {
 	if q.queue.ShuttingDown() {
 		// Queue is shutting down will not be able to enqueue this.
 		glog.Errorf("queue is shutting down, unable to enqueue event")
@@ -59,8 +60,8 @@ func (q *EventQueue) EnqueueCanSkip(el interface{}, skip bool) {
 
 	glog.V(1).Infof("Enqueuing skip(%v) item", skip)
 
-	v := eventQueueElement{
-		Element:   el,
+	v := queuedEvent{
+		Event:     el,
 		Timestamp: now,
 		CanSkip:   skip,
 	}
@@ -69,7 +70,7 @@ func (q *EventQueue) EnqueueCanSkip(el interface{}, skip bool) {
 }
 
 // Enqueue adds an non-skipable event with parameter el as payload.
-func (q *EventQueue) Enqueue(el interface{}) {
+func (q *EventQueue) Enqueue(el k8scontext.Event) {
 	q.EnqueueCanSkip(el, false)
 }
 
@@ -104,7 +105,7 @@ func (q *EventQueue) worker() {
 			// The event queue is shutting down.
 			break
 		}
-		event := in.(eventQueueElement)
+		event := in.(queuedEvent)
 
 		now := time.Now().UnixNano()
 
@@ -119,9 +120,7 @@ func (q *EventQueue) worker() {
 		glog.V(1).Infof("Processing event begin, time since event generation: %s", time.Duration(now-event.Timestamp).String())
 
 		// Use callback to process event.
-		_, err := q.process(event)
-
-		if err != nil {
+		if err := q.process(event); err != nil {
 			// TODO maybe we can implement retry logic for scenarios like failed network.
 			glog.V(1).Infoln("Processing event failed")
 		} else {
