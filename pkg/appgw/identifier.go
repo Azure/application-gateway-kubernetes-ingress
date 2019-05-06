@@ -57,6 +57,10 @@ func (agw Identifier) httpListenerID(listenerName string) string {
 	return agw.gatewayResourceID("httpListeners", listenerName)
 }
 
+func (agw Identifier) redirectConfigurationID(configurationName string) string {
+	return agw.gatewayResourceID("redirectConfigurations", configurationName)
+}
+
 func (agw Identifier) subnetID(vnetName string, subnetName string) string {
 	resourcePath := fmt.Sprintf("%s/subnets/%s", vnetName, subnetName)
 	return agw.resourceID("Microsoft.Network", "virtualNetworks", resourcePath)
