@@ -45,11 +45,17 @@ var (
 func main() {
 	flags.Parse(os.Args)
 
+	envVariables := newEnvVariables()
+	glog.Infof("Environment Variables:\n%+v", envVariables)
+	if len(envVariables.SubscriptionID) == 0 || len(envVariables.ResourceGroupName) == 0 || len(envVariables.AppGwName) == 0 || len(envVariables.WatchNamespace) == 0 {
+		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
+	}
+
 	setLoggingOptions()
 
 	kubeClient := kubeClient()
 
-	fileLocation := os.Getenv("AZURE_AUTH_LOCATION")
+	fileLocation := envVariables.AuthLocation
 
 	var err error
 	var azureAuth autorest.Authorizer
@@ -68,7 +74,11 @@ func main() {
 		glog.Fatalf("Error creating Azure client from config: %v", err.Error())
 	}
 
-	appGwIdentifier := appgw.NewIdentifierFromEnv()
+	appGwIdentifier := appgw.Identifier{
+		SubscriptionID: envVariables.SubscriptionID,
+		ResourceGroup:  envVariables.ResourceGroupName,
+		AppGwName:      envVariables.AppGwName,
+	}
 
 	appGwClient := network.NewApplicationGatewaysClient(appGwIdentifier.SubscriptionID)
 	appGwClient.Authorizer = azureAuth
@@ -87,7 +97,7 @@ func main() {
 		time.Sleep(retryTime)
 	}
 
-	namespace := os.Getenv("KUBERNETES_WATCHNAMESPACE")
+	namespace := envVariables.WatchNamespace
 
 	if len(namespace) == 0 {
 		glog.Fatal("Error creating informers, namespace is not specified")
