@@ -6,28 +6,38 @@
 package utils
 
 import (
-	"fmt"
-	"sort"
 	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestToSlice(t *testing.T) {
-	set := NewUnorderedSet()
-	set.Insert("one")
-	set.Insert("two")
-	set.Insert("one")
-	expected := []string{"one", "two"}
-	actualSlice := set.ToSlice()
-	actual := []string{
-		actualSlice[0].(string),
-		actualSlice[1].(string),
-	}
-	sort.Strings(actual)
-	if len(actual) != 2 {
-		t.Error(fmt.Sprintf("Expected length to be 2; It is %d", len(actual)))
-	}
-
-	if actual[0] != expected[0] || actual[1] != expected[1] {
-		t.Error(fmt.Sprintf("\nExpected: %+v\nActually: %+v\n", expected, actual))
-	}
+func TestUnorderedSet(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Custom Matcher Suite")
 }
+
+var _ = Describe("UnorderedSet", func() {
+
+	Context("when seeded with {'one', 'two'} and mutated", func() {
+
+		// RegisterFailHandler(ginkgo.Fail)
+		// defer ginkgo.GinkgoRecover()
+
+		set := NewUnorderedSet()
+		set.Insert("one")
+		set.Insert("two")
+		set.Insert("one")
+		set.Insert("three")
+		set.Erase("three")
+
+		actual := set.ToSlice()
+
+		It("should succeed", func() {
+			Expect(len(actual)).To(Equal(2))
+			Expect(actual).To(ContainElement("one"))
+			Expect(actual).To(ContainElement("two"))
+			Expect(actual).ToNot(ContainElement("three"))
+		})
+	})
+})
