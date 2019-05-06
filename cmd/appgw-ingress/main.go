@@ -43,7 +43,13 @@ var (
 )
 
 func main() {
-	flags.Parse(os.Args)
+	if err := flags.Parse(os.Args); err != nil {
+		glog.Fatalf("Error parsing command line arguments: %v", err.Error())
+	}
+
+	// Workaround for "ERROR: logging before flag.Parse"
+	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
+	_ = go_flag.CommandLine.Parse([]string{})
 
 	envVariables := newEnvVariables()
 	glog.Infof("Environment Variables:\n%+v", envVariables)
