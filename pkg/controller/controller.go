@@ -39,14 +39,14 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
 	}
-	controller.eventQueue = NewEventQueue(controller.processEvent)
+	controller.eventQueue = NewEventQueue(controller)
 	return controller
 }
 
-// processEvent is the callback function that will be executed for every event
+// Process is the callback function that will be executed for every event
 // in the EventQueue.
-func (c *AppGwIngressController) processEvent(event queuedEvent) error {
-	glog.V(1).Infof("controller.processEvent called with type %T", event.Event)
+func (c AppGwIngressController) Process(event QueuedEvent) error {
+	glog.V(1).Infof("controller.Process called with type %T", event.Event)
 
 	ctx := context.Background()
 
