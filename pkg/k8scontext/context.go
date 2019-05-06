@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -353,18 +354,20 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 
 // GetPodsByServiceSelector returns pods that are associated with a specific service.
 func (c *Context) GetPodsByServiceSelector(selector map[string]string) []*v1.Pod {
-	podList := make([](*v1.Pod), 0)
-	podListInterface := c.Caches.Pods.List()
-	for _, podInterface := range podListInterface {
+	selectorSet := mapset.NewSet()
+	for k, v := range selector {
+		selectorSet.Add(k + ":" + v)
+	}
+
+	podList := make([]*v1.Pod, 0)
+	for _, podInterface := range c.Caches.Pods.List() {
 		pod := podInterface.(*v1.Pod)
-		match := true
-		for key, item := range selector {
-			if pod.Labels[key] != item {
-				match = false
-			}
+		podLabelSet := mapset.NewSet()
+		for k, v := range pod.Labels {
+			podLabelSet.Add(k + ":" + v)
 		}
 
-		if match {
+		if selectorSet.IsSubset(podLabelSet) {
 			podList = append(podList, pod)
 		}
 	}

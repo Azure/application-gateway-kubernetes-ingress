@@ -8,6 +8,7 @@ require (
 	git.apache.org/thrift.git v0.12.0 // indirect
 	github.com/Azure/azure-sdk-for-go v26.2.0+incompatible
 	github.com/Azure/go-autorest v11.5.1+incompatible
+	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v0.0.0-20160705203006-01aeca54ebda // indirect
 	github.com/dimchansky/utfbom v1.1.0 // indirect
 	github.com/eapache/channels v1.1.0
