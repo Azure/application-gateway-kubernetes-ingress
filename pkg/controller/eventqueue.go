@@ -16,15 +16,15 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-// QueuedEventEventProcessor provides a mechanism to act on events in the internal queue.
-type QueuedEventEventProcessor interface {
+// EventProcessor provides a mechanism to act on events in the internal queue.
+type EventProcessor interface {
 	Process(QueuedEvent) error
 }
 
 // EventQueue is a queue accepting events and run callback function
 // for each events.
 type EventQueue struct {
-	QueuedEventEventProcessor
+	EventProcessor
 
 	queue              workqueue.RateLimitingInterface
 	workerFinished     chan struct{}
@@ -42,9 +42,9 @@ type QueuedEvent struct {
 
 // NewEventQueue creates an EventQueue with a callback function. The callback
 // function processFunc is executed for each event in the queue.
-func NewEventQueue(processor QueuedEventEventProcessor) *EventQueue {
+func NewEventQueue(processor EventProcessor) *EventQueue {
 	q := &EventQueue{
-		QueuedEventEventProcessor: processor,
+		EventProcessor: processor,
 
 		queue:              workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		workerFinished:     make(chan struct{}),
