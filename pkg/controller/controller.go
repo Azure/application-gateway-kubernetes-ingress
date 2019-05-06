@@ -45,9 +45,8 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 
 // processEvent is the callback function that will be executed for every event
 // in the EventQueue.
-func (c *AppGwIngressController) processEvent(eventQueueElementInterface interface{}) (bool, error) {
-	event := eventQueueElementInterface.(eventQueueElement)
-	glog.V(1).Infof("controller.processEvent called with type %T", event.Element)
+func (c *AppGwIngressController) processEvent(event queuedEvent) error {
+	glog.V(1).Infof("controller.processEvent called with type %T", event.Event)
 
 	ctx := context.Background()
 
@@ -55,7 +54,7 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
 	if err != nil {
 		glog.Errorf("unable to get specified ApplicationGateway [%v], check ApplicationGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
-		return false, errors.New("unable to get specified ApplicationGateway")
+		return errors.New("unable to get specified ApplicationGateway")
 	}
 
 	// Create a configbuilder based on current appgw config
@@ -68,55 +67,54 @@ func (c *AppGwIngressController) processEvent(eventQueueElementInterface interfa
 	configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
-		return false, errors.New("unable to generate backend http settings")
+		return errors.New("unable to generate backend http settings")
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
 	configBuilder, err = configBuilder.BackendAddressPools(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
-		return false, errors.New("unable to generate backend address pools")
+		return errors.New("unable to generate backend address pools")
 	}
 
 	// HTTPListener configures the frontend listeners
 	configBuilder, err = configBuilder.HTTPListeners(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
-		return false, errors.New("unable to generate frontend listeners")
+		return errors.New("unable to generate frontend listeners")
 	}
 
 	// RequestRoutingRules depends on the previous operations
 	configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
-		return false, errors.New("unable to generate request routing rules")
+		return errors.New("unable to generate request routing rules")
 	}
 
 	// Replace the current appgw config with the generated one
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
 
-	glog.V(1).Info("~~~~~~~~ ↓ ApplicationGateway deployment ↓ ~~~~~~~~")
-	defer glog.V(1).Info("~~~~~~~~ ↑ ApplicationGateway deployment ↑ ~~~~~~~~")
+	glog.V(1).Info("BEGIN ApplicationGateway deployment")
+	defer glog.V(1).Info("END ApplicationGateway deployment")
 
 	deploymentStart := time.Now()
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
-		return false, errors.New("unable to send CreateOrUpdate request")
+		return errors.New("unable to send CreateOrUpdate request")
 	}
 
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	deploymentElapsed := time.Now().Sub(deploymentStart)
-	glog.V(1).Infof("deployment took %v", deploymentElapsed.String())
+	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
-		return false, errors.New("unable to deploy ApplicationGateway")
+		return errors.New("unable to deploy ApplicationGateway")
 	}
 
-	return true, nil
+	return nil
 }
 
 // Start function runs the k8scontext and continues to listen to the
