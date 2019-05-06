@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -19,25 +21,24 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // InformerCollection : all the informers for k8s resources we care about.
 type InformerCollection struct {
-	Ingress   cache.SharedIndexInformer
 	Endpoints cache.SharedIndexInformer
-	Service   cache.SharedIndexInformer
+	Ingress   cache.SharedIndexInformer
+	Pods      cache.SharedIndexInformer
 	Secret    cache.SharedIndexInformer
+	Service   cache.SharedIndexInformer
 }
 
 // CacheCollection : all the listers from the informers.
 type CacheCollection struct {
-	Ingress   cache.Store
-	Service   cache.Store
 	Endpoints cache.Store
+	Ingress   cache.Store
+	Pods      cache.Store
 	Secret    cache.Store
+	Service   cache.Store
 }
 
 // Context : cache and listener for k8s resources.
@@ -58,10 +59,11 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 
 	context := &Context{
 		informers: &InformerCollection{
-			Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-			Service:   informerFactory.Core().V1().Services().Informer(),
 			Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+			Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+			Pods:      informerFactory.Core().V1().Pods().Informer(),
 			Secret:    informerFactory.Core().V1().Secrets().Informer(),
+			Service:   informerFactory.Core().V1().Services().Informer(),
 		},
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &CacheCollection{},
@@ -70,10 +72,11 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 		UpdateChannel:          channels.NewRingChannel(1024),
 	}
 
-	context.Caches.Ingress = context.informers.Ingress.GetStore()
-	context.Caches.Service = context.informers.Service.GetStore()
 	context.Caches.Endpoints = context.informers.Endpoints.GetStore()
+	context.Caches.Ingress = context.informers.Ingress.GetStore()
+	context.Caches.Pods = context.informers.Pods.GetStore()
 	context.Caches.Secret = context.informers.Secret.GetStore()
+	context.Caches.Service = context.informers.Service.GetStore()
 
 	addFunc := func(obj interface{}) {
 		context.UpdateChannel.In() <- Event{
@@ -275,9 +278,10 @@ func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod 
 
 	// Register event handlers.
 	context.informers.Endpoints.AddEventHandler(resourceHandler)
-	context.informers.Service.AddEventHandler(resourceHandler)
-	context.informers.Secret.AddEventHandler(secretResourceHandler)
 	context.informers.Ingress.AddEventHandler(ingressResourceHandler)
+	context.informers.Pods.AddEventHandler(resourceHandler)
+	context.informers.Secret.AddEventHandler(secretResourceHandler)
+	context.informers.Service.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -347,6 +351,27 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	return service
 }
 
+// GetPodsByServiceSelector returns pods that are associated with a specific service.
+func (c *Context) GetPodsByServiceSelector(selector map[string]string) []*v1.Pod {
+	podList := make([](*v1.Pod), 0)
+	podListInterface := c.Caches.Pods.List()
+	for _, podInterface := range podListInterface {
+		pod := podInterface.(*v1.Pod)
+		match := true
+		for key, item := range selector {
+			if pod.Labels[key] != item {
+				match = false
+			}
+		}
+
+		if match {
+			podList = append(podList, pod)
+		}
+	}
+
+	return podList
+}
+
 // GetSecret returns the secret identified by the key
 func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
@@ -368,6 +393,7 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 // Run function starts all the informers and waits for an initial sync.
 func (i *InformerCollection) Run(stopCh chan struct{}) {
 	go i.Endpoints.Run(stopCh)
+	go i.Pods.Run(stopCh)
 	go i.Service.Run(stopCh)
 	go i.Secret.Run(stopCh)
 
