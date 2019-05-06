@@ -45,8 +45,9 @@ const (
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type frontendListenerAzureConfig struct {
-	Protocol network.ApplicationGatewayProtocol
-	Secret   secretIdentifier
+	Protocol                     network.ApplicationGatewayProtocol
+	Secret                       secretIdentifier
+	SslRedirectConfigurationName string
 }
 
 func (s serviceIdentifier) serviceFullName() string {
@@ -91,6 +92,10 @@ func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) strin
 
 func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
 	return fmt.Sprintf("%s-%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
+}
+
+func generateSSLRedirectConfigurationName(namespace, ingress string) string {
+	return fmt.Sprintf("%s-%s-%s-sslr", agPrefix, namespace, ingress)
 }
 
 const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"

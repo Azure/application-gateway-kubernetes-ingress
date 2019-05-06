@@ -76,42 +76,15 @@ add_custom_target(
     DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
 )
 
-# Test target for pkg/utils
-add_custom_target(test-pkg-utils
-    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
-            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
-            -w ${devenv_workpath}
-            --name ${devenv_image_name}-devenv ${devenv_image_name}
-            ginkgo -v pkg/utils
-    DEPENDS appgw-ingress
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Test target for pkg/k8scontext
-add_custom_target(test-pkg-k8scontext
-    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
-            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
-            -w ${devenv_workpath}
-            --name ${devenv_image_name}-devenv ${devenv_image_name}
-            ginkgo -v pkg/k8scontext
-    DEPENDS appgw-ingress
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Test target for pkg/appgw
-add_custom_target(test-pkg-appgw
-    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
-            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
-            -w ${devenv_workpath}
-            --name ${devenv_image_name}-devenv ${devenv_image_name}
-            ginkgo -v pkg/appgw
-    DEPENDS appgw-ingress
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Top-level test target for running all go tests
+# Test target for all Go tests
 add_custom_target(go-tests
-    DEPENDS test-pkg-utils test-pkg-k8scontext test-pkg-appgw
+    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
+            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
+            -w ${devenv_workpath}
+            --name ${devenv_image_name}-devenv ${devenv_image_name}
+            go test -v ./...
+    DEPENDS appgw-ingress
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # Target for building a docker image for deploying on a Kubernetes cluster.
