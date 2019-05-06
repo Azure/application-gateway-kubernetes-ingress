@@ -1,21 +1,25 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package k8scontext_test
 
 import (
 	go_flag "flag"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	v1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var _ = Describe("K8scontext", func() {
@@ -33,38 +37,12 @@ var _ = Describe("K8scontext", func() {
 	}
 
 	// Create the Ingress resource.
-	ingress := &v1beta1.Ingress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ingressName,
-			Namespace: ingressNS,
-			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-			},
-		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
-				v1beta1.IngressRule{
-					Host: "hello.com",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								v1beta1.HTTPIngressPath{
-									Path: "/hi",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: "hello-world",
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	ingressObj := makeIngressTestFixture(ingressNS, ingressName)
+	ingress := &ingressObj
+
+	// Create the Ingress resource.
+	podObj := makePodTestFixture(ingressNS, "pod")
+	pod := &podObj
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
@@ -184,7 +162,107 @@ var _ = Describe("K8scontext", func() {
 
 			// Make sure the ingress we got is the ingress we stored.
 			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
+		})
 
+		It("Should be able to follow add of the Pod Resource.", func() {
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			podObj1 := makePodTestFixture(ingressNS, "pod2")
+			pod1 := &podObj1
+			pod1.Labels = map[string]string{
+				"app":   "pod2",
+				"extra": "random",
+			}
+			_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// Retrieve the Pods to make sure it was updated.
+			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(metav1.ListOptions{})
+			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
+
+			// Run context
+			ctxt.Run()
+
+			// Get and check that one of the pods exists.
+			_, exists, _ := ctxt.Caches.Pods.Get(pod)
+			Expect(exists).To(Equal(true), "Expected to find a pod in the cache: %d pods", len(podList.Items))
+
+			// Search Pod list with a subset matching filter
+			service := v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "service",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "pod2",
+					},
+				},
+			}
+			filteredPodList := ctxt.GetPodsByServiceSelector(service.Spec.Selector)
+			Expect(len(filteredPodList)).To(Equal(1), "Expected to have filtered one pod with matching label: %d pods", len(podList.Items))
+
+			// Search with a different filter
+			service = v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "service",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "pod3",
+					},
+				},
+			}
+			filteredPodList = ctxt.GetPodsByServiceSelector(service.Spec.Selector)
+			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
 		})
 	})
 })
+
+func makeIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress {
+	return v1beta1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ingressName,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+			},
+		},
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				v1beta1.IngressRule{
+					Host: "hello.com",
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								v1beta1.HTTPIngressPath{
+									Path: "/hi",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: "hello-world",
+										ServicePort: intstr.IntOrString{
+											Type:   intstr.Int,
+											IntVal: 80,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func makePodTestFixture(namespace string, podName string) v1.Pod {
+	return v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": "pod",
+			},
+		},
+		Spec: v1.PodSpec{},
+	}
+}
