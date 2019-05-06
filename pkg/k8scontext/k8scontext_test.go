@@ -4,6 +4,8 @@ import (
 	go_flag "flag"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,9 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 var _ = Describe("K8scontext", func() {
@@ -23,6 +22,7 @@ var _ = Describe("K8scontext", func() {
 	var ctxt *k8scontext.Context
 	ingressNS := "test-ingress-controller"
 	ingressName := "hello-world"
+	podName := "pod"
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -64,6 +64,18 @@ var _ = Describe("K8scontext", func() {
 				},
 			},
 		},
+	}
+
+	// Create the Ingress resource.
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: ingressNS,
+			Labels: map[string]string{
+				"app": "pod",
+			},
+		},
+		Spec: v1.PodSpec{},
 	}
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
@@ -184,7 +196,64 @@ var _ = Describe("K8scontext", func() {
 
 			// Make sure the ingress we got is the ingress we stored.
 			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
+		})
 
+		It("Should be able to follow add of the Pod Resource.", func() {
+			pod, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			pod1 := &v1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod2",
+					Namespace: ingressNS,
+					Labels: map[string]string{
+						"app":   "pod2",
+						"extra": "random",
+					},
+				},
+				Spec: v1.PodSpec{},
+			}
+			pod1, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// Retrieve the Pods to make sure it was updated.
+			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(metav1.ListOptions{})
+			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
+
+			// Run context
+			ctxt.Run()
+
+			// Get and check that one of the pods exists.
+			_, exists, _ := ctxt.Caches.Pods.Get(pod)
+			Expect(exists).To(Equal(true), "Expected to find a pod in the cache: %d pods", len(podList.Items))
+
+			// Search Pod list with a subset matching filter
+			service := v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "service",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "pod2",
+					},
+				},
+			}
+			filteredPodList := ctxt.GetPodsByServiceSelector(service.Spec.Selector)
+			Expect(len(filteredPodList)).To(Equal(1), "Expected to have filtered one pod with matching label: %d pods", len(podList.Items))
+
+			// Search with a different filter
+			service = v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "service",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "pod3",
+					},
+				},
+			}
+			filteredPodList = ctxt.GetPodsByServiceSelector(service.Spec.Selector)
+			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
 		})
 	})
 })
