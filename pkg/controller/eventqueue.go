@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-// Provides a generic mechanism to act on events in the internal queue.
+// EventProcessor provides a mechanism to act on events in the internal queue.
 type EventProcessor interface {
 	Process(QueuedEvent) error
 }
