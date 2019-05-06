@@ -44,7 +44,7 @@ type CacheCollection struct {
 type Context struct {
 	informers              *InformerCollection
 	Caches                 *CacheCollection
-	CertificateSecretStore SecretStore
+	CertificateSecretStore SecretsKeeper
 
 	ingressSecretsMap utils.ThreadsafeMultiMap
 	stopChannel       chan struct{}

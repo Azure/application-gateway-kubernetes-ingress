@@ -31,6 +31,10 @@ jsconfig.json
 [._]ss[a-gi-z]
 [._]sw[a-p]
 
+# Other editors
+.idea/
+*~
+*#*
 
 ######### Project Specific ########
 # ignore binary directory
