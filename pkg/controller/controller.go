@@ -7,15 +7,15 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
@@ -93,6 +93,10 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	// Replace the current appgw config with the generated one
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
+	appGwJson, err := json.MarshalIndent(appGw, "", "    ")
+	if err == nil {
+		glog.V(2).Infof("Application Gateway Config:\n %s", appGwJson)
+	}
 
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")

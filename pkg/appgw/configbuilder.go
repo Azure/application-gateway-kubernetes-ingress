@@ -6,11 +6,10 @@
 package appgw
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"k8s.io/api/extensions/v1beta1"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"k8s.io/api/extensions/v1beta1"
 )
 
 // ConfigBuilder is a builder for application gateway configuration
@@ -73,18 +72,17 @@ func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *b
 	return resolvedPorts
 }
 
-func generateBackendID(ingress *v1beta1.Ingress, backend *v1beta1.IngressBackend) backendIdentifier {
-	backendServiceName := backend.ServiceName
-	backendServicePort := backend.ServicePort
-	backendID := backendIdentifier{
+func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path *v1beta1.HTTPIngressPath, backend *v1beta1.IngressBackend) backendIdentifier {
+	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
 			Namespace: ingress.Namespace,
-			Name:      backendServiceName,
+			Name:      backend.ServiceName,
 		},
-		ServicePort: backendServicePort,
-		Ingress:     ingress,
+		Ingress: ingress,
+		Rule:    rule,
+		Path:    path,
+		Backend: backend,
 	}
-	return backendID
 }
 
 func generateFrontendListenerID(rule *v1beta1.IngressRule,
