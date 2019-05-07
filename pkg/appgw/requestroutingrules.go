@@ -81,9 +81,10 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 
 		var wildcardRule *v1beta1.IngressRule
 		wildcardRule = nil
-		for _, rule := range ingress.Spec.Rules {
+		for ruleIdx := range ingress.Spec.Rules {
+			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP != nil && len(rule.Host) == 0 {
-				wildcardRule = &rule
+				wildcardRule = rule
 			}
 		}
 
@@ -91,7 +92,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 		defBackend := ingress.Spec.Backend
 		if wildcardRule != nil {
 			// wildcard rule override the default backend
-			for _, path := range wildcardRule.HTTP.Paths {
+			for pathIdx := range wildcardRule.HTTP.Paths {
+				path := &wildcardRule.HTTP.Paths[pathIdx]
 				if path.Path == "" || path.Path == "/*" {
 					// look for default path
 					defBackend = &path.Backend
@@ -112,7 +114,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			}
 		}
 
-		for _, rule := range ingress.Spec.Rules {
+		for ruleIdx := range ingress.Spec.Rules {
+			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP == nil {
 				// skip no http rule
 				continue
@@ -121,14 +124,14 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			httpAvailable := false
 			httpsAvailable := false
 
-			listenerHTTPID := generateFrontendListenerID(&rule, network.HTTP, nil)
+			listenerHTTPID := generateFrontendListenerID(rule, network.HTTP, nil)
 			_, exist := builder.httpListenersMap[listenerHTTPID]
 			if exist {
 				httpAvailable = true
 			}
 
 			// check annotation for port override
-			listenerHTTPSID := generateFrontendListenerID(&rule, network.HTTPS, nil)
+			listenerHTTPSID := generateFrontendListenerID(rule, network.HTTPS, nil)
 			_, exist = builder.httpListenersMap[listenerHTTPSID]
 			if exist {
 				httpsAvailable = true
@@ -143,7 +146,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = builder.pathMaps(ingress, &rule,
+				urlPathMaps[listenerHTTPID] = builder.pathMaps(ingress, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
@@ -156,7 +159,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = builder.pathMaps(ingress, &rule,
+				urlPathMaps[listenerHTTPSID] = builder.pathMaps(ingress, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
