@@ -7,7 +7,6 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -93,10 +92,6 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	// Replace the current appgw config with the generated one
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
-	appGwJson, err := json.MarshalIndent(appGw, "", "    ")
-	if err == nil {
-		glog.V(2).Infof("Application Gateway Config:\n %s", appGwJson)
-	}
 
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
