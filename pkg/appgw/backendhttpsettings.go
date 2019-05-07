@@ -28,14 +28,14 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		if defIngressBackend != nil {
 			backendIDs.Insert(generateBackendID(ingress, nil, nil, defIngressBackend))
 		}
-		for rule_idx := range ingress.Spec.Rules {
-			rule := &ingress.Spec.Rules[rule_idx]
+		for ruleIdx := range ingress.Spec.Rules {
+			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP == nil {
 				// skip no http rule
 				continue
 			}
-			for path_idx := range rule.HTTP.Paths {
-				path := &rule.HTTP.Paths[path_idx]
+			for pathIdx := range rule.HTTP.Paths {
+				path := &rule.HTTP.Paths[pathIdx]
 				backendIDs.Insert(generateBackendID(ingress, rule, path, &path.Backend))
 			}
 		}
