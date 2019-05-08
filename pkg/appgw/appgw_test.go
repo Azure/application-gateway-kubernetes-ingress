@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -16,10 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 type appGWSettingsChecker struct {
@@ -170,7 +169,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 		httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
@@ -189,7 +188,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		addressPoolName := generateAddressPoolName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
+		addressPoolName := generateAddressPoolName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
 		addressPoolAddresses := [](network.ApplicationGatewayBackendAddress){{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
 
 		addressPool := &network.ApplicationGatewayBackendAddressPool{
@@ -427,7 +426,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
@@ -636,7 +635,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,

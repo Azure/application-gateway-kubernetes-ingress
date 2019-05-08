@@ -9,34 +9,34 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := utils.NewUnorderedSet()
 	serviceBackendPairsMap := make(map[backendIdentifier](utils.UnorderedSet))
 
-	// find all ServiceName:ServicePort pairs from the ingress list
 	for _, ingress := range ingressList {
 		defIngressBackend := ingress.Spec.Backend
 		if defIngressBackend != nil {
-			backendIDs.Insert(generateBackendID(ingress, defIngressBackend))
+			backendIDs.Insert(generateBackendID(ingress, nil, nil, defIngressBackend))
 		}
-		for _, rule := range ingress.Spec.Rules {
+		for ruleIdx := range ingress.Spec.Rules {
+			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP == nil {
 				// skip no http rule
 				continue
 			}
-			for _, path := range rule.HTTP.Paths {
-				backendIDs.Insert(generateBackendID(ingress, &path.Backend))
+			for pathIdx := range rule.HTTP.Paths {
+				path := &rule.HTTP.Paths[pathIdx]
+				backendIDs.Insert(generateBackendID(ingress, rule, path, &path.Backend))
 			}
 		}
 	}
@@ -50,8 +50,8 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		if service == nil {
 			glog.V(1).Infof("unable to get the service [%s]", backendID.serviceKey())
 			resolvedBackendPorts.Insert(serviceBackendPortPair{
-				ServicePort: backendID.ServicePort.IntVal,
-				BackendPort: backendID.ServicePort.IntVal,
+				ServicePort: backendID.Backend.ServicePort.IntVal,
+				BackendPort: backendID.Backend.ServicePort.IntVal,
 			})
 		} else {
 			for _, sp := range service.Spec.Ports {
@@ -61,9 +61,9 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 					// ignore UDP ports
 					continue
 				}
-				if fmt.Sprint(sp.Port) == backendID.ServicePort.String() ||
-					sp.Name == backendID.ServicePort.String() ||
-					sp.TargetPort.String() == backendID.ServicePort.String() {
+				if fmt.Sprint(sp.Port) == backendID.Backend.ServicePort.String() ||
+					sp.Name == backendID.Backend.ServicePort.String() ||
+					sp.TargetPort.String() == backendID.Backend.ServicePort.String() {
 					// matched a service port with a port from the service
 
 					if sp.TargetPort.String() == "" {
@@ -123,7 +123,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		if serviceBackendPairs.Size() > 1 {
 			// more than one possible backend port exposed through ingress
 			glog.Warningf("service:port [%s:%s] has more than one service-backend port binding",
-				backendID.serviceKey(), backendID.ServicePort.String())
+				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			return builder, errors.New("more than one service-backend port binding is not allowed")
 		}
 
@@ -134,7 +134,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
 
-		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
+		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
 		httpSettingsPort := uniquePair.BackendPort
 		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
 		httpSettings := network.ApplicationGatewayBackendHTTPSettings{

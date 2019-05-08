@@ -10,12 +10,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
