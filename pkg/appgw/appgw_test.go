@@ -168,7 +168,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+		appGwIdentifier := Identifier{}
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
 		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 		httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
@@ -177,11 +179,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Protocol: network.HTTP,
 				Port:     &backendPort,
 				Path:     to.StringPtr(""),
+				Probe:    resourceRef(probeID),
 			},
 		}
 
 		// Test the default backend HTTP settings.
-		Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+		Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
 		// Test the ingress backend HTTP setting that we installed.
 		Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
 	}
@@ -257,8 +260,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
+		// Add Health Probes.
+		configBuilder, err := configBuilder.HealthProbesCollection(ingressList)
+		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
+
 		// Add HTTP settings.
-		configBuilder, err := configBuilder.BackendHTTPSettingsCollection(ingressList)
+		configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -425,7 +432,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressList := testIngress()
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
 				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
@@ -434,11 +443,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Protocol: network.HTTP,
 						Port:     &servicePort,
 						Path:     to.StringPtr(""),
+						Probe:    resourceRef(probeID),
 					},
 				}
 
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
 			}
@@ -634,7 +644,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressList := backendPrefixIngress()
 
 			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
 				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
@@ -643,11 +655,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Protocol: network.HTTP,
 						Port:     &backendPort,
 						Path:     to.StringPtr("/test"),
+						Probe:    resourceRef(probeID),
 					},
 				}
 
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings()))
+				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
 			}

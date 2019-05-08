@@ -9,13 +9,13 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := utils.NewUnorderedSet()
-
 	for _, ingress := range ingressList {
 		defIngressBackend := ingress.Spec.Backend
 		if defIngressBackend != nil {
@@ -35,97 +35,84 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 	}
 
 	healthProbeCollection := make([](network.ApplicationGatewayProbe), 0)
-	defProbe := defaultProbe()
-	healthProbeCollection = append(healthProbeCollection, defProbe)
-	backendIDs.ForEach(func(backendInterface interface{}) {
-		backendID := backendInterface.(backendIdentifier)
-		ingress := backendID.Ingress
-		service := builder.k8sContext.GetService(backendID.serviceKey())
-		podList := builder.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
-		probe := network.ApplicationGatewayProbe{
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{},
-		}
-		var protocol network.ApplicationGatewayProtocol
-		var host string
-		var path string
-		var interval int32
-		var timeout int32
-		var unhealthyThreshold int32
+	healthProbeCollection = append(healthProbeCollection, defaultProbe())
+	for _, backendIDInterface := range backendIDs.ToSlice() {
+		backendID := backendIDInterface.(backendIdentifier)
+		probe := builder.generateHealthProbe(backendID)
+		builder.probesMap[backendID] = &probe
+		healthProbeCollection = append(healthProbeCollection, probe)
+	}
 
-		for _, sp := range service.Spec.Ports {
-			if sp.Protocol != v1.ProtocolTCP {
-				continue
+	builder.appGwConfig.Probes = &healthProbeCollection
+	return builder, nil
+}
+
+func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) network.ApplicationGatewayProbe {
+	probe := defaultProbe()
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
+
+	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
+		probe.Host = to.StringPtr(backendID.Rule.Host)
+	}
+
+	if len(annotations.BackendPathPrefix(backendID.Ingress)) != 0 {
+		probe.Path = to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
+	} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
+		probe.Path = to.StringPtr(backendID.Path.Path)
+	}
+
+	service := builder.k8sContext.GetService(backendID.serviceKey())
+	if service != nil {
+		k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service)
+		if k8sProbeForServiceContainer != nil {
+			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
+				probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
 			}
+			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
+				probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
+			}
+			if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
+				probe.Protocol = network.HTTPS
+			}
+			if k8sProbeForServiceContainer.PeriodSeconds != 0 {
+				probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
+			}
+			if k8sProbeForServiceContainer.TimeoutSeconds != 0 {
+				probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
+			}
+			if k8sProbeForServiceContainer.FailureThreshold != 0 {
+				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			}
+		}
+	}
 
-			for _, pod := range podList {
-				for _, container := range pod.Spec.Containers {
-					for _, port := range container.Ports {
-						if port.ContainerPort == sp.Port {
-							if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
-								httpGet := container.ReadinessProbe.Handler.HTTPGet
-								host = httpGet.Host
-								path = httpGet.Path
-								if httpGet.Scheme == v1.URISchemeHTTPS {
-									protocol = network.HTTPS
-								} else {
-									protocol = network.HTTP
-								}
-							} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
-								httpGet := container.LivenessProbe.Handler.HTTPGet
-								host = httpGet.Host
-								path = httpGet.Path
-								if httpGet.Scheme == v1.URISchemeHTTPS {
-									protocol = network.HTTPS
-								} else {
-									protocol = network.HTTP
-								}
-							} else if len(annotations.BackendPathPrefix(ingress)) != 0 {
-								path = annotations.BackendPathPrefix(ingress)
-							} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
-								path = backendID.Path.Path
-							}
+	return probe
+}
 
-							host = backendID.Rule.Host
+func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service) *v1.Probe {
+	podList := builder.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
+	for _, sp := range service.Spec.Ports {
+		if sp.Protocol != v1.ProtocolTCP {
+			continue
+		}
+
+		for _, pod := range podList {
+			for _, container := range pod.Spec.Containers {
+				for _, port := range container.Ports {
+					if port.ContainerPort == sp.Port {
+						var probe *v1.Probe
+						if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
+							probe = container.ReadinessProbe
+						} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
+							probe = container.LivenessProbe
 						}
+
+						return probe
 					}
 				}
 			}
 		}
+	}
 
-		name := generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name)
-		probe.Name = &name
-		probe.Protocol = protocol
-		if len(host) != 0 {
-			probe.Host = &host
-		} else {
-			probe.Host = defProbe.Host
-		}
-		if len(path) != 0 {
-			probe.Path = &path
-		} else {
-			probe.Path = defProbe.Path
-		}
-		if interval != 0 {
-			probe.Interval = &interval
-		} else {
-			probe.Interval = defProbe.Interval
-		}
-		if timeout != 0 {
-			probe.Timeout = &timeout
-		} else {
-			probe.Timeout = defProbe.Timeout
-		}
-		if unhealthyThreshold != 0 {
-			probe.UnhealthyThreshold = &unhealthyThreshold
-		} else {
-			probe.UnhealthyThreshold = defProbe.UnhealthyThreshold
-		}
-
-		builder.probesMap[backendID] = &probe
-		healthProbeCollection = append(healthProbeCollection, probe)
-	})
-
-	builder.appGwConfig.Probes = &healthProbeCollection
-
-	return builder, nil
+	return nil
 }

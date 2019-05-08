@@ -107,7 +107,7 @@ const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
 const defaultBackendAddressPoolName = agPrefix + "-defaultaddresspool"
 const defaultProbeName = agPrefix + "-defaultprobe"
 
-func defaultBackendHTTPSettings() network.ApplicationGatewayBackendHTTPSettings {
+func defaultBackendHTTPSettings(probeID string) network.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
 	return network.ApplicationGatewayBackendHTTPSettings{
@@ -115,6 +115,7 @@ func defaultBackendHTTPSettings() network.ApplicationGatewayBackendHTTPSettings 
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: network.HTTP,
 			Port:     &defHTTPSettingsPort,
+			Probe:    resourceRef(probeID),
 		},
 	}
 }
