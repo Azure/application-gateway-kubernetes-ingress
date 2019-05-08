@@ -17,9 +17,8 @@ import (
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := utils.NewUnorderedSet()
 	for _, ingress := range ingressList {
-		defIngressBackend := ingress.Spec.Backend
-		if defIngressBackend != nil {
-			backendIDs.Insert(generateBackendID(ingress, nil, nil, defIngressBackend))
+		if ingress.Spec.Backend != nil {
+			backendIDs.Insert(generateBackendID(ingress, nil, nil, ingress.Spec.Backend))
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -90,26 +89,30 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 }
 
 func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service) *v1.Probe {
-	podList := builder.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
+	allPorts := make(map[int32]interface{})
 	for _, sp := range service.Spec.Ports {
 		if sp.Protocol != v1.ProtocolTCP {
 			continue
 		}
+		allPorts[sp.Port] = nil
+	}
 
-		for _, pod := range podList {
-			for _, container := range pod.Spec.Containers {
-				for _, port := range container.Ports {
-					if port.ContainerPort == sp.Port {
-						var probe *v1.Probe
-						if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
-							probe = container.ReadinessProbe
-						} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
-							probe = container.LivenessProbe
-						}
-
-						return probe
-					}
+	podList := builder.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
+	for _, pod := range podList {
+		for _, container := range pod.Spec.Containers {
+			for _, port := range container.Ports {
+				if _, ok := allPorts[port.ContainerPort]; !ok {
+					continue
 				}
+
+				var probe *v1.Probe
+				if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
+					probe = container.ReadinessProbe
+				} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
+					probe = container.LivenessProbe
+				}
+
+				return probe
 			}
 		}
 	}
