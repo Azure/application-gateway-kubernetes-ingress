@@ -63,6 +63,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	ingressList := c.k8sContext.GetHTTPIngressList()
 
 	// The following operations need to be in sequence
+	configBuilder, err = configBuilder.HealthProbesCollection(ingressList)
+	if err != nil {
+		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
+		return errors.New("unable to generate health probes")
+	}
+
+	// The following operations need to be in sequence
 	configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())

@@ -134,6 +134,8 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
 
+		probeName := builder.probesMap[backendID].Name
+		probeID := builder.appGwIdentifier.probeID(*probeName)
 		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
 		httpSettingsPort := uniquePair.BackendPort
 		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
@@ -144,6 +146,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 				Protocol: network.HTTP,
 				Port:     &httpSettingsPort,
 				Path:     backendPathPrefix,
+				Probe:    resourceRef(probeID),
 			},
 		}
 		// other settings should come from annotations
