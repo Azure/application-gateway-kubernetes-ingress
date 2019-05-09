@@ -74,9 +74,13 @@ func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuil
 				Secret: cache.NewStore(func(obj interface{}) (string, error) {
 					return "", nil
 				}),
+				Service: cache.NewStore(func(obj interface{}) (string, error) {
+					return "", nil
+				}),
 			},
 			CertificateSecretStore: makeSecretStoreTestFixture(certs),
 		},
+		probesMap:                     make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
 	}
 
 	return cb
