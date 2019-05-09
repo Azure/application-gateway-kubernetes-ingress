@@ -23,57 +23,107 @@ func TestHealthProbes(t *testing.T) {
 }
 
 var _ = Describe("configure App Gateway health probes", func() {
+
+	port1 := v1.ServicePort{
+		// The name of this port within the service. This must be a DNS_LABEL.
+		// All ports within a ServiceSpec must have unique names. This maps to
+		// the 'Name' field in EndpointPort objects.
+		// Optional if only one ServicePort is defined on this service.
+		Name: "http",
+
+		// The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
+		Protocol: v1.ProtocolTCP,
+
+		// The port that will be exposed by this service.
+		Port: 80,
+
+		// Number or name of the port to access on the pods targeted by the service.
+		// Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.
+		// If this is a string, it will be looked up as a named port in the
+		// target Pod's container ports. If this is not specified, the value
+		// of the 'port' field is used (an identity map).
+		// This field is ignored for services with clusterIP=None, and should be
+		// omitted or set equal to the 'port' field.
+		TargetPort: intstr.IntOrString{
+			IntVal: 8181,
+		},
+	}
+
+	port2 := v1.ServicePort{
+		Name:     "https",
+		Protocol: v1.ProtocolTCP,
+		Port:     443,
+		TargetPort: intstr.IntOrString{
+			StrVal: "https-port",
+		},
+	}
+
+	port3 := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolTCP,
+		Port:     554,
+		TargetPort: intstr.IntOrString{
+			IntVal: 9554,
+		},
+	}
+
+	port4 := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolUDP,
+		Port:     123,
+		TargetPort: intstr.IntOrString{
+			IntVal: 123,
+		},
+	}
+
 	Context("looking at TLS specs", func() {
 		cb := makeConfigBuilderTestFixture(nil)
+		endpoints := v1.Endpoints{
+			Subsets: []v1.EndpointSubset{
+				{
+					// IP addresses which offer the related ports that are marked as ready. These endpoints
+					// should be considered safe for load balancers and clients to utilize.
+					// +optional
+					Addresses: []v1.EndpointAddress{
+						{
+							IP: "10.9.8.7",
+							// The Hostname of this endpoint
+							// +optional
+							Hostname: "www.contoso.com",
+							// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
+							// +optional
+							NodeName: to.StringPtr("--node-name--"),
+						},
+					},
+					// IP addresses which offer the related ports but are not currently marked as ready
+					// because they have not yet finished starting, have recently failed a readiness check,
+					// or have recently failed a liveness check.
+					// +optional
+					NotReadyAddresses: []v1.EndpointAddress{},
+					// Port numbers available on the related IP addresses.
+					// +optional
+					Ports: []v1.EndpointPort{},
+				},
+			},
+		}
+		err := cb.k8sContext.Caches.Endpoints.Add(endpoints)
+		It("added endpoints to cache without an error", func() {
+			Expect(err).To(BeNil())
+		})
+
 		service := v1.Service{
 			Spec: v1.ServiceSpec{
 				// List of ports exposed by this service
 				Ports: []v1.ServicePort{
-					{
-						// The name of this port within the service. This must be a DNS_LABEL.
-						// All ports within a ServiceSpec must have unique names. This maps to
-						// the 'Name' field in EndpointPort objects.
-						// Optional if only one ServicePort is defined on this service.
-						Name: "http",
-
-						// The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
-						Protocol: v1.ProtocolTCP,
-
-						// The port that will be exposed by this service.
-						Port: 80,
-
-						// Number or name of the port to access on the pods targeted by the service.
-						// Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.
-						// If this is a string, it will be looked up as a named port in the
-						// target Pod's container ports. If this is not specified, the value
-						// of the 'port' field is used (an identity map).
-						// This field is ignored for services with clusterIP=None, and should be
-						// omitted or set equal to the 'port' field.
-						TargetPort: intstr.IntOrString{
-							IntVal: 8181,
-						},
-					},
-					{
-						Name:     "https",
-						Protocol: v1.ProtocolTCP,
-						Port:     443,
-						TargetPort: intstr.IntOrString{
-							StrVal: "443",
-						},
-					},
-					{
-						Name:     "other-tcp-port",
-						Protocol: v1.ProtocolTCP,
-						Port:     554,
-						TargetPort: intstr.IntOrString{
-							IntVal: 554,
-						},
-					},
+					port1,
+					port2,
+					port3,
+					port4,
 				},
 			},
 		}
-		err := cb.k8sContext.Caches.Service.Add(service)
-		It("get service from cache without an error", func() {
+		err = cb.k8sContext.Caches.Service.Add(service)
+		It("added service to cache without an error", func() {
 			Expect(err).To(BeNil())
 		})
 
@@ -149,9 +199,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		It("should succeed", func() {
 			// Ensure capacities of the slices match
-			Expect((*actual)[0]).To(Equal(expected[0]))
-			Expect((*actual)[1]).To(Equal(expected[1]))
-			Expect((*actual)[2]).To(Equal(expected[2]))
+			Expect(*actual).To(ContainElement(expected[0]))
+			Expect(*actual).To(ContainElement(expected[1]))
+			Expect(*actual).To(ContainElement(expected[2]))
 		})
 	})
 })

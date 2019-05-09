@@ -71,6 +71,9 @@ func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuil
 		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
+				Endpoints: cache.NewStore(func(obj interface{}) (string, error) {
+					return "", nil
+				}),
 				Secret: cache.NewStore(func(obj interface{}) (string, error) {
 					return "", nil
 				}),
