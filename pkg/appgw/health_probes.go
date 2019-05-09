@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
@@ -62,7 +63,7 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 
 	service := builder.k8sContext.GetService(backendID.serviceKey())
 	if service != nil {
-		k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service)
+		k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service, backendID)
 		if k8sProbeForServiceContainer != nil {
 			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
 				probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
@@ -88,13 +89,25 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 	return probe
 }
 
-func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service) *v1.Probe {
+func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendID backendIdentifier) *v1.Probe {
 	allPorts := make(map[int32]interface{})
 	for _, sp := range service.Spec.Ports {
 		if sp.Protocol != v1.ProtocolTCP {
 			continue
 		}
-		allPorts[sp.Port] = nil
+
+		if sp.TargetPort.String() == "" {
+			allPorts[sp.Port] = nil
+		} else if sp.TargetPort.Type == intstr.Int {
+			// port is defined as port number
+			allPorts[sp.TargetPort.IntVal] = nil
+		} else {
+			targetPortsResolved := builder.resolvePortName(sp.TargetPort.StrVal, &backendID)
+			targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
+				targetPort := targetPortInterface.(int32)
+				allPorts[targetPort] = nil
+			})
+		}
 	}
 
 	podList := builder.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
