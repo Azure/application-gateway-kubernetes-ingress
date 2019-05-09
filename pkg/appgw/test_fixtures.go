@@ -10,49 +10,92 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	"k8s.io/api/extensions/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/cache"
 )
 
-func makeConfigBuilderTestFixture() appGwConfigBuilder {
+const (
+	testFixturesNamespace    = "--namespace--"
+	testFixturesName         = "--name--"
+	testFixturesHost         = "--some-hostname--"
+	testFixturesOtherHost    = "--some-other-hostname--"
+	testFixturesNameOfSecret = "--the-name-of-the-secret--"
+)
 
+func makeAppGwyConfigTestFixture() network.ApplicationGatewayPropertiesFormat {
+	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
+		{
+			Name: to.StringPtr("xx3"),
+			Etag: to.StringPtr("xx2"),
+			Type: to.StringPtr("xx1"),
+			ID:   to.StringPtr("xx4"),
+		},
+		{
+			Name: to.StringPtr("yy3"),
+			Etag: to.StringPtr("yy2"),
+			Type: to.StringPtr("yy1"),
+			ID:   to.StringPtr("yy4"),
+		},
+	}
+	return network.ApplicationGatewayPropertiesFormat{
+		FrontendIPConfigurations: &feIPConfigs,
+	}
+}
+
+func makeSecretStoreTestFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
+	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
+	ingressKey := getResourceKey(testFixturesNamespace, testFixturesName)
+	c.Add(ingressKey, testFixturesHost)
+
+	key := testFixturesNamespace + "/" + testFixturesNameOfSecret
+	c.Add(key, []byte("xyz"))
+
+	if toAdd != nil {
+		for k, v := range *toAdd {
+			c.Add(k, v)
+		}
+	}
+
+	return &k8scontext.SecretsStore{
+		Cache: c,
+	}
+}
+
+func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
-		serviceBackendPairMap:         make(map[backendIdentifier]serviceBackendPortPair),
-		httpListenersMap:              make(map[frontendListenerIdentifier]*network.ApplicationGatewayHTTPListener),
-		httpListenersAzureConfigMap:   make(map[frontendListenerIdentifier]*frontendListenerAzureConfig),
-		ingressKeyHostnameSecretIDMap: make(map[string]map[string]secretIdentifier),
-		secretIDCertificateMap:        make(map[secretIdentifier]*string),
-		backendHTTPSettingsMap:        make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
-		backendPoolMap:                make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
+		appGwConfig:            makeAppGwyConfigTestFixture(),
+		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
+		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
+		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
 				Secret: cache.NewStore(func(obj interface{}) (string, error) {
 					return "", nil
 				}),
 			},
-			CertificateSecretStore: nil,
+			CertificateSecretStore: makeSecretStoreTestFixture(certs),
 		},
 	}
 
 	return cb
 }
 
-func addCertsTestFixture(cb *appGwConfigBuilder) {
-	ingressKey := "--ingress-key--"
-	hostName := "--some-hostname--"
-	secretsIdent := secretIdentifier{
-		Namespace: "--namespace--",
-		Name:      "--name--",
-	}
-	cb.ingressKeyHostnameSecretIDMap[ingressKey] = make(map[string]secretIdentifier)
-	cb.ingressKeyHostnameSecretIDMap[ingressKey][hostName] = secretsIdent
-	// Wild card
-	cb.ingressKeyHostnameSecretIDMap[ingressKey][""] = secretsIdent
+func getCertsTestFixture() map[string]interface{} {
+	toAdd := make(map[string]interface{})
 
-	cb.secretIDCertificateMap[secretsIdent] = to.StringPtr("")
+	secretsIdent := secretIdentifier{
+		Namespace: testFixturesNamespace,
+		Name:      testFixturesName,
+	}
+
+	toAdd[testFixturesHost] = secretsIdent
+	toAdd[testFixturesOtherHost] = secretsIdent
+	// Wild card
+	toAdd[""] = secretsIdent
+
+	return toAdd
 }
 
 func makeIngressTestFixture() v1beta1.Ingress {
@@ -60,16 +103,34 @@ func makeIngressTestFixture() v1beta1.Ingress {
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
 				{
-					Host: "-some-host-",
+					Host: testFixturesHost,
 					IngressRuleValue: v1beta1.IngressRuleValue{
 						HTTP: &v1beta1.HTTPIngressRuleValue{
 							Paths: []v1beta1.HTTPIngressPath{
 								{
-									Path: "////",
+									Path: "/a/b/c/d/e",
 									Backend: v1beta1.IngressBackend{
 										ServiceName: "",
 										ServicePort: intstr.IntOrString{
 											IntVal: 8080,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Host: testFixturesOtherHost,
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/a/b/c/d/e",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: "",
+										ServicePort: intstr.IntOrString{
+											IntVal: 8989,
 										},
 									},
 								},
@@ -83,8 +144,14 @@ func makeIngressTestFixture() v1beta1.Ingress {
 					Hosts: []string{
 						"www.contoso.com",
 						"ftp.contoso.com",
+						testFixturesHost,
+						"",
 					},
-					SecretName: "--the-name-of-the-secret--",
+					SecretName: testFixturesNameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: testFixturesNameOfSecret,
 				},
 			},
 		},
@@ -92,8 +159,8 @@ func makeIngressTestFixture() v1beta1.Ingress {
 			Annotations: map[string]string{
 				annotations.SslRedirectKey: "true",
 			},
-			Namespace: "--ingress--namespace--",
-			Name:      "--ingress-name--",
+			Namespace: testFixturesNamespace,
+			Name:      testFixturesName,
 		},
 	}
 }
