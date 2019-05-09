@@ -80,7 +80,7 @@ func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuil
 			},
 			CertificateSecretStore: makeSecretStoreTestFixture(certs),
 		},
-		probesMap:                     make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
+		probesMap: make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
 	}
 
 	return cb

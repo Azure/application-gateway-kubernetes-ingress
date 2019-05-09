@@ -125,25 +125,25 @@ var _ = Describe("configure App Gateway health probes", func() {
 			},
 			{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol: "Http",
-					Host: to.StringPtr(testFixturesOtherHost),
-					Path: to.StringPtr("/a/b/c/d/e"),
-					Interval: to.Int32Ptr(30),
-					Timeout: to.Int32Ptr(30),
-					UnhealthyThreshold: to.Int32Ptr(3),
+					Protocol:                            "Http",
+					Host:                                to.StringPtr(testFixturesOtherHost),
+					Path:                                to.StringPtr("/a/b/c/d/e"),
+					Interval:                            to.Int32Ptr(30),
+					Timeout:                             to.Int32Ptr(30),
+					UnhealthyThreshold:                  to.Int32Ptr(3),
 					PickHostNameFromBackendHTTPSettings: nil,
-					MinServers: nil,
-					Match: nil,
-					ProvisioningState: nil,
+					MinServers:                          nil,
+					Match:                               nil,
+					ProvisioningState:                   nil,
 				},
 				Name: to.StringPtr("k8s-ag-ingress--8989-pb---name--"),
 				Etag: nil,
 				Type: nil,
-				ID: nil,
+				ID:   nil,
 			},
 		}
 
-		It("should have exactly 3 records", func(){
+		It("should have exactly 3 records", func() {
 			Expect(len(*actual)).To(Equal(3))
 		})
 
