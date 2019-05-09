@@ -115,8 +115,9 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		return builder, errors.New("unable to resolve backend port for some services")
 	}
 
+	probeID := builder.appGwIdentifier.probeID(defaultProbeName)
 	httpSettingsCollection := make([](network.ApplicationGatewayBackendHTTPSettings), 0)
-	httpSettingsCollection = append(httpSettingsCollection, defaultBackendHTTPSettings())
+	httpSettingsCollection = append(httpSettingsCollection, defaultBackendHTTPSettings(probeID))
 
 	// enforce single pair relationship between service port and backend port
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
@@ -134,6 +135,8 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
 
+		probeName := builder.probesMap[backendID].Name
+		probeID := builder.appGwIdentifier.probeID(*probeName)
 		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
 		httpSettingsPort := uniquePair.BackendPort
 		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
@@ -144,6 +147,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 				Protocol: network.HTTP,
 				Port:     &httpSettingsPort,
 				Path:     backendPathPrefix,
+				Probe:    resourceRef(probeID),
 			},
 		}
 		// other settings should come from annotations
