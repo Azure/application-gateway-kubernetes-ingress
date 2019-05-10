@@ -47,60 +47,60 @@ var _ = Describe("configure App Gateway health probes", func() {
 		// We expect our health probe configurator to have arrived at this final setup
 		defaultProbe := network.ApplicationGatewayProbe{
 
-				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            network.HTTP,
-					Host:                                to.StringPtr("localhost"),
-					Path:                                to.StringPtr("/"),
-					Interval:                            to.Int32Ptr(30),
-					Timeout:                             to.Int32Ptr(30),
-					UnhealthyThreshold:                  to.Int32Ptr(3),
-					PickHostNameFromBackendHTTPSettings: nil,
-					MinServers:                          nil,
-					Match:                               nil,
-					ProvisioningState:                   nil,
-				},
-				Name: to.StringPtr("k8s-ag-ingress-defaultprobe"),
-				Etag: nil,
-				Type: nil,
-				ID:   nil,
-			}
+			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            network.HTTP,
+				Host:                                to.StringPtr("localhost"),
+				Path:                                to.StringPtr("/"),
+				Interval:                            to.Int32Ptr(30),
+				Timeout:                             to.Int32Ptr(30),
+				UnhealthyThreshold:                  to.Int32Ptr(3),
+				PickHostNameFromBackendHTTPSettings: nil,
+				MinServers:                          nil,
+				Match:                               nil,
+				ProvisioningState:                   nil,
+			},
+			Name: to.StringPtr("k8s-ag-ingress-defaultprobe"),
+			Etag: nil,
+			Type: nil,
+			ID:   nil,
+		}
 		probeForHost := network.ApplicationGatewayProbe{
-				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            network.HTTP,
-					Host:                                to.StringPtr(testFixturesHost),
-					Path:                                to.StringPtr(testFixturesURLPath),
-					Interval:                            to.Int32Ptr(30),
-					Timeout:                             to.Int32Ptr(30),
-					UnhealthyThreshold:                  to.Int32Ptr(3),
-					PickHostNameFromBackendHTTPSettings: nil,
-					MinServers:                          nil,
-					Match:                               nil,
-					ProvisioningState:                   nil,
-				},
-				Name: to.StringPtr("k8s-ag-ingress---service-name---8080-pb---name--"),
-				Etag: nil,
-				Type: nil,
-				ID:   nil,
-			}
+			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            network.HTTP,
+				Host:                                to.StringPtr(testFixturesHost),
+				Path:                                to.StringPtr(testFixturesURLPath),
+				Interval:                            to.Int32Ptr(30),
+				Timeout:                             to.Int32Ptr(30),
+				UnhealthyThreshold:                  to.Int32Ptr(3),
+				PickHostNameFromBackendHTTPSettings: nil,
+				MinServers:                          nil,
+				Match:                               nil,
+				ProvisioningState:                   nil,
+			},
+			Name: to.StringPtr("k8s-ag-ingress---service-name---8080-pb---name--"),
+			Etag: nil,
+			Type: nil,
+			ID:   nil,
+		}
 
 		probeForOtherHost := network.ApplicationGatewayProbe{
-				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            network.HTTP,
-					Host:                                to.StringPtr(testFixturesOtherHost),
-					Path:                                to.StringPtr(testFixturesURLPath),
-					Interval:                            to.Int32Ptr(30),
-					Timeout:                             to.Int32Ptr(30),
-					UnhealthyThreshold:                  to.Int32Ptr(3),
-					PickHostNameFromBackendHTTPSettings: nil,
-					MinServers:                          nil,
-					Match:                               nil,
-					ProvisioningState:                   nil,
-				},
-				Name: to.StringPtr("k8s-ag-ingress---service-name---8989-pb---name--"),
-				Etag: nil,
-				Type: nil,
-				ID:   nil,
-			}
+			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            network.HTTP,
+				Host:                                to.StringPtr(testFixturesOtherHost),
+				Path:                                to.StringPtr(testFixturesURLPath),
+				Interval:                            to.Int32Ptr(30),
+				Timeout:                             to.Int32Ptr(30),
+				UnhealthyThreshold:                  to.Int32Ptr(3),
+				PickHostNameFromBackendHTTPSettings: nil,
+				MinServers:                          nil,
+				Match:                               nil,
+				ProvisioningState:                   nil,
+			},
+			Name: to.StringPtr("k8s-ag-ingress---service-name---8989-pb---name--"),
+			Etag: nil,
+			Type: nil,
+			ID:   nil,
+		}
 
 		It("should have exactly 3 records", func() {
 			Expect(len(*actual)).To(Equal(3))
