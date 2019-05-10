@@ -57,7 +57,7 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 			builder.probesMap[backendID] = probe
 			healthProbeCollection = append(healthProbeCollection, *probe)
 		} else {
-			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, defaultProbe.Name)
+			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
 			builder.probesMap[backendID] = &defaultProbe
 		}
 	}
