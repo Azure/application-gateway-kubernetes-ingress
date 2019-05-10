@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"fmt"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -28,6 +29,8 @@ const (
 	testFixturesURLPath       = "/a/b/c/d/e"
 	testFixturesContainerName = "--container-name--"
 	testFixturesContainerPort = int32(9876)
+	testFixturesSelectorKey   = "app"
+	testFixturesSelectorValue = "frontend"
 )
 
 func makeAppGwyConfigTestFixture() network.ApplicationGatewayPropertiesFormat {
@@ -69,6 +72,10 @@ func makeSecretStoreTestFixture(toAdd *map[string]interface{}) k8scontext.Secret
 	}
 }
 
+func keyFunc(obj interface{}) (string, error) {
+	return fmt.Sprintf("%s/%s", testFixturesNamespace, testFixturesServiceName), nil
+}
+
 func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
 		appGwConfig:            makeAppGwyConfigTestFixture(),
@@ -77,22 +84,14 @@ func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuil
 		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(func(obj interface{}) (string, error) {
-					return "--namespace--/", nil
-				}),
-				Secret: cache.NewStore(func(obj interface{}) (string, error) {
-					return "--namespace--/", nil
-				}),
-				Service: cache.NewStore(func(obj interface{}) (string, error) {
-					return "--namespace--/", nil
-				}),
-				Pods: cache.NewStore(func(obj interface{}) (string, error) {
-					return "--namespace--/", nil
-				}),
+				Endpoints: cache.NewStore(keyFunc),
+				Secret:    cache.NewStore(keyFunc),
+				Service:   cache.NewStore(keyFunc),
+				Pods:      cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: makeSecretStoreTestFixture(certs),
 		},
-		probesMap: make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
+		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
 	}
 
 	return cb
@@ -126,7 +125,7 @@ func makeIngressTestFixture() v1beta1.Ingress {
 								{
 									Path: testFixturesURLPath,
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "",
+										ServiceName: testFixturesServiceName,
 										ServicePort: intstr.IntOrString{
 											IntVal: 8080,
 										},
@@ -144,7 +143,7 @@ func makeIngressTestFixture() v1beta1.Ingress {
 								{
 									Path: testFixturesURLPath,
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "",
+										ServiceName: testFixturesServiceName,
 										ServicePort: intstr.IntOrString{
 											IntVal: 8989,
 										},
@@ -246,7 +245,7 @@ func makePod(serviceName string, ingressNamespace string, containerName string, 
 			Name:      serviceName,
 			Namespace: ingressNamespace,
 			Labels: map[string]string{
-				"app": "frontend",
+				testFixturesSelectorKey: testFixturesSelectorValue,
 			},
 		},
 		Spec: v1.PodSpec{
@@ -289,8 +288,17 @@ func makeService(servicePorts ...v1.ServicePort) *v1.Service {
 			Namespace: testFixturesNamespace,
 		},
 		Spec: v1.ServiceSpec{
-			// List of ports exposed by this service
+			// The list of ports that are exposed by this service.
 			Ports: servicePorts,
+
+			// Route service traffic to pods with label keys and values matching this
+			// selector. If empty or not present, the service is assumed to have an
+			// external process managing its endpoints, which Kubernetes will not
+			// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
+			// Ignored if type is ExternalName.
+			Selector: map[string]string{
+				testFixturesSelectorKey: testFixturesSelectorValue,
+			},
 		},
 	}
 }

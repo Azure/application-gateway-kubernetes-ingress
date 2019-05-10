@@ -186,10 +186,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
+		probes := *appGW.Probes
+		Expect(len(probes)).To(Equal(2))
+
 		// Test the default health probe.
-		Expect((*appGW.Probes)[0]).To(Equal(defaultProbe()))
+		Expect(probes).To(ContainElement(defaultProbe()))
 		// Test the ingress health probe that we installed.
-		Expect((*appGW.Probes)[1]).To(Equal(*probe))
+		Expect(probes).To(ContainElement(*probe))
 	}
 
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
@@ -662,14 +665,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
 			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
 			// Set the ingress annotation for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
 
 			// Update the ingress.
 			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
-			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
@@ -708,10 +711,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				}
 
+				backendSettings := *appGW.BackendHTTPSettingsCollection
+
+				defaultProbe := defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))
+
+				Expect(len(backendSettings)).To(Equal(2))
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
+				Expect(backendSettings).To(ContainElement(defaultProbe))
 				// Test the ingress backend HTTP setting that we installed.
-				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
 			testAGConfig(ingressList, appGwConfigSettings{

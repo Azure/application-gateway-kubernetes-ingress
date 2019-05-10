@@ -23,7 +23,7 @@ func TestHealthProbes(t *testing.T) {
 var _ = Describe("configure App Gateway health probes", func() {
 	port1, port2, port3, port4 := makeServicePorts()
 
-	Context("looking at TLS specs", func() {
+	Context("create probes", func() {
 		cb := makeConfigBuilderTestFixture(nil)
 
 		endpoints := makeEndpoints()
@@ -45,8 +45,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
-		expected := []network.ApplicationGatewayProbe{
-			{
+		defaultProbe := network.ApplicationGatewayProbe{
+
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr("localhost"),
@@ -63,8 +63,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Etag: nil,
 				Type: nil,
 				ID:   nil,
-			},
-			{
+			}
+		probeForHost := network.ApplicationGatewayProbe{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr(testFixturesHost),
@@ -77,12 +77,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 					Match:                               nil,
 					ProvisioningState:                   nil,
 				},
-				Name: to.StringPtr("k8s-ag-ingress--8080-pb---name--"),
+				Name: to.StringPtr("k8s-ag-ingress---service-name---8080-pb---name--"),
 				Etag: nil,
 				Type: nil,
 				ID:   nil,
-			},
-			{
+			}
+
+		probeForOtherHost := network.ApplicationGatewayProbe{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr(testFixturesOtherHost),
@@ -95,22 +96,26 @@ var _ = Describe("configure App Gateway health probes", func() {
 					Match:                               nil,
 					ProvisioningState:                   nil,
 				},
-				Name: to.StringPtr("k8s-ag-ingress--8989-pb---name--"),
+				Name: to.StringPtr("k8s-ag-ingress---service-name---8989-pb---name--"),
 				Etag: nil,
 				Type: nil,
 				ID:   nil,
-			},
-		}
+			}
 
 		It("should have exactly 3 records", func() {
 			Expect(len(*actual)).To(Equal(3))
 		})
 
-		It("should succeed", func() {
-			// Ensure capacities of the slices match
-			Expect(*actual).To(ContainElement(expected[0]))
-			Expect(*actual).To(ContainElement(expected[1]))
-			Expect(*actual).To(ContainElement(expected[2]))
+		It("should have created 1 default probe", func() {
+			Expect(*actual).To(ContainElement(defaultProbe))
+		})
+
+		It("should have created 1 probe for Host", func() {
+			Expect(*actual).To(ContainElement(probeForHost))
+		})
+
+		It("should have created 1 probe for OtherHost", func() {
+			Expect(*actual).To(ContainElement(probeForOtherHost))
 		})
 	})
 })
