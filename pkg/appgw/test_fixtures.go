@@ -10,8 +10,9 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/cache"
 )
@@ -22,6 +23,9 @@ const (
 	testFixturesHost         = "--some-hostname--"
 	testFixturesOtherHost    = "--some-other-hostname--"
 	testFixturesNameOfSecret = "--the-name-of-the-secret--"
+	testFixturesServiceName  = "--service-name--"
+	testFixturesNodeName     = "--node-name--"
+	testFixturesURLPath      = "/a/b/c/d/e"
 )
 
 func makeAppGwyConfigTestFixture() network.ApplicationGatewayPropertiesFormat {
@@ -72,13 +76,16 @@ func makeConfigBuilderTestFixture(certs *map[string]interface{}) appGwConfigBuil
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
 				Endpoints: cache.NewStore(func(obj interface{}) (string, error) {
-					return "", nil
+					return "--namespace--/", nil
 				}),
 				Secret: cache.NewStore(func(obj interface{}) (string, error) {
-					return "", nil
+					return "--namespace--/", nil
 				}),
 				Service: cache.NewStore(func(obj interface{}) (string, error) {
-					return "", nil
+					return "--namespace--/", nil
+				}),
+				Pods: cache.NewStore(func(obj interface{}) (string, error) {
+					return "--namespace--/", nil
 				}),
 			},
 			CertificateSecretStore: makeSecretStoreTestFixture(certs),
@@ -115,7 +122,7 @@ func makeIngressTestFixture() v1beta1.Ingress {
 						HTTP: &v1beta1.HTTPIngressRuleValue{
 							Paths: []v1beta1.HTTPIngressPath{
 								{
-									Path: "/a/b/c/d/e",
+									Path: testFixturesURLPath,
 									Backend: v1beta1.IngressBackend{
 										ServiceName: "",
 										ServicePort: intstr.IntOrString{
@@ -133,7 +140,7 @@ func makeIngressTestFixture() v1beta1.Ingress {
 						HTTP: &v1beta1.HTTPIngressRuleValue{
 							Paths: []v1beta1.HTTPIngressPath{
 								{
-									Path: "/a/b/c/d/e",
+									Path: testFixturesURLPath,
 									Backend: v1beta1.IngressBackend{
 										ServiceName: "",
 										ServicePort: intstr.IntOrString{
@@ -162,12 +169,113 @@ func makeIngressTestFixture() v1beta1.Ingress {
 				},
 			},
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				annotations.SslRedirectKey: "true",
 			},
 			Namespace: testFixturesNamespace,
 			Name:      testFixturesName,
+		},
+	}
+}
+
+func makeServicePorts() (v1.ServicePort, v1.ServicePort, v1.ServicePort, v1.ServicePort) {
+	port1 := v1.ServicePort{
+		// The name of this port within the service. This must be a DNS_LABEL.
+		// All ports within a ServiceSpec must have unique names. This maps to
+		// the 'Name' field in EndpointPort objects.
+		// Optional if only one ServicePort is defined on this service.
+		Name: "http",
+
+		// The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
+		Protocol: v1.ProtocolTCP,
+
+		// The port that will be exposed by this service.
+		Port: 80,
+
+		// Number or name of the port to access on the pods targeted by the service.
+		// Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.
+		// If this is a string, it will be looked up as a named port in the
+		// target Pod's container ports. If this is not specified, the value
+		// of the 'port' field is used (an identity map).
+		// This field is ignored for services with clusterIP=None, and should be
+		// omitted or set equal to the 'port' field.
+		TargetPort: intstr.IntOrString{
+			IntVal: 8181,
+		},
+	}
+
+	port2 := v1.ServicePort{
+		Name:     "https",
+		Protocol: v1.ProtocolTCP,
+		Port:     443,
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.String,
+			StrVal: "https-port",
+		},
+	}
+
+	port3 := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolTCP,
+		Port:     554,
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.Int,
+			IntVal: 9554,
+		},
+	}
+
+	port4 := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolUDP,
+		Port:     9123,
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.Int,
+			IntVal: 4566,
+		},
+	}
+
+	return port1, port2, port3, port4
+}
+
+func makePod(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
+	return &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: ingressNamespace,
+			Labels: map[string]string{
+				"app": "frontend",
+			},
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  serviceName,
+					Image: "image",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          containerName,
+							ContainerPort: containerPort,
+						},
+					},
+					ReadinessProbe: &v1.Probe{
+						TimeoutSeconds:   5,
+						FailureThreshold: 3,
+						PeriodSeconds:    20,
+						Handler: v1.Handler{
+							HTTPGet: &v1.HTTPGetAction{
+								Host: "bye.com",
+								Path: "/healthz",
+								Port: intstr.IntOrString{
+									Type:   intstr.String,
+									StrVal: containerName,
+								},
+								Scheme: v1.URISchemeHTTP,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }

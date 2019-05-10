@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/util/intstr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestHealthProbes(t *testing.T) {
@@ -23,58 +23,7 @@ func TestHealthProbes(t *testing.T) {
 }
 
 var _ = Describe("configure App Gateway health probes", func() {
-
-	port1 := v1.ServicePort{
-		// The name of this port within the service. This must be a DNS_LABEL.
-		// All ports within a ServiceSpec must have unique names. This maps to
-		// the 'Name' field in EndpointPort objects.
-		// Optional if only one ServicePort is defined on this service.
-		Name: "http",
-
-		// The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
-		Protocol: v1.ProtocolTCP,
-
-		// The port that will be exposed by this service.
-		Port: 80,
-
-		// Number or name of the port to access on the pods targeted by the service.
-		// Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.
-		// If this is a string, it will be looked up as a named port in the
-		// target Pod's container ports. If this is not specified, the value
-		// of the 'port' field is used (an identity map).
-		// This field is ignored for services with clusterIP=None, and should be
-		// omitted or set equal to the 'port' field.
-		TargetPort: intstr.IntOrString{
-			IntVal: 8181,
-		},
-	}
-
-	port2 := v1.ServicePort{
-		Name:     "https",
-		Protocol: v1.ProtocolTCP,
-		Port:     443,
-		TargetPort: intstr.IntOrString{
-			StrVal: "https-port",
-		},
-	}
-
-	port3 := v1.ServicePort{
-		Name:     "other-tcp-port",
-		Protocol: v1.ProtocolTCP,
-		Port:     554,
-		TargetPort: intstr.IntOrString{
-			IntVal: 9554,
-		},
-	}
-
-	port4 := v1.ServicePort{
-		Name:     "other-tcp-port",
-		Protocol: v1.ProtocolUDP,
-		Port:     123,
-		TargetPort: intstr.IntOrString{
-			IntVal: 123,
-		},
-	}
+	port1, port2, port3, port4 := makeServicePorts()
 
 	Context("looking at TLS specs", func() {
 		cb := makeConfigBuilderTestFixture(nil)
@@ -92,7 +41,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 							Hostname: "www.contoso.com",
 							// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
 							// +optional
-							NodeName: to.StringPtr("--node-name--"),
+							NodeName: to.StringPtr(testFixturesNodeName),
 						},
 					},
 					// IP addresses which offer the related ports but are not currently marked as ready
@@ -106,12 +55,16 @@ var _ = Describe("configure App Gateway health probes", func() {
 				},
 			},
 		}
-		err := cb.k8sContext.Caches.Endpoints.Add(endpoints)
+		err := cb.k8sContext.Caches.Endpoints.Add(&endpoints)
 		It("added endpoints to cache without an error", func() {
 			Expect(err).To(BeNil())
 		})
 
 		service := v1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      testFixturesServiceName,
+				Namespace: testFixturesNamespace,
+			},
 			Spec: v1.ServiceSpec{
 				// List of ports exposed by this service
 				Ports: []v1.ServicePort{
@@ -122,7 +75,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 				},
 			},
 		}
-		err = cb.k8sContext.Caches.Service.Add(service)
+		err = cb.k8sContext.Caches.Service.Add(&service)
+
+		backendName := "--backend-name--"
+		backendPort := int32(9876)
+		pod := makePod(service.Name, testFixturesNamespace, backendName, backendPort)
+		err = cb.k8sContext.Caches.Pods.Add(pod)
+
 		It("added service to cache without an error", func() {
 			Expect(err).To(BeNil())
 		})
@@ -136,10 +95,11 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_, _ = cb.HealthProbesCollection(ingressList)
 		actual := cb.appGwConfig.Probes
 
+		// We expect our health probe configurator to have arrived at this final setup
 		expected := []network.ApplicationGatewayProbe{
 			{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            "Http",
+					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr("localhost"),
 					Path:                                to.StringPtr("/"),
 					Interval:                            to.Int32Ptr(30),
@@ -157,9 +117,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 			},
 			{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            "Http",
+					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr(testFixturesHost),
-					Path:                                to.StringPtr("/a/b/c/d/e"),
+					Path:                                to.StringPtr(testFixturesURLPath),
 					Interval:                            to.Int32Ptr(30),
 					Timeout:                             to.Int32Ptr(30),
 					UnhealthyThreshold:                  to.Int32Ptr(3),
@@ -175,9 +135,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 			},
 			{
 				ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-					Protocol:                            "Http",
+					Protocol:                            network.HTTP,
 					Host:                                to.StringPtr(testFixturesOtherHost),
-					Path:                                to.StringPtr("/a/b/c/d/e"),
+					Path:                                to.StringPtr(testFixturesURLPath),
 					Interval:                            to.Int32Ptr(30),
 					Timeout:                             to.Int32Ptr(30),
 					UnhealthyThreshold:                  to.Int32Ptr(3),

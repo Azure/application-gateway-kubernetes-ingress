@@ -154,45 +154,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName,
-			Namespace: ingressNS,
-			Labels: map[string]string{
-				"app": "frontend",
-			},
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  serviceName,
-					Image: "image",
-					Ports: []v1.ContainerPort{
-						{
-							Name:          backendName,
-							ContainerPort: backendPort,
-						},
-					},
-					ReadinessProbe: &v1.Probe{
-						TimeoutSeconds:   5,
-						FailureThreshold: 3,
-						PeriodSeconds:    20,
-						Handler: v1.Handler{
-							HTTPGet: &v1.HTTPGetAction{
-								Host: "bye.com",
-								Path: "/healthz",
-								Port: intstr.IntOrString{
-									Type:   intstr.String,
-									StrVal: backendName,
-								},
-								Scheme: v1.URISchemeHTTP,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	pod := makePod(serviceName, ingressNS, backendName, backendPort)
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
