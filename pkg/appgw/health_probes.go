@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -18,37 +19,50 @@ import (
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := utils.NewUnorderedSet()
 	for _, ingress := range ingressList {
+
+		glog.Infof("[health-probes] Configuring health probes for ingress: '%s'", ingress.Name)
 		if ingress.Spec.Backend != nil {
+			glog.Info("[health-probes] Ingress spec has no backend. Adding a default.")
 			backendIDs.Insert(generateBackendID(ingress, nil, nil, ingress.Spec.Backend))
 		}
+
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
+			glog.Infof("[health-probes] Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
 			if rule.HTTP == nil {
 				// skip no http rule
+				glog.Infof("[health-probes] Skip rule#%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
+				glog.Infof("[health-probes] Working on path #%d: '%s'", pathIdx+1, path.Path)
 				backendIDs.Insert(generateBackendID(ingress, rule, path, &path.Backend))
 			}
 		}
 	}
 
 	defaultProbe := defaultProbe()
-	healthProbeCollection := make([](network.ApplicationGatewayProbe), 0)
+
+	healthProbeCollection := make([]network.ApplicationGatewayProbe, 0)
+	glog.Infof("[health-probes] Adding default probe: '%s'", *defaultProbe.Name)
 	healthProbeCollection = append(healthProbeCollection, defaultProbe)
+
 	for _, backendIDInterface := range backendIDs.ToSlice() {
 		backendID := backendIDInterface.(backendIdentifier)
 		probe := builder.generateHealthProbe(backendID)
 
 		if probe != nil {
+			glog.Infof("[health-probes] Found k8s probe for backend: '%s'", backendID.Name)
 			builder.probesMap[backendID] = probe
 			healthProbeCollection = append(healthProbeCollection, *probe)
 		} else {
+			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
 			builder.probesMap[backendID] = &defaultProbe
 		}
 	}
 
+	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
 	builder.appGwConfig.Probes = &healthProbeCollection
 	return builder, nil
 }
