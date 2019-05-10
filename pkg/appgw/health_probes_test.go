@@ -21,15 +21,13 @@ func TestHealthProbes(t *testing.T) {
 }
 
 var _ = Describe("configure App Gateway health probes", func() {
-	port1, port2, port3, port4 := makeServicePorts()
-
 	Context("create probes", func() {
 		cb := makeConfigBuilderTestFixture(nil)
 
 		endpoints := makeEndpoints()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := makeService(port1, port2, port3, port4)
+		service := makeService(*makeServicePorts()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
 		pod := makePod(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
@@ -69,8 +67,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Protocol:                            network.HTTP,
 				Host:                                to.StringPtr(testFixturesHost),
 				Path:                                to.StringPtr(testFixturesURLPath),
-				Interval:                            to.Int32Ptr(30),
-				Timeout:                             to.Int32Ptr(30),
+				Interval:                            to.Int32Ptr(20),
+				Timeout:                             to.Int32Ptr(5),
 				UnhealthyThreshold:                  to.Int32Ptr(3),
 				PickHostNameFromBackendHTTPSettings: nil,
 				MinServers:                          nil,
@@ -86,10 +84,10 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeForOtherHost := network.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            network.HTTP,
-				Host:                                to.StringPtr(testFixturesOtherHost),
+				Host:                                to.StringPtr(testFixturesHost),
 				Path:                                to.StringPtr(testFixturesURLPath),
-				Interval:                            to.Int32Ptr(30),
-				Timeout:                             to.Int32Ptr(30),
+				Interval:                            to.Int32Ptr(20),
+				Timeout:                             to.Int32Ptr(5),
 				UnhealthyThreshold:                  to.Int32Ptr(3),
 				PickHostNameFromBackendHTTPSettings: nil,
 				MinServers:                          nil,

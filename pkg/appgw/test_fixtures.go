@@ -21,12 +21,12 @@ import (
 const (
 	testFixturesNamespace     = "--namespace--"
 	testFixturesName          = "--name--"
-	testFixturesHost          = "--some-hostname--"
+	testFixturesHost          = "bye.com"
 	testFixturesOtherHost     = "--some-other-hostname--"
 	testFixturesNameOfSecret  = "--the-name-of-the-secret--"
 	testFixturesServiceName   = "--service-name--"
 	testFixturesNodeName      = "--node-name--"
-	testFixturesURLPath       = "/a/b/c/d/e"
+	testFixturesURLPath       = "/healthz"
 	testFixturesContainerName = "--container-name--"
 	testFixturesContainerPort = int32(9876)
 	testFixturesSelectorKey   = "app"
@@ -180,8 +180,8 @@ func makeIngressTestFixture() v1beta1.Ingress {
 	}
 }
 
-func makeServicePorts() (v1.ServicePort, v1.ServicePort, v1.ServicePort, v1.ServicePort) {
-	port1 := v1.ServicePort{
+func makeServicePorts() *[]v1.ServicePort {
+	httpPort := v1.ServicePort{
 		// The name of this port within the service. This must be a DNS_LABEL.
 		// All ports within a ServiceSpec must have unique names. This maps to
 		// the 'Name' field in EndpointPort objects.
@@ -206,7 +206,7 @@ func makeServicePorts() (v1.ServicePort, v1.ServicePort, v1.ServicePort, v1.Serv
 		},
 	}
 
-	port2 := v1.ServicePort{
+	httpsPort := v1.ServicePort{
 		Name:     "https",
 		Protocol: v1.ProtocolTCP,
 		Port:     443,
@@ -216,17 +216,17 @@ func makeServicePorts() (v1.ServicePort, v1.ServicePort, v1.ServicePort, v1.Serv
 		},
 	}
 
-	port3 := v1.ServicePort{
+	randomTCPPort := v1.ServicePort{
 		Name:     "other-tcp-port",
 		Protocol: v1.ProtocolTCP,
 		Port:     554,
 		TargetPort: intstr.IntOrString{
 			Type:   intstr.Int,
-			IntVal: 9554,
+			IntVal: testFixturesContainerPort,
 		},
 	}
 
-	port4 := v1.ServicePort{
+	udpPort := v1.ServicePort{
 		Name:     "other-tcp-port",
 		Protocol: v1.ProtocolUDP,
 		Port:     9123,
@@ -236,7 +236,12 @@ func makeServicePorts() (v1.ServicePort, v1.ServicePort, v1.ServicePort, v1.Serv
 		},
 	}
 
-	return port1, port2, port3, port4
+	return &[]v1.ServicePort{
+		httpPort,
+		httpsPort,
+		randomTCPPort,
+		udpPort,
+	}
 }
 
 func makePod(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
@@ -265,8 +270,8 @@ func makePod(serviceName string, ingressNamespace string, containerName string, 
 						PeriodSeconds:    20,
 						Handler: v1.Handler{
 							HTTPGet: &v1.HTTPGetAction{
-								Host: "bye.com",
-								Path: "/healthz",
+								Host: testFixturesHost,
+								Path: testFixturesURLPath,
 								Port: intstr.IntOrString{
 									Type:   intstr.String,
 									StrVal: containerName,
