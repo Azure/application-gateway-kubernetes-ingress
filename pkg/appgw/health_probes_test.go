@@ -12,9 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestHealthProbes(t *testing.T) {
@@ -27,64 +25,15 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 	Context("looking at TLS specs", func() {
 		cb := makeConfigBuilderTestFixture(nil)
-		endpoints := v1.Endpoints{
-			Subsets: []v1.EndpointSubset{
-				{
-					// IP addresses which offer the related ports that are marked as ready. These endpoints
-					// should be considered safe for load balancers and clients to utilize.
-					// +optional
-					Addresses: []v1.EndpointAddress{
-						{
-							IP: "10.9.8.7",
-							// The Hostname of this endpoint
-							// +optional
-							Hostname: "www.contoso.com",
-							// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
-							// +optional
-							NodeName: to.StringPtr(testFixturesNodeName),
-						},
-					},
-					// IP addresses which offer the related ports but are not currently marked as ready
-					// because they have not yet finished starting, have recently failed a readiness check,
-					// or have recently failed a liveness check.
-					// +optional
-					NotReadyAddresses: []v1.EndpointAddress{},
-					// Port numbers available on the related IP addresses.
-					// +optional
-					Ports: []v1.EndpointPort{},
-				},
-			},
-		}
-		err := cb.k8sContext.Caches.Endpoints.Add(&endpoints)
-		It("added endpoints to cache without an error", func() {
-			Expect(err).To(BeNil())
-		})
 
-		service := v1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      testFixturesServiceName,
-				Namespace: testFixturesNamespace,
-			},
-			Spec: v1.ServiceSpec{
-				// List of ports exposed by this service
-				Ports: []v1.ServicePort{
-					port1,
-					port2,
-					port3,
-					port4,
-				},
-			},
-		}
-		err = cb.k8sContext.Caches.Service.Add(&service)
+		endpoints := makeEndpoints()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		backendName := "--backend-name--"
-		backendPort := int32(9876)
-		pod := makePod(service.Name, testFixturesNamespace, backendName, backendPort)
-		err = cb.k8sContext.Caches.Pods.Add(pod)
+		service := makeService(port1, port2, port3, port4)
+		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		It("added service to cache without an error", func() {
-			Expect(err).To(BeNil())
-		})
+		pod := makePod(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingress := makeIngressTestFixture()
 		ingressList := []*v1beta1.Ingress{

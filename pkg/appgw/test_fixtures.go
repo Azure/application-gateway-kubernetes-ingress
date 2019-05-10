@@ -18,14 +18,16 @@ import (
 )
 
 const (
-	testFixturesNamespace    = "--namespace--"
-	testFixturesName         = "--name--"
-	testFixturesHost         = "--some-hostname--"
-	testFixturesOtherHost    = "--some-other-hostname--"
-	testFixturesNameOfSecret = "--the-name-of-the-secret--"
-	testFixturesServiceName  = "--service-name--"
-	testFixturesNodeName     = "--node-name--"
-	testFixturesURLPath      = "/a/b/c/d/e"
+	testFixturesNamespace     = "--namespace--"
+	testFixturesName          = "--name--"
+	testFixturesHost          = "--some-hostname--"
+	testFixturesOtherHost     = "--some-other-hostname--"
+	testFixturesNameOfSecret  = "--the-name-of-the-secret--"
+	testFixturesServiceName   = "--service-name--"
+	testFixturesNodeName      = "--node-name--"
+	testFixturesURLPath       = "/a/b/c/d/e"
+	testFixturesContainerName = "--container-name--"
+	testFixturesContainerPort = int32(9876)
 )
 
 func makeAppGwyConfigTestFixture() network.ApplicationGatewayPropertiesFormat {
@@ -275,6 +277,50 @@ func makePod(serviceName string, ingressNamespace string, containerName string, 
 						},
 					},
 				},
+			},
+		},
+	}
+}
+
+func makeService(servicePorts ...v1.ServicePort) *v1.Service {
+	return &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testFixturesServiceName,
+			Namespace: testFixturesNamespace,
+		},
+		Spec: v1.ServiceSpec{
+			// List of ports exposed by this service
+			Ports: servicePorts,
+		},
+	}
+}
+
+func makeEndpoints() *v1.Endpoints {
+	return &v1.Endpoints{
+		Subsets: []v1.EndpointSubset{
+			{
+				// IP addresses which offer the related ports that are marked as ready. These endpoints
+				// should be considered safe for load balancers and clients to utilize.
+				// +optional
+				Addresses: []v1.EndpointAddress{
+					{
+						IP: "10.9.8.7",
+						// The Hostname of this endpoint
+						// +optional
+						Hostname: "www.contoso.com",
+						// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
+						// +optional
+						NodeName: to.StringPtr(testFixturesNodeName),
+					},
+				},
+				// IP addresses which offer the related ports but are not currently marked as ready
+				// because they have not yet finished starting, have recently failed a readiness check,
+				// or have recently failed a liveness check.
+				// +optional
+				NotReadyAddresses: []v1.EndpointAddress{},
+				// Port numbers available on the related IP addresses.
+				// +optional
+				Ports: []v1.EndpointPort{},
 			},
 		},
 	}
