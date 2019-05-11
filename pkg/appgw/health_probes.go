@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"fmt"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -115,17 +117,23 @@ func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Servi
 			continue
 		}
 
-		if sp.TargetPort.String() == "" {
-			allPorts[sp.Port] = nil
-		} else if sp.TargetPort.Type == intstr.Int {
-			// port is defined as port number
-			allPorts[sp.TargetPort.IntVal] = nil
-		} else {
-			targetPortsResolved := builder.resolvePortName(sp.TargetPort.StrVal, &backendID)
-			targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
-				targetPort := targetPortInterface.(int32)
-				allPorts[targetPort] = nil
-			})
+		if fmt.Sprint(sp.Port) == backendID.Backend.ServicePort.String() ||
+			sp.Name == backendID.Backend.ServicePort.String() ||
+			sp.TargetPort.String() == backendID.Backend.ServicePort.String() {
+
+			// Matched a service port in the service
+			if sp.TargetPort.String() == "" {
+				allPorts[sp.Port] = nil
+			} else if sp.TargetPort.Type == intstr.Int {
+				// port is defined as port number
+				allPorts[sp.TargetPort.IntVal] = nil
+			} else {
+				targetPortsResolved := builder.resolvePortName(sp.TargetPort.StrVal, &backendID)
+				targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
+					targetPort := targetPortInterface.(int32)
+					allPorts[targetPort] = nil
+				})
+			}
 		}
 	}
 
