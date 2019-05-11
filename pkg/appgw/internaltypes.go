@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"k8s.io/api/extensions/v1beta1"
@@ -74,9 +75,10 @@ func getResourceKey(namespace, name string) string {
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
 	httpSettingsName := fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
 	if len(httpSettingsName) > 80 {
-		exceededLength := int(len(httpSettingsName) - 80)
-		httpSettingsName = fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName,servicePort, backendPortNo,
-			ingress[:len(ingress)-exceededLength])
+		shortServiceName := serviceName[strings.LastIndex(serviceName, "-")+1:len(serviceName)]
+		shortIngress := ingress[strings.LastIndex(ingress, "-")+1:len(ingress)]
+		httpSettingsName = fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, shortServiceName, servicePort, backendPortNo,
+			shortIngress)
 	} 
 	return httpSettingsName
 }
