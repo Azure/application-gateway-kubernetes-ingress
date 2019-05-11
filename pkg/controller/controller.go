@@ -10,12 +10,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
@@ -62,6 +61,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	// Get all the ingresses
 	ingressList := c.k8sContext.GetHTTPIngressList()
+
+	// The following operations need to be in sequence
+	configBuilder, err = configBuilder.HealthProbesCollection(ingressList)
+	if err != nil {
+		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
+		return errors.New("unable to generate health probes")
+	}
 
 	// The following operations need to be in sequence
 	configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)

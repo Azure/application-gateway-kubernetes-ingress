@@ -6,11 +6,10 @@
 package appgw
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"k8s.io/api/extensions/v1beta1"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"k8s.io/api/extensions/v1beta1"
 )
 
 // ConfigBuilder is a builder for application gateway configuration
@@ -20,7 +19,7 @@ type ConfigBuilder interface {
 	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-
+	HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	Build() *network.ApplicationGatewayPropertiesFormat
 }
 
@@ -36,6 +35,7 @@ type appGwConfigBuilder struct {
 	backendHTTPSettingsMap map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)
 
 	backendPoolMap map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)
+	probesMap      map[backendIdentifier](*network.ApplicationGatewayProbe)
 
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
@@ -50,6 +50,7 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 		httpListenersAzureConfigMap:   make(map[frontendListenerIdentifier](*frontendListenerAzureConfig)),
 		ingressKeyHostnameSecretIDMap: make(map[string](map[string]secretIdentifier)),
 		secretIDCertificateMap:        make(map[secretIdentifier]*string),
+		probesMap:                     make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
 		backendHTTPSettingsMap:        make(map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)),
 		backendPoolMap:                make(map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)),
 		k8sContext:                    context,
@@ -73,18 +74,17 @@ func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *b
 	return resolvedPorts
 }
 
-func generateBackendID(ingress *v1beta1.Ingress, backend *v1beta1.IngressBackend) backendIdentifier {
-	backendServiceName := backend.ServiceName
-	backendServicePort := backend.ServicePort
-	backendID := backendIdentifier{
+func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path *v1beta1.HTTPIngressPath, backend *v1beta1.IngressBackend) backendIdentifier {
+	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
 			Namespace: ingress.Namespace,
-			Name:      backendServiceName,
+			Name:      backend.ServiceName,
 		},
-		ServicePort: backendServicePort,
-		Ingress:     ingress,
+		Ingress: ingress,
+		Rule:    rule,
+		Path:    path,
+		Backend: backend,
 	}
-	return backendID
 }
 
 func generateFrontendListenerID(rule *v1beta1.IngressRule,
