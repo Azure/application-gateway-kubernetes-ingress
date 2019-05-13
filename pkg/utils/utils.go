@@ -7,6 +7,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -39,4 +40,11 @@ func IntsToString(l []int, delim string) string {
 // GetResourceKey generates the key in k8s format for a given resource
 func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
+}
+
+func GetEnv(environmentVariable, defaultValue string) string {
+	if value, ok := os.LookupEnv(environmentVariable); ok {
+		return value
+	}
+	return defaultValue
 }

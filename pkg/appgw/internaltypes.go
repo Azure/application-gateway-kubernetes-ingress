@@ -9,6 +9,7 @@ import (
 	"crypto/md5"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -42,9 +43,7 @@ type secretIdentifier struct {
 	Name      string
 }
 
-const (
-	agPrefix = "k8s-ag-ingress"
-)
+var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX","k8s-ag-ingress")
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type frontendListenerAzureConfig struct {
@@ -119,9 +118,9 @@ func generateSSLRedirectConfigurationName(namespace, ingress string) string {
 	return governor(fmt.Sprintf("%s-%s-%s-sslr", agPrefix, namespace, ingress))
 }
 
-const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
-const defaultBackendAddressPoolName = agPrefix + "-defaultaddresspool"
-const defaultProbeName = agPrefix + "-defaultprobe"
+var defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
+var defaultBackendAddressPoolName = agPrefix + "-defaultaddresspool"
+var defaultProbeName = agPrefix + "-defaultprobe"
 
 func defaultBackendHTTPSettings(probeID string) network.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
