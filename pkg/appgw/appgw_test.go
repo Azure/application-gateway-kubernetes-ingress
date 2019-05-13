@@ -154,7 +154,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := makePod(serviceName, ingressNS, backendName, backendPort)
+	pod := makePodFixture(serviceName, ingressNS, backendName, backendPort)
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")

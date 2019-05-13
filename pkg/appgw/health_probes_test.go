@@ -24,18 +24,17 @@ var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
 		cb := makeConfigBuilderTestFixture(nil)
 
-		endpoints := makeEndpoints()
+		endpoints := makeEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := makeService(*makeServicePorts()...)
+		service := makeServiceFixture(*makeServicePorts()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := makePod(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := makePodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		ingress := makeIngressTestFixture()
 		ingressList := []*v1beta1.Ingress{
-			&ingress,
+			makeIngressFixture(),
 		}
 
 		// !! Action !!
@@ -75,7 +74,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr("k8s-ag-ingress---service-name---8080-pb---name--"),
+			Name: to.StringPtr("k8s-ag-ingress---service-name---443-pb---name--"),
 			Etag: nil,
 			Type: nil,
 			ID:   nil,
@@ -84,7 +83,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeForOtherHost := network.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            network.HTTP,
-				Host:                                to.StringPtr(testFixturesOtherHost),
+				Host:                                to.StringPtr(testFixturesHost),
 				Path:                                to.StringPtr(testFixturesURLPath),
 				Interval:                            to.Int32Ptr(30),
 				Timeout:                             to.Int32Ptr(30),
@@ -94,7 +93,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr("k8s-ag-ingress---service-name---8989-pb---name--"),
+			Name: to.StringPtr("k8s-ag-ingress---service-name---80-pb---name--"),
 			Etag: nil,
 			Type: nil,
 			ID:   nil,

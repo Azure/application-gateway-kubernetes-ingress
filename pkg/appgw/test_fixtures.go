@@ -113,46 +113,40 @@ func getCertsTestFixture() map[string]interface{} {
 	return toAdd
 }
 
-func makeIngressTestFixture() v1beta1.Ingress {
-	return v1beta1.Ingress{
+func makeIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
+	return &v1beta1.IngressBackend{
+		ServiceName: serviceName,
+		ServicePort: intstr.IntOrString{
+			IntVal: port,
+		},
+	}
+}
+
+func makeIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
+	return v1beta1.IngressRule{
+		Host: host,
+		IngressRuleValue: v1beta1.IngressRuleValue{
+			HTTP: &v1beta1.HTTPIngressRuleValue{
+				Paths: []v1beta1.HTTPIngressPath{
+					{
+						Path:    urlPath,
+						Backend: be,
+					},
+				},
+			},
+		},
+	}
+}
+
+func makeIngressFixture() *v1beta1.Ingress {
+	be80 := makeIngressBackendFixture(testFixturesServiceName, 80)
+	be443 := makeIngressBackendFixture(testFixturesServiceName, 443)
+
+	return &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
-				{
-					Host: testFixturesHost,
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								{
-									Path: testFixturesURLPath,
-									Backend: v1beta1.IngressBackend{
-										ServiceName: testFixturesServiceName,
-										ServicePort: intstr.IntOrString{
-											IntVal: 8080,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					Host: testFixturesOtherHost,
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								{
-									Path: testFixturesURLPath,
-									Backend: v1beta1.IngressBackend{
-										ServiceName: testFixturesServiceName,
-										ServicePort: intstr.IntOrString{
-											IntVal: 8989,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				makeIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be80),
+				makeIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be443),
 			},
 			TLS: []v1beta1.IngressTLS{
 				{
@@ -244,7 +238,26 @@ func makeServicePorts() *[]v1.ServicePort {
 	}
 }
 
-func makePod(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
+func makeProbeFixture(containerName string) *v1.Probe {
+	return &v1.Probe{
+		TimeoutSeconds:   5,
+		FailureThreshold: 3,
+		PeriodSeconds:    20,
+		Handler: v1.Handler{
+			HTTPGet: &v1.HTTPGetAction{
+				Host: testFixturesHost,
+				Path: testFixturesURLPath,
+				Port: intstr.IntOrString{
+					Type:   intstr.String,
+					StrVal: containerName,
+				},
+				Scheme: v1.URISchemeHTTP,
+			},
+		},
+	}
+}
+
+func makePodFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -264,29 +277,14 @@ func makePod(serviceName string, ingressNamespace string, containerName string, 
 							ContainerPort: containerPort,
 						},
 					},
-					ReadinessProbe: &v1.Probe{
-						TimeoutSeconds:   5,
-						FailureThreshold: 3,
-						PeriodSeconds:    20,
-						Handler: v1.Handler{
-							HTTPGet: &v1.HTTPGetAction{
-								Host: testFixturesHost,
-								Path: testFixturesURLPath,
-								Port: intstr.IntOrString{
-									Type:   intstr.String,
-									StrVal: containerName,
-								},
-								Scheme: v1.URISchemeHTTP,
-							},
-						},
-					},
+					ReadinessProbe: makeProbeFixture(containerName),
 				},
 			},
 		},
 	}
 }
 
-func makeService(servicePorts ...v1.ServicePort) *v1.Service {
+func makeServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testFixturesServiceName,
@@ -308,7 +306,7 @@ func makeService(servicePorts ...v1.ServicePort) *v1.Service {
 	}
 }
 
-func makeEndpoints() *v1.Endpoints {
+func makeEndpointsFixture() *v1.Endpoints {
 	return &v1.Endpoints{
 		Subsets: []v1.EndpointSubset{
 			{
