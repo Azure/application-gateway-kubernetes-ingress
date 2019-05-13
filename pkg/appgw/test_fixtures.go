@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -196,7 +197,8 @@ func makeServicePorts() *[]v1.ServicePort {
 		// This field is ignored for services with clusterIP=None, and should be
 		// omitted or set equal to the 'port' field.
 		TargetPort: intstr.IntOrString{
-			IntVal: 8181,
+			Type:   intstr.Int,
+			IntVal: testFixturesContainerPort,
 		},
 	}
 
@@ -215,8 +217,7 @@ func makeServicePorts() *[]v1.ServicePort {
 		Protocol: v1.ProtocolTCP,
 		Port:     554,
 		TargetPort: intstr.IntOrString{
-			Type:   intstr.Int,
-			IntVal: testFixturesContainerPort,
+			IntVal: 8181,
 		},
 	}
 
