@@ -5,6 +5,10 @@
   * [Without specified hostname](#without-specified-hostname)
   * [With specified hostname](#with-specified-hostname)
 - [Integrate with other services](#integrate-with-other-services)
+- [Adding Health Probes to your service](#adding-health-probes-to-your-service)
+  * [With readinessProbe or livenessProbe](#with-readinessprobe-or-livenessprobe)
+  * [Without readinessProbe or livenessProbe](#without-readinessprobe-or-livenessprobe)
+  * [Default Values for Health Probe](#default-values-for-health-probe)
 - [Expose a WebSocket server](#expose-a-websocket-server)
 
 # Tutorials
@@ -178,6 +182,55 @@ spec:
           servicePort: 80
 ```
 
+## Adding Health Probes to your service
+By default, Ingress controller will provision a HTTP GET probe for the exposed pods.  
+The probe properties can customized by adding a Readiness or a Liveness Probe to your deployment/pod spec.
+
+### With `readinessProbe` or `livenessProbe`
+```yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: aspnetapp
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        service: site
+    spec:
+      containers:
+      - name: aspnetapp
+        image: mcr.microsoft.com/dotnet/core/samples:aspnetapp
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 3
+          timeoutSeconds: 1
+```
+
+*Note:*
+1) `readinessProbe` and `livenessProbe` are supported when configured with `httpGet`.
+2) Probing on a port other than the one exposed on the pod is currently not supported.
+3) `HttpHeaders`, `InitialDelaySeconds`, `SuccessThreshold` are not supported.
+
+###  Without `readinessProbe` or `livenessProbe`
+If the above probes are not provided, then Ingress Controller make an assumption that the service is reachable on `Path` specified for `backend-path-prefix` annotation or the `path` specified in the `ingress` definition for the service.
+
+### Default Values for Health Probe
+For any property that can not be inferred by the readiness/liveness probe, Default values are set.
+| Application Gateway Probe Property | Default Value |
+|-|-|
+| Path | / |
+| Host | localhost |
+| Protocol | HTTP |
+| Timeout | 30 |
+| Interval | 30 |
+| UnhealthyThreshold | 3 |
 
 ## Expose a WebSocket server
 
