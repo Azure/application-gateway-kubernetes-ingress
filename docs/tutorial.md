@@ -5,6 +5,7 @@
   * [Without specified hostname](#without-specified-hostname)
   * [With specified hostname](#with-specified-hostname)
 - [Integrate with other services](#integrate-with-other-services)
+- [Expose a WebSocket server](#expose-a-websocket-server)
 
 # Tutorials
 These tutorials help illustrate the usage of [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) to expose an example Kubernetes service through the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) over HTTP or HTTPS.
