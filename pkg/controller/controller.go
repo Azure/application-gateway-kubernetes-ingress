@@ -101,7 +101,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Replace the current appgw config with the generated one
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
 
-	c.addTags(&appGw)
+	addTags(&appGw)
 
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
@@ -127,7 +127,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 }
 
 // addTags will add certain tags to Application Gateway
-func (c *AppGwIngressController) addTags(appGw *network.ApplicationGateway) {
+func addTags(appGw *network.ApplicationGateway) {
 	if appGw.Tags == nil {
 		appGw.Tags = make(map[string]*string)
 	}
