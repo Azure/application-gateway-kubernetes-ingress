@@ -20,6 +20,9 @@ To run the CMake targets:
 ## Running it locally
 This section outlines the environment variables and files necessary to successfully compile and run the Go binary, then connect it to an [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes).
 
+### Build the binary
+Use the `cmake` steps above to create the `./bin/appgw-ingress' executable.
+
 ### Obtain Azure Credentials
 
 In order to run the Go binary locally and control a remote AKS server, you need Azure credentials. These will be stored in a JSON file in your home directory.
@@ -60,21 +63,6 @@ export APPGW_RESOURCE_GROUP=ABC  # YOUR resource group
 export APPGW_NAME=123  # YOUR newly created Application Gateway's name
 
 export AKS_API="abc.westus2.azmk8s.io"  # YOUR AKS API Server
-
-export GOOS=linux
-export GOBIN=`pwd`/bin
-GO_PROJ="github.com/Azure/application-gateway-kubernetes-ingress"
-GO_PKGS=`go list ./... | grep -v vendor/`
-GO_FILES=`find . -type f -name '*.go' -not -path "./vendor/*"`
-
-echo -e "\e[44;97m Compiling ... \e[0m"
-if  go install -v ./cmd/appgw-ingress; then
-    chmod -R 777 bin
-    echo -e "\e[42;97m Build SUCCEEDED \e[0m"
-else
-    echo -e "\e[101;97m Build FAILED \e[0m"
-    exit 1
-fi
 
 ./bin/appgw-ingress \
     --in-cluster=false \
