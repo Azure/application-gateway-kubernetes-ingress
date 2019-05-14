@@ -63,7 +63,7 @@ func governor(val string) string {
 	separator := "-"
 	prefix := val[0 : maxLen-len(hash)-len(separator)]
 	finalVal := fmt.Sprintf("%s%s%s", prefix, separator, hash)
-	glog.Infof("Prop name %s with length %d is longer than %d; Transformed to %s", val, len(val), maxLen, finalVal)
+	glog.Infof("Prop name %s with length %d is longer than %d characters; Transformed to %s", val, len(val), maxLen, finalVal)
 	return finalVal
 }
 
