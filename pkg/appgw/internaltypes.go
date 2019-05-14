@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -61,7 +62,9 @@ func governor(val string) string {
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(val)))
 	separator := "-"
 	prefix := val[0 : maxLen-len(hash)-len(separator)]
-	return fmt.Sprintf("%s%s%s", prefix, separator, hash)
+	finalVal := fmt.Sprintf("%s%s%s", prefix, separator, hash)
+	glog.Infof("Prop name %s with length %d is longer than %d; Transformed to %s", val, len(val), maxLen, finalVal)
+	return finalVal
 }
 
 func (s serviceIdentifier) serviceFullName() string {
