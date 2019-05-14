@@ -82,4 +82,43 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected))
 		})
 	})
+
+	Context("test string key generator too long", func() {
+		It("preserves keys of length 80 characters or less", func() {
+			actual := governor("this-is-the-key")
+			expected := "this-is-the-key"
+			Expect(actual).To(Equal(expected))
+		})
+		It("preserves 80 characters", func() {
+			key80Chars := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+			Expect(len(key80Chars)).To(Equal(80))
+			actual := governor(key80Chars)
+			Expect(actual).To(Equal(key80Chars))
+		})
+		It("hashes 81 characters", func() {
+			key80Chars := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+			Expect(len(key80Chars)).To(Equal(81))
+			expected := "prop-4d1f7bb876c6aae013f06a7430b8c6545ff30d8f9252838eb18b6357c1a2ba13"
+			actual := governor(key80Chars)
+			Expect(actual).To(Equal(expected))
+		})
+		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
+			expected := "k8s-ag-ingress-xxxxxx-yyyyyy-pb-zzzz"
+			serviceName := "xxxxxx"
+			servicePort := "yyyyyy"
+			ingress := "zzzz"
+			actual := generateProbeName(serviceName, servicePort, ingress)
+			Expect(actual).To(Equal(expected))
+		})
+		It("generateProbeName relies on governor and hashes long keys", func() {
+			expected := "prop-9cd4659f054843cb25d7ecb38b0626ce91f0dfbf5099b7f65435b0bd242fd0c0"
+			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+			actual := generateProbeName(serviceName, servicePort, ingress)
+			Expect(actual).To(Equal(expected))
+		})
+	})
 })

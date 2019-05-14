@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -51,6 +52,14 @@ type frontendListenerAzureConfig struct {
 	SslRedirectConfigurationName string
 }
 
+// governor ensures that the string generated is not longer than 80 characters.
+func governor(val string) string {
+	if len(val) <= 80 {
+		return val
+	}
+	return fmt.Sprintf("prop-%x", sha256.Sum256([]byte(val)))
+}
+
 func (s serviceIdentifier) serviceFullName() string {
 	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
@@ -76,7 +85,7 @@ func generateHTTPSettingsName(serviceName string, servicePort string, backendPor
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress string) string {
-	return fmt.Sprintf("%s-%v-%v-pb-%s", agPrefix, serviceName, servicePort, ingress)
+	return governor(fmt.Sprintf("%s-%v-%v-pb-%s", agPrefix, serviceName, servicePort, ingress))
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
