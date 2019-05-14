@@ -8,6 +8,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
+// getSslCertificates obtains all SSL Certificates for the given Ingress object.
 func (builder *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewaySslCertificate {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
@@ -19,7 +20,7 @@ func (builder *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ing
 
 	var sslCertificates []network.ApplicationGatewaySslCertificate
 	for secretID, cert := range secretIDCertificateMap {
-		sslCertificates = append(sslCertificates, makeCert(secretID, cert))
+		sslCertificates = append(sslCertificates, newCert(secretID, cert))
 	}
 	return &sslCertificates
 }
@@ -37,11 +38,9 @@ func (builder *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.In
 		}
 
 		// add hostname-tlsSecret mapping to a per-ingress map
-		cert := builder.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey())
-		if cert == nil {
-			continue
+		if cert := builder.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey()); cert != nil {
+			secretIDCertificateMap[tlsSecret] = to.StringPtr(base64.StdEncoding.EncodeToString(cert))
 		}
-		secretIDCertificateMap[tlsSecret] = to.StringPtr(base64.StdEncoding.EncodeToString(cert))
 	}
 	return secretIDCertificateMap
 }
@@ -69,7 +68,7 @@ func (builder *appGwConfigBuilder) getCertificateV1(ingress *v1beta1.Ingress, ho
 	return cert, &secID
 }
 
-func (builder *appGwConfigBuilder) makeHostToSecretMap(ingress *v1beta1.Ingress) map[string]secretIdentifier {
+func (builder *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[string]secretIdentifier {
 	hostToSecretMap := make(map[string]secretIdentifier)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -104,7 +103,7 @@ func (builder *appGwConfigBuilder) makeHostToSecretMap(ingress *v1beta1.Ingress)
 	return hostToSecretMap
 }
 
-func makeCert(secretID secretIdentifier, cert *string) network.ApplicationGatewaySslCertificate {
+func newCert(secretID secretIdentifier, cert *string) network.ApplicationGatewaySslCertificate {
 	return network.ApplicationGatewaySslCertificate{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(secretID.secretFullName()),
