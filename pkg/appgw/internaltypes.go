@@ -54,10 +54,14 @@ type frontendListenerAzureConfig struct {
 
 // governor ensures that the string generated is not longer than 80 characters.
 func governor(val string) string {
-	if len(val) <= 80 {
+	maxLen := 80
+	if len(val) <= maxLen {
 		return val
 	}
-	return fmt.Sprintf("prop-%x", sha256.Sum256([]byte(val)))
+	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(val)))
+	separator := "-"
+	prefix := val[0 : maxLen-len(hash)-len(separator)]
+	return fmt.Sprintf("%s%s%s", prefix, separator, hash)
 }
 
 func (s serviceIdentifier) serviceFullName() string {
