@@ -403,6 +403,9 @@
             "name": "[variables('applicationGatewayName')]",
             "apiVersion": "2018-08-01",
             "location": "[resourceGroup().location]",
+            "tags": {
+                "managed-by-k8s-ingress": "true"
+            },
             "properties": {
                 "sku": {
                     "name": "[parameters('applicationGatewaySku')]",
