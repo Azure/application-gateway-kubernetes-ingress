@@ -57,12 +57,14 @@ The file will contain a JSON blob with the following shape:
 set -auexo pipefail
 
 export AZURE_AUTH_LOCATION=$HOME/.azure/azureAuth.json
-export KUBERNETES_WATCHNAMESPACE=default
+
+export AKS_API="abc.westus2.azmk8s.io"  # YOUR AKS API Server
+
 export APPGW_SUBSCRIPTION_ID=XYZ  # YOUR subscription ID
 export APPGW_RESOURCE_GROUP=ABC  # YOUR resource group
 export APPGW_NAME=123  # YOUR newly created Application Gateway's name
 
-export AKS_API="abc.westus2.azmk8s.io"  # YOUR AKS API Server
+export KUBERNETES_WATCHNAMESPACE=default
 
 ./bin/appgw-ingress \
     --in-cluster=false \
