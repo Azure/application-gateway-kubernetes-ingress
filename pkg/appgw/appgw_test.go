@@ -154,45 +154,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName,
-			Namespace: ingressNS,
-			Labels: map[string]string{
-				"app": "frontend",
-			},
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  serviceName,
-					Image: "image",
-					Ports: []v1.ContainerPort{
-						{
-							Name:          backendName,
-							ContainerPort: backendPort,
-						},
-					},
-					ReadinessProbe: &v1.Probe{
-						TimeoutSeconds:   5,
-						FailureThreshold: 3,
-						PeriodSeconds:    20,
-						Handler: v1.Handler{
-							HTTPGet: &v1.HTTPGetAction{
-								Host: "bye.com",
-								Path: "/healthz",
-								Port: intstr.IntOrString{
-									Type:   intstr.String,
-									StrVal: backendName,
-								},
-								Scheme: v1.URISchemeHTTP,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	pod := makePodFixture(serviceName, ingressNS, backendName, backendPort)
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
@@ -216,18 +178,21 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &probeName,
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:           network.HTTP,
-				Host:               to.StringPtr("bye.com"),
-				Path:               to.StringPtr("/healthz"),
+				Host:               to.StringPtr(testFixturesHost),
+				Path:               to.StringPtr(testFixturesURLPath),
 				Interval:           to.Int32Ptr(20),
 				UnhealthyThreshold: to.Int32Ptr(3),
 				Timeout:            to.Int32Ptr(5),
 			},
 		}
 
+		probes := *appGW.Probes
+		Expect(len(probes)).To(Equal(2))
+
 		// Test the default health probe.
-		Expect((*appGW.Probes)[0]).To(Equal(defaultProbe()))
+		Expect(probes).To(ContainElement(defaultProbe()))
 		// Test the ingress health probe that we installed.
-		Expect((*appGW.Probes)[1]).To(Equal(*probe))
+		Expect(probes).To(ContainElement(*probe))
 	}
 
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
@@ -700,14 +665,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
 			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
 			// Set the ingress annotation for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
 
 			// Update the ingress.
 			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
-			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run()
@@ -746,10 +711,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				}
 
+				backendSettings := *appGW.BackendHTTPSettingsCollection
+
+				defaultProbe := defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))
+
+				Expect(len(backendSettings)).To(Equal(2))
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
+				Expect(backendSettings).To(ContainElement(defaultProbe))
 				// Test the ingress backend HTTP setting that we installed.
-				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
 			testAGConfig(ingressList, appGwConfigSettings{
