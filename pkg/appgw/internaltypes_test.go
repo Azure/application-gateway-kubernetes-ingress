@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -87,7 +88,7 @@ var _ = Describe("Test string key generators", func() {
 		It("preserves keys of length 80 characters or less", func() {
 			actual := governor("this-is-the-key")
 			expected := "this-is-the-key"
-			Expect(actual).To(Equal(expected))
+			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected name: %s", expected))
 		})
 		It("preserves 80 characters", func() {
 			key80Chars := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" +
@@ -100,7 +101,7 @@ var _ = Describe("Test string key generators", func() {
 			key80Chars := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" +
 				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			Expect(len(key80Chars)).To(Equal(81))
-			expected := "xxxxxxxxxxxxxxx-4d1f7bb876c6aae013f06a7430b8c6545ff30d8f9252838eb18b6357c1a2ba13"
+			expected := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-21360fb332fac3e20710495d135a23d4"
 			actual := governor(key80Chars)
 			Expect(actual).To(Equal(expected))
 			Expect(len(actual)).To(Equal(80))
@@ -114,13 +115,13 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected))
 		})
 		It("generateProbeName relies on governor and hashes long keys", func() {
-			expected := "k8s-ag-ingress--9cd4659f054843cb25d7ecb38b0626ce91f0dfbf5099b7f65435b0bd242fd0c0"
+			expected := "k8s-ag-ingress-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-a68359d4111b72692502fe32a108c47f"
 			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
 			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(len(actual)).To(Equal(80))
-			Expect(actual).To(Equal(expected))
+			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected name: %s", expected))
 		})
 	})
 })

@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -59,7 +59,7 @@ func governor(val string) string {
 	if len(val) <= maxLen {
 		return val
 	}
-	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(val)))
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(val)))
 	separator := "-"
 	prefix := val[0 : maxLen-len(hash)-len(separator)]
 	finalVal := fmt.Sprintf("%s%s%s", prefix, separator, hash)
