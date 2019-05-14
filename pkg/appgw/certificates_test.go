@@ -1,13 +1,13 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"k8s.io/client-go/tools/cache"
 	"testing"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/tools/cache"
 )
 
 func TestMakeHostToSecretMap(t *testing.T) {
@@ -29,10 +29,10 @@ var _ = Describe("makeHostToSecretMap", func() {
 		}
 		_ = cb.k8sContext.Caches.Secret.Add(cacheKey)
 
-		ingress := makeIngressTestFixture()
+		ingress := makeIngressFixture()
 
 		// !! Action !!
-		actual := cb.makeHostToSecretMap(&ingress)
+		actual := cb.makeHostToSecretMap(ingress)
 
 		expected := map[string]secretIdentifier{
 			"ftp.contoso.com": {
@@ -58,13 +58,13 @@ var _ = Describe("makeHostToSecretMap", func() {
 	})
 
 	Context("running", func() {
-		ingress := makeIngressTestFixture()
+		ingress := makeIngressFixture()
 		cb := makeConfigBuilderTestFixture(nil)
 
 		var secrets map[string]secretIdentifier
 
 		// !! Action !!
-		secrets = cb.makeHostToSecretMap(&ingress)
+		secrets = cb.makeHostToSecretMap(ingress)
 
 		It("should have exact number of keys", func() {
 			Expect(len(secrets)).To(Equal(4))
@@ -94,19 +94,19 @@ var _ = Describe("makeHostToSecretMap", func() {
 		certs := getCertsTestFixture()
 		cb := makeConfigBuilderTestFixture(&certs)
 
-		ing1 := makeIngressTestFixture()
-		ing1.Annotations[annotations.SslRedirectKey] = "true"
+		ingress := makeIngressFixture()
+		ingress.Annotations[annotations.SslRedirectKey] = "true"
 
-		secrets := cb.makeHostToSecretMap(&ing1)
+		secrets := cb.makeHostToSecretMap(ingress)
 
 		It("ingress should be setup with 2 TLS records", func() {
-			Expect(len(ing1.Spec.TLS)).To(Equal(2))
+			Expect(len(ingress.Spec.TLS)).To(Equal(2))
 		})
 		It("verify setup", func() {
-			tls := ing1.Spec.TLS[0]
+			tls := ingress.Spec.TLS[0]
 			tlsSecret := secretIdentifier{
 				Name:      tls.SecretName,
-				Namespace: ing1.Namespace,
+				Namespace: ingress.Namespace,
 			}
 			expected := testFixturesNamespace + "/" + testFixturesNameOfSecret
 			Expect(tlsSecret.secretKey()).To(Equal(expected))
