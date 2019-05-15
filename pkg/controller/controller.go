@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 )
@@ -100,6 +101,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Replace the current appgw config with the generated one
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
 
+	addTags(&appGw)
+
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
 
@@ -121,6 +124,15 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	return nil
+}
+
+// addTags will add certain tags to Application Gateway
+func addTags(appGw *network.ApplicationGateway) {
+	if appGw.Tags == nil {
+		appGw.Tags = make(map[string]*string)
+	}
+	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
+	appGw.Tags[isManagedByK8sIngress] = to.StringPtr("true")
 }
 
 // Start function runs the k8scontext and continues to listen to the

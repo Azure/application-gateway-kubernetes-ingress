@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.4.0-rc1
+  tag: 0.4.0
   pullPolicy: Always
 
 ################################################################################
