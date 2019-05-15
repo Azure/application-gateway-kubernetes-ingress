@@ -70,7 +70,7 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 		cb := makeConfigBuilderTestFixture(nil)
 		ingress := makeIngressFixture()
 		hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
-		actualSecret, actualSecretID := cb.getCertificateV1(ingress, host1, hostnameSecretIDMap)
+		actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)
 
 		It("should have generated the expected secret", func() {
 			Expect(*actualSecret).To(Equal("eHl6"))
