@@ -124,4 +124,41 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected name: %s", expected))
 		})
 	})
+	Context("test string key generator too long", func() {
+		It("preserves keys of length 80 characters or less", func() {
+			namespace := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+			// ensure this is setup correctly
+			Ω(len(namespace)).Should(BeNumerically("==", 80))
+			name := namespace
+			serviceName := namespace
+			servicePort := namespace
+			backendPortNo := int32(8888)
+			ingress := namespace
+			port := int32(88)
+			felID := frontendListenerIdentifier{
+				FrontendPort: port,
+				HostName:     namespace,
+			}
+			names := []string{
+				getResourceKey(namespace, name),
+				generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress),
+				generateProbeName(serviceName, servicePort, ingress),
+				generateAddressPoolName(serviceName, servicePort, backendPortNo),
+				generateFrontendPortName(port),
+				generateHTTPListenerName(felID),
+				generateURLPathMapName(felID),
+				generateRequestRoutingRuleName(felID),
+				generateSSLRedirectConfigurationName(namespace, ingress),
+			}
+			Expect(len(names)).To(Equal(9))
+
+			// Ensure the strings are unique
+			nameSet := make(map[string]interface{})
+			for _, name := range names {
+				Ω(len(name)).Should(BeNumerically("<=", 80))
+				nameSet[name] = nil
+			}
+			Expect(len(nameSet)).To(Equal(len(names)))
+		})
+	})
 })

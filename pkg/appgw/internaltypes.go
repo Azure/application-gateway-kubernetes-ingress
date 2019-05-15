@@ -68,27 +68,27 @@ func governor(val string) string {
 }
 
 func (s serviceIdentifier) serviceFullName() string {
-	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
+	return governor(fmt.Sprintf("%v-%v", s.Namespace, s.Name))
 }
 
 func (s serviceIdentifier) serviceKey() string {
-	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
+	return governor(fmt.Sprintf("%v/%v", s.Namespace, s.Name))
 }
 
 func (s secretIdentifier) secretKey() string {
-	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
+	return governor(fmt.Sprintf("%v/%v", s.Namespace, s.Name))
 }
 
 func (s secretIdentifier) secretFullName() string {
-	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
+	return governor(fmt.Sprintf("%v-%v", s.Namespace, s.Name))
 }
 
 func getResourceKey(namespace, name string) string {
-	return fmt.Sprintf("%v/%v", namespace, name)
+	return governor(fmt.Sprintf("%v/%v", namespace, name))
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
+	return governor(fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress string) string {
@@ -96,27 +96,27 @@ func generateProbeName(serviceName string, servicePort string, ingress string) s
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return fmt.Sprintf("%s-%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo)
+	return governor(fmt.Sprintf("%s-%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo))
 }
 
 func generateFrontendPortName(port int32) string {
-	return fmt.Sprintf("%s-fp-%v", agPrefix, port)
+	return governor(fmt.Sprintf("%s-fp-%v", agPrefix, port))
 }
 
 func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("%s-%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return governor(fmt.Sprintf("%s-%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("%s-%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return governor(fmt.Sprintf("%s-%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
-	return fmt.Sprintf("%s-%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort)
+	return governor(fmt.Sprintf("%s-%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	return fmt.Sprintf("%s-%s-%s-sslr", agPrefix, namespace, ingress)
+	return governor(fmt.Sprintf("%s-%s-%s-sslr", agPrefix, namespace, ingress))
 }
 
 const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
