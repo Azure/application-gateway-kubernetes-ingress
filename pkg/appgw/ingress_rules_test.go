@@ -102,6 +102,11 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := makeConfigBuilderTestFixture(&certs)
 		ingress := makeIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
+		It("should have setup tests with some TLS certs", func() {
+			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
+		})
+
+		// !! Action !!
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
 		It("should configure App Gateway listeners correctly with SSL", func() {
