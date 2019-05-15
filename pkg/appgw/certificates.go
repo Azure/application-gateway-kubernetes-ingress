@@ -45,8 +45,7 @@ func (builder *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.In
 	return secretIDCertificateMap
 }
 
-// TODO(draychev): Remove V1 when the old declaration of getCertificate(...) is removed from the code base
-func (builder *appGwConfigBuilder) getCertificateV1(ingress *v1beta1.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
+func (builder *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
 	if hostnameSecretIDMap == nil {
 		return nil, nil
 	}
