@@ -1,9 +1,11 @@
 package appgw
 
 import (
+	"fmt"
+	"github.com/Azure/go-autorest/autorest/to"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
@@ -15,6 +17,21 @@ func TestFrontendListeners(t *testing.T) {
 }
 
 var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
+
+	listener80 := frontendListenerIdentifier{
+		FrontendPort: int32(80),
+		HostName:     testFixturesHost,
+	}
+
+	listenerAzConfigNoSSL := frontendListenerAzureConfig{
+		Protocol: "Http",
+		Secret: secretIdentifier{
+			Namespace: "",
+			Name:      "",
+		},
+		SslRedirectConfigurationName: "",
+	}
+
 	Context("ingress rules without certificates", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
@@ -22,26 +39,12 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		ingressList := []*v1beta1.Ingress{ingress}
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
-		expectedListener80 := frontendListenerIdentifier{
-			FrontendPort: int32(80),
-			HostName:     testFixturesHost,
-		}
-
-		expectedListenerAzConfigNoSSL := frontendListenerAzureConfig{
-			Protocol: "Http",
-			Secret: secretIdentifier{
-				Namespace: "",
-				Name:      "",
-			},
-			SslRedirectConfigurationName: "",
-		}
-
 		It("should construct the App Gateway listeners correctly without SSL", func() {
 			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
 			Expect(len(azConfigMapKeys)).To(Equal(2))
-			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
-			actualVal := httpListenersAzureConfigMap[expectedListener80]
-			Expect(*actualVal).To(Equal(expectedListenerAzConfigNoSSL))
+			Expect(azConfigMapKeys).To(ContainElement(listener80))
+			actualVal := httpListenersAzureConfigMap[listener80]
+			Expect(*actualVal).To(Equal(listenerAzConfigNoSSL))
 		})
 	})
 	Context("two ingresses with multiple ports", func() {
@@ -64,7 +67,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 
 		It("should have correct values for listeners", func() {
 			// Get the HTTPS listener for this test
-			var listener network.ApplicationGatewayHTTPListener
+			var listener n.ApplicationGatewayHTTPListener
 			for _, listener = range *listeners {
 				if listener.Protocol == "Https" && *listener.HostName == testFixturesHost {
 					break
@@ -72,18 +75,41 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 
 			Expect(*listener.HostName).To(Equal(testFixturesHost))
-			fePortID := "k8s-ag-ingress-fp-443"
-			expectedPortID := "/subscriptions/" + testFixtureSubscription +
-				"/resourceGroups/" + testFixtureResourceGroup +
-				"/providers/Microsoft.Network" +
-				"/applicationGateways/" + testFixtureAppGwName +
-				"/frontEndPorts/" + fePortID
-			Expect(*listener.FrontendPort.ID).To(Equal(expectedPortID))
+			Expect(*listener.FrontendPort.ID).To(Equal(newPortID(443)))
 
-			expectedProtocol := network.ApplicationGatewayProtocol("Https")
+			expectedProtocol := n.ApplicationGatewayProtocol("Https")
 			Expect(listener.Protocol).To(Equal(expectedProtocol))
 
 			Expect(*listener.FrontendIPConfiguration.ID).To(Equal(testFixtureIPID1))
 		})
 	})
+	Context("create a new App Gateway HTTP Listener", func() {
+		It("should create a correct App Gwy listener", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			listener := cb.newAppGatewayHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			const expectedName = "k8s-ag-ingress-bye.com-80-fl"
+
+			expected := n.ApplicationGatewayHTTPListener{
+				Etag: to.StringPtr("*"),
+				Name: to.StringPtr(expectedName),
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					// TODO: expose this to external configuration
+					FrontendIPConfiguration: resourceRef(testFixtureIPID1),
+					FrontendPort:            resourceRef(newPortID(80)),
+					Protocol:                n.ApplicationGatewayProtocol("Https"),
+					HostName:                to.StringPtr(testFixturesHost),
+				},
+			}
+
+			Expect(listener).To(Equal(expected))
+		})
+	})
 })
+
+func newPortID(portNumber int32) string {
+	portID := fmt.Sprintf("k8s-ag-ingress-fp-%d", portNumber)
+	return fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s/frontEndPorts/%s",
+		testFixtureSubscription, testFixtureResourceGroup, testFixtureAppGwName, portID)
+}

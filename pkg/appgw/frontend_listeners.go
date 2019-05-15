@@ -6,7 +6,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// getFrontendListeners constructs the unique set of App Gateway HTTP listeners for the list of ingresses passed.
+// getFrontendListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
 func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	legacyMap := make(map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener)
@@ -63,6 +63,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 		}
 	}
 
+	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
 		allListeners[defaultFrontendListenerIdentifier()] = nil
 	}
@@ -74,8 +75,9 @@ func (builder *appGwConfigBuilder) newAppGatewayHTTPListener(listener frontendLi
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
-	feConfigs := *builder.appGwConfig.FrontendIPConfigurations
-	firstConfig := feConfigs[0]
+	// Get the first front end IP config
+	configs := *builder.appGwConfig.FrontendIPConfigurations
+	firstConfig := configs[0]
 
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
