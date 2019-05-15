@@ -87,7 +87,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should create a correct App Gwy listener", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
-			listener := cb.newAppGatewayHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			listener := cb.newHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
 			const expectedName = "k8s-ag-ingress-bye.com-80-fl"
 
 			expected := n.ApplicationGatewayHTTPListener{

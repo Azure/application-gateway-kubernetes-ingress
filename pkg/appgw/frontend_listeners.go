@@ -25,7 +25,7 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 			protocol = n.HTTP
 		}
 
-		httpListener := builder.newAppGatewayHTTPListener(listener, protocol)
+		httpListener := builder.newHTTPListener(listener, protocol)
 
 		listenerHasHostname := len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) > 0
 
@@ -71,7 +71,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 	return allListeners
 }
 
-func (builder *appGwConfigBuilder) newAppGatewayHTTPListener(listener frontendListenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+func (builder *appGwConfigBuilder) newHTTPListener(listener frontendListenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
