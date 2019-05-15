@@ -15,28 +15,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-func (builder *appGwConfigBuilder) getCertificate(ingressKey string, hostname string) (*string, *secretIdentifier) {
-	_, exists := builder.ingressKeyHostnameSecretIDMap[ingressKey]
-	if !exists {
-		return nil, nil
-	}
-	secID, exists := builder.ingressKeyHostnameSecretIDMap[ingressKey][hostname]
-	if !exists {
-		// check if wildcard exists
-		secID, exists = builder.ingressKeyHostnameSecretIDMap[ingressKey][""]
-	}
-	if !exists {
-		// no wildcard or matched certificate
-		return nil, nil
-	}
-	cert, exists := builder.secretIDCertificateMap[secID]
-	if !exists {
-		// secret referred does not correspond to a certificate
-		return nil, nil
-	}
-	return cert, &secID
-}
-
 func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	frontendListeners := utils.NewUnorderedSet()
 	frontendPortsSet := utils.NewUnorderedSet()
@@ -88,7 +66,7 @@ func (builder *appGwConfigBuilder) HTTPListeners(ingressList [](*v1beta1.Ingress
 			}
 
 			httpsAvailable := false
-			cert, secID := builder.getCertificate(ingressKey, rule.Host)
+			cert, secID := builder.getCertificate(ingress, rule.Host, hostnameSecretIDMap)
 			if cert != nil {
 				httpsAvailable = true
 			}
