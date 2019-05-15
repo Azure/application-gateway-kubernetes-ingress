@@ -8,8 +8,7 @@ import (
 )
 
 // processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (utils.UnorderedSet, utils.UnorderedSet, map[frontendListenerIdentifier]*frontendListenerAzureConfig) {
-	frontendListeners := utils.NewUnorderedSet()
+func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (utils.UnorderedSet, map[frontendListenerIdentifier]*frontendListenerAzureConfig) {
 	frontendPorts := utils.NewUnorderedSet()
 
 	ingressHostnameSecretIDMap := builder.newHostToSecretMap(ingress)
@@ -28,7 +27,6 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 		// TODO: Once we introduce an `ssl-redirect` annotation we should enable HTTP for HTTPS rules as well, with the correct SSL redirect configurations setup.
 		if httpsAvailable {
 			listenerIDHTTPS := generateFrontendListenerID(&rule, network.HTTPS, nil)
-			frontendListeners.Insert(listenerIDHTTPS)
 			frontendPorts.Insert(listenerIDHTTPS.FrontendPort)
 
 			felAzConfig := &frontendListenerAzureConfig{
@@ -43,7 +41,6 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 		if annotations.IsSslRedirect(ingress) || !httpsAvailable {
 			// Enable HTTP only if HTTPS has not been specified or if an SSL-redirect annotation has been set to `true`.
 			listenerIDHTTP := generateFrontendListenerID(&rule, network.HTTP, nil)
-			frontendListeners.Insert(listenerIDHTTP)
 			frontendPorts.Insert(listenerIDHTTP.FrontendPort)
 			felAzConfig := &frontendListenerAzureConfig{
 				Protocol: network.HTTP,
@@ -51,5 +48,5 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 			azListenerConfigs[listenerIDHTTP] = felAzConfig
 		}
 	}
-	return frontendListeners, frontendPorts, azListenerConfigs
+	return frontendPorts, azListenerConfigs
 }

@@ -61,15 +61,15 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		frontendListeners, frontendPorts, _ := cb.processIngressRules(ingress)
+		frontendPorts, listenerConfigs := cb.processIngressRules(ingress)
 
 		// Verify front end listeners
 		It("should have correct count of frontend listeners", func() {
-			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
+			Expect(len(listenerConfigs)).To(Equal(1))
 		})
 		It("should have a listener on port 80", func() {
-			actualListener := (frontendListeners.ToSlice()[0]).(frontendListenerIdentifier)
-			Expect(actualListener).To(Equal(expectedListener80))
+			actualListenerID := getMapKeys(&listenerConfigs)[0]
+			Expect(actualListenerID).To(Equal(expectedListener80))
 		})
 
 		// Verify front end ports
@@ -91,7 +91,6 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
-
 			actualVal := httpListenersAzureConfigMap[expectedListener80]
 			Expect(*actualVal).To(Equal(expectedListenerAzConfigNoSSL))
 		})
@@ -126,19 +125,19 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
 
 		// !! Action !!
-		frontendListeners, frontendPorts, _ := cb.processIngressRules(ingress)
+		frontendPorts, frontendListeners := cb.processIngressRules(ingress)
 
 		ingressList := []*v1beta1.Ingress{ingress}
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
 		It("should have correct number of front end listener", func() {
-			Expect(len(frontendListeners.ToSlice())).To(Equal(1))
+			Expect(len(frontendListeners)).To(Equal(1))
 		})
 		It("should have correct number of front end ports", func() {
 			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			actualListener := (frontendListeners.ToSlice()[0]).(frontendListenerIdentifier)
+			actualListener := getMapKeys(&frontendListeners)[0]
 			Expect(actualListener.FrontendPort).To(Equal(port443))
 		})
 		It("should have one port 443", func() {

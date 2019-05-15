@@ -32,6 +32,10 @@ const (
 	testFixturesContainerPort = int32(9876)
 	testFixturesSelectorKey   = "app"
 	testFixturesSelectorValue = "frontend"
+	testFixtureSubscription   = "--subscription--"
+	testFixtureResourceGroup  = "--resource-group--"
+	testFixtureAppGwName      = "--app-gw-name--"
+	testFixtureIPID1          = "--front-end-ip-id-1--"
 )
 
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
@@ -40,7 +44,7 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr("xx4"),
+			ID:   to.StringPtr(testFixtureIPID1),
 		},
 		{
 			Name: to.StringPtr("yy3"),
@@ -79,6 +83,11 @@ func keyFunc(obj interface{}) (string, error) {
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
+		appGwIdentifier: Identifier{
+			SubscriptionID: testFixtureSubscription,
+			ResourceGroup:  testFixtureResourceGroup,
+			AppGwName:      testFixtureAppGwName,
+		},
 		appGwConfig:            newAppGwyConfigFixture(),
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
 		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),

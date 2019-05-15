@@ -3,7 +3,6 @@ package appgw
 import (
 	"testing"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,15 +14,42 @@ func TestFrontendListeners(t *testing.T) {
 	RunSpecs(t, "Test setting up SSL redirect annotations")
 }
 
-var _ = Describe("Process ingress rules and parse front end listener config", func() {
-	Context("with many frontend ports", func() {
+var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
+	Context("ingress rules without certificates", func() {
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
+		ingress := newIngressFixture()
+		ingressList := []*v1beta1.Ingress{ingress}
+		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+
+		expectedListener80 := frontendListenerIdentifier{
+			FrontendPort: int32(80),
+			HostName:     testFixturesHost,
+		}
+
+		expectedListenerAzConfigNoSSL := frontendListenerAzureConfig{
+			Protocol: "Http",
+			Secret: secretIdentifier{
+				Namespace: "",
+				Name:      "",
+			},
+			SslRedirectConfigurationName: "",
+		}
+
+		It("should construct the App Gateway listeners correctly without SSL", func() {
+			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+			Expect(len(azConfigMapKeys)).To(Equal(2))
+			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
+			actualVal := httpListenersAzureConfigMap[expectedListener80]
+			Expect(*actualVal).To(Equal(expectedListenerAzConfigNoSSL))
+		})
+	})
+	Context("two ingresses with multiple ports", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 
 		ing1 := newIngressFixture()
-		ing1.Annotations[annotations.SslRedirectKey] = "true"
 		ing2 := newIngressFixture()
-		ing2.Annotations[annotations.SslRedirectKey] = "true"
 		ingressList := []*v1beta1.Ingress{
 			ing1,
 			ing2,
@@ -44,22 +70,20 @@ var _ = Describe("Process ingress rules and parse front end listener config", fu
 					break
 				}
 			}
-			// TODO(draychev): add a subscription to these tests
-			testSubscription := ""
-
-			// TODO(draychev): add a resource group to these tests
-			testResourceGroup := ""
-
-			// TODO(draychev): add an app gateway name to these tests
-			testAppGateway := ""
 
 			Expect(*listener.HostName).To(Equal(testFixturesHost))
-			expectedPortID := "/subscriptions/" + testSubscription +
-				"/resourceGroups/" + testResourceGroup +
-				"/providers/Microsoft.Network/" +
-				"applicationGateways/" + testAppGateway +
-				"/frontEndPorts/k8s-ag-ingress-fp-443"
+			fePortID := "k8s-ag-ingress-fp-443"
+			expectedPortID := "/subscriptions/" + testFixtureSubscription +
+				"/resourceGroups/" + testFixtureResourceGroup +
+				"/providers/Microsoft.Network" +
+				"/applicationGateways/" + testFixtureAppGwName +
+				"/frontEndPorts/" + fePortID
 			Expect(*listener.FrontendPort.ID).To(Equal(expectedPortID))
+
+			expectedProtocol := network.ApplicationGatewayProtocol("Https")
+			Expect(listener.Protocol).To(Equal(expectedProtocol))
+
+			Expect(*listener.FrontendIPConfiguration.ID).To(Equal(testFixtureIPID1))
 		})
 	})
 })

@@ -1,36 +1,35 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]network.ApplicationGatewayHTTPListener, map[frontendListenerIdentifier]*network.ApplicationGatewayHTTPListener) {
+// getFrontendListeners constructs the unique set of App Gateway HTTP listeners for the list of ingresses passed.
+func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	legacyMap := make(map[frontendListenerIdentifier]*network.ApplicationGatewayHTTPListener)
+	legacyMap := make(map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
-	listenerAzureConfigs := builder.getListenerConfigs(ingressList)
-	var httpListeners []network.ApplicationGatewayHTTPListener
+	var httpListeners []n.ApplicationGatewayHTTPListener
 
-	for listener := range builder.getFrontendListenersMap(ingressList) {
+	for listener, config := range builder.getListenerConfigs(ingressList) {
 		var secretFullName string
-		var protocol network.ApplicationGatewayProtocol
+		var protocol n.ApplicationGatewayProtocol
 
-		if config := listenerAzureConfigs[listener]; config != nil {
+		if config != nil {
 			protocol = config.Protocol
 			secretFullName = config.Secret.secretFullName()
 		} else {
 			// Default protocol
-			protocol = network.HTTP
+			protocol = n.HTTP
 		}
 
-		httpListener := builder.newListener(listener, protocol)
+		httpListener := builder.newAppGatewayHTTPListener(listener, protocol)
 
 		listenerHasHostname := len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) > 0
 
-		if protocol == network.HTTPS {
+		if protocol == n.HTTPS {
 			sslCertificateName := secretFullName
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(sslCertificateName)
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
@@ -42,69 +41,46 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 
 		if listenerHasHostname {
 			// Put the listener at the front of the list!
-			httpListeners = append([]network.ApplicationGatewayHTTPListener{httpListener}, httpListeners...)
+			httpListeners = append([]n.ApplicationGatewayHTTPListener{httpListener}, httpListeners...)
 		} else {
 			httpListeners = append(httpListeners, httpListener)
 		}
 
 		legacyMap[listener] = &httpListener
 	}
-	// TODO(draychev): The second parameter is for compatibility w/ RequestRoutingRules and should be removed ASAP
+
+	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	return &httpListeners, legacyMap
 }
 
-func (builder *appGwConfigBuilder) getFrontendListenersMap(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]interface{} {
-	allListeners := make(map[frontendListenerIdentifier]interface{})
+// getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
+func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]*frontendListenerAzureConfig {
+	allListeners := make(map[frontendListenerIdentifier]*frontendListenerAzureConfig)
 	for _, ingress := range ingressList {
-		feListeners, _, _ := builder.processIngressRules(ingress)
-		for _, listener := range feListeners.ToSlice() {
-			l := listener.(frontendListenerIdentifier)
-			allListeners[l] = nil
+		_, azListenerConfigs := builder.processIngressRules(ingress)
+		for listenerID, azConfig := range azListenerConfigs {
+			allListeners[listenerID] = azConfig
 		}
 	}
 
 	if len(allListeners) == 0 {
-		dflt := defaultFrontendListenerIdentifier()
-		allListeners[dflt] = nil
+		allListeners[defaultFrontendListenerIdentifier()] = nil
 	}
 
 	return allListeners
 }
 
-// TODO(draychev): This function is used in a few places that require UnorderedSet type
-func (builder *appGwConfigBuilder) getFrontendListenersSet(ingressList []*v1beta1.Ingress) utils.UnorderedSet {
-	frontendListeners := utils.NewUnorderedSet()
-	for listener := range builder.getFrontendListenersMap(ingressList) {
-		frontendListeners.Insert(listener)
-	}
-	return frontendListeners
-}
-
-// getListenerConfigs iterates over all ingresses given and collects unique frontend listeners azure configs
-func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]*frontendListenerAzureConfig {
-	httpListenersAzureConfigMap := make(map[frontendListenerIdentifier]*frontendListenerAzureConfig)
-
-	for _, ingress := range ingressList {
-		_, _, azListenerConfigs := builder.processIngressRules(ingress)
-		for felIdentifier, felAzConfig := range azListenerConfigs {
-			httpListenersAzureConfigMap[felIdentifier] = felAzConfig
-		}
-	}
-
-	return httpListenersAzureConfigMap
-}
-
-func (builder *appGwConfigBuilder) newListener(listener frontendListenerIdentifier, protocol network.ApplicationGatewayProtocol) network.ApplicationGatewayHTTPListener {
+func (builder *appGwConfigBuilder) newAppGatewayHTTPListener(listener frontendListenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
 	feConfigs := *builder.appGwConfig.FrontendIPConfigurations
 	firstConfig := feConfigs[0]
 
-	return network.ApplicationGatewayHTTPListener{
+	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(generateHTTPListenerName(listener)),
-		ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
 			FrontendIPConfiguration: resourceRef(*firstConfig.ID),
 			FrontendPort:            resourceRef(frontendPortID),
