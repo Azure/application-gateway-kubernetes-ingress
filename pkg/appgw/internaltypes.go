@@ -8,7 +8,6 @@ package appgw
 import (
 	"crypto/md5"
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
@@ -89,14 +88,7 @@ func getResourceKey(namespace, name string) string {
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	httpSettingsName := fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress)
-	if len(httpSettingsName) > 80 {
-		shortServiceName := serviceName[strings.LastIndex(serviceName, "-")+1:len(serviceName)]
-		shortIngress := ingress[strings.LastIndex(ingress, "-")+1:len(ingress)]
-		httpSettingsName = fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, shortServiceName, servicePort, backendPortNo,
-			shortIngress)
-	} 
-	return httpSettingsName
+	return governor(fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress string) string {

@@ -764,8 +764,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			var backendPortNo int32 = 8089
 			ingress := "cm-acme-http-solver-t8rnf"
 
-			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort , backendPortNo , ingress) 
-			Expect(len(httpSettingsName)).To(Equal(40), "Expected App Gateway Backend Pool with 80 Character but got one with: %d", len(httpSettingsName))
+			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort , backendPortNo , ingress)
+			Ω(len(httpSettingsName)).Should(BeNumerically("<=", 80), "Expected App Gateway Backend Pool with 80 Character but got one with: %d", len(httpSettingsName))
 		})
 	})
 })
