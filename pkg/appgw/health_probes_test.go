@@ -22,19 +22,19 @@ func TestHealthProbes(t *testing.T) {
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
-		cb := makeConfigBuilderTestFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 
-		endpoints := makeEndpointsFixture()
+		endpoints := newEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := makeServiceFixture(*makeServicePorts()...)
+		service := newServiceFixture(*newServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := makePodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			makeIngressFixture(),
+			newIngressFixture(),
 		}
 
 		// !! Action !!
