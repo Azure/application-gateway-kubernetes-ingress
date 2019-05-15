@@ -126,14 +126,15 @@ var _ = Describe("Test string key generators", func() {
 	})
 	Context("test string key generator too long", func() {
 		It("preserves keys of length 80 characters or less", func() {
-			namespace := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+			veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
 			// ensure this is setup correctly
-			Ω(len(namespace)).Should(BeNumerically("==", 80))
-			name := namespace
-			serviceName := namespace
-			servicePort := namespace
+			Ω(len(veryLongString)).Should(BeNumerically(">=", 80))
+			namespace := veryLongString
+			name := veryLongString
+			serviceName := veryLongString
+			servicePort := veryLongString
 			backendPortNo := int32(8888)
-			ingress := namespace
+			ingress := veryLongString
 			port := int32(88)
 			felID := frontendListenerIdentifier{
 				FrontendPort: port,

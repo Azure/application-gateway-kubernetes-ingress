@@ -68,19 +68,19 @@ func governor(val string) string {
 }
 
 func (s serviceIdentifier) serviceFullName() string {
-	return governor(fmt.Sprintf("%v-%v", s.Namespace, s.Name))
+	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
 
 func (s serviceIdentifier) serviceKey() string {
-	return governor(fmt.Sprintf("%v/%v", s.Namespace, s.Name))
+	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
 }
 
 func (s secretIdentifier) secretKey() string {
-	return governor(fmt.Sprintf("%v/%v", s.Namespace, s.Name))
+	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
 }
 
 func (s secretIdentifier) secretFullName() string {
-	return governor(fmt.Sprintf("%v-%v", s.Namespace, s.Name))
+	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
 
 func getResourceKey(namespace, name string) string {
