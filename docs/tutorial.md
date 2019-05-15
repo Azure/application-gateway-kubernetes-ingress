@@ -183,8 +183,8 @@ spec:
 ```
 
 ## Adding Health Probes to your service
-By default, Ingress controller will provision a HTTP GET probe for the exposed pods.  
-The probe properties can customized by adding a Readiness or a Liveness Probe to your deployment/pod spec.
+By default, Ingress controller will provision an HTTP GET probe for the exposed pods.  
+The probe properties can customized by adding a [Readiness or Liveness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) to your `deployment`/`pod` spec.
 
 ### With `readinessProbe` or `livenessProbe`
 ```yaml
@@ -213,6 +213,10 @@ spec:
           timeoutSeconds: 1
 ```
 
+Kubernetes API Reference:
+* [Container Probes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes)
+* [HttpGet Action](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.14/#httpgetaction-v1-core)
+
 *Note:*
 1) `readinessProbe` and `livenessProbe` are supported when configured with `httpGet`.
 2) Probing on a port other than the one exposed on the pod is currently not supported.
@@ -225,12 +229,12 @@ If the above probes are not provided, then Ingress Controller make an assumption
 For any property that can not be inferred by the readiness/liveness probe, Default values are set.
 | Application Gateway Probe Property | Default Value |
 |-|-|
-| Path | / |
-| Host | localhost |
-| Protocol | HTTP |
-| Timeout | 30 |
-| Interval | 30 |
-| UnhealthyThreshold | 3 |
+| `Path` | / |
+| `Host` | localhost |
+| `Protocol` | HTTP |
+| `Timeout` | 30 |
+| `Interval` | 30 |
+| `UnhealthyThreshold` | 3 |
 
 ## Expose a WebSocket server
 
