@@ -88,7 +88,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			listener := cb.newHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
-			const expectedName = "k8s-ag-ingress-bye.com-80-fl"
+			expectedName := agPrefix + "bye.com-80-fl"
 
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
@@ -108,7 +108,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 })
 
 func newPortID(portNumber int32) string {
-	portID := fmt.Sprintf("k8s-ag-ingress-fp-%d", portNumber)
+	portID := fmt.Sprintf("%sfp-%d", agPrefix, portNumber)
 	return fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s/frontEndPorts/%s",
 		testFixtureSubscription, testFixtureResourceGroup, testFixtureAppGwName, portID)
