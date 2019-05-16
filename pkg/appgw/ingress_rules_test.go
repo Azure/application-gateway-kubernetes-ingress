@@ -43,7 +43,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Namespace: testFixturesNamespace,
 			Name:      testFixturesNameOfSecret,
 		},
-		SslRedirectConfigurationName: agPrefix + "-" +
+		SslRedirectConfigurationName: agPrefix +
 			testFixturesNamespace +
 			"-" +
 			testFixturesName +
