@@ -1,0 +1,84 @@
+trigger:
+  branches:
+    include:
+      - master
+  tags:
+    include:
+      - '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  GOBIN:  '$(GOPATH)/bin'
+  GOPATH: '$(system.defaultWorkingDirectory)/gopath'
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)'
+  GOOS: 'linux'
+  GO111MODULE: 'on'
+  GO_PROJ: 'github.com/Azure/$(build.repository.name)'
+
+steps:
+- script: |
+    mkdir -p '$(GOBIN)'
+    mkdir -p '$(GOPATH)/pkg'
+    mkdir -p '$(modulePath)'
+    shopt -s extglob
+    shopt -s dotglob
+    mv !(gopath) '$(modulePath)'
+    echo '##vso[task.prependpath]$(GOBIN)'
+    echo '##vso[task.prependpath]$(GOROOT)/bin'
+  displayName: 'Set up the Go workspace'
+
+- script: |
+    go get -u golang.org/x/lint/golint
+    golint $(find . -type f -name '*.go' -not -path "./vendor/*") > /tmp/lint.out
+    cat /tmp/lint.out 
+    if [ -s /tmp/lint.out ]; then
+        echo -e "\e[101;97m golint FAILED \e[0m"``
+        exit 1
+    else
+        echo -e "\e[42;97m golint SUCCEEDED \e[0m"
+    fi
+  workingDirectory: '$(modulePath)'
+  displayName: 'Go lint'
+
+- script: |
+    if go vet -v ./...; then
+        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
+    else
+        echo -e "\e[101;97m govet FAILED \e[0m"``
+        exit 1
+    fi
+  workingDirectory: '$(modulePath)'
+  displayName: 'Go vet'
+
+- script: |
+    go version
+    echo -e "\e[44;97m Compiling ... \e[0m"
+    if  go install -v ./cmd/appgw-ingress; then
+        chmod -R 777 bin
+        echo -e "\e[42;97m Build SUCCEEDED \e[0m"
+    else
+        echo -e "\e[101;97m Build FAILED \e[0m"
+        exit 1
+    fi
+  workingDirectory: '$(modulePath)'
+  displayName: 'Get dependencies and build'
+  
+- script: go test -v ./...
+  workingDirectory: '$(modulePath)'
+  displayName: 'Run tests'
+
+- task: CopyFiles@2
+  inputs:
+    contents: |
+     $(modulePath)/bin/appgw-ingress
+     $(modulePath)/dockerfiles/deploy.Dockerfile
+     $(modulePath)/scripts/**
+     $(modulePath)/helm/**
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: drop
