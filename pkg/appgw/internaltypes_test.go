@@ -109,7 +109,7 @@ var _ = Describe("Test string key generators", func() {
 			Expect(len(actual)).To(Equal(80))
 		})
 		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
-			expected := "xxxxxx-yyyyyy-pb-zzzz"
+			expected := agPrefix + "xxxxxx-yyyyyy-pb-zzzz"
 			serviceName := "xxxxxx"
 			servicePort := "yyyyyy"
 			ingress := "zzzz"
