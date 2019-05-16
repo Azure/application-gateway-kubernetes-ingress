@@ -19,6 +19,8 @@ func TestStringKeyGenerators(t *testing.T) {
 }
 
 var _ = Describe("Test string key generators", func() {
+	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
 		servicePort := "-service-port-"
@@ -37,49 +39,49 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateHTTPSettingsName returns expected key", func() {
 			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
-			expected := "k8s-ag-ingress---service--name----service-port--bp-8989----ingress---"
+			expected := agPrefix + "--service--name----service-port--bp-8989----ingress---"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateProbeName returns expected key", func() {
 			actual := generateProbeName(serviceName, servicePort, ingress)
-			expected := "k8s-ag-ingress---service--name----service-port--pb----ingress---"
+			expected := agPrefix + "--service--name----service-port--pb----ingress---"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateAddressPoolName returns expected key", func() {
 			actual := generateAddressPoolName(serviceName, servicePort, backendPortNo)
-			expected := "k8s-ag-ingress---service--name----service-port--bp-8989-pool"
+			expected := agPrefix + "--service--name----service-port--bp-8989-pool"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateFrontendPortName returns expected key", func() {
 			actual := generateFrontendPortName(int32(8989))
-			expected := "k8s-ag-ingress-fp-8989"
+			expected := agPrefix + "fp-8989"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateHTTPListenerName returns expected key", func() {
 			actual := generateHTTPListenerName(fel)
-			expected := "k8s-ag-ingress---host--name---9898-fl"
+			expected := agPrefix + "--host--name---9898-fl"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateURLPathMapName returns expected key", func() {
 			actual := generateURLPathMapName(fel)
-			expected := "k8s-ag-ingress---host--name---9898-url"
+			expected := agPrefix + "--host--name---9898-url"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateRequestRoutingRuleName returns expected key", func() {
 			actual := generateRequestRoutingRuleName(fel)
-			expected := "k8s-ag-ingress---host--name---9898-rr"
+			expected := agPrefix + "--host--name---9898-rr"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
 			actual := generateSSLRedirectConfigurationName(testFixturesNamespace, ingress)
-			expected := "k8s-ag-ingress---namespace------ingress----sslr"
+			expected := agPrefix + "--namespace------ingress----sslr"
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -107,7 +109,7 @@ var _ = Describe("Test string key generators", func() {
 			Expect(len(actual)).To(Equal(80))
 		})
 		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
-			expected := "k8s-ag-ingress-xxxxxx-yyyyyy-pb-zzzz"
+			expected := agPrefix + "xxxxxx-yyyyyy-pb-zzzz"
 			serviceName := "xxxxxx"
 			servicePort := "yyyyyy"
 			ingress := "zzzz"
@@ -115,17 +117,17 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected))
 		})
 		It("generateProbeName relies on governor and hashes long keys", func() {
-			expected := "k8s-ag-ingress-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-a68359d4111b72692502fe32a108c47f"
+			expected := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-yyyy-f6ec0d78e6dd6290971a7de1ed28e6a1"
 			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
 			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(len(actual)).To(Equal(80))
-			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected name: %s", expected))
+			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected %s; Got %s", expected, actual))
 		})
 	})
-	Context("test string key generator with very long strings", func() {
-		veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+
+	Context("test property name generator with very long strings", func() {
 		namespace := veryLongString
 		name := veryLongString
 		serviceName := veryLongString
@@ -148,7 +150,7 @@ var _ = Describe("Test string key generators", func() {
 			generateRequestRoutingRuleName(felID),
 			generateSSLRedirectConfigurationName(namespace, ingress),
 		}
-		It("ensure test is setup correctly", func(){
+		It("ensure test is setup correctly", func() {
 			// ensure this is setup correctly
 			Ω(len(veryLongString)).Should(BeNumerically(">=", 80))
 			Expect(len(names)).To(Equal(9))
@@ -162,6 +164,25 @@ var _ = Describe("Test string key generators", func() {
 			}
 			// Uniqueness test
 			Expect(len(nameSet)).To(Equal(len(names)))
+		})
+	})
+
+	Context("test agPrefix sanitizer", func() {
+		It("should fail for long strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString(veryLongString)).To(BeFalse())
+		})
+		It("should pass for short alphanumeric strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("abc-xyz")).To(BeTrue())
+		})
+		It("should pass for empty strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("")).To(BeTrue())
+		})
+		It("should fail for non alphanumeric strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("omega----Ω")).To(BeFalse())
 		})
 	})
 })

@@ -8,7 +8,9 @@ package appgw
 import (
 	"crypto/md5"
 	"fmt"
+	"regexp"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -42,9 +44,9 @@ type secretIdentifier struct {
 	Name      string
 }
 
-const (
-	agPrefix = "k8s-ag-ingress"
-)
+// Max length for a property name is 80 characters. We hash w/ MD5 when length is > 80, which is 32 characters
+var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
+var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type frontendListenerAzureConfig struct {
@@ -88,40 +90,40 @@ func getResourceKey(namespace, name string) string {
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return governor(fmt.Sprintf("%s-%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress))
+	return governor(fmt.Sprintf("%s%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress string) string {
-	return governor(fmt.Sprintf("%s-%v-%v-pb-%s", agPrefix, serviceName, servicePort, ingress))
+	return governor(fmt.Sprintf("%s%v-%v-pb-%s", agPrefix, serviceName, servicePort, ingress))
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return governor(fmt.Sprintf("%s-%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo))
+	return governor(fmt.Sprintf("%s%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo))
 }
 
 func generateFrontendPortName(port int32) string {
-	return governor(fmt.Sprintf("%s-fp-%v", agPrefix, port))
+	return governor(fmt.Sprintf("%sfp-%v", agPrefix, port))
 }
 
 func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s-%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	return governor(fmt.Sprintf("%s%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s-%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	return governor(fmt.Sprintf("%s%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s-%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	return governor(fmt.Sprintf("%s%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	return governor(fmt.Sprintf("%s-%s-%s-sslr", agPrefix, namespace, ingress))
+	return governor(fmt.Sprintf("%s%s-%s-sslr", agPrefix, namespace, ingress))
 }
 
-const defaultBackendHTTPSettingsName = agPrefix + "-defaulthttpsetting"
-const defaultBackendAddressPoolName = agPrefix + "-defaultaddresspool"
-const defaultProbeName = agPrefix + "-defaultprobe"
+var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
+var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
+var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
 
 func defaultBackendHTTPSettings(probeID string) network.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
