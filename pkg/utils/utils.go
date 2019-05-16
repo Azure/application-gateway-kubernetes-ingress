@@ -7,7 +7,9 @@ package utils
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -42,10 +44,18 @@ func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
 }
 
-// GetEnv is an augmentation of the populer os.Getenv, providing it with a default value.
-func GetEnv(environmentVariable, defaultValue string) string {
+// GetEnv is an augmentation of os.Getenv, providing it with a default value.
+func GetEnv(environmentVariable, defaultValue string, validator *regexp.Regexp) string {
 	if value, ok := os.LookupEnv(environmentVariable); ok {
-		return value
+		if validator == nil {
+			return value
+		}
+		if validator.MatchString(value) {
+			glog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
+			return value
+		} else {
+			return defaultValue
+		}
 	}
 	return defaultValue
 }

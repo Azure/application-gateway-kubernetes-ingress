@@ -8,6 +8,7 @@ package appgw
 import (
 	"crypto/md5"
 	"fmt"
+	"regexp"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -43,7 +44,9 @@ type secretIdentifier struct {
 	Name      string
 }
 
-var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX","")
+// Max length for a property name is 80 characters. We hash w/ MD5 when length is > 80, which is 32 characters
+var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
+var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type frontendListenerAzureConfig struct {

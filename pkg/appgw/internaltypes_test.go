@@ -19,6 +19,8 @@ func TestStringKeyGenerators(t *testing.T) {
 }
 
 var _ = Describe("Test string key generators", func() {
+	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
 		servicePort := "-service-port-"
@@ -124,8 +126,8 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected %s; Got %s", expected, actual))
 		})
 	})
+
 	Context("test property name generator with very long strings", func() {
-		veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
 		namespace := veryLongString
 		name := veryLongString
 		serviceName := veryLongString
@@ -148,7 +150,7 @@ var _ = Describe("Test string key generators", func() {
 			generateRequestRoutingRuleName(felID),
 			generateSSLRedirectConfigurationName(namespace, ingress),
 		}
-		It("ensure test is setup correctly", func(){
+		It("ensure test is setup correctly", func() {
 			// ensure this is setup correctly
 			Ω(len(veryLongString)).Should(BeNumerically(">=", 80))
 			Expect(len(names)).To(Equal(9))
@@ -162,6 +164,25 @@ var _ = Describe("Test string key generators", func() {
 			}
 			// Uniqueness test
 			Expect(len(nameSet)).To(Equal(len(names)))
+		})
+	})
+
+	Context("test agPrefix sanitizer", func() {
+		It("should fail for long strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString(veryLongString)).To(BeFalse())
+		})
+		It("should pass for short alphanumeric strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("abc-xyz")).To(BeTrue())
+		})
+		It("should pass for empty strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("")).To(BeTrue())
+		})
+		It("should fail for non alphanumeric strings", func() {
+			// ensure this is setup correctly
+			Expect(agPrefixValidator.MatchString("omega----Ω")).To(BeFalse())
 		})
 	})
 })
