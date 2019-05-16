@@ -7,11 +7,12 @@ package utils
 
 import (
 	"fmt"
-	"github.com/golang/glog"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // MaxInt64 returns the greater one of the two

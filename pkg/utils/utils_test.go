@@ -1,11 +1,12 @@
 package utils_test
 
 import (
+	"os"
+	"regexp"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
-	"regexp"
 )
 
 var _ = Describe("Utils", func() {
