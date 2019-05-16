@@ -43,6 +43,8 @@ var (
 )
 
 func main() {
+	// Log output is buffered... Calling Flush before exiting guarantees all log output is written.
+	defer glog.Flush()
 	if err := flags.Parse(os.Args); err != nil {
 		glog.Fatalf("Error parsing command line arguments: %v", err.Error())
 	}
