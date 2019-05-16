@@ -52,8 +52,9 @@ func GetEnv(environmentVariable, defaultValue string, validator *regexp.Regexp) 
 			return value
 		}
 		if validator.MatchString(value) {
-			glog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
 			return value
+		} else {
+			glog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
 		}
 	}
 	return defaultValue
