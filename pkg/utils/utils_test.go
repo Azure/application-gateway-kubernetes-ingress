@@ -104,16 +104,19 @@ var _ = Describe("Utils", func() {
 		Context("Testing the GetEnv helper", func() {
 			const (
 				expectedEnvVarValue = "expected-value"
-				envVar              = "---some--environment--variable---"
+				envVar              = "---some--environment--variable--with-low-likelihood-that-will-collide---"
 			)
 			BeforeEach(func() {
+				// Make sure the environment variable we are using for this test does not already exist in the OS.
 				_, exists := os.LookupEnv(envVar)
 				Expect(exists).To(BeFalse())
+				// Set it
 				_ = os.Setenv(envVar, expectedEnvVarValue)
 				_, exists = os.LookupEnv(envVar)
 				Expect(exists).To(BeTrue())
 			})
 			AfterEach(func() {
+				// Clean up the env var after the tests are done
 				_ = os.Unsetenv(envVar)
 			})
 			It("returns default value in absence of an env var", func() {
