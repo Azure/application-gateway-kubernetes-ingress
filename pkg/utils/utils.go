@@ -42,6 +42,7 @@ func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
 }
 
+// GetEnv is an augmentation of the populer os.Getenv, providing it with a default value.
 func GetEnv(environmentVariable, defaultValue string) string {
 	if value, ok := os.LookupEnv(environmentVariable); ok {
 		return value
