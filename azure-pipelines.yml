@@ -10,8 +10,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  GOBIN:  '$(GOPATH)/bin'
   GOPATH: '$(system.defaultWorkingDirectory)/gopath'
+  GOBIN:  '$(GOPATH)/bin'
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)'
   GOOS: 'linux'
   GO111MODULE: 'on'
@@ -72,7 +72,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     contents: |
-     $(modulePath)/bin/appgw-ingress
+     $(GOBIN)/appgw-ingress
      $(modulePath)/dockerfiles/deploy.Dockerfile
      $(modulePath)/scripts/**
      $(modulePath)/helm/**
