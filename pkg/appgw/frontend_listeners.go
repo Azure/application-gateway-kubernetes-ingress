@@ -1,8 +1,11 @@
 package appgw
 
 import (
+	"strings"
+	
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -75,19 +78,43 @@ func (builder *appGwConfigBuilder) newHTTPListener(listener frontendListenerIden
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
-	// Get the first front end IP config
-	configs := *builder.appGwConfig.FrontendIPConfigurations
-	firstConfig := configs[0]
-
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(generateHTTPListenerName(listener)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
-			FrontendIPConfiguration: resourceRef(*firstConfig.ID),
+			FrontendIPConfiguration: resourceRef(*builder.getPublicIPID()),
 			FrontendPort:            resourceRef(frontendPortID),
 			Protocol:                protocol,
 			HostName:                &listener.HostName,
 		},
 	}
+}
+
+func (builder *appGwConfigBuilder) getPublicIPID() *string {
+	var publicIPID *string
+	var jsonConfigs []string
+	for _, ip := range *builder.appGwConfig.FrontendIPConfigurations {
+		// Collect the JSON IP configs for debug purposes.
+		if jsonConf, err := ip.MarshalJSON(); err != nil {
+			jsonConfigs = append(jsonConfigs, string(jsonConf))
+		} else {
+			glog.Error("Could not marshall IP configuration: %s: %s", ip.ID, err)
+		}
+		// Either PublicIPAddress is nil or PrivateIPAddress; never both present never both nil;
+		if ip.PublicIPAddress != nil {
+			publicIPID = ip.ID
+		}
+	}
+
+	if publicIPID == nil {
+		// App Gateway will always have a Public IP address.
+		// In the case where somehow it does not have one - it may be appropriate to crash.
+		ips := strings.Join(jsonConfigs, ", ")
+
+		// Will call os.Exit(255)
+		glog.Fatal("HTTP Listener was not able to find a Public IP address for App Gateway. Available IPs: %s", ips)
+	}
+
+	return publicIPID
 }
