@@ -87,7 +87,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			listener := cb.newHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
-			expectedName := agPrefix + "bye.com-80-fl"
+			expectedName := agPrefix + "fl-bye.com-80"
 
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
