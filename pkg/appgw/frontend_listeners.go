@@ -17,13 +17,11 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 	var httpListeners []n.ApplicationGatewayHTTPListener
 
 	for listener, config := range builder.getListenerConfigs(ingressList) {
-		secretFullName := config.Secret.secretFullName()
 		httpListener := builder.newHTTPListener(listener, config.Protocol)
 		listenerHasHostname := len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) > 0
 
 		if config.Protocol == n.HTTPS {
-			sslCertificateName := secretFullName
-			sslCertificateID := builder.appGwIdentifier.sslCertificateID(sslCertificateName)
+			sslCertificateID := builder.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
 
 			if listenerHasHostname {
