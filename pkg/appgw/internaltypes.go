@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+// A note on naming Application Gateway properties:
+// A constraint on the App Gateway property names - these must begin and end with a word character or an underscore
+// A word character is well defined here: https://docs.microsoft.com/en-us/dotnet/standard/base-types/character-classes-in-regular-expressions#WordCharacter
+
 package appgw
 
 import (
@@ -55,8 +59,9 @@ type frontendListenerAzureConfig struct {
 	SslRedirectConfigurationName string
 }
 
-// governor ensures that the string generated is not longer than 80 characters.
-func governor(val string) string {
+// formatPropName ensures that the string generated is not longer than 80 characters.
+func formatPropName(val string) string {
+	// App Gateway property name cannot be longer than 80 characters
 	maxLen := 80
 	if len(val) <= maxLen {
 		return val
@@ -86,39 +91,47 @@ func (s secretIdentifier) secretFullName() string {
 }
 
 func getResourceKey(namespace, name string) string {
-	return governor(fmt.Sprintf("%v/%v", namespace, name))
+	return formatPropName(fmt.Sprintf("%v/%v", namespace, name))
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return governor(fmt.Sprintf("%s%v-%v-bp-%v-%s", agPrefix, serviceName, servicePort, backendPortNo, ingress))
+	namePrefix := "bp-"
+	return formatPropName(fmt.Sprintf("%s%s%v-%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, backendPortNo, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress string) string {
-	return governor(fmt.Sprintf("%s%v-%v-pb-%s", agPrefix, serviceName, servicePort, ingress))
+	namePrefix := "pb-"
+	return formatPropName(fmt.Sprintf("%s%s%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, ingress))
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return governor(fmt.Sprintf("%s%v-%v-bp-%v-pool", agPrefix, serviceName, servicePort, backendPortNo))
+	namePrefix := "pool-"
+	return formatPropName(fmt.Sprintf("%s%s%v-%v-bp-%v", agPrefix, namePrefix, serviceName, servicePort, backendPortNo))
 }
 
 func generateFrontendPortName(port int32) string {
-	return governor(fmt.Sprintf("%sfp-%v", agPrefix, port))
+	namePrefix := "fp-"
+	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
 }
 
 func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s%v-%v-fl", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	namePrefix := "fl-"
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
 
 func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s%v-%v-url", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	namePrefix := "url-"
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
 
 func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
-	return governor(fmt.Sprintf("%s%v-%v-rr", agPrefix, frontendListenerID.HostName, frontendListenerID.FrontendPort))
+	namePrefix := "rr-"
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	return governor(fmt.Sprintf("%s%s-%s-sslr", agPrefix, namespace, ingress))
+	namePrefix := "sslr-"
+	return formatPropName(fmt.Sprintf("%s%s%s-%s", agPrefix, namePrefix, namespace, ingress))
 }
 
 var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
@@ -174,4 +187,14 @@ func defaultFrontendListenerIdentifier() frontendListenerIdentifier {
 		FrontendPort: int32(80),
 		HostName:     "",
 	}
+}
+
+// formatHostname formats the hostname, which could be an empty string.
+func formatHostname(hostName string) string {
+	// Hostname could be empty.
+	if hostName == "" {
+		return ""
+	}
+	// Hostname is NOT empty - prefix it with a dash
+	return fmt.Sprintf("%s-", hostName)
 }

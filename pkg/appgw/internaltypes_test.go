@@ -23,35 +23,35 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
-		servicePort := "-service-port-"
-		serviceName := "--service--name--"
-		ingress := "---ingress---"
+		servicePort := testFixturesServicePort
+		serviceName := testFixturesServiceName
+		ingress := "INGR"
 		fel := frontendListenerIdentifier{
 			FrontendPort: int32(9898),
-			HostName:     "--host--name--",
+			HostName:     testFixturesHost,
 		}
 
 		It("getResourceKey returns expected key", func() {
 			actual := getResourceKey(testFixturesNamespace, testFixturesName)
-			expected := "--namespace--/--name--"
+			expected := testFixturesNamespace + "/" + testFixturesName
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateHTTPSettingsName returns expected key", func() {
 			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
-			expected := agPrefix + "--service--name----service-port--bp-8989----ingress---"
+			expected := agPrefix + "bp-" + testFixturesServiceName + "-" + testFixturesServicePort + "-8989-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateProbeName returns expected key", func() {
 			actual := generateProbeName(serviceName, servicePort, ingress)
-			expected := agPrefix + "--service--name----service-port--pb----ingress---"
+			expected := agPrefix + "pb-" + testFixturesServiceName + "-" + testFixturesServicePort + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateAddressPoolName returns expected key", func() {
 			actual := generateAddressPoolName(serviceName, servicePort, backendPortNo)
-			expected := agPrefix + "--service--name----service-port--bp-8989-pool"
+			expected := agPrefix + "pool-" + testFixturesServiceName + "-" + testFixturesServicePort + "-bp-8989"
 			Expect(actual).To(Equal(expected))
 		})
 
@@ -63,32 +63,32 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateHTTPListenerName returns expected key", func() {
 			actual := generateHTTPListenerName(fel)
-			expected := agPrefix + "--host--name---9898-fl"
+			expected := agPrefix + "fl-" + testFixturesHost + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateURLPathMapName returns expected key", func() {
 			actual := generateURLPathMapName(fel)
-			expected := agPrefix + "--host--name---9898-url"
+			expected := agPrefix + "url-" + testFixturesHost + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateRequestRoutingRuleName returns expected key", func() {
 			actual := generateRequestRoutingRuleName(fel)
-			expected := agPrefix + "--host--name---9898-rr"
+			expected := agPrefix + "rr-" + testFixturesHost + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
 			actual := generateSSLRedirectConfigurationName(testFixturesNamespace, ingress)
-			expected := agPrefix + "--namespace------ingress----sslr"
+			expected := agPrefix + "sslr-" + testFixturesNamespace + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 	})
 
 	Context("test string key generator with long strings", func() {
 		It("should create correct keys when these are over 80 characters long", func() {
-			actual := governor("this-is-the-key")
+			actual := formatPropName("this-is-the-key")
 			expected := "this-is-the-key"
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected name: %s", expected))
 		})
@@ -96,7 +96,7 @@ var _ = Describe("Test string key generators", func() {
 			key80Chars := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" +
 				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			Expect(len(key80Chars)).To(Equal(80))
-			actual := governor(key80Chars)
+			actual := formatPropName(key80Chars)
 			Expect(actual).To(Equal(key80Chars))
 		})
 		It("hashes 81 characters", func() {
@@ -104,26 +104,48 @@ var _ = Describe("Test string key generators", func() {
 				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			Expect(len(key80Chars)).To(Equal(81))
 			expected := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-21360fb332fac3e20710495d135a23d4"
-			actual := governor(key80Chars)
+			actual := formatPropName(key80Chars)
 			Expect(actual).To(Equal(expected))
 			Expect(len(actual)).To(Equal(80))
 		})
 		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
-			expected := agPrefix + "xxxxxx-yyyyyy-pb-zzzz"
+			expected := agPrefix + "pb-xxxxxx-yyyyyy-zzzz"
 			serviceName := "xxxxxx"
 			servicePort := "yyyyyy"
 			ingress := "zzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(actual).To(Equal(expected))
 		})
-		It("generateProbeName relies on governor and hashes long keys", func() {
-			expected := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-yyyy-f6ec0d78e6dd6290971a7de1ed28e6a1"
+		It("generateProbeName relies on formatPropName and hashes long keys", func() {
+			expected := "pb-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-y-e13f2840e3eea9616f3f8cea3d3d5f02"
 			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
 			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(len(actual)).To(Equal(80))
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected %s; Got %s", expected, actual))
+		})
+	})
+
+	Context("test property names that require a host name, but host name is blank", func() {
+		// Listener without a hostname
+		listener := frontendListenerIdentifier{
+			FrontendPort: int32(9898),
+		}
+
+		listenerName := generateHTTPListenerName(listener)
+		It("generateHTTPListenerName should have generated correct name without host name", func() {
+			Expect(listenerName).To(Equal("fl-9898"))
+		})
+
+		pathMapName := generateURLPathMapName(listener)
+		It("generateURLPathMapName should have generated correct name without host name", func() {
+			Expect(pathMapName).To(Equal("url-9898"))
+		})
+
+		ruleName := generateRequestRoutingRuleName(listener)
+		It("generateRequestRoutingRuleName should have generated correct name without host name", func() {
+			Expect(ruleName).To(Equal("rr-9898"))
 		})
 	})
 
