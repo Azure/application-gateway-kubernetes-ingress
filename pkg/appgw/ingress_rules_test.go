@@ -92,7 +92,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
 			actualVal := httpListenersAzureConfigMap[expectedListener80]
-			Expect(*actualVal).To(Equal(expectedListenerAzConfigNoSSL))
+			Expect(actualVal).To(Equal(expectedListenerAzConfigNoSSL))
 		})
 	})
 
@@ -114,7 +114,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener443))
 
 			actualVal := httpListenersAzureConfigMap[expectedListener443]
-			Expect(*actualVal).To(Equal(expectedListenerAzConfigSSL))
+			Expect(actualVal).To(Equal(expectedListenerAzConfigSSL))
 		})
 	})
 
@@ -155,12 +155,12 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(azConfigMapKeys[0].FrontendPort).To(Equal(port443))
 
 			actualVal := httpListenersAzureConfigMap[azConfigMapKeys[0]]
-			Expect(*actualVal).To(Equal(expectedListenerAzConfigSSL))
+			Expect(actualVal).To(Equal(expectedListenerAzConfigSSL))
 		})
 	})
 })
 
-func getMapKeys(m *map[frontendListenerIdentifier]*frontendListenerAzureConfig) []frontendListenerIdentifier {
+func getMapKeys(m *map[frontendListenerIdentifier]frontendListenerAzureConfig) []frontendListenerIdentifier {
 	keys := make([]frontendListenerIdentifier, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)

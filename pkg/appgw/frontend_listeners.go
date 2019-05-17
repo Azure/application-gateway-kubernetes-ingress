@@ -17,22 +17,11 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 	var httpListeners []n.ApplicationGatewayHTTPListener
 
 	for listener, config := range builder.getListenerConfigs(ingressList) {
-		var secretFullName string
-		var protocol n.ApplicationGatewayProtocol
-
-		if config != nil {
-			protocol = config.Protocol
-			secretFullName = config.Secret.secretFullName()
-		} else {
-			// Default protocol
-			protocol = n.HTTP
-		}
-
-		httpListener := builder.newHTTPListener(listener, protocol)
-
+		secretFullName := config.Secret.secretFullName()
+		httpListener := builder.newHTTPListener(listener, config.Protocol)
 		listenerHasHostname := len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) > 0
 
-		if protocol == n.HTTPS {
+		if config.Protocol == n.HTTPS {
 			sslCertificateName := secretFullName
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(sslCertificateName)
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
@@ -57,8 +46,8 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
-func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]*frontendListenerAzureConfig {
-	allListeners := make(map[frontendListenerIdentifier]*frontendListenerAzureConfig)
+func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]frontendListenerAzureConfig {
+	allListeners := make(map[frontendListenerIdentifier]frontendListenerAzureConfig)
 	for _, ingress := range ingressList {
 		_, azListenerConfigs := builder.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
@@ -68,7 +57,10 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 
 	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
-		allListeners[defaultFrontendListenerIdentifier()] = nil
+		allListeners[defaultFrontendListenerIdentifier()] = frontendListenerAzureConfig{
+			// Default protocol
+			Protocol: n.HTTP,
+		}
 	}
 
 	return allListeners

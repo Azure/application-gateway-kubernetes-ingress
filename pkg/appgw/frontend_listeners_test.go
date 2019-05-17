@@ -43,7 +43,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(listener80))
 			actualVal := httpListenersAzureConfigMap[listener80]
-			Expect(*actualVal).To(Equal(listenerAzConfigNoSSL))
+			Expect(actualVal).To(Equal(listenerAzConfigNoSSL))
 		})
 	})
 	Context("two ingresses with multiple ports", func() {

@@ -10,10 +10,6 @@ func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1be
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	for listenerID, config := range builder.getListenerConfigs(ingressList) {
-		if config == nil {
-			continue
-		}
-
 		isHTTPS := config.Protocol == n.HTTPS
 		hasSslRedirect := config.SslRedirectConfigurationName != ""
 
@@ -28,7 +24,7 @@ func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1be
 	return &redirectConfigs
 }
 
-func newSSLRedirectConfig(azureConfig *frontendListenerAzureConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
+func newSSLRedirectConfig(azureConfig frontendListenerAzureConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
 	props := n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 		RedirectType:       n.Permanent,
 		TargetListener:     targetListener,
