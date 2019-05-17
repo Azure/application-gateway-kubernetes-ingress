@@ -13,12 +13,10 @@ func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1be
 		isHTTPS := config.Protocol == n.HTTPS
 		hasSslRedirect := config.SslRedirectConfigurationName != ""
 
-		if !isHTTPS || !hasSslRedirect {
-			continue
+		if isHTTPS && hasSslRedirect {
+			targetListener := resourceRef(builder.appGwIdentifier.httpListenerID(generateHTTPListenerName(listenerID)))
+			redirectConfigs = append(redirectConfigs, newSSLRedirectConfig(config, targetListener))
 		}
-
-		targetListener := resourceRef(builder.appGwIdentifier.httpListenerID(generateHTTPListenerName(listenerID)))
-		redirectConfigs = append(redirectConfigs, newSSLRedirectConfig(config, targetListener))
 	}
 
 	return &redirectConfigs
