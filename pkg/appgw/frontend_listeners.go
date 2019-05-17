@@ -18,24 +18,11 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 
 	for listener, config := range builder.getListenerConfigs(ingressList) {
 		httpListener := builder.newHTTPListener(listener, config.Protocol)
-		listenerHasHostname := len(*httpListener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName) > 0
-
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
-
-			if listenerHasHostname {
-				httpListener.RequireServerNameIndication = to.BoolPtr(true)
-			}
 		}
-
-		if listenerHasHostname {
-			// Put the listener at the front of the list!
-			httpListeners = append([]n.ApplicationGatewayHTTPListener{httpListener}, httpListeners...)
-		} else {
-			httpListeners = append(httpListeners, httpListener)
-		}
-
+		httpListeners = append(httpListeners, httpListener)
 		legacyMap[listener] = &httpListener
 	}
 
