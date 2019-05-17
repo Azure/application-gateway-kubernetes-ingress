@@ -52,7 +52,6 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 					ID: to.StringPtr("xyz"),
 				},
 			},
-
 		},
 		{
 			// Public IP
@@ -62,7 +61,7 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 			ID:   to.StringPtr("yy4"),
 			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: to.StringPtr("abc"),
-				PublicIPAddress: nil,
+				PublicIPAddress:  nil,
 			},
 		},
 	}
