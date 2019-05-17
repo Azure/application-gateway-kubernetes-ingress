@@ -34,8 +34,10 @@ func configIsSame(appGw *network.ApplicationGateway, cache *[]byte) bool {
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 	sameAsCache := bytes.Compare(*cache, stripped) == 0
 
-	// Keep a copy of the stripped JSON string
-	*cache = stripped
+	if !sameAsCache {
+		// Keep a copy of the stripped JSON string
+		*cache = stripped
+	}
 
 	return sameAsCache
 }
