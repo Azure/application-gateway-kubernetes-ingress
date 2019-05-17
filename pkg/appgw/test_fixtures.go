@@ -30,6 +30,7 @@ const (
 	testFixturesURLPath       = "/healthz"
 	testFixturesContainerName = "--container-name--"
 	testFixturesContainerPort = int32(9876)
+	testFixturesServicePort   = "service-port"
 	testFixturesSelectorKey   = "app"
 	testFixturesSelectorValue = "frontend"
 )
