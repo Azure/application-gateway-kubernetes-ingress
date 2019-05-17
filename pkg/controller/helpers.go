@@ -16,7 +16,7 @@ import (
 )
 
 // configIsSame compares the newly created App Gwy configuration with a cache to determine whether anything has changed.
-func configIsSame(appGw *network.ApplicationGateway, cache *[]byte) bool {
+func (c AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) bool {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		glog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
@@ -32,11 +32,11 @@ func configIsSame(appGw *network.ApplicationGateway, cache *[]byte) bool {
 		return false
 	}
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-	sameAsCache := bytes.Compare(*cache, stripped) == 0
+	sameAsCache := bytes.Compare(*c.configCache, stripped) == 0
 
 	if !sameAsCache {
 		// Keep a copy of the stripped JSON string
-		*cache = stripped
+		*c.configCache = stripped
 	}
 
 	return sameAsCache

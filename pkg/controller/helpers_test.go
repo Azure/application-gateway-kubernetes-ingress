@@ -75,10 +75,14 @@ var _ = Describe("configure App Gateway", func() {
 			client := network.ApplicationGateway{
 				Name: to.StringPtr("something"),
 			}
-			var cache []byte
-			Expect(configIsSame(&client, &cache)).To(BeFalse())
-			Expect(configIsSame(&client, &cache)).To(BeTrue())
-			Expect(string(cache)).To(Equal(`{"name":"something"}`))
+
+			c := AppGwIngressController{
+				configCache: &[]byte{},
+			}
+
+			Expect(c.configIsSame(&client)).To(BeFalse())
+			Expect(c.configIsSame(&client)).To(BeTrue())
+			Expect(string(*c.configCache)).To(Equal(`{"name":"something"}`))
 		})
 	})
 

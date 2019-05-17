@@ -105,7 +105,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	addTags(&appGw)
 
-	if configIsSame(&appGw, c.configCache) {
+	if c.configIsSame(&appGw) {
 		glog.Infoln("Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
