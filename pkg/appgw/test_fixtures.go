@@ -41,16 +41,29 @@ const (
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
 		{
+			// Private IP
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
 			ID:   to.StringPtr(testFixtureIPID1),
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+				PrivateIPAddress: nil,
+				PublicIPAddress: &network.SubResource{
+					ID: to.StringPtr("xyz"),
+				},
+			},
+
 		},
 		{
+			// Public IP
 			Name: to.StringPtr("yy3"),
 			Etag: to.StringPtr("yy2"),
 			Type: to.StringPtr("yy1"),
 			ID:   to.StringPtr("yy4"),
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+				PrivateIPAddress: to.StringPtr("abc"),
+				PublicIPAddress: nil,
+			},
 		},
 	}
 	return network.ApplicationGatewayPropertiesFormat{

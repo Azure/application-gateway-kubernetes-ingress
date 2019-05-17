@@ -1,7 +1,6 @@
 package appgw
 
 import (
-	"fmt"
 	"github.com/Azure/go-autorest/autorest/to"
 	"testing"
 
@@ -75,7 +74,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 
 			Expect(*listener.HostName).To(Equal(testFixturesHost))
-			Expect(*listener.FrontendPort.ID).To(Equal(newPortID(443)))
+			Expect(*listener.FrontendPort.ID).To(Equal(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(443))))
 
 			expectedProtocol := n.ApplicationGatewayProtocol("Https")
 			Expect(listener.Protocol).To(Equal(expectedProtocol))
@@ -96,7 +95,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 					// TODO: expose this to external configuration
 					FrontendIPConfiguration: resourceRef(testFixtureIPID1),
-					FrontendPort:            resourceRef(newPortID(80)),
+					FrontendPort:            resourceRef(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(80))),
 					Protocol:                n.ApplicationGatewayProtocol("Https"),
 					HostName:                to.StringPtr(testFixturesHost),
 				},
@@ -106,10 +105,3 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		})
 	})
 })
-
-func newPortID(portNumber int32) string {
-	portID := fmt.Sprintf("%sfp-%d", agPrefix, portNumber)
-	return fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s/frontEndPorts/%s",
-		testFixtureSubscription, testFixtureResourceGroup, testFixtureAppGwName, portID)
-}

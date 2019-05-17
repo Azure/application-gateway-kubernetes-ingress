@@ -2,7 +2,7 @@ package appgw
 
 import (
 	"strings"
-	
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -93,16 +93,16 @@ func (builder *appGwConfigBuilder) newHTTPListener(listener frontendListenerIden
 
 func (builder *appGwConfigBuilder) getPublicIPID() *string {
 	var publicIPID *string
-	var jsonConfigs []string
+	jsonConfigs := make([]string, 0)
 	for _, ip := range *builder.appGwConfig.FrontendIPConfigurations {
 		// Collect the JSON IP configs for debug purposes.
 		if jsonConf, err := ip.MarshalJSON(); err != nil {
 			jsonConfigs = append(jsonConfigs, string(jsonConf))
 		} else {
-			glog.Error("Could not marshall IP configuration: %s: %s", ip.ID, err)
+			glog.Error("Could not marshall IP configuration:", *ip.ID, err)
 		}
 		// Either PublicIPAddress is nil or PrivateIPAddress; never both present never both nil;
-		if ip.PublicIPAddress != nil {
+		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil {
 			publicIPID = ip.ID
 		}
 	}
@@ -113,7 +113,7 @@ func (builder *appGwConfigBuilder) getPublicIPID() *string {
 		ips := strings.Join(jsonConfigs, ", ")
 
 		// Will call os.Exit(255)
-		glog.Fatal("HTTP Listener was not able to find a Public IP address for App Gateway. Available IPs: %s", ips)
+		glog.Fatal("HTTP Listener was not able to find a Public IP address for App Gateway. Available IPs:", ips)
 	}
 
 	return publicIPID
