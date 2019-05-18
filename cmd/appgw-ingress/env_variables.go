@@ -5,7 +5,11 @@
 
 package main
 
-import "os"
+import (
+	"os"
+
+	"github.com/golang/glog"
+)
 
 type envVariables struct {
 	SubscriptionID    string
@@ -15,12 +19,22 @@ type envVariables struct {
 	WatchNamespace    string
 }
 
-func newEnvVariables() envVariables {
-	return envVariables{
+func getEnvVars() envVariables {
+	env := envVariables{
 		SubscriptionID:    os.Getenv("APPGW_SUBSCRIPTION_ID"),
 		ResourceGroupName: os.Getenv("APPGW_RESOURCE_GROUP"),
 		AppGwName:         os.Getenv("APPGW_NAME"),
 		AuthLocation:      os.Getenv("AZURE_AUTH_LOCATION"),
 		WatchNamespace:    os.Getenv("KUBERNETES_WATCHNAMESPACE"),
 	}
+
+	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 || len(env.WatchNamespace) == 0 {
+		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
+	}
+
+	if env.WatchNamespace == "" {
+		glog.Fatal("Error creating informers, namespace is not specified")
+	}
+
+	return env
 }

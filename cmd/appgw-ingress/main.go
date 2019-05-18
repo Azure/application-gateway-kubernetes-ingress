@@ -7,7 +7,7 @@ package main
 
 import (
 	"context"
-	go_flag "flag"
+	"flag"
 	"os"
 	"time"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	flags = flag.NewFlagSet(`appgw-ingress`, flag.ExitOnError)
+	flags = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
 
 	inCluster = flags.Bool("in-cluster", true,
 		"If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
@@ -46,119 +46,89 @@ func main() {
 	// Log output is buffered... Calling Flush before exiting guarantees all log output is written.
 	defer glog.Flush()
 	if err := flags.Parse(os.Args); err != nil {
-		glog.Fatalf("Error parsing command line arguments: %v", err.Error())
+		glog.Fatal("Error parsing command line arguments:", err)
 	}
 
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
-	_ = go_flag.CommandLine.Parse([]string{})
+	_ = flag.CommandLine.Parse([]string{})
+	_ = flag.Lookup("logtostderr").Value.Set("true")
+	_ = flag.Set("v", "3")
 
-	envVariables := newEnvVariables()
-	glog.Infof("Environment Variables:\n%+v", envVariables)
-	if len(envVariables.SubscriptionID) == 0 || len(envVariables.ResourceGroupName) == 0 || len(envVariables.AppGwName) == 0 || len(envVariables.WatchNamespace) == 0 {
-		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
-	}
+	env := getEnvVars()
 
-	setLoggingOptions()
-
-	kubeClient := kubeClient()
-
-	fileLocation := envVariables.AuthLocation
+	appGwClient := network.NewApplicationGatewaysClient(env.SubscriptionID)
 
 	var err error
-	var azureAuth autorest.Authorizer
-
-	if fileLocation == "" {
-		// requires aad-pod-identity to be deployed in the AKS cluster
-		// see https://github.com/Azure/aad-pod-identity for more information
-		glog.V(1).Infoln("Creating authorizer from MSI")
-		azureAuth, err = auth.NewAuthorizerFromEnvironment()
-	} else {
-		glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
-		azureAuth, err = auth.NewAuthorizerFromFile(network.DefaultBaseURI)
+	if appGwClient.Authorizer, err = getAzAuth(env); err != nil || appGwClient.Authorizer == nil {
+		glog.Fatal("Error creating Azure client", err)
 	}
 
-	if err != nil || azureAuth == nil {
-		glog.Fatalf("Error creating Azure client from config: %v", err.Error())
-	}
+	waitForAzureAuth(env, appGwClient)
 
 	appGwIdentifier := appgw.Identifier{
-		SubscriptionID: envVariables.SubscriptionID,
-		ResourceGroup:  envVariables.ResourceGroupName,
-		AppGwName:      envVariables.AppGwName,
+		SubscriptionID: env.SubscriptionID,
+		ResourceGroup:  env.ResourceGroupName,
+		AppGwName:      env.AppGwName,
 	}
-
-	appGwClient := network.NewApplicationGatewaysClient(appGwIdentifier.SubscriptionID)
-	appGwClient.Authorizer = azureAuth
-
-	// wait until azureAuth becomes valid
-	for true {
-		ctx := context.Background()
-		_, err := appGwClient.Get(ctx, appGwIdentifier.ResourceGroup, appGwIdentifier.AppGwName)
-		if err == nil {
-			break
-		} else {
-			glog.Errorf("unable to get specified ApplicationGateway [%v], error=[%v]", appGwIdentifier.AppGwName, err.Error())
-		}
-		retryTime := 10 * time.Second
-		glog.Infof("Retrying in %v", retryTime.String())
-		time.Sleep(retryTime)
-	}
-
-	namespace := envVariables.WatchNamespace
-
-	if len(namespace) == 0 {
-		glog.Fatal("Error creating informers, namespace is not specified")
-	}
-	_, err = kubeClient.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-	if err != nil {
-		glog.Fatalf("Error creating informers, namespace [%v] is not found: %v", namespace, err.Error())
-	}
-
-	ctx := k8scontext.NewContext(kubeClient, namespace, *resyncPeriod)
-	appGwController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx)
-
-	go appGwController.Start()
-
-	for true {
-		time.Sleep(1 * time.Minute)
-	}
+	ctx := k8scontext.NewContext(getKubeClient(env), env.WatchNamespace, *resyncPeriod)
+	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx).Start()
+	select {}
 }
 
-func setLoggingOptions() {
-	go_flag.Lookup("logtostderr").Value.Set("true")
-	go_flag.Set("v", "3")
-}
-
-func kubeClient() kubernetes.Interface {
-	config := getKubeClientConfig()
-
-	kubeClient, err := kubernetes.NewForConfig(config)
+func getKubeClient(env envVariables) *kubernetes.Clientset {
+	kubeClient, err := kubernetes.NewForConfig(getKubeClientConfig())
 	if err != nil {
-		glog.Fatalf("Failed to create client: %v", err.Error())
+		glog.Fatal("Error creating Kubernetes client: ", err)
 	}
-
+	if _, err = kubeClient.CoreV1().Namespaces().Get(env.WatchNamespace, metav1.GetOptions{}); err != nil {
+		glog.Fatalf("Error creating informers, namespace [%v] is not found: %v", env.WatchNamespace, err.Error())
+	}
 	return kubeClient
+}
+
+func getAzAuth(vars envVariables) (autorest.Authorizer, error) {
+	if vars.AuthLocation == "" {
+		// requires aad-pod-identity to be deployed in the AKS cluster
+		// see https://github.com/Azure/aad-pod-identity for more information
+		glog.V(1).Infoln("Creating authorizer from Azure Managed Service Identity")
+		return auth.NewAuthorizerFromEnvironment()
+	}
+	glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
+	return auth.NewAuthorizerFromFile(network.DefaultBaseURI)
+}
+
+func waitForAzureAuth(envVars envVariables, client network.ApplicationGatewaysClient) {
+	maxRetry := 10
+	const retryTime = 10 * time.Second
+	for counter := 0; counter <= maxRetry; counter++ {
+		if _, err := client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName); err != nil {
+			glog.Error("Error getting Application Gateway", envVars.AppGwName, err)
+			glog.Infof("Retrying in %v", retryTime)
+			time.Sleep(retryTime)
+		}
+		return
+	}
 }
 
 func getKubeClientConfig() *rest.Config {
 	if *inCluster {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			glog.Fatalf("Error creating client configuration: %v", err.Error())
+			glog.Fatal("Error creating client configuration:", err)
 		}
 		return config
 	}
 
 	if *apiServerHost == "" {
-		glog.Fatalf("when not running in a cluster you must specify --apiserver-host")
+		glog.Fatal("when not running in a cluster you must specify --apiserver-host")
 	}
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
 
 	if err != nil {
-		glog.Fatalf("error creating client configuration: %v", err.Error())
+		glog.Fatal("error creating client configuration:", err)
 	}
 
 	return config
