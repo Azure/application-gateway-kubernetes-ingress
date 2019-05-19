@@ -91,7 +91,7 @@ Steps:
     helm repo update
     ```
 
-4) Edit [helm-config.yaml](example/helm-config.yaml) and fill in the values for `appgw` and `armAuth`
+4) Edit [helm-config.yaml](examples/helm-config.yaml) and fill in the values for `appgw` and `armAuth`
     ```yaml
     # This file contains the essential configs for the ingress controller helm chart
 
