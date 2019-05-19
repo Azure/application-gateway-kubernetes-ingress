@@ -40,4 +40,3 @@ func TestIsSslRedirectMissingKey(t *testing.T) {
 		t.Error(fmt.Sprintf("IsSslRedirect is expected to return false since there is no %s annotation", SslRedirectKey))
 	}
 }
-

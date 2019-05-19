@@ -8,8 +8,8 @@ import (
 func TestRedirectConfigurationID(t *testing.T) {
 	ident := Identifier{
 		SubscriptionID: "subs",
-		ResourceGroup: "rg",
-		AppGwName: "appgwname",
+		ResourceGroup:  "rg",
+		AppGwName:      "appgwname",
 	}
 	actual := ident.redirectConfigurationID("cofiguration-name")
 	expected := "/subscriptions/subs/resourceGroups/rg/providers/" +
