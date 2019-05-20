@@ -44,6 +44,7 @@ func IsApplicationGatewayIngress(ing *v1beta1.Ingress) bool {
 
 // IsSslRedirect for HTTP end points.
 func IsSslRedirect(ing *v1beta1.Ingress) bool {
+	// TODO(draychev): The value of the annotation could be changed to support one of the 4 supported redirects: 301/Permanent, 302/Found, 303/See Other, 307/Temporary
 	val, ok := ing.Annotations[SslRedirectKey]
 	return ok && val == "true"
 }

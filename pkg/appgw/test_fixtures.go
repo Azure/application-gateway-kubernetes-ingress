@@ -37,6 +37,7 @@ const (
 	testFixtureResourceGroup  = "--resource-group--"
 	testFixtureAppGwName      = "--app-gw-name--"
 	testFixtureIPID1          = "--front-end-ip-id-1--"
+	testFixturesSubscription  = "--subscription--"
 )
 
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
