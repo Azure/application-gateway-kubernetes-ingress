@@ -74,9 +74,9 @@ func (builder *appGwConfigBuilder) getPublicIPID() *string {
 	for _, ip := range *builder.appGwConfig.FrontendIPConfigurations {
 		// Collect the JSON IP configs for debug purposes.
 		if jsonConf, err := ip.MarshalJSON(); err != nil {
-			jsonConfigs = append(jsonConfigs, string(jsonConf))
-		} else {
 			glog.Error("Could not marshall IP configuration:", *ip.ID, err)
+		} else {
+			jsonConfigs = append(jsonConfigs, string(jsonConf))
 		}
 		// Either PublicIPAddress is nil or PrivateIPAddress; never both present never both nil;
 		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil {
@@ -90,6 +90,7 @@ func (builder *appGwConfigBuilder) getPublicIPID() *string {
 		ips := strings.Join(jsonConfigs, ", ")
 
 		// Will call os.Exit(255)
+		// TODO(draychev): glog.Fatal does not expose stack trace.
 		glog.Fatal("HTTP Listener was not able to find a Public IP address for App Gateway. Available IPs:", ips)
 	}
 
