@@ -409,6 +409,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Name: to.StringPtr("*"),
 				Etag: to.StringPtr("*"),
 				ID:   to.StringPtr("*"),
+				ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+					PublicIPAddress: &network.SubResource{
+						ID: to.StringPtr("x/y/z"),
+					},
+				},
 			},
 		}
 	})
