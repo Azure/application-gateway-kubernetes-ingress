@@ -13,10 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestStringKeyGenerators(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test setting up App Gateway health probes")
-}
+// appgw_suite_test.go launches these Ginkgo test
 
 var _ = Describe("Test string key generators", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"

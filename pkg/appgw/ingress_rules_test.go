@@ -9,10 +9,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestIngressRules(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test parsing of ingress rules")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	port80 := int32(80)

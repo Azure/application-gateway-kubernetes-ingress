@@ -15,10 +15,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestHealthProbes(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test setting up App Gateway health probes")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
