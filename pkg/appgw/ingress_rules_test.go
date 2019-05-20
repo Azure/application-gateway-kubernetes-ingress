@@ -1,8 +1,6 @@
 package appgw
 
 import (
-	"testing"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
