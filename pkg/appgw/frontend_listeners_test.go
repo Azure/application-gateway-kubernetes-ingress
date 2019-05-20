@@ -1,19 +1,14 @@
 package appgw
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
-	"testing"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestFrontendListeners(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test setting up SSL redirect annotations")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
 

@@ -1,18 +1,13 @@
 package appgw
 
 import (
-	"testing"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestIngressRules(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test parsing of ingress rules")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	port80 := int32(80)

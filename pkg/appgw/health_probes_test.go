@@ -6,8 +6,6 @@
 package appgw
 
 import (
-	"testing"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -15,10 +13,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestHealthProbes(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test setting up App Gateway health probes")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {

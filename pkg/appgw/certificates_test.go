@@ -1,16 +1,11 @@
 package appgw
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestNewHostToSecretMap(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test newHostToSecretMap function")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Testing function newHostToSecretMap", func() {
 	const host1 = "ftp.contoso.com"
