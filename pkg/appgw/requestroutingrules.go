@@ -155,7 +155,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 
 				// If ingress is annotated with "ssl-redirect" - setup redirection configuration.
 				if annotations.IsSslRedirect(ingress) {
-					builder.addPathRules(ingress, urlPathMaps[listenerHTTPID])
+					builder.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
 				}
 			}
 
@@ -249,9 +249,11 @@ func (builder *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (builder *appGwConfigBuilder) addPathRules(ingress *v1beta1.Ingress, httpURLPathMap *network.ApplicationGatewayURLPathMap) {
+func (builder *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta1.Ingress, httpURLPathMap *network.ApplicationGatewayURLPathMap) {
+	// Application Gateway supports Basic and Path-based rules
+
 	if len(*httpURLPathMap.PathRules) == 0 {
-		// No paths. Basic
+		// There are no paths. This is a rule of type "Basic"
 		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 		httpURLPathMap.DefaultRedirectConfiguration = redirectRef
@@ -259,6 +261,7 @@ func (builder *appGwConfigBuilder) addPathRules(ingress *v1beta1.Ingress, httpUR
 	}
 
 	for idx := range *httpURLPathMap.PathRules {
+		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
 		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)

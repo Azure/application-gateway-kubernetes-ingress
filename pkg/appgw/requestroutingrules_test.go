@@ -12,10 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const provisionStateExpected = "--provisionStateExpected--"
-const rewriteRulesetID = "--RewriteRuleSet--"
-
-var redirectConfigID = "/subscriptions/" + testFixturesSubscription +
+var expectedRedirectID = "/subscriptions/" + testFixturesSubscription +
 	"/resourceGroups/" + testFixtureResourceGroup +
 	"/providers/Microsoft.Network/applicationGateways/" + testFixtureAppGwName +
 	"/redirectConfigurations/" + agPrefix + "sslr-" +
@@ -37,8 +34,8 @@ func makeHTTPURLPathMap() network.ApplicationGatewayURLPathMap {
 						BackendAddressPool:    resourceRef("--BackendAddressPool--"),
 						BackendHTTPSettings:   resourceRef("--BackendHTTPSettings--"),
 						RedirectConfiguration: resourceRef("--RedirectConfiguration--"),
-						RewriteRuleSet:        resourceRef(rewriteRulesetID),
-						ProvisioningState:     to.StringPtr(provisionStateExpected),
+						RewriteRuleSet:        resourceRef("--RewriteRuleSet--"),
+						ProvisioningState:     to.StringPtr("--provisionStateExpected--"),
 					},
 				},
 			},
@@ -50,33 +47,41 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("test getSslRedirectConfigResourceReference", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		actualID := *(configBuilder.getSslRedirectConfigResourceReference(ingress).ID)
+
+		actualID := configBuilder.getSslRedirectConfigResourceReference(ingress).ID
+
 		It("generates expected ID", func() {
-			Expect(redirectConfigID).To(Equal(actualID))
+			Expect(expectedRedirectID).To(Equal(*actualID))
 		})
 	})
 
-	Context("test getSslRedirectConfigResourceReference", func() {
+	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		actualURLPathMap := makeHTTPURLPathMap()
+		pathMap := makeHTTPURLPathMap()
+
 		// Ensure there are no path rules defined for this test
-		actualURLPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
+		pathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 
-		// Action -- will mutate actualURLPathMap struct
-		configBuilder.addPathRules(ingress, &actualURLPathMap)
+		// Ensure the test is setup correctly
+		It("should have 0 PathRules", func() {
+			Expect(len(*pathMap.PathRules)).To(Equal(0))
+		})
 
-		actualID := *(actualURLPathMap.DefaultRedirectConfiguration.ID)
+		// !! Action !! -- will mutate pathMap struct
+		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
+
+		actualID := *(pathMap.DefaultRedirectConfiguration.ID)
 		It("generated expected ID", func() {
-			Expect(redirectConfigID).To(Equal(actualID))
+			Expect(expectedRedirectID).To(Equal(actualID))
 		})
 
 		It("should still have 0 path rules", func() {
-			Expect(0).To(Equal(len(*actualURLPathMap.PathRules)))
+			Expect(0).To(Equal(len(*pathMap.PathRules)))
 		})
 	})
 
-	Context("test getSslRedirectConfigResourceReference", func() {
+	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
 		pathMap := makeHTTPURLPathMap()
@@ -86,30 +91,25 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			Expect(1).To(Equal(len(*pathMap.PathRules)))
 		})
 
-		// Action -- will mutate pathMap struct
-		configBuilder.addPathRules(ingress, &pathMap)
+		firstPathRule := (*pathMap.PathRules)[0]
+		firstPathRule.BackendAddressPool = &network.SubResource{ID: to.StringPtr("-something-")}
+		firstPathRule.BackendHTTPSettings = &network.SubResource{ID: to.StringPtr("-something-")}
 
-		// Ensure the test is setup correctly
+		// !! Action !! -- will mutate pathMap struct
+		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
+
 		actual := *(*pathMap.PathRules)[0].ApplicationGatewayPathRulePropertiesFormat
 
-		It("sohuld have a nil BackendAddressPool", func() {
-			Expect(actual.BackendAddressPool).To(BeNil())
+		It("should have a nil BackendAddressPool", func() {
+			Expect(firstPathRule.BackendAddressPool).To(BeNil())
 		})
 
 		It("should have a nil BackendHTTPSettings", func() {
-			Expect(actual.BackendHTTPSettings).To(BeNil())
+			Expect(firstPathRule.BackendHTTPSettings).To(BeNil())
 		})
 
-		It("sohuld have correct RedirectConfiguration.ID", func() {
-			Expect(redirectConfigID).To(Equal(*actual.RedirectConfiguration.ID))
-		})
-
-		It("should have correct RewriteRuleSet.ID", func() {
-			Expect(rewriteRulesetID).To(Equal(*actual.RewriteRuleSet.ID))
-		})
-
-		It("should have correct ProvisioningState", func() {
-			Expect(provisionStateExpected).To(Equal(*actual.ProvisioningState))
+		It("should have correct RedirectConfiguration ID", func() {
+			Expect(expectedRedirectID).To(Equal(*actual.RedirectConfiguration.ID))
 		})
 	})
 })
