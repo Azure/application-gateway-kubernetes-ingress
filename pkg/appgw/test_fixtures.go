@@ -360,3 +360,36 @@ func newEndpointsFixture() *v1.Endpoints {
 		},
 	}
 }
+
+func newUrlPathMap() network.ApplicationGatewayURLPathMap {
+	rule := network.ApplicationGatewayPathRule{
+		ID:   to.StringPtr("-the-id-"),
+		Type: to.StringPtr("-the-type-"),
+		Etag: to.StringPtr("-the-etag-"),
+		Name: to.StringPtr("/some/path"),
+		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
+			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
+
+			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
+			RedirectConfiguration: nil,
+
+			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
+			ProvisioningState: to.StringPtr("--provisionStateExpected--"),
+		},
+	}
+
+	return network.ApplicationGatewayURLPathMap{
+		Name: to.StringPtr("-path-map-name-"),
+		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
+			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
+			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
+
+			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
+			DefaultRedirectConfiguration: nil,
+
+			PathRules: &[]network.ApplicationGatewayPathRule{rule},
+		},
+	}
+}
+

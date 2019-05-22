@@ -12,32 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func makeHTTPURLPathMap() n.ApplicationGatewayURLPathMap {
-	rule := n.ApplicationGatewayPathRule{
-		ID:   to.StringPtr("-the-id-"),
-		Type: to.StringPtr("-the-type-"),
-		Etag: to.StringPtr("-the-etag-"),
-		Name: to.StringPtr("/some/path"),
-		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
-			BackendAddressPool:    resourceRef("--BackendAddressPool--"),
-			BackendHTTPSettings:   resourceRef("--BackendHTTPSettings--"),
-
-			// App Gateway can have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
-			RedirectConfiguration: nil,
-
-			RewriteRuleSet:        resourceRef("--RewriteRuleSet--"),
-			ProvisioningState:     to.StringPtr("--provisionStateExpected--"),
-		},
-	}
-
-	return n.ApplicationGatewayURLPathMap{
-		Name: to.StringPtr("-path-map-name-"),
-		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-			PathRules: &[]n.ApplicationGatewayPathRule{rule},
-		},
-	}
-}
-
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	agw := Identifier{
@@ -62,7 +36,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		pathMap := makeHTTPURLPathMap()
+		pathMap := newUrlPathMap()
 
 		// Ensure there are no path rules defined for this test
 		pathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
@@ -88,7 +62,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		pathMap := makeHTTPURLPathMap()
+		pathMap := newUrlPathMap()
 
 		// Ensure the test is setup correctly
 		It("should have length of PathRules to be 1", func() {
