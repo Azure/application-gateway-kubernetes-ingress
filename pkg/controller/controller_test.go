@@ -6,12 +6,14 @@
 package controller
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func TestController(t *testing.T) {
@@ -22,10 +24,14 @@ func TestController(t *testing.T) {
 var _ = Describe("configure App Gateway", func() {
 	Context("ensure app gwy is tagged", func() {
 		agw := &network.ApplicationGateway{}
+		version.Version = "a"
+		version.GitCommit = "b"
+		version.BuildDate = "c"
+
 		addTags(agw)
 		It("should have 1 tag", func() {
 			expected := map[string]*string{
-				isManagedByK8sIngress: to.StringPtr("true"),
+				isManagedByK8sIngress: to.StringPtr("a/b/c"),
 			}
 			Expect(agw.Tags).To(Equal(expected))
 			Expect(len(agw.Tags)).To(Equal(1))
