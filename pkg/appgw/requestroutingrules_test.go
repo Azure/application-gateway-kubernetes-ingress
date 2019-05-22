@@ -6,31 +6,34 @@
 package appgw
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func makeHTTPURLPathMap() network.ApplicationGatewayURLPathMap {
-	return network.ApplicationGatewayURLPathMap{
+func makeHTTPURLPathMap() n.ApplicationGatewayURLPathMap {
+	rule := n.ApplicationGatewayPathRule{
+		ID:   to.StringPtr("-the-id-"),
+		Type: to.StringPtr("-the-type-"),
+		Etag: to.StringPtr("-the-etag-"),
+		Name: to.StringPtr("/some/path"),
+		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
+			BackendAddressPool:    resourceRef("--BackendAddressPool--"),
+			BackendHTTPSettings:   resourceRef("--BackendHTTPSettings--"),
+
+			// App Gateway can have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
+			RedirectConfiguration: nil,
+
+			RewriteRuleSet:        resourceRef("--RewriteRuleSet--"),
+			ProvisioningState:     to.StringPtr("--provisionStateExpected--"),
+		},
+	}
+
+	return n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr("-path-map-name-"),
-		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-			PathRules: &[]network.ApplicationGatewayPathRule{
-				{
-					ID:   to.StringPtr("-the-id-"),
-					Type: to.StringPtr("-the-type-"),
-					Etag: to.StringPtr("-the-etag-"),
-					Name: to.StringPtr("/some/path"),
-					ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
-						BackendAddressPool:    resourceRef("--BackendAddressPool--"),
-						BackendHTTPSettings:   resourceRef("--BackendHTTPSettings--"),
-						RedirectConfiguration: resourceRef("--RedirectConfiguration--"),
-						RewriteRuleSet:        resourceRef("--RewriteRuleSet--"),
-						ProvisioningState:     to.StringPtr("--provisionStateExpected--"),
-					},
-				},
-			},
+		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+			PathRules: &[]n.ApplicationGatewayPathRule{rule},
 		},
 	}
 }
@@ -62,7 +65,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		pathMap := makeHTTPURLPathMap()
 
 		// Ensure there are no path rules defined for this test
-		pathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
+		pathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
 
 		// Ensure the test is setup correctly
 		It("should have 0 PathRules", func() {
@@ -93,8 +96,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		})
 
 		firstPathRule := (*pathMap.PathRules)[0]
-		firstPathRule.BackendAddressPool = &network.SubResource{ID: to.StringPtr("-something-")}
-		firstPathRule.BackendHTTPSettings = &network.SubResource{ID: to.StringPtr("-something-")}
+		firstPathRule.BackendAddressPool = &n.SubResource{ID: to.StringPtr("-something-")}
+		firstPathRule.BackendHTTPSettings = &n.SubResource{ID: to.StringPtr("-something-")}
 
 		// !! Action !! -- will mutate pathMap struct
 		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
