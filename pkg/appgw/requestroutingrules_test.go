@@ -72,6 +72,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		firstPathRule := (*pathMap.PathRules)[0]
 		firstPathRule.BackendAddressPool = &n.SubResource{ID: to.StringPtr("-something-")}
 		firstPathRule.BackendHTTPSettings = &n.SubResource{ID: to.StringPtr("-something-")}
+		firstPathRule.RedirectConfiguration = nil
 
 		// !! Action !! -- will mutate pathMap struct
 		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
