@@ -368,11 +368,11 @@ func newURLPathMap() network.ApplicationGatewayURLPathMap {
 		Etag: to.StringPtr("-the-etag-"),
 		Name: to.StringPtr("/some/path"),
 		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
-			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
-			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
-
 			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
 			RedirectConfiguration: nil,
+
+			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
+			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
 
 			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
 			ProvisioningState: to.StringPtr("--provisionStateExpected--"),
@@ -382,11 +382,11 @@ func newURLPathMap() network.ApplicationGatewayURLPathMap {
 	return network.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr("-path-map-name-"),
 		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
-			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
-
 			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
 			DefaultRedirectConfiguration: nil,
+
+			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
+			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
 
 			PathRules: &[]network.ApplicationGatewayPathRule{rule},
 		},

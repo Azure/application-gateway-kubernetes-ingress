@@ -256,7 +256,13 @@ func (builder *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta
 		// There are no paths. This is a rule of type "Basic"
 		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
+
+		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
 		httpURLPathMap.DefaultRedirectConfiguration = redirectRef
+
+		// Since this is a redirect - ensure Default Backend is NOT setup
+		httpURLPathMap.DefaultBackendHTTPSettings = nil
+		httpURLPathMap.DefaultBackendAddressPool = nil
 		return
 	}
 
@@ -265,7 +271,11 @@ func (builder *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
 		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
+
+		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
 		pathRule.RedirectConfiguration = redirectRef
+
+		// Since this is a redirect - ensure Backend is NOT setup
 		pathRule.BackendAddressPool = nil
 		pathRule.BackendHTTPSettings = nil
 	}
