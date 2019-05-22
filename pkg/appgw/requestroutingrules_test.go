@@ -12,14 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var expectedRedirectID = "/subscriptions/" + testFixturesSubscription +
-	"/resourceGroups/" + testFixtureResourceGroup +
-	"/providers/Microsoft.Network/applicationGateways/" + testFixtureAppGwName +
-	"/redirectConfigurations/" + agPrefix + "sslr-" +
-	testFixturesNamespace +
-	"-" +
-	testFixturesName
-
 func makeHTTPURLPathMap() network.ApplicationGatewayURLPathMap {
 	return network.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr("-path-map-name-"),
@@ -44,6 +36,15 @@ func makeHTTPURLPathMap() network.ApplicationGatewayURLPathMap {
 }
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
+
+	agw := Identifier{
+		SubscriptionID: testFixturesSubscription,
+		ResourceGroup:  testFixtureResourceGroup,
+		AppGwName:      testFixtureAppGwName,
+	}
+	configName := generateSSLRedirectConfigurationName(testFixturesNamespace, testFixturesName)
+	expectedRedirectID := agw.redirectConfigurationID(configName)
+
 	Context("test getSslRedirectConfigResourceReference", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
