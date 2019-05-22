@@ -361,7 +361,7 @@ func newEndpointsFixture() *v1.Endpoints {
 	}
 }
 
-func newUrlPathMap() network.ApplicationGatewayURLPathMap {
+func newURLPathMap() network.ApplicationGatewayURLPathMap {
 	rule := network.ApplicationGatewayPathRule{
 		ID:   to.StringPtr("-the-id-"),
 		Type: to.StringPtr("-the-type-"),

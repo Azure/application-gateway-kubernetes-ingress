@@ -36,7 +36,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		pathMap := newUrlPathMap()
+		pathMap := newURLPathMap()
 
 		// Ensure there are no path rules defined for this test
 		pathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
@@ -62,7 +62,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		ingress := newIngressFixture()
-		pathMap := newUrlPathMap()
+		pathMap := newURLPathMap()
 
 		// Ensure the test is setup correctly
 		It("should have length of PathRules to be 1", func() {
