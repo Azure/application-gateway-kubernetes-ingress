@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# colors
+# bash colors
 COLOR_RESET='\e[0m'
 COLOR_BLUE='\e[44;97m'
 COLOR_RED='\e[101;97m'
