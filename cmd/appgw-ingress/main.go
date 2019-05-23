@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 var (
@@ -40,6 +41,8 @@ var (
 
 	resyncPeriod = flags.Duration("sync-period", 30*time.Second,
 		"Interval at which to re-list and confirm cloud resources.")
+
+	versionInfo = flags.Bool("version", false, "Print version")
 )
 
 func main() {
@@ -47,6 +50,10 @@ func main() {
 	defer glog.Flush()
 	if err := flags.Parse(os.Args); err != nil {
 		glog.Fatal("Error parsing command line arguments:", err)
+	}
+
+	if *versionInfo {
+		version.PrintVersionAndExit()
 	}
 
 	// Workaround for "ERROR: logging before flag.Parse"
