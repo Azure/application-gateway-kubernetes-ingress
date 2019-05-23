@@ -31,7 +31,7 @@ var _ = Describe("configure App Gateway", func() {
 		addTags(agw)
 		It("should have 1 tag", func() {
 			expected := map[string]*string{
-				isManagedByK8sIngress: to.StringPtr("a/b/c"),
+				managedByK8sIngress: to.StringPtr("a/b/c"),
 			}
 			Expect(agw.Tags).To(Equal(expected))
 			Expect(len(agw.Tags)).To(Equal(1))
