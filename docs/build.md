@@ -45,46 +45,13 @@ The file will contain a JSON blob with the following shape:
 ```
 
 ### Startup Script
-1. Create a `.dev` directory in your repo. This is already in `.gitignore` and will not be comitted.
-1. Create an executable bash file in the root directory of this repo: `touch .dev/start.sh && chmod +x .dev/start.sh`
-1. Add the following bash script to the `start.sh` file:
-```bash
-#!/bin/bash
+In the `scripts` directory you will find `start.sh`. This script builds and runs the ingress controller on your development machine.
+To successfully start the ingress controller via `./scripts/start.sh` you need to create the following files:
+  - `~/.azure/azureAuth.json` - Use "az ad create-for-rbac --sdk-auth" command to [create these credentials](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication)
+  - `~/.azure/subscription` - Place the subscription UUID of your AKS cluster on a single line
+  - `~/.azure/resource-group` - Save the AKS Resource Group name on a single line
+  - `~/.azure/app-gateway` - Place the Application Gateway name on a single line
 
-set -aueo pipefail
-
-export AZURE_AUTH_LOCATION=$HOME/.azure/azureAuth.json
-
-export AKS_API="abc.westus2.azmk8s.io"  # YOUR AKS API Server
-
-export APPGW_SUBSCRIPTION_ID=XYZ  # YOUR subscription ID
-export APPGW_RESOURCE_GROUP=ABC  # YOUR resource group
-export APPGW_NAME=123  # YOUR newly created Application Gateway's name
-
-export KUBERNETES_WATCHNAMESPACE=default
-
-# Build
-GOOS=linux  # operating system target
-GOBIN=`pwd`/bin
-
-mkdir -p $GOBIN
-
- echo -e "\e[44;97m Compiling ... \e[0m"
-if  go install -v ./cmd/appgw-ingress; then
-    chmod -R 777 bin
-    echo -e "\e[42;97m Build SUCCEEDED \e[0m"
-else
-    echo -e "\e[101;97m Build FAILED \e[0m"
-    exit 1
-fi
-
-# Run
-./bin/appgw-ingress \
-    --in-cluster=false \
-    --kubeconfig=$HOME/.kube/config \
-    --apiserver-host=$AKS_API
-
-```
 Fill-in the values for your AKS cluster's **subscription**, **resource group**, **application gateway name**, and **AKS API server address**.
 The script will create a `.build/` directory, compile and install the binary in it, then run the application.
 
