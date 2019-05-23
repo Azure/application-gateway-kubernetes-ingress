@@ -1,5 +1,5 @@
-# We are going to run the build in a container. 
-# The reason we run the build in a container is that we have dependency on protobuf when we are building on Linux. 
+# We are going to run the build in a container.
+# The reason we run the build in a container is that we have dependency on protobuf when we are building on Linux.
 # Building protobuf as a build step is quite time consuming, so we want to package the protobuf as a container image with all the dependencies captured and run the build within this container.
 sudo: required
 language: c
@@ -7,14 +7,15 @@ services:
     - docker
 
 script:
+  - shellcheck scripts/*.sh helm/*.sh
   - cd $TRAVIS_BUILD_DIR
   - chmod u+x scripts/*
   - mkdir build
   - cd build
   - IMAGE_VERSION=${TRAVIS_TAG:-latest}
-  - cmake .. -Ddeployment_push_prefix="$ACR_REGISTRY" 
-              -Ddeployment_image_name="public/azure-application-gateway/kubernetes-ingress" 
-              -Ddeployment_image_version="$IMAGE_VERSION" 
+  - cmake .. -Ddeployment_push_prefix="$ACR_REGISTRY"
+              -Ddeployment_image_name="public/azure-application-gateway/kubernetes-ingress"
+              -Ddeployment_image_version="$IMAGE_VERSION"
   - cmake --build .
 
 deploy:
