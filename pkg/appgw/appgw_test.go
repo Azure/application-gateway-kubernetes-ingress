@@ -154,7 +154,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := makePodFixture(serviceName, ingressNS, backendName, backendPort)
+	pod := newPodFixture(serviceName, ingressNS, backendName, backendPort)
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
@@ -409,6 +409,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Name: to.StringPtr("*"),
 				Etag: to.StringPtr("*"),
 				ID:   to.StringPtr("*"),
+				ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+					PublicIPAddress: &network.SubResource{
+						ID: to.StringPtr("x/y/z"),
+					},
+				},
 			},
 		}
 	})
@@ -600,17 +605,18 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
 				httpsListenerName := generateHTTPListenerName(frontendListenerIdentifier{443, domainName})
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
-				requireServerNameIndication := true
 				httpsListener := &network.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),
 					Name: &httpsListenerName,
 					ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
-						FrontendIPConfiguration:     resourceRef("*"),
-						FrontendPort:                resourceRef(frontendPortID),
-						SslCertificate:              resourceRef(sslCert),
-						Protocol:                    network.HTTPS,
-						HostName:                    &domainName,
-						RequireServerNameIndication: &requireServerNameIndication,
+						FrontendIPConfiguration: resourceRef("*"),
+						FrontendPort:            resourceRef(frontendPortID),
+						SslCertificate:          resourceRef(sslCert),
+						Protocol:                network.HTTPS,
+						HostName:                &domainName,
+
+						// RequireServerNameIndication is not used in Application Gateway v2
+						RequireServerNameIndication: nil,
 					},
 				}
 
@@ -748,6 +754,24 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					checker: defaultURLPathMapsChecker,
 				},
 			})
+		})
+	})
+
+	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
+		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
+			// Start the informers. This will sync the cache with the latest ingress.
+			ctxt.Run()
+
+			// Wait for the controller to receive an ingress update.
+			ingressEvent()
+
+			serviceName := "test-cm-acme-http-solver-j7sxh"
+			servicePort := "8089"
+			var backendPortNo int32 = 8089
+			ingress := "cm-acme-http-solver-t8rnf"
+
+			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
+			Ω(len(httpSettingsName)).Should(BeNumerically("<=", 80), "Expected App Gateway Backend Pool with 80 Character but got one with: %d", len(httpSettingsName))
 		})
 	})
 })

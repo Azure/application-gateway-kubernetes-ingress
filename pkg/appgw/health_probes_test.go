@@ -6,8 +6,6 @@
 package appgw
 
 import (
-	"testing"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -15,26 +13,23 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func TestHealthProbes(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test setting up App Gateway health probes")
-}
+// appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
-		cb := makeConfigBuilderTestFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 
-		endpoints := makeEndpointsFixture()
+		endpoints := newEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := makeServiceFixture(*makeServicePorts()...)
+		service := newServiceFixture(*newServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := makePodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			makeIngressFixture(),
+			newIngressFixture(),
 		}
 
 		// !! Action !!
@@ -56,7 +51,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr("k8s-ag-ingress-defaultprobe"),
+			Name: to.StringPtr(agPrefix + "defaultprobe"),
 			Etag: nil,
 			Type: nil,
 			ID:   nil,
@@ -74,7 +69,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr("k8s-ag-ingress---service-name---443-pb---name--"),
+			Name: to.StringPtr(agPrefix + "pb---service-name---443---name--"),
 			Etag: nil,
 			Type: nil,
 			ID:   nil,
@@ -93,7 +88,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr("k8s-ag-ingress---service-name---80-pb---name--"),
+			Name: to.StringPtr(agPrefix + "pb---service-name---80---name--"),
 			Etag: nil,
 			Type: nil,
 			ID:   nil,
