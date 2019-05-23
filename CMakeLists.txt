@@ -56,7 +56,7 @@ add_custom_command(
             --name ${devenv_image_name}-devenv ${devenv_image_name}
             /bin/bash -c './scripts/build.sh'
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS devenv .always_rebuild
+    DEPENDS devenv .always_rebuild shellcheck
     COMMENT "compiling project in devenv"
 )
 
@@ -74,6 +74,17 @@ add_custom_target(helm-release
 add_custom_target(
     appgw-ingress
     DEPENDS ${CMAKE_SOURCE_DIR}/bin/appgw-ingress
+)
+
+# Lint Bash scripts
+add_custom_target(shellcheck
+    COMMAND docker run --rm --security-opt seccomp:unconfined  -t
+            -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
+            -w ${devenv_workpath}
+            --name ${devenv_image_name}-devenv ${devenv_image_name}
+            shellcheck scripts/*.sh helm/*.sh
+    DEPENDS devenv .always_rebuild
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # Test target for all Go tests
