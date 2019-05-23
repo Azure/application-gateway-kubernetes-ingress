@@ -6,13 +6,15 @@ COLOR_BLUE='\e[44;97m'
 COLOR_RED='\e[101;97m'
 COLOR_GREEN='\e[42;97m'
 
+readonly GOOS=linux
+export GOOS
 
-export GOOS=linux
-export GOBIN=`pwd`/bin
+readonly GOBIN=$(pwd)/bin
+export GOBIN
 
 GO_PROJ="github.com/Azure/application-gateway-kubernetes-ingress"
-GO_PKGS=`go list ./... | grep -v vendor/`
-GO_FILES=`find . -type f -name '*.go' -not -path "./vendor/*"`
+GO_PKGS=$(go list ./... | grep -v vendor/)
+GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
 
 ORG_PATH="github.com/Azure"
 PROJECT_NAME="application-gateway-kubernetes-ingress"
@@ -27,9 +29,12 @@ BUILD_DATE=$(date +%Y-%m-%d-%H:%MT%z)
 COMMIT_VAR="${REPO_PATH}/pkg/version.GitCommit"
 GIT_HASH=$(git rev-parse --short HEAD)
 
-
 echo -e "$COLOR_BLUE Running go lint.. $COLOR_RESET"
 golint $GO_PKGS > /tmp/lint.out
+
+echo -e "\e[44;97m Running go lint.. \e[0m"
+golint "$GO_PKGS" > /tmp/lint.out
+
 cat /tmp/lint.out
 if [ -s /tmp/lint.out ]; then
     echo -e "$COLOR_RED golint FAILED $COLOR_RESET"
@@ -39,15 +44,15 @@ else
 fi
 
 echo -e "$COLOR_BLUE Running govet ... $COLOR_RESET"
-if go vet -v $GO_PKGS; then
+if go vet -v "$GO_PKGS"; then
     echo -e "$COLOR_GREEN govet SUCCEEDED $COLOR_RESET"
 else
     echo -e "$COLOR_RED govet FAILED $COLOR_RESET"
     exit 1
 fi
 
-echo -e "$COLOR_BLUE Running goimports ... $COLOR_RESET"
-goimports -local $GO_PROJ -w $GO_FILES > /tmp/goimports.out
+echo -e "\e[44;97m Running goimports ... \e[0m"
+goimports -local "$GO_PROJ" -w "$GO_FILES" > /tmp/goimports.out
 cat /tmp/goimports.out
 if [ -s /tmp/goimports.out ]; then
     echo -e "$COLOR_RED goimports FAILED $COLOR_RESET"
