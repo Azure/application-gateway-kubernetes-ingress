@@ -70,9 +70,9 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 }
 
 func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *network.ApplicationGatewayProbe {
-	probe := defaultProbe()
 	service := builder.k8sContext.GetService(backendID.serviceKey())
 	if service != nil {
+		probe := defaultProbe()
 		probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
 		if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 			probe.Host = to.StringPtr(backendID.Rule.Host)
@@ -105,9 +105,11 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
 			}
 		}
+
+		return &probe
 	}
 
-	return &probe
+	return nil
 }
 
 func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendID backendIdentifier) *v1.Probe {
