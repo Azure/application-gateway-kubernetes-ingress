@@ -26,12 +26,6 @@ type ConfigBuilder interface {
 type appGwConfigBuilder struct {
 	serviceBackendPairMap map[backendIdentifier](serviceBackendPortPair)
 
-	ingressKeyHostnameSecretIDMap map[string](map[string]secretIdentifier)
-	secretIDCertificateMap        map[secretIdentifier]*string
-
-	httpListenersMap            map[frontendListenerIdentifier](*network.ApplicationGatewayHTTPListener)
-	httpListenersAzureConfigMap map[frontendListenerIdentifier](*frontendListenerAzureConfig)
-
 	backendHTTPSettingsMap map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)
 
 	backendPoolMap map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)
@@ -45,17 +39,14 @@ type appGwConfigBuilder struct {
 // NewConfigBuilder construct a builder
 func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat) ConfigBuilder {
 	return &appGwConfigBuilder{
-		serviceBackendPairMap:         make(map[backendIdentifier](serviceBackendPortPair)),
-		httpListenersMap:              make(map[frontendListenerIdentifier](*network.ApplicationGatewayHTTPListener)),
-		httpListenersAzureConfigMap:   make(map[frontendListenerIdentifier](*frontendListenerAzureConfig)),
-		ingressKeyHostnameSecretIDMap: make(map[string](map[string]secretIdentifier)),
-		secretIDCertificateMap:        make(map[secretIdentifier]*string),
-		probesMap:                     make(map[backendIdentifier](*network.ApplicationGatewayProbe)),
-		backendHTTPSettingsMap:        make(map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)),
-		backendPoolMap:                make(map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)),
-		k8sContext:                    context,
-		appGwIdentifier:               *appGwIdentifier,
-		appGwConfig:                   *originalConfig,
+		// TODO(draychev): Decommission internal state
+		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
+		probesMap:              make(map[backendIdentifier]*network.ApplicationGatewayProbe),
+		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
+		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
+		k8sContext:             context,
+		appGwIdentifier:        *appGwIdentifier,
+		appGwConfig:            *originalConfig,
 	}
 }
 
