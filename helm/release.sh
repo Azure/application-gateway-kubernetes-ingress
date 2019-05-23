@@ -11,15 +11,15 @@ if [ -f $TGZ_FILE ]; then
   exit 0
 fi
 
+echo " - update helm templates"
+cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/Chart.yaml
+cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/values.yaml
+
 echo " - running helm package"
 helm package ingress-azure --version "$GIT_TAG"
 
 echo " - updating helm repo index"
 helm repo index . --url https://azure.github.io/application-gateway-kubernetes-ingress/helm
 
-echo " - update helm templates"
-cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/Chart.yaml
-cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/values.yaml
-./update-index.py
 
 echo " - done!"
