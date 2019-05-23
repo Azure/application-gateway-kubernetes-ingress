@@ -8,10 +8,12 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/eapache/channels"
@@ -135,7 +137,7 @@ func addTags(appGw *network.ApplicationGateway) {
 		appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	appGw.Tags[isManagedByK8sIngress] = to.StringPtr("true")
+	appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
 }
 
 // Start function runs the k8scontext and continues to listen to the
