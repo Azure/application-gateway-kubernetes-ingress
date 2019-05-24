@@ -78,7 +78,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateFrontendListenerID(rule *v1beta1.IngressRule,
+func generateListenerID(rule *v1beta1.IngressRule,
 	protocol network.ApplicationGatewayProtocol, overridePort *int32) frontendListenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == network.HTTPS {

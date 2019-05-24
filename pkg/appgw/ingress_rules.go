@@ -26,7 +26,7 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 		// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
 		// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
 		if httpsAvailable {
-			listenerIDHTTPS := generateFrontendListenerID(&rule, network.HTTPS, nil)
+			listenerIDHTTPS := generateListenerID(&rule, network.HTTPS, nil)
 			frontendPorts.Insert(listenerIDHTTPS.FrontendPort)
 
 			felAzConfig := frontendListenerAzureConfig{
@@ -40,7 +40,7 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 
 		// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 		if annotations.IsSslRedirect(ingress) || !httpsAvailable {
-			listenerID := generateFrontendListenerID(&rule, network.HTTP, nil)
+			listenerID := generateListenerID(&rule, network.HTTP, nil)
 			frontendPorts.Insert(listenerID.FrontendPort)
 			felAzConfig := frontendListenerAzureConfig{
 				Protocol: network.HTTP,

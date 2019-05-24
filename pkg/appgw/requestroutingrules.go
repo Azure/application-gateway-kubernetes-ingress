@@ -127,14 +127,14 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			httpAvailable := false
 			httpsAvailable := false
 
-			listenerHTTPID := generateFrontendListenerID(rule, network.HTTP, nil)
+			listenerHTTPID := generateListenerID(rule, network.HTTP, nil)
 			_, exist := httpListenersMap[listenerHTTPID]
 			if exist {
 				httpAvailable = true
 			}
 
 			// check annotation for port override
-			listenerHTTPSID := generateFrontendListenerID(rule, network.HTTPS, nil)
+			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
 			_, exist = httpListenersMap[listenerHTTPSID]
 			if exist {
 				httpsAvailable = true
