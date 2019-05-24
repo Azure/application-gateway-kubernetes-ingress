@@ -196,7 +196,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 	for listenerID, urlPathMap := range urlPathMaps {
 		requestRoutingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener := httpListenersMap[listenerID]
-		httpListenerSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.httpListenerID(*httpListener.Name))}
+		httpListenerSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.listenerID(*httpListener.Name))}
 		var rule network.ApplicationGatewayRequestRoutingRule
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule

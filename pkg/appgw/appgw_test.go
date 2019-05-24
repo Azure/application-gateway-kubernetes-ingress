@@ -240,10 +240,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Test the listener.
 		appGwIdentifier := Identifier{}
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		httpListenerName := generateListenerName(listenerIdentifier{80, domainName})
-		httpListener := &network.ApplicationGatewayHTTPListener{
+		listenerName := generateListenerName(listenerIdentifier{80, domainName})
+		listener := &network.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
-			Name: &httpListenerName,
+			Name: &listenerName,
 			ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration: resourceRef("*"),
 				FrontendPort:            resourceRef(frontendPortID),
@@ -252,7 +252,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
-		Expect((*appGW.HTTPListeners)[0]).To(Equal(*httpListener))
+		Expect((*appGW.HTTPListeners)[0]).To(Equal(*listener))
 	}
 
 	baseRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat, listener int32, host string) {
