@@ -325,7 +325,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		configBuilder, err = configBuilder.HTTPListeners(ingressList)
+		configBuilder, err = configBuilder.Listeners(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
