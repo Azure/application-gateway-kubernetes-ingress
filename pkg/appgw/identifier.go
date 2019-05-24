@@ -53,7 +53,7 @@ func (agw Identifier) urlPathMapID(urlPathMapName string) string {
 	return agw.gatewayResourceID("urlPathMaps", urlPathMapName)
 }
 
-func (agw Identifier) httpListenerID(listenerName string) string {
+func (agw Identifier) listenerID(listenerName string) string {
 	return agw.gatewayResourceID("httpListeners", listenerName)
 }
 

@@ -9,30 +9,30 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// getFrontendListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+// getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
+func (builder *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	legacyMap := make(map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
-	var httpListeners []n.ApplicationGatewayHTTPListener
+	var listeners []n.ApplicationGatewayHTTPListener
 
-	for listener, config := range builder.getListenerConfigs(ingressList) {
-		httpListener := builder.newHTTPListener(listener, config.Protocol)
+	for listenerID, config := range builder.getListenerConfigs(ingressList) {
+		listener := builder.newListener(listenerID, config.Protocol)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
-			httpListener.SslCertificate = resourceRef(sslCertificateID)
+			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
-		httpListeners = append(httpListeners, httpListener)
-		legacyMap[listener] = &httpListener
+		listeners = append(listeners, listener)
+		legacyMap[listenerID] = &listener
 	}
 
 	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	return &httpListeners, legacyMap
+	return &listeners, legacyMap
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
-func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]frontendListenerAzureConfig {
-	allListeners := make(map[frontendListenerIdentifier]frontendListenerAzureConfig)
+func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
+	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
 		_, azListenerConfigs := builder.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
@@ -42,7 +42,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 
 	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
-		allListeners[defaultFrontendListenerIdentifier()] = frontendListenerAzureConfig{
+		allListeners[defaultFrontendListenerIdentifier()] = listenerAzConfig{
 			// Default protocol
 			Protocol: n.HTTP,
 		}
@@ -51,13 +51,13 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 	return allListeners
 }
 
-func (builder *appGwConfigBuilder) newHTTPListener(listener frontendListenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+func (builder *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateHTTPListenerName(listener)),
+		Name: to.StringPtr(generateListenerName(listener)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
 			FrontendIPConfiguration: resourceRef(*builder.getPublicIPID()),

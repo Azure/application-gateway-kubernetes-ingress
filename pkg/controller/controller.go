@@ -90,7 +90,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
-	configBuilder, err = configBuilder.HTTPListeners(ingressList)
+	configBuilder, err = configBuilder.Listeners(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
 		return errors.New("unable to generate frontend listeners")
