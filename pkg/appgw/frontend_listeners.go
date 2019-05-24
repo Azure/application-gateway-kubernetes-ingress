@@ -57,7 +57,7 @@ func (builder *appGwConfigBuilder) newHTTPListener(listener listenerIdentifier, 
 
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateHTTPListenerName(listener)),
+		Name: to.StringPtr(generateListenerName(listener)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
 			FrontendIPConfiguration: resourceRef(*builder.getPublicIPID()),

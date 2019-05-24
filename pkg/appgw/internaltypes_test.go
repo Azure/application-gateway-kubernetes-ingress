@@ -57,8 +57,8 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected))
 		})
 
-		It("generateHTTPListenerName returns expected key", func() {
-			actual := generateHTTPListenerName(fel)
+		It("generateListenerName returns expected key", func() {
+			actual := generateListenerName(fel)
 			expected := agPrefix + "fl-" + testFixturesHost + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
@@ -129,8 +129,8 @@ var _ = Describe("Test string key generators", func() {
 			FrontendPort: int32(9898),
 		}
 
-		listenerName := generateHTTPListenerName(listener)
-		It("generateHTTPListenerName should have generated correct name without host name", func() {
+		listenerName := generateListenerName(listener)
+		It("generateListenerName should have generated correct name without host name", func() {
 			Expect(listenerName).To(Equal("fl-9898"))
 		})
 
@@ -163,7 +163,7 @@ var _ = Describe("Test string key generators", func() {
 			generateProbeName(serviceName, servicePort, ingress),
 			generateAddressPoolName(serviceName, servicePort, backendPortNo),
 			generateFrontendPortName(port),
-			generateHTTPListenerName(felID),
+			generateListenerName(felID),
 			generateURLPathMapName(felID),
 			generateRequestRoutingRuleName(felID),
 			generateSSLRedirectConfigurationName(namespace, ingress),

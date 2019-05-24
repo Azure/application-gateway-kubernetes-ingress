@@ -114,7 +114,7 @@ func generateFrontendPortName(port int32) string {
 	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
 }
 
-func generateHTTPListenerName(frontendListenerID listenerIdentifier) string {
+func generateListenerName(frontendListenerID listenerIdentifier) string {
 	namePrefix := "fl-"
 	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }

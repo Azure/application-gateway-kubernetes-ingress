@@ -18,7 +18,7 @@ func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1be
 
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
-			targetListener := resourceRef(builder.appGwIdentifier.httpListenerID(generateHTTPListenerName(listenerID)))
+			targetListener := resourceRef(builder.appGwIdentifier.httpListenerID(generateListenerName(listenerID)))
 			newRedirect := newSSLRedirectConfig(listenerConfig, targetListener)
 			redirectConfigs = append(redirectConfigs, newRedirect)
 			redirectJSON, _ := newRedirect.MarshalJSON()

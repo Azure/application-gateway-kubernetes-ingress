@@ -240,7 +240,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Test the listener.
 		appGwIdentifier := Identifier{}
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		httpListenerName := generateHTTPListenerName(listenerIdentifier{80, domainName})
+		httpListenerName := generateListenerName(listenerIdentifier{80, domainName})
 		httpListener := &network.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: &httpListenerName,
@@ -603,7 +603,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
-				httpsListenerName := generateHTTPListenerName(listenerIdentifier{443, domainName})
+				httpsListenerName := generateListenerName(listenerIdentifier{443, domainName})
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
 				httpsListener := &network.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),
