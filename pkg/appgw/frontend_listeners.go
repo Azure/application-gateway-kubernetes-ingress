@@ -17,7 +17,7 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 	var httpListeners []n.ApplicationGatewayHTTPListener
 
 	for listener, config := range builder.getListenerConfigs(ingressList) {
-		httpListener := builder.newHTTPListener(listener, config.Protocol)
+		httpListener := builder.newListener(listener, config.Protocol)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			httpListener.SslCertificate = resourceRef(sslCertificateID)
@@ -51,7 +51,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 	return allListeners
 }
 
-func (builder *appGwConfigBuilder) newHTTPListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+func (builder *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
