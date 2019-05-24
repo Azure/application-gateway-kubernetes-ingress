@@ -70,40 +70,42 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 }
 
 func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *network.ApplicationGatewayProbe {
-	probe := defaultProbe()
 	service := builder.k8sContext.GetService(backendID.serviceKey())
-	if service != nil {
-		probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
-		if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
-			probe.Host = to.StringPtr(backendID.Rule.Host)
-		}
+	if service == nil {
+		return nil
+	}
 
-		if len(annotations.BackendPathPrefix(backendID.Ingress)) != 0 {
-			probe.Path = to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
-		} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
-			probe.Path = to.StringPtr(backendID.Path.Path)
-		}
+	probe := defaultProbe()
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
+	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
+		probe.Host = to.StringPtr(backendID.Rule.Host)
+	}
 
-		k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service, backendID)
-		if k8sProbeForServiceContainer != nil {
-			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
-				probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
-			}
-			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
-				probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
-			}
-			if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
-				probe.Protocol = network.HTTPS
-			}
-			if k8sProbeForServiceContainer.PeriodSeconds != 0 {
-				probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
-			}
-			if k8sProbeForServiceContainer.TimeoutSeconds != 0 {
-				probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
-			}
-			if k8sProbeForServiceContainer.FailureThreshold != 0 {
-				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
-			}
+	if len(annotations.BackendPathPrefix(backendID.Ingress)) != 0 {
+		probe.Path = to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
+	} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
+		probe.Path = to.StringPtr(backendID.Path.Path)
+	}
+
+	k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service, backendID)
+	if k8sProbeForServiceContainer != nil {
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
+			probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
+		}
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
+			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
+		}
+		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
+			probe.Protocol = network.HTTPS
+		}
+		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
+			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
+		}
+		if k8sProbeForServiceContainer.TimeoutSeconds != 0 {
+			probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
+		}
+		if k8sProbeForServiceContainer.FailureThreshold != 0 {
+			probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
 		}
 	}
 
