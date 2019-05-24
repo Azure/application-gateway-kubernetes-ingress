@@ -110,4 +110,48 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Expect(*actual).To(ContainElement(probeForOtherHost))
 		})
 	})
+
+	Context("use default probe when service doesn't exists", func() {
+		cb := newConfigBuilderFixture(nil)
+
+		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		ingressList := []*v1beta1.Ingress{
+			newIngressFixture(),
+		}
+
+		// !! Action !!
+		_, _ = cb.HealthProbesCollection(ingressList)
+		actual := cb.appGwConfig.Probes
+
+		// We expect our health probe configurator to have arrived at this final setup
+		defaultProbe := network.ApplicationGatewayProbe{
+
+			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            network.HTTP,
+				Host:                                to.StringPtr("localhost"),
+				Path:                                to.StringPtr("/"),
+				Interval:                            to.Int32Ptr(30),
+				Timeout:                             to.Int32Ptr(30),
+				UnhealthyThreshold:                  to.Int32Ptr(3),
+				PickHostNameFromBackendHTTPSettings: nil,
+				MinServers:                          nil,
+				Match:                               nil,
+				ProvisioningState:                   nil,
+			},
+			Name: to.StringPtr(agPrefix + "defaultprobe"),
+			Etag: nil,
+			Type: nil,
+			ID:   nil,
+		}
+
+		It("should have exactly 1 record", func() {
+			Expect(len(*actual)).To(Equal(1))
+		})
+
+		It("should have created 1 default probe", func() {
+			Expect(*actual).To(ContainElement(defaultProbe))
+		})
+	})
 })
