@@ -9,25 +9,25 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// getFrontendListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+// getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
+func (builder *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
-	var httpListeners []n.ApplicationGatewayHTTPListener
+	var listeners []n.ApplicationGatewayHTTPListener
 
-	for listener, config := range builder.getListenerConfigs(ingressList) {
-		httpListener := builder.newListener(listener, config.Protocol)
+	for listenerID, config := range builder.getListenerConfigs(ingressList) {
+		listener := builder.newListener(listenerID, config.Protocol)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := builder.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
-			httpListener.SslCertificate = resourceRef(sslCertificateID)
+			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
-		httpListeners = append(httpListeners, httpListener)
-		legacyMap[listener] = &httpListener
+		listeners = append(listeners, listener)
+		legacyMap[listenerID] = &listener
 	}
 
 	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	return &httpListeners, legacyMap
+	return &listeners, legacyMap
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses

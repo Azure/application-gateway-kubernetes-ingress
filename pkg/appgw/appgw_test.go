@@ -30,7 +30,7 @@ type appGwConfigSettings struct {
 	healthProbesCollection        appGWSettingsChecker // Number of health probes.
 	backendHTTPSettingsCollection appGWSettingsChecker // Number of backend HTTP settings.
 	backendAddressPools           appGWSettingsChecker // Number of backend address pool.
-	hTTPListeners                 appGWSettingsChecker // Number of HTTP Listeners
+	listeners                     appGWSettingsChecker // Number of HTTP Listeners
 	requestRoutingRules           appGWSettingsChecker // Number of routing rules.
 	uRLPathMaps                   appGWSettingsChecker // Number of URL path maps.
 }
@@ -236,7 +236,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect((*appGW.BackendAddressPools)).To(ContainElement(*addressPool))
 	}
 
-	defaultHTTPListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+	defaultListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		// Test the listener.
 		appGwIdentifier := Identifier{}
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
@@ -331,10 +331,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Retrieve the implementation of the `ConfigBuilder` interface.
 		appGW = configBuilder.Build()
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
-		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.hTTPListeners.total), "Did not find expected number of HTTP listeners")
+		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.listeners.total), "Did not find expected number of HTTP listeners")
 
-		if settings.hTTPListeners.checker != nil {
-			settings.hTTPListeners.checker(appGW)
+		if settings.listeners.checker != nil {
+			settings.listeners.checker(appGW)
 		}
 
 		// RequestRoutingRules depends on the previous operations
@@ -441,9 +441,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					total:   2,
 					checker: defaultBackendAddressPoolChecker,
 				},
-				hTTPListeners: appGWSettingsChecker{
+				listeners: appGWSettingsChecker{
 					total:   1,
-					checker: defaultHTTPListenersChecker,
+					checker: defaultListenersChecker,
 				},
 				requestRoutingRules: appGWSettingsChecker{
 					total:   1,
@@ -520,9 +520,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					total:   1,
 					checker: EmptyBackendAddressPoolChecker,
 				},
-				hTTPListeners: appGWSettingsChecker{
+				listeners: appGWSettingsChecker{
 					total:   1,
-					checker: defaultHTTPListenersChecker,
+					checker: defaultListenersChecker,
 				},
 				requestRoutingRules: appGWSettingsChecker{
 					total:   1,
@@ -620,7 +620,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				}
 
-				Expect((*appGW.HTTPListeners)).Should(ConsistOf(*httpsListener))
+				Expect(*appGW.HTTPListeners).Should(ConsistOf(*httpsListener))
 			}
 
 			// Method to test all the ingress that have been added to the K8s context.
@@ -651,7 +651,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					total:   2,
 					checker: defaultBackendAddressPoolChecker,
 				},
-				hTTPListeners: appGWSettingsChecker{
+				listeners: appGWSettingsChecker{
 					total:   1,
 					checker: httpsOnlyListenersChecker,
 				},
@@ -741,9 +741,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					total:   2,
 					checker: defaultBackendAddressPoolChecker,
 				},
-				hTTPListeners: appGWSettingsChecker{
+				listeners: appGWSettingsChecker{
 					total:   1,
-					checker: defaultHTTPListenersChecker,
+					checker: defaultListenersChecker,
 				},
 				requestRoutingRules: appGWSettingsChecker{
 					total:   1,

@@ -76,7 +76,7 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 }
 
 func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	_, httpListenersMap := builder.getFrontendListeners(ingressList)
+	_, httpListenersMap := builder.getListeners(ingressList)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	for _, ingress := range ingressList {
 		defaultAddressPoolID := builder.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)

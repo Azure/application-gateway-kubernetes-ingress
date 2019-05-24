@@ -53,7 +53,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		}
 
 		// !! Action !!
-		listeners, _ := cb.getFrontendListeners(ingressList)
+		listeners, _ := cb.getListeners(ingressList)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))

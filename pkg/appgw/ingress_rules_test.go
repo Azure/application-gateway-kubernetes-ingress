@@ -50,7 +50,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
 		// Ensure there are no certs
 		ingress.Spec.TLS = nil
@@ -83,10 +83,10 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 
 		It("should construct the App Gateway listeners correctly without SSL", func() {
-			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+			azConfigMapKeys := getMapKeys(&listenersAzureConfigMap)
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
-			actualVal := httpListenersAzureConfigMap[expectedListener80]
+			actualVal := listenersAzureConfigMap[expectedListener80]
 			Expect(actualVal).To(Equal(expectedListenerAzConfigNoSSL))
 		})
 	})
