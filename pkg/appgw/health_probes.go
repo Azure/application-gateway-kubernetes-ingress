@@ -19,6 +19,7 @@ import (
 
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := make(map[backendIdentifier]interface{})
+
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
 
 	for _, ingress := range ingressList {
