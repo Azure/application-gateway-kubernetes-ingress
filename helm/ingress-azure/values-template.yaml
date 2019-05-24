@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
+  tag: XXVERSIONXX
+  pullPolicy: Always
+
+################################################################################
+# Specify which kubernetes namespace the ingress controller will watch
+#
+kubernetes:
+  watchNamespace: default
+
+################################################################################
+# Specify which application gateway the ingress controller will manage
+#
+# appgw:
+#   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#   resourceGroup: myResourceGroup
+#   name: myApplicationGateway
+
+################################################################################
+# Specify the authentication with Azure Resource Manager
+#
+# Two authentication methods are available:
+# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
+# armAuth:
+#   type: aadPodIdentity
+#   identityResourceID: <>
+#   identityClientID:  <>
+#
+# - Option 2: ServicePrincipal as a kubernetes secret
+# armAuth:
+#   type: servicePrincipal
+#   secretName: networking-appgw-k8s-azure-service-principal
+#   secretKey: ServicePrincipal.json
+
+################################################################################
+# Specify if the cluster is RBAC enabled or not
+# rbac:
+#     enabled: false # true/false
+
+################################################################################
+# Specify if the cluster is RBAC enabled or not
+# aksClusterConfiguration:
+#     apiServerAddress: <>
