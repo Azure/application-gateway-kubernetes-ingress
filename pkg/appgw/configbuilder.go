@@ -87,11 +87,11 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	if overridePort != nil {
 		frontendPort = *overridePort
 	}
-	frontendListenerID := listenerIdentifier{
+	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
 		HostName:     rule.Host,
 	}
-	return frontendListenerID
+	return listenerID
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager

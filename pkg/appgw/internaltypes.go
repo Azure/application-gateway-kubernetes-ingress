@@ -114,19 +114,19 @@ func generateFrontendPortName(port int32) string {
 	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
 }
 
-func generateListenerName(frontendListenerID listenerIdentifier) string {
+func generateListenerName(listenerID listenerIdentifier) string {
 	namePrefix := "fl-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateURLPathMapName(frontendListenerID listenerIdentifier) string {
+func generateURLPathMapName(listenerID listenerIdentifier) string {
 	namePrefix := "url-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateRequestRoutingRuleName(frontendListenerID listenerIdentifier) string {
+func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
 	namePrefix := "rr-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
