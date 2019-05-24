@@ -17,7 +17,7 @@ type ConfigBuilder interface {
 	// builder pattern
 	BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	Listeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	Build() *network.ApplicationGatewayPropertiesFormat
@@ -78,8 +78,8 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateFrontendListenerID(rule *v1beta1.IngressRule,
-	protocol network.ApplicationGatewayProtocol, overridePort *int32) frontendListenerIdentifier {
+func generateListenerID(rule *v1beta1.IngressRule,
+	protocol network.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == network.HTTPS {
 		frontendPort = int32(443)
@@ -87,11 +87,11 @@ func generateFrontendListenerID(rule *v1beta1.IngressRule,
 	if overridePort != nil {
 		frontendPort = *overridePort
 	}
-	frontendListenerID := frontendListenerIdentifier{
+	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
 		HostName:     rule.Host,
 	}
-	return frontendListenerID
+	return listenerID
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
