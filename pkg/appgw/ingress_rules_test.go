@@ -13,12 +13,12 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	port80 := int32(80)
 	port443 := int32(443)
 
-	expectedListener80 := frontendListenerIdentifier{
+	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigNoSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
 		Secret: secretIdentifier{
 			Namespace: "",
@@ -27,12 +27,12 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		SslRedirectConfigurationName: "",
 	}
 
-	expectedListener443 := frontendListenerIdentifier{
+	expectedListener443 := listenerIdentifier{
 		FrontendPort: 443,
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
 		Secret: secretIdentifier{
 			Namespace: testFixturesNamespace,
@@ -50,7 +50,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
 		// Ensure there are no certs
 		ingress.Spec.TLS = nil
@@ -83,10 +83,10 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 
 		It("should construct the App Gateway listeners correctly without SSL", func() {
-			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+			azConfigMapKeys := getMapKeys(&listenersAzureConfigMap)
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
-			actualVal := httpListenersAzureConfigMap[expectedListener80]
+			actualVal := listenersAzureConfigMap[expectedListener80]
 			Expect(actualVal).To(Equal(expectedListenerAzConfigNoSSL))
 		})
 	})
@@ -155,8 +155,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 })
 
-func getMapKeys(m *map[frontendListenerIdentifier]frontendListenerAzureConfig) []frontendListenerIdentifier {
-	keys := make([]frontendListenerIdentifier, 0, len(*m))
+func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier {
+	keys := make([]listenerIdentifier, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)
 	}

@@ -22,7 +22,7 @@ var _ = Describe("Test string key generators", func() {
 		servicePort := testFixturesServicePort
 		serviceName := testFixturesServiceName
 		ingress := "INGR"
-		fel := frontendListenerIdentifier{
+		fel := listenerIdentifier{
 			FrontendPort: int32(9898),
 			HostName:     testFixturesHost,
 		}
@@ -57,8 +57,8 @@ var _ = Describe("Test string key generators", func() {
 			Expect(actual).To(Equal(expected))
 		})
 
-		It("generateHTTPListenerName returns expected key", func() {
-			actual := generateHTTPListenerName(fel)
+		It("generateListenerName returns expected key", func() {
+			actual := generateListenerName(fel)
 			expected := agPrefix + "fl-" + testFixturesHost + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
@@ -125,12 +125,12 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test property names that require a host name, but host name is blank", func() {
 		// Listener without a hostname
-		listener := frontendListenerIdentifier{
+		listener := listenerIdentifier{
 			FrontendPort: int32(9898),
 		}
 
-		listenerName := generateHTTPListenerName(listener)
-		It("generateHTTPListenerName should have generated correct name without host name", func() {
+		listenerName := generateListenerName(listener)
+		It("generateListenerName should have generated correct name without host name", func() {
 			Expect(listenerName).To(Equal("fl-9898"))
 		})
 
@@ -153,7 +153,7 @@ var _ = Describe("Test string key generators", func() {
 		backendPortNo := int32(8888)
 		ingress := veryLongString
 		port := int32(88)
-		felID := frontendListenerIdentifier{
+		felID := listenerIdentifier{
 			FrontendPort: port,
 			HostName:     namespace,
 		}
@@ -163,7 +163,7 @@ var _ = Describe("Test string key generators", func() {
 			generateProbeName(serviceName, servicePort, ingress),
 			generateAddressPoolName(serviceName, servicePort, backendPortNo),
 			generateFrontendPortName(port),
-			generateHTTPListenerName(felID),
+			generateListenerName(felID),
 			generateURLPathMapName(felID),
 			generateRequestRoutingRuleName(felID),
 			generateSSLRedirectConfigurationName(namespace, ingress),

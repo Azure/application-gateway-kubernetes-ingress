@@ -392,4 +392,3 @@ func newURLPathMap() network.ApplicationGatewayURLPathMap {
 		},
 	}
 }
-
