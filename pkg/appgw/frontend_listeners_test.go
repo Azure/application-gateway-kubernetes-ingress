@@ -17,7 +17,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		HostName:     testFixturesHost,
 	}
 
-	listenerAzConfigNoSSL := frontendListenerAzureConfig{
+	listenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
 		Secret: secretIdentifier{
 			Namespace: "",

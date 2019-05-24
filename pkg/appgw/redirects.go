@@ -30,7 +30,7 @@ func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1be
 }
 
 // newSSLRedirectConfig creates a new Redirect in the form of a ApplicationGatewayRedirectConfiguration struct.
-func newSSLRedirectConfig(listenerConfig frontendListenerAzureConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
+func newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
 	props := n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 		// RedirectType could be one of: 301/Permanent, 302/Found, 303/See Other, 307/Temporary
 		RedirectType: n.Permanent,

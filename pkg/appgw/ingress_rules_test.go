@@ -18,7 +18,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigNoSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
 		Secret: secretIdentifier{
 			Namespace: "",
@@ -32,7 +32,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
 		Secret: secretIdentifier{
 			Namespace: testFixturesNamespace,
@@ -155,7 +155,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 })
 
-func getMapKeys(m *map[frontendListenerIdentifier]frontendListenerAzureConfig) []frontendListenerIdentifier {
+func getMapKeys(m *map[frontendListenerIdentifier]listenerAzConfig) []frontendListenerIdentifier {
 	keys := make([]frontendListenerIdentifier, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)

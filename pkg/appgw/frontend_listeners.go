@@ -31,8 +31,8 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
-func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]frontendListenerAzureConfig {
-	allListeners := make(map[frontendListenerIdentifier]frontendListenerAzureConfig)
+func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]listenerAzConfig {
+	allListeners := make(map[frontendListenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
 		_, azListenerConfigs := builder.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
@@ -42,7 +42,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 
 	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
-		allListeners[defaultFrontendListenerIdentifier()] = frontendListenerAzureConfig{
+		allListeners[defaultFrontendListenerIdentifier()] = listenerAzConfig{
 			// Default protocol
 			Protocol: n.HTTP,
 		}

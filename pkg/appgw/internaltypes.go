@@ -53,7 +53,7 @@ var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
 var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
 
 // create xxx -> xxxconfiguration mappings to contain all the information
-type frontendListenerAzureConfig struct {
+type listenerAzConfig struct {
 	Protocol                     network.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
