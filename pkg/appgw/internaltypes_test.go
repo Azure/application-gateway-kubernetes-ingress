@@ -22,7 +22,7 @@ var _ = Describe("Test string key generators", func() {
 		servicePort := testFixturesServicePort
 		serviceName := testFixturesServiceName
 		ingress := "INGR"
-		fel := frontendListenerIdentifier{
+		fel := listenerIdentifier{
 			FrontendPort: int32(9898),
 			HostName:     testFixturesHost,
 		}
@@ -125,7 +125,7 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test property names that require a host name, but host name is blank", func() {
 		// Listener without a hostname
-		listener := frontendListenerIdentifier{
+		listener := listenerIdentifier{
 			FrontendPort: int32(9898),
 		}
 
@@ -153,7 +153,7 @@ var _ = Describe("Test string key generators", func() {
 		backendPortNo := int32(8888)
 		ingress := veryLongString
 		port := int32(88)
-		felID := frontendListenerIdentifier{
+		felID := listenerIdentifier{
 			FrontendPort: port,
 			HostName:     namespace,
 		}

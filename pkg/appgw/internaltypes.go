@@ -33,7 +33,7 @@ type serviceBackendPortPair struct {
 	BackendPort int32
 }
 
-type frontendListenerIdentifier struct {
+type listenerIdentifier struct {
 	FrontendPort int32
 	HostName     string
 }
@@ -114,17 +114,17 @@ func generateFrontendPortName(port int32) string {
 	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
 }
 
-func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
+func generateHTTPListenerName(frontendListenerID listenerIdentifier) string {
 	namePrefix := "fl-"
 	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
 
-func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
+func generateURLPathMapName(frontendListenerID listenerIdentifier) string {
 	namePrefix := "url-"
 	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
 
-func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
+func generateRequestRoutingRuleName(frontendListenerID listenerIdentifier) string {
 	namePrefix := "rr-"
 	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
 }
@@ -182,8 +182,8 @@ func defaultBackendAddressPool() network.ApplicationGatewayBackendAddressPool {
 	}
 }
 
-func defaultFrontendListenerIdentifier() frontendListenerIdentifier {
-	return frontendListenerIdentifier{
+func defaultFrontendListenerIdentifier() listenerIdentifier {
+	return listenerIdentifier{
 		FrontendPort: int32(80),
 		HostName:     "",
 	}

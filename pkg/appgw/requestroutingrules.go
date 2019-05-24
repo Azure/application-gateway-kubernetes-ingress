@@ -16,7 +16,7 @@ import (
 )
 
 func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule,
-	frontendListenerID frontendListenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
+	frontendListenerID listenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
 	defaultAddressPoolID string, defaultHTTPSettingsID string) *network.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
 		urlPathMapName := generateURLPathMapName(frontendListenerID)
@@ -77,7 +77,7 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 
 func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	_, httpListenersMap := builder.getFrontendListeners(ingressList)
-	urlPathMaps := make(map[frontendListenerIdentifier]*network.ApplicationGatewayURLPathMap)
+	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	for _, ingress := range ingressList {
 		defaultAddressPoolID := builder.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := builder.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)

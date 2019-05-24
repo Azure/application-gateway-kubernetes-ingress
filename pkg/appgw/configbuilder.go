@@ -79,7 +79,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 }
 
 func generateListenerID(rule *v1beta1.IngressRule,
-	protocol network.ApplicationGatewayProtocol, overridePort *int32) frontendListenerIdentifier {
+	protocol network.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == network.HTTPS {
 		frontendPort = int32(443)
@@ -87,7 +87,7 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	if overridePort != nil {
 		frontendPort = *overridePort
 	}
-	frontendListenerID := frontendListenerIdentifier{
+	frontendListenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
 		HostName:     rule.Host,
 	}

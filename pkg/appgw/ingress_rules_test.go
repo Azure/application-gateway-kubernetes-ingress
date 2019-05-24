@@ -13,7 +13,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	port80 := int32(80)
 	port443 := int32(443)
 
-	expectedListener80 := frontendListenerIdentifier{
+	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
 		HostName:     testFixturesHost,
 	}
@@ -27,7 +27,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		SslRedirectConfigurationName: "",
 	}
 
-	expectedListener443 := frontendListenerIdentifier{
+	expectedListener443 := listenerIdentifier{
 		FrontendPort: 443,
 		HostName:     testFixturesHost,
 	}
@@ -155,8 +155,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 })
 
-func getMapKeys(m *map[frontendListenerIdentifier]listenerAzConfig) []frontendListenerIdentifier {
-	keys := make([]frontendListenerIdentifier, 0, len(*m))
+func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier {
+	keys := make([]listenerIdentifier, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)
 	}

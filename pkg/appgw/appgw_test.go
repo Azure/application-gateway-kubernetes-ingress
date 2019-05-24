@@ -240,7 +240,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Test the listener.
 		appGwIdentifier := Identifier{}
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		httpListenerName := generateHTTPListenerName(frontendListenerIdentifier{80, domainName})
+		httpListenerName := generateHTTPListenerName(listenerIdentifier{80, domainName})
 		httpListener := &network.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: &httpListenerName,
@@ -256,7 +256,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseRequestRoutingRulesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(frontendListenerIdentifier{listener, host})))
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{listener, host})))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(network.PathBasedRouting))
 	}
 
@@ -269,7 +269,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseURLPathMapsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(frontendListenerIdentifier{listener, host})))
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{listener, host})))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
@@ -603,7 +603,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
-				httpsListenerName := generateHTTPListenerName(frontendListenerIdentifier{443, domainName})
+				httpsListenerName := generateHTTPListenerName(listenerIdentifier{443, domainName})
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
 				httpsListener := &network.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),

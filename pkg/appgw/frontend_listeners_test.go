@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
 
-	listener80 := frontendListenerIdentifier{
+	listener80 := listenerIdentifier{
 		FrontendPort: int32(80),
 		HostName:     testFixturesHost,
 	}

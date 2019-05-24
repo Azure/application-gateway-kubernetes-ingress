@@ -8,11 +8,11 @@ import (
 )
 
 // processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (utils.UnorderedSet, map[frontendListenerIdentifier]listenerAzConfig) {
+func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (utils.UnorderedSet, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := utils.NewUnorderedSet()
 
 	ingressHostnameSecretIDMap := builder.newHostToSecretMap(ingress)
-	azListenerConfigs := make(map[frontendListenerIdentifier]listenerAzConfig)
+	azListenerConfigs := make(map[listenerIdentifier]listenerAzConfig)
 
 	for _, rule := range ingress.Spec.Rules {
 		if rule.HTTP == nil {

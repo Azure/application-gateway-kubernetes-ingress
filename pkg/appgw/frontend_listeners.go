@@ -10,9 +10,9 @@ import (
 )
 
 // getFrontendListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.Ingress) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	legacyMap := make(map[frontendListenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
 	var httpListeners []n.ApplicationGatewayHTTPListener
 
@@ -31,8 +31,8 @@ func (builder *appGwConfigBuilder) getFrontendListeners(ingressList []*v1beta1.I
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
-func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[frontendListenerIdentifier]listenerAzConfig {
-	allListeners := make(map[frontendListenerIdentifier]listenerAzConfig)
+func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
+	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
 		_, azListenerConfigs := builder.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
@@ -51,7 +51,7 @@ func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ing
 	return allListeners
 }
 
-func (builder *appGwConfigBuilder) newHTTPListener(listener frontendListenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+func (builder *appGwConfigBuilder) newHTTPListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := builder.appGwIdentifier.frontendPortID(frontendPortName)
 
