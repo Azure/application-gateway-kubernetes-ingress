@@ -227,6 +227,7 @@ If the above probes are not provided, then Ingress Controller make an assumption
 
 ### Default Values for Health Probe
 For any property that can not be inferred by the readiness/liveness probe, Default values are set.
+
 | Application Gateway Probe Property | Default Value |
 |-|-|
 | `Path` | / |
