@@ -47,7 +47,7 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 		backendPoolSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.addressPoolID(*backendPool.Name))}
 		backendHTTPSettingsSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.httpSettingsID(*backendHTTPSettings.Name))}
 
-		if len(path.Path) == 0 || path.Path == "/*" {
+		if len(path.Path) == 0 || path.Path == "/*" || path.Path == "/" {
 			// this backend should be a default backend, catches all traffic
 			// check if it is a host-specific default backend
 			if rule.Host == listenerID.HostName {
@@ -97,7 +97,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			// wildcard rule override the default backend
 			for pathIdx := range wildcardRule.HTTP.Paths {
 				path := &wildcardRule.HTTP.Paths[pathIdx]
-				if path.Path == "" || path.Path == "/*" {
+				if path.Path == "" || path.Path == "/*" || path.Path == "/" {
 					// look for default path
 					defBackend = &path.Backend
 				}
