@@ -30,6 +30,7 @@ type AppGwIngressController struct {
 
 	eventQueue *EventQueue
 
+	configCache *[]byte
 	stopChannel chan struct{}
 }
 
@@ -40,6 +41,7 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
+		configCache:      &[]byte{},
 	}
 	controller.eventQueue = NewEventQueue(controller)
 	return controller
@@ -107,6 +109,11 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	appGw.ApplicationGatewayPropertiesFormat = configBuilder.Build()
 
 	addTags(&appGw)
+
+	if c.configIsSame(&appGw) {
+		glog.Infoln("Config has NOT changed! No need to connect to ARM.")
+		return nil
+	}
 
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
