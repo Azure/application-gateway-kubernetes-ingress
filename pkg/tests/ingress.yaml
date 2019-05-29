@@ -7,7 +7,7 @@ metadata:
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: ws.mis.li
+    - host: ws.contoso.com
       http:
         paths:
           - path: /
