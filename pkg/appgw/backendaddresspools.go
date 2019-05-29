@@ -6,13 +6,9 @@
 package appgw
 
 import (
-
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -43,7 +39,7 @@ func getEndpoints(subset v1.EndpointSubset) map[int32]interface{} {
 func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name:&defaultPool,
+		*defaultPool.Name: &defaultPool,
 	}
 	defaultPoolJSON, _ := defaultPool.MarshalJSON()
 	glog.Info("Added default backend pool:", string(defaultPoolJSON))
@@ -83,16 +79,20 @@ func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayB
 }
 
 func getAddresses(subset v1.EndpointSubset) *[]n.ApplicationGatewayBackendAddress {
-	addresses := make([]n.ApplicationGatewayBackendAddress, 0)
+	addrSet := make(map[n.ApplicationGatewayBackendAddress]interface{})
 	for _, address := range subset.Addresses {
 		// prefer IP address
 		if len(address.IP) != 0 {
 			// address specified by ip
-			addresses = append(addresses, n.ApplicationGatewayBackendAddress{IPAddress: &address.IP})
+			addrSet[n.ApplicationGatewayBackendAddress{IPAddress: &address.IP}] = nil
 		} else if len(address.Hostname) != 0 {
 			// address specified by hostname
-			addresses = append(addresses, n.ApplicationGatewayBackendAddress{Fqdn: &address.Hostname})
+			addrSet[n.ApplicationGatewayBackendAddress{Fqdn: &address.Hostname}] = nil
 		}
+	}
+	addresses := make([]n.ApplicationGatewayBackendAddress, 0)
+	for addr := range addrSet {
+		addresses = append(addresses, addr)
 	}
 	return &addresses
 }

@@ -21,7 +21,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		actualPools := cb.getPools()
 
 		It("should contain correct number of backend actualPools", func() {
-			Expect(len(actualPools)).To(Equal(1))
+			Expect(len(*actualPools)).To(Equal(1))
 		})
 
 		It("should contain correct number of backend actualPools", func() {
