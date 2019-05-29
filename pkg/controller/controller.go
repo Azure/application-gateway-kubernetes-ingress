@@ -128,6 +128,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
+		// Reset cache
+		c.configCache = &[]byte{}
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
 		return errors.New("unable to send CreateOrUpdate request")
 	}
@@ -137,6 +139,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
+		// Reset cache
+		c.configCache = &[]byte{}
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
 		return errors.New("unable to deploy ApplicationGateway")
 	}
