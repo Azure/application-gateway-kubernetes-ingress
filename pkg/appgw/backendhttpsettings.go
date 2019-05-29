@@ -116,8 +116,9 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 	}
 
 	probeID := builder.appGwIdentifier.probeID(defaultProbeName)
-	httpSettingsCollection := make([](network.ApplicationGatewayBackendHTTPSettings), 0)
-	httpSettingsCollection = append(httpSettingsCollection, defaultBackendHTTPSettings(probeID))
+	httpSettingsCollection := make(map[string]network.ApplicationGatewayBackendHTTPSettings)
+	defaultBackend := defaultBackendHTTPSettings(probeID)
+	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
@@ -152,11 +153,16 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			},
 		}
 		// other settings should come from annotations
-		httpSettingsCollection = append(httpSettingsCollection, httpSettings)
+		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		builder.backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	builder.appGwConfig.BackendHTTPSettingsCollection = &httpSettingsCollection
+	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
+	for _, backend := range httpSettingsCollection {
+		backends = append(backends, backend)
+	}
+
+	builder.appGwConfig.BackendHTTPSettingsCollection = &backends
 
 	return builder, nil
 }
