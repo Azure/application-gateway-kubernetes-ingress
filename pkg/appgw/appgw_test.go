@@ -212,9 +212,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Test the default backend HTTP settings.
-		Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
+		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
 		// Test the ingress backend HTTP setting that we installed.
-		Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(*httpSettings))
 	}
 
 	defaultBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
