@@ -132,12 +132,15 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(frontendPorts)).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			actualListener := getMapKeys(&frontendListeners)[0]
-			Expect(actualListener.FrontendPort).To(Equal(port443))
+			ports := make([]int32, 0)
+			for _, listener := range getMapKeys(&frontendListeners) {
+				ports = append(ports, listener.FrontendPort)
+			}
+			Expect(ports).To(ContainElement(port443))
 		})
 		It("should have one port 443", func() {
-			actualPort := getInt32MapKeys(&frontendPorts)[0]
-			Expect(actualPort).To(Equal(port443))
+			ports := getInt32MapKeys(&frontendPorts)
+			Expect(ports).To(ContainElement(port443))
 		})
 
 		It("should have no request routing rules ", func() {
