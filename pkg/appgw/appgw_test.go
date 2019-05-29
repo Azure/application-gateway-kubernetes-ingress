@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/record"
 )
 
 type appGWSettingsChecker struct {
@@ -396,7 +397,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
-		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &network.ApplicationGatewayPropertiesFormat{})
+		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &network.ApplicationGatewayPropertiesFormat{}, record.NewFakeRecorder(100))
 
 		builder, ok := configBuilder.(*appGwConfigBuilder)
 		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")

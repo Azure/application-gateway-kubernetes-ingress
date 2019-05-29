@@ -2,9 +2,11 @@ package appgw
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -40,6 +42,9 @@ func (builder *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.In
 		// add hostname-tlsSecret mapping to a per-ingress map
 		if cert := builder.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey()); cert != nil {
 			secretIDCertificateMap[tlsSecret] = to.StringPtr(base64.StdEncoding.EncodeToString(cert))
+		} else {
+			logLine := fmt.Sprintf("Unable to find the secret associated to secretId: [%s]", tlsSecret.secretKey())
+			builder.recorder.Event(ingress, v1.EventTypeWarning, "SecretNotFound", logLine)
 		}
 	}
 	return secretIDCertificateMap
