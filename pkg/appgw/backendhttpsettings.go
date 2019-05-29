@@ -111,10 +111,6 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			break
 		}
 
-		if serviceBackendPairsMap[backendID] == nil {
-			serviceBackendPairsMap[backendID] = make(map[serviceBackendPortPair]interface{})
-		}
-
 		// Merge serviceBackendPairsMap[backendID] into resolvedBackendPorts
 		if _, ok := serviceBackendPairsMap[backendID]; !ok {
 			serviceBackendPairsMap[backendID] = make(map[serviceBackendPortPair]interface{})
