@@ -42,6 +42,27 @@ func (c AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) 
 	return sameAsCache
 }
 
+func (c AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGateway) ([]byte, error) {
+	jsonConfig, err := appGw.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	// Remove sensitive data from the JSON config to be logged
+	keysToDelete := []string{
+		"sslCertificates",
+	}
+	var stripped []byte
+	if stripped, err = deleteKeyFromJSON(jsonConfig, keysToDelete...); err != nil {
+		return nil, err
+	}
+
+	// Unmarshal and Marshall again with Indent so it is human readable
+	var config interface{}
+	_ = json.Unmarshal(stripped, &config)
+	return json.MarshalIndent(config, "-- App Gwy config --", "    ")
+}
+
 func isMap(v interface{}) bool {
 	return reflect.ValueOf(v).Type().Kind() == reflect.Map
 }
@@ -81,12 +102,14 @@ func deleteKey(m *map[string]interface{}, keyToDelete string) {
 }
 
 // deleteKeyFromJSON assumes the []byte passed is JSON. It unmarshalls, deletes the given key, and marshalls again.
-func deleteKeyFromJSON(jsonWithEtag []byte, keyToDelete string) ([]byte, error) {
+func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, error) {
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonWithEtag), &m); err != nil {
 		glog.Error("Could not unmarshal config App Gwy JSON to delete Etag.", err)
 		return nil, err
 	}
-	deleteKey(&m, keyToDelete)
+	for _, keyToDelete := range keysToDelete {
+		deleteKey(&m, keyToDelete)
+	}
 	return json.Marshal(m)
 }

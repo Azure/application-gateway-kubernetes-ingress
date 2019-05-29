@@ -10,8 +10,8 @@ func (builder *appGwConfigBuilder) getFrontendPorts(ingressList []*v1beta1.Ingre
 	allPorts := make(map[int32]interface{})
 	for _, ingress := range ingressList {
 		fePorts, _ := builder.processIngressRules(ingress)
-		for _, port := range fePorts.ToSlice() {
-			allPorts[port.(int32)] = nil
+		for port := range fePorts {
+			allPorts[port] = nil
 		}
 	}
 

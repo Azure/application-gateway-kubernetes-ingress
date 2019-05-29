@@ -69,11 +69,11 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 		// Verify front end ports
 		It("should have correct count of front end ports", func() {
-			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
+			Expect(len(frontendPorts)).To(Equal(1))
 		})
 
 		It("should have one port 80", func() {
-			actualPort := frontendPorts.ToSlice()[0]
+			actualPort := getInt32MapKeys(&frontendPorts)[0]
 			Expect(actualPort).To(Equal(port80))
 		})
 
@@ -129,15 +129,18 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(frontendListeners)).To(Equal(1))
 		})
 		It("should have correct number of front end ports", func() {
-			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
+			Expect(len(frontendPorts)).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			actualListener := getMapKeys(&frontendListeners)[0]
-			Expect(actualListener.FrontendPort).To(Equal(port443))
+			ports := make([]int32, 0)
+			for _, listener := range getMapKeys(&frontendListeners) {
+				ports = append(ports, listener.FrontendPort)
+			}
+			Expect(ports).To(ContainElement(port443))
 		})
 		It("should have one port 443", func() {
-			actualPort := frontendPorts.ToSlice()[0]
-			Expect(actualPort).To(Equal(port443))
+			ports := getInt32MapKeys(&frontendPorts)
+			Expect(ports).To(ContainElement(port443))
 		})
 
 		It("should have no request routing rules ", func() {
@@ -157,6 +160,14 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier {
 	keys := make([]listenerIdentifier, 0, len(*m))
+	for k := range *m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func getInt32MapKeys(m *map[int32]interface{}) []int32 {
+	keys := make([]int32, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)
 	}
