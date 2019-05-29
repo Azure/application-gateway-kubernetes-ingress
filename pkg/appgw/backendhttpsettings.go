@@ -51,10 +51,11 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
 			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
 			glog.Errorf(logLine)
-			resolvedBackendPorts.Insert(serviceBackendPortPair{
+			pair := serviceBackendPortPair{
 				ServicePort: backendID.Backend.ServicePort.IntVal,
 				BackendPort: backendID.Backend.ServicePort.IntVal,
-			})
+			}
+			resolvedBackendPorts.Insert(pair)
 		} else {
 			for _, sp := range service.Spec.Ports {
 				// find the backend port number
@@ -70,18 +71,20 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 					if sp.TargetPort.String() == "" {
 						// targetPort is not defined, by default targetPort == port
-						resolvedBackendPorts.Insert(serviceBackendPortPair{
+						pair := serviceBackendPortPair{
 							ServicePort: sp.Port,
 							BackendPort: sp.Port,
-						})
+						}
+						resolvedBackendPorts.Insert(pair)
 					} else {
 						// target port is defined as name or port number
 						if sp.TargetPort.Type == intstr.Int {
 							// port is defined as port number
-							resolvedBackendPorts.Insert(serviceBackendPortPair{
+							pair := serviceBackendPortPair{
 								ServicePort: sp.Port,
 								BackendPort: sp.TargetPort.IntVal,
-							})
+							}
+							resolvedBackendPorts.Insert(pair)
 						} else {
 							// if service port is defined by name, need to resolve
 							targetPortName := sp.TargetPort.StrVal
@@ -89,10 +92,11 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 							targetPortsResolved := builder.resolvePortName(targetPortName, &backendID)
 							targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
 								targetPort := targetPortInterface.(int32)
-								resolvedBackendPorts.Insert(serviceBackendPortPair{
+								pair := serviceBackendPortPair{
 									ServicePort: sp.Port,
 									BackendPort: targetPort,
-								})
+								}
+								resolvedBackendPorts.Insert(pair)
 							})
 						}
 					}
