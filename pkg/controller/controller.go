@@ -131,6 +131,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		// Reset cache
 		c.configCache = &[]byte{}
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
+		configJSON, _ := c.dumpSanitizedJSON(&appGw)
+		glog.V(5).Info(string(configJSON))
 		return errors.New("unable to send CreateOrUpdate request")
 	}
 
