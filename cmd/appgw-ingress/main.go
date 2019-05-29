@@ -16,11 +16,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/record"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -78,8 +83,15 @@ func main() {
 		ResourceGroup:  env.ResourceGroupName,
 		AppGwName:      env.AppGwName,
 	}
-	ctx := k8scontext.NewContext(getKubeClient(env), env.WatchNamespace, *resyncPeriod)
-	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx).Start()
+	kubeClient := getKubeClient(env)
+	ctx := k8scontext.NewContext(kubeClient, env.WatchNamespace, *resyncPeriod)
+
+	recorder, err := getEventRecorder(kubeClient)
+	if err != nil {
+		glog.Fatal("Error creating event recorder:", err)
+	}
+
+	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx, recorder).Start()
 	select {}
 }
 
@@ -139,4 +151,19 @@ func getKubeClientConfig() *rest.Config {
 	}
 
 	return config
+}
+
+func getEventRecorder(kubeClient kubernetes.Interface) (record.EventRecorder, error) {
+	eventBroadcaster := record.NewBroadcaster()
+	eventBroadcaster.StartLogging(glog.Infof)
+	eventBroadcaster.StartRecordingToSink(
+		&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
+	hostname, _ := os.Hostname()
+	recorder := eventBroadcaster.NewRecorder(
+		scheme.Scheme,
+		v1.EventSource{
+			Component: annotations.ApplicationGatewayIngressClass,
+			Host:      hostname,
+		})
+	return recorder, nil
 }

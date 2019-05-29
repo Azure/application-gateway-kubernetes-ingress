@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"fmt"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -22,7 +24,9 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.I
 	for backendID, serviceBackendPair := range builder.serviceBackendPairMap {
 		endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 		if endpoints == nil {
-			glog.Warningf("unable to get endpoints for service key [%s]", backendID.serviceKey())
+			logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
+			glog.Warning(logLine)
 			builder.backendPoolMap[backendID] = &emptyPool
 			continue
 		}

@@ -48,7 +48,9 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 		service := builder.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
-			glog.V(1).Infof("unable to get the service [%s]", backendID.serviceKey())
+			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
+			glog.Errorf(logLine)
 			resolvedBackendPorts.Insert(serviceBackendPortPair{
 				ServicePort: backendID.Backend.ServicePort.IntVal,
 				BackendPort: backendID.Backend.ServicePort.IntVal,
@@ -100,7 +102,10 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		}
 
 		if resolvedBackendPorts.Size() == 0 {
-			glog.V(1).Infof("unable to resolve any backend port for service [%s]", backendID.serviceKey())
+			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", backendID.serviceKey())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			glog.Error(logLine)
+
 			unresolvedBackendID = append(unresolvedBackendID, backendID)
 			return
 		}
@@ -124,8 +129,10 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
 		if serviceBackendPairs.Size() > 1 {
 			// more than one possible backend port exposed through ingress
-			glog.Warningf("service:port [%s:%s] has more than one service-backend port binding",
+			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			glog.Warning(logLine)
 			return builder, errors.New("more than one service-backend port binding is not allowed")
 		}
 
