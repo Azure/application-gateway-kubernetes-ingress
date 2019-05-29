@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/client-go/tools/record"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -30,17 +32,23 @@ type AppGwIngressController struct {
 
 	eventQueue *EventQueue
 
+	configCache *[]byte
 	stopChannel chan struct{}
+
+	recorder record.EventRecorder
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:      appGwClient,
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
+		configCache:      &[]byte{},
+		recorder:         recorder,
 	}
+
 	controller.eventQueue = NewEventQueue(controller)
 	return controller
 }
@@ -60,7 +68,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat)
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
 	// Get all the ingresses
 	ingressList := c.k8sContext.GetHTTPIngressList()
@@ -108,6 +116,11 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	addTags(&appGw)
 
+	if c.configIsSame(&appGw) {
+		glog.Infoln("Config has NOT changed! No need to connect to ARM.")
+		return nil
+	}
+
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
 
@@ -115,6 +128,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
+		// Reset cache
+		c.configCache = &[]byte{}
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
 		return errors.New("unable to send CreateOrUpdate request")
 	}
@@ -124,6 +139,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
+		// Reset cache
+		c.configCache = &[]byte{}
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
 		return errors.New("unable to deploy ApplicationGateway")
 	}

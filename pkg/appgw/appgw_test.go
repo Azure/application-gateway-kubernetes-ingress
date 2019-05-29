@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/record"
 )
 
 type appGWSettingsChecker struct {
@@ -396,7 +397,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
-		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &network.ApplicationGatewayPropertiesFormat{})
+		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &network.ApplicationGatewayPropertiesFormat{}, record.NewFakeRecorder(100))
 
 		builder, ok := configBuilder.(*appGwConfigBuilder)
 		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
@@ -497,14 +498,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)[0]).To(Equal(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
+				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier.probeID(defaultProbeName))))
 				// Test the ingress backend HTTP setting that we installed.
-				Expect((*appGW.BackendHTTPSettingsCollection)[1]).To(Equal(*httpSettings))
+				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(*httpSettings))
 			}
 
 			EmptyBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				// Test the default backend address pool.
-				Expect((*appGW.BackendAddressPools)[0]).To(Equal(defaultBackendAddressPool()))
+				Expect((*appGW.BackendAddressPools)).To(ContainElement(defaultBackendAddressPool()))
 			}
 
 			testAGConfig(ingressList, appGwConfigSettings{
