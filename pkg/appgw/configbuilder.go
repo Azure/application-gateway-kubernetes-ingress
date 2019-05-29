@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -55,13 +54,13 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 
 // resolvePortName function goes through the endpoints of a given service and
 // look for possible port number corresponding to a port name
-func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) utils.UnorderedSet {
+func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
 	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
-	resolvedPorts := utils.NewUnorderedSet()
+	resolvedPorts := make(map[int32]interface{})
 	for _, subset := range endpoints.Subsets {
 		for _, epPort := range subset.Ports {
 			if epPort.Name == portName {
-				resolvedPorts.Insert(epPort.Port)
+				resolvedPorts[epPort.Port] = nil
 			}
 		}
 	}
