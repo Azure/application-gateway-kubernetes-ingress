@@ -8,7 +8,6 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -32,15 +31,15 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.I
 		}
 
 		for _, subset := range endpoints.Subsets {
-			endpointsPortsSet := utils.NewUnorderedSet()
+			endpointsPortsSet := make(map[int32]interface{})
 			for _, endpointsPort := range subset.Ports {
 				if endpointsPort.Protocol != v1.ProtocolTCP {
 					continue
 				}
-				endpointsPortsSet.Insert(endpointsPort.Port)
+				endpointsPortsSet[endpointsPort.Port] = nil
 			}
 
-			if endpointsPortsSet.Contains(serviceBackendPair.BackendPort) {
+			if _, ok := endpointsPortsSet[serviceBackendPair.BackendPort]; ok {
 				addressPoolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
 				// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 				// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
