@@ -24,7 +24,7 @@ type ConfigBuilder interface {
 }
 
 type appGwConfigBuilder struct {
-	serviceBackendPairMap map[backendIdentifier](serviceBackendPortPair)
+	serviceBackendPairMap map[backendIdentifier]serviceBackendPortPair
 
 	backendHTTPSettingsMap map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)
 

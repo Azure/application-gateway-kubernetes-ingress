@@ -6,83 +6,109 @@
 package appgw
 
 import (
+
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	addressPools := make(map[string](network.ApplicationGatewayBackendAddressPool))
-	emptyPool := defaultBackendAddressPool()
-	addressPools[*emptyPool.Name] = emptyPool
+func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+	backendPools := make([]n.ApplicationGatewayBackendAddressPool, 0)
+	for _, pool := range *builder.getPools() {
+		poolJSON, _ := pool.MarshalJSON()
+		glog.Info("Appending pool", string(poolJSON))
+		backendPools = append(backendPools, *pool)
+	}
+	builder.appGwConfig.BackendAddressPools = &backendPools
+	return builder, nil
+}
 
-	for backendID, serviceBackendPair := range builder.serviceBackendPairMap {
+func getEndpoints(subset v1.EndpointSubset) map[int32]interface{} {
+	ports := make(map[int32]interface{})
+	for _, endpointsPort := range subset.Ports {
+		if endpointsPort.Protocol == v1.ProtocolTCP {
+			ports[endpointsPort.Port] = nil
+		}
+	}
+	return ports
+}
+
+func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayBackendAddressPool {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name:&defaultPool,
+	}
+	defaultPoolJSON, _ := defaultPool.MarshalJSON()
+	glog.Info("Added default backend pool:", string(defaultPoolJSON))
+
+	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
 		endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 		if endpoints == nil {
+
 			logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
 			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 			glog.Warning(logLine)
-			builder.backendPoolMap[backendID] = &emptyPool
+
+			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
+			builder.backendPoolMap[backendID] = &defaultPool
 			continue
 		}
 
 		for _, subset := range endpoints.Subsets {
-			endpointsPortsSet := make(map[int32]interface{})
-			for _, endpointsPort := range subset.Ports {
-				if endpointsPort.Protocol != v1.ProtocolTCP {
-					continue
-				}
-				endpointsPortsSet[endpointsPort.Port] = nil
-			}
+			endpointsPortsSet := getEndpoints(subset)
+			if _, portExists := endpointsPortsSet[serviceBackendPair.BackendPort]; portExists {
 
-			if _, ok := endpointsPortsSet[serviceBackendPair.BackendPort]; ok {
 				addressPoolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
 				// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 				// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
-				addressPool, ok := addressPools[addressPoolName]
-
-				if !ok {
-					addressPoolAddresses := make([](network.ApplicationGatewayBackendAddress), 0)
-					for _, address := range subset.Addresses {
-						ip := address.IP
-						hostname := address.Hostname
-						// prefer IP address
-						if len(ip) != 0 {
-							// address specified by ip
-							addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{IPAddress: &ip})
-						} else if len(address.Hostname) != 0 {
-							// address specified by hostname
-							addressPoolAddresses = append(addressPoolAddresses, network.ApplicationGatewayBackendAddress{Fqdn: &hostname})
-						}
-					}
-
-					addressPool = network.ApplicationGatewayBackendAddressPool{
-						Etag: to.StringPtr("*"),
-						Name: &addressPoolName,
-						ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-							BackendAddresses: &addressPoolAddresses,
-						},
-					}
-
-					addressPools[*addressPool.Name] = addressPool
+				if pool, ok := addressPools[addressPoolName]; ok {
+					// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
+					builder.backendPoolMap[backendID] = pool
+					break
+				} else {
+					addressPools[addressPoolName] = newPool(&addressPoolName, getAddresses(subset))
 				}
-
-				builder.backendPoolMap[backendID] = &addressPool
-				break
 			}
 		}
 	}
 
-	backendPools := make([](network.ApplicationGatewayBackendAddressPool), 0)
-	for _, addressPool := range addressPools {
-		backendPools = append(backendPools, addressPool)
+	return &addressPools
+}
+
+func getAddresses(subset v1.EndpointSubset) *[]n.ApplicationGatewayBackendAddress {
+	addresses := make([]n.ApplicationGatewayBackendAddress, 0)
+	for _, address := range subset.Addresses {
+		// prefer IP address
+		if len(address.IP) != 0 {
+			// address specified by ip
+			addresses = append(addresses, n.ApplicationGatewayBackendAddress{IPAddress: &address.IP})
+		} else if len(address.Hostname) != 0 {
+			// address specified by hostname
+			addresses = append(addresses, n.ApplicationGatewayBackendAddress{Fqdn: &address.Hostname})
+		}
 	}
+	return &addresses
+}
 
-	builder.appGwConfig.BackendAddressPools = &backendPools
+func (builder *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
+	// TODO(draychev): deprecate the use of builder.serviceBackendPairMap
+	// Create this struct here instead of backendhttpsettings.go
+	return builder.serviceBackendPairMap
+}
 
-	return builder, nil
+func newPool(addressPoolName *string, addressPoolAddresses *[]n.ApplicationGatewayBackendAddress) *n.ApplicationGatewayBackendAddressPool {
+	return &n.ApplicationGatewayBackendAddressPool{
+		Etag: to.StringPtr("*"),
+		Name: addressPoolName,
+		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+			BackendAddresses: addressPoolAddresses,
+		},
+	}
 }
