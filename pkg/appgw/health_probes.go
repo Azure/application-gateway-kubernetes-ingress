@@ -135,11 +135,9 @@ func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Servi
 				// port is defined as port number
 				allPorts[sp.TargetPort.IntVal] = nil
 			} else {
-				targetPortsResolved := builder.resolvePortName(sp.TargetPort.StrVal, &backendID)
-				targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
-					targetPort := targetPortInterface.(int32)
+				for targetPort := range builder.resolvePortName(sp.TargetPort.StrVal, &backendID) {
 					allPorts[targetPort] = nil
-				})
+				}
 			}
 		}
 	}
