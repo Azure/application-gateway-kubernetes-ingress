@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-coffeeshop
+  namespace: store-ns
+spec:
+  tls:
+  - hosts:
+    - cafe.contoso.com
+    secretName: secret-token-nj3gy
+  rules:
+  - host: cafe.contoso.com
+    http:
+      paths:
+      - path: /greentea
+        backend:
+          serviceName: tea-shop-service
+          servicePort: 80
+      - path: /blackcoffee
+        backend:
+          serviceName: coffe-shop-service
+          servicePort: 80
