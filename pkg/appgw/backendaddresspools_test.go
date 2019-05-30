@@ -20,11 +20,12 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		cb := newConfigBuilderFixture(nil)
 		actualPools := cb.getPools()
 
-		It("should contain correct number of backend actualPools", func() {
-			Expect(len(*actualPools)).To(Equal(1))
+		It("should contain correct number of backend address pools", func() {
+			Expect(len(actualPools)).To(Equal(2))
+
 		})
 
-		It("should contain correct number of backend actualPools", func() {
+		It("should contain correct backend address pools", func() {
 			props := &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 				BackendIPConfigurations: nil,
 				BackendAddresses:        &[]n.ApplicationGatewayBackendAddress{},

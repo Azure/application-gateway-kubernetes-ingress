@@ -17,16 +17,16 @@ import (
 
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	backendPools := make([]n.ApplicationGatewayBackendAddressPool, 0)
-	for _, pool := range *builder.getPools() {
+	for _, pool := range builder.getPools() {
 		poolJSON, _ := pool.MarshalJSON()
 		glog.Info("Appending pool", string(poolJSON))
-		backendPools = append(backendPools, *pool)
+		backendPools = append(backendPools, pool)
 	}
 	builder.appGwConfig.BackendAddressPools = &backendPools
 	return builder, nil
 }
 
-func getEndpoints(subset v1.EndpointSubset) map[int32]interface{} {
+func getPorts(subset v1.EndpointSubset) map[int32]interface{} {
 	ports := make(map[int32]interface{})
 	for _, endpointsPort := range subset.Ports {
 		if endpointsPort.Protocol == v1.ProtocolTCP {
@@ -36,7 +36,7 @@ func getEndpoints(subset v1.EndpointSubset) map[int32]interface{} {
 	return ports
 }
 
-func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayBackendAddressPool {
+func (builder *appGwConfigBuilder) getPools() []n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
@@ -58,10 +58,9 @@ func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayB
 		}
 
 		for _, subset := range endpoints.Subsets {
-			endpointsPortsSet := getEndpoints(subset)
-			if _, portExists := endpointsPortsSet[serviceBackendPair.BackendPort]; portExists {
-
-				addressPoolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
+			port := serviceBackendPair.BackendPort
+			if _, portExists := getPorts(subset)[port]; portExists {
+				addressPoolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port)
 				// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 				// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
 				if pool, ok := addressPools[addressPoolName]; ok {
@@ -75,25 +74,48 @@ func (builder *appGwConfigBuilder) getPools() *map[string]*n.ApplicationGatewayB
 		}
 	}
 
-	return &addressPools
+	a := make([]n.ApplicationGatewayBackendAddressPool, len(addressPools))
+	for _, addr := range addressPools {
+		a = append(a, *addr)
+	}
+	return a
 }
 
 func getAddresses(subset v1.EndpointSubset) *[]n.ApplicationGatewayBackendAddress {
+	// Use separate buckets for IPs and FQDNs; The ApplicationGatewayBackendAddress struct here is not usable as map key
+	ipSet := make(map[string]interface{})
+	fqdnSet := make(map[string]interface{})
 	addrSet := make(map[n.ApplicationGatewayBackendAddress]interface{})
+
 	for _, address := range subset.Addresses {
 		// prefer IP address
 		if len(address.IP) != 0 {
+			glog.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s", address.IP)
 			// address specified by ip
-			addrSet[n.ApplicationGatewayBackendAddress{IPAddress: &address.IP}] = nil
+			ipSet[address.IP] = nil
+			addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(address.IP)}] = nil
 		} else if len(address.Hostname) != 0 {
 			// address specified by hostname
-			addrSet[n.ApplicationGatewayBackendAddress{Fqdn: &address.Hostname}] = nil
+			fqdnSet[address.Hostname] = nil
+			addrSet[n.ApplicationGatewayBackendAddress{Fqdn: to.StringPtr(address.Hostname)}] = nil
 		}
 	}
+	glog.Infof("ips     >> %+v", ipSet)
+	glog.Infof("fqdns   >> %+v", fqdnSet)
+	glog.Infof("addrSet >> %+v", addrSet)
 	addresses := make([]n.ApplicationGatewayBackendAddress, 0)
-	for addr := range addrSet {
-		addresses = append(addresses, addr)
+	/*
+	for ip := range ipSet {
+		addresses = append(addresses, n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(ip)})
 	}
+	for fqdn := range fqdnSet {
+		addresses = append(addresses, n.ApplicationGatewayBackendAddress{Fqdn: to.StringPtr(fqdn)})
+	}
+*/
+	for x := range addrSet {
+		addresses = append(addresses, x)
+	}
+	glog.Infof(">>>> %+v", addresses)
 	return &addresses
 }
 
