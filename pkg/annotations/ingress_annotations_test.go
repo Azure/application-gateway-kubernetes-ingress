@@ -22,7 +22,7 @@ var ingress = v1beta1.Ingress{
 
 const (
 	NoError = "Expected to return %s and no error. Returned %v and %s."
-	Error = "Expected to return error %s. Returned %v and %s."
+	Error   = "Expected to return error %s. Returned %v and %s."
 )
 
 func TestParseBoolTrue(t *testing.T) {
