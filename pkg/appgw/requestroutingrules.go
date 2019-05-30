@@ -6,8 +6,9 @@
 package appgw
 
 import (
-	"github.com/golang/glog"
 	"strconv"
+
+	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -154,7 +155,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
 				// If ingress is annotated with "ssl-redirect" - setup redirection configuration.
-				if annotations.IsSslRedirect(ingress) {
+				sslRedirect, _ := annotations.IsSslRedirect(ingress)
+				if sslRedirect {
 					builder.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
 				}
 			}
