@@ -18,6 +18,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const (
+	DefaultConnDrainTimeoutInSec = 30
+)
+
 func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := make(map[backendIdentifier]interface{})
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
@@ -182,5 +186,30 @@ func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentif
 	if err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
 	}
+
+	IsConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress)
+	if err == nil && IsConnDrain {
+		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
+			Enabled: to.BoolPtr(true),
+		}
+
+		connDrainTimeout, err := annotations.ConnectionDrainingTimeout(backendID.Ingress)
+		if err == nil {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(connDrainTimeout)
+		} else {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
+		}
+	}
+
+	affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress)
+	if err == nil && affinity {
+		httpSettings.CookieBasedAffinity = network.Enabled
+	}
+
+	reqTimeout, err := annotations.RequestTimeout(backendID.Ingress)
+	if err == nil {
+		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
+	}
+
 	return httpSettings
 }

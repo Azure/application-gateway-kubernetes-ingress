@@ -21,6 +21,18 @@ const (
 	// Null means no path will be prefixed. Default value is null.
 	BackendPathPrefixKey = ApplicationGatewayPrefix + "/backend-path-prefix"
 
+	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity.
+	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
+
+	// RequestTimeoutKey defines the request timeout to the backend.
+	RequestTimeoutKey = ApplicationGatewayPrefix + "/request-timeout"
+
+	// ConnectionDrainingKey defines defines the key to enable/disable connection draining.
+	ConnectionDrainingKey = ApplicationGatewayPrefix + "/connection-draining"
+
+	// ConnectionDrainingTimeoutKey defines the drain timeout for the backends.
+	ConnectionDrainingTimeoutKey = ApplicationGatewayPrefix + "/connection-draining-timeout"
+
 	// SslRedirectKey defines the key for defining with SSL redirect should be turned on for an HTTP endpoint.
 	SslRedirectKey = ApplicationGatewayPrefix + "/ssl-redirect"
 
@@ -52,6 +64,26 @@ func IsSslRedirect(ing *v1beta1.Ingress) (bool, error) {
 // BackendPathPrefix override path
 func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, BackendPathPrefixKey)
+}
+
+// RequestTimeout provides value for request timeout on the backend connection
+func RequestTimeout(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, RequestTimeoutKey)
+}
+
+// IsConnectionDraining provides whether connection draining is enabled or not.
+func IsConnectionDraining(ing *v1beta1.Ingress) (bool, error) {
+	return parseBool(ing, CookieBasedAffinityKey)
+}
+
+// ConnectionDrainingTimeout provides value for draining timeout for backends.
+func ConnectionDrainingTimeout(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, ConnectionDrainingTimeoutKey)
+}
+
+// IsCookieBasedAffinity for HTTP end points.
+func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
+	return parseBool(ing, CookieBasedAffinityKey)
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
