@@ -21,8 +21,8 @@ var ingress = v1beta1.Ingress{
 }
 
 const (
-	NoError = "Expected to return %s and no error. Returned %v and %s."
-	Error   = "Expected to return error %s. Returned %v and %s."
+	NoError = "Expected to return %s and no error. Returned %v and %v."
+	Error   = "Expected to return error %s. Returned %v and %v."
 )
 
 func TestParseBoolTrue(t *testing.T) {
@@ -69,7 +69,7 @@ func TestParseInt32(t *testing.T) {
 	value := "20"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
-	if err != nil || string(parsedVal) != value {
+	if err != nil || fmt.Sprint(parsedVal) != value {
 		t.Error(fmt.Sprintf(NoError, value, parsedVal, err))
 	}
 }
