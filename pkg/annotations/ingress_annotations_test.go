@@ -20,13 +20,18 @@ var ingress = v1beta1.Ingress{
 	},
 }
 
+const (
+	NoError = "Expected to return %s and no error. Returned %v and %s."
+	Error = "Expected to return error %s. Returned %v and %s."
+)
+
 func TestParseBoolTrue(t *testing.T) {
 	key := "key"
 	value := "true"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseBool(&ingress, key)
 	if !parsedVal || err != nil {
-		t.Error(fmt.Sprintf("parseBool is expected to return true since %s = %s", key, value))
+		t.Error(fmt.Sprintf(NoError, value, parsedVal, err))
 	}
 }
 
@@ -36,7 +41,7 @@ func TestParseBoolFalse(t *testing.T) {
 	ingress.Annotations[key] = value
 	parsedVal, err := parseBool(&ingress, key)
 	if parsedVal || err != nil {
-		t.Error(fmt.Sprintf("parseBool is expected to return false since %s = %s", key, value))
+		t.Error(fmt.Sprintf(NoError, value, parsedVal, err))
 	}
 }
 
@@ -45,17 +50,17 @@ func TestParseBoolInvalid(t *testing.T) {
 	value := "nope"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseBool(&ingress, key)
-	if !errors.IsInvalidContent(err) || parsedVal {
-		t.Error(fmt.Sprintf("parseBool is expected to return false since %s = %s", key, value))
+	if !errors.IsInvalidContent(err) {
+		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
 	}
 }
 
 func TestParseBoolMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
-	_, err := parseBool(&ingress, key)
-	if !errors.IsMissingAnnotations(err) {
-		t.Error(fmt.Sprintf("key is expected to return false since there is no %s annotation", key))
+	parsedVal, err := parseBool(&ingress, key)
+	if !errors.IsMissingAnnotations(err) || parsedVal {
+		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
 	}
 }
 
@@ -64,8 +69,8 @@ func TestParseInt32(t *testing.T) {
 	value := "20"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
-	if err != nil && string(parsedVal) != value {
-		t.Error(fmt.Sprintf("key retuned %d since %s = %s", parsedVal, key, value))
+	if err != nil || string(parsedVal) != value {
+		t.Error(fmt.Sprintf(NoError, value, parsedVal, err))
 	}
 }
 
@@ -75,16 +80,16 @@ func TestParseInt32Invalid(t *testing.T) {
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
 	if errors.IsInvalidContent(err) {
-		t.Error(fmt.Sprintf("key retuned %d since %s = %s", parsedVal, key, value))
+		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
 	}
 }
 
 func TestParseInt32MissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
-	_, err := parseInt32(&ingress, key)
-	if !errors.IsMissingAnnotations(err) {
-		t.Error(fmt.Sprintf("key is expected to return false since there is no %s annotation", key))
+	parsedVal, err := parseInt32(&ingress, key)
+	if !errors.IsMissingAnnotations(err) || parsedVal != 0 {
+		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
 	}
 }
 
@@ -92,9 +97,9 @@ func TestParseString(t *testing.T) {
 	key := "key"
 	value := "/path"
 	ingress.Annotations[key] = value
-	parsedVal, _ := parseString(&ingress, key)
-	if parsedVal != value {
-		t.Error(fmt.Sprintf("parseString retuned %s since %s = %s", parsedVal, key, value))
+	parsedVal, err := parseString(&ingress, key)
+	if parsedVal != value || err != nil {
+		t.Error(fmt.Sprintf(NoError, value, parsedVal, err))
 	}
 }
 
@@ -103,6 +108,6 @@ func TestParseStringMissingKey(t *testing.T) {
 	delete(ingress.Annotations, key)
 	_, err := parseString(&ingress, key)
 	if !errors.IsMissingAnnotations(err) {
-		t.Error(fmt.Sprintf("key is expected to return false since there is no %s annotation", key))
+		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
 	}
 }
