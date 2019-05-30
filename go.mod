@@ -17,6 +17,7 @@ require (
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/mock v1.2.0 // indirect
 	github.com/golang/protobuf v1.3.0 // indirect
 	github.com/google/btree v0.0.0-20160524151835-7d79101e329e // indirect
@@ -34,6 +35,7 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/openzipkin/zipkin-go v0.1.3 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+	github.com/pkg/errors v0.8.0
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/spf13/pflag v1.0.3
 	golang.org/x/sys v0.0.0-20190307162637-572b51eaf722 // indirect

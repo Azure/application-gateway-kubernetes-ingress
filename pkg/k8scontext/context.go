@@ -424,5 +424,6 @@ func (c *Context) Stop() {
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
-	return annotations.IsApplicationGatewayIngress(ingress)
+	val, _ := annotations.IsApplicationGatewayIngress(ingress)
+	return val
 }

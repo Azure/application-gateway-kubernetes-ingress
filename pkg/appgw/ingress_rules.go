@@ -2,17 +2,16 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"k8s.io/api/extensions/v1beta1"
 )
 
 // processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (utils.UnorderedSet, map[frontendListenerIdentifier]frontendListenerAzureConfig) {
-	frontendPorts := utils.NewUnorderedSet()
+func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
+	frontendPorts := make(map[int32]interface{})
 
 	ingressHostnameSecretIDMap := builder.newHostToSecretMap(ingress)
-	azListenerConfigs := make(map[frontendListenerIdentifier]frontendListenerAzureConfig)
+	azListenerConfigs := make(map[listenerIdentifier]listenerAzConfig)
 
 	for _, rule := range ingress.Spec.Rules {
 		if rule.HTTP == nil {
@@ -23,13 +22,13 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 		cert, secID := builder.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
 		httpsAvailable := cert != nil
 
-		// If a cert is a available it is implied that we should enable only HTTPS.
-		// TODO: Once we introduce an `ssl-redirect` annotation we should enable HTTP for HTTPS rules as well, with the correct SSL redirect configurations setup.
+		// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
+		// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
 		if httpsAvailable {
-			listenerIDHTTPS := generateFrontendListenerID(&rule, network.HTTPS, nil)
-			frontendPorts.Insert(listenerIDHTTPS.FrontendPort)
+			listenerIDHTTPS := generateListenerID(&rule, network.HTTPS, nil)
+			frontendPorts[listenerIDHTTPS.FrontendPort] = nil
 
-			felAzConfig := frontendListenerAzureConfig{
+			felAzConfig := listenerAzConfig{
 				Protocol:                     network.HTTPS,
 				Secret:                       *secID,
 				SslRedirectConfigurationName: generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name),
@@ -38,14 +37,15 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 
 		}
 
-		if annotations.IsSslRedirect(ingress) || !httpsAvailable {
-			// Enable HTTP only if HTTPS has not been specified or if an SSL-redirect annotation has been set to `true`.
-			listenerIDHTTP := generateFrontendListenerID(&rule, network.HTTP, nil)
-			frontendPorts.Insert(listenerIDHTTP.FrontendPort)
-			felAzConfig := frontendListenerAzureConfig{
+		// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
+		sslRedirect, _ := annotations.IsSslRedirect(ingress)
+		if sslRedirect || !httpsAvailable {
+			listenerID := generateListenerID(&rule, network.HTTP, nil)
+			frontendPorts[listenerID.FrontendPort] = nil
+			felAzConfig := listenerAzConfig{
 				Protocol: network.HTTP,
 			}
-			azListenerConfigs[listenerIDHTTP] = felAzConfig
+			azListenerConfigs[listenerID] = felAzConfig
 		}
 	}
 	return frontendPorts, azListenerConfigs

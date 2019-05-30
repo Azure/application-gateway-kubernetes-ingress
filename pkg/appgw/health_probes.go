@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -19,13 +18,15 @@ import (
 )
 
 func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	backendIDs := utils.NewUnorderedSet()
+	backendIDs := make(map[backendIdentifier]interface{})
+	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
+
 	for _, ingress := range ingressList {
 
 		glog.Infof("[health-probes] Configuring health probes for ingress: '%s'", ingress.Name)
 		if ingress.Spec.Backend != nil {
 			glog.Info("[health-probes] Ingress spec has no backend. Adding a default.")
-			backendIDs.Insert(generateBackendID(ingress, nil, nil, ingress.Spec.Backend))
+			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
 		}
 
 		for ruleIdx := range ingress.Spec.Rules {
@@ -39,25 +40,23 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
 				glog.Infof("[health-probes] Working on path #%d: '%s'", pathIdx+1, path.Path)
-				backendIDs.Insert(generateBackendID(ingress, rule, path, &path.Backend))
+				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
 		}
 	}
 
 	defaultProbe := defaultProbe()
 
-	healthProbeCollection := make([]network.ApplicationGatewayProbe, 0)
-	glog.Infof("[health-probes] Adding default probe: '%s'", *defaultProbe.Name)
-	healthProbeCollection = append(healthProbeCollection, defaultProbe)
+	glog.Info("[health-probes] Adding default probe:", *defaultProbe.Name)
+	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for _, backendIDInterface := range backendIDs.ToSlice() {
-		backendID := backendIDInterface.(backendIdentifier)
+	for backendID := range backendIDs {
 		probe := builder.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.Infof("[health-probes] Found k8s probe for backend: '%s'", backendID.Name)
+			glog.Infof("[health-probes] Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
 			builder.probesMap[backendID] = probe
-			healthProbeCollection = append(healthProbeCollection, *probe)
+			healthProbeCollection[*probe.Name] = *probe
 		} else {
 			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
 			builder.probesMap[backendID] = &defaultProbe
@@ -65,45 +64,54 @@ func (builder *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta
 	}
 
 	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
-	builder.appGwConfig.Probes = &healthProbeCollection
+
+	probes := make([]network.ApplicationGatewayProbe, 0)
+	for _, probe := range healthProbeCollection {
+		probes = append(probes, probe)
+	}
+
+	builder.appGwConfig.Probes = &probes
 	return builder, nil
 }
 
 func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *network.ApplicationGatewayProbe {
-	probe := defaultProbe()
 	service := builder.k8sContext.GetService(backendID.serviceKey())
-	if service != nil {
-		probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
-		if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
-			probe.Host = to.StringPtr(backendID.Rule.Host)
-		}
+	if service == nil {
+		return nil
+	}
 
-		if len(annotations.BackendPathPrefix(backendID.Ingress)) != 0 {
-			probe.Path = to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
-		} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
-			probe.Path = to.StringPtr(backendID.Path.Path)
-		}
+	probe := defaultProbe()
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
+	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
+		probe.Host = to.StringPtr(backendID.Rule.Host)
+	}
 
-		k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service, backendID)
-		if k8sProbeForServiceContainer != nil {
-			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
-				probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
-			}
-			if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
-				probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
-			}
-			if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
-				probe.Protocol = network.HTTPS
-			}
-			if k8sProbeForServiceContainer.PeriodSeconds != 0 {
-				probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
-			}
-			if k8sProbeForServiceContainer.TimeoutSeconds != 0 {
-				probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
-			}
-			if k8sProbeForServiceContainer.FailureThreshold != 0 {
-				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
-			}
+	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
+	if err == nil {
+		probe.Path = to.StringPtr(pathPrefix)
+	} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
+		probe.Path = to.StringPtr(backendID.Path.Path)
+	}
+
+	k8sProbeForServiceContainer := builder.getProbeForServiceContainer(service, backendID)
+	if k8sProbeForServiceContainer != nil {
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
+			probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
+		}
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
+			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
+		}
+		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
+			probe.Protocol = network.HTTPS
+		}
+		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
+			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
+		}
+		if k8sProbeForServiceContainer.TimeoutSeconds != 0 {
+			probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
+		}
+		if k8sProbeForServiceContainer.FailureThreshold != 0 {
+			probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
 		}
 	}
 
@@ -128,11 +136,9 @@ func (builder *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Servi
 				// port is defined as port number
 				allPorts[sp.TargetPort.IntVal] = nil
 			} else {
-				targetPortsResolved := builder.resolvePortName(sp.TargetPort.StrVal, &backendID)
-				targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
-					targetPort := targetPortInterface.(int32)
+				for targetPort := range builder.resolvePortName(sp.TargetPort.StrVal, &backendID) {
 					allPorts[targetPort] = nil
-				})
+				}
 			}
 		}
 	}

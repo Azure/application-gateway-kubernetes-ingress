@@ -37,6 +37,7 @@ const (
 	testFixtureResourceGroup  = "--resource-group--"
 	testFixtureAppGwName      = "--app-gw-name--"
 	testFixtureIPID1          = "--front-end-ip-id-1--"
+	testFixturesSubscription  = "--subscription--"
 )
 
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
@@ -356,6 +357,38 @@ func newEndpointsFixture() *v1.Endpoints {
 				// +optional
 				Ports: []v1.EndpointPort{},
 			},
+		},
+	}
+}
+
+func newURLPathMap() network.ApplicationGatewayURLPathMap {
+	rule := network.ApplicationGatewayPathRule{
+		ID:   to.StringPtr("-the-id-"),
+		Type: to.StringPtr("-the-type-"),
+		Etag: to.StringPtr("-the-etag-"),
+		Name: to.StringPtr("/some/path"),
+		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
+			RedirectConfiguration: nil,
+
+			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
+			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
+
+			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
+			ProvisioningState: to.StringPtr("--provisionStateExpected--"),
+		},
+	}
+
+	return network.ApplicationGatewayURLPathMap{
+		Name: to.StringPtr("-path-map-name-"),
+		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
+			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
+			DefaultRedirectConfiguration: nil,
+
+			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
+			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
+
+			PathRules: &[]network.ApplicationGatewayPathRule{rule},
 		},
 	}
 }

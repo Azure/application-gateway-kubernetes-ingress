@@ -13,12 +13,12 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	port80 := int32(80)
 	port443 := int32(443)
 
-	expectedListener80 := frontendListenerIdentifier{
+	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigNoSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
 		Secret: secretIdentifier{
 			Namespace: "",
@@ -27,12 +27,12 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		SslRedirectConfigurationName: "",
 	}
 
-	expectedListener443 := frontendListenerIdentifier{
+	expectedListener443 := listenerIdentifier{
 		FrontendPort: 443,
 		HostName:     testFixturesHost,
 	}
 
-	expectedListenerAzConfigSSL := frontendListenerAzureConfig{
+	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
 		Secret: secretIdentifier{
 			Namespace: testFixturesNamespace,
@@ -50,7 +50,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
 		// Ensure there are no certs
 		ingress.Spec.TLS = nil
@@ -69,11 +69,11 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 		// Verify front end ports
 		It("should have correct count of front end ports", func() {
-			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
+			Expect(len(frontendPorts)).To(Equal(1))
 		})
 
 		It("should have one port 80", func() {
-			actualPort := frontendPorts.ToSlice()[0]
+			actualPort := getInt32MapKeys(&frontendPorts)[0]
 			Expect(actualPort).To(Equal(port80))
 		})
 
@@ -83,10 +83,10 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 
 		It("should construct the App Gateway listeners correctly without SSL", func() {
-			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+			azConfigMapKeys := getMapKeys(&listenersAzureConfigMap)
 			Expect(len(azConfigMapKeys)).To(Equal(2))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
-			actualVal := httpListenersAzureConfigMap[expectedListener80]
+			actualVal := listenersAzureConfigMap[expectedListener80]
 			Expect(actualVal).To(Equal(expectedListenerAzConfigNoSSL))
 		})
 	})
@@ -129,15 +129,18 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(frontendListeners)).To(Equal(1))
 		})
 		It("should have correct number of front end ports", func() {
-			Expect(len(frontendPorts.ToSlice())).To(Equal(1))
+			Expect(len(frontendPorts)).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			actualListener := getMapKeys(&frontendListeners)[0]
-			Expect(actualListener.FrontendPort).To(Equal(port443))
+			ports := make([]int32, 0)
+			for _, listener := range getMapKeys(&frontendListeners) {
+				ports = append(ports, listener.FrontendPort)
+			}
+			Expect(ports).To(ContainElement(port443))
 		})
 		It("should have one port 443", func() {
-			actualPort := frontendPorts.ToSlice()[0]
-			Expect(actualPort).To(Equal(port443))
+			ports := getInt32MapKeys(&frontendPorts)
+			Expect(ports).To(ContainElement(port443))
 		})
 
 		It("should have no request routing rules ", func() {
@@ -155,8 +158,16 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 })
 
-func getMapKeys(m *map[frontendListenerIdentifier]frontendListenerAzureConfig) []frontendListenerIdentifier {
-	keys := make([]frontendListenerIdentifier, 0, len(*m))
+func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier {
+	keys := make([]listenerIdentifier, 0, len(*m))
+	for k := range *m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func getInt32MapKeys(m *map[int32]interface{}) []int32 {
+	keys := make([]int32, 0, len(*m))
 	for k := range *m {
 		keys = append(keys, k)
 	}
