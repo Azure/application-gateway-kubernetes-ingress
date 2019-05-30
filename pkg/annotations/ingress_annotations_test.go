@@ -106,7 +106,7 @@ func TestParseString(t *testing.T) {
 func TestParseStringMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
-	_, err := parseString(&ingress, key)
+	parsedVal, err := parseString(&ingress, key)
 	if !errors.IsMissingAnnotations(err) {
 		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
 	}
