@@ -38,7 +38,8 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 		}
 
 		// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
-		if annotations.IsSslRedirect(ingress) || !httpsAvailable {
+		sslRedirect, _ := annotations.IsSslRedirect(ingress)
+		if sslRedirect || !httpsAvailable {
 			listenerID := generateListenerID(&rule, network.HTTP, nil)
 			frontendPorts[listenerID.FrontendPort] = nil
 			felAzConfig := listenerAzConfig{

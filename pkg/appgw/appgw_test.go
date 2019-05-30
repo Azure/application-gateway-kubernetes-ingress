@@ -207,7 +207,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				Protocol: network.HTTP,
 				Port:     &backendPort,
-				Path:     to.StringPtr(""),
+				Path:     nil,
+				HostName: nil,
 				Probe:    resourceRef(probeID),
 			},
 		}
@@ -492,7 +493,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol: network.HTTP,
 						Port:     &servicePort,
-						Path:     to.StringPtr(""),
+						Path:     nil,
 						Probe:    resourceRef(appGwIdentifier.probeID(defaultProbeName)),
 					},
 				}
@@ -715,6 +716,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Port:     &backendPort,
 						Path:     to.StringPtr("/test"),
 						Probe:    resourceRef(probeID),
+						HostName: nil,
 					},
 				}
 

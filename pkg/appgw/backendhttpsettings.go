@@ -147,24 +147,7 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		}
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
-
-		probeName := builder.probesMap[backendID].Name
-		probeID := builder.appGwIdentifier.probeID(*probeName)
-		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
-		glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-		httpSettingsPort := uniquePair.BackendPort
-		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
-		httpSettings := network.ApplicationGatewayBackendHTTPSettings{
-			Etag: to.StringPtr("*"),
-			Name: &httpSettingsName,
-			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Protocol: network.HTTP,
-				Port:     &httpSettingsPort,
-				Path:     backendPathPrefix,
-				Probe:    resourceRef(probeID),
-			},
-		}
-		// other settings should come from annotations
+		httpSettings := builder.generateHTTPSettings(backendID, uniquePair.BackendPort)
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		builder.backendHTTPSettingsMap[backendID] = &httpSettings
 	}
@@ -177,4 +160,27 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 	builder.appGwConfig.BackendHTTPSettingsCollection = &backends
 
 	return builder, nil
+}
+
+func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
+	probeName := builder.probesMap[backendID].Name
+	probeID := builder.appGwIdentifier.probeID(*probeName)
+	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
+	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+
+	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
+		Etag: to.StringPtr("*"),
+		Name: &httpSettingsName,
+		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+			Protocol: network.HTTP,
+			Port:     &port,
+			Probe:    resourceRef(probeID),
+		},
+	}
+
+	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
+	if err == nil {
+		httpSettings.Path = to.StringPtr(pathPrefix)
+	}
+	return httpSettings
 }

@@ -86,8 +86,9 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 		probe.Host = to.StringPtr(backendID.Rule.Host)
 	}
 
-	if len(annotations.BackendPathPrefix(backendID.Ingress)) != 0 {
-		probe.Path = to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
+	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
+	if err == nil {
+		probe.Path = to.StringPtr(pathPrefix)
 	} else if backendID.Path != nil && len(backendID.Path.Path) != 0 {
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
