@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/api/extensions/v1beta1"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -17,11 +18,17 @@ import (
 var _ = Describe("Test the creation of Backend Pools from Ingress definition", func() {
 
 	Context("ingress rules without certificates", func() {
+		ing1 := newIngressFixture()
+		ing2 := newIngressFixture()
+		ingressList := []*v1beta1.Ingress{
+			ing1,
+			ing2,
+		}
 		cb := newConfigBuilderFixture(nil)
-		actualPools := cb.getPools()
+		_, _ = cb.BackendAddressPools(ingressList)
 
 		It("should contain correct number of backend address pools", func() {
-			Expect(len(actualPools)).To(Equal(2))
+			Expect(len(*cb.appGwConfig.BackendAddressPools)).To(Equal(1))
 
 		})
 
@@ -38,7 +45,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				ID:   nil,
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: props,
 			}
-			Expect(actualPools).To(ContainElement(expected))
+			Expect(*cb.appGwConfig.BackendAddressPools).To(ContainElement(expected))
 		})
 	})
 })
