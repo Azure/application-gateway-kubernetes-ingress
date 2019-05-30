@@ -16,40 +16,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// A facility to sort slices of ApplicationGatewayBackendAddress by IP, FQDN
-type byIPFQDN []n.ApplicationGatewayBackendAddress
-
-func (a byIPFQDN) Len() int      { return len(a) }
-func (a byIPFQDN) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byIPFQDN) Less(i, j int) bool {
-	if a[i].IPAddress != nil && a[j].IPAddress != nil && len(*a[i].IPAddress) > 0 {
-		return *a[i].IPAddress < *a[j].IPAddress
-	} else if a[i].Fqdn != nil && a[j].Fqdn != nil && len(*a[i].Fqdn) != 0 {
-		return *a[i].Fqdn < *a[j].Fqdn
-	}
-	return false
-}
-
-func getAddresses(subset v1.EndpointSubset) *[]n.ApplicationGatewayBackendAddress {
-	addrSet := make(map[n.ApplicationGatewayBackendAddress]interface{})
-	for _, address := range subset.Addresses {
-		// prefer IP address
-		if len(address.IP) != 0 {
-			// address specified by ip
-			addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(address.IP)}] = nil
-		} else if len(address.Hostname) != 0 {
-			// address specified by hostname
-			addrSet[n.ApplicationGatewayBackendAddress{Fqdn: to.StringPtr(address.Hostname)}] = nil
-		}
-	}
-	var addresses []n.ApplicationGatewayBackendAddress
-	for addr := range addrSet {
-		addresses = append(addresses, addr)
-	}
-	sort.Sort(byIPFQDN(addresses))
-	return &addresses
-}
-
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
@@ -61,13 +27,25 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.In
 			builder.backendPoolMap[backendID] = pool
 		}
 	}
-
-	addressPool := make([]n.ApplicationGatewayBackendAddressPool, 0)
-	for _, addr := range addressPools {
-		addressPool = append(addressPool, *addr)
-	}
-	builder.appGwConfig.BackendAddressPools = &addressPool
+	builder.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
 	return builder, nil
+}
+
+func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
+	var backendAddressPools []n.ApplicationGatewayBackendAddressPool
+	for _, addr := range *m {
+		backendAddressPools = append(backendAddressPools, *addr)
+	}
+	return &backendAddressPools
+}
+
+func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interface{}) *[]n.ApplicationGatewayBackendAddress {
+	var addresses []n.ApplicationGatewayBackendAddress
+	for addr := range *m {
+		addresses = append(addresses, addr)
+	}
+	sort.Sort(byIPFQDN(addresses))
+	return &addresses
 }
 
 func getPorts(subset v1.EndpointSubset) map[int32]interface{} {
@@ -96,13 +74,10 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 			// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
 			pool, ok := (*addressPools)[poolName]
 			if !ok {
-				// Make a new Backend Address Pool
 				pool = newPool(poolName, subset)
 				(*addressPools)[poolName] = pool
 			}
-			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
-			builder.backendPoolMap[backendID] = pool
-			break
+			return pool
 		}
 	}
 	return nil
@@ -119,7 +94,34 @@ func newPool(poolName string, subset v1.EndpointSubset) *n.ApplicationGatewayBac
 		Etag: to.StringPtr("*"),
 		Name: &poolName,
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-			BackendAddresses: getAddresses(subset),
+			BackendAddresses: getAddressesForSubset(subset),
 		},
 	}
+}
+
+func getAddressesForSubset(subset v1.EndpointSubset) *[]n.ApplicationGatewayBackendAddress {
+	// We make separate maps for IP and FQDN to ensure uniqueness within the 2 groups
+	// We cannot use ApplicationGatewayBackendAddress as it contains pointer to strings and the same IP string
+	// at a different address would be 2 unique keys.
+	addrSet := make(map[n.ApplicationGatewayBackendAddress]interface{})
+	ips := make(map[string]interface{})
+	fqdns := make(map[string]interface{})
+	for _, address := range subset.Addresses {
+		// prefer IP address
+		if len(address.IP) != 0 {
+			// address specified by ip
+			ips[address.IP] = nil
+		} else if len(address.Hostname) != 0 {
+			// address specified by hostname
+			fqdns[address.Hostname] = nil
+		}
+	}
+
+	for ip := range ips {
+		addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(ip)}] = nil
+	}
+	for fqdn := range fqdns {
+		addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(fqdn)}] = nil
+	}
+	return getBackendAddressMapKeys(&addrSet)
 }

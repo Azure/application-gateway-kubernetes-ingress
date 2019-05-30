@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -17,7 +18,7 @@ import (
 
 var _ = Describe("Test the creation of Backend Pools from Ingress definition", func() {
 
-	Context("ingress rules without certificates", func() {
+	Context("build a list of BackendAddressPools", func() {
 		ing1 := newIngressFixture()
 		ing2 := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{
@@ -46,6 +47,26 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: props,
 			}
 			Expect(*cb.appGwConfig.BackendAddressPools).To(ContainElement(expected))
+		})
+	})
+
+	Context("ensure unique IP addresses", func() {
+		ingressList := []*v1beta1.Ingress{newIngressFixture()}
+		cb := newConfigBuilderFixture(nil)
+		_, _ = cb.BackendAddressPools(ingressList)
+		subset := v1.EndpointSubset{
+			Addresses: []v1.EndpointAddress{
+				{IP: "1.1.1.1"},
+				{IP: "1.1.1.1"},
+				{IP: "2.2.2.2"},
+				{Hostname: "abc"},
+				{Hostname: "abc"},
+				{Hostname: "xyz"},
+			},
+		}
+		actualPool := newPool("pool-name", subset)
+		It("should contain unique addresses only", func() {
+			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
 		})
 	})
 })
