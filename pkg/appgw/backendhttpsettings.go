@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	// DefaultConnDrainTimeoutInSec provides default value for ConnectionDrainTimeout
 	DefaultConnDrainTimeoutInSec = 30
 )
 
