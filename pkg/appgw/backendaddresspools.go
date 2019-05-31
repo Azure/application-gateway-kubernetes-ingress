@@ -19,7 +19,7 @@ import (
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: &defaultPool,
+		*defaultPool.Name: defaultPool,
 	}
 	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
 		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
@@ -65,8 +65,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
 		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
-		defaultPool := defaultBackendAddressPool()
-		return &defaultPool
+		return defaultBackendAddressPool()
 	}
 
 	for _, subset := range endpoints.Subsets {
