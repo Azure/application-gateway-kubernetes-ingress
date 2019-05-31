@@ -15,34 +15,50 @@ import (
 	"github.com/golang/glog"
 )
 
+var keysToDeleteForCache = []string{
+	"etag",
+}
+
+func (c *AppGwIngressController) updateCache(appGw *network.ApplicationGateway) {
+	jsonConfig, err := appGw.MarshalJSON()
+	if err != nil {
+		glog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
+		c.configCache = nil
+		return
+	}
+	var sanitized []byte
+	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
+		// Ran into an error; Wipe the existing cache
+		glog.Error("Failed stripping ETag key from App Gwy config. Wiping cache.", err)
+		c.configCache = nil
+		return
+	}
+	c.configCache = &sanitized
+}
+
 // configIsSame compares the newly created App Gwy configuration with a cache to determine whether anything has changed.
-func (c AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) bool {
+func (c *AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) bool {
+	if c.configCache == nil {
+		return false
+	}
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		glog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
 		return false
 	}
-
-	// The JSON stored in the cache and the newly marshalled JSON will have different ETags even if configs are the same.
-	// We need to strip ETags from all nested structures in order to maintain cache.
-	var stripped []byte
-	if stripped, err = deleteKeyFromJSON(jsonConfig, "etag"); err != nil {
+	// The JSON stored in the cache and the newly marshaled JSON will have different ETags even if configs are the same.
+	// We need to strip ETags from all nested structures in order to have a fair comparison.
+	var sanitized []byte
+	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
 		// Ran into an error; Don't use cache; Refresh cache w/ new JSON
 		glog.Error("Failed stripping ETag key from App Gwy config. Will not use cache.", err)
 		return false
 	}
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-	sameAsCache := bytes.Compare(*c.configCache, stripped) == 0
-
-	if !sameAsCache {
-		// Keep a copy of the stripped JSON string
-		*c.configCache = stripped
-	}
-
-	return sameAsCache
+	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGateway) ([]byte, error) {
+func (c *AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGateway) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err
