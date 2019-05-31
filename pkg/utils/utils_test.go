@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("Utils", func() {
 
-	Describe("Testing `UnorderedSets`", func() {
+	/*Describe("Testing `UnorderedSets`", func() {
 		var testSet utils.UnorderedSet
 		BeforeEach(func() {
 			testSet = utils.NewUnorderedSet()
@@ -42,7 +42,7 @@ var _ = Describe("Utils", func() {
 				Expect(testSet.Size()).To(Equal(0))
 			})
 		})
-	})
+	})*/
 
 	Describe("Testing `utils` helpers", func() {
 		Context("Testing integer comparators", func() {
