@@ -44,6 +44,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if endpoints == nil {
 		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
+		// TODO(draychev): Move "reason" into an enum
 		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
 		return defaultBackendAddressPool()
@@ -59,7 +60,10 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 			}
 			return newPool(poolName, subset)
 		} else {
-
+			logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
+			// TODO(draychev): Move "reason" into an enum
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
+			glog.Warning(logLine)
 		}
 	}
 	return nil
