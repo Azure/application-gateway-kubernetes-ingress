@@ -13,7 +13,7 @@ type UnorderedSet interface {
 	Contains(item interface{}) bool
 	Size() int
 	Clear()
-	IsEmpty() bool
+	//IsEmpty() bool
 }
 
 type unorderedSet struct {
@@ -54,9 +54,4 @@ func (s *unorderedSet) Size() int {
 // Clear deletes all the items in the set.
 func (s *unorderedSet) Clear() {
 	s.v = make(map[interface{}]struct{})
-}
-
-// IsEmpty checks if the set is empty.
-func (s *unorderedSet) IsEmpty() bool {
-	return len(s.v) == 0
 }
