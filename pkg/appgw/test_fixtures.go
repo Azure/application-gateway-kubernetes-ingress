@@ -7,7 +7,7 @@ package appgw
 
 import (
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -117,7 +117,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 			CertificateSecretStore: newSecretStoreFixture(certs),
 		},
 		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
-		recorder:  tests.MockEventRecorder{},
+		recorder:  record.NewFakeRecorder(1),
 	}
 
 	return cb
