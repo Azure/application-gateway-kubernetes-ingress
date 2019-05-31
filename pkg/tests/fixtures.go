@@ -7,9 +7,11 @@ package tests
 
 import (
 	"fmt"
-	"io/ioutil"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"io/ioutil"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -48,4 +50,19 @@ func getIngress(fileName string) (*v1beta1.Ingress, error) {
 		return nil, err
 	}
 	return obj.(*v1beta1.Ingress), nil
+}
+
+// GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
+func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddressPool {
+	return &n.ApplicationGatewayBackendAddressPool{
+		Name: to.StringPtr("defaultaddresspool"),
+		Etag: nil,
+		Type: nil,
+		ID:   nil,
+		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+			BackendIPConfigurations: nil,
+			BackendAddresses:        &[]n.ApplicationGatewayBackendAddress{},
+			ProvisioningState:       nil,
+		},
+	}
 }
