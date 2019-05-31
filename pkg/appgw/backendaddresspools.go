@@ -7,13 +7,12 @@ package appgw
 
 import (
 	"fmt"
-	"sort"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"sort"
 )
 
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
@@ -38,15 +37,6 @@ func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPo
 		backendAddressPools = append(backendAddressPools, *addr)
 	}
 	return &backendAddressPools
-}
-
-func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interface{}) *[]n.ApplicationGatewayBackendAddress {
-	var addresses []n.ApplicationGatewayBackendAddress
-	for addr := range *m {
-		addresses = append(addresses, addr)
-	}
-	sort.Sort(byIPFQDN(addresses))
-	return &addresses
 }
 
 func getPorts(subset v1.EndpointSubset) map[int32]interface{} {
@@ -120,7 +110,16 @@ func getAddressesForSubset(subset v1.EndpointSubset) *[]n.ApplicationGatewayBack
 		addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(ip)}] = nil
 	}
 	for fqdn := range fqdns {
-		addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(fqdn)}] = nil
+		addrSet[n.ApplicationGatewayBackendAddress{Fqdn: to.StringPtr(fqdn)}] = nil
 	}
 	return getBackendAddressMapKeys(&addrSet)
+}
+
+func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interface{}) *[]n.ApplicationGatewayBackendAddress {
+	var addresses []n.ApplicationGatewayBackendAddress
+	for addr := range *m {
+		addresses = append(addresses, addr)
+	}
+	sort.Sort(byIPFQDN(addresses))
+	return &addresses
 }
