@@ -22,6 +22,7 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.In
 		*defaultPool.Name: defaultPool,
 	}
 	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
+		builder.backendPoolMap[backendID] = defaultPool
 		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
 			builder.backendPoolMap[backendID] = pool
@@ -47,7 +48,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 		// TODO(draychev): Move "reason" into an enum
 		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
-		return defaultBackendAddressPool()
+		return nil
 	}
 
 	for _, subset := range endpoints.Subsets {
