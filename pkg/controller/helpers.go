@@ -64,11 +64,11 @@ func (c AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGate
 }
 
 func isMap(v interface{}) bool {
-	return reflect.ValueOf(v).Type().Kind() == reflect.Map
+	return v != nil && reflect.ValueOf(v).Type().Kind() == reflect.Map
 }
 
 func isSlice(v interface{}) bool {
-	return reflect.ValueOf(v).Type().Kind() == reflect.Slice
+	return v != nil && reflect.ValueOf(v).Type().Kind() == reflect.Slice
 }
 
 // deleteKey recursively deletes the given key from the map. This is NOT cap sensitive.

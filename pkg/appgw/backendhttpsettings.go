@@ -18,6 +18,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const (
+	// DefaultConnDrainTimeoutInSec provides default value for ConnectionDrainTimeout
+	DefaultConnDrainTimeoutInSec = 30
+)
+
 func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
 	backendIDs := make(map[backendIdentifier]interface{})
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
@@ -115,8 +120,8 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		if _, ok := serviceBackendPairsMap[backendID]; !ok {
 			serviceBackendPairsMap[backendID] = make(map[serviceBackendPortPair]interface{})
 		}
-		for beID := range resolvedBackendPorts {
-			serviceBackendPairsMap[backendID][beID] = nil
+		for portPair := range resolvedBackendPorts {
+			serviceBackendPairsMap[backendID][portPair] = nil
 		}
 	}
 
@@ -178,9 +183,29 @@ func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentif
 		},
 	}
 
-	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
-	if err == nil {
+	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
 	}
+
+	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
+		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
+			Enabled: to.BoolPtr(true),
+		}
+
+		if connDrainTimeout, err := annotations.ConnectionDrainingTimeout(backendID.Ingress); err == nil {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(connDrainTimeout)
+		} else {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
+		}
+	}
+
+	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
+		httpSettings.CookieBasedAffinity = network.Enabled
+	}
+
+	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
+		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
+	}
+
 	return httpSettings
 }

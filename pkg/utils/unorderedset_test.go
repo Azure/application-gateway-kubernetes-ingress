@@ -31,13 +31,11 @@ var _ = Describe("UnorderedSet", func() {
 		set.Insert("three")
 		set.Erase("three")
 
-		actual := set.ToSlice()
-
 		It("should succeed", func() {
-			Expect(len(actual)).To(Equal(2))
-			Expect(actual).To(ContainElement("one"))
-			Expect(actual).To(ContainElement("two"))
-			Expect(actual).ToNot(ContainElement("three"))
+			Expect(set.Size()).To(Equal(2))
+			Expect(set.Contains("one")).To(Equal(true))
+			Expect(set.Contains("two")).To(Equal(true))
+			Expect(set.Contains("three")).To(Equal(false))
 		})
 	})
 })

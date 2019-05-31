@@ -13,10 +13,6 @@ type UnorderedSet interface {
 	Contains(item interface{}) bool
 	Size() int
 	Clear()
-	IsEmpty() bool
-	Union(s UnorderedSet) UnorderedSet
-	Intersect(s UnorderedSet) UnorderedSet
-	ToSlice() []interface{}
 }
 
 type unorderedSet struct {
@@ -57,35 +53,4 @@ func (s *unorderedSet) Size() int {
 // Clear deletes all the items in the set.
 func (s *unorderedSet) Clear() {
 	s.v = make(map[interface{}]struct{})
-}
-
-// IsEmpty checks if the set is empty.
-func (s *unorderedSet) IsEmpty() bool {
-	return len(s.v) == 0
-}
-
-// Union computes the union of the two sets as return value.
-func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
-	for vv:= range s.v {
-		set.Insert(vv)
-	}
-	return set
-}
-
-// Intersect computes the intersection of the two sets as return value.
-func (s *unorderedSet) Intersect(set UnorderedSet) UnorderedSet {
-	for vv:= range set.v {
-		if !s.Contains(vv) {
-			set.Erase(vv) 
-		}
-	}
-	return set
-}
-
-func (s *unorderedSet) ToSlice() []interface{} {
-	keys := make([]interface{}, 0, len(s.v))
-	for elem := range s.v {
-		keys = append(keys, elem)
-	}
-	return keys
 }

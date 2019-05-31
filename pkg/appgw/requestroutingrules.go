@@ -129,15 +129,13 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			httpsAvailable := false
 
 			listenerHTTPID := generateListenerID(rule, network.HTTP, nil)
-			_, exist := httpListenersMap[listenerHTTPID]
-			if exist {
+			if _, exist := httpListenersMap[listenerHTTPID]; exist {
 				httpAvailable = true
 			}
 
 			// check annotation for port override
 			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
-			_, exist = httpListenersMap[listenerHTTPSID]
-			if exist {
+			if _, exist := httpListenersMap[listenerHTTPSID]; exist {
 				httpsAvailable = true
 			}
 
@@ -154,9 +152,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
-				// If ingress is annotated with "ssl-redirect" - setup redirection configuration.
-				sslRedirect, _ := annotations.IsSslRedirect(ingress)
-				if sslRedirect {
+				// If ingress is annotated with "ssl-redirect" and we have TLS - setup redirection configuration.
+				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && httpsAvailable {
 					builder.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
 				}
 			}
@@ -193,8 +190,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 		}
 	}
 
-	urlPathMapFiltered := []network.ApplicationGatewayURLPathMap{}
-	requestRoutingRules := []network.ApplicationGatewayRequestRoutingRule{}
+	var urlPathMapFiltered []network.ApplicationGatewayURLPathMap
+	var requestRoutingRules []network.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range urlPathMaps {
 		requestRoutingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener := httpListenersMap[listenerID]
