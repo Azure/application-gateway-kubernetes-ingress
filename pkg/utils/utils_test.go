@@ -10,40 +10,6 @@ import (
 )
 
 var _ = Describe("Utils", func() {
-
-	/*Describe("Testing `UnorderedSets`", func() {
-		var testSet utils.UnorderedSet
-		BeforeEach(func() {
-			testSet = utils.NewUnorderedSet()
-			testSet.Insert(1)
-			testSet.Insert(2)
-			testSet.Insert(3)
-			testSet.Insert(4)
-			testSet.Insert(4)
-		})
-
-		Context("Inserting non-unique elements", func() {
-			It("Should only store unique elements", func() {
-				Expect(testSet.Size()).To(Equal(4))
-			})
-		})
-
-		Context("Erasing an element", func() {
-			It("Should remove the element", func() {
-				testSet.Erase(4)
-				Expect(testSet.Contains(4)).To(BeFalse())
-				Expect(testSet.Size()).To(Equal(3))
-			})
-		})
-
-		Context("Clearing the unordered set", func() {
-			It("Should erase all elements", func() {
-				testSet.Clear()
-				Expect(testSet.Size()).To(Equal(0))
-			})
-		})
-	})*/
-
 	Describe("Testing `utils` helpers", func() {
 		Context("Testing integer comparators", func() {
 			It("Should return maximum of two 64-bit integers", func() {
