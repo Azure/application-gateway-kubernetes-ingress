@@ -14,10 +14,8 @@ type UnorderedSet interface {
 	Size() int
 	Clear()
 	IsEmpty() bool
-	ForEachDEPRECATED(func(interface{}))
 	Union(s UnorderedSet) UnorderedSet
 	Intersect(s UnorderedSet) UnorderedSet
-	ToSlice() []interface{}
 }
 
 type unorderedSet struct {
@@ -65,35 +63,21 @@ func (s *unorderedSet) IsEmpty() bool {
 	return len(s.v) == 0
 }
 
-// ForEachDEPRECATED applies function to each member of the set once.
-func (s *unorderedSet) ForEachDEPRECATED(f func(interface{})) {
-	for vv := range s.v {
-		f(vv)
-	}
-}
-
 // Union computes the union of the two sets as return value.
 func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
-	s.ForEachDEPRECATED(func(vv interface{}) {
+	for vv := range s.v {
 		set.Insert(vv)
-	})
+	}
 	return set
 }
 
 // Intersect computes the intersection of the two sets as return value.
 func (s *unorderedSet) Intersect(set UnorderedSet) UnorderedSet {
-	set.ForEachDEPRECATED(func(vv interface{}) {
-		if !s.Contains(vv) {
-			set.Erase(vv)
+	intSet := NewUnorderedSet()
+	for vv := range s.v {
+		if set.Contains(vv) {
+			intSet.Insert(vv)
 		}
-	})
-	return set
-}
-
-func (s *unorderedSet) ToSlice() []interface{} {
-	keys := make([]interface{}, 0, len(s.v))
-	for elem := range s.v {
-		keys = append(keys, elem)
 	}
-	return keys
+	return intSet
 }
