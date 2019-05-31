@@ -66,7 +66,7 @@ func (s *unorderedSet) IsEmpty() bool {
 
 // Union computes the union of the two sets as return value.
 func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
-	for vv:= range s.v {
+	for vv := range s.v {
 		set.Insert(vv)
 	}
 	return set
@@ -74,9 +74,9 @@ func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
 
 // Intersect computes the intersection of the two sets as return value.
 func (s *unorderedSet) Intersect(set UnorderedSet) UnorderedSet {
-	for vv:= range set.v {
+	for vv := range set.v {
 		if !s.Contains(vv) {
-			set.Erase(vv) 
+			set.Erase(vv)
 		}
 	}
 	return set
