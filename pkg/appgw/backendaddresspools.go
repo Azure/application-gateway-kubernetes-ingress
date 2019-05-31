@@ -22,9 +22,10 @@ func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.In
 		*defaultPool.Name: &defaultPool,
 	}
 	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
-		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, &defaultPool, &addressPools); pool != nil {
+		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
 			builder.backendPoolMap[backendID] = pool
+			addressPools[*pool.Name] = pool
 		}
 	}
 	builder.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
@@ -58,13 +59,14 @@ func getPorts(subset v1.EndpointSubset) map[int32]interface{} {
 	return ports
 }
 
-func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, defaultPool *n.ApplicationGatewayBackendAddressPool, addressPools *map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
+func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if endpoints == nil {
 		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
 		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
-		return defaultPool
+		defaultPool := defaultBackendAddressPool()
+		return &defaultPool
 	}
 
 	for _, subset := range endpoints.Subsets {
@@ -72,12 +74,10 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 			poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
 			// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 			// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
-			pool, ok := (*addressPools)[poolName]
-			if !ok {
-				pool = newPool(poolName, subset)
-				(*addressPools)[poolName] = pool
+			if pool, ok := addressPools[poolName]; ok {
+				return pool
 			}
-			return pool
+			return newPool(poolName, subset)
 		}
 	}
 	return nil
