@@ -43,22 +43,6 @@ var _ = Describe("Utils", func() {
 				Expect(testSet.IsEmpty()).To(BeTrue())
 			})
 		})
-
-		Context("Testing union of sets", func() {
-			set := utils.NewUnorderedSet()
-			set.Insert(5)
-			set.Insert(6)
-			set.Insert(7)
-
-			It("Should contain union of both sets", func() {
-				uSet := testSet.Union(set)
-				Expect(uSet.Size()).To(Equal(7))
-				Expect(uSet.Contains(5)).To(BeTrue())
-				Expect(uSet.Contains(6)).To(BeTrue())
-				Expect(uSet.Contains(7)).To(BeTrue())
-			})
-		})
-
 	})
 
 	Describe("Testing `utils` helpers", func() {
