@@ -155,8 +155,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
 				// If ingress is annotated with "ssl-redirect" - setup redirection configuration.
-				sslRedirect, _ := annotations.IsSslRedirect(ingress)
-				if sslRedirect {
+				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect {
 					builder.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
 				}
 			}
