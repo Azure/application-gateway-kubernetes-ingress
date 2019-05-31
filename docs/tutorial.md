@@ -1,3 +1,4 @@
+# Table of Contents
 - [Prerequisites](#prerequisites)
 - [Deploy `guestbook` application](#deploy-guestbook-application)
 - [Expose services over HTTP](#expose-services-over-http)
@@ -9,6 +10,7 @@
   * [With readinessProbe or livenessProbe](#with-readinessprobe-or-livenessprobe)
   * [Without readinessProbe or livenessProbe](#without-readinessprobe-or-livenessprobe)
   * [Default Values for Health Probe](#default-values-for-health-probe)
+- [Enable Cookie Based Affinity](#enable-cookie-based-affinity)
 - [Expose a WebSocket server](#expose-a-websocket-server)
 
 # Tutorials
@@ -184,7 +186,7 @@ spec:
 
 ## Adding Health Probes to your service
 By default, Ingress controller will provision an HTTP GET probe for the exposed pods.  
-The probe properties can customized by adding a [Readiness or Liveness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) to your `deployment`/`pod` spec.
+The probe properties can be customized by adding a [Readiness or Liveness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) to your `deployment`/`pod` spec.
 
 ### With `readinessProbe` or `livenessProbe`
 ```yaml
@@ -237,9 +239,30 @@ For any property that can not be inferred by the readiness/liveness probe, Defau
 | `Interval` | 30 |
 | `UnhealthyThreshold` | 3 |
 
+## Enable Cookie based Affinity
+As outlined in the [documentations](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-components#http-settings), Application Gateway supports cookie based affinity enabling which it can direct subsequent traffic from a user session to the same server for processing.
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80
+```
+
 ## Expose a WebSocket server
 
-As outlined in the Application Gateway v2 documentation - it [provides native support for the WebSocket and HTTP/2 protocols](https://docs.microsoft.com/en-us/azure/application-gateway/overview#websocket-and-http2-traffic). For both App Gateway and the Kubernetes Ingress - there is no user-configurable setting to selectively enable or disable WebSocket support.
+As outlined in the Application Gateway v2 documentation - it [provides native support for the WebSocket and HTTP/2 protocols](https://docs.microsoft.com/en-us/azure/application-gateway/overview#websocket-and-http2-traffic). For both Application Gateway and the Kubernetes Ingress - there is no user-configurable setting to selectively enable or disable WebSocket support.
 
 The Kubernetes deployment YAML below shows the minimum configuration used to deploy a WebSocket server, which is the same as deploying a regular web server:
 ```yaml
