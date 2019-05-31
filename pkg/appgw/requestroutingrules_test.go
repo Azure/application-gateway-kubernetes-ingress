@@ -112,7 +112,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 										Backend: v1beta1.IngressBackend{
 											ServiceName: "websocket-service",
 											ServicePort: intstr.IntOrString{
-												Type: intstr.Int,
+												Type:   intstr.Int,
 												IntVal: 80,
 											},
 										},
@@ -127,7 +127,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-					annotations.SslRedirectKey: "true",
+					annotations.SslRedirectKey:  "true",
 				},
 				Namespace: testFixturesNamespace,
 				Name:      testFixturesName,
@@ -136,7 +136,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 
-		_, _= configBuilder.RequestRoutingRules(ingressList)
+		_, _ = configBuilder.RequestRoutingRules(ingressList)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))
@@ -157,15 +157,15 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"),
 					},
-					URLPathMap: nil,
-					RewriteRuleSet: nil,
+					URLPathMap:            nil,
+					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
-					ProvisioningState: nil,
+					ProvisioningState:     nil,
 				},
 				Name: to.StringPtr("rr-80"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID: nil,
+				ID:   nil,
 			}
 			Expect(*configBuilder.appGwConfig.RequestRoutingRules).To(ContainElement(expected))
 		})
