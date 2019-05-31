@@ -13,7 +13,6 @@ type UnorderedSet interface {
 	Contains(item interface{}) bool
 	Size() int
 	Clear()
-	//IsEmpty() bool
 }
 
 type unorderedSet struct {
