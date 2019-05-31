@@ -6,10 +6,14 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
@@ -89,6 +93,85 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		It("should have correct RedirectConfiguration ID", func() {
 			Expect(expectedRedirectID).To(Equal(*actual.RedirectConfiguration.ID))
+		})
+	})
+
+	Context("test RequestRoutingRules without HTTPS but with SSL Redirect", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+
+		// TODO(draychev): Move to test fixtures
+		ingress := v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: "websocket-service",
+											ServicePort: intstr.IntOrString{
+												Type: intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				TLS: nil,
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.SslRedirectKey: "true",
+				},
+				Namespace: testFixturesNamespace,
+				Name:      testFixturesName,
+			},
+		}
+
+		ingressList := []*v1beta1.Ingress{&ingress}
+
+		_, _= configBuilder.RequestRoutingRules(ingressList)
+
+		It("should have correct RequestRoutingRules", func() {
+			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))
+			expected := n.ApplicationGatewayRequestRoutingRule{
+				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+					RuleType: "Basic",
+					BackendAddressPool: &n.SubResource{
+						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
+							"/backendAddressPools/defaultaddresspool"),
+					},
+					BackendHTTPSettings: &n.SubResource{
+						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
+							"/backendHttpSettingsCollection/defaulthttpsetting"),
+					},
+					HTTPListener: &n.SubResource{
+						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"),
+					},
+					URLPathMap: nil,
+					RewriteRuleSet: nil,
+					RedirectConfiguration: nil,
+					ProvisioningState: nil,
+				},
+				Name: to.StringPtr("rr-80"),
+				Etag: to.StringPtr("*"),
+				Type: nil,
+				ID: nil,
+			}
+			Expect(*configBuilder.appGwConfig.RequestRoutingRules).To(ContainElement(expected))
+		})
+
+		It("should have correct URLPathMaps", func() {
+			Expect(len(*configBuilder.appGwConfig.URLPathMaps)).To(Equal(0))
 		})
 	})
 })
