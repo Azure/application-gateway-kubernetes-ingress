@@ -74,12 +74,13 @@ func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
 
 // Intersect computes the intersection of the two sets as return value.
 func (s *unorderedSet) Intersect(set UnorderedSet) UnorderedSet {
-	for vv := range set.v {
-		if !s.Contains(vv) {
-			set.Erase(vv)
+	intSet := NewUnorderedSet()
+	for vv := range s.v {
+		if set.Contains(vv) {
+			intSet.Insert(vv)
 		}
 	}
-	return set
+	return intSet
 }
 
 func (s *unorderedSet) ToSlice() []interface{} {
