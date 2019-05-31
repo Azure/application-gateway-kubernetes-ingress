@@ -38,7 +38,7 @@ var _ = Describe("Utils", func() {
 
 		Context("Clearing the unordered set", func() {
 			It("Should erase all elements", func() {
-				testSet.clear()
+				testSet.Clear()
 				Expect(testSet.Size()).To(Equal(0))
 			})
 		})
