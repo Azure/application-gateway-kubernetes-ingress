@@ -21,13 +21,13 @@ const (
 	// Null means no path will be prefixed. Default value is null.
 	BackendPathPrefixKey = ApplicationGatewayPrefix + "/backend-path-prefix"
 
-	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity.
+	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
 	// RequestTimeoutKey defines the request timeout to the backend.
 	RequestTimeoutKey = ApplicationGatewayPrefix + "/request-timeout"
 
-	// ConnectionDrainingKey defines defines the key to enable/disable connection draining.
+	// ConnectionDrainingKey defines the key to enable/disable connection draining.
 	ConnectionDrainingKey = ApplicationGatewayPrefix + "/connection-draining"
 
 	// ConnectionDrainingTimeoutKey defines the drain timeout for the backends.
@@ -81,7 +81,7 @@ func ConnectionDrainingTimeout(ing *v1beta1.Ingress) (int32, error) {
 	return parseInt32(ing, ConnectionDrainingTimeoutKey)
 }
 
-// IsCookieBasedAffinity for HTTP end points.
+// IsCookieBasedAffinity provides value to enable/disable cookie based affinity for client connection.
 func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
 }
@@ -115,7 +115,7 @@ func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
 			int32Val := int32(intVal)
 			return int32Val, nil
 		}
-		return 0, err
+		return 0, errors.NewInvalidAnnotationContent(name, val)
 	}
 
 	return 0, errors.ErrMissingAnnotations
