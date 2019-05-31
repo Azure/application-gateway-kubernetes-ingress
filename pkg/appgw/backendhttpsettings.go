@@ -188,8 +188,8 @@ func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentif
 		httpSettings.Path = to.StringPtr(pathPrefix)
 	}
 
-	IsConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress)
-	if err == nil && IsConnDrain {
+	isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress)
+	if err == nil && isConnDrain {
 		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
 			Enabled: to.BoolPtr(true),
 		}
