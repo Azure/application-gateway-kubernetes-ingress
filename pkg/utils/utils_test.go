@@ -35,6 +35,13 @@ var _ = Describe("Utils", func() {
 				Expect(testSet.Size()).To(Equal(3))
 			})
 		})
+
+		Context("Clearing the unordered set", func() {
+			It("Should erase all elements", func() {
+				testSet.clear()
+				Expect(testSet.Size()).To(Equal(0))
+			})
+		})
 	})
 
 	Describe("Testing `utils` helpers", func() {
