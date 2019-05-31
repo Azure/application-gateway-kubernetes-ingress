@@ -7,12 +7,13 @@ package appgw
 
 import (
 	"fmt"
+	"sort"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	"sort"
 )
 
 func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
@@ -39,16 +40,6 @@ func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPo
 	return &backendAddressPools
 }
 
-func getPorts(subset v1.EndpointSubset) map[int32]interface{} {
-	ports := make(map[int32]interface{})
-	for _, endpointsPort := range subset.Ports {
-		if endpointsPort.Protocol == v1.ProtocolTCP {
-			ports[endpointsPort.Port] = nil
-		}
-	}
-	return ports
-}
-
 func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if endpoints == nil {
@@ -59,7 +50,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 	}
 
 	for _, subset := range endpoints.Subsets {
-		if _, portExists := getPorts(subset)[serviceBackendPair.BackendPort]; portExists {
+		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
 			poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
 			// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 			// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
@@ -67,15 +58,21 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 				return pool
 			}
 			return newPool(poolName, subset)
+		} else {
+
 		}
 	}
 	return nil
 }
 
-func (builder *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
-	// TODO(draychev): deprecate the use of builder.serviceBackendPairMap
-	// Create this struct here instead of backendhttpsettings.go
-	return builder.serviceBackendPairMap
+func getUniqueTCPPorts(subset v1.EndpointSubset) map[int32]interface{} {
+	ports := make(map[int32]interface{})
+	for _, endpointsPort := range subset.Ports {
+		if endpointsPort.Protocol == v1.ProtocolTCP {
+			ports[endpointsPort.Port] = nil
+		}
+	}
+	return ports
 }
 
 func newPool(poolName string, subset v1.EndpointSubset) *n.ApplicationGatewayBackendAddressPool {
@@ -122,4 +119,10 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	}
 	sort.Sort(byIPFQDN(addresses))
 	return &addresses
+}
+
+func (builder *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
+	// TODO(draychev): deprecate the use of builder.serviceBackendPairMap
+	// Create this struct here instead of backendhttpsettings.go
+	return builder.serviceBackendPairMap
 }
