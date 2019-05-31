@@ -18,6 +18,17 @@ import (
 
 var _ = Describe("Test the creation of Backend Pools from Ingress definition", func() {
 
+	subset := v1.EndpointSubset{
+		Addresses: []v1.EndpointAddress{
+			{Hostname: "abc"},
+			{IP: "1.1.1.1"},
+			{Hostname: "abc"},
+			{IP: "1.1.1.1"},
+			{Hostname: "xyz"},
+			{IP: "2.2.2.2"},
+		},
+	}
+
 	Context("build a list of BackendAddressPools", func() {
 		ing1 := newIngressFixture()
 		ing2 := newIngressFixture()
@@ -54,19 +65,27 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		ingressList := []*v1beta1.Ingress{newIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
-		subset := v1.EndpointSubset{
-			Addresses: []v1.EndpointAddress{
-				{IP: "1.1.1.1"},
-				{IP: "1.1.1.1"},
-				{IP: "2.2.2.2"},
-				{Hostname: "abc"},
-				{Hostname: "abc"},
-				{Hostname: "xyz"},
-			},
-		}
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
 			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
+		})
+	})
+
+	// getAddressesForSubset
+	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
+		actual := getAddressesForSubset(subset)
+		It("should contain correct number of ApplicationGatewayBackendAddress", func() {
+			Expect(len(*actual)).To(Equal(4))
+		})
+		It("should contain correct set of ordered ApplicationGatewayBackendAddress", func() {
+			// The order here is deliberate -- ensure this is properly sorted
+			expected := []n.ApplicationGatewayBackendAddress{
+				{IPAddress: to.StringPtr("1.1.1.1")},
+				{IPAddress: to.StringPtr("2.2.2.2")},
+				{Fqdn: to.StringPtr("abc")},
+				{Fqdn: to.StringPtr("xyz")},
+			}
+			Expect(*actual).To(Equal(expected))
 		})
 	})
 })
