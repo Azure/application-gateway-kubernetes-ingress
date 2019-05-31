@@ -59,21 +59,6 @@ var _ = Describe("Utils", func() {
 			})
 		})
 
-		Context("Testing intersection of sets", func() {
-			set := utils.NewUnorderedSet()
-			set.Insert(3)
-			set.Insert(4)
-
-			It("Should only contain intersection of both sets", func() {
-				iSet := testSet.Intersect(set)
-				Expect(iSet.Size()).To(Equal(2))
-				Expect(iSet.Contains(3)).To(BeTrue())
-				Expect(iSet.Contains(4)).To(BeTrue())
-				Expect(iSet.Contains(1)).To(BeFalse())
-				Expect(iSet.Contains(2)).To(BeFalse())
-			})
-		})
-
 	})
 
 	Describe("Testing `utils` helpers", func() {

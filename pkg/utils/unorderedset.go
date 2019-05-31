@@ -15,7 +15,6 @@ type UnorderedSet interface {
 	Clear()
 	IsEmpty() bool
 	Union(s UnorderedSet) UnorderedSet
-	Intersect(s UnorderedSet) UnorderedSet
 }
 
 type unorderedSet struct {
@@ -69,15 +68,4 @@ func (s *unorderedSet) Union(set UnorderedSet) UnorderedSet {
 		set.Insert(vv)
 	}
 	return set
-}
-
-// Intersect computes the intersection of the two sets as return value.
-func (s *unorderedSet) Intersect(set UnorderedSet) UnorderedSet {
-	intSet := NewUnorderedSet()
-	for vv := range s.v {
-		if set.Contains(vv) {
-			intSet.Insert(vv)
-		}
-	}
-	return intSet
 }
