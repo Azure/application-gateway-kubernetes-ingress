@@ -183,32 +183,27 @@ func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentif
 		},
 	}
 
-	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
-	if err == nil {
+	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
 	}
 
-	isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress)
-	if err == nil && isConnDrain {
+	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
 		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
 			Enabled: to.BoolPtr(true),
 		}
 
-		connDrainTimeout, err := annotations.ConnectionDrainingTimeout(backendID.Ingress)
-		if err == nil {
+		if connDrainTimeout, err := annotations.ConnectionDrainingTimeout(backendID.Ingress); err == nil {
 			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(connDrainTimeout)
 		} else {
 			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
 		}
 	}
 
-	affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress)
-	if err == nil && affinity {
+	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
 		httpSettings.CookieBasedAffinity = network.Enabled
 	}
 
-	reqTimeout, err := annotations.RequestTimeout(backendID.Ingress)
-	if err == nil {
+	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
 		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
 	}
 
