@@ -79,7 +79,7 @@ func TestParseInt32Invalid(t *testing.T) {
 	value := "20asd"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
-	if errors.IsInvalidContent(err) {
+	if !errors.IsInvalidContent(err) {
 		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
 	}
 }
