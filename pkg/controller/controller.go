@@ -8,10 +8,14 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
+
+	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/eapache/channels"
@@ -28,17 +32,22 @@ type AppGwIngressController struct {
 
 	eventQueue *EventQueue
 
+	configCache *[]byte
 	stopChannel chan struct{}
+
+	recorder record.EventRecorder
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:      appGwClient,
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
+		recorder:         recorder,
 	}
+
 	controller.eventQueue = NewEventQueue(controller)
 	return controller
 }
@@ -58,7 +67,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat)
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
 	// Get all the ingresses
 	ingressList := c.k8sContext.GetHTTPIngressList()
@@ -88,7 +97,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
-	configBuilder, err = configBuilder.HTTPListeners(ingressList)
+	configBuilder, err = configBuilder.Listeners(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
 		return errors.New("unable to generate frontend listeners")
@@ -106,6 +115,11 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	addTags(&appGw)
 
+	if c.configIsSame(&appGw) {
+		glog.Infoln("cache: Config has NOT changed! No need to connect to ARM.")
+		return nil
+	}
+
 	glog.V(1).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(1).Info("END ApplicationGateway deployment")
 
@@ -113,18 +127,26 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
+		// Reset cache
+		c.configCache = nil
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
+		configJSON, _ := c.dumpSanitizedJSON(&appGw)
+		glog.V(5).Info(string(configJSON))
 		return errors.New("unable to send CreateOrUpdate request")
 	}
-
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
 	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
+		// Reset cache
+		c.configCache = nil
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
 		return errors.New("unable to deploy ApplicationGateway")
 	}
+
+	glog.Info("cache: Updated with latest applied config.")
+	c.updateCache(&appGw)
 
 	return nil
 }
@@ -135,7 +157,7 @@ func addTags(appGw *network.ApplicationGateway) {
 		appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	appGw.Tags[isManagedByK8sIngress] = to.StringPtr("true")
+	appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
 }
 
 // Start function runs the k8scontext and continues to listen to the

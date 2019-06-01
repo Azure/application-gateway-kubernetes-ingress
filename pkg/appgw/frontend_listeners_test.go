@@ -12,12 +12,12 @@ import (
 
 var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
 
-	listener80 := frontendListenerIdentifier{
+	listener80 := listenerIdentifier{
 		FrontendPort: int32(80),
 		HostName:     testFixturesHost,
 	}
 
-	listenerAzConfigNoSSL := frontendListenerAzureConfig{
+	listenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
 		Secret: secretIdentifier{
 			Namespace: "",
@@ -53,7 +53,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		}
 
 		// !! Action !!
-		listeners, _ := cb.getFrontendListeners(ingressList)
+		listeners, _ := cb.getListeners(ingressList)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))
@@ -81,7 +81,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should create a correct App Gwy listener", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
-			listener := cb.newHTTPListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80"
 
 			expected := n.ApplicationGatewayHTTPListener{

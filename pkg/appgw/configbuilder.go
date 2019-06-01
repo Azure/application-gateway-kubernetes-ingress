@@ -7,9 +7,9 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/client-go/tools/record"
 )
 
 // ConfigBuilder is a builder for application gateway configuration
@@ -17,7 +17,7 @@ type ConfigBuilder interface {
 	// builder pattern
 	BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	Listeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	Build() *network.ApplicationGatewayPropertiesFormat
@@ -34,10 +34,11 @@ type appGwConfigBuilder struct {
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
 	appGwConfig     network.ApplicationGatewayPropertiesFormat
+	recorder        record.EventRecorder
 }
 
 // NewConfigBuilder construct a builder
-func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat) ConfigBuilder {
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat, recorder record.EventRecorder) ConfigBuilder {
 	return &appGwConfigBuilder{
 		// TODO(draychev): Decommission internal state
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
@@ -47,18 +48,19 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 		k8sContext:             context,
 		appGwIdentifier:        *appGwIdentifier,
 		appGwConfig:            *originalConfig,
+		recorder:               recorder,
 	}
 }
 
 // resolvePortName function goes through the endpoints of a given service and
 // look for possible port number corresponding to a port name
-func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) utils.UnorderedSet {
+func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
 	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
-	resolvedPorts := utils.NewUnorderedSet()
+	resolvedPorts := make(map[int32]interface{})
 	for _, subset := range endpoints.Subsets {
 		for _, epPort := range subset.Ports {
 			if epPort.Name == portName {
-				resolvedPorts.Insert(epPort.Port)
+				resolvedPorts[epPort.Port] = nil
 			}
 		}
 	}
@@ -78,8 +80,8 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateFrontendListenerID(rule *v1beta1.IngressRule,
-	protocol network.ApplicationGatewayProtocol, overridePort *int32) frontendListenerIdentifier {
+func generateListenerID(rule *v1beta1.IngressRule,
+	protocol network.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == network.HTTPS {
 		frontendPort = int32(443)
@@ -87,11 +89,11 @@ func generateFrontendListenerID(rule *v1beta1.IngressRule,
 	if overridePort != nil {
 		frontendPort = *overridePort
 	}
-	frontendListenerID := frontendListenerIdentifier{
+	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
 		HostName:     rule.Host,
 	}
-	return frontendListenerID
+	return listenerID
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager

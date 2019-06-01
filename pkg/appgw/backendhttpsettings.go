@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -19,14 +18,19 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const (
+	// DefaultConnDrainTimeoutInSec provides default value for ConnectionDrainTimeout
+	DefaultConnDrainTimeoutInSec = 30
+)
+
 func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	backendIDs := utils.NewUnorderedSet()
-	serviceBackendPairsMap := make(map[backendIdentifier](utils.UnorderedSet))
+	backendIDs := make(map[backendIdentifier]interface{})
+	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 
 	for _, ingress := range ingressList {
 		defIngressBackend := ingress.Spec.Backend
 		if defIngressBackend != nil {
-			backendIDs.Insert(generateBackendID(ingress, nil, nil, defIngressBackend))
+			backendIDs[generateBackendID(ingress, nil, nil, defIngressBackend)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -36,23 +40,25 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
-				backendIDs.Insert(generateBackendID(ingress, rule, path, &path.Backend))
+				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
 		}
 	}
 
 	unresolvedBackendID := make([]backendIdentifier, 0)
-	backendIDs.ForEach(func(backendIDInterface interface{}) {
-		backendID := backendIDInterface.(backendIdentifier)
-		resolvedBackendPorts := utils.NewUnorderedSet()
+	for backendID := range backendIDs {
+		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := builder.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
-			glog.V(1).Infof("unable to get the service [%s]", backendID.serviceKey())
-			resolvedBackendPorts.Insert(serviceBackendPortPair{
+			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
+			glog.Errorf(logLine)
+			pair := serviceBackendPortPair{
 				ServicePort: backendID.Backend.ServicePort.IntVal,
 				BackendPort: backendID.Backend.ServicePort.IntVal,
-			})
+			}
+			resolvedBackendPorts[pair] = nil
 		} else {
 			for _, sp := range service.Spec.Ports {
 				// find the backend port number
@@ -68,30 +74,32 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 
 					if sp.TargetPort.String() == "" {
 						// targetPort is not defined, by default targetPort == port
-						resolvedBackendPorts.Insert(serviceBackendPortPair{
+						pair := serviceBackendPortPair{
 							ServicePort: sp.Port,
 							BackendPort: sp.Port,
-						})
+						}
+						resolvedBackendPorts[pair] = nil
 					} else {
 						// target port is defined as name or port number
 						if sp.TargetPort.Type == intstr.Int {
 							// port is defined as port number
-							resolvedBackendPorts.Insert(serviceBackendPortPair{
+							pair := serviceBackendPortPair{
 								ServicePort: sp.Port,
 								BackendPort: sp.TargetPort.IntVal,
-							})
+							}
+							resolvedBackendPorts[pair] = nil
 						} else {
 							// if service port is defined by name, need to resolve
 							targetPortName := sp.TargetPort.StrVal
 							glog.V(1).Infof("resolving port name %s", targetPortName)
 							targetPortsResolved := builder.resolvePortName(targetPortName, &backendID)
-							targetPortsResolved.ForEach(func(targetPortInterface interface{}) {
-								targetPort := targetPortInterface.(int32)
-								resolvedBackendPorts.Insert(serviceBackendPortPair{
+							for targetPort := range targetPortsResolved {
+								pair := serviceBackendPortPair{
 									ServicePort: sp.Port,
 									BackendPort: targetPort,
-								})
-							})
+								}
+								resolvedBackendPorts[pair] = nil
+							}
 						}
 					}
 					break
@@ -99,64 +107,105 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 			}
 		}
 
-		if resolvedBackendPorts.Size() == 0 {
-			glog.V(1).Infof("unable to resolve any backend port for service [%s]", backendID.serviceKey())
+		if len(resolvedBackendPorts) == 0 {
+			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", backendID.serviceKey())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			glog.Error(logLine)
+
 			unresolvedBackendID = append(unresolvedBackendID, backendID)
-			return
+			break
 		}
 
-		if serviceBackendPairsMap[backendID] == nil {
-			serviceBackendPairsMap[backendID] = utils.NewUnorderedSet()
+		// Merge serviceBackendPairsMap[backendID] into resolvedBackendPorts
+		if _, ok := serviceBackendPairsMap[backendID]; !ok {
+			serviceBackendPairsMap[backendID] = make(map[serviceBackendPortPair]interface{})
 		}
-		serviceBackendPairsMap[backendID] = serviceBackendPairsMap[backendID].Union(resolvedBackendPorts)
-	})
+		for portPair := range resolvedBackendPorts {
+			serviceBackendPairsMap[backendID][portPair] = nil
+		}
+	}
 
 	if len(unresolvedBackendID) > 0 {
 		return builder, errors.New("unable to resolve backend port for some services")
 	}
 
 	probeID := builder.appGwIdentifier.probeID(defaultProbeName)
-	httpSettingsCollection := make([](network.ApplicationGatewayBackendHTTPSettings), 0)
-	httpSettingsCollection = append(httpSettingsCollection, defaultBackendHTTPSettings(probeID))
+	httpSettingsCollection := make(map[string]network.ApplicationGatewayBackendHTTPSettings)
+	defaultBackend := defaultBackendHTTPSettings(probeID)
+	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
-		if serviceBackendPairs.Size() > 1 {
+		if len(serviceBackendPairs) > 1 {
 			// more than one possible backend port exposed through ingress
-			glog.Warningf("service:port [%s:%s] has more than one service-backend port binding",
+			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
+			builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			glog.Warning(logLine)
 			return builder, errors.New("more than one service-backend port binding is not allowed")
 		}
 
+		// At this point there will be only one pair
 		var uniquePair serviceBackendPortPair
-		serviceBackendPairs.ForEach(func(pairI interface{}) {
-			uniquePair = pairI.(serviceBackendPortPair)
-		})
+		for k := range serviceBackendPairs {
+			uniquePair = k
+		}
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
-
-		probeName := builder.probesMap[backendID].Name
-		probeID := builder.appGwIdentifier.probeID(*probeName)
-		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress.Name)
-		glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-		httpSettingsPort := uniquePair.BackendPort
-		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
-		httpSettings := network.ApplicationGatewayBackendHTTPSettings{
-			Etag: to.StringPtr("*"),
-			Name: &httpSettingsName,
-			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Protocol: network.HTTP,
-				Port:     &httpSettingsPort,
-				Path:     backendPathPrefix,
-				Probe:    resourceRef(probeID),
-			},
-		}
-		// other settings should come from annotations
-		httpSettingsCollection = append(httpSettingsCollection, httpSettings)
+		httpSettings := builder.generateHTTPSettings(backendID, uniquePair.BackendPort)
+		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		builder.backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	builder.appGwConfig.BackendHTTPSettingsCollection = &httpSettingsCollection
+	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
+	for _, backend := range httpSettingsCollection {
+		backends = append(backends, backend)
+	}
+
+	builder.appGwConfig.BackendHTTPSettingsCollection = &backends
 
 	return builder, nil
+}
+
+func (builder *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
+	probeName := builder.probesMap[backendID].Name
+	probeID := builder.appGwIdentifier.probeID(*probeName)
+	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
+	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+
+	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
+		Etag: to.StringPtr("*"),
+		Name: &httpSettingsName,
+		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+			Protocol: network.HTTP,
+			Port:     &port,
+			Probe:    resourceRef(probeID),
+		},
+	}
+
+	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
+		httpSettings.Path = to.StringPtr(pathPrefix)
+	}
+
+	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
+		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
+			Enabled: to.BoolPtr(true),
+		}
+
+		if connDrainTimeout, err := annotations.ConnectionDrainingTimeout(backendID.Ingress); err == nil {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(connDrainTimeout)
+		} else {
+			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
+		}
+	}
+
+	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
+		httpSettings.CookieBasedAffinity = network.Enabled
+	}
+
+	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
+		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
+	}
+
+	return httpSettings
 }

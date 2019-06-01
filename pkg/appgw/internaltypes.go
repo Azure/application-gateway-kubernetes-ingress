@@ -33,7 +33,7 @@ type serviceBackendPortPair struct {
 	BackendPort int32
 }
 
-type frontendListenerIdentifier struct {
+type listenerIdentifier struct {
 	FrontendPort int32
 	HostName     string
 }
@@ -53,7 +53,7 @@ var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
 var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
 
 // create xxx -> xxxconfiguration mappings to contain all the information
-type frontendListenerAzureConfig struct {
+type listenerAzConfig struct {
 	Protocol                     network.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
@@ -114,19 +114,19 @@ func generateFrontendPortName(port int32) string {
 	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
 }
 
-func generateHTTPListenerName(frontendListenerID frontendListenerIdentifier) string {
+func generateListenerName(listenerID listenerIdentifier) string {
 	namePrefix := "fl-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateURLPathMapName(frontendListenerID frontendListenerIdentifier) string {
+func generateURLPathMapName(listenerID listenerIdentifier) string {
 	namePrefix := "url-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateRequestRoutingRuleName(frontendListenerID frontendListenerIdentifier) string {
+func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
 	namePrefix := "rr-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(frontendListenerID.HostName), frontendListenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
@@ -172,9 +172,9 @@ func defaultProbe() network.ApplicationGatewayProbe {
 	}
 }
 
-func defaultBackendAddressPool() network.ApplicationGatewayBackendAddressPool {
+func defaultBackendAddressPool() *network.ApplicationGatewayBackendAddressPool {
 	defBackendAddressPool := defaultBackendAddressPoolName
-	return network.ApplicationGatewayBackendAddressPool{
+	return &network.ApplicationGatewayBackendAddressPool{
 		Name: &defBackendAddressPool,
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: &[]network.ApplicationGatewayBackendAddress{},
@@ -182,8 +182,8 @@ func defaultBackendAddressPool() network.ApplicationGatewayBackendAddressPool {
 	}
 }
 
-func defaultFrontendListenerIdentifier() frontendListenerIdentifier {
-	return frontendListenerIdentifier{
+func defaultFrontendListenerIdentifier() listenerIdentifier {
+	return listenerIdentifier{
 		FrontendPort: int32(80),
 		HostName:     "",
 	}

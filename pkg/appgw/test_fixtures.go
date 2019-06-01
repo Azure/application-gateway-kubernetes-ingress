@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -116,6 +117,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 			CertificateSecretStore: newSecretStoreFixture(certs),
 		},
 		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
+		recorder:  record.NewFakeRecorder(1),
 	}
 
 	return cb
@@ -355,7 +357,13 @@ func newEndpointsFixture() *v1.Endpoints {
 				NotReadyAddresses: []v1.EndpointAddress{},
 				// Port numbers available on the related IP addresses.
 				// +optional
-				Ports: []v1.EndpointPort{},
+				Ports: []v1.EndpointPort{
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     testFixturesName,
+						Port:     testFixturesContainerPort,
+					},
+				},
 			},
 		},
 	}
@@ -392,4 +400,3 @@ func newURLPathMap() network.ApplicationGatewayURLPathMap {
 		},
 	}
 }
-

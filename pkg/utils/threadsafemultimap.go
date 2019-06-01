@@ -5,7 +5,11 @@
 
 package utils
 
-import "sync"
+import (
+	"sync"
+	
+	"github.com/deckarep/golang-set"
+)
 
 // ThreadsafeMultiMap is a thread safe implementation of a multimap.
 type ThreadsafeMultiMap interface {
@@ -22,13 +26,13 @@ type threadsafeMultiMap struct {
 	// TODO: Evaluate if sync.Map is needed here
 	//       for our usage pattern.
 	sync.RWMutex
-	v map[interface{}]UnorderedSet
+	v map[interface{}]mapset.Set
 }
 
 // NewThreadsafeMultimap creates a ThreadsafeMultiMap.
 func NewThreadsafeMultimap() ThreadsafeMultiMap {
 	return &threadsafeMultiMap{
-		v: make(map[interface{}]UnorderedSet),
+		v: make(map[interface{}]mapset.Set),
 	}
 }
 
@@ -38,9 +42,9 @@ func (m *threadsafeMultiMap) Insert(key interface{}, value interface{}) {
 	defer m.Unlock()
 
 	if m.v[key] == nil {
-		m.v[key] = NewUnorderedSet()
+		m.v[key] = mapset.NewSet()
 	}
-	m.v[key].Insert(value)
+	m.v[key].Add(value)
 }
 
 // Clear removes all the values associated with a key.
@@ -76,7 +80,7 @@ func (m *threadsafeMultiMap) EraseValue(value interface{}) bool {
 	for i := range m.v {
 		if m.v[i] != nil && m.v[i].Contains(value) {
 			erased = true
-			m.v[i].Erase(value)
+			m.v[i].Remove(value)
 		}
 	}
 
