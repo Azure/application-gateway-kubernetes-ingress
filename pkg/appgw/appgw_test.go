@@ -207,7 +207,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				Protocol: network.HTTP,
 				Port:     &backendPort,
-				Path:     to.StringPtr(""),
+				Path:     nil,
+				HostName: nil,
 				Probe:    resourceRef(probeID),
 			},
 		}
@@ -232,7 +233,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Test the default backend address pool.
-		Expect((*appGW.BackendAddressPools)).To(ContainElement(defaultBackendAddressPool()))
+		Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
 		// Test the ingress backend address pool that we installed.
 		Expect((*appGW.BackendAddressPools)).To(ContainElement(*addressPool))
 	}
@@ -492,7 +493,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol: network.HTTP,
 						Port:     &servicePort,
-						Path:     to.StringPtr(""),
+						Path:     nil,
 						Probe:    resourceRef(appGwIdentifier.probeID(defaultProbeName)),
 					},
 				}
@@ -505,7 +506,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			EmptyBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				// Test the default backend address pool.
-				Expect((*appGW.BackendAddressPools)).To(ContainElement(defaultBackendAddressPool()))
+				Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
 			}
 
 			testAGConfig(ingressList, appGwConfigSettings{
@@ -715,6 +716,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Port:     &backendPort,
 						Path:     to.StringPtr("/test"),
 						Probe:    resourceRef(probeID),
+						HostName: nil,
 					},
 				}
 

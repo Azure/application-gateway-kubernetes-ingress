@@ -45,7 +45,6 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
-		configCache:      &[]byte{},
 		recorder:         recorder,
 	}
 
@@ -117,7 +116,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	addTags(&appGw)
 
 	if c.configIsSame(&appGw) {
-		glog.Infoln("Config has NOT changed! No need to connect to ARM.")
+		glog.Infoln("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
 
@@ -129,21 +128,25 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, appGw)
 	if err != nil {
 		// Reset cache
-		c.configCache = &[]byte{}
+		c.configCache = nil
 		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
+		configJSON, _ := c.dumpSanitizedJSON(&appGw)
+		glog.V(5).Info(string(configJSON))
 		return errors.New("unable to send CreateOrUpdate request")
 	}
-
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
 	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
 		// Reset cache
-		c.configCache = &[]byte{}
+		c.configCache = nil
 		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
 		return errors.New("unable to deploy ApplicationGateway")
 	}
+
+	glog.Info("cache: Updated with latest applied config.")
+	c.updateCache(&appGw)
 
 	return nil
 }

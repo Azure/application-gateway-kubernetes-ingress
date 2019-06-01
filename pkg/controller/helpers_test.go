@@ -76,14 +76,36 @@ var _ = Describe("configure App Gateway", func() {
 				Name: to.StringPtr("something"),
 			}
 
-			c := AppGwIngressController{
-				configCache: &[]byte{},
-			}
+			c := AppGwIngressController{}
 
 			Expect(c.configIsSame(&client)).To(BeFalse())
+			c.updateCache(&client)
 			Expect(c.configIsSame(&client)).To(BeTrue())
 			Expect(string(*c.configCache)).To(Equal(`{"name":"something"}`))
 		})
 	})
 
+	Context("ensure isMap works as expected", func() {
+		It("should deal with nil values", func() {
+			Expect(isMap(nil)).To(BeFalse())
+		})
+		It("should return true when passed a map", func() {
+			Expect(isMap(make(map[string]interface{}))).To(BeTrue())
+		})
+		It("should return false when passed a slice", func() {
+			Expect(isMap(make([]string, 100))).To(BeFalse())
+		})
+	})
+
+	Context("ensure isSlice works as expected", func() {
+		It("should deal with nil values", func() {
+			Expect(isSlice(nil)).To(BeFalse())
+		})
+		It("should return true when passed a slice", func() {
+			Expect(isSlice(make([]string, 100))).To(BeTrue())
+		})
+		It("should return false when passed a map", func() {
+			Expect(isSlice(make(map[string]interface{}))).To(BeFalse())
+		})
+	})
 })

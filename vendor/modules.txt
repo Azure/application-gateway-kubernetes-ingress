@@ -125,6 +125,8 @@ github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 github.com/peterbourgon/diskv
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
 # go.opencensus.io v0.18.1-0.20181204023538-aab39bd6a98b
