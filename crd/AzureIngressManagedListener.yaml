@@ -1,0 +1,27 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: azureingressmanagedlisteners.appgw.ingress.k8s.io
+spec:
+  group: appgw.ingress.k8s.io
+  version: v1
+  names:
+    kind: AzureIngressManagedListener
+    plural: azureingressmanagedlisteners
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            host:
+              description: "(optional) Hostname of the listener"
+              type: string
+            port:
+              description: "Port number of the listener (required)"
+              type: integer
+            path:
+              description: "(optional) URL path, for which the Ingress Controller is allowed to mutate Application Gateway configuration"
+              type: string
+          required:
+            - port

@@ -1,0 +1,19 @@
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressManagedListener
+metadata:
+  name: ingress1-managed-listener
+spec:
+  host: "www.contoso.com"
+  port: 80
+  path: "/bar/*"
+
+---
+
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressManagedListener
+metadata:
+  name: ingress2-managed-listener
+spec:
+  host: "ftp.contoso.com"
+  port: 8080
+  path: "/foo/*"
