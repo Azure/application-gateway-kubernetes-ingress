@@ -671,12 +671,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller Annotations", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
+		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
 			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
-			// Set the ingress annotation for this ingress.
+			// Set the ingress annotations for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
+			ingress.Annotations[annotations.ConnectionDrainingKey] = "true"
+			ingress.Annotations[annotations.ConnectionDrainingTimeoutKey] = "10"
+			ingress.Annotations[annotations.CookieBasedAffinityKey] = "true"
+			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
 			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
@@ -689,7 +693,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressEvent()
 
 			// Method to test all the ingress that have been added to the K8s context.
-			backendPrefixIngress := func() []*v1beta1.Ingress {
+			annotationIngress := func() []*v1beta1.Ingress {
 				// Get all the ingresses
 				ingressList := ctxt.GetHTTPIngressList()
 				// There should be only one ingress
@@ -701,9 +705,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			}
 
 			// Get all the ingresses
-			ingressList := backendPrefixIngress()
+			ingressList := annotationIngress()
 
-			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+			annotationsHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
@@ -712,11 +716,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol: network.HTTP,
-						Port:     &backendPort,
-						Path:     to.StringPtr("/test"),
-						Probe:    resourceRef(probeID),
-						HostName: nil,
+						Protocol:            network.HTTP,
+						Port:                &backendPort,
+						Path:                to.StringPtr("/test"),
+						Probe:               resourceRef(probeID),
+						HostName:            nil,
+						CookieBasedAffinity: network.Enabled,
+						ConnectionDraining: &network.ApplicationGatewayConnectionDraining{
+							Enabled:           to.BoolPtr(true),
+							DrainTimeoutInSec: to.Int32Ptr(10),
+						},
+						RequestTimeout: to.Int32Ptr(10),
 					},
 				}
 
@@ -738,7 +748,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
 					total:   2,
-					checker: backendPrefixHTTPSettingsChecker,
+					checker: annotationsHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
 					total:   2,
