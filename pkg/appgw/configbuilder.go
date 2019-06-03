@@ -54,8 +54,8 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 
 // resolvePortName function goes through the endpoints of a given service and
 // look for possible port number corresponding to a port name
-func (builder *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
-	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
+func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
+	endpoints := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	resolvedPorts := make(map[int32]interface{})
 	for _, subset := range endpoints.Subsets {
 		for _, epPort := range subset.Ports {
@@ -97,7 +97,7 @@ func generateListenerID(rule *v1beta1.IngressRule,
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
-func (builder *appGwConfigBuilder) Build() *network.ApplicationGatewayPropertiesFormat {
-	config := builder.appGwConfig
+func (c *appGwConfigBuilder) Build() *network.ApplicationGatewayPropertiesFormat {
+	config := c.appGwConfig
 	return &config
 }

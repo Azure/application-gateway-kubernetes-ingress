@@ -6,10 +6,10 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) getFrontendPorts(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewayFrontendPort {
+func (c *appGwConfigBuilder) getFrontendPorts(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewayFrontendPort {
 	allPorts := make(map[int32]interface{})
 	for _, ingress := range ingressList {
-		fePorts, _ := builder.processIngressRules(ingress)
+		fePorts, _ := c.processIngressRules(ingress)
 		for port := range fePorts {
 			allPorts[port] = nil
 		}

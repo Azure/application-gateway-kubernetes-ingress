@@ -8,17 +8,17 @@ import (
 )
 
 // getRedirectConfigurations creates App Gateway redirect configuration based on Ingress annotations.
-func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayRedirectConfiguration {
+func (c *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayRedirectConfiguration {
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
-	for listenerID, listenerConfig := range builder.getListenerConfigs(ingressList) {
+	for listenerID, listenerConfig := range c.getListenerConfigs(ingressList) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
 
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
-			targetListener := resourceRef(builder.appGwIdentifier.listenerID(generateListenerName(listenerID)))
+			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
 			newRedirect := newSSLRedirectConfig(listenerConfig, targetListener)
 			redirectConfigs = append(redirectConfigs, newRedirect)
 			redirectJSON, _ := newRedirect.MarshalJSON()
