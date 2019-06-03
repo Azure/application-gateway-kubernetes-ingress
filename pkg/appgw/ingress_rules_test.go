@@ -132,7 +132,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(frontendPorts)).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			ports := make([]int32, 0)
+			var ports []int32
 			for _, listener := range getMapKeys(&frontendListeners) {
 				ports = append(ports, listener.FrontendPort)
 			}
@@ -159,7 +159,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 })
 
 func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier {
-	keys := make([]listenerIdentifier, 0, len(*m))
+	var keys []listenerIdentifier
 	for k := range *m {
 		keys = append(keys, k)
 	}
@@ -167,7 +167,7 @@ func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier
 }
 
 func getInt32MapKeys(m *map[int32]interface{}) []int32 {
-	keys := make([]int32, 0, len(*m))
+	var keys []int32
 	for k := range *m {
 		keys = append(keys, k)
 	}
