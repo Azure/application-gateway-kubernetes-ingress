@@ -79,7 +79,7 @@ spec:
 ```
 
 # Connection Draining
-`connection-draining`: This annotation allows to specify whether to enable connecitn draining.
+`connection-draining`: This annotation allows to specify whether to enable connection draining.
 `connection-draining-timeout`: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.
 
 ### Usage
