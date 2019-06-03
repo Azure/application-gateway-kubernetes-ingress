@@ -79,8 +79,8 @@ spec:
 ```
 
 # Connection Draining
-`connection-draining`: This annotations allows to specify whether to enable connecitn draining and the timeout after which
-`connection-draining-timeout`: This annotations allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.
+`connection-draining`: This annotation allows to specify whether to enable connecitn draining.
+`connection-draining-timeout`: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.
 
 ### Usage
 ```yaml
