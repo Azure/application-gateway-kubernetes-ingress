@@ -76,11 +76,10 @@ var _ = Describe("configure App Gateway", func() {
 				Name: to.StringPtr("something"),
 			}
 
-			c := AppGwIngressController{
-				configCache: &[]byte{},
-			}
+			c := AppGwIngressController{}
 
 			Expect(c.configIsSame(&client)).To(BeFalse())
+			c.updateCache(&client)
 			Expect(c.configIsSame(&client)).To(BeTrue())
 			Expect(string(*c.configCache)).To(Equal(`{"name":"something"}`))
 		})
