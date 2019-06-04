@@ -297,7 +297,7 @@ func (c *Context) Run() {
 // GetHTTPIngressList returns a list of all the ingresses for HTTP from cache.
 func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
 	ingressListInterface := c.Caches.Ingress.List()
-	ingressList := make([]*v1beta1.Ingress, 0)
+	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range ingressListInterface {
 		ingress := ingressInterface.(*v1beta1.Ingress)
 
@@ -359,7 +359,7 @@ func (c *Context) GetPodsByServiceSelector(selector map[string]string) []*v1.Pod
 		selectorSet.Add(k + ":" + v)
 	}
 
-	podList := make([]*v1.Pod, 0)
+	var podList []*v1.Pod
 	for _, podInterface := range c.Caches.Pods.List() {
 		pod := podInterface.(*v1.Pod)
 		podLabelSet := mapset.NewSet()

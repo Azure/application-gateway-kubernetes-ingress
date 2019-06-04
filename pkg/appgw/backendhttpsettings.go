@@ -45,7 +45,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 		}
 	}
 
-	unresolvedBackendID := make([]backendIdentifier, 0)
+	var unresolvedBackendID []backendIdentifier
 	for backendID := range backendIDs {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
@@ -157,7 +157,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 		c.backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
+	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
 		backends = append(backends, backend)
 	}
