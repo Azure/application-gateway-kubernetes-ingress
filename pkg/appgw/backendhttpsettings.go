@@ -23,7 +23,7 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
 	backendIDs := make(map[backendIdentifier]interface{})
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 
@@ -126,7 +126,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1bet
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return c, errors.New("unable to resolve backend port for some services")
+		return errors.New("unable to resolve backend port for some services")
 	}
 
 	probeID := c.appGwIdentifier.probeID(defaultProbeName)
@@ -142,7 +142,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1bet
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
 			glog.Warning(logLine)
-			return c, errors.New("more than one service-backend port binding is not allowed")
+			return errors.New("more than one service-backend port binding is not allowed")
 		}
 
 		// At this point there will be only one pair
@@ -164,7 +164,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1bet
 
 	c.appGwConfig.BackendHTTPSettingsCollection = &backends
 
-	return c, nil
+	return nil
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
