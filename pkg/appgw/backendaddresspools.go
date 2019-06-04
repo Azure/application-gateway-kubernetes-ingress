@@ -16,7 +16,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
@@ -30,7 +30,7 @@ func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress)
 		}
 	}
 	c.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
-	return c, nil
+	return nil
 }
 
 func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
