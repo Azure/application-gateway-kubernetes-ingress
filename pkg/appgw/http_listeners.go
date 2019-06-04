@@ -7,7 +7,7 @@ package appgw
 
 import "k8s.io/api/extensions/v1beta1"
 
-func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress) error {
 	c.appGwConfig.SslCertificates = c.getSslCertificates(ingressList)
 	c.appGwConfig.FrontendPorts = c.getFrontendPorts(ingressList)
 	c.appGwConfig.HTTPListeners, _ = c.getListeners(ingressList)
@@ -17,5 +17,5 @@ func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress) (ConfigBu
 	// in the RequestRoutingRules step, which must be executed after Listeners.
 	c.appGwConfig.RedirectConfigurations = c.getRedirectConfigurations(ingressList)
 
-	return c, nil
+	return nil
 }

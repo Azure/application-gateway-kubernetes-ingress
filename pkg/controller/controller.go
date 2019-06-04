@@ -73,21 +73,21 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	ingressList := c.k8sContext.GetHTTPIngressList()
 
 	// The following operations need to be in sequence
-	configBuilder, err = configBuilder.HealthProbesCollection(ingressList)
+	err = configBuilder.HealthProbesCollection(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
 		return errors.New("unable to generate health probes")
 	}
 
 	// The following operations need to be in sequence
-	configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
+	err = configBuilder.BackendHTTPSettingsCollection(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
 		return errors.New("unable to generate backend http settings")
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
-	configBuilder, err = configBuilder.BackendAddressPools(ingressList)
+	err = configBuilder.BackendAddressPools(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
 		return errors.New("unable to generate backend address pools")
@@ -97,14 +97,14 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
-	configBuilder, err = configBuilder.Listeners(ingressList)
+	err = configBuilder.Listeners(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
 		return errors.New("unable to generate frontend listeners")
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
-	configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
+	err = configBuilder.RequestRoutingRules(ingressList)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
 		return errors.New("unable to generate request routing rules")
