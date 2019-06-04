@@ -20,17 +20,17 @@ var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
 		cb := NewConfigBuilderFixture(nil)
 
-		endpoints := NewEndpointsFixture()
+		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := NewServiceFixture(*NewServicePortsFixture()...)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := tests.NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			NewIngressFixture(),
+			tests.NewIngressFixture(),
 		}
 
 		// !! Action !!
@@ -115,11 +115,11 @@ var _ = Describe("configure App Gateway health probes", func() {
 	Context("use default probe when service doesn't exists", func() {
 		cb := NewConfigBuilderFixture(nil)
 
-		pod := NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := tests.NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			NewIngressFixture(),
+			tests.NewIngressFixture(),
 		}
 
 		// !! Action !!

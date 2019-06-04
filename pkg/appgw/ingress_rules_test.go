@@ -48,8 +48,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	Context("ingress rules without certificates", func() {
 		certs := NewCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		cb := NewConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
@@ -94,8 +94,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	Context("ingress rules with certificates", func() {
 		certs := NewCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		cb := NewConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		It("should have setup tests with some TLS certs", func() {
 			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
@@ -116,8 +116,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	Context("with attached certificates", func() {
 		certs := NewCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		cb := NewConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
 
 		// !! Action !!

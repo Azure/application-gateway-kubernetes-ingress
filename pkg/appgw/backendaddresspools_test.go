@@ -31,13 +31,13 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	}
 
 	Context("build a list of BackendAddressPools", func() {
-		ing1 := newIngressFixture()
-		ing2 := newIngressFixture()
+		ing1 := tests.NewIngressFixture()
+		ing2 := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{
 			ing1,
 			ing2,
 		}
-		cb := newConfigBuilderFixture(nil)
+		cb := NewConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 
 		It("should contain correct number of backend address pools", func() {
@@ -63,8 +63,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	})
 
 	Context("ensure unique IP addresses", func() {
-		ingressList := []*v1beta1.Ingress{newIngressFixture()}
-		cb := newConfigBuilderFixture(nil)
+		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+		cb := NewConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
@@ -90,11 +90,11 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	})
 
 	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
-		ingressList := []*v1beta1.Ingress{newIngressFixture()}
-		cb := newConfigBuilderFixture(nil)
+		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+		cb := NewConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 
-		endpoints := newEndpointsFixture()
+		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
 		// TODO(draychev): Move to test fixtures
@@ -103,8 +103,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				Namespace: testFixturesNamespace,
 				Name:      testFixturesServiceName,
 			},
-			Backend: newIngressBackendFixture(testFixturesServiceName, int32(4321)),
-			Ingress: newIngressFixture(),
+			Backend: tests.NewIngressBackendFixture(testFixturesServiceName, int32(4321)),
+			Ingress: tests.NewIngressFixture(),
 		}
 		serviceBackendPair := serviceBackendPortPair{
 			// TODO(draychev): Move to test fixtures

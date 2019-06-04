@@ -7,11 +7,8 @@ package tests
 
 import (
 	"fmt"
-	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -21,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -94,104 +90,6 @@ func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddre
 			ProvisioningState:       nil,
 		},
 	}
-}
-
-func NewAppGwyConfigFixture() n.ApplicationGatewayPropertiesFormat {
-	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
-		{
-			// Private IP
-			Name: to.StringPtr("xx3"),
-			Etag: to.StringPtr("xx2"),
-			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(fixtureIPID1),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: nil,
-				PublicIPAddress: &n.SubResource{
-					ID: to.StringPtr("xyz"),
-				},
-			},
-		},
-		{
-			// Public IP
-			Name: to.StringPtr("yy3"),
-			Etag: to.StringPtr("yy2"),
-			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr("yy4"),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: to.StringPtr("abc"),
-				PublicIPAddress:  nil,
-			},
-		},
-	}
-	return n.ApplicationGatewayPropertiesFormat{
-		FrontendIPConfigurations: &feIPConfigs,
-	}
-}
-
-func NewSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
-	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
-	ingressKey := getResourceKey(fixturesNamespace, fixturesName)
-	c.Add(ingressKey, fixturesHost)
-
-	key := fixturesNamespace + "/" + fixturesNameOfSecret
-	c.Add(key, []byte("xyz"))
-
-	if toAdd != nil {
-		for k, v := range *toAdd {
-			c.Add(k, v)
-		}
-	}
-
-	return &k8scontext.SecretsStore{
-		Cache: c,
-	}
-}
-
-func KeyFunc(obj interface{}) (string, error) {
-	return fmt.Sprintf("%s/%s", fixturesNamespace, fixturesServiceName), nil
-}
-
-func NewConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
-	cb := appGwConfigBuilder{
-		appGwIdentifier: Identifier{
-			SubscriptionID: fixtureSubscription,
-			ResourceGroup:  fixtureResourceGroup,
-			AppGwName:      fixtureAppGwName,
-		},
-		appGwConfig:            NewAppGwyConfigFixture(),
-		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
-		backendHTTPSettingsMap: make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings),
-		backendPoolMap:         make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool),
-		k8sContext: &k8scontext.Context{
-			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(KeyFunc),
-				Secret:    cache.NewStore(KeyFunc),
-				Service:   cache.NewStore(KeyFunc),
-				Pods:      cache.NewStore(KeyFunc),
-			},
-			CertificateSecretStore: NewSecretStoreFixture(certs),
-		},
-		probesMap: make(map[backendIdentifier]*n.ApplicationGatewayProbe),
-		recorder:  record.NewFakeRecorder(1),
-	}
-
-	return cb
-}
-
-func NewCertsFixture() map[string]interface{} {
-	toAdd := make(map[string]interface{})
-
-	secretsIdent := secretIdentifier{
-		Namespace: fixturesNamespace,
-		Name:      fixturesName,
-	}
-
-	toAdd[fixturesHost] = secretsIdent
-	toAdd[fixturesOtherHost] = secretsIdent
-	// Wild card
-	toAdd[""] = secretsIdent
-
-	return toAdd
 }
 
 func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {

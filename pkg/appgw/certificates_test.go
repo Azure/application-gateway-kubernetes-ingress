@@ -1,6 +1,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -35,8 +36,8 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	}
 
 	Context("Test fetching secrets from ingress with TLS spec", func() {
-		cb := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		cb := NewConfigBuilderFixture(nil)
+		ingress := tests.NewIngressFixture()
 
 		actualHostToSecretMap := cb.newHostToSecretMap(ingress)
 
@@ -62,8 +63,8 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	})
 
 	Context("Test obtaining a single certificate for an existing host", func() {
-		cb := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		cb := NewConfigBuilderFixture(nil)
+		ingress := tests.NewIngressFixture()
 		hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
 		actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)
 

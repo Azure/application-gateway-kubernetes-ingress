@@ -30,7 +30,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	Context("ingress rules without certificates", func() {
 		certs := NewCertsFixture()
 		cb := NewConfigBuilderFixture(&certs)
-		ingress := NewIngressFixture()
+		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
@@ -46,8 +46,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		certs := NewCertsFixture()
 		cb := NewConfigBuilderFixture(&certs)
 
-		ing1 := NewIngressFixture()
-		ing2 := NewIngressFixture()
+		ing1 := tests.NewIngressFixture()
+		ing2 := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{
 			ing1,
 			ing2,
