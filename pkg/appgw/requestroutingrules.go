@@ -76,7 +76,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress) error {
 	_, httpListenersMap := c.getListeners(ingressList)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	for _, ingress := range ingressList {
@@ -239,7 +239,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 
 	c.appGwConfig.RequestRoutingRules = &requestRoutingRules
 	c.appGwConfig.URLPathMaps = &urlPathMapFiltered
-	return c, nil
+	return nil
 }
 
 func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress *v1beta1.Ingress) *network.SubResource {
