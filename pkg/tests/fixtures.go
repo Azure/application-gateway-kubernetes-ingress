@@ -92,6 +92,7 @@ func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddre
 	}
 }
 
+// NewIngressBackendFixture makes a new Ingress Backend for testing
 func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
 	return &v1beta1.IngressBackend{
 		ServiceName: serviceName,
@@ -101,6 +102,7 @@ func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBa
 	}
 }
 
+// NewIngressRuleFixture makes a new Ingress Rule for testing
 func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
 	return v1beta1.IngressRule{
 		Host: host,
@@ -117,6 +119,7 @@ func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 	}
 }
 
+// NewIngressFixture makes a new Ingress for testing
 func NewIngressFixture() *v1beta1.Ingress {
 	be80 := NewIngressBackendFixture(fixturesServiceName, 80)
 	be443 := NewIngressBackendFixture(fixturesServiceName, 443)
@@ -153,6 +156,7 @@ func NewIngressFixture() *v1beta1.Ingress {
 	}
 }
 
+// NewServicePortsFixture makes a new service port for testing
 func NewServicePortsFixture() *[]v1.ServicePort {
 	httpPort := v1.ServicePort{
 		// The name of this port within the service. This must be a DNS_LABEL.
@@ -217,6 +221,7 @@ func NewServicePortsFixture() *[]v1.ServicePort {
 	}
 }
 
+// NewProbeFixture makes a new probe for testing
 func NewProbeFixture(containerName string) *v1.Probe {
 	return &v1.Probe{
 		TimeoutSeconds:   5,
@@ -236,6 +241,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 	}
 }
 
+// NewPodFixture makes a new pod for testing
 func NewPodFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -263,6 +269,7 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 	}
 }
 
+// NewServiceFixture makes a new service for testing
 func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -285,6 +292,7 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	}
 }
 
+// NewEndpointsFixture makes a new endpoint for testing
 func NewEndpointsFixture() *v1.Endpoints {
 	return &v1.Endpoints{
 		Subsets: []v1.EndpointSubset{
