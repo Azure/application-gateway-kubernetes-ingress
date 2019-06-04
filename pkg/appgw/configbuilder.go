@@ -15,11 +15,11 @@ import (
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
 	// builder pattern
-	BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	BackendAddressPools(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	Listeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
+	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) (ConfigBuilder, error)
+	BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error)
+	Listeners(ingressList []*v1beta1.Ingress) (ConfigBuilder, error)
+	RequestRoutingRules(ingressList []*v1beta1.Ingress) (ConfigBuilder, error)
+	HealthProbesCollection(ingressList []*v1beta1.Ingress) (ConfigBuilder, error)
 	Build() *network.ApplicationGatewayPropertiesFormat
 }
 

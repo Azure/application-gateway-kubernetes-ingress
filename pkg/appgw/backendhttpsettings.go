@@ -23,7 +23,7 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	backendIDs := make(map[backendIdentifier]interface{})
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 
