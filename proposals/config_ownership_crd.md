@@ -1,5 +1,5 @@
 # CRD for configuration ownership in brownfield deployments
-##### Deploying Ingress Controller to hybrid environments with partial Application Gateway configuration ownership.
+##### Deploying Ingress Controller to hybrid environments with partial Application Gateway configuration ownership
 
 
 ### Document Purpose
@@ -25,29 +25,31 @@ Ingress Controller.
 
 ### Proposed Solution
 We propose the creation of two new Kubernetes custom resource definitions ([CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)):
-  - `AzureIngressManagedListener` - defines a reference to a single listener. Ingress Controller will assume ownership
+  - `AzureIngressManagedLocation` - defines a reference to an App Gateway listener/location. Ingress Controller will assume ownership
   and will mutate configuration for the listener and all related underlying resources: health probes, HTTP settings,
   backend pools etc.
-  - `AzureIngressProhibitedListener` - defines a reference to a listener, which Ingress Controller is not permitted
-    to mutate. This listener and all related resources and configuration are assumed to be under control by another
+  - `AzureIngressProhibitedLocation` - defines a reference to an App Gateway listener/location, which Ingress Controller is not permitted
+    to mutate. This and all related resources and configuration are assumed to be under control by another
     system; Ingress Controller will not make any modifications to these.
 
-### Proposed CRD schema:
-Both `AzureIngressManagedListener` and `AzureIngressProhibitedListener` would have the same shape:
+These CRDs will be automatically created when the Ingress Controller is deployed to an AKS cluster.
 
-##### AzureIngressManagedListener
+### Proposed CRD schema:
+Both `AzureIngressManagedLocation` and `AzureIngressProhibitedLocation` would have the same shape:
+
+##### AzureIngressManagedLocation
 
 ```yaml
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: azureingressmanagedlisteners.appgw.ingress.k8s.io
+  name: azureingressmanagedlocations.appgw.ingress.k8s.io
 spec:
   group: appgw.ingress.k8s.io
   version: v1
   names:
-    kind: AzureIngressManagedListener
-    plural: azureingressmanagedlisteners
+    kind: AzureIngressManagedLocation
+    plural: azureingressmanagedlocations
   scope: Namespaced
   validation:
     openAPIV3Schema:
@@ -55,13 +57,13 @@ spec:
         spec:
           properties:
             ip:
-              description: "(required) IP address of the listener managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
+              description: "(required) IP address of the location managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
               type: string
             host:
-              description: "(optional) Hostname of the listener"
+              description: "(optional) Hostname of the location"
               type: string
             port:
-              description: "(required) Port number of the listener"
+              description: "(required) Port number of the location"
               type: integer
               minimum: 1
               maximum: 65535
@@ -75,18 +77,18 @@ spec:
             - port
 ```
 
-##### AzureIngressProhibitedListener
+##### AzureIngressProhibitedLocation
 ```yaml
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: azureingressprohibitedlisteners.appgw.ingress.k8s.io
+  name: azureingressprohibitedlocations.appgw.ingress.k8s.io
 spec:
   group: appgw.ingress.k8s.io
   version: v1
   names:
-    kind: AzureIngressProhibitedListener
-    plural: azureingressprohibitedlisteners
+    kind: AzureIngressProhibitedLocation
+    plural: azureingressprohibitedlocations
   scope: Namespaced
   validation:
     openAPIV3Schema:
@@ -94,13 +96,13 @@ spec:
         spec:
           properties:
             ip:
-              description: "(required) IP address of the prohibited listener; Could be the public or private address attached to the Application Gateway"
+              description: "(required) IP address of the prohibited location; Could be the public or private address attached to the Application Gateway"
               type: string
             host:
-              description: "(optional) Hostname of the prohibited listener"
+              description: "(optional) Hostname of the prohibited location"
               type: string
             port:
-              description: "(required) Port number of the prohibited listener"
+              description: "(required) Port number of the prohibited location"
               type: integer
               minimum: 1
               maximum: 65535
@@ -118,9 +120,9 @@ spec:
 A sample YAML creating new instances of this resource would have the following shape:
 ```yaml
 apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressManagedListener
+kind: AzureIngressManagedLocation
 metadata:
-  name: ingress-managed-listener
+  name: ingress-managed-location
 spec:
   ip: 23.45.67.89
   host: "www.contoso.com"
@@ -131,10 +133,12 @@ spec:
 
 ```
 
-The sample `ingress-managed-listener` object above will be created by the AKS administrator. It will permit the Ingress Controller to apply configuration changes only to resources related to (and including) listener for www.contoso.com on ip 23.45.67.89 and port 80 and under path /bar/*
+The sample `ingress-managed-location` object above will be created by the AKS administrator. It will permit the
+Ingress Controller to apply configuration changes only to resources related to (and including) listener/location
+for www.contoso.com on ip 23.45.67.89 and port 80 and under path /bar/*
 
 
 ### A Note on Rule Precedence
-If a listener is referenced in both a `AzureIngressManagedListener` object as well as a
-`AzureIngressProhibitedListener` object, ingress controller would treat it as `prohibited` to avoid unsafe configuration
-mutations. `AzureIngressProhibitedListener` takes precedence over `AzureIngressManagedListener`
+If a listener/location is referenced in both a `AzureIngressManagedLocation` object as well as a
+`AzureIngressProhibitedLocation` object, ingress controller would treat it as `prohibited` to avoid unsafe configuration
+mutations. `AzureIngressProhibitedLocation` takes precedence over `AzureIngressManagedLocation`
