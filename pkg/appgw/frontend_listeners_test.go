@@ -1,6 +1,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -27,9 +28,9 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	}
 
 	Context("ingress rules without certificates", func() {
-		certs := newCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		certs := NewCertsFixture()
+		cb := NewConfigBuilderFixture(&certs)
+		ingress := NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
@@ -42,11 +43,11 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		})
 	})
 	Context("two ingresses with multiple ports", func() {
-		certs := newCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
+		certs := NewCertsFixture()
+		cb := NewConfigBuilderFixture(&certs)
 
-		ing1 := newIngressFixture()
-		ing2 := newIngressFixture()
+		ing1 := NewIngressFixture()
+		ing2 := NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{
 			ing1,
 			ing2,
@@ -79,8 +80,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	})
 	Context("create a new App Gateway HTTP Listener", func() {
 		It("should create a correct App Gwy listener", func() {
-			certs := newCertsFixture()
-			cb := newConfigBuilderFixture(&certs)
+			certs := NewCertsFixture()
+			cb := NewConfigBuilderFixture(&certs)
 			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80"
 

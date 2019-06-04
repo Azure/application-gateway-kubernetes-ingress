@@ -2,6 +2,7 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
@@ -46,7 +47,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	}
 
 	Context("ingress rules without certificates", func() {
-		certs := newCertsFixture()
+		certs := NewCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -92,7 +93,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 
 	Context("ingress rules with certificates", func() {
-		certs := newCertsFixture()
+		certs := NewCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -114,7 +115,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	})
 
 	Context("with attached certificates", func() {
-		certs := newCertsFixture()
+		certs := NewCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := newIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"

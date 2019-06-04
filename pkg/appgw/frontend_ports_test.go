@@ -1,6 +1,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -12,7 +13,7 @@ import (
 
 var _ = Describe("Process ingress rules", func() {
 	Context("with many frontend ports", func() {
-		certs := newCertsFixture()
+		certs := NewCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 
 		ingressList := []*v1beta1.Ingress{

@@ -7,13 +7,42 @@ package tests
 
 import (
 	"fmt"
+	"k8s.io/client-go/tools/record"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"io/ioutil"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/cache"
+)
+
+const (
+	fixturesNamespace     = "--namespace--"
+	fixturesName          = "--name--"
+	fixturesHost          = "bye.com"
+	fixturesOtherHost     = "--some-other-hostname--"
+	fixturesNameOfSecret  = "--the-name-of-the-secret--"
+	fixturesServiceName   = "--service-name--"
+	fixturesNodeName      = "--node-name--"
+	fixturesURLPath       = "/healthz"
+	fixturesContainerName = "--container-name--"
+	fixturesContainerPort = int32(9876)
+	fixturesServicePort   = "service-port"
+	fixturesSelectorKey   = "app"
+	fixturesSelectorValue = "frontend"
+	fixtureSubscription   = "--subscription--"
+	fixtureResourceGroup  = "--resource-group--"
+	fixtureAppGwName      = "--app-gw-name--"
+	fixtureIPID1          = "--front-end-ip-id-1--"
+	fixturesSubscription  = "--subscription--"
 )
 
 // GetIngress creates an Ingress test fixture.
@@ -63,6 +92,334 @@ func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddre
 			BackendIPConfigurations: nil,
 			BackendAddresses:        &[]n.ApplicationGatewayBackendAddress{},
 			ProvisioningState:       nil,
+		},
+	}
+}
+
+func NewAppGwyConfigFixture() n.ApplicationGatewayPropertiesFormat {
+	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
+		{
+			// Private IP
+			Name: to.StringPtr("xx3"),
+			Etag: to.StringPtr("xx2"),
+			Type: to.StringPtr("xx1"),
+			ID:   to.StringPtr(fixtureIPID1),
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+				PrivateIPAddress: nil,
+				PublicIPAddress: &n.SubResource{
+					ID: to.StringPtr("xyz"),
+				},
+			},
+		},
+		{
+			// Public IP
+			Name: to.StringPtr("yy3"),
+			Etag: to.StringPtr("yy2"),
+			Type: to.StringPtr("yy1"),
+			ID:   to.StringPtr("yy4"),
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+				PrivateIPAddress: to.StringPtr("abc"),
+				PublicIPAddress:  nil,
+			},
+		},
+	}
+	return n.ApplicationGatewayPropertiesFormat{
+		FrontendIPConfigurations: &feIPConfigs,
+	}
+}
+
+func NewSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
+	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
+	ingressKey := getResourceKey(fixturesNamespace, fixturesName)
+	c.Add(ingressKey, fixturesHost)
+
+	key := fixturesNamespace + "/" + fixturesNameOfSecret
+	c.Add(key, []byte("xyz"))
+
+	if toAdd != nil {
+		for k, v := range *toAdd {
+			c.Add(k, v)
+		}
+	}
+
+	return &k8scontext.SecretsStore{
+		Cache: c,
+	}
+}
+
+func KeyFunc(obj interface{}) (string, error) {
+	return fmt.Sprintf("%s/%s", fixturesNamespace, fixturesServiceName), nil
+}
+
+func NewConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
+	cb := appGwConfigBuilder{
+		appGwIdentifier: Identifier{
+			SubscriptionID: fixtureSubscription,
+			ResourceGroup:  fixtureResourceGroup,
+			AppGwName:      fixtureAppGwName,
+		},
+		appGwConfig:            NewAppGwyConfigFixture(),
+		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
+		backendHTTPSettingsMap: make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings),
+		backendPoolMap:         make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool),
+		k8sContext: &k8scontext.Context{
+			Caches: &k8scontext.CacheCollection{
+				Endpoints: cache.NewStore(KeyFunc),
+				Secret:    cache.NewStore(KeyFunc),
+				Service:   cache.NewStore(KeyFunc),
+				Pods:      cache.NewStore(KeyFunc),
+			},
+			CertificateSecretStore: NewSecretStoreFixture(certs),
+		},
+		probesMap: make(map[backendIdentifier]*n.ApplicationGatewayProbe),
+		recorder:  record.NewFakeRecorder(1),
+	}
+
+	return cb
+}
+
+func NewCertsFixture() map[string]interface{} {
+	toAdd := make(map[string]interface{})
+
+	secretsIdent := secretIdentifier{
+		Namespace: fixturesNamespace,
+		Name:      fixturesName,
+	}
+
+	toAdd[fixturesHost] = secretsIdent
+	toAdd[fixturesOtherHost] = secretsIdent
+	// Wild card
+	toAdd[""] = secretsIdent
+
+	return toAdd
+}
+
+func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
+	return &v1beta1.IngressBackend{
+		ServiceName: serviceName,
+		ServicePort: intstr.IntOrString{
+			IntVal: port,
+		},
+	}
+}
+
+func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
+	return v1beta1.IngressRule{
+		Host: host,
+		IngressRuleValue: v1beta1.IngressRuleValue{
+			HTTP: &v1beta1.HTTPIngressRuleValue{
+				Paths: []v1beta1.HTTPIngressPath{
+					{
+						Path:    urlPath,
+						Backend: be,
+					},
+				},
+			},
+		},
+	}
+}
+
+func NewIngressFixture() *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(fixturesServiceName, 80)
+	be443 := NewIngressBackendFixture(fixturesServiceName, 443)
+
+	return &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				NewIngressRuleFixture(fixturesHost, fixturesURLPath, *be80),
+				NewIngressRuleFixture(fixturesHost, fixturesURLPath, *be443),
+			},
+			TLS: []v1beta1.IngressTLS{
+				{
+					Hosts: []string{
+						"www.contoso.com",
+						"ftp.contoso.com",
+						fixturesHost,
+						"",
+					},
+					SecretName: fixturesNameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: fixturesNameOfSecret,
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.SslRedirectKey: "true",
+			},
+			Namespace: fixturesNamespace,
+			Name:      fixturesName,
+		},
+	}
+}
+
+func NewServicePortsFixture() *[]v1.ServicePort {
+	httpPort := v1.ServicePort{
+		// The name of this port within the service. This must be a DNS_LABEL.
+		// All ports within a ServiceSpec must have unique names. This maps to
+		// the 'Name' field in EndpointPort objects.
+		// Optional if only one ServicePort is defined on this service.
+		Name: "http",
+
+		// The IP protocol for this port. Supports "TCP", "UDP", and "SCTP".
+		Protocol: v1.ProtocolTCP,
+
+		// The port that will be exposed by this service.
+		Port: 80,
+
+		// Number or name of the port to access on the pods targeted by the service.
+		// Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.
+		// If this is a string, it will be looked up as a named port in the
+		// target Pod's container ports. If this is not specified, the value
+		// of the 'port' field is used (an identity map).
+		// This field is ignored for services with clusterIP=None, and should be
+		// omitted or set equal to the 'port' field.
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.Int,
+			IntVal: fixturesContainerPort,
+		},
+	}
+
+	httpsPort := v1.ServicePort{
+		Name:     "https",
+		Protocol: v1.ProtocolTCP,
+		Port:     443,
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.String,
+			StrVal: "https-port",
+		},
+	}
+
+	randomTCPPort := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolTCP,
+		Port:     554,
+		TargetPort: intstr.IntOrString{
+			IntVal: 8181,
+		},
+	}
+
+	udpPort := v1.ServicePort{
+		Name:     "other-tcp-port",
+		Protocol: v1.ProtocolUDP,
+		Port:     9123,
+		TargetPort: intstr.IntOrString{
+			Type:   intstr.Int,
+			IntVal: 4566,
+		},
+	}
+
+	return &[]v1.ServicePort{
+		httpPort,
+		httpsPort,
+		randomTCPPort,
+		udpPort,
+	}
+}
+
+func NewProbeFixture(containerName string) *v1.Probe {
+	return &v1.Probe{
+		TimeoutSeconds:   5,
+		FailureThreshold: 3,
+		PeriodSeconds:    20,
+		Handler: v1.Handler{
+			HTTPGet: &v1.HTTPGetAction{
+				Host: fixturesHost,
+				Path: fixturesURLPath,
+				Port: intstr.IntOrString{
+					Type:   intstr.String,
+					StrVal: containerName,
+				},
+				Scheme: v1.URISchemeHTTP,
+			},
+		},
+	}
+}
+
+func NewPodFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
+	return &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: ingressNamespace,
+			Labels: map[string]string{
+				fixturesSelectorKey: fixturesSelectorValue,
+			},
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  serviceName,
+					Image: "image",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          containerName,
+							ContainerPort: containerPort,
+						},
+					},
+					ReadinessProbe: NewProbeFixture(containerName),
+				},
+			},
+		},
+	}
+}
+
+func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
+	return &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fixturesServiceName,
+			Namespace: fixturesNamespace,
+		},
+		Spec: v1.ServiceSpec{
+			// The list of ports that are exposed by this service.
+			Ports: servicePorts,
+
+			// Route service traffic to pods with label keys and values matching this
+			// selector. If empty or not present, the service is assumed to have an
+			// external process managing its endpoints, which Kubernetes will not
+			// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
+			// Ignored if type is ExternalName.
+			Selector: map[string]string{
+				fixturesSelectorKey: fixturesSelectorValue,
+			},
+		},
+	}
+}
+
+func NewEndpointsFixture() *v1.Endpoints {
+	return &v1.Endpoints{
+		Subsets: []v1.EndpointSubset{
+			{
+				// IP addresses which offer the related ports that are marked as ready. These endpoints
+				// should be considered safe for load balancers and clients to utilize.
+				// +optional
+				Addresses: []v1.EndpointAddress{
+					{
+						IP: "10.9.8.7",
+						// The Hostname of this endpoint
+						// +optional
+						Hostname: "www.contoso.com",
+						// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
+						// +optional
+						NodeName: to.StringPtr(fixturesNodeName),
+					},
+				},
+				// IP addresses which offer the related ports but are not currently marked as ready
+				// because they have not yet finished starting, have recently failed a readiness check,
+				// or have recently failed a liveness check.
+				// +optional
+				NotReadyAddresses: []v1.EndpointAddress{},
+				// Port numbers available on the related IP addresses.
+				// +optional
+				Ports: []v1.EndpointPort{
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     fixturesName,
+						Port:     fixturesContainerPort,
+					},
+				},
+			},
 		},
 	}
 }

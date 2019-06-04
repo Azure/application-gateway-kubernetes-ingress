@@ -6,18 +6,18 @@
 package appgw
 
 import (
-	"fmt"
-	"k8s.io/client-go/tools/record"
+	//"fmt"
+	//"k8s.io/client-go/tools/record"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	//"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	//"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/client-go/tools/cache"
+	//v1 "k8s.io/api/core/v1"
+	//"k8s.io/api/extensions/v1beta1"
+	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//"k8s.io/apimachinery/pkg/util/intstr"
+	//"k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 	testFixturesSubscription  = "--subscription--"
 )
 
-func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
+/* func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
 		{
 			// Private IP
@@ -71,9 +71,9 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	return network.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
 	}
-}
+} */
 
-func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
+/* func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
 	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
 	ingressKey := getResourceKey(testFixturesNamespace, testFixturesName)
 	c.Add(ingressKey, testFixturesHost)
@@ -90,20 +90,20 @@ func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeep
 	return &k8scontext.SecretsStore{
 		Cache: c,
 	}
-}
+} */
 
-func keyFunc(obj interface{}) (string, error) {
+/* func keyFunc(obj interface{}) (string, error) {
 	return fmt.Sprintf("%s/%s", testFixturesNamespace, testFixturesServiceName), nil
-}
+} */
 
-func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
+/* func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
 		appGwIdentifier: Identifier{
 			SubscriptionID: testFixtureSubscription,
 			ResourceGroup:  testFixtureResourceGroup,
 			AppGwName:      testFixtureAppGwName,
 		},
-		appGwConfig:            newAppGwyConfigFixture(),
+		appGwConfig:            NewAppGwyConfigFixture(),
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
 		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
 		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
@@ -114,16 +114,16 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 				Service:   cache.NewStore(keyFunc),
 				Pods:      cache.NewStore(keyFunc),
 			},
-			CertificateSecretStore: newSecretStoreFixture(certs),
+			CertificateSecretStore: NewSecretStoreFixture(certs),
 		},
 		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
 		recorder:  record.NewFakeRecorder(1),
 	}
 
 	return cb
-}
+} */
 
-func newCertsFixture() map[string]interface{} {
+/* func newCertsFixture() map[string]interface{} {
 	toAdd := make(map[string]interface{})
 
 	secretsIdent := secretIdentifier{
@@ -137,18 +137,18 @@ func newCertsFixture() map[string]interface{} {
 	toAdd[""] = secretsIdent
 
 	return toAdd
-}
+} */
 
-func newIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
+/* func newIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
 	return &v1beta1.IngressBackend{
 		ServiceName: serviceName,
 		ServicePort: intstr.IntOrString{
 			IntVal: port,
 		},
 	}
-}
+} */
 
-func newIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
+/* func newIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
 	return v1beta1.IngressRule{
 		Host: host,
 		IngressRuleValue: v1beta1.IngressRuleValue{
@@ -162,17 +162,17 @@ func newIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 			},
 		},
 	}
-}
+} */
 
-func newIngressFixture() *v1beta1.Ingress {
-	be80 := newIngressBackendFixture(testFixturesServiceName, 80)
-	be443 := newIngressBackendFixture(testFixturesServiceName, 443)
+/* func newIngressFixture() *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(testFixturesServiceName, 80)
+	be443 := NewIngressBackendFixture(testFixturesServiceName, 443)
 
 	return &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
-				newIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be80),
-				newIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be443),
+				NewIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be80),
+				NewIngressRuleFixture(testFixturesHost, testFixturesURLPath, *be443),
 			},
 			TLS: []v1beta1.IngressTLS{
 				{
@@ -198,9 +198,9 @@ func newIngressFixture() *v1beta1.Ingress {
 			Name:      testFixturesName,
 		},
 	}
-}
+} */
 
-func newServicePortsFixture() *[]v1.ServicePort {
+/* func newServicePortsFixture() *[]v1.ServicePort {
 	httpPort := v1.ServicePort{
 		// The name of this port within the service. This must be a DNS_LABEL.
 		// All ports within a ServiceSpec must have unique names. This maps to
@@ -262,9 +262,9 @@ func newServicePortsFixture() *[]v1.ServicePort {
 		randomTCPPort,
 		udpPort,
 	}
-}
+}*/
 
-func newProbeFixture(containerName string) *v1.Probe {
+/* func newProbeFixture(containerName string) *v1.Probe {
 	return &v1.Probe{
 		TimeoutSeconds:   5,
 		FailureThreshold: 3,
@@ -281,9 +281,9 @@ func newProbeFixture(containerName string) *v1.Probe {
 			},
 		},
 	}
-}
+} */
 
-func newPodFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
+/* func newPodFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -303,14 +303,14 @@ func newPodFixture(serviceName string, ingressNamespace string, containerName st
 							ContainerPort: containerPort,
 						},
 					},
-					ReadinessProbe: newProbeFixture(containerName),
+					ReadinessProbe: NewProbeFixture(containerName),
 				},
 			},
 		},
 	}
-}
+} */
 
-func newServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
+/* func newServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testFixturesServiceName,
@@ -330,9 +330,9 @@ func newServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 			},
 		},
 	}
-}
+} */
 
-func newEndpointsFixture() *v1.Endpoints {
+/* func newEndpointsFixture() *v1.Endpoints {
 	return &v1.Endpoints{
 		Subsets: []v1.EndpointSubset{
 			{
@@ -367,7 +367,7 @@ func newEndpointsFixture() *v1.Endpoints {
 			},
 		},
 	}
-}
+} */
 
 func newURLPathMap() network.ApplicationGatewayURLPathMap {
 	rule := network.ApplicationGatewayPathRule{

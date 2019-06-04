@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -17,19 +18,19 @@ import (
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
-		cb := newConfigBuilderFixture(nil)
+		cb := NewConfigBuilderFixture(nil)
 
-		endpoints := newEndpointsFixture()
+		endpoints := NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := newServiceFixture(*newServicePortsFixture()...)
+		service := NewServiceFixture(*NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			newIngressFixture(),
+			NewIngressFixture(),
 		}
 
 		// !! Action !!
@@ -112,13 +113,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 	})
 
 	Context("use default probe when service doesn't exists", func() {
-		cb := newConfigBuilderFixture(nil)
+		cb := NewConfigBuilderFixture(nil)
 
-		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			newIngressFixture(),
+			NewIngressFixture(),
 		}
 
 		// !! Action !!
