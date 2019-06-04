@@ -70,7 +70,7 @@ func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n
 
 func (c *appGwConfigBuilder) getPublicIPID() *string {
 	var publicIPID *string
-	jsonConfigs := make([]string, 0)
+	var jsonConfigs []string
 	for _, ip := range *c.appGwConfig.FrontendIPConfigurations {
 		// Collect the JSON IP configs for debug purposes.
 		if jsonConf, err := ip.MarshalJSON(); err != nil {

@@ -133,8 +133,9 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(len(frontendPorts)).To(Equal(1))
 		})
 		It("should have a listener on port 443", func() {
-			ports := make([]int32, 0)
-			for _, listener := range getMapKeys(&frontendListeners) {
+			listeners := getMapKeys(&frontendListeners)
+			ports := make([]int32, 0, len(listeners))
+			for _, listener := range listeners {
 				ports = append(ports, listener.FrontendPort)
 			}
 			Expect(ports).To(ContainElement(port443))

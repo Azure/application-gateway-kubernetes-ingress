@@ -16,7 +16,7 @@ func printEndpoints(endpoints v1.Endpoints) {
 	fmt.Printf("Endpoint [%s]\n", endpoints.Name)
 	for _, subset := range endpoints.Subsets {
 		ports := subset.Ports
-		tmp := make([]string, 0)
+		tmp := make([]string, 0, len(ports))
 		for _, port := range ports {
 			tmp = append(tmp, port.Name)
 		}
