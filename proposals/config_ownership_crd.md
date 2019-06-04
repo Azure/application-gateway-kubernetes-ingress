@@ -6,9 +6,9 @@
 This document is a proposal for the creation of 2 new [CRDs](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) with the goal of
 augmenting the configuration of [Azure Application Gateway Ingress Controller](https://azure.github.io/application-gateway-kubernetes-ingress/).
 
-  - Author: [Delyan Raychev](https://github.com/draychev)
+  - Authors: [Akshay Gupta](https://github.com/akshaysngupta), [Delyan Raychev](https://github.com/draychev)
   - Published: June 2nd, 2019
-  - Status:  Open for comments
+  - Status: Open for comments
 
 ### Problem Statement
 As of this writing Ingress Controller (v0.6.0) blindly overwrites existing Application Gateway configurations when applying changes to:
@@ -63,11 +63,15 @@ spec:
             port:
               description: "(required) Port number of the listener"
               type: integer
-            path:
-              description: "(optional) URL path, for which the Ingress Controller is allowed to mutate Application Gateway configuration"
-              type: string
+              minimum: 1
+              maximum: 65535
+            paths:
+              description: "(optional) A list of URL paths, for which the Ingress Controller is allowed to mutate Application Gateway configuration; Must begin with a / and end with /*"
+              type: array
+              items:
+                  type: string
+                  pattern: '^\/.*\/\*$'
           required:
-            - ip
             - port
 ```
 
@@ -98,11 +102,15 @@ spec:
             port:
               description: "(required) Port number of the prohibited listener"
               type: integer
-            path:
-              description: "(optional) URL path, for which the Ingress Controller is prohibited from mutating Application Gateway configuration"
-              type: string
+              minimum: 1
+              maximum: 65535
+            paths:
+              description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
+              type: array
+              items:
+                  type: string
+                  pattern: '^\/.*\/\*$'
           required:
-            - ip
             - port
 ```
 
@@ -117,7 +125,10 @@ spec:
   ip: 23.45.67.89
   host: "www.contoso.com"
   port: 80
-  path: "/bar/*
+  paths:
+    - "/foo/*"
+    - "/bar/*"
+
 ```
 
 The sample `ingress-managed-listener` object above will be created by the AKS administrator. It will permit the Ingress Controller to apply configuration changes only to resources related to (and including) listener for www.contoso.com on ip 23.45.67.89 and port 80 and under path /bar/*
