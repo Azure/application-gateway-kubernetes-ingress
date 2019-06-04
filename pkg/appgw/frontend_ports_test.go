@@ -13,8 +13,8 @@ import (
 
 var _ = Describe("Process ingress rules", func() {
 	Context("with many frontend ports", func() {
-		certs := NewCertsFixture()
-		cb := NewConfigBuilderFixture(&certs)
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
 
 		ingressList := []*v1beta1.Ingress{
 			tests.NewIngressFixture(),

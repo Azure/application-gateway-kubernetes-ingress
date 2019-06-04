@@ -28,7 +28,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	expectedRedirectID := agw.redirectConfigurationID(configName)
 
 	Context("test getSslRedirectConfigResourceReference", func() {
-		configBuilder := NewConfigBuilderFixture(nil)
+		configBuilder := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 
 		actualID := configBuilder.getSslRedirectConfigResourceReference(ingress).ID
@@ -39,7 +39,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
-		configBuilder := NewConfigBuilderFixture(nil)
+		configBuilder := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
@@ -65,7 +65,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
-		configBuilder := NewConfigBuilderFixture(nil)
+		configBuilder := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
@@ -98,7 +98,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("test RequestRoutingRules without HTTPS but with SSL Redirect", func() {
-		configBuilder := NewConfigBuilderFixture(nil)
+		configBuilder := newConfigBuilderFixture(nil)
 
 		// TODO(draychev): Move to test fixtures
 		ingress := v1beta1.Ingress{

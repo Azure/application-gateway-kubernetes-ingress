@@ -36,7 +36,7 @@ const (
 	testFixturesSubscription  = "--subscription--"
 )
 
-func NewAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
+func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
 		{
 			// Private IP
@@ -68,7 +68,7 @@ func NewAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	}
 }
 
-func NewSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
+func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
 	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
 	ingressKey := getResourceKey(testFixturesNamespace, testFixturesName)
 	c.Add(ingressKey, testFixturesHost)
@@ -87,29 +87,29 @@ func NewSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeep
 	}
 }
 
-func KeyFunc(obj interface{}) (string, error) {
+func keyFunc(obj interface{}) (string, error) {
 	return fmt.Sprintf("%s/%s", testFixturesNamespace, testFixturesServiceName), nil
 }
 
-func NewConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
+func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
 		appGwIdentifier: Identifier{
 			SubscriptionID: testFixtureSubscription,
 			ResourceGroup:  testFixtureResourceGroup,
 			AppGwName:      testFixtureAppGwName,
 		},
-		appGwConfig:            NewAppGwyConfigFixture(),
+		appGwConfig:            newAppGwyConfigFixture(),
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
 		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
 		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(KeyFunc),
-				Secret:    cache.NewStore(KeyFunc),
-				Service:   cache.NewStore(KeyFunc),
-				Pods:      cache.NewStore(KeyFunc),
+				Endpoints: cache.NewStore(keyFunc),
+				Secret:    cache.NewStore(keyFunc),
+				Service:   cache.NewStore(keyFunc),
+				Pods:      cache.NewStore(keyFunc),
 			},
-			CertificateSecretStore: NewSecretStoreFixture(certs),
+			CertificateSecretStore: newSecretStoreFixture(certs),
 		},
 		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
 		recorder:  record.NewFakeRecorder(1),
@@ -118,7 +118,7 @@ func NewConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	return cb
 }
 
-func NewCertsFixture() map[string]interface{} {
+func newCertsFixture() map[string]interface{} {
 	toAdd := make(map[string]interface{})
 
 	secretsIdent := secretIdentifier{

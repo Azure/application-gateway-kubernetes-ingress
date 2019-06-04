@@ -36,7 +36,7 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	}
 
 	Context("Test fetching secrets from ingress with TLS spec", func() {
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 
 		actualHostToSecretMap := cb.newHostToSecretMap(ingress)
@@ -63,7 +63,7 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	})
 
 	Context("Test obtaining a single certificate for an existing host", func() {
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
 		actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)

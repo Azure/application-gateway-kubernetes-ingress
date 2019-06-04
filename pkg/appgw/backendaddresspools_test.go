@@ -37,7 +37,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			ing1,
 			ing2,
 		}
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 
 		It("should contain correct number of backend address pools", func() {
@@ -64,7 +64,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 
 	Context("ensure unique IP addresses", func() {
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
@@ -91,7 +91,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 
 	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 		_, _ = cb.BackendAddressPools(ingressList)
 
 		endpoints := tests.NewEndpointsFixture()

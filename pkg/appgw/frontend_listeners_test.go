@@ -28,8 +28,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	}
 
 	Context("ingress rules without certificates", func() {
-		certs := NewCertsFixture()
-		cb := NewConfigBuilderFixture(&certs)
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
@@ -43,8 +43,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		})
 	})
 	Context("two ingresses with multiple ports", func() {
-		certs := NewCertsFixture()
-		cb := NewConfigBuilderFixture(&certs)
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
 
 		ing1 := tests.NewIngressFixture()
 		ing2 := tests.NewIngressFixture()
@@ -80,8 +80,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	})
 	Context("create a new App Gateway HTTP Listener", func() {
 		It("should create a correct App Gwy listener", func() {
-			certs := NewCertsFixture()
-			cb := NewConfigBuilderFixture(&certs)
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
 			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80"
 

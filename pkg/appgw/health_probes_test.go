@@ -18,7 +18,7 @@ import (
 
 var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 
 		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
@@ -113,7 +113,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 	})
 
 	Context("use default probe when service doesn't exists", func() {
-		cb := NewConfigBuilderFixture(nil)
+		cb := newConfigBuilderFixture(nil)
 
 		pod := tests.NewPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
