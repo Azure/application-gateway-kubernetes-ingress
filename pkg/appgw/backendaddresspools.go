@@ -16,21 +16,21 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
-		builder.backendPoolMap[backendID] = defaultPool
-		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
-			builder.backendPoolMap[backendID] = pool
+	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
+		c.backendPoolMap[backendID] = defaultPool
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			// TODO(draychev): deprecate the caching of state in c.backendPoolMap
+			c.backendPoolMap[backendID] = pool
 			addressPools[*pool.Name] = pool
 		}
 	}
-	builder.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
-	return builder, nil
+	c.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
+	return c, nil
 }
 
 func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
@@ -41,12 +41,12 @@ func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPo
 	return &backendAddressPools
 }
 
-func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
-	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
+func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
+	endpoints := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if endpoints == nil {
 		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
 		// TODO(draychev): Move "reason" into an enum
-		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
 		return nil
 	}
@@ -63,7 +63,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
 		// TODO(draychev): Move "reason" into an enum
-		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
 		glog.Warning(logLine)
 
 	}
@@ -126,8 +126,8 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	return &addresses
 }
 
-func (builder *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
-	// TODO(draychev): deprecate the use of builder.serviceBackendPairMap
+func (c *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
+	// TODO(draychev): deprecate the use of c.serviceBackendPairMap
 	// Create this struct here instead of backendhttpsettings.go
-	return builder.serviceBackendPairMap
+	return c.serviceBackendPairMap
 }

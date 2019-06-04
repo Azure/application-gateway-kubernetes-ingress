@@ -7,10 +7,10 @@ import (
 )
 
 // processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
+func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[int32]interface{})
 
-	ingressHostnameSecretIDMap := builder.newHostToSecretMap(ingress)
+	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 	azListenerConfigs := make(map[listenerIdentifier]listenerAzConfig)
 
 	for _, rule := range ingress.Spec.Rules {
@@ -19,7 +19,7 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 			continue
 		}
 
-		cert, secID := builder.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
+		cert, secID := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
 		httpsAvailable := cert != nil
 
 		// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
