@@ -157,7 +157,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 		c.backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	var backends []network.ApplicationGatewayBackendHTTPSettings
+	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
 		backends = append(backends, backend)
 	}
