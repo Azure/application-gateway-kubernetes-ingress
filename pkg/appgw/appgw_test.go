@@ -223,7 +223,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 		addressPoolName := generateAddressPoolName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
-		addressPoolAddresses := [](network.ApplicationGatewayBackendAddress){{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
+		addressPoolAddresses := []network.ApplicationGatewayBackendAddress{{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
 
 		addressPool := &network.ApplicationGatewayBackendAddressPool{
 			Etag: to.StringPtr("*"),
@@ -292,11 +292,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
 		// Add Health Probes.
-		configBuilder, err := configBuilder.HealthProbesCollection(ingressList)
+		err := configBuilder.HealthProbesCollection(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
 		// Add HTTP settings.
-		configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
+		err = configBuilder.BackendHTTPSettingsCollection(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -315,7 +315,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		configBuilder, err = configBuilder.BackendAddressPools(ingressList)
+		err = configBuilder.BackendAddressPools(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -328,7 +328,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		configBuilder, err = configBuilder.Listeners(ingressList)
+		err = configBuilder.Listeners(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -341,7 +341,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
+		err = configBuilder.RequestRoutingRules(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.

@@ -137,7 +137,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 
-		_, _ = configBuilder.RequestRoutingRules(ingressList)
+		_ = configBuilder.RequestRoutingRules(ingressList)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))

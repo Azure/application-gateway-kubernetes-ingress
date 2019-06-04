@@ -38,7 +38,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			ing2,
 		}
 		cb := newConfigBuilderFixture(nil)
-		_, _ = cb.BackendAddressPools(ingressList)
+		_ = cb.BackendAddressPools(ingressList)
 
 		It("should contain correct number of backend address pools", func() {
 			Expect(len(*cb.appGwConfig.BackendAddressPools)).To(Equal(1))
@@ -65,7 +65,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	Context("ensure unique IP addresses", func() {
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
-		_, _ = cb.BackendAddressPools(ingressList)
+		_ = cb.BackendAddressPools(ingressList)
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
 			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
@@ -92,7 +92,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
-		_, _ = cb.BackendAddressPools(ingressList)
+		_ = cb.BackendAddressPools(ingressList)
 
 		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
