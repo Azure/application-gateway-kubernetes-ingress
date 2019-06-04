@@ -65,7 +65,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingre
 
 	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
 
-	probes := make([]network.ApplicationGatewayProbe, 0)
+	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
 		probes = append(probes, probe)
 	}
