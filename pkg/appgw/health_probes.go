@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (c *appGwConfigBuilder) HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
 	backendIDs := make(map[backendIdentifier]interface{})
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
 
