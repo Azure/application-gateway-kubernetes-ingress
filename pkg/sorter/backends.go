@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package sorter
 
 import (
@@ -5,7 +10,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 )
 
-// A facility to sort slices of ApplicationGatewayBackendAddress by IP, FQDN
+// ByIPFQDN is a facility to sort slices of ApplicationGatewayBackendAddress by IP, FQDN
 type ByIPFQDN []n.ApplicationGatewayBackendAddress
 
 func (a ByIPFQDN) Len() int      { return len(a) }

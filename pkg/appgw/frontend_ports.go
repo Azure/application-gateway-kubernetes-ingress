@@ -1,6 +1,14 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
+	"sort"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/api/extensions/v1beta1"
@@ -32,5 +40,6 @@ func (c *appGwConfigBuilder) getFrontendPorts(ingressList []*v1beta1.Ingress) *[
 			},
 		})
 	}
+	sort.Sort(sorter.ByFrontendPortName(frontendPorts))
 	return &frontendPorts
 }

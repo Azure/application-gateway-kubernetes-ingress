@@ -6,13 +6,14 @@
 package appgw
 
 import (
+	"sort"
 	"strconv"
 
-	"github.com/golang/glog"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -237,8 +238,12 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 		}
 	}
 
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
 	c.appGwConfig.RequestRoutingRules = &requestRoutingRules
+
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
 	c.appGwConfig.URLPathMaps = &urlPathMapFiltered
+
 	return nil
 }
 

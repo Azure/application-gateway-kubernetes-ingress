@@ -1,9 +1,16 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
 	"encoding/base64"
 	"fmt"
+	"sort"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
@@ -24,6 +31,7 @@ func (c *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) 
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, newCert(secretID, cert))
 	}
+	sort.Sort(sorter.ByCertificateName(sslCertificates))
 	return &sslCertificates
 }
 
