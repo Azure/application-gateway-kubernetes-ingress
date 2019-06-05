@@ -91,24 +91,23 @@ func (c *Context) Run() {
 
 // GetHTTPIngressList returns a list of all the ingresses for HTTP from cache.
 func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
-	ingressListInterface := c.Caches.Ingress.List()
 	var ingressList []*v1beta1.Ingress
-	for _, ingressInterface := range ingressListInterface {
+	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
-
-		hasHTTPRule := false
-		for _, rule := range ingress.Spec.Rules {
-			if rule.HTTP != nil {
-				hasHTTPRule = true
-				break
-			}
-		}
-
-		if hasHTTPRule && isIngressApplicationGateway(ingress) {
+		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
 	return ingressList
+}
+
+func hasHTTPRule(ingress *v1beta1.Ingress) bool {
+	for _, rule := range ingress.Spec.Rules {
+		if rule.HTTP != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // GetEndpointsByService returns the endpoints associated with a specific service.
