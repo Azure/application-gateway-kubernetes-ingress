@@ -16,6 +16,7 @@ import (
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -23,13 +24,8 @@ import (
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
-
-	// client kubernetes.Interface, defaultResync time.Duration, options ...SharedInformerOption
-
-	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
-
-	// informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
+func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod time.Duration) *Context {
+	informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
@@ -37,16 +33,14 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 		Pods:      informerFactory.Core().V1().Pods().Informer(),
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
-		Namespace: informerFactory.Core().V1().Namespaces().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
-		Endpoints:  informerCollection.Endpoints.GetStore(),
-		Ingress:    informerCollection.Ingress.GetStore(),
-		Pods:       informerCollection.Pods.GetStore(),
-		Secret:     informerCollection.Secret.GetStore(),
-		Service:    informerCollection.Service.GetStore(),
-		Namespaces: informerCollection.Namespace.GetStore(),
+		Endpoints: informerCollection.Endpoints.GetStore(),
+		Ingress:   informerCollection.Ingress.GetStore(),
+		Pods:      informerCollection.Pods.GetStore(),
+		Secret:    informerCollection.Secret.GetStore(),
+		Service:   informerCollection.Service.GetStore(),
 	}
 
 	context := &Context{
@@ -84,7 +78,6 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 	informerCollection.Pods.AddEventHandler(resourceHandler)
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
-	informerCollection.Namespace.AddEventHandler(resourceHandler)
 
 	return context
 }
