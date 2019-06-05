@@ -1,8 +1,15 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
+	"sort"
 	"strings"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -27,6 +34,7 @@ func (c *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) (*[]n.
 	}
 
 	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
+	sort.Sort(sorter.ByListenerName(listeners))
 	return &listeners, legacyMap
 }
 
