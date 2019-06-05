@@ -87,6 +87,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 				Secret:    cache.NewStore(keyFunc),
 				Service:   cache.NewStore(keyFunc),
 				Pods:      cache.NewStore(keyFunc),
+				Ingress:   cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 		},

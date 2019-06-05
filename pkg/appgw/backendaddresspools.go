@@ -141,5 +141,7 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 func (c *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
 	// TODO(draychev): deprecate the use of c.serviceBackendPairMap
 	// Create this struct here instead of backendhttpsettings.go
-	return c.serviceBackendPairMap
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	return serviceBackendPairMap
 }
