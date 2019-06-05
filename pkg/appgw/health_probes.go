@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -69,6 +70,8 @@ func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingre
 	for _, probe := range healthProbeCollection {
 		probes = append(probes, probe)
 	}
+
+	sort.Sort()
 
 	c.appGwConfig.Probes = &probes
 	return nil
