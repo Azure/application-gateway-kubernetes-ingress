@@ -17,7 +17,6 @@ type ConfigBuilder interface {
 	// builder pattern
 	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error
 	BackendAddressPools(ingressList []*v1beta1.Ingress) error
-	NewBackendPoolMap() map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)
 	Listeners(ingressList []*v1beta1.Ingress) error
 	RequestRoutingRules(ingressList []*v1beta1.Ingress) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress) error

@@ -35,7 +35,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 	}
 
-	backendPools := c.NewBackendPoolMap()
+	backendPools := c.newBackendPoolMap()
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
@@ -80,7 +80,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress) error {
 	_, httpListenersMap := c.getListeners(ingressList)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
-	backendPools := c.NewBackendPoolMap()
+	backendPools := c.newBackendPoolMap()
 	for _, ingress := range ingressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
