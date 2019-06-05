@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -19,16 +20,16 @@ import (
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	agw := Identifier{
-		SubscriptionID: testFixturesSubscription,
-		ResourceGroup:  testFixtureResourceGroup,
-		AppGwName:      testFixtureAppGwName,
+		SubscriptionID: tests.Subscription,
+		ResourceGroup:  tests.ResourceGroup,
+		AppGwName:      tests.AppGwName,
 	}
-	configName := generateSSLRedirectConfigurationName(testFixturesNamespace, testFixturesName)
+	configName := generateSSLRedirectConfigurationName(tests.Namespace, tests.Name)
 	expectedRedirectID := agw.redirectConfigurationID(configName)
 
 	Context("test getSslRedirectConfigResourceReference", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 
 		actualID := configBuilder.getSslRedirectConfigResourceReference(ingress).ID
 
@@ -39,7 +40,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure there are no path rules defined for this test
@@ -65,7 +66,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure the test is setup correctly
@@ -129,8 +130,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 					annotations.SslRedirectKey:  "true",
 				},
-				Namespace: testFixturesNamespace,
-				Name:      testFixturesName,
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
 			},
 		}
 
