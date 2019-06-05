@@ -15,7 +15,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 
 	listener80 := listenerIdentifier{
 		FrontendPort: int32(80),
-		HostName:     testFixturesHost,
+		HostName:     tests.Host,
 	}
 
 	listenerAzConfigNoSSL := listenerAzConfig{
@@ -64,18 +64,18 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			// Get the HTTPS listener for this test
 			var listener n.ApplicationGatewayHTTPListener
 			for _, listener = range *listeners {
-				if listener.Protocol == "Https" && *listener.HostName == testFixturesHost {
+				if listener.Protocol == "Https" && *listener.HostName == tests.Host {
 					break
 				}
 			}
 
-			Expect(*listener.HostName).To(Equal(testFixturesHost))
+			Expect(*listener.HostName).To(Equal(tests.Host))
 			Expect(*listener.FrontendPort.ID).To(Equal(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(443))))
 
 			expectedProtocol := n.ApplicationGatewayProtocol("Https")
 			Expect(listener.Protocol).To(Equal(expectedProtocol))
 
-			Expect(*listener.FrontendIPConfiguration.ID).To(Equal(testFixtureIPID1))
+			Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.IPID1))
 		})
 	})
 	Context("create a new App Gateway HTTP Listener", func() {
@@ -90,10 +90,10 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				Name: to.StringPtr(expectedName),
 				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 					// TODO: expose this to external configuration
-					FrontendIPConfiguration: resourceRef(testFixtureIPID1),
+					FrontendIPConfiguration: resourceRef(tests.IPID1),
 					FrontendPort:            resourceRef(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(80))),
 					Protocol:                n.ApplicationGatewayProtocol("Https"),
-					HostName:                to.StringPtr(testFixturesHost),
+					HostName:                to.StringPtr(tests.Host),
 				},
 			}
 

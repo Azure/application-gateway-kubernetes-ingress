@@ -20,7 +20,7 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 			tests.Namespace,
 			tests.NameOfSecret,
 		},
-		testFixturesHost: {
+		tests.Host: {
 			tests.Namespace,
 			tests.NameOfSecret,
 		},
@@ -51,14 +51,14 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 			}
 
 			// We check each key to ensure that unstable sort does not cause test flakiness
-			Expect(keys).To(ContainElement(testFixturesHost))
+			Expect(keys).To(ContainElement(tests.Host))
 			Expect(keys).To(ContainElement(host1))
 			Expect(keys).To(ContainElement(host2))
 			Expect(keys).To(ContainElement(""))
 		})
 
 		It("has the correct secrets", func() {
-			Expect(actualHostToSecretMap[testFixturesHost]).To(Equal(expectedSecret))
+			Expect(actualHostToSecretMap[tests.Host]).To(Equal(expectedSecret))
 		})
 	})
 

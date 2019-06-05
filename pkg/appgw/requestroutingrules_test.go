@@ -20,11 +20,11 @@ import (
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	agw := Identifier{
-		SubscriptionID: testFixturesSubscription,
-		ResourceGroup:  testFixtureResourceGroup,
-		AppGwName:      testFixtureAppGwName,
+		SubscriptionID: tests.Subscription,
+		ResourceGroup:  tests.ResourceGroup,
+		AppGwName:      tests.AppGwName,
 	}
-	configName := generateSSLRedirectConfigurationName(testFixturesNamespace, testFixturesName)
+	configName := generateSSLRedirectConfigurationName(tests.Namespace, tests.Name)
 	expectedRedirectID := agw.redirectConfigurationID(configName)
 
 	Context("test getSslRedirectConfigResourceReference", func() {
@@ -130,8 +130,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 					annotations.SslRedirectKey:  "true",
 				},
-				Namespace: testFixturesNamespace,
-				Name:      testFixturesName,
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
 			},
 		}
 

@@ -16,7 +16,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
-		HostName:     testFixturesHost,
+		HostName:     tests.Host,
 	}
 
 	expectedListenerAzConfigNoSSL := listenerAzConfig{
@@ -30,20 +30,20 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	expectedListener443 := listenerIdentifier{
 		FrontendPort: 443,
-		HostName:     testFixturesHost,
+		HostName:     tests.Host,
 	}
 
 	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
 		Secret: secretIdentifier{
-			Namespace: testFixturesNamespace,
-			Name:      testFixturesNameOfSecret,
+			Namespace: tests.Namespace,
+			Name:      tests.NameOfSecret,
 		},
 		SslRedirectConfigurationName: agPrefix +
 			"sslr-" +
-			testFixturesNamespace +
+			tests.Namespace +
 			"-" +
-			testFixturesName,
+			tests.Name,
 	}
 
 	Context("ingress rules without certificates", func() {

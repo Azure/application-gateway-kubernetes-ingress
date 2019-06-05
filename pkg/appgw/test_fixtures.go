@@ -16,27 +16,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-/* const (
-	testFixturesNamespace     = "--namespace--"
-	testFixturesName          = "--name--"
-	testFixturesHost          = "bye.com"
-	testFixturesOtherHost     = "--some-other-hostname--"
-	testFixturesNameOfSecret  = "--the-name-of-the-secret--"
-	testFixturesServiceName   = "--service-name--"
-	testFixturesNodeName      = "--node-name--"
-	testFixturesURLPath       = "/healthz"
-	testFixturesContainerName = "--container-name--"
-	testFixturesContainerPort = int32(9876)
-	testFixturesServicePort   = "service-port"
-	testFixturesSelectorKey   = "app"
-	testFixturesSelectorValue = "frontend"
-	testFixtureSubscription   = "--subscription--"
-	testFixtureResourceGroup  = "--resource-group--"
-	testFixtureAppGwName      = "--app-gw-name--"
-	testFixtureIPID1          = "--front-end-ip-id-1--"
-	testFixturesSubscription  = "--subscription--"
-) */
-
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
 		{
