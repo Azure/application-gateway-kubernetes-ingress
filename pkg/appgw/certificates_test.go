@@ -13,26 +13,26 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	const host2 = "www.contoso.com"
 	expectedHostToSecretMap := map[string]secretIdentifier{
 		host1: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 		host2: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 		testFixturesHost: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 		"": {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 	}
 
 	expectedSecret := secretIdentifier{
-		Namespace: testFixturesNamespace,
-		Name:      testFixturesNameOfSecret,
+		Namespace: tests.Namespace,
+		Name:      tests.NameOfSecret,
 	}
 
 	Context("Test fetching secrets from ingress with TLS spec", func() {

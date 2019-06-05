@@ -21,24 +21,23 @@ import (
 )
 
 const (
-	fixturesNamespace     = "--namespace--"
-	fixturesName          = "--name--"
-	fixturesHost          = "bye.com"
-	fixturesOtherHost     = "--some-other-hostname--"
-	fixturesNameOfSecret  = "--the-name-of-the-secret--"
-	fixturesServiceName   = "--service-name--"
-	fixturesNodeName      = "--node-name--"
-	fixturesURLPath       = "/healthz"
-	fixturesContainerName = "--container-name--"
-	fixturesContainerPort = int32(9876)
-	fixturesServicePort   = "service-port"
-	fixturesSelectorKey   = "app"
-	fixturesSelectorValue = "frontend"
-	fixtureSubscription   = "--subscription--"
-	fixtureResourceGroup  = "--resource-group--"
-	fixtureAppGwName      = "--app-gw-name--"
-	fixtureIPID1          = "--front-end-ip-id-1--"
-	fixturesSubscription  = "--subscription--"
+	Namespace     = "--namespace--"
+	Name          = "--name--"
+	Host          = "bye.com"
+	OtherHost     = "--some-other-hostname--"
+	NameOfSecret  = "--the-name-of-the-secret--"
+	ServiceName   = "--service-name--"
+	NodeName      = "--node-name--"
+	URLPath       = "/healthz"
+	ContainerName = "--container-name--"
+	ContainerPort = int32(9876)
+	ServicePort   = "service-port"
+	SelectorKey   = "app"
+	SelectorValue = "frontend"
+	Subscription  = "--subscription--"
+	ResourceGroup = "--resource-group--"
+	AppGwName     = "--app-gw-name--"
+	IPID1         = "--front-end-ip-id-1--"
 )
 
 // GetIngress creates an Ingress test fixture.
@@ -121,28 +120,28 @@ func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 
 // NewIngressFixture makes a new Ingress for testing
 func NewIngressFixture() *v1beta1.Ingress {
-	be80 := NewIngressBackendFixture(fixturesServiceName, 80)
-	be443 := NewIngressBackendFixture(fixturesServiceName, 443)
+	be80 := NewIngressBackendFixture(ServiceName, 80)
+	be443 := NewIngressBackendFixture(ServiceName, 443)
 
 	return &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
-				NewIngressRuleFixture(fixturesHost, fixturesURLPath, *be80),
-				NewIngressRuleFixture(fixturesHost, fixturesURLPath, *be443),
+				NewIngressRuleFixture(Host, URLPath, *be80),
+				NewIngressRuleFixture(Host, URLPath, *be443),
 			},
 			TLS: []v1beta1.IngressTLS{
 				{
 					Hosts: []string{
 						"www.contoso.com",
 						"ftp.contoso.com",
-						fixturesHost,
+						Host,
 						"",
 					},
-					SecretName: fixturesNameOfSecret,
+					SecretName: NameOfSecret,
 				},
 				{
 					Hosts:      []string{},
-					SecretName: fixturesNameOfSecret,
+					SecretName: NameOfSecret,
 				},
 			},
 		},
@@ -150,8 +149,8 @@ func NewIngressFixture() *v1beta1.Ingress {
 			Annotations: map[string]string{
 				annotations.SslRedirectKey: "true",
 			},
-			Namespace: fixturesNamespace,
-			Name:      fixturesName,
+			Namespace: Namespace,
+			Name:      Name,
 		},
 	}
 }
@@ -180,7 +179,7 @@ func NewServicePortsFixture() *[]v1.ServicePort {
 		// omitted or set equal to the 'port' field.
 		TargetPort: intstr.IntOrString{
 			Type:   intstr.Int,
-			IntVal: fixturesContainerPort,
+			IntVal: ContainerPort,
 		},
 	}
 
@@ -229,8 +228,8 @@ func NewProbeFixture(containerName string) *v1.Probe {
 		PeriodSeconds:    20,
 		Handler: v1.Handler{
 			HTTPGet: &v1.HTTPGetAction{
-				Host: fixturesHost,
-				Path: fixturesURLPath,
+				Host: Host,
+				Path: URLPath,
 				Port: intstr.IntOrString{
 					Type:   intstr.String,
 					StrVal: containerName,
@@ -248,7 +247,7 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 			Name:      serviceName,
 			Namespace: ingressNamespace,
 			Labels: map[string]string{
-				fixturesSelectorKey: fixturesSelectorValue,
+				SelectorKey: SelectorValue,
 			},
 		},
 		Spec: v1.PodSpec{
@@ -273,8 +272,8 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fixturesServiceName,
-			Namespace: fixturesNamespace,
+			Name:      ServiceName,
+			Namespace: Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			// The list of ports that are exposed by this service.
@@ -286,7 +285,7 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 			// modify. Only applies to types ClusterIP, NodePort, and LoadBalancer.
 			// Ignored if type is ExternalName.
 			Selector: map[string]string{
-				fixturesSelectorKey: fixturesSelectorValue,
+				SelectorKey: SelectorValue,
 			},
 		},
 	}
@@ -308,7 +307,7 @@ func NewEndpointsFixture() *v1.Endpoints {
 						Hostname: "www.contoso.com",
 						// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
 						// +optional
-						NodeName: to.StringPtr(fixturesNodeName),
+						NodeName: to.StringPtr(NodeName),
 					},
 				},
 				// IP addresses which offer the related ports but are not currently marked as ready
@@ -321,8 +320,8 @@ func NewEndpointsFixture() *v1.Endpoints {
 				Ports: []v1.EndpointPort{
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     fixturesName,
-						Port:     fixturesContainerPort,
+						Name:     Name,
+						Port:     ContainerPort,
 					},
 				},
 			},

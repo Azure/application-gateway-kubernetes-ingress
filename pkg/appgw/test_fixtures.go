@@ -10,12 +10,13 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/client-go/tools/cache"
 )
 
-const (
+/* const (
 	testFixturesNamespace     = "--namespace--"
 	testFixturesName          = "--name--"
 	testFixturesHost          = "bye.com"
@@ -34,7 +35,7 @@ const (
 	testFixtureAppGwName      = "--app-gw-name--"
 	testFixtureIPID1          = "--front-end-ip-id-1--"
 	testFixturesSubscription  = "--subscription--"
-)
+) */
 
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
@@ -43,7 +44,7 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(testFixtureIPID1),
+			ID:   to.StringPtr(tests.IPID1),
 			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: nil,
 				PublicIPAddress: &network.SubResource{
@@ -70,10 +71,10 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 
 func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeeper {
 	c := cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{})
-	ingressKey := getResourceKey(testFixturesNamespace, testFixturesName)
-	c.Add(ingressKey, testFixturesHost)
+	ingressKey := getResourceKey(tests.Namespace, tests.Name)
+	c.Add(ingressKey, tests.Host)
 
-	key := testFixturesNamespace + "/" + testFixturesNameOfSecret
+	key := tests.Namespace + "/" + tests.NameOfSecret
 	c.Add(key, []byte("xyz"))
 
 	if toAdd != nil {
@@ -88,15 +89,15 @@ func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeep
 }
 
 func keyFunc(obj interface{}) (string, error) {
-	return fmt.Sprintf("%s/%s", testFixturesNamespace, testFixturesServiceName), nil
+	return fmt.Sprintf("%s/%s", tests.Namespace, tests.ServiceName), nil
 }
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 	cb := appGwConfigBuilder{
 		appGwIdentifier: Identifier{
-			SubscriptionID: testFixtureSubscription,
-			ResourceGroup:  testFixtureResourceGroup,
-			AppGwName:      testFixtureAppGwName,
+			SubscriptionID: tests.Subscription,
+			ResourceGroup:  tests.ResourceGroup,
+			AppGwName:      tests.AppGwName,
 		},
 		appGwConfig:            newAppGwyConfigFixture(),
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
@@ -122,12 +123,12 @@ func newCertsFixture() map[string]interface{} {
 	toAdd := make(map[string]interface{})
 
 	secretsIdent := secretIdentifier{
-		Namespace: testFixturesNamespace,
-		Name:      testFixturesName,
+		Namespace: tests.Namespace,
+		Name:      tests.Name,
 	}
 
-	toAdd[testFixturesHost] = secretsIdent
-	toAdd[testFixturesOtherHost] = secretsIdent
+	toAdd[tests.Host] = secretsIdent
+	toAdd[tests.OtherHost] = secretsIdent
 	// Wild card
 	toAdd[""] = secretsIdent
 

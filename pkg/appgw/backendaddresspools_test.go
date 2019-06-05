@@ -100,16 +100,16 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		// TODO(draychev): Move to test fixtures
 		backendID := backendIdentifier{
 			serviceIdentifier: serviceIdentifier{
-				Namespace: testFixturesNamespace,
-				Name:      testFixturesServiceName,
+				Namespace: tests.Namespace,
+				Name:      tests.ServiceName,
 			},
-			Backend: tests.NewIngressBackendFixture(testFixturesServiceName, int32(4321)),
+			Backend: tests.NewIngressBackendFixture(tests.ServiceName, int32(4321)),
 			Ingress: tests.NewIngressFixture(),
 		}
 		serviceBackendPair := serviceBackendPortPair{
 			// TODO(draychev): Move to test fixtures
 			ServicePort: int32(4321),
-			BackendPort: testFixturesContainerPort,
+			BackendPort: tests.ContainerPort,
 		}
 
 		pool := tests.GetApplicationGatewayBackendAddressPool()
@@ -123,7 +123,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		It("should have constructed correct ApplicationGatewayBackendAddressPool", func() {
 			// The order here is deliberate -- ensure this is properly sorted
 			expected := n.ApplicationGatewayBackendAddressPool{
-				Name: to.StringPtr("pool-" + testFixturesNamespace + "-" + testFixturesServiceName + "-4321-bp-9876"),
+				Name: to.StringPtr("pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"),
 				ID:   nil,
 				Etag: to.StringPtr("*"),
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
