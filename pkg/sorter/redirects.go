@@ -18,9 +18,9 @@ func (a ByRedirectName) Less(i, j int) bool {
 	return getRedirectName(a[i]) < getRedirectName(a[j])
 }
 
-func getRedirectName(rule n.ApplicationGatewayRedirectConfiguration) string {
-	if rule.Name == nil {
+func getRedirectName(redirect n.ApplicationGatewayRedirectConfiguration) string {
+	if redirect.Name == nil {
 		return ""
 	}
-	return *rule.Name
+	return *redirect.Name
 }

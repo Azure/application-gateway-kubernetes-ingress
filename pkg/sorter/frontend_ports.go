@@ -18,9 +18,9 @@ func (a ByFrontendPortName) Less(i, j int) bool {
 	return getFrontendPortName(a[i]) < getFrontendPortName(a[j])
 }
 
-func getFrontendPortName(rule n.ApplicationGatewayFrontendPort) string {
-	if rule.Name == nil {
+func getFrontendPortName(port n.ApplicationGatewayFrontendPort) string {
+	if port.Name == nil {
 		return ""
 	}
-	return *rule.Name
+	return *port.Name
 }

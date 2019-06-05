@@ -18,9 +18,9 @@ func (a ByCertificateName) Less(i, j int) bool {
 	return getCertificateName(a[i]) < getCertificateName(a[j])
 }
 
-func getCertificateName(rule n.ApplicationGatewaySslCertificate) string {
-	if rule.Name == nil {
+func getCertificateName(cert n.ApplicationGatewaySslCertificate) string {
+	if cert.Name == nil {
 		return ""
 	}
-	return *rule.Name
+	return *cert.Name
 }

@@ -18,9 +18,9 @@ func (a ByListenerName) Less(i, j int) bool {
 	return getListenerName(a[i]) < getListenerName(a[j])
 }
 
-func getListenerName(rule n.ApplicationGatewayHTTPListener) string {
-	if rule.Name == nil {
+func getListenerName(listener n.ApplicationGatewayHTTPListener) string {
+	if listener.Name == nil {
 		return ""
 	}
-	return *rule.Name
+	return *listener.Name
 }

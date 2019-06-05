@@ -18,9 +18,9 @@ func (a ByPathMap) Less(i, j int) bool {
 	return getPathMapName(a[i]) < getPathMapName(a[j])
 }
 
-func getPathMapName(rule n.ApplicationGatewayURLPathMap) string {
-	if rule.Name == nil {
+func getPathMapName(pathmap n.ApplicationGatewayURLPathMap) string {
+	if pathmap.Name == nil {
 		return ""
 	}
-	return *rule.Name
+	return *pathmap.Name
 }
