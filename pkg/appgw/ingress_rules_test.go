@@ -2,6 +2,7 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
@@ -15,7 +16,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
-		HostName:     testFixturesHost,
+		HostName:     tests.Host,
 	}
 
 	expectedListenerAzConfigNoSSL := listenerAzConfig{
@@ -29,26 +30,26 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 	expectedListener443 := listenerIdentifier{
 		FrontendPort: 443,
-		HostName:     testFixturesHost,
+		HostName:     tests.Host,
 	}
 
 	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
 		Secret: secretIdentifier{
-			Namespace: testFixturesNamespace,
-			Name:      testFixturesNameOfSecret,
+			Namespace: tests.Namespace,
+			Name:      tests.NameOfSecret,
 		},
 		SslRedirectConfigurationName: agPrefix +
 			"sslr-" +
-			testFixturesNamespace +
+			tests.Namespace +
 			"-" +
-			testFixturesName,
+			tests.Name,
 	}
 
 	Context("ingress rules without certificates", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
 
@@ -94,7 +95,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	Context("ingress rules with certificates", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		It("should have setup tests with some TLS certs", func() {
 			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
@@ -116,7 +117,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 	Context("with attached certificates", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
 
 		// !! Action !!

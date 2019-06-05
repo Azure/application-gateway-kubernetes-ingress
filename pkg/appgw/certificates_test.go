@@ -1,6 +1,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -12,31 +13,31 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 	const host2 = "www.contoso.com"
 	expectedHostToSecretMap := map[string]secretIdentifier{
 		host1: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 		host2: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
-		testFixturesHost: {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+		tests.Host: {
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 		"": {
-			testFixturesNamespace,
-			testFixturesNameOfSecret,
+			tests.Namespace,
+			tests.NameOfSecret,
 		},
 	}
 
 	expectedSecret := secretIdentifier{
-		Namespace: testFixturesNamespace,
-		Name:      testFixturesNameOfSecret,
+		Namespace: tests.Namespace,
+		Name:      tests.NameOfSecret,
 	}
 
 	Context("Test fetching secrets from ingress with TLS spec", func() {
 		cb := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 
 		actualHostToSecretMap := cb.newHostToSecretMap(ingress)
 
@@ -50,20 +51,20 @@ var _ = Describe("Testing function newHostToSecretMap", func() {
 			}
 
 			// We check each key to ensure that unstable sort does not cause test flakiness
-			Expect(keys).To(ContainElement(testFixturesHost))
+			Expect(keys).To(ContainElement(tests.Host))
 			Expect(keys).To(ContainElement(host1))
 			Expect(keys).To(ContainElement(host2))
 			Expect(keys).To(ContainElement(""))
 		})
 
 		It("has the correct secrets", func() {
-			Expect(actualHostToSecretMap[testFixturesHost]).To(Equal(expectedSecret))
+			Expect(actualHostToSecretMap[tests.Host]).To(Equal(expectedSecret))
 		})
 	})
 
 	Context("Test obtaining a single certificate for an existing host", func() {
 		cb := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
 		actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)
 
