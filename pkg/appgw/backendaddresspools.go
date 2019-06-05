@@ -16,16 +16,28 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
+func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool) {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: defaultPool,
+	}
+	backendPoolMap := make(map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool))
+	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
+		backendPoolMap[backendID] = defaultPool
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[backendID] = pool
+		}
+	}
+	return backendPoolMap
+}
+
 func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
 	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
-		c.backendPoolMap[backendID] = defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			// TODO(draychev): deprecate the caching of state in c.backendPoolMap
-			c.backendPoolMap[backendID] = pool
 			addressPools[*pool.Name] = pool
 		}
 	}

@@ -8,6 +8,7 @@ package appgw
 import (
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -19,35 +20,35 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
-		servicePort := testFixturesServicePort
-		serviceName := testFixturesServiceName
+		servicePort := tests.ServicePort
+		serviceName := tests.ServiceName
 		ingress := "INGR"
 		fel := listenerIdentifier{
 			FrontendPort: int32(9898),
-			HostName:     testFixturesHost,
+			HostName:     tests.Host,
 		}
 
 		It("getResourceKey returns expected key", func() {
-			actual := getResourceKey(testFixturesNamespace, testFixturesName)
-			expected := testFixturesNamespace + "/" + testFixturesName
+			actual := getResourceKey(tests.Namespace, tests.Name)
+			expected := tests.Namespace + "/" + tests.Name
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateHTTPSettingsName returns expected key", func() {
 			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
-			expected := agPrefix + "bp-" + testFixturesServiceName + "-" + testFixturesServicePort + "-8989-INGR"
+			expected := agPrefix + "bp-" + tests.ServiceName + "-" + tests.ServicePort + "-8989-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateProbeName returns expected key", func() {
 			actual := generateProbeName(serviceName, servicePort, ingress)
-			expected := agPrefix + "pb-" + testFixturesServiceName + "-" + testFixturesServicePort + "-INGR"
+			expected := agPrefix + "pb-" + tests.ServiceName + "-" + tests.ServicePort + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateAddressPoolName returns expected key", func() {
 			actual := generateAddressPoolName(serviceName, servicePort, backendPortNo)
-			expected := agPrefix + "pool-" + testFixturesServiceName + "-" + testFixturesServicePort + "-bp-8989"
+			expected := agPrefix + "pool-" + tests.ServiceName + "-" + tests.ServicePort + "-bp-8989"
 			Expect(actual).To(Equal(expected))
 		})
 
@@ -59,25 +60,25 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateListenerName returns expected key", func() {
 			actual := generateListenerName(fel)
-			expected := agPrefix + "fl-" + testFixturesHost + "-9898"
+			expected := agPrefix + "fl-" + tests.Host + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateURLPathMapName returns expected key", func() {
 			actual := generateURLPathMapName(fel)
-			expected := agPrefix + "url-" + testFixturesHost + "-9898"
+			expected := agPrefix + "url-" + tests.Host + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateRequestRoutingRuleName returns expected key", func() {
 			actual := generateRequestRoutingRuleName(fel)
-			expected := agPrefix + "rr-" + testFixturesHost + "-9898"
+			expected := agPrefix + "rr-" + tests.Host + "-9898"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
-			actual := generateSSLRedirectConfigurationName(testFixturesNamespace, ingress)
-			expected := agPrefix + "sslr-" + testFixturesNamespace + "-INGR"
+			actual := generateSSLRedirectConfigurationName(tests.Namespace, ingress)
+			expected := agPrefix + "sslr-" + tests.Namespace + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -206,8 +207,8 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test whether getResourceKey works correctly", func() {
 		It("should construct correct key", func() {
-			actual := getResourceKey(testFixturesNamespace, testFixturesName)
-			expected := testFixturesNamespace + "/" + testFixturesName
+			actual := getResourceKey(tests.Namespace, tests.Name)
+			expected := tests.Namespace + "/" + tests.Name
 			Expect(actual).To(Equal(expected))
 		})
 	})
