@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -155,7 +156,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := newPodFixture(serviceName, ingressNS, backendName, backendPort)
+	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, backendPort)
 
 	go_flag.Lookup("logtostderr").Value.Set("true")
 	go_flag.Set("v", "3")
@@ -179,8 +180,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &probeName,
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:           network.HTTP,
-				Host:               to.StringPtr(testFixturesHost),
-				Path:               to.StringPtr(testFixturesURLPath),
+				Host:               to.StringPtr(tests.Host),
+				Path:               to.StringPtr(tests.URLPath),
 				Interval:           to.Int32Ptr(20),
 				UnhealthyThreshold: to.Int32Ptr(3),
 				Timeout:            to.Int32Ptr(5),
