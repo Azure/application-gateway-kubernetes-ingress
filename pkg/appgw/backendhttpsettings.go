@@ -175,9 +175,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 }
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
-	backends, backendHTTPSettingsMap, finalServiceBackendPairMap, err := c.getBackendsAndSettingsMap(ingressList)
-	c.serviceBackendPairMap = finalServiceBackendPairMap
-	c.backendHTTPSettingsMap = backendHTTPSettingsMap
+	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList)
 	c.appGwConfig.BackendHTTPSettingsCollection = backends
 	return err
 }
