@@ -17,6 +17,7 @@ type ConfigBuilder interface {
 	// builder pattern
 	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error
 	BackendAddressPools(ingressList []*v1beta1.Ingress) error
+	NewBackendPoolMap() map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)
 	Listeners(ingressList []*v1beta1.Ingress) error
 	RequestRoutingRules(ingressList []*v1beta1.Ingress) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress) error
@@ -28,8 +29,7 @@ type appGwConfigBuilder struct {
 
 	backendHTTPSettingsMap map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)
 
-	backendPoolMap map[backendIdentifier](*network.ApplicationGatewayBackendAddressPool)
-	probesMap      map[backendIdentifier](*network.ApplicationGatewayProbe)
+	probesMap map[backendIdentifier](*network.ApplicationGatewayProbe)
 
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
@@ -44,7 +44,6 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
 		probesMap:              make(map[backendIdentifier]*network.ApplicationGatewayProbe),
 		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
-		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext:             context,
 		appGwIdentifier:        *appGwIdentifier,
 		appGwConfig:            *originalConfig,

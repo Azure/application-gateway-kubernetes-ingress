@@ -38,7 +38,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
-		backendPool := c.backendPoolMap[backendID]
+		backendPool := c.NewBackendPoolMap()[backendID]
 		backendHTTPSettings := c.backendHTTPSettingsMap[backendID]
 		if backendPool == nil || backendHTTPSettings == nil {
 			continue
@@ -110,7 +110,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 			defaultBackendID := generateBackendID(ingress, nil, nil, defBackend)
 
 			defaultHTTPSettings := c.backendHTTPSettingsMap[defaultBackendID]
-			defaultAddressPool := c.backendPoolMap[defaultBackendID]
+			defaultAddressPool := c.NewBackendPoolMap()[defaultBackendID]
 			if defaultAddressPool != nil && defaultHTTPSettings != nil {
 				// default settings is valid
 				defaultAddressPoolID = c.appGwIdentifier.addressPoolID(*defaultAddressPool.Name)

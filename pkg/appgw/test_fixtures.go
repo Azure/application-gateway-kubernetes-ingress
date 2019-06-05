@@ -106,7 +106,6 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 		appGwConfig:            newAppGwyConfigFixture(),
 		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
 		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
-		backendPoolMap:         make(map[backendIdentifier]*network.ApplicationGatewayBackendAddressPool),
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
 				Endpoints: cache.NewStore(keyFunc),
