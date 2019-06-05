@@ -23,27 +23,34 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
+func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
-	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
-
 	for _, ingress := range ingressList {
-		defIngressBackend := ingress.Spec.Backend
-		if defIngressBackend != nil {
-			backendIDs[generateBackendID(ingress, nil, nil, defIngressBackend)] = nil
+		if ingress.Spec.Backend != nil {
+			glog.Infof("Ingress spec has no backend. Adding a default.")
+			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
+			glog.Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
 			if rule.HTTP == nil {
 				// skip no http rule
+				glog.Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
+				glog.Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
 				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
 		}
 	}
+	return backendIDs
+}
+
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
+	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
+	backendIDs := newBackendIds(ingressList)
 
 	var unresolvedBackendID []backendIdentifier
 	for backendID := range backendIDs {

@@ -20,32 +20,8 @@ import (
 )
 
 func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
-	backendIDs := make(map[backendIdentifier]interface{})
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
-
-	for _, ingress := range ingressList {
-
-		glog.Infof("[health-probes] Configuring health probes for ingress: '%s'", ingress.Name)
-		if ingress.Spec.Backend != nil {
-			glog.Info("[health-probes] Ingress spec has no backend. Adding a default.")
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
-		}
-
-		for ruleIdx := range ingress.Spec.Rules {
-			rule := &ingress.Spec.Rules[ruleIdx]
-			glog.Infof("[health-probes] Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
-			if rule.HTTP == nil {
-				// skip no http rule
-				glog.Infof("[health-probes] Skip rule#%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
-				continue
-			}
-			for pathIdx := range rule.HTTP.Paths {
-				path := &rule.HTTP.Paths[pathIdx]
-				glog.Infof("[health-probes] Working on path #%d: '%s'", pathIdx+1, path.Path)
-				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
-			}
-		}
-	}
+	backendIDs := newBackendIds(ingressList)
 
 	defaultProbe := defaultProbe()
 
