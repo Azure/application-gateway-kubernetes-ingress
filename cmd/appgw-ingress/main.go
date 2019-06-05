@@ -86,7 +86,10 @@ func main() {
 	kubeClient := getKubeClient(env)
 	ctx := k8scontext.NewContext(kubeClient, env.WatchNamespace, *resyncPeriod)
 
-	recorder := getEventRecorder(kubeClient)
+	recorder, err := getEventRecorder(kubeClient)
+	if err != nil {
+		glog.Fatal("Error creating event recorder:", err)
+	}
 
 	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx, recorder).Start()
 	select {}
@@ -150,19 +153,17 @@ func getKubeClientConfig() *rest.Config {
 	return config
 }
 
-func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
+func getEventRecorder(kubeClient kubernetes.Interface) (record.EventRecorder, error) {
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(
 		&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Error("Could not obtain host name from the operating system", err)
-		hostname = "unknown-hostname"
-	}
-	source := v1.EventSource{
-		Component: annotations.ApplicationGatewayIngressClass,
-		Host:      hostname,
-	}
-	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
+	hostname, _ := os.Hostname()
+	recorder := eventBroadcaster.NewRecorder(
+		scheme.Scheme,
+		v1.EventSource{
+			Component: annotations.ApplicationGatewayIngressClass,
+			Host:      hostname,
+		})
+	return recorder, nil
 }
