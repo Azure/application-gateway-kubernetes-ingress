@@ -7,7 +7,6 @@ package k8scontext
 
 import (
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -17,272 +16,75 @@ import (
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
 
-// InformerCollection : all the informers for k8s resources we care about.
-type InformerCollection struct {
-	Endpoints cache.SharedIndexInformer
-	Ingress   cache.SharedIndexInformer
-	Pods      cache.SharedIndexInformer
-	Secret    cache.SharedIndexInformer
-	Service   cache.SharedIndexInformer
-}
-
-// CacheCollection : all the listers from the informers.
-type CacheCollection struct {
-	Endpoints cache.Store
-	Ingress   cache.Store
-	Pods      cache.Store
-	Secret    cache.Store
-	Service   cache.Store
-}
-
-// Context : cache and listener for k8s resources.
-type Context struct {
-	informers              *InformerCollection
-	Caches                 *CacheCollection
-	CertificateSecretStore SecretsKeeper
-
-	ingressSecretsMap utils.ThreadsafeMultiMap
-	stopChannel       chan struct{}
-
-	UpdateChannel *channels.RingChannel
-}
-
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod time.Duration) *Context {
-	informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
+func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
+
+	// client kubernetes.Interface, defaultResync time.Duration, options ...SharedInformerOption
+
+	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
+
+	// informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
+
+	informerCollection := InformerCollection{
+		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:      informerFactory.Core().V1().Pods().Informer(),
+		Secret:    informerFactory.Core().V1().Secrets().Informer(),
+		Service:   informerFactory.Core().V1().Services().Informer(),
+		Namespace: informerFactory.Core().V1().Namespaces().Informer(),
+	}
+
+	cacheCollection := CacheCollection{
+		Endpoints:  informerCollection.Endpoints.GetStore(),
+		Ingress:    informerCollection.Ingress.GetStore(),
+		Pods:       informerCollection.Pods.GetStore(),
+		Secret:     informerCollection.Secret.GetStore(),
+		Service:    informerCollection.Service.GetStore(),
+		Namespaces: informerCollection.Namespace.GetStore(),
+	}
 
 	context := &Context{
-		informers: &InformerCollection{
-			Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
-			Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-			Pods:      informerFactory.Core().V1().Pods().Informer(),
-			Secret:    informerFactory.Core().V1().Secrets().Informer(),
-			Service:   informerFactory.Core().V1().Services().Informer(),
-		},
+		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
-		Caches:                 &CacheCollection{},
+		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
 		stopChannel:            make(chan struct{}),
 		UpdateChannel:          channels.NewRingChannel(1024),
 	}
 
-	context.Caches.Endpoints = context.informers.Endpoints.GetStore()
-	context.Caches.Ingress = context.informers.Ingress.GetStore()
-	context.Caches.Pods = context.informers.Pods.GetStore()
-	context.Caches.Secret = context.informers.Secret.GetStore()
-	context.Caches.Service = context.informers.Service.GetStore()
-
-	addFunc := func(obj interface{}) {
-		context.UpdateChannel.In() <- Event{
-			Type:  Create,
-			Value: obj,
-		}
-	}
-
-	updateFunc := func(oldObj, newObj interface{}) {
-		if reflect.DeepEqual(oldObj, newObj) {
-			return
-		}
-		context.UpdateChannel.In() <- Event{
-			Type:  Update,
-			Value: newObj,
-		}
-	}
-
-	deleteFunc := func(obj interface{}) {
-		context.UpdateChannel.In() <- Event{
-			Type:  Delete,
-			Value: obj,
-		}
-	}
+	h := handlers{context}
 
 	resourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    addFunc,
-		UpdateFunc: updateFunc,
-		DeleteFunc: deleteFunc,
-	}
-
-	// ingress resource handlers
-	ingressAddFunc := func(obj interface{}) {
-		ing := obj.(*v1beta1.Ingress)
-
-		if !isIngressApplicationGateway(ing) {
-			return
-		}
-
-		if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
-			ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
-			for _, tls := range ing.Spec.TLS {
-				secKey := utils.GetResourceKey(ing.Namespace, tls.SecretName)
-
-				if context.ingressSecretsMap.ContainsPair(ingKey, secKey) {
-					continue
-				}
-
-				if secret, exists, err := context.Caches.Secret.GetByKey(secKey); exists && err == nil {
-					if !context.ingressSecretsMap.ContainsValue(secKey) {
-						done := context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret))
-						if !done {
-							continue
-						}
-					}
-				}
-
-				context.ingressSecretsMap.Insert(ingKey, secKey)
-			}
-		}
-		context.UpdateChannel.In() <- Event{
-			Type:  Create,
-			Value: obj,
-		}
-	}
-
-	ingressUpdateFunc := func(oldObj, newObj interface{}) {
-		if reflect.DeepEqual(oldObj, newObj) {
-			return
-		}
-		oldIng := oldObj.(*v1beta1.Ingress)
-		ing := newObj.(*v1beta1.Ingress)
-		if !isIngressApplicationGateway(ing) && !isIngressApplicationGateway(oldIng) {
-			return
-		}
-		if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
-			ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
-			context.ingressSecretsMap.Clear(ingKey)
-			for _, tls := range ing.Spec.TLS {
-				secKey := utils.GetResourceKey(ing.Namespace, tls.SecretName)
-
-				if context.ingressSecretsMap.ContainsPair(ingKey, secKey) {
-					continue
-				}
-
-				if secret, exists, err := context.Caches.Secret.GetByKey(secKey); exists && err == nil {
-					if !context.ingressSecretsMap.ContainsValue(secKey) {
-						done := context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret))
-						if !done {
-							continue
-						}
-					}
-				}
-
-				context.ingressSecretsMap.Insert(ingKey, secKey)
-			}
-		}
-
-		context.UpdateChannel.In() <- Event{
-			Type:  Update,
-			Value: newObj,
-		}
-	}
-
-	ingressDeleteFunc := func(obj interface{}) {
-		ing, ok := obj.(*v1beta1.Ingress)
-		if !ok {
-			tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-			if !ok {
-				// unable to get from tombstone
-				return
-			}
-			ing, ok = tombstone.Obj.(*v1beta1.Ingress)
-		}
-		if ing == nil {
-			return
-		}
-		if !isIngressApplicationGateway(ing) {
-			return
-		}
-		ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
-		context.ingressSecretsMap.Erase(ingKey)
-
-		context.UpdateChannel.In() <- Event{
-			Type:  Delete,
-			Value: obj,
-		}
+		AddFunc:    h.addFunc,
+		UpdateFunc: h.updateFunc,
+		DeleteFunc: h.deleteFunc,
 	}
 
 	ingressResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    ingressAddFunc,
-		UpdateFunc: ingressUpdateFunc,
-		DeleteFunc: ingressDeleteFunc,
-	}
-
-	// secret resource handlers
-	secretAddFunc := func(obj interface{}) {
-		sec := obj.(*v1.Secret)
-		secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
-		if context.ingressSecretsMap.ContainsValue(secKey) {
-			// find if this secKey exists in the map[string]UnorderedSets
-			done := context.CertificateSecretStore.convertSecret(secKey, sec)
-			if done {
-				context.UpdateChannel.In() <- Event{
-					Type:  Create,
-					Value: obj,
-				}
-			}
-		}
-	}
-
-	secretUpdateFunc := func(oldObj, newObj interface{}) {
-		if reflect.DeepEqual(oldObj, newObj) {
-			return
-		}
-
-		sec := newObj.(*v1.Secret)
-		secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
-		if context.ingressSecretsMap.ContainsValue(secKey) {
-			done := context.CertificateSecretStore.convertSecret(secKey, sec)
-			if done {
-				context.UpdateChannel.In() <- Event{
-					Type:  Update,
-					Value: newObj,
-				}
-			}
-		}
-	}
-
-	secretDeleteFunc := func(obj interface{}) {
-		sec, ok := obj.(*v1.Secret)
-		if !ok {
-			tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-			if !ok {
-				// unable to get from tombstone
-				return
-			}
-			sec, ok = tombstone.Obj.(*v1.Secret)
-		}
-		if sec == nil {
-			return
-		}
-
-		secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
-		context.CertificateSecretStore.eraseSecret(secKey)
-		if context.ingressSecretsMap.ContainsValue(secKey) {
-			context.UpdateChannel.In() <- Event{
-				Type:  Delete,
-				Value: obj,
-			}
-		}
+		AddFunc:    h.ingressAddFunc,
+		UpdateFunc: h.ingressUpdateFunc,
+		DeleteFunc: h.ingressDeleteFunc,
 	}
 
 	secretResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    secretAddFunc,
-		UpdateFunc: secretUpdateFunc,
-		DeleteFunc: secretDeleteFunc,
+		AddFunc:    h.secretAddFunc,
+		UpdateFunc: h.secretUpdateFunc,
+		DeleteFunc: h.secretDeleteFunc,
 	}
 
 	// Register event handlers.
-	context.informers.Endpoints.AddEventHandler(resourceHandler)
-	context.informers.Ingress.AddEventHandler(ingressResourceHandler)
-	context.informers.Pods.AddEventHandler(resourceHandler)
-	context.informers.Secret.AddEventHandler(secretResourceHandler)
-	context.informers.Service.AddEventHandler(resourceHandler)
+	informerCollection.Endpoints.AddEventHandler(resourceHandler)
+	informerCollection.Ingress.AddEventHandler(ingressResourceHandler)
+	informerCollection.Pods.AddEventHandler(resourceHandler)
+	informerCollection.Secret.AddEventHandler(secretResourceHandler)
+	informerCollection.Service.AddEventHandler(resourceHandler)
+	informerCollection.Namespace.AddEventHandler(resourceHandler)
 
 	return context
 }
