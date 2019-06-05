@@ -20,24 +20,25 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+// constant values to be used for testing
 const (
-	Namespace     = "--namespace--" //test namespace
-	Name          = "--name--" //test name
-	Host          = "bye.com" //test host
-	OtherHost     = "--some-other-hostname--" //another test host
-	NameOfSecret  = "--the-name-of-the-secret--" //test name of secret
-	ServiceName   = "--service-name--" //test service name
-	NodeName      = "--node-name--" //test node name
-	URLPath       = "/healthz" //test url path
-	ContainerName = "--container-name--" //test container name
-	ContainerPort = int32(9876) //test container port
-	ServicePort   = "service-port" //test service port
-	SelectorKey   = "app" //test selector key
-	SelectorValue = "frontend" //test selector value
-	Subscription  = "--subscription--" //test subscription
-	ResourceGroup = "--resource-group--" //test resource group
-	AppGwName     = "--app-gw-name--" //test name of Application Gateway
-	IPID1         = "--front-end-ip-id-1--" //test IPID1
+	Namespace     = "--namespace--" 
+	Name          = "--name--" 
+	Host          = "bye.com" 
+	OtherHost     = "--some-other-hostname--" 
+	NameOfSecret  = "--the-name-of-the-secret--" 
+	ServiceName   = "--service-name--" 
+	NodeName      = "--node-name--" 
+	URLPath       = "/healthz" 
+	ContainerName = "--container-name--" 
+	ContainerPort = int32(9876) 
+	ServicePort   = "service-port" 
+	SelectorKey   = "app" 
+	SelectorValue = "frontend" 
+	Subscription  = "--subscription--" 
+	ResourceGroup = "--resource-group--" 
+	AppGwName     = "--app-gw-name--" 
+	IPID1         = "--front-end-ip-id-1--" 
 )
 
 // GetIngress creates an Ingress test fixture.
