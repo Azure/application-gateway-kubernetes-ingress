@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -134,7 +135,7 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	for addr := range *m {
 		addresses = append(addresses, addr)
 	}
-	sort.Sort(byIPFQDN(addresses))
+	sort.Sort(sorter.ByIPFQDN(addresses))
 	return &addresses
 }
 
