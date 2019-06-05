@@ -183,19 +183,21 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
-	probeName := c.probesMap[backendID].Name
-	probeID := c.appGwIdentifier.probeID(*probeName)
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-
 	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: network.HTTP,
 			Port:     &port,
-			Probe:    resourceRef(probeID),
 		},
+	}
+
+	if c.probesMap[backendID] != nil {
+		probeName := c.probesMap[backendID].Name
+		probeID := c.appGwIdentifier.probeID(*probeName)
+		httpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = resourceRef(probeID)
 	}
 
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
