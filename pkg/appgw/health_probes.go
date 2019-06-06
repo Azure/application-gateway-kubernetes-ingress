@@ -33,12 +33,10 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[s
 
 		if probe != nil {
 			glog.Infof("[health-probes] Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
-			c.probesMap[backendID] = probe
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
 			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
-			c.probesMap[backendID] = &defaultProbe
 			probesMap[backendID] = &defaultProbe
 		}
 	}

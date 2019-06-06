@@ -89,8 +89,8 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 		},
-		probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
-		recorder:  record.NewFakeRecorder(1),
+		//probesMap: make(map[backendIdentifier]*network.ApplicationGatewayProbe),
+		recorder: record.NewFakeRecorder(1),
 	}
 
 	return cb
