@@ -192,8 +192,11 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		},
 	}
 
-	if c.probesMap[backendID] != nil {
-		probeName := c.probesMap[backendID].Name
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	_, probesMap := c.newProbesMap(ingressList)
+
+	if probesMap[backendID] != nil {
+		probeName := probesMap[backendID].Name
 		probeID := c.appGwIdentifier.probeID(*probeName)
 		httpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = resourceRef(probeID)
 	}
