@@ -23,7 +23,9 @@ func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.Appli
 		*defaultPool.Name: defaultPool,
 	}
 	backendPoolMap := make(map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool))
-	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		backendPoolMap[backendID] = defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			backendPoolMap[backendID] = pool
@@ -37,7 +39,8 @@ func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress)
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			addressPools[*pool.Name] = pool
 		}
@@ -137,10 +140,4 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	}
 	sort.Sort(sorter.ByIPFQDN(addresses))
 	return &addresses
-}
-
-func (c *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
-	// TODO(draychev): deprecate the use of c.serviceBackendPairMap
-	// Create this struct here instead of backendhttpsettings.go
-	return c.serviceBackendPairMap
 }
