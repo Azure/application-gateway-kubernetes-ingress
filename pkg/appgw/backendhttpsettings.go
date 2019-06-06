@@ -135,7 +135,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return nil, backendHTTPSettingsMap, finalServiceBackendPairMap, errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
 	probeID := c.appGwIdentifier.probeID(defaultProbeName)
@@ -151,7 +151,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
 			glog.Warning(logLine)
-			return nil, backendHTTPSettingsMap, finalServiceBackendPairMap, errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
 		}
 
 		// At this point there will be only one pair
