@@ -7,6 +7,7 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -17,7 +18,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
@@ -37,15 +37,15 @@ var _ = Describe("K8scontext", func() {
 	}
 
 	// Create the Ingress resource.
-	ingressObj := makeIngressTestFixture(ingressNS, ingressName)
+	ingressObj := tests.NewIngressTestFixture(ingressNS, ingressName)
 	ingress := &ingressObj
 
 	// Create the Ingress resource.
-	podObj := makePodTestFixture(ingressNS, "pod")
+	podObj := tests.NewPodTestFixture(ingressNS, "pod")
 	pod := &podObj
 
-	go_flag.Lookup("logtostderr").Value.Set("true")
-	go_flag.Set("v", "3")
+	_ = go_flag.Lookup("logtostderr").Value.Set("true")
+	_ = go_flag.Set("v", "3")
 
 	BeforeEach(func() {
 		// Create the mock K8s client.
@@ -168,7 +168,7 @@ var _ = Describe("K8scontext", func() {
 			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
 			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
 
-			podObj1 := makePodTestFixture(ingressNS, "pod2")
+			podObj1 := tests.NewPodTestFixture(ingressNS, "pod2")
 			pod1 := &podObj1
 			pod1.Labels = map[string]string{
 				"app":   "pod2",
@@ -218,51 +218,3 @@ var _ = Describe("K8scontext", func() {
 		})
 	})
 })
-
-func makeIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress {
-	return v1beta1.Ingress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ingressName,
-			Namespace: namespace,
-			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-			},
-		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
-				v1beta1.IngressRule{
-					Host: "hello.com",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								v1beta1.HTTPIngressPath{
-									Path: "/hi",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: "hello-world",
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func makePodTestFixture(namespace string, podName string) v1.Pod {
-	return v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      podName,
-			Namespace: namespace,
-			Labels: map[string]string{
-				"app": "pod",
-			},
-		},
-		Spec: v1.PodSpec{},
-	}
-}
