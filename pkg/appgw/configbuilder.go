@@ -24,12 +24,6 @@ type ConfigBuilder interface {
 }
 
 type appGwConfigBuilder struct {
-	serviceBackendPairMap map[backendIdentifier](serviceBackendPortPair)
-
-	backendHTTPSettingsMap map[backendIdentifier](*network.ApplicationGatewayBackendHTTPSettings)
-
-	probesMap map[backendIdentifier](*network.ApplicationGatewayProbe)
-
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
 	appGwConfig     network.ApplicationGatewayPropertiesFormat
@@ -40,13 +34,10 @@ type appGwConfigBuilder struct {
 func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat, recorder record.EventRecorder) ConfigBuilder {
 	return &appGwConfigBuilder{
 		// TODO(draychev): Decommission internal state
-		serviceBackendPairMap:  make(map[backendIdentifier]serviceBackendPortPair),
-		probesMap:              make(map[backendIdentifier]*network.ApplicationGatewayProbe),
-		backendHTTPSettingsMap: make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings),
-		k8sContext:             context,
-		appGwIdentifier:        *appGwIdentifier,
-		appGwConfig:            *originalConfig,
-		recorder:               recorder,
+		k8sContext:      context,
+		appGwIdentifier: *appGwIdentifier,
+		appGwConfig:     *originalConfig,
+		recorder:        recorder,
 	}
 }
 
