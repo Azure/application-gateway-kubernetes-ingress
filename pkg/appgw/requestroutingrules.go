@@ -238,7 +238,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
 	c.appGwConfig.RequestRoutingRules = &requestRoutingRules
 
-	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	sort.Sort(sorter.ByPathMap(urlPathMapFiltered))
 	c.appGwConfig.URLPathMaps = &urlPathMapFiltered
 
 	return nil
