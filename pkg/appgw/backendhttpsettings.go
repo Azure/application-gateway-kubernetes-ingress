@@ -48,9 +48,11 @@ func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interfa
 	return backendIDs
 }
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
-	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
 	backendIDs := newBackendIds(ingressList)
+	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
+	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
+	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
 	for backendID := range backendIDs {
@@ -133,7 +135,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
 	probeID := c.appGwIdentifier.probeID(defaultProbeName)
@@ -149,7 +151,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
 			glog.Warning(logLine)
-			return errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
 		}
 
 		// At this point there will be only one pair
@@ -158,10 +160,10 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 			uniquePair = k
 		}
 
-		c.serviceBackendPairMap[backendID] = uniquePair
+		finalServiceBackendPairMap[backendID] = uniquePair
 		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort)
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
-		c.backendHTTPSettingsMap[backendID] = &httpSettings
+		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
 	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
@@ -169,25 +171,31 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 		backends = append(backends, backend)
 	}
 
-	c.appGwConfig.BackendHTTPSettingsCollection = &backends
+	return &backends, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+}
 
-	return nil
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
+	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList)
+	c.appGwConfig.BackendHTTPSettingsCollection = backends
+	return err
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
-	probeName := c.probesMap[backendID].Name
-	probeID := c.appGwIdentifier.probeID(*probeName)
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-
 	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: network.HTTP,
 			Port:     &port,
-			Probe:    resourceRef(probeID),
 		},
+	}
+
+	if c.probesMap[backendID] != nil {
+		probeName := c.probesMap[backendID].Name
+		probeID := c.appGwIdentifier.probeID(*probeName)
+		httpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = resourceRef(probeID)
 	}
 
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
