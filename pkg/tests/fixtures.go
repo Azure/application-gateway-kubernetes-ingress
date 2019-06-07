@@ -329,3 +329,53 @@ func NewEndpointsFixture() *v1.Endpoints {
 		},
 	}
 }
+
+// NewIngressTestFixture creates a new Ingress struct for testing.
+func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress {
+	return v1beta1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ingressName,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+			},
+		},
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				{
+					Host: "hello.com",
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/hi",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: "hello-world",
+										ServicePort: intstr.IntOrString{
+											Type:   intstr.Int,
+											IntVal: 80,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// NewPodTestFixture creates a new Pod struct for testing.
+func NewPodTestFixture(namespace string, podName string) v1.Pod {
+	return v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": "pod",
+			},
+		},
+		Spec: v1.PodSpec{},
+	}
+}

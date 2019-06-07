@@ -25,18 +25,18 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[s
 	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
-	glog.Info("[health-probes] Adding default probe:", *defaultProbe.Name)
+	glog.Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
 	for backendID := range backendIDs {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.Infof("[health-probes] Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
+			glog.Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
+			glog.Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
 			probesMap[backendID] = &defaultProbe
 		}
 	}
@@ -46,7 +46,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[s
 func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
 	healthProbeCollection, _ := c.newProbesMap(ingressList)
 
-	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
+	glog.Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {

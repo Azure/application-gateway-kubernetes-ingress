@@ -9,6 +9,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -48,6 +49,8 @@ var (
 		"Interval at which to re-list and confirm cloud resources.")
 
 	versionInfo = flags.Bool("version", false, "Print version")
+
+	verbosity = flags.Int("verbosity", 1, "Set logging verbosity level")
 )
 
 func main() {
@@ -57,6 +60,8 @@ func main() {
 		glog.Fatal("Error parsing command line arguments:", err)
 	}
 
+	glog.Infof("Logging at verbosity level %d", *verbosity)
+
 	if *versionInfo {
 		version.PrintVersionAndExit()
 	}
@@ -65,7 +70,7 @@ func main() {
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
 	_ = flag.CommandLine.Parse([]string{})
 	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
+	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
 	env := getEnvVars()
 
