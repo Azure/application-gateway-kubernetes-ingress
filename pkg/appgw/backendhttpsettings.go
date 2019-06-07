@@ -52,7 +52,7 @@ func newBackendIds(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) ma
 	finalBackendIDs := make(map[backendIdentifier]interface{})
 	serviceSet := newServiceSet(&serviceList)
 	// Filter out backends, where Ingresses reference non-existent Services
-	for be, _ := range backendIDs {
+	for be := range backendIDs {
 		if _, exists := serviceSet[be.serviceKey()]; !exists {
 			glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
 			// TODO(draychev): Enable this filter when we are certain this won't break anything!
