@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -16,16 +17,31 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
+func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool) {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: defaultPool,
+	}
+	backendPoolMap := make(map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool))
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		backendPoolMap[backendID] = defaultPool
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[backendID] = pool
+		}
+	}
+	return backendPoolMap
+}
+
 func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	for backendID, serviceBackendPair := range c.getServiceBackendPairMap() {
-		c.backendPoolMap[backendID] = defaultPool
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			// TODO(draychev): deprecate the caching of state in c.backendPoolMap
-			c.backendPoolMap[backendID] = pool
 			addressPools[*pool.Name] = pool
 		}
 	}
@@ -122,12 +138,6 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	for addr := range *m {
 		addresses = append(addresses, addr)
 	}
-	sort.Sort(byIPFQDN(addresses))
+	sort.Sort(sorter.ByIPFQDN(addresses))
 	return &addresses
-}
-
-func (c *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
-	// TODO(draychev): deprecate the use of c.serviceBackendPairMap
-	// Create this struct here instead of backendhttpsettings.go
-	return c.serviceBackendPairMap
 }

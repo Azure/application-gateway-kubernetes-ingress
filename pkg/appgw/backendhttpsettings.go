@@ -23,29 +23,38 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
+func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
-	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
-
 	for _, ingress := range ingressList {
-		defIngressBackend := ingress.Spec.Backend
-		if defIngressBackend != nil {
-			backendIDs[generateBackendID(ingress, nil, nil, defIngressBackend)] = nil
+		if ingress.Spec.Backend != nil {
+			glog.Infof("Ingress spec has no backend. Adding a default.")
+			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
+			glog.Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
 			if rule.HTTP == nil {
 				// skip no http rule
+				glog.Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
+				glog.Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
 				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
 		}
 	}
+	return backendIDs
+}
 
-	unresolvedBackendID := make([]backendIdentifier, 0)
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+	backendIDs := newBackendIds(ingressList)
+	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
+	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
+	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
+
+	var unresolvedBackendID []backendIdentifier
 	for backendID := range backendIDs {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
@@ -126,7 +135,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
 	probeID := c.appGwIdentifier.probeID(defaultProbeName)
@@ -142,7 +151,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
 			glog.Warning(logLine)
-			return errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
 		}
 
 		// At this point there will be only one pair
@@ -151,36 +160,45 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta
 			uniquePair = k
 		}
 
-		c.serviceBackendPairMap[backendID] = uniquePair
+		finalServiceBackendPairMap[backendID] = uniquePair
 		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort)
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
-		c.backendHTTPSettingsMap[backendID] = &httpSettings
+		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
+	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
 		backends = append(backends, backend)
 	}
 
-	c.appGwConfig.BackendHTTPSettingsCollection = &backends
+	return &backends, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+}
 
-	return nil
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
+	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList)
+	c.appGwConfig.BackendHTTPSettingsCollection = backends
+	return err
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
-	probeName := c.probesMap[backendID].Name
-	probeID := c.appGwIdentifier.probeID(*probeName)
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-
 	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: network.HTTP,
 			Port:     &port,
-			Probe:    resourceRef(probeID),
 		},
+	}
+
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	_, probesMap := c.newProbesMap(ingressList)
+
+	if probesMap[backendID] != nil {
+		probeName := probesMap[backendID].Name
+		probeID := c.appGwIdentifier.probeID(*probeName)
+		httpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = resourceRef(probeID)
 	}
 
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {

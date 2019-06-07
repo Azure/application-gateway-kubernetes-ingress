@@ -3,19 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package appgw
+package sorter
 
 import (
 	"fmt"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 )
 
-// A facility to sort slices of ApplicationGatewayBackendAddress by IP, FQDN
-type byIPFQDN []n.ApplicationGatewayBackendAddress
+// ByIPFQDN is a facility to sort slices of ApplicationGatewayBackendAddress by IP, FQDN
+type ByIPFQDN []n.ApplicationGatewayBackendAddress
 
-func (a byIPFQDN) Len() int      { return len(a) }
-func (a byIPFQDN) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a byIPFQDN) Less(i, j int) bool {
+func (a ByIPFQDN) Len() int      { return len(a) }
+func (a ByIPFQDN) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByIPFQDN) Less(i, j int) bool {
 	return getIPFQDNKey(a[i]) < getIPFQDNKey(a[j])
 }
 

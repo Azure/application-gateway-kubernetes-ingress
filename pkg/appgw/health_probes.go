@@ -7,8 +7,10 @@ package appgw
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -17,58 +19,41 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
-	backendIDs := make(map[backendIdentifier]interface{})
+func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
-
-	for _, ingress := range ingressList {
-
-		glog.Infof("[health-probes] Configuring health probes for ingress: '%s'", ingress.Name)
-		if ingress.Spec.Backend != nil {
-			glog.Info("[health-probes] Ingress spec has no backend. Adding a default.")
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
-		}
-
-		for ruleIdx := range ingress.Spec.Rules {
-			rule := &ingress.Spec.Rules[ruleIdx]
-			glog.Infof("[health-probes] Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
-			if rule.HTTP == nil {
-				// skip no http rule
-				glog.Infof("[health-probes] Skip rule#%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
-				continue
-			}
-			for pathIdx := range rule.HTTP.Paths {
-				path := &rule.HTTP.Paths[pathIdx]
-				glog.Infof("[health-probes] Working on path #%d: '%s'", pathIdx+1, path.Path)
-				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
-			}
-		}
-	}
-
+	backendIDs := newBackendIds(ingressList)
+	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
-	glog.Info("[health-probes] Adding default probe:", *defaultProbe.Name)
+	glog.Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
 	for backendID := range backendIDs {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.Infof("[health-probes] Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
-			c.probesMap[backendID] = probe
+			glog.Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
+			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
-			c.probesMap[backendID] = &defaultProbe
+			glog.Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
+			probesMap[backendID] = &defaultProbe
 		}
 	}
+	return healthProbeCollection, probesMap
+}
 
-	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
+func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
+	healthProbeCollection, _ := c.newProbesMap(ingressList)
 
-	probes := make([]network.ApplicationGatewayProbe, 0)
+	glog.Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
+
+	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
 		probes = append(probes, probe)
 	}
+
+	sort.Sort(sorter.ByHealthProbeName(probes))
 
 	c.appGwConfig.Probes = &probes
 	return nil

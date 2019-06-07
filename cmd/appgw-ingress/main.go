@@ -9,6 +9,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -48,6 +49,8 @@ var (
 		"Interval at which to re-list and confirm cloud resources.")
 
 	versionInfo = flags.Bool("version", false, "Print version")
+
+	verbosity = flags.Int("verbosity", 1, "Set logging verbosity level")
 )
 
 func main() {
@@ -57,6 +60,8 @@ func main() {
 		glog.Fatal("Error parsing command line arguments:", err)
 	}
 
+	glog.Infof("Logging at verbosity level %d", *verbosity)
+
 	if *versionInfo {
 		version.PrintVersionAndExit()
 	}
@@ -65,7 +70,7 @@ func main() {
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
 	_ = flag.CommandLine.Parse([]string{})
 	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
+	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
 	env := getEnvVars()
 
@@ -86,10 +91,7 @@ func main() {
 	kubeClient := getKubeClient(env)
 	ctx := k8scontext.NewContext(kubeClient, env.WatchNamespace, *resyncPeriod)
 
-	recorder, err := getEventRecorder(kubeClient)
-	if err != nil {
-		glog.Fatal("Error creating event recorder:", err)
-	}
+	recorder := getEventRecorder(kubeClient)
 
 	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx, recorder).Start()
 	select {}
@@ -153,17 +155,19 @@ func getKubeClientConfig() *rest.Config {
 	return config
 }
 
-func getEventRecorder(kubeClient kubernetes.Interface) (record.EventRecorder, error) {
+func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(
 		&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
-	hostname, _ := os.Hostname()
-	recorder := eventBroadcaster.NewRecorder(
-		scheme.Scheme,
-		v1.EventSource{
-			Component: annotations.ApplicationGatewayIngressClass,
-			Host:      hostname,
-		})
-	return recorder, nil
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Error("Could not obtain host name from the operating system", err)
+		hostname = "unknown-hostname"
+	}
+	source := v1.EventSource{
+		Component: annotations.ApplicationGatewayIngressClass,
+		Host:      hostname,
+	}
+	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
 }

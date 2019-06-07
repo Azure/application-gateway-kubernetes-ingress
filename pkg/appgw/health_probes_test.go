@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -19,17 +20,17 @@ var _ = Describe("configure App Gateway health probes", func() {
 	Context("create probes", func() {
 		cb := newConfigBuilderFixture(nil)
 
-		endpoints := newEndpointsFixture()
+		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
 
-		service := newServiceFixture(*newServicePortsFixture()...)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)
 
-		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			newIngressFixture(),
+			tests.NewIngressFixture(),
 		}
 
 		// !! Action !!
@@ -59,8 +60,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeForHost := network.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            network.HTTP,
-				Host:                                to.StringPtr(testFixturesHost),
-				Path:                                to.StringPtr(testFixturesURLPath),
+				Host:                                to.StringPtr(tests.Host),
+				Path:                                to.StringPtr(tests.URLPath),
 				Interval:                            to.Int32Ptr(30),
 				Timeout:                             to.Int32Ptr(30),
 				UnhealthyThreshold:                  to.Int32Ptr(3),
@@ -78,8 +79,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeForOtherHost := network.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            network.HTTP,
-				Host:                                to.StringPtr(testFixturesHost),
-				Path:                                to.StringPtr(testFixturesURLPath),
+				Host:                                to.StringPtr(tests.Host),
+				Path:                                to.StringPtr(tests.URLPath),
 				Interval:                            to.Int32Ptr(20),
 				Timeout:                             to.Int32Ptr(5),
 				UnhealthyThreshold:                  to.Int32Ptr(3),
@@ -114,11 +115,11 @@ var _ = Describe("configure App Gateway health probes", func() {
 	Context("use default probe when service doesn't exists", func() {
 		cb := newConfigBuilderFixture(nil)
 
-		pod := newPodFixture(testFixturesServiceName, testFixturesNamespace, testFixturesContainerName, testFixturesContainerPort)
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		ingressList := []*v1beta1.Ingress{
-			newIngressFixture(),
+			tests.NewIngressFixture(),
 		}
 
 		// !! Action !!
