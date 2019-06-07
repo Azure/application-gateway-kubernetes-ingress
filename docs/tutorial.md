@@ -5,6 +5,7 @@
 - [Expose services over HTTPS](#expose-services-over-https)
   * [Without specified hostname](#without-specified-hostname)
   * [With specified hostname](#with-specified-hostname)
+  * [Certificate issuance with `Lets Encrypt`](#certificate-issuance-with-lets-encrypt)
 - [Integrate with other services](#integrate-with-other-services)
 - [Adding Health Probes to your service](#adding-health-probes-to-your-service)
   * [With readinessProbe or livenessProbe](#with-readinessprobe-or-livenessprobe)
@@ -159,6 +160,107 @@ By specifying hostname, the guestbook service will only be available on the spec
 3. Check the log of the ingress controller for deployment status.
 
 Now the `guestbook` application will be available on both HTTP and HTTPS only on the specified host (`<guestbook.contoso.com>` in this example).
+
+### Certificate issuance with Lets Encrypt
+
+This section configures [Lets Encrypt](https://letsencrypt.org/) to issue the certificate that Applicaiton Gateway will use for SSL/TLS termination at the gateway.  This uses the Kubernetes add-on [cert-manager](https://github.com/jetstack/cert-manager) to automate the creation and management of the kubernetes secret containing the certificate.
+
+> [!NOTE]
+> The following steps will install `cert-manager` in your cluster, full documnetation can be found on the cert-manager docs site [here](https://docs.cert-manager.io)
+
+1. run this script to install the `cert-manager` helm chart [(from docs.cert-manager.io)](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps)
+
+
+```sh
+# Install the CustomResourceDefinition resources separately
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
+
+# Create the namespace for cert-manager
+kubectl create namespace cert-manager
+
+# Label the cert-manager namespace to disable resource validation
+kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+# Update your local Helm chart repository cache
+helm repo update
+
+# Install the cert-manager Helm chart
+helm install \
+  --name cert-manager \
+  --namespace cert-manager \
+  --version v0.8.0 \
+  jetstack/cert-manager
+```
+
+2. Create a `ClusterIssuer`, these details are required by `cert-manager` to automatically generate a certificate request which is fulfilled by the issuer (`Lets Encrypt`).  `Let’s Encrypt` uses the ACME protocol to verify that you control a given domain name and to issue you a certificate
+
+> [!NOTE]
+> This `ClusterIssuer` will instruct `cert-manager` to issue certificates using the `Lets Encrypt` staging environment used for testing (the root certificate not present in browser/client trust stores).
+
+IMPORTANT! Update `<YOUR.EMAIL@ADDRESS>` in the yaml below, save the file & apply to your cluster using ```kubectl apply -f issuer-letsencrypt-staging.yaml```
+
+```yaml
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: <YOUR.EMAIL@ADDRESS>
+    # ACME server URL for Let’s Encrypt’s staging environment. 
+    # The staging environment will not issue trusted certificates but is 
+    # used to ensure that the verification process is working properly 
+    # before moving to production
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      # Secret resource used to store the account's private key.
+      name: example-issuer-account-key
+    # Enable the HTTP-01 challenge provider
+    # you prove ownership of a domain by ensuring that a particular 
+    # file is present at the domain
+    http01: {}
+```
+
+3. Create a Ingress service to Expose the `guestbook` application using the Application Gateway with the Lets Encrypt Certificate.
+
+> [!NOTE]
+> Ensure you Application Gateway has a public Frontend IP configuration with a DNS name (either using the  default `azure.com` domain, or provision a `Azure DNS Zone` service, and assign your own custom domain). 
+
+Update the yaml `<PLACEHOLDERS.COM>` below with your domain (for example 'kh-aks-ingress.westeurope.cloudapp.azure.com'), Save the file & apply to your cluster using ```kubectl apply -f guestbook-letsencrypt-staging.yaml```
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook-letsencrypt-staging
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
+spec:
+  tls:
+  - hosts:
+    - <PLACEHOLDERS.COM>
+    secretName: guestbook-secret-name
+  rules:
+  - host: <PLACEHOLDERS.COM>
+    http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80
+```
+
+
+After a few seconds, you  can access the `guestbook` service through the Application Gateway HTTPS url using the automatically issued `Lets Encrypt` certificate. 
+
+NOTE: Before the `Lets Encrypt` certificate expires, `cert-manager` will  update the certificate in the kubernetes secret store. At that point, application-gateway-ingress-controller will apply the updated secret referenced in the ingress resources it is using to configure the Application Gateway.
+
 
 ## Integrate with other services
 
