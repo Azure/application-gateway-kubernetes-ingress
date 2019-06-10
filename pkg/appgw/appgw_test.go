@@ -68,8 +68,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	serviceList := []*v1.Service{}
-
 	// Create the Ingress resource.
 	ingress := &v1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{

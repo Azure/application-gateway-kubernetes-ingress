@@ -61,16 +61,6 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 	return nil
 }
 
-func newServiceSet(services *[]*v1.Service) map[string]interface{} {
-	servicesSet := make(map[string]interface{})
-	for _, service := range *services {
-		serviceKey := fmt.Sprintf("%s/%s", service.Namespace, service.Name)
-		servicesSet[serviceKey] = nil
-	}
-	return servicesSet
-
-}
-
 func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	if config.URLPathMaps == nil {
 		return nil

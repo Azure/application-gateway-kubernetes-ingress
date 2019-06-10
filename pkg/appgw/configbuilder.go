@@ -22,7 +22,6 @@ type ConfigBuilder interface {
 	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	Build(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*network.ApplicationGatewayPropertiesFormat, error)
-	Build() (*network.ApplicationGatewayPropertiesFormat, error)
 }
 
 type appGwConfigBuilder struct {
