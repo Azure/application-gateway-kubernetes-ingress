@@ -112,7 +112,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	// Replace the current appgw config with the generated one
-	if appGw.ApplicationGatewayPropertiesFormat, err = configBuilder.Build(); err != nil {
+	if appGw.ApplicationGatewayPropertiesFormat, err = configBuilder.Build(ingressList, serviceList); err != nil {
 		glog.Error("ConfigBuilder failed to create Application Gateway config:", err)
 	}
 

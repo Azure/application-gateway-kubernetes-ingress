@@ -10,6 +10,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/client-go/tools/record"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -17,12 +20,16 @@ import (
 var _ = Describe("Test ConfigBuilder validator functions", func() {
 	Context("test validateURLPathMaps", func() {
 
+		eventRecorder := record.NewFakeRecorder(100)
+		ingressList := []*v1beta1.Ingress{}
+		serviceList := []*v1.Service{}
+
 		config := n.ApplicationGatewayPropertiesFormat{
 			URLPathMaps: &[]n.ApplicationGatewayURLPathMap{},
 		}
 
 		It("", func() {
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 
@@ -36,7 +43,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyNoDefaults]))
 		})
@@ -51,7 +58,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyEitherDefaults]))
 		})
@@ -66,7 +73,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyNoDefaults]))
 		})
@@ -81,7 +88,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 
@@ -95,7 +102,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(&config)
+			err := validateURLPathMaps(eventRecorder, &config, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 	})

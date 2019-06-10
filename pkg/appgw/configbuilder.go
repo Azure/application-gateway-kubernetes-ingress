@@ -21,6 +21,7 @@ type ConfigBuilder interface {
 	Listeners(ingressList []*v1beta1.Ingress) error
 	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	Build(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*network.ApplicationGatewayPropertiesFormat, error)
 	Build() (*network.ApplicationGatewayPropertiesFormat, error)
 }
 
@@ -87,19 +88,20 @@ func generateListenerID(rule *v1beta1.IngressRule,
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
-func (c *appGwConfigBuilder) Build() (*network.ApplicationGatewayPropertiesFormat, error) {
-	return &c.appGwConfig, c.Validate()
+func (c *appGwConfigBuilder) Build(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*network.ApplicationGatewayPropertiesFormat, error) {
+	return &c.appGwConfig, c.Validate(ingressList, serviceList)
 }
 
 // Validate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
-func (c *appGwConfigBuilder) Validate() error {
+func (c *appGwConfigBuilder) Validate(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 
-	validators := []func(config *network.ApplicationGatewayPropertiesFormat) error{
+	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
 		validateURLPathMaps,
+		validateServiceDefinition,
 	}
 
 	for _, fn := range validators {
-		if err := fn(&c.appGwConfig); err != nil {
+		if err := fn(c.recorder, &c.appGwConfig, ingressList, serviceList); err != nil {
 			return err
 		}
 	}

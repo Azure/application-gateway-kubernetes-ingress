@@ -68,6 +68,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	serviceList := []*v1.Service{}
+
 	// Create the Ingress resource.
 	ingress := &v1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
@@ -295,7 +297,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		baseURLPathMapsChecker(appGW, 443, domainName)
 	}
 
-	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
+	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
 		// Add Health Probes.
 		err := configBuilder.HealthProbesCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
@@ -305,7 +307,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW, _ := configBuilder.Build()
+		appGW, _ := configBuilder.Build(ingressList, serviceList)
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
 
@@ -324,7 +326,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW, _ = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
 		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
 
@@ -337,7 +339,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW, _ = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.listeners.total), "Did not find expected number of HTTP listeners")
 
@@ -350,7 +352,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW, _ = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total),
 			fmt.Sprintf("Expected %d request routing rules; Got %d", settings.requestRoutingRules.total, len(*appGW.RequestRoutingRules)))
 
@@ -437,7 +439,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			ingressList := testIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -516,7 +518,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   1,
 					checker: EmptyHealthProbeChecker,
@@ -647,7 +649,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Get all the ingresses
 			ingressList := testTLSIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -748,7 +750,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
