@@ -89,7 +89,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 		},
-		recorder: record.NewFakeRecorder(1),
+		recorder: record.NewFakeRecorder(100),
 	}
 
 	return cb
