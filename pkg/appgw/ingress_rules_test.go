@@ -155,7 +155,15 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Expect(azConfigMapKeys[0].FrontendPort).To(Equal(port443))
 
 			actualVal := httpListenersAzureConfigMap[azConfigMapKeys[0]]
-			Expect(actualVal).To(Equal(expectedListenerAzConfigSSL))
+			expectedListenerConfig := listenerAzConfig{
+				Protocol: "Https",
+				Secret: secretIdentifier{
+					Namespace: tests.Namespace,
+					Name:      tests.NameOfSecret,
+				},
+			}
+			Expect(actualVal).To(Equal(expectedListenerConfig))
+			Expect(actualVal.SslRedirectConfigurationName).To(Equal(""))
 		})
 	})
 })

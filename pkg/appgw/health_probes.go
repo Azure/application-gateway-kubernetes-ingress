@@ -19,29 +19,34 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
+func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
 	backendIDs := newBackendIds(ingressList)
-
+	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
-	glog.Info("[health-probes] Adding default probe:", *defaultProbe.Name)
+	glog.Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
 	for backendID := range backendIDs {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.Infof("[health-probes] Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
-			c.probesMap[backendID] = probe
+			glog.Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
+			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.Infof("[health-probes] No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
-			c.probesMap[backendID] = &defaultProbe
+			glog.Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
+			probesMap[backendID] = &defaultProbe
 		}
 	}
+	return healthProbeCollection, probesMap
+}
 
-	glog.Infof("[health-probes] Will create %d App Gateway probes.", len(healthProbeCollection))
+func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
+	healthProbeCollection, _ := c.newProbesMap(ingressList)
+
+	glog.Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {

@@ -136,6 +136,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
+	configJSON, _ := c.dumpSanitizedJSON(&appGw)
+	glog.V(5).Info(string(configJSON))
 	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
