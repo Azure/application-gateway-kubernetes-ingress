@@ -22,7 +22,7 @@ require (
 	github.com/golang/protobuf v1.3.0 // indirect
 	github.com/google/btree v0.0.0-20160524151835-7d79101e329e // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
-	github.com/googleapis/gnostic v0.2.0 // indirect
+	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d // indirect
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.6.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
@@ -39,7 +39,6 @@ require (
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/spf13/pflag v1.0.3
 	golang.org/x/sys v0.0.0-20190307162637-572b51eaf722 // indirect
-	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20161028155119-f51c12702a4d // indirect
 	google.golang.org/api v0.0.0-20190305202223-1949198e2e5a // indirect
 	google.golang.org/appengine v1.5.0 // indirect
