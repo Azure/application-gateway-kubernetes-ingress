@@ -69,25 +69,26 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Create a configbuilder based on current appgw config
 	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
-	// Get all the ingresses
+	// Get all the ingresses and services
 	ingressList := c.k8sContext.GetHTTPIngressList()
+	serviceList := c.k8sContext.GetServiceList()
 
 	// The following operations need to be in sequence
-	err = configBuilder.HealthProbesCollection(ingressList)
+	err = configBuilder.HealthProbesCollection(ingressList, serviceList)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
 		return errors.New("unable to generate health probes")
 	}
 
 	// The following operations need to be in sequence
-	err = configBuilder.BackendHTTPSettingsCollection(ingressList)
+	err = configBuilder.BackendHTTPSettingsCollection(ingressList, serviceList)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
 		return errors.New("unable to generate backend http settings")
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
-	err = configBuilder.BackendAddressPools(ingressList)
+	err = configBuilder.BackendAddressPools(ingressList, serviceList)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
 		return errors.New("unable to generate backend address pools")
@@ -104,7 +105,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
-	err = configBuilder.RequestRoutingRules(ingressList)
+	err = configBuilder.RequestRoutingRules(ingressList, serviceList)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
 		return errors.New("unable to generate request routing rules")

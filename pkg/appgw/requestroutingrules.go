@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	v1 "k8s.io/api/core/v1"
 	"sort"
 	"strconv"
 
@@ -17,7 +18,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule,
+func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v1.Service, rule *v1beta1.IngressRule,
 	listenerID listenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
 	defaultAddressPoolID string, defaultHTTPSettingsID string) *network.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
@@ -36,9 +37,9 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 	}
 
-	backendPools := c.newBackendPoolMap()
 	ingressList := c.k8sContext.GetHTTPIngressList()
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList)
+	backendPools := c.newBackendPoolMap(ingressList, serviceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
@@ -80,11 +81,11 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.In
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress) error {
+func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	_, httpListenersMap := c.getListeners(ingressList)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
-	backendPools := c.newBackendPoolMap()
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList)
+	backendPools := c.newBackendPoolMap(ingressList, serviceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for _, ingress := range ingressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
@@ -148,13 +149,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, wildcardRule,
+					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, wildcardRule,
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, rule,
+				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
@@ -167,13 +168,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress)
 			if httpsAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, wildcardRule,
+					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, wildcardRule,
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, rule,
+				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}

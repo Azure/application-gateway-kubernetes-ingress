@@ -30,6 +30,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		},
 	}
 
+	serviceList := []*v1.Service{
+		tests.NewServiceFixture(),
+	}
+
 	Context("build a list of BackendAddressPools", func() {
 		ing1 := tests.NewIngressFixture()
 		ing2 := tests.NewIngressFixture()
@@ -39,9 +43,12 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 		cb := newConfigBuilderFixture(nil)
 		for _, ingress := range ingressList {
-			cb.k8sContext.Caches.Ingress.Add(ingress)
+			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList())
+		serviceList := []*v1.Service{
+			tests.NewServiceFixture(),
+		}
+		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
 
 		It("should contain correct number of backend address pools", func() {
 			Expect(len(*cb.appGwConfig.BackendAddressPools)).To(Equal(1))
@@ -69,9 +76,9 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
 		for _, ingress := range ingressList {
-			cb.k8sContext.Caches.Ingress.Add(ingress)
+			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList())
+		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
 			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
@@ -99,9 +106,9 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
 		for _, ingress := range ingressList {
-			cb.k8sContext.Caches.Ingress.Add(ingress)
+			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList())
+		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
 
 		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)

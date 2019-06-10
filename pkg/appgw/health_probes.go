@@ -19,16 +19,15 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
+func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
-	backendIDs := newBackendIds(ingressList)
 	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
 	glog.Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for backendID := range backendIDs {
+	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
@@ -43,8 +42,8 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[s
 	return healthProbeCollection, probesMap
 }
 
-func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress) error {
-	healthProbeCollection, _ := c.newProbesMap(ingressList)
+func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+	healthProbeCollection, _ := c.newProbesMap(ingressList, serviceList)
 
 	glog.Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 

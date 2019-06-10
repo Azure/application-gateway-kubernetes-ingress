@@ -5,7 +5,9 @@
 
 package appgw
 
-import "k8s.io/api/extensions/v1beta1"
+import (
+	"k8s.io/api/extensions/v1beta1"
+)
 
 func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress) error {
 	c.appGwConfig.SslCertificates = c.getSslCertificates(ingressList)

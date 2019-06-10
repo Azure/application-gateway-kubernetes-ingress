@@ -17,14 +17,13 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool) {
+func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	backendPoolMap := make(map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool))
-	ingressList := c.k8sContext.GetHTTPIngressList()
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		backendPoolMap[backendID] = defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
@@ -34,12 +33,12 @@ func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.Appli
 	return backendPoolMap
 }
 
-func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) error {
+func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			addressPools[*pool.Name] = pool
