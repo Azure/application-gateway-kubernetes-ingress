@@ -27,7 +27,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	glog.Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for backendID := range newBackendIds(ingressList, serviceList) {
+	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {

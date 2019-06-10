@@ -23,12 +23,12 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func newBackendIds(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]interface{} {
+func newBackendIdsFiltered(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
 		if ingress.Spec.Backend != nil {
 			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
-			glog.Info("Ingress spec has no backend. Adding default backend:", backendID.serviceKey(), backendID.serviceFullName())
+			glog.Info("Found default backend:", backendID.serviceKey())
 			backendIDs[backendID] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
@@ -43,7 +43,7 @@ func newBackendIds(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) ma
 				path := &rule.HTTP.Paths[pathIdx]
 				glog.V(5).Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
 				backendID := generateBackendID(ingress, rule, path, &path.Backend)
-				glog.Info("Adding backend:", backendID.serviceKey(), backendID.serviceFullName())
+				glog.Info("Found backend:", backendID.serviceKey())
 				backendIDs[backendID] = nil
 			}
 		}
@@ -52,7 +52,7 @@ func newBackendIds(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) ma
 	finalBackendIDs := make(map[backendIdentifier]interface{})
 	serviceSet := newServiceSet(&serviceList)
 	// Filter out backends, where Ingresses reference non-existent Services
-	for be, _ := range backendIDs {
+	for be := range backendIDs {
 		if _, exists := serviceSet[be.serviceKey()]; !exists {
 			glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
 			// TODO(draychev): Enable this filter when we are certain this won't break anything!
@@ -78,12 +78,12 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
-	for backendID := range newBackendIds(ingressList, serviceList) {
+	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
-			// This should never happen since newBackendIds() already filters out backends for non-existent Services
+			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
 			glog.Errorf(logLine)
