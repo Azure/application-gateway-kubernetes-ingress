@@ -75,23 +75,16 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
-	// TODO(draychev):  serviceSet := newServiceSet(&serviceList)
 	var unresolvedBackendID []backendIdentifier
 	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
+
 		service := c.k8sContext.GetService(backendID.serviceKey())
-		// TODO(draychev): Remove the use of GetService
-		/*
-			service, exist := serviceSet[backendID.serviceKey()]
-			if !exist {
-				glog.Error("No such service:", backendID.serviceKey())
-			}
-		*/
 		if service == nil {
 			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
-			// glog.Errorf(logLine)
+			glog.Errorf(logLine)
 			pair := serviceBackendPortPair{
 				ServicePort: backendID.Backend.ServicePort.IntVal,
 				BackendPort: backendID.Backend.ServicePort.IntVal,

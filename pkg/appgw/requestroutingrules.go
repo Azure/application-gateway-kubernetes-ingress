@@ -36,8 +36,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 	}
 
-	// ingressList := c.k8sContext.GetHTTPIngressList()
-	ingressList := []*v1beta1.Ingress{ingress}
+	ingressList := c.k8sContext.GetHTTPIngressList()
 	backendPools := c.newBackendPoolMap(ingressList, serviceList)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for pathIdx := range rule.HTTP.Paths {
