@@ -40,7 +40,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				Namespace: tests.Namespace,
 				Name:      "--the-name-of-the-secret--",
 			},
-			SslRedirectConfigurationName: "sslr-" + tests.Namespace + "-" + tests.Name,
+			SslRedirectConfigurationName: "sslr-fl-bye.com-443",
 		},
 	}
 
@@ -65,7 +65,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				URLPathMaps:         nil,
 				PathRules:           nil,
 			},
-			Name: to.StringPtr("sslr-" + tests.Namespace + "-" + tests.Name),
+			Name: to.StringPtr("sslr-fl-bye.com-443"),
 			Etag: to.StringPtr("*"),
 			Type: nil,
 			ID:   nil,
@@ -84,7 +84,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			Expect(len(actualListeners)).To(Equal(2))
 			Expect(actualListeners[listenerID1]).To(Equal(expectedListenerConfigs[listenerID1]))
 			Expect(actualListeners[listenerID2]).To(Equal(expectedListenerConfigs[listenerID2]))
-			Expect(actualListeners[listenerID2].SslRedirectConfigurationName).To(Equal("sslr-"+tests.Namespace+"-"+tests.Name), fmt.Sprintf("Actual: %+v", actualListeners))
+			expected := "sslr-fl-bye.com-443"
+			Expect(actualListeners[listenerID2].SslRedirectConfigurationName).To(Equal(expected), fmt.Sprintf("Actual: %+v", actualListeners))
 		})
 	})
 

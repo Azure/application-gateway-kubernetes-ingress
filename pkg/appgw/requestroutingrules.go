@@ -86,7 +86,6 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 	backendPools := c.newBackendPoolMap(ingressList, serviceList)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for _, ingress := range ingressList {
-		ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
@@ -138,8 +137,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 			httpsAvailable := false
 			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
 			if _, exist := httpListenersMap[listenerHTTPSID]; exist {
-				cert, _ := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
-				httpsAvailable = cert != nil
+				httpsAvailable = true
 			}
 
 			if httpAvailable {
@@ -157,7 +155,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 
 				// If ingress is annotated with "ssl-redirect" and we have TLS - setup redirection configuration.
 				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && httpsAvailable {
-					c.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
+					c.modifyPathRulesForRedirection(urlPathMaps[listenerHTTPID], listenerHTTPSID)
 				}
 			}
 
@@ -240,18 +238,18 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 	return nil
 }
 
-func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress *v1beta1.Ingress) *network.SubResource {
-	configName := generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name)
+func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListener listenerIdentifier) *network.SubResource {
+	configName := generateSSLRedirectConfigurationName(targetListener)
 	sslRedirectConfigID := c.appGwIdentifier.redirectConfigurationID(configName)
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (c *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta1.Ingress, httpURLPathMap *network.ApplicationGatewayURLPathMap) {
+func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *network.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
 	// Application Gateway supports Basic and Path-based rules
 
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"
-		redirectRef := c.getSslRedirectConfigResourceReference(ingress)
+		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 
 		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
@@ -266,7 +264,7 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta1.Ingr
 	for idx := range *httpURLPathMap.PathRules {
 		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
-		redirectRef := c.getSslRedirectConfigResourceReference(ingress)
+		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
 
 		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)

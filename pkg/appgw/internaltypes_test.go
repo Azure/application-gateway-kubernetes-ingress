@@ -17,6 +17,10 @@ import (
 
 var _ = Describe("Test string key generators", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+	targetListener := listenerIdentifier{
+		FrontendPort: int32(8080),
+		HostName:     "foo.baz",
+	}
 
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
@@ -78,8 +82,8 @@ var _ = Describe("Test string key generators", func() {
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
-			actual := generateSSLRedirectConfigurationName(tests.Namespace, ingress.Name)
-			expected := agPrefix + "sslr-" + tests.Namespace + "-INGR"
+			actual := generateSSLRedirectConfigurationName(targetListener)
+			expected := "sslr-fl-foo.baz-8080"
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -171,7 +175,7 @@ var _ = Describe("Test string key generators", func() {
 			generateListenerName(felID),
 			generateURLPathMapName(felID),
 			generateRequestRoutingRuleName(felID),
-			generateSSLRedirectConfigurationName(namespace, ingress.Name),
+			generateSSLRedirectConfigurationName(targetListener),
 		}
 		It("ensure test is setup correctly", func() {
 			// ensure this is setup correctly

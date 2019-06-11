@@ -134,8 +134,8 @@ func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
 	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixRoutingRule, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	return formatPropName(fmt.Sprintf("%s%s-%s-%s", agPrefix, prefixRedirect, namespace, ingress))
+func generateSSLRedirectConfigurationName(targetListener listenerIdentifier) string {
+	return formatPropName(fmt.Sprintf("%s%s-%s", agPrefix, prefixRedirect, generateListenerName(targetListener)))
 }
 
 func generatePathRuleName(namespace, ingress, suffix string) string {
