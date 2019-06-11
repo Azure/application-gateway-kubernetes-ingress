@@ -20,6 +20,18 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
+const (
+	prefixHTTPSettings = "bp"
+	prefixProbe        = "pb"
+	prefixPool         = "pool"
+	prefixPort         = "fp"
+	prefixListener     = "fl"
+	prefixPathMap      = "url"
+	prefixRoutingRule  = "rr"
+	prefixRedirect     = "sslr"
+	prefixPathRule     = "pr"
+)
+
 type backendIdentifier struct {
 	serviceIdentifier
 	Ingress *v1beta1.Ingress
@@ -95,43 +107,39 @@ func getResourceKey(namespace, name string) string {
 }
 
 func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	namePrefix := "bp-"
-	return formatPropName(fmt.Sprintf("%s%s%v-%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, backendPortNo, ingress))
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPortNo, ingress))
 }
 
-func generateProbeName(serviceName string, servicePort string, ingress string) string {
-	namePrefix := "pb-"
-	return formatPropName(fmt.Sprintf("%s%s%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, ingress))
+func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
+	return formatPropName(fmt.Sprintf("%s%s-%s-%v-%v-%s", agPrefix, prefixProbe, ingress.Namespace, serviceName, servicePort, ingress.Name))
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	namePrefix := "pool-"
-	return formatPropName(fmt.Sprintf("%s%s%v-%v-bp-%v", agPrefix, namePrefix, serviceName, servicePort, backendPortNo))
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPortNo))
 }
 
 func generateFrontendPortName(port int32) string {
-	namePrefix := "fp-"
-	return formatPropName(fmt.Sprintf("%s%s%v", agPrefix, namePrefix, port))
+	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixPort, port))
 }
 
 func generateListenerName(listenerID listenerIdentifier) string {
-	namePrefix := "fl-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
 func generateURLPathMapName(listenerID listenerIdentifier) string {
-	namePrefix := "url-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixPathMap, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
 func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
-	namePrefix := "rr-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixRoutingRule, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
 func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	namePrefix := "sslr-"
-	return formatPropName(fmt.Sprintf("%s%s%s-%s", agPrefix, namePrefix, namespace, ingress))
+	return formatPropName(fmt.Sprintf("%s%s-%s-%s", agPrefix, prefixRedirect, namespace, ingress))
+}
+
+func generatePathRuleName(namespace, ingress, suffix string) string {
+	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
 }
 
 var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)

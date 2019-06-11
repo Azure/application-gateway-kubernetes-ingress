@@ -42,6 +42,7 @@ func (c *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) (*[]n.
 func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
+		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		_, azListenerConfigs := c.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig

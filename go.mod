@@ -22,7 +22,7 @@ require (
 	github.com/golang/protobuf v1.3.0 // indirect
 	github.com/google/btree v0.0.0-20160524151835-7d79101e329e // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
-	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d // indirect
+	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.6.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.0 // indirect

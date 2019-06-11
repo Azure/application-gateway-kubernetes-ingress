@@ -45,8 +45,14 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 // resolvePortName function goes through the endpoints of a given service and
 // look for possible port number corresponding to a port name
 func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
-	endpoints := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
+	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
+	if err != nil {
+		// TODO(draychev): what do we do now?
+	}
 	resolvedPorts := make(map[int32]interface{})
+	if endpoints == nil {
+		return resolvedPorts
+	}
 	for _, subset := range endpoints.Subsets {
 		for _, epPort := range subset.Ports {
 			if epPort.Name == portName {

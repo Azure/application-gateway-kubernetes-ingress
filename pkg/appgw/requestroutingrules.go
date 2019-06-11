@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	v1 "k8s.io/api/core/v1"
 	"sort"
 	"strconv"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
@@ -22,10 +22,9 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 	listenerID listenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
 	defaultAddressPoolID string, defaultHTTPSettingsID string) *network.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
-		urlPathMapName := generateURLPathMapName(listenerID)
 		urlPathMap = &network.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
-			Name: &urlPathMapName,
+			Name: to.StringPtr(generateURLPathMapName(listenerID)),
 			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &network.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &network.SubResource{ID: &defaultHTTPSettingsID},
@@ -37,7 +36,8 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 	}
 
-	ingressList := c.k8sContext.GetHTTPIngressList()
+	// ingressList := c.k8sContext.GetHTTPIngressList()
+	ingressList := []*v1beta1.Ingress{ingress}
 	backendPools := c.newBackendPoolMap(ingressList, serviceList)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for pathIdx := range rule.HTTP.Paths {
@@ -63,10 +63,9 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 			}
 		} else {
 			// associate backend with a path-based rule
-			pathName := "k8s-" + strconv.Itoa(len(pathRules))
 			pathRules = append(pathRules, network.ApplicationGatewayPathRule{
 				Etag: to.StringPtr("*"),
-				Name: &pathName,
+				Name: to.StringPtr(generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))),
 				ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
 					Paths:               &[]string{path.Path},
 					BackendAddressPool:  &backendPoolSubResource,
@@ -87,6 +86,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 	backendPools := c.newBackendPoolMap(ingressList, serviceList)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for _, ingress := range ingressList {
+		ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
@@ -132,18 +132,14 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 				continue
 			}
 
-			httpAvailable := false
-			httpsAvailable := false
-
 			listenerHTTPID := generateListenerID(rule, network.HTTP, nil)
-			if _, exist := httpListenersMap[listenerHTTPID]; exist {
-				httpAvailable = true
-			}
+			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			// check annotation for port override
+			httpsAvailable := false
 			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
 			if _, exist := httpListenersMap[listenerHTTPSID]; exist {
-				httpsAvailable = true
+				cert, _ := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
+				httpsAvailable = cert != nil
 			}
 
 			if httpAvailable {
@@ -185,10 +181,9 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
-		urlPathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &network.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
-			Name: &urlPathMapName,
+			Name: to.StringPtr(generateURLPathMapName(listenerID)),
 			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &network.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &network.SubResource{ID: &defaultHTTPSettingsID},
