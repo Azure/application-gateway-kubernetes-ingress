@@ -23,43 +23,67 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interface{} {
+func newBackendIdsFiltered(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
 		if ingress.Spec.Backend != nil {
-			glog.Infof("Ingress spec has no backend. Adding a default.")
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
+			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+			glog.Info("Found default backend:", backendID.serviceKey())
+			backendIDs[backendID] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
-			glog.Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
+			glog.V(5).Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
 			if rule.HTTP == nil {
 				// skip no http rule
-				glog.Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
+				glog.V(5).Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
-				glog.Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
-				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
+				glog.V(5).Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
+				backendID := generateBackendID(ingress, rule, path, &path.Backend)
+				glog.Info("Found backend:", backendID.serviceKey())
+				backendIDs[backendID] = nil
 			}
 		}
 	}
-	return backendIDs
+
+	finalBackendIDs := make(map[backendIdentifier]interface{})
+	serviceSet := newServiceSet(&serviceList)
+	// Filter out backends, where Ingresses reference non-existent Services
+	for be := range backendIDs {
+		if _, exists := serviceSet[be.serviceKey()]; !exists {
+			glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
+			// TODO(draychev): Enable this filter when we are certain this won't break anything!
+			// continue
+		}
+		finalBackendIDs[be] = nil
+	}
+	return finalBackendIDs
 }
 
-func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
-	backendIDs := newBackendIds(ingressList)
+func newServiceSet(services *[]*v1.Service) map[string]interface{} {
+	servicesSet := make(map[string]interface{})
+	for _, service := range *services {
+		serviceKey := fmt.Sprintf("%s/%s", service.Namespace, service.Name)
+		servicesSet[serviceKey] = nil
+	}
+	return servicesSet
+}
+
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
-	for backendID := range backendIDs {
+	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
+			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
 			glog.Errorf(logLine)
@@ -161,7 +185,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 		}
 
 		finalServiceBackendPairMap[backendID] = uniquePair
-		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort)
+		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort, ingressList, serviceList)
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
@@ -174,13 +198,13 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	return &backends, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error {
-	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList)
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	c.appGwConfig.BackendHTTPSettingsCollection = backends
 	return err
 }
 
-func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32) network.ApplicationGatewayBackendHTTPSettings {
+func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) network.ApplicationGatewayBackendHTTPSettings {
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
@@ -192,8 +216,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		},
 	}
 
-	ingressList := c.k8sContext.GetHTTPIngressList()
-	_, probesMap := c.newProbesMap(ingressList)
+	_, probesMap := c.newProbesMap(ingressList, serviceList)
 
 	if probesMap[backendID] != nil {
 		probeName := probesMap[backendID].Name

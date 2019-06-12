@@ -6,17 +6,22 @@
 package appgw
 
 import (
+	"fmt"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
+	ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+	serviceList := []*v1.Service{tests.NewServiceFixture()}
+
 	Context("create probes", func() {
 		cb := newConfigBuilderFixture(nil)
 
@@ -29,12 +34,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		ingressList := []*v1beta1.Ingress{
-			tests.NewIngressFixture(),
-		}
-
 		// !! Action !!
-		_ = cb.HealthProbesCollection(ingressList)
+		_ = cb.HealthProbesCollection(ingressList, serviceList)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
@@ -118,12 +119,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		ingressList := []*v1beta1.Ingress{
-			tests.NewIngressFixture(),
-		}
-
 		// !! Action !!
-		_ = cb.HealthProbesCollection(ingressList)
+		_ = cb.HealthProbesCollection(ingressList, serviceList)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
@@ -148,7 +145,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		}
 
 		It("should have exactly 1 record", func() {
-			Expect(len(*actual)).To(Equal(1))
+			Expect(len(*actual)).To(Equal(1), fmt.Sprintf("Actual probes: %+v", *actual))
 		})
 
 		It("should have created 1 default probe", func() {

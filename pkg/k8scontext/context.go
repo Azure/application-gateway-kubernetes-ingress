@@ -89,6 +89,27 @@ func (c *Context) Run() {
 	glog.V(1).Infoln("k8s context run finished")
 }
 
+// GetServiceList returns a list of all the Services from cache.
+func (c *Context) GetServiceList() []*v1.Service {
+	var serviceList []*v1.Service
+	for _, ingressInterface := range c.Caches.Service.List() {
+		service := ingressInterface.(*v1.Service)
+		if hasTCPPort(service) {
+			serviceList = append(serviceList, service)
+		}
+	}
+	return serviceList
+}
+
+func hasTCPPort(service *v1.Service) bool {
+	for _, port := range service.Spec.Ports {
+		if port.Protocol == v1.ProtocolTCP {
+			return true
+		}
+	}
+	return false
+}
+
 // GetHTTPIngressList returns a list of all the ingresses for HTTP from cache.
 func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress

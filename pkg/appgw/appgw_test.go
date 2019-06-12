@@ -102,6 +102,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	// TODO(draychev): Get this from test fixtures -- tests.NewServiceFixture()
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -121,6 +122,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			Selector: map[string]string{"app": "frontend"},
 		},
+	}
+
+	serviceList := []*v1.Service{
+		service,
 	}
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
@@ -158,8 +163,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, backendPort)
 
-	go_flag.Lookup("logtostderr").Value.Set("true")
-	go_flag.Set("v", "3")
+	_ = go_flag.Lookup("logtostderr").Value.Set("true")
+	_ = go_flag.Set("v", "3")
 
 	// Method to test all the ingress that have been added to the K8s context.
 	testIngress := func() []*v1beta1.Ingress {
@@ -292,11 +297,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
 		// Add Health Probes.
-		err := configBuilder.HealthProbesCollection(ingressList)
+		err := configBuilder.HealthProbesCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
 		// Add HTTP settings.
-		err = configBuilder.BackendHTTPSettingsCollection(ingressList)
+		err = configBuilder.BackendHTTPSettingsCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -315,7 +320,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		err = configBuilder.BackendAddressPools(ingressList)
+		err = configBuilder.BackendAddressPools(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
@@ -341,12 +346,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(ingressList)
+		err = configBuilder.RequestRoutingRules(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
 		appGW = configBuilder.Build()
-		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total), "Did not find expected number of request routing rules")
+		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total),
+			fmt.Sprintf("Expected %d request routing rules; Got %d", settings.requestRoutingRules.total, len(*appGW.RequestRoutingRules)))
 
 		if settings.requestRoutingRules.checker != nil {
 			settings.requestRoutingRules.checker(appGW)
