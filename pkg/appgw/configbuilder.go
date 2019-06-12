@@ -8,6 +8,7 @@ package appgw
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 )
@@ -15,11 +16,11 @@ import (
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
 	// builder pattern
-	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress) error
-	BackendAddressPools(ingressList []*v1beta1.Ingress) error
+	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	BackendAddressPools(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	Listeners(ingressList []*v1beta1.Ingress) error
-	RequestRoutingRules(ingressList []*v1beta1.Ingress) error
-	HealthProbesCollection(ingressList []*v1beta1.Ingress) error
+	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	Build() *network.ApplicationGatewayPropertiesFormat
 }
 
