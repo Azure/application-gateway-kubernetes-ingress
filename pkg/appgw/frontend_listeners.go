@@ -40,6 +40,7 @@ func (c *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) (*[]n.
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
 func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
+	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)

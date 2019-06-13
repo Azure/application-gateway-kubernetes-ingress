@@ -188,17 +188,17 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	backends := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
+	httpSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
-		backends = append(backends, backend)
+		httpSettings = append(httpSettings, backend)
 	}
 
-	return &backends, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+	return &httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
-	backends, _, _, err := c.getBackendsAndSettingsMap(ingressList, serviceList)
-	c.appGwConfig.BackendHTTPSettingsCollection = backends
+	httpSettings, _, _, err := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	c.appGwConfig.BackendHTTPSettingsCollection = httpSettings
 	return err
 }
 

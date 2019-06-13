@@ -133,11 +133,8 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 			listenerHTTPID := generateListenerID(rule, network.HTTP, nil)
 			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			httpsAvailable := false
 			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
-			if _, exist := httpListenersMap[listenerHTTPSID]; exist {
-				httpsAvailable = true
-			}
+			_, httpsAvailable := httpListenersMap[listenerHTTPSID]
 
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
