@@ -1,0 +1,35 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: azureingressprohibitedtargets.appgw.ingress.k8s.io
+spec:
+  group: appgw.ingress.k8s.io
+  version: v1
+  names:
+    kind: AzureIngressProhibitedTarget
+    plural: azureingressprohibitedtargets
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            ip:
+              description: "(required) IP address of the prohibited target; Could be the public or private address attached to the Application Gateway"
+              type: string
+            host:
+              description: "(optional) Hostname of the prohibited target"
+              type: string
+            port:
+              description: "(required) Port number of the prohibited target"
+              type: integer
+              minimum: 1
+              maximum: 65535
+            paths:
+              description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
+              type: array
+              items:
+                  type: string
+                  pattern: '^\/.*\/\*$'
+          required:
+            - port
