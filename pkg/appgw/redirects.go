@@ -1,6 +1,14 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
+	"sort"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -8,24 +16,24 @@ import (
 )
 
 // getRedirectConfigurations creates App Gateway redirect configuration based on Ingress annotations.
-func (builder *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayRedirectConfiguration {
+func (c *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayRedirectConfiguration {
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
-	for listenerID, listenerConfig := range builder.getListenerConfigs(ingressList) {
+	for listenerID, listenerConfig := range c.getListenerConfigs(ingressList) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
 
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
-			targetListener := resourceRef(builder.appGwIdentifier.listenerID(generateListenerName(listenerID)))
+			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
 			newRedirect := newSSLRedirectConfig(listenerConfig, targetListener)
 			redirectConfigs = append(redirectConfigs, newRedirect)
 			redirectJSON, _ := newRedirect.MarshalJSON()
 			glog.Infof("Created redirection configuration; not attached to a routing rule yet. Configuration: %s", redirectJSON)
 		}
 	}
-
+	sort.Sort(sorter.ByRedirectName(redirectConfigs))
 	return &redirectConfigs
 }
 

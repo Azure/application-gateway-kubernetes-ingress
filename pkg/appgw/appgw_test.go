@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -101,6 +102,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	// TODO(draychev): Get this from test fixtures -- tests.NewServiceFixture()
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
@@ -120,6 +122,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			Selector: map[string]string{"app": "frontend"},
 		},
+	}
+
+	serviceList := []*v1.Service{
+		service,
 	}
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
@@ -155,10 +161,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := newPodFixture(serviceName, ingressNS, backendName, backendPort)
+	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, backendPort)
 
-	go_flag.Lookup("logtostderr").Value.Set("true")
-	go_flag.Set("v", "3")
+	_ = go_flag.Lookup("logtostderr").Value.Set("true")
+	_ = go_flag.Set("v", "3")
 
 	// Method to test all the ingress that have been added to the K8s context.
 	testIngress := func() []*v1beta1.Ingress {
@@ -179,8 +185,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &probeName,
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
 				Protocol:           network.HTTP,
-				Host:               to.StringPtr(testFixturesHost),
-				Path:               to.StringPtr(testFixturesURLPath),
+				Host:               to.StringPtr(tests.Host),
+				Path:               to.StringPtr(tests.URLPath),
 				Interval:           to.Int32Ptr(20),
 				UnhealthyThreshold: to.Int32Ptr(3),
 				Timeout:            to.Int32Ptr(5),
@@ -222,7 +228,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendAddressPoolChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 		addressPoolName := generateAddressPoolName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort)
-		addressPoolAddresses := [](network.ApplicationGatewayBackendAddress){{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
+		addressPoolAddresses := []network.ApplicationGatewayBackendAddress{{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
 
 		addressPool := &network.ApplicationGatewayBackendAddressPool{
 			Etag: to.StringPtr("*"),
@@ -289,17 +295,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		baseURLPathMapsChecker(appGW, 443, domainName)
 	}
 
-	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
+	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
 		// Add Health Probes.
-		configBuilder, err := configBuilder.HealthProbesCollection(ingressList)
+		err := configBuilder.HealthProbesCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
 		// Add HTTP settings.
-		configBuilder, err = configBuilder.BackendHTTPSettingsCollection(ingressList)
+		err = configBuilder.BackendHTTPSettingsCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW := configBuilder.Build()
+		appGW, _ := configBuilder.Build(ingressList, serviceList)
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
 
@@ -314,11 +320,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		configBuilder, err = configBuilder.BackendAddressPools(ingressList)
+		err = configBuilder.BackendAddressPools(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
 		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
 
@@ -327,11 +333,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		configBuilder, err = configBuilder.Listeners(ingressList)
+		err = configBuilder.Listeners(ingressList)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.listeners.total), "Did not find expected number of HTTP listeners")
 
@@ -340,12 +346,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		configBuilder, err = configBuilder.RequestRoutingRules(ingressList)
+		err = configBuilder.RequestRoutingRules(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
-		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total), "Did not find expected number of request routing rules")
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
+		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total),
+			fmt.Sprintf("Expected %d request routing rules; Got %d", settings.requestRoutingRules.total, len(*appGW.RequestRoutingRules)))
 
 		if settings.requestRoutingRules.checker != nil {
 			settings.requestRoutingRules.checker(appGW)
@@ -430,7 +437,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			ingressList := testIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -509,7 +516,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   1,
 					checker: EmptyHealthProbeChecker,
@@ -640,7 +647,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Get all the ingresses
 			ingressList := testTLSIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -671,12 +678,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller Annotations", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with backend prefix.", func() {
+		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
 			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
-			// Set the ingress annotation for this ingress.
+			// Set the ingress annotations for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
+			ingress.Annotations[annotations.ConnectionDrainingKey] = "true"
+			ingress.Annotations[annotations.ConnectionDrainingTimeoutKey] = "10"
+			ingress.Annotations[annotations.CookieBasedAffinityKey] = "true"
+			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
 			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
@@ -689,7 +700,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressEvent()
 
 			// Method to test all the ingress that have been added to the K8s context.
-			backendPrefixIngress := func() []*v1beta1.Ingress {
+			annotationIngress := func() []*v1beta1.Ingress {
 				// Get all the ingresses
 				ingressList := ctxt.GetHTTPIngressList()
 				// There should be only one ingress
@@ -701,9 +712,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			}
 
 			// Get all the ingresses
-			ingressList := backendPrefixIngress()
+			ingressList := annotationIngress()
 
-			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
+			annotationsHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
@@ -712,11 +723,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol: network.HTTP,
-						Port:     &backendPort,
-						Path:     to.StringPtr("/test"),
-						Probe:    resourceRef(probeID),
-						HostName: nil,
+						Protocol:            network.HTTP,
+						Port:                &backendPort,
+						Path:                to.StringPtr("/test"),
+						Probe:               resourceRef(probeID),
+						HostName:            nil,
+						CookieBasedAffinity: network.Enabled,
+						ConnectionDraining: &network.ApplicationGatewayConnectionDraining{
+							Enabled:           to.BoolPtr(true),
+							DrainTimeoutInSec: to.Int32Ptr(10),
+						},
+						RequestTimeout: to.Int32Ptr(10),
 					},
 				}
 
@@ -731,14 +748,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
 					total:   2,
-					checker: backendPrefixHTTPSettingsChecker,
+					checker: annotationsHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
 					total:   2,

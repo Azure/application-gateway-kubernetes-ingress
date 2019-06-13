@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -16,21 +17,35 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress) (ConfigBuilder, error) {
+func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	for backendID, serviceBackendPair := range builder.getServiceBackendPairMap() {
-		builder.backendPoolMap[backendID] = defaultPool
-		if pool := builder.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			// TODO(draychev): deprecate the caching of state in builder.backendPoolMap
-			builder.backendPoolMap[backendID] = pool
+	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		backendPoolMap[backendID] = defaultPool
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[backendID] = pool
+		}
+	}
+	return backendPoolMap
+}
+
+func (c *appGwConfigBuilder) BackendAddressPools(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: defaultPool,
+	}
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			addressPools[*pool.Name] = pool
 		}
 	}
-	builder.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
-	return builder, nil
+	c.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
+	return nil
 }
 
 func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
@@ -41,12 +56,12 @@ func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPo
 	return &backendAddressPools
 }
 
-func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
-	endpoints := builder.k8sContext.GetEndpointsByService(backendID.serviceKey())
+func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
+	endpoints := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if endpoints == nil {
 		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
 		// TODO(draychev): Move "reason" into an enum
-		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)
 		return nil
 	}
@@ -63,7 +78,7 @@ func (builder *appGwConfigBuilder) getBackendAddressPool(backendID backendIdenti
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
 		// TODO(draychev): Move "reason" into an enum
-		builder.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
 		glog.Warning(logLine)
 
 	}
@@ -122,12 +137,6 @@ func getBackendAddressMapKeys(m *map[n.ApplicationGatewayBackendAddress]interfac
 	for addr := range *m {
 		addresses = append(addresses, addr)
 	}
-	sort.Sort(byIPFQDN(addresses))
+	sort.Sort(sorter.ByIPFQDN(addresses))
 	return &addresses
-}
-
-func (builder *appGwConfigBuilder) getServiceBackendPairMap() map[backendIdentifier]serviceBackendPortPair {
-	// TODO(draychev): deprecate the use of builder.serviceBackendPairMap
-	// Create this struct here instead of backendhttpsettings.go
-	return builder.serviceBackendPairMap
 }

@@ -1,9 +1,16 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
 	"encoding/base64"
 	"fmt"
+	"sort"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
@@ -11,11 +18,11 @@ import (
 )
 
 // getSslCertificates obtains all SSL Certificates for the given Ingress object.
-func (builder *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewaySslCertificate {
+func (c *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewaySslCertificate {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
 	for _, ingress := range ingressList {
-		for k, v := range builder.getSecretToCertificateMap(ingress) {
+		for k, v := range c.getSecretToCertificateMap(ingress) {
 			secretIDCertificateMap[k] = v
 		}
 	}
@@ -24,10 +31,11 @@ func (builder *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ing
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, newCert(secretID, cert))
 	}
+	sort.Sort(sorter.ByCertificateName(sslCertificates))
 	return &sslCertificates
 }
 
-func (builder *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress) map[secretIdentifier]*string {
+func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress) map[secretIdentifier]*string {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -40,17 +48,17 @@ func (builder *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.In
 		}
 
 		// add hostname-tlsSecret mapping to a per-ingress map
-		if cert := builder.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey()); cert != nil {
+		if cert := c.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey()); cert != nil {
 			secretIDCertificateMap[tlsSecret] = to.StringPtr(base64.StdEncoding.EncodeToString(cert))
 		} else {
 			logLine := fmt.Sprintf("Unable to find the secret associated to secretId: [%s]", tlsSecret.secretKey())
-			builder.recorder.Event(ingress, v1.EventTypeWarning, "SecretNotFound", logLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, "SecretNotFound", logLine)
 		}
 	}
 	return secretIDCertificateMap
 }
 
-func (builder *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
+func (c *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
 	if hostnameSecretIDMap == nil {
 		return nil, nil
 	}
@@ -64,7 +72,7 @@ func (builder *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, host
 		return nil, nil
 	}
 
-	cert, exists := builder.getSecretToCertificateMap(ingress)[secID]
+	cert, exists := c.getSecretToCertificateMap(ingress)[secID]
 	if !exists {
 		// secret referred does not correspond to a certificate
 		return nil, nil
@@ -72,7 +80,7 @@ func (builder *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, host
 	return cert, &secID
 }
 
-func (builder *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[string]secretIdentifier {
+func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[string]secretIdentifier {
 	hostToSecretMap := make(map[string]secretIdentifier)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -85,7 +93,7 @@ func (builder *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) 
 		}
 
 		// add hostname-tlsSecret mapping to a per-ingress map
-		cert := builder.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey())
+		cert := c.k8sContext.CertificateSecretStore.GetPfxCertificate(tlsSecret.secretKey())
 		if cert == nil {
 			continue
 		}

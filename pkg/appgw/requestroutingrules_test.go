@@ -7,10 +7,12 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -19,16 +21,17 @@ import (
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	agw := Identifier{
-		SubscriptionID: testFixturesSubscription,
-		ResourceGroup:  testFixtureResourceGroup,
-		AppGwName:      testFixtureAppGwName,
+		SubscriptionID: tests.Subscription,
+		ResourceGroup:  tests.ResourceGroup,
+		AppGwName:      tests.AppGwName,
 	}
-	configName := generateSSLRedirectConfigurationName(testFixturesNamespace, testFixturesName)
+	configName := generateSSLRedirectConfigurationName(tests.Namespace, tests.Name)
 	expectedRedirectID := agw.redirectConfigurationID(configName)
 
 	Context("test getSslRedirectConfigResourceReference", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		_ = configBuilder.k8sContext.Caches.Service.Add(tests.NewServiceFixture())
+		ingress := tests.NewIngressFixture()
 
 		actualID := configBuilder.getSslRedirectConfigResourceReference(ingress).ID
 
@@ -39,7 +42,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure there are no path rules defined for this test
@@ -65,7 +68,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := newIngressFixture()
+		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure the test is setup correctly
@@ -98,6 +101,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test RequestRoutingRules without HTTPS but with SSL Redirect", func() {
 		configBuilder := newConfigBuilderFixture(nil)
+		_ = configBuilder.k8sContext.Caches.Service.Add(tests.NewServiceFixture())
 
 		// TODO(draychev): Move to test fixtures
 		ingress := v1beta1.Ingress{
@@ -110,7 +114,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 									{
 										Path: "/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: "websocket-service",
+											ServiceName: tests.ServiceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 80,
@@ -129,14 +133,14 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 					annotations.SslRedirectKey:  "true",
 				},
-				Namespace: testFixturesNamespace,
-				Name:      testFixturesName,
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
 			},
 		}
 
 		ingressList := []*v1beta1.Ingress{&ingress}
-
-		_, _ = configBuilder.RequestRoutingRules(ingressList)
+		serviceList := []*v1.Service{tests.NewServiceFixture()}
+		_ = configBuilder.RequestRoutingRules(ingressList, serviceList)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))
