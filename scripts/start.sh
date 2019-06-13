@@ -43,4 +43,5 @@ fi
 ./bin/appgw-ingress \
     --in-cluster=false \
     --kubeconfig="$KUBE_CONFIG_FILE" \
-    --apiserver-host="$AKS_API_SERVER"
+    --apiserver-host="$AKS_API_SERVER" \
+    --verbosity=5
