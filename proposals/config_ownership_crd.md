@@ -25,31 +25,31 @@ Ingress Controller.
 
 ### Proposed Solution
 We propose the creation of two new Kubernetes custom resource definitions ([CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)):
-  - `AzureIngressManagedLocation` - defines a reference to an App Gateway listener/location. Ingress Controller will assume ownership
+  - `AzureIngressManagedTarget` - defines a reference to an App Gateway listener/target. Ingress Controller will assume ownership
   and will mutate configuration for the listener and all related underlying resources: health probes, HTTP settings,
   backend pools etc.
-  - `AzureIngressProhibitedLocation` - defines a reference to an App Gateway listener/location, which Ingress Controller is not permitted
+  - `AzureIngressProhibitedTarget` - defines a reference to an App Gateway listener/target, which Ingress Controller is not permitted
     to mutate. This and all related resources and configuration are assumed to be under control by another
     system; Ingress Controller will not make any modifications to these.
 
 These CRDs will be automatically created when the Ingress Controller is deployed to an AKS cluster.
 
 ### Proposed CRD schema:
-Both `AzureIngressManagedLocation` and `AzureIngressProhibitedLocation` would have the same shape:
+Both `AzureIngressManagedTarget` and `AzureIngressProhibitedTarget` would have the same shape:
 
-##### AzureIngressManagedLocation
+##### AzureIngressManagedTarget
 
 ```yaml
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: azureingressmanagedlocations.appgw.ingress.k8s.io
+  name: azureingressmanagedtargets.appgw.ingress.k8s.io
 spec:
   group: appgw.ingress.k8s.io
   version: v1
   names:
-    kind: AzureIngressManagedLocation
-    plural: azureingressmanagedlocations
+    kind: AzureIngressManagedTarget
+    plural: azureingressmanagedtargets
   scope: Namespaced
   validation:
     openAPIV3Schema:
@@ -57,13 +57,13 @@ spec:
         spec:
           properties:
             ip:
-              description: "(required) IP address of the location managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
+              description: "(required) IP address of the target managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
               type: string
             host:
-              description: "(optional) Hostname of the location"
+              description: "(optional) Hostname of the target"
               type: string
             port:
-              description: "(required) Port number of the location"
+              description: "(required) Port number of the target"
               type: integer
               minimum: 1
               maximum: 65535
@@ -77,18 +77,18 @@ spec:
             - port
 ```
 
-##### AzureIngressProhibitedLocation
+##### AzureIngressProhibitedTarget
 ```yaml
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: azureingressprohibitedlocations.appgw.ingress.k8s.io
+  name: azureingressprohibitedtargets.appgw.ingress.k8s.io
 spec:
   group: appgw.ingress.k8s.io
   version: v1
   names:
-    kind: AzureIngressProhibitedLocation
-    plural: azureingressprohibitedlocations
+    kind: AzureIngressProhibitedTarget
+    plural: azureingressprohibitedtargets
   scope: Namespaced
   validation:
     openAPIV3Schema:
@@ -96,13 +96,13 @@ spec:
         spec:
           properties:
             ip:
-              description: "(required) IP address of the prohibited location; Could be the public or private address attached to the Application Gateway"
+              description: "(required) IP address of the prohibited target; Could be the public or private address attached to the Application Gateway"
               type: string
             host:
-              description: "(optional) Hostname of the prohibited location"
+              description: "(optional) Hostname of the prohibited target"
               type: string
             port:
-              description: "(required) Port number of the prohibited location"
+              description: "(required) Port number of the prohibited target"
               type: integer
               minimum: 1
               maximum: 65535
@@ -120,9 +120,9 @@ spec:
 A sample YAML creating new instances of this resource would have the following shape:
 ```yaml
 apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressManagedLocation
+kind: AzureIngressManagedTarget
 metadata:
-  name: ingress-managed-location
+  name: ingress-managed-target
 spec:
   ip: 23.45.67.89
   host: "www.contoso.com"
@@ -133,12 +133,12 @@ spec:
 
 ```
 
-The sample `ingress-managed-location` object above will be created by the AKS administrator. It will permit the
-Ingress Controller to apply configuration changes only to resources related to (and including) listener/location
+The sample `ingress-managed-target` object above will be created by the AKS administrator. It will permit the
+Ingress Controller to apply configuration changes only to resources related to (and including) listener/target
 for www.contoso.com on ip 23.45.67.89 and port 80 and under path /bar/*
 
 
 ### A Note on Rule Precedence
-If a listener/location is referenced in both a `AzureIngressManagedLocation` object as well as a
-`AzureIngressProhibitedLocation` object, ingress controller would treat it as `prohibited` to avoid unsafe configuration
-mutations. `AzureIngressProhibitedLocation` takes precedence over `AzureIngressManagedLocation`
+If a listener/target is referenced in both a `AzureIngressManagedTarget` object as well as a
+`AzureIngressProhibitedTarget` object, ingress controller would treat it as `prohibited` to avoid unsafe configuration
+mutations. `AzureIngressProhibitedTarget` takes precedence over `AzureIngressManagedTarget`

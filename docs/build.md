@@ -45,48 +45,8 @@ The file will contain a JSON blob with the following shape:
 ```
 
 ### Startup Script
-1. Create a `.dev` directory in your repo. This is already in `.gitignore` and will not be comitted.
-1. Create an executable bash file in the root directory of this repo: `touch .dev/start.sh && chmod +x .dev/start.sh`
-1. Add the following bash script to the `start.sh` file:
-```bash
-#!/bin/bash
+In the `scripts` directory you will find `start.sh`. This script builds and runs the ingress controller on your local machine and connects to a remote AKS cluster. A `.env` file in the root of the repository is required.
 
-set -aueo pipefail
-
-export AZURE_AUTH_LOCATION=$HOME/.azure/azureAuth.json
-
-export AKS_API="abc.westus2.azmk8s.io"  # YOUR AKS API Server
-
-export APPGW_SUBSCRIPTION_ID=XYZ  # YOUR subscription ID
-export APPGW_RESOURCE_GROUP=ABC  # YOUR resource group
-export APPGW_NAME=123  # YOUR newly created Application Gateway's name
-
-export KUBERNETES_WATCHNAMESPACE=default
-
-# Build
-GOOS=linux  # operating system target
-GOBIN=`pwd`/bin
-
-mkdir -p $GOBIN
-
- echo -e "\e[44;97m Compiling ... \e[0m"
-if  go install -v ./cmd/appgw-ingress; then
-    chmod -R 777 bin
-    echo -e "\e[42;97m Build SUCCEEDED \e[0m"
-else
-    echo -e "\e[101;97m Build FAILED \e[0m"
-    exit 1
-fi
-
-# Run
-./bin/appgw-ingress \
-    --in-cluster=false \
-    --kubeconfig=$HOME/.kube/config \
-    --apiserver-host=$AKS_API
-
-```
-Fill-in the values for your AKS cluster's **subscription**, **resource group**, **application gateway name**, and **AKS API server address**.
-The script will create a `.build/` directory, compile and install the binary in it, then run the application.
-
-### Run
-With `$HOME/.azure/azureAuth.json` and `.dev/start.sh` created, you are ready to start the K8s ingress on your workstation. Execute `source .dev/start.sh` from within the root directory of the repo. The Ingress will connect to AKS, gather details on your running pods and configure the given Application Gateway.
+Steps to run ingress controller:
+ 1. Configure: `cp .env.example .env` and modify the environment variables in `.env` to match your config
+ 2. Run: `./scripts/start.sh`
