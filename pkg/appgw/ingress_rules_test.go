@@ -39,11 +39,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Namespace: tests.Namespace,
 			Name:      tests.NameOfSecret,
 		},
-		SslRedirectConfigurationName: agPrefix +
-			"sslr-" +
-			tests.Namespace +
-			"-" +
-			tests.Name,
+		SslRedirectConfigurationName: "sslr-fl-bye.com-443",
 	}
 
 	Context("ingress rules without certificates", func() {

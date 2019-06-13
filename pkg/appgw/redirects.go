@@ -22,15 +22,14 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.In
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
 	for listenerID, listenerConfig := range c.getListenerConfigs(ingressList) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
+		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
 
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
-			newRedirect := newSSLRedirectConfig(listenerConfig, targetListener)
-			redirectConfigs = append(redirectConfigs, newRedirect)
-			redirectJSON, _ := newRedirect.MarshalJSON()
-			glog.Infof("Created redirection configuration; not attached to a routing rule yet. Configuration: %s", redirectJSON)
+			redirectConfigs = append(redirectConfigs, newSSLRedirectConfig(listenerConfig, targetListener))
+			glog.Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
 		}
 	}
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))

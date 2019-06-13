@@ -182,7 +182,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultHealthProbesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name)
+		probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress)
 		probe := &network.ApplicationGatewayProbe{
 			Name: &probeName,
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
@@ -207,7 +207,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		appGwIdentifier := Identifier{}
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
+		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
 		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 		httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
@@ -241,9 +241,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Test the default backend address pool.
-		Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
+		Expect(*appGW.BackendAddressPools).To(ContainElement(*defaultBackendAddressPool()))
 		// Test the ingress backend address pool that we installed.
-		Expect((*appGW.BackendAddressPools)).To(ContainElement(*addressPool))
+		Expect(*appGW.BackendAddressPools).To(ContainElement(*addressPool))
 	}
 
 	defaultListenersChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
@@ -403,7 +403,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Unabled to create pods resource due to: %v", err)
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, ingressNS, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
@@ -719,7 +719,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			annotationsHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
+				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
 				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -29,7 +34,7 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[
 			// Only associate the Listener with a Redirect if redirect is enabled
 			redirect := ""
 			if sslRedirect {
-				redirect = generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name)
+				redirect = generateSSLRedirectConfigurationName(listenerID)
 			}
 
 			listeners[listenerID] = listenerAzConfig{
