@@ -6,10 +6,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -21,6 +17,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 type appGWSettingsChecker struct {
@@ -369,7 +371,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		for {
 			select {
 			case obj := <-ctxt.UpdateChannel.Out():
-				event := obj.(k8scontext.Event)
+				event := obj.(events.Event)
 				// Check if we got an event of type secret.
 				if _, ok := event.Value.(*v1beta1.Ingress); ok {
 					return
