@@ -43,5 +43,8 @@ jsconfig.json
 # Build directory
 build/
 
-# Developmenet directory
+# Development directory
 .dev/
+
+# Development Environment Variables
+.env
