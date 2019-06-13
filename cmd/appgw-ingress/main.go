@@ -129,7 +129,7 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 		var namespaces []string
 		for _, ns := range strings.Split(namespaceEnvVar, ",") {
 			if len(ns) > 0 {
-				namespaces = append(namespaces, ns)
+				namespaces = append(namespaces, strings.TrimSpace(ns))
 			}
 		}
 		sort.Strings(namespaces)
