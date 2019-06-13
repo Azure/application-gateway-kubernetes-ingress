@@ -6,10 +6,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -21,6 +17,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 type appGWSettingsChecker struct {
@@ -295,7 +297,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		baseURLPathMapsChecker(appGW, 443, domainName)
 	}
 
-	testAGConfig := func(ingressList []*v1beta1.Ingress, settings appGwConfigSettings) {
+	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
 		// Add Health Probes.
 		err := configBuilder.HealthProbesCollection(ingressList, serviceList)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
@@ -305,7 +307,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW := configBuilder.Build()
+		appGW, _ := configBuilder.Build(ingressList, serviceList)
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
 
@@ -324,7 +326,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
 		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
 
@@ -337,7 +339,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.listeners.total), "Did not find expected number of HTTP listeners")
 
@@ -350,7 +352,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build(ingressList, serviceList)
 		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total),
 			fmt.Sprintf("Expected %d request routing rules; Got %d", settings.requestRoutingRules.total, len(*appGW.RequestRoutingRules)))
 
@@ -369,7 +371,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		for {
 			select {
 			case obj := <-ctxt.UpdateChannel.Out():
-				event := obj.(k8scontext.Event)
+				event := obj.(events.Event)
 				// Check if we got an event of type secret.
 				if _, ok := event.Value.(*v1beta1.Ingress); ok {
 					return
@@ -437,7 +439,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			ingressList := testIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -516,7 +518,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect((*appGW.BackendAddressPools)).To(ContainElement(*defaultBackendAddressPool()))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   1,
 					checker: EmptyHealthProbeChecker,
@@ -647,7 +649,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Get all the ingresses
 			ingressList := testTLSIngress()
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
@@ -748,7 +750,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
-			testAGConfig(ingressList, appGwConfigSettings{
+			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
 					checker: defaultHealthProbesChecker,
