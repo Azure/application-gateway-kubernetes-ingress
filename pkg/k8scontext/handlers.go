@@ -1,11 +1,14 @@
 package k8scontext
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"reflect"
+
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
-	"reflect"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 type handlers struct {
@@ -41,8 +44,8 @@ func (h handlers) ingressAddFunc(obj interface{}) {
 			h.context.ingressSecretsMap.Insert(ingKey, secKey)
 		}
 	}
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Create,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Create,
 		Value: obj,
 	}
 }
@@ -66,8 +69,8 @@ func (h handlers) ingressDeleteFunc(obj interface{}) {
 	ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 	h.context.ingressSecretsMap.Erase(ingKey)
 
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Delete,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Delete,
 		Value: obj,
 	}
 }
@@ -104,8 +107,8 @@ func (h handlers) ingressUpdateFunc(oldObj, newObj interface{}) {
 		}
 	}
 
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Update,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Update,
 		Value: newObj,
 	}
 }
@@ -118,8 +121,8 @@ func (h handlers) secretAddFunc(obj interface{}) {
 		// find if this secKey exists in the map[string]UnorderedSets
 		done := h.context.CertificateSecretStore.convertSecret(secKey, sec)
 		if done {
-			h.context.UpdateChannel.In() <- Event{
-				Type:  Create,
+			h.context.UpdateChannel.In() <- events.Event{
+				Type:  events.Create,
 				Value: obj,
 			}
 		}
@@ -136,8 +139,8 @@ func (h handlers) secretUpdateFunc(oldObj, newObj interface{}) {
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		done := h.context.CertificateSecretStore.convertSecret(secKey, sec)
 		if done {
-			h.context.UpdateChannel.In() <- Event{
-				Type:  Update,
+			h.context.UpdateChannel.In() <- events.Event{
+				Type:  events.Update,
 				Value: newObj,
 			}
 		}
@@ -161,16 +164,16 @@ func (h handlers) secretDeleteFunc(obj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	h.context.CertificateSecretStore.eraseSecret(secKey)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
-		h.context.UpdateChannel.In() <- Event{
-			Type:  Delete,
+		h.context.UpdateChannel.In() <- events.Event{
+			Type:  events.Delete,
 			Value: obj,
 		}
 	}
 }
 
 func (h handlers) addFunc(obj interface{}) {
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Create,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Create,
 		Value: obj,
 	}
 }
@@ -179,15 +182,15 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Update,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Update,
 		Value: newObj,
 	}
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
-	h.context.UpdateChannel.In() <- Event{
-		Type:  Delete,
+	h.context.UpdateChannel.In() <- events.Event{
+		Type:  events.Delete,
 		Value: obj,
 	}
 }

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package k8scontext
+package events
 
 // EventType represents the type of update for k8s resources
 type EventType int
