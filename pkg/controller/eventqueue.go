@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -35,7 +35,7 @@ type EventQueue struct {
 // configuration. CanSkip specifies if this event can be skipped if a previous
 // event is processed at a later time.
 type QueuedEvent struct {
-	Event     k8scontext.Event
+	Event     events.Event
 	Timestamp int64
 	CanSkip   bool
 }
@@ -56,7 +56,7 @@ func NewEventQueue(processor EventProcessor) *EventQueue {
 
 // EnqueueCanSkip adds an event with parameter el as payload. User can specify if
 // this event should be skippable by setting the boolean parameter skip.
-func (q *EventQueue) EnqueueCanSkip(el k8scontext.Event, skip bool) {
+func (q *EventQueue) EnqueueCanSkip(el events.Event, skip bool) {
 	if q.queue.ShuttingDown() {
 		// Queue is shutting down will not be able to enqueue this.
 		glog.Errorf("queue is shutting down, unable to enqueue event")
@@ -77,7 +77,7 @@ func (q *EventQueue) EnqueueCanSkip(el k8scontext.Event, skip bool) {
 }
 
 // Enqueue adds an non-skipable event with parameter el as payload.
-func (q *EventQueue) Enqueue(el k8scontext.Event) {
+func (q *EventQueue) Enqueue(el events.Event) {
 	q.EnqueueCanSkip(el, false)
 }
 
