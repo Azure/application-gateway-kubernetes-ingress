@@ -45,15 +45,8 @@ The file will contain a JSON blob with the following shape:
 ```
 
 ### Startup Script
-In the `scripts` directory you will find `start.sh`. This script builds and runs the ingress controller on your development machine.
-To successfully start the ingress controller via `./scripts/start.sh` you need to create the following files:
-  - `~/.azure/azureAuth.json` - Use "az ad create-for-rbac --sdk-auth" command to [create these credentials](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication)
-  - `~/.azure/subscription` - Place the subscription UUID of your AKS cluster on a single line
-  - `~/.azure/resource-group` - Save the AKS Resource Group name on a single line
-  - `~/.azure/app-gateway` - Place the Application Gateway name on a single line
+In the `scripts` directory you will find `start.sh`. This script builds and runs the ingress controller on your local machine and connects to a remote AKS cluster. A `.env` file in the root of the repository is required.
 
-Fill-in the values for your AKS cluster's **subscription**, **resource group**, **application gateway name**, and **AKS API server address**.
-The script will create a `.build/` directory, compile and install the binary in it, then run the application.
-
-### Run
-With `$HOME/.azure/azureAuth.json` and `.dev/start.sh` created, you are ready to start the K8s ingress on your workstation. Execute `source .dev/start.sh` from within the root directory of the repo. The Ingress will connect to AKS, gather details on your running pods and configure the given Application Gateway.
+Steps to run ingress controller:
+ 1. Configure: `cp .env.example .env` and modify the environment variables in `.env` to match your config
+ 2. Run: `./scripts/start.sh`
