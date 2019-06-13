@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package k8scontext
+package events
 
-// EventType represents the type of update for k8s resources
+// EventType is the type of event we have received from Kubernetes
 type EventType int
 
 const (
@@ -17,7 +17,7 @@ const (
 	Delete
 )
 
-// Event type that contains the type of event and data related to this event
+// Event is the combined type and actual object we received from Kubernetes
 type Event struct {
 	Type  EventType
 	Value interface{}

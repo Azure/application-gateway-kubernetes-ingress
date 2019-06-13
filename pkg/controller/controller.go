@@ -11,15 +11,16 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/client-go/tools/record"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
+	"k8s.io/client-go/tools/record"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
@@ -178,7 +179,7 @@ func (c *AppGwIngressController) Start() {
 	for {
 		select {
 		case obj := <-c.k8sUpdateChannel.Out():
-			event := obj.(k8scontext.Event)
+			event := obj.(events.Event)
 			c.eventQueue.Enqueue(event)
 		case <-c.stopChannel:
 			break
