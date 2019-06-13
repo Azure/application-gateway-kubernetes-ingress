@@ -135,7 +135,6 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		c.configCache = nil
 		configJSON, _ := c.dumpSanitizedJSON(&appGw)
 		glog.Errorf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
-		// TODO(draychev) -- c.recorder.Event() - what object?
 		return err
 	}
 	// Wait until deployment finshes and save the error message
