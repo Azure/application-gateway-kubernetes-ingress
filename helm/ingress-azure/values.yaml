@@ -28,6 +28,7 @@ kubernetes:
 #   type: aadPodIdentity
 #   identityResourceID: <>
 #   identityClientID:  <>
+#   namespaced: false # if true adds namespaced annotation to AzureIdentity
 #
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
