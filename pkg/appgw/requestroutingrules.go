@@ -6,17 +6,19 @@
 package appgw
 
 import (
+	v1 "k8s.io/api/core/v1"
+	"sort"
 	"strconv"
 
-	"github.com/golang/glog"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule,
+func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v1.Service, rule *v1beta1.IngressRule,
 	listenerID listenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
 	defaultAddressPoolID string, defaultHTTPSettingsID string) *network.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
@@ -35,18 +37,21 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
 	}
 
+	ingressList := c.k8sContext.GetHTTPIngressList()
+	backendPools := c.newBackendPoolMap(ingressList, serviceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
-		backendPool := builder.backendPoolMap[backendID]
-		backendHTTPSettings := builder.backendHTTPSettingsMap[backendID]
+		backendPool := backendPools[backendID]
+		backendHTTPSettings := backendHTTPSettingsMap[backendID]
 		if backendPool == nil || backendHTTPSettings == nil {
 			continue
 		}
 		pathRules := *urlPathMap.PathRules
 
-		backendPoolSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.addressPoolID(*backendPool.Name))}
-		backendHTTPSettingsSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.httpSettingsID(*backendHTTPSettings.Name))}
+		backendPoolSubResource := network.SubResource{ID: to.StringPtr(c.appGwIdentifier.addressPoolID(*backendPool.Name))}
+		backendHTTPSettingsSubResource := network.SubResource{ID: to.StringPtr(c.appGwIdentifier.httpSettingsID(*backendHTTPSettings.Name))}
 
 		if len(path.Path) == 0 || path.Path == "/*" || path.Path == "/" {
 			// this backend should be a default backend, catches all traffic
@@ -76,12 +81,14 @@ func (builder *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, rule *v1be
 	return urlPathMap
 }
 
-func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error) {
-	_, httpListenersMap := builder.getListeners(ingressList)
+func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+	_, httpListenersMap := c.getListeners(ingressList)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
+	backendPools := c.newBackendPoolMap(ingressList, serviceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
 	for _, ingress := range ingressList {
-		defaultAddressPoolID := builder.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
-		defaultHTTPSettingsID := builder.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
+		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
 		var wildcardRule *v1beta1.IngressRule
 		wildcardRule = nil
@@ -109,12 +116,12 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			// has default backend
 			defaultBackendID := generateBackendID(ingress, nil, nil, defBackend)
 
-			defaultHTTPSettings := builder.backendHTTPSettingsMap[defaultBackendID]
-			defaultAddressPool := builder.backendPoolMap[defaultBackendID]
+			defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
+			defaultAddressPool := backendPools[defaultBackendID]
 			if defaultAddressPool != nil && defaultHTTPSettings != nil {
 				// default settings is valid
-				defaultAddressPoolID = builder.appGwIdentifier.addressPoolID(*defaultAddressPool.Name)
-				defaultHTTPSettingsID = builder.appGwIdentifier.httpSettingsID(*defaultHTTPSettings.Name)
+				defaultAddressPoolID = c.appGwIdentifier.addressPoolID(*defaultAddressPool.Name)
+				defaultHTTPSettingsID = c.appGwIdentifier.httpSettingsID(*defaultHTTPSettings.Name)
 			}
 		}
 
@@ -142,32 +149,32 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPID] = builder.pathMaps(ingress, wildcardRule,
+					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, wildcardRule,
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = builder.pathMaps(ingress, rule,
+				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
 				// If ingress is annotated with "ssl-redirect" and we have TLS - setup redirection configuration.
 				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && httpsAvailable {
-					builder.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
+					c.modifyPathRulesForRedirection(ingress, urlPathMaps[listenerHTTPID])
 				}
 			}
 
 			if httpsAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPSID] = builder.pathMaps(ingress, wildcardRule,
+					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, wildcardRule,
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = builder.pathMaps(ingress, rule,
+				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
@@ -175,8 +182,8 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 	}
 
 	if len(urlPathMaps) == 0 {
-		defaultAddressPoolID := builder.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
-		defaultHTTPSettingsID := builder.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
+		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
 		urlPathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &network.ApplicationGatewayURLPathMap{
@@ -193,18 +200,15 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 	var urlPathMapFiltered []network.ApplicationGatewayURLPathMap
 	var requestRoutingRules []network.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range urlPathMaps {
-		requestRoutingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener := httpListenersMap[listenerID]
-		httpListenerSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.listenerID(*httpListener.Name))}
-		var rule network.ApplicationGatewayRequestRoutingRule
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
-			rule = network.ApplicationGatewayRequestRoutingRule{
+			rule := network.ApplicationGatewayRequestRoutingRule{
 				Etag: to.StringPtr("*"),
-				Name: &requestRoutingRuleName,
+				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
 				ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 					RuleType:              network.Basic,
-					HTTPListener:          &httpListenerSubResource,
+					HTTPListener:          &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 					RedirectConfiguration: urlPathMap.DefaultRedirectConfiguration,
 				},
 			}
@@ -215,45 +219,44 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
 			}
+			requestRoutingRules = append(requestRoutingRules, rule)
 		} else {
 			// Path-based Rule
-			urlPathMapSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.urlPathMapID(*urlPathMap.Name))}
-			rule = network.ApplicationGatewayRequestRoutingRule{
+			rule := network.ApplicationGatewayRequestRoutingRule{
 				Etag: to.StringPtr("*"),
-				Name: &requestRoutingRuleName,
+				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
 				ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 					RuleType:     network.PathBasedRouting,
-					HTTPListener: &httpListenerSubResource,
-					URLPathMap:   &urlPathMapSubResource,
+					HTTPListener: &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
+					URLPathMap:   &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))},
 				},
 			}
 			urlPathMapFiltered = append(urlPathMapFiltered, *urlPathMap)
-		}
-		if len(*httpListener.HostName) == 0 {
 			requestRoutingRules = append(requestRoutingRules, rule)
-		} else {
-			requestRoutingRules = append([]network.ApplicationGatewayRequestRoutingRule{rule},
-				requestRoutingRules...)
 		}
 	}
 
-	builder.appGwConfig.RequestRoutingRules = &requestRoutingRules
-	builder.appGwConfig.URLPathMaps = &urlPathMapFiltered
-	return builder, nil
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	c.appGwConfig.RequestRoutingRules = &requestRoutingRules
+
+	sort.Sort(sorter.ByPathMap(urlPathMapFiltered))
+	c.appGwConfig.URLPathMaps = &urlPathMapFiltered
+
+	return nil
 }
 
-func (builder *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress *v1beta1.Ingress) *network.SubResource {
+func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress *v1beta1.Ingress) *network.SubResource {
 	configName := generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name)
-	sslRedirectConfigID := builder.appGwIdentifier.redirectConfigurationID(configName)
+	sslRedirectConfigID := c.appGwIdentifier.redirectConfigurationID(configName)
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (builder *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta1.Ingress, httpURLPathMap *network.ApplicationGatewayURLPathMap) {
+func (c *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta1.Ingress, httpURLPathMap *network.ApplicationGatewayURLPathMap) {
 	// Application Gateway supports Basic and Path-based rules
 
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"
-		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
+		redirectRef := c.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 
 		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
@@ -268,7 +271,7 @@ func (builder *appGwConfigBuilder) modifyPathRulesForRedirection(ingress *v1beta
 	for idx := range *httpURLPathMap.PathRules {
 		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
-		redirectRef := builder.getSslRedirectConfigResourceReference(ingress)
+		redirectRef := c.getSslRedirectConfigResourceReference(ingress)
 		glog.Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
 
 		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)

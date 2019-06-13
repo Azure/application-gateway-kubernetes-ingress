@@ -7,7 +7,7 @@ package utils
 
 import (
 	"sync"
-	
+
 	"github.com/deckarep/golang-set"
 )
 
