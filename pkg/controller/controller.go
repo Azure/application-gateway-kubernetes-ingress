@@ -78,11 +78,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	ingressList := c.k8sContext.GetHTTPIngressList()
 	serviceList := c.k8sContext.GetServiceList()
 
+	// Run fatal validations on the existing config of the Application Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, envVariables); err != nil {
 		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
 		return err
 	}
 
+	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(envVariables, ingressList, serviceList); err != nil {
 		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
 	}
@@ -125,6 +127,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		return errors.New("unable to generate request routing rules")
 	}
 
+	// Run post validations to report errors in the config generation.
 	if err = configBuilder.PostBuildValidate(envVariables, ingressList, serviceList); err != nil {
 		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
 	}

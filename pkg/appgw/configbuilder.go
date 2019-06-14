@@ -98,12 +98,12 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	return listenerID
 }
 
-// Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
+// GetApplicationGatewayPropertiesFormatPtr gets a pointer to updated ApplicationGatewayPropertiesFormat.
 func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat {
 	return &c.appGwConfig
 }
 
-// Validate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
+// PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
 func (c *appGwConfigBuilder) PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 
 	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
@@ -119,6 +119,7 @@ func (c *appGwConfigBuilder) PreBuildValidate(envVariables environment.EnvVariab
 	return nil
 }
 
+// PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
 func (c *appGwConfigBuilder) PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 
 	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
