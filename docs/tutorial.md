@@ -161,16 +161,27 @@ By specifying hostname, the guestbook service will only be available on the spec
 
 Now the `guestbook` application will be available on both HTTP and HTTPS only on the specified host (`<guestbook.contoso.com>` in this example).
 
-### Certificate issuance with Lets Encrypt
+### Certificate issuance with LetsEncrypt.org
 
-This section configures [Lets Encrypt](https://letsencrypt.org/) to issue the certificate that Applicaiton Gateway will use for SSL/TLS termination at the gateway.  This uses the Kubernetes add-on [cert-manager](https://github.com/jetstack/cert-manager) to automate the creation and management of the kubernetes secret containing the certificate.
+This section configures your AKS to leverage [LetsEncrypt.org](https://letsencrypt.org/) and automatically obtain a
+TLS/SSL certificate for your domain. The certificate will be installed on Application Gateway, which will perform
+SSL/TLS termination for your AKS cluster. The setup described here uses the
+[cert-manager](https://github.com/jetstack/cert-manager) Kubernetes add-on, which automates the creation and management of 
+certificates.
 
-The following steps will install `cert-manager` in your cluster, full documnetation can be found on the cert-manager docs site [here](https://docs.cert-manager.io)
+Follow the steps below to install [cert-manager](https://docs.cert-manager.io) on your existing AKS cluster.
 
-1. Run the following script to install the `cert-manager` helm chart. The will create a new namespace in your cluster to install the cert-manager chart into. (from [docs.cert-manager.io)](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps)
+##### 1. Helm Chart
+
+Run the following script to install the `cert-manager` helm chart. This will:
+  - create a new `cert-manager` namespace on your AKS
+  - create the following CRDs: Certificate, Challenge, ClusterIssuer, Issuer, Order
+  - install cert-manager chart (from [docs.cert-manager.io)](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps)
 
 
-```sh
+```bash
+#!/bin/bash
+
 # Install the CustomResourceDefinition resources separately
 kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
 
@@ -194,13 +205,25 @@ helm install \
   jetstack/cert-manager
 ```
 
-2. Create a `ClusterIssuer` resource, this is required by `cert-manager` to represent the `Lets Encrypt` certificate authority where the signed certificates will be obtained.    
+##### 2. ClusterIssuer Resource
 
-By using the non-namespaced `ClusterIssuer` resource, cert-manager will issue certificates that can be consumed from multiple namespaces.  `Let’s Encrypt` uses the ACME protocol to verify that you control a given domain name and to issue you a certificate.  More details on configuring cert-manager Issuer properties [here](https://docs.cert-manager.io/en/latest/tasks/issuers/index.html).  This `ClusterIssuer` will instruct `cert-manager` to issue certificates using the `Lets Encrypt` staging environment used for testing (the root certificate not present in browser/client trust stores).
+Create a `ClusterIssuer` resource. It is required by `cert-manager` to represent the `Lets Encrypt` certificate
+authority where the signed certificates will be obtained.
 
-> **_IMPORTANT:_**   Update `<YOUR.EMAIL@ADDRESS>` in the yaml below, save the file & apply to your cluster using ```kubectl apply -f issuer-letsencrypt-staging.yaml```
+By using the non-namespaced `ClusterIssuer` resource, cert-manager will issue certificates that can be consumed from
+multiple namespaces. `Let’s Encrypt` uses the ACME protocol to verify that you control a given domain name and to issue
+you a certificate. More details on configuring `ClusterIssuer` properties
+[here](https://docs.cert-manager.io/en/latest/tasks/issuers/index.html). `ClusterIssuer` will instruct `cert-manager`
+to issue certificates using the `Lets Encrypt` staging environment used for testing (the root certificate not present
+in browser/client trust stores).
 
-```yaml
+The default challenge type in the YAML below is `http01`. Other challenges are documented on [letsencrypt.org - Challenge Types](https://letsencrypt.org/docs/challenge-types/)
+
+**IMPORTANT:** Update `<YOUR.EMAIL@ADDRESS>` in the YAML below
+
+```bash
+#!/bin/bash
+kubectl apply -f - <<EOF
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
 metadata:
@@ -211,27 +234,35 @@ spec:
     # Let's Encrypt will use this to contact you about expiring
     # certificates, and issues related to your account.
     email: <YOUR.EMAIL@ADDRESS>
-    # ACME server URL for Let’s Encrypt’s staging environment. 
-    # The staging environment will not issue trusted certificates but is 
-    # used to ensure that the verification process is working properly 
+    # ACME server URL for Let’s Encrypt’s staging environment.
+    # The staging environment will not issue trusted certificates but is
+    # used to ensure that the verification process is working properly
     # before moving to production
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       # Secret resource used to store the account's private key.
       name: example-issuer-account-key
     # Enable the HTTP-01 challenge provider
-    # you prove ownership of a domain by ensuring that a particular 
+    # you prove ownership of a domain by ensuring that a particular
     # file is present at the domain
     http01: {}
+EOF
 ```
 
-3. Create a Ingress service to Expose the `guestbook` application using the Application Gateway with the Lets Encrypt Certificate.
+##### 3. Deploy App
 
-Ensure you Application Gateway has a public Frontend IP configuration with a DNS name (either using the  default `azure.com` domain, or provision a `Azure DNS Zone` service, and assign your own custom domain). 
+Create an Ingress resource to Expose the `guestbook` application using the Application Gateway with the Lets Encrypt Certificate.
 
-> **_IMPORTANT:_**  Update the yaml `<PLACEHOLDERS.COM>` below with your Application Gateway domain (for example 'kh-aks-ingress.westeurope.cloudapp.azure.com'), Save the file & apply to your cluster using ```kubectl apply -f guestbook-letsencrypt-staging.yaml```
+Ensure you Application Gateway has a public Frontend IP configuration with a DNS name (either using the
+default `azure.com` domain, or provision a `Azure DNS Zone` service, and assign your own custom domain).
+Note the annotation `certmanager.k8s.io/cluster-issuer: letsencrypt-staging`, which tells cert-manager to process the
+tagged Ingress resource.
 
-```yaml
+**IMPORTANT:**  Update `<PLACEHOLDERS.COM>` in the YAML below with your own domain (or the Application Gateway one, for example
+'kh-aks-ingress.westeurope.cloudapp.azure.com')
+
+```bash
+kubectl apply -f - <<EOF
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -251,13 +282,20 @@ spec:
       - backend:
           serviceName: frontend
           servicePort: 80
+EOF
 ```
 
+After a few seconds, you  can access the `guestbook` service through the Application Gateway HTTPS url using the automatically issued **staging** `Lets Encrypt` certificate.
+Your browser may warn you of an invalid cert authority. The staging certificate is issued by `CN=Fake LE Intermediate X1`. This is an indication that the system worked as expected and you are ready for your production certificate.
 
-After a few seconds, you  can access the `guestbook` service through the Application Gateway HTTPS url using the automatically issued `Lets Encrypt` certificate. 
 
-Before the `Lets Encrypt` certificate expires, `cert-manager` will  update the certificate in the kubernetes secret store. At that point, application-gateway-ingress-controller will apply the updated secret referenced in the ingress resources it is using to configure the Application Gateway.
+##### 4. Production Certificate
+Once your staging certificate is setup successfully you can switch to a production ACME server:
+  1. Replace the staging annotation on your Ingress resource with: `certmanager.k8s.io/cluster-issuer: letsencrypt-prod`
+  2. Delete the existing staging `ClusterIssuer` you created in the previous step and create a new one by replacing the ACME server from the ClusterIssuer YAML above with `https://acme-v02.api.letsencrypt.org/directory`
 
+##### 5. Certificate Expiration and Renewal
+Before the `Lets Encrypt` certificate expires, `cert-manager` will automatically update the certificate in the Kubernetes secret store. At that point, Application Gateway Ingress Controller will apply the updated secret referenced in the ingress resources it is using to configure the Application Gateway.
 
 ## Integrate with other services
 
@@ -284,7 +322,7 @@ spec:
 ```
 
 ## Adding Health Probes to your service
-By default, Ingress controller will provision an HTTP GET probe for the exposed pods.  
+By default, Ingress controller will provision an HTTP GET probe for the exposed pods.
 The probe properties can be customized by adding a [Readiness or Liveness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) to your `deployment`/`pod` spec.
 
 ### With `readinessProbe` or `livenessProbe`
