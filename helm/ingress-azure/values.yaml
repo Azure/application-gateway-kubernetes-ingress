@@ -18,6 +18,7 @@ kubernetes:
 #   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 #   resourceGroup: myResourceGroup
 #   name: myApplicationGateway
+#   usePrivateIP: true 
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
@@ -45,9 +46,3 @@ kubernetes:
 # Specify if the cluster is RBAC enabled or not
 # aksClusterConfiguration:
 #     apiServerAddress: <>
-
-################################################################################
-# Specify ip configuration related information for the gateway.
-# For using private Ip with the gateway, use usePrivateIP
-# ipConfiguration:
-#  usePrivateIP: true 
