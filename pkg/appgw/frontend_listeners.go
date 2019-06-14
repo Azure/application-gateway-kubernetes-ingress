@@ -8,7 +8,6 @@ package appgw
 import (
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
@@ -81,32 +80,15 @@ func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n
 }
 
 func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVariables) *string {
-	var ipID *string
-	var jsonConfigs []string
+	usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP)
 	for _, ip := range *c.appGwConfig.FrontendIPConfigurations {
-		// Collect the JSON IP configs for debug purposes.
-		if jsonConf, err := ip.MarshalJSON(); err != nil {
-			glog.Error("Could not marshall IP configuration:", *ip.ID, err)
-		} else {
-			jsonConfigs = append(jsonConfigs, string(jsonConf))
-		}
-
-		if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP {
-			if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil {
-				ipID = ip.ID
-			}
-		} else {
-			if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil {
-				ipID = ip.ID
-			}
+		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil &&
+			((usePrivateIP && ip.PrivateIPAddress != nil) ||
+				(!usePrivateIP && ip.PublicIPAddress != nil)) {
+			return ip.ID
 		}
 	}
 
-	if ipID == nil {
-		// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
-		ips := strings.Join(jsonConfigs, ", ")
-		glog.Error("HTTP Listener was not able to find a Public IP address for App Gateway. Available IPs:", ips)
-	}
-
-	return ipID
+	// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
+	return nil
 }

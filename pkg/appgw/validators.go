@@ -113,11 +113,10 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 	privateIPPresent := false
 	publicIPPresent := false
 	for _, ip := range *config.FrontendIPConfigurations {
-		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil {
-			privateIPPresent = true
-		} else if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil {
-			publicIPPresent = true
-		}
+		privateIPPresent = privateIPPresent ||
+			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil)
+		publicIPPresent = publicIPPresent ||
+			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil)
 	}
 
 	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
