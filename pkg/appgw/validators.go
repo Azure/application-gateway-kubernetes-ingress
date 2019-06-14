@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -29,7 +31,7 @@ var validationErrors = map[string]error{
 	errKeyEitherBorR:     errors.New("A Path Rule must have either RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings) but not both"),
 }
 
-func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	// TODO(draychev): reuse newBackendIds() to get backendIDs oncehttps://github.com/Azure/application-gateway-kubernetes-ingress/pull/262 is merged
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
@@ -61,7 +63,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 	return nil
 }
 
-func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	if config.URLPathMaps == nil {
 		return nil
 	}
@@ -99,5 +101,19 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 
 		}
 	}
+	return nil
+}
+
+// FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
+func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+
+	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{}
+
+	for _, fn := range validators {
+		if err := fn(eventRecorder, config, envVariables); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

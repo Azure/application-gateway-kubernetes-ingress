@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -70,9 +71,23 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Create a configbuilder based on current appgw config
 	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
+	// Get environment variables. Some environment variables can affect our config generation.
+	envVariables := environment.GetEnv()
+
 	// Get all the ingresses and services
 	ingressList := c.k8sContext.GetHTTPIngressList()
 	serviceList := c.k8sContext.GetServiceList()
+
+	// Run fatal validations on the existing config of the Application Gateway.
+	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, envVariables); err != nil {
+		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
+		return err
+	}
+
+	// Run validations on the Kubernetes resources which can suggest misconfiguration.
+	if err = configBuilder.PreBuildValidate(envVariables, ingressList, serviceList); err != nil {
+		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
+	}
 
 	// The following operations need to be in sequence
 	err = configBuilder.HealthProbesCollection(ingressList, serviceList)
@@ -112,10 +127,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		return errors.New("unable to generate request routing rules")
 	}
 
-	// Replace the current appgw config with the generated one
-	if appGw.ApplicationGatewayPropertiesFormat, err = configBuilder.Build(ingressList, serviceList); err != nil {
-		glog.Error("ConfigBuilder failed to create Application Gateway config:", err)
+	// Run post validations to report errors in the config generation.
+	if err = configBuilder.PostBuildValidate(envVariables, ingressList, serviceList); err != nil {
+		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
 	}
+
+	// Replace the current appgw config with the generated one
+	appGw.ApplicationGatewayPropertiesFormat = configBuilder.GetApplicationGatewayPropertiesFormatPtr()
 
 	addTags(&appGw)
 
