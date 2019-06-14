@@ -28,12 +28,12 @@ func getEnvVars() envVariables {
 		WatchNamespace:    os.Getenv("KUBERNETES_WATCHNAMESPACE"),
 	}
 
-	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 || len(env.WatchNamespace) == 0 {
+	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
 		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
 	}
 
 	if env.WatchNamespace == "" {
-		glog.Fatal("Error creating informers, namespace is not specified")
+		glog.Info("KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.")
 	}
 
 	return env
