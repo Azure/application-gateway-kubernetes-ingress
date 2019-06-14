@@ -103,30 +103,28 @@ func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network
 	return &c.appGwConfig
 }
 
+type valFunc func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+
 // PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
 func (c *appGwConfigBuilder) PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
-
-	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
+	validationFunctions := []valFunc{
 		validateServiceDefinition,
 	}
 
-	for _, fn := range validators {
-		if err := fn(c.recorder, &c.appGwConfig, envVariables, ingressList, serviceList); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return c.runValidationFunctions(envVariables, ingressList, serviceList, validationFunctions)
 }
 
 // PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
 func (c *appGwConfigBuilder) PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
-
-	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
+	validationFunctions := []valFunc{
 		validateURLPathMaps,
 	}
 
-	for _, fn := range validators {
+	return c.runValidationFunctions(envVariables, ingressList, serviceList, validationFunctions)
+}
+
+func (c *appGwConfigBuilder) runValidationFunctions(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service, validationFunctions []valFunc) error {
+	for _, fn := range validationFunctions {
 		if err := fn(c.recorder, &c.appGwConfig, envVariables, ingressList, serviceList); err != nil {
 			return err
 		}
