@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
@@ -22,7 +23,9 @@ type ConfigBuilder interface {
 	Listeners(ingressList []*v1beta1.Ingress) error
 	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-	Build(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*network.ApplicationGatewayPropertiesFormat, error)
+	GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat
+	PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 }
 
 type appGwConfigBuilder struct {
@@ -96,20 +99,34 @@ func generateListenerID(rule *v1beta1.IngressRule,
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
-func (c *appGwConfigBuilder) Build(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*network.ApplicationGatewayPropertiesFormat, error) {
-	return &c.appGwConfig, c.Validate(ingressList, serviceList)
+func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat {
+	return &c.appGwConfig
 }
 
 // Validate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
-func (c *appGwConfigBuilder) Validate(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func (c *appGwConfigBuilder) PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 
-	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
-		validateURLPathMaps,
+	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
 		validateServiceDefinition,
 	}
 
 	for _, fn := range validators {
-		if err := fn(c.recorder, &c.appGwConfig, ingressList, serviceList); err != nil {
+		if err := fn(c.recorder, &c.appGwConfig, envVariables, ingressList, serviceList); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *appGwConfigBuilder) PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+
+	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error{
+		validateURLPathMaps,
+	}
+
+	for _, fn := range validators {
+		if err := fn(c.recorder, &c.appGwConfig, envVariables, ingressList, serviceList); err != nil {
 			return err
 		}
 	}

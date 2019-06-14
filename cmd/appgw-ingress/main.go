@@ -100,9 +100,16 @@ func main() {
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
-	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
 
 	recorder := getEventRecorder(kubeClient)
+
+	// Run fatal validations
+	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
+		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config.", err)
+	}
+
+	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
 
 	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start()
 	select {}
