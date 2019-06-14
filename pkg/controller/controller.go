@@ -133,10 +133,9 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warningf("unable to send CreateOrUpdate request, error [%v]", err.Error())
 		configJSON, _ := c.dumpSanitizedJSON(&appGw)
-		glog.V(5).Info(string(configJSON))
-		return errors.New("unable to send CreateOrUpdate request")
+		glog.Errorf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
+		return err
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)

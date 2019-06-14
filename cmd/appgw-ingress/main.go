@@ -9,7 +9,9 @@ import (
 	"context"
 	"flag"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -88,24 +90,52 @@ func main() {
 		ResourceGroup:  env.ResourceGroupName,
 		AppGwName:      env.AppGwName,
 	}
-	kubeClient := getKubeClient(env)
-	ctx := k8scontext.NewContext(kubeClient, env.WatchNamespace, *resyncPeriod)
 
-	recorder := getEventRecorder(kubeClient)
-
-	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx, recorder).Start()
-	select {}
-}
-
-func getKubeClient(env envVariables) *kubernetes.Clientset {
 	kubeClient, err := kubernetes.NewForConfig(getKubeClientConfig())
 	if err != nil {
 		glog.Fatal("Error creating Kubernetes client: ", err)
 	}
-	if _, err = kubeClient.CoreV1().Namespaces().Get(env.WatchNamespace, metav1.GetOptions{}); err != nil {
-		glog.Fatalf("Error creating informers, namespace [%v] is not found: %v", env.WatchNamespace, err.Error())
+	namespaces := getNamespacesToWatch(env.WatchNamespace)
+	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
+	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
+
+	recorder := getEventRecorder(kubeClient)
+
+	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start()
+	select {}
+}
+
+func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
+	var nonExistent []string
+	for _, ns := range namespaces {
+		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
+			nonExistent = append(nonExistent, ns)
+		}
 	}
-	return kubeClient
+	if len(nonExistent) > 0 {
+		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+	}
+}
+
+func getNamespacesToWatch(namespaceEnvVar string) []string {
+	if namespaceEnvVar == "" {
+		return []string{}
+	}
+
+	// Namespaces (DNS-1123 label) can have lower case alphanumeric characters or '-'
+	// Commas are safe to use as a separator
+	if strings.Contains(namespaceEnvVar, ",") {
+		var namespaces []string
+		for _, ns := range strings.Split(namespaceEnvVar, ",") {
+			if len(ns) > 0 {
+				namespaces = append(namespaces, strings.TrimSpace(ns))
+			}
+		}
+		sort.Strings(namespaces)
+		return namespaces
+	}
+	return []string{namespaceEnvVar}
 }
 
 func getAzAuth(vars envVariables) (autorest.Authorizer, error) {

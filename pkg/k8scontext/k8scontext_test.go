@@ -58,7 +58,7 @@ var _ = Describe("K8scontext", func() {
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, ingressNS, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 

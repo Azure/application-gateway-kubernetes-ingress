@@ -19,30 +19,29 @@ import (
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
-
-	agw := Identifier{
-		SubscriptionID: tests.Subscription,
-		ResourceGroup:  tests.ResourceGroup,
-		AppGwName:      tests.AppGwName,
+	targetListener := listenerIdentifier{
+		FrontendPort: int32(8080),
+		HostName:     "foo.baz",
 	}
-	configName := generateSSLRedirectConfigurationName(tests.Namespace, tests.Name)
-	expectedRedirectID := agw.redirectConfigurationID(configName)
+
+	expectedRedirectID := "/subscriptions/--subscription--" +
+		"/resourceGroups/--resource-group--" +
+		"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
+		"/redirectConfigurations/sslr-fl-foo.baz-8080"
 
 	Context("test getSslRedirectConfigResourceReference", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		_ = configBuilder.k8sContext.Caches.Service.Add(tests.NewServiceFixture())
-		ingress := tests.NewIngressFixture()
 
-		actualID := configBuilder.getSslRedirectConfigResourceReference(ingress).ID
+		actualID := configBuilder.getSslRedirectConfigResourceReference(targetListener).ID
 
 		It("generates expected ID", func() {
-			Expect(expectedRedirectID).To(Equal(*actualID))
+			Expect(*actualID).To(Equal(expectedRedirectID))
 		})
 	})
 
 	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure there are no path rules defined for this test
@@ -54,7 +53,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		})
 
 		// !! Action !! -- will mutate pathMap struct
-		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
+		configBuilder.modifyPathRulesForRedirection(&pathMap, targetListener)
 
 		actualID := *(pathMap.DefaultRedirectConfiguration.ID)
 		It("generated expected ID", func() {
@@ -68,7 +67,6 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		ingress := tests.NewIngressFixture()
 		pathMap := newURLPathMap()
 
 		// Ensure the test is setup correctly
@@ -82,7 +80,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		firstPathRule.RedirectConfiguration = nil
 
 		// !! Action !! -- will mutate pathMap struct
-		configBuilder.modifyPathRulesForRedirection(ingress, &pathMap)
+		configBuilder.modifyPathRulesForRedirection(&pathMap, targetListener)
 
 		actual := *(*pathMap.PathRules)[0].ApplicationGatewayPathRulePropertiesFormat
 

@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// AzureIngressProhibitedTarget is the targets AGIC is allowed to mutate
+// AzureIngressProhibitedTarget is the targets AGIC is not allowed to mutate
 //+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type AzureIngressProhibitedTarget struct {
 	metav1.TypeMeta   `json:",inline"`

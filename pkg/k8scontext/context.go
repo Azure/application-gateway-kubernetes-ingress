@@ -7,6 +7,7 @@ package k8scontext
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -16,7 +17,6 @@ import (
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -24,8 +24,14 @@ import (
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespace string, resyncPeriod time.Duration) *Context {
-	informerFactory := informers.NewFilteredSharedInformerFactory(kubeClient, resyncPeriod, namespace, func(*metav1.ListOptions) {})
+func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
+	var options []informers.SharedInformerOption
+
+	for _, namespace := range namespaces {
+		options = append(options, informers.WithNamespace(namespace))
+	}
+
+	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
@@ -132,24 +138,25 @@ func hasHTTPRule(ingress *v1beta1.Ingress) bool {
 }
 
 // GetEndpointsByService returns the endpoints associated with a specific service.
-func (c *Context) GetEndpointsByService(serviceKey string) *v1.Endpoints {
+func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get endpoints from store, error occurred %s", err.Error())
-		return nil
+		glog.Error("Error fetching endpoints from store, error occurred ", err)
+		return nil, err
 	}
 
 	if !exist {
-		glog.V(1).Infof("unable to get endpoints from store, no such service %s", serviceKey)
-		return nil
+		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
+		glog.Error(msg)
+		return nil, errors.New(msg)
 	}
 
-	endpoints := endpointsInterface.(*v1.Endpoints)
-	return endpoints
+	return endpointsInterface.(*v1.Endpoints), nil
 }
 
 // GetService returns the service identified by the key.
+// Deprecated: Please use a map instead
 func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
@@ -195,12 +202,12 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get secret from store, error occurred %s", err.Error())
+		glog.Error("Error fetching secret from store:", err)
 		return nil
 	}
 
 	if !exist {
-		glog.V(1).Infof("unable to get secret from store, no such service %s", secretKey)
+		glog.Error("Error fetching secret from store! Service does not exist:", secretKey)
 		return nil
 	}
 
