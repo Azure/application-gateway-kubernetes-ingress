@@ -31,6 +31,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -74,7 +75,8 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
-	env := getEnvVars()
+	env := environment.GetEnv()
+	environment.ValidateEnv(env)
 
 	appGwClient := network.NewApplicationGatewaysClient(env.SubscriptionID)
 
@@ -138,7 +140,7 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 	return []string{namespaceEnvVar}
 }
 
-func getAzAuth(vars envVariables) (autorest.Authorizer, error) {
+func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
 		// see https://github.com/Azure/aad-pod-identity for more information
@@ -149,7 +151,7 @@ func getAzAuth(vars envVariables) (autorest.Authorizer, error) {
 	return auth.NewAuthorizerFromFile(network.DefaultBaseURI)
 }
 
-func waitForAzureAuth(envVars envVariables, client network.ApplicationGatewaysClient) {
+func waitForAzureAuth(envVars environment.EnvVariables, client network.ApplicationGatewaysClient) {
 	maxRetry := 10
 	const retryTime = 10 * time.Second
 	for counter := 0; counter <= maxRetry; counter++ {

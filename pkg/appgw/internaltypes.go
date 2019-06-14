@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -62,7 +62,7 @@ type secretIdentifier struct {
 
 // Max length for a property name is 80 characters. We hash w/ MD5 when length is > 80, which is 32 characters
 var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
-var agPrefix = utils.GetEnv("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
+var agPrefix = environment.GetEnvironmentVariable("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type listenerAzConfig struct {
