@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -138,7 +139,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 		serviceList := []*v1.Service{tests.NewServiceFixture()}
-		_ = configBuilder.RequestRoutingRules(ingressList, serviceList)
+		envVariables := environment.GetFakeEnv()
+		_ = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))

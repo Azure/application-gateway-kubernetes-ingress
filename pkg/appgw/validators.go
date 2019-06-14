@@ -8,6 +8,7 @@ package appgw
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -22,6 +23,8 @@ const (
 	errKeyEitherDefaults = "either-defaults"
 	errKeyNoBorR         = "no-backend-or-redirect"
 	errKeyEitherBorR     = "either-backend-or-redirect"
+	errKeyNoPrivateIP    = "no-private-ip"
+	errKeyNoPublicIP     = "no-public-ip"
 )
 
 var validationErrors = map[string]error{
@@ -29,6 +32,8 @@ var validationErrors = map[string]error{
 	errKeyEitherDefaults: errors.New("URL Path Map must have either DefaultRedirectConfiguration or (DefaultBackendAddressPool + DefaultBackendHTTPSettings) but not both"),
 	errKeyNoBorR:         errors.New("A valid path rule must have one of RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings)"),
 	errKeyEitherBorR:     errors.New("A Path Rule must have either RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings) but not both"),
+	errKeyNoPrivateIP:    errors.New("A Private IP must be present in the Application Gateway FrontendIPConfiguration if the controller is configured to UsePrivateIP for routing rules"),
+	errKeyNoPublicIP:     errors.New("A Public IP must be present in the Application Gateway FrontendIPConfiguration"),
 }
 
 func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
@@ -104,10 +109,34 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 	return nil
 }
 
+func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+	privateIPPresent := false
+	publicIPPresent := false
+	for _, ip := range *config.FrontendIPConfigurations {
+		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil {
+			privateIPPresent = true
+		} else if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil {
+			publicIPPresent = true
+		}
+	}
+
+	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
+		return validationErrors[errKeyNoPrivateIP]
+	}
+
+	if !publicIPPresent {
+		return validationErrors[errKeyNoPublicIP]
+	}
+
+	return nil
+}
+
 // FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
 func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
 
-	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{}
+	validators := []func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
+		validateFrontendIPConfiguration,
+	}
 
 	for _, fn := range validators {
 		if err := fn(eventRecorder, config, envVariables); err != nil {
