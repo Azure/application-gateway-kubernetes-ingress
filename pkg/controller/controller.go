@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -77,6 +78,24 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Get all the ingresses and services
 	ingressList := c.k8sContext.GetHTTPIngressList()
 	serviceList := c.k8sContext.GetServiceList()
+	managedTargetsList := c.k8sContext.GetAzureIngressManagedTargets()
+	prohibitedTargetsList := c.k8sContext.GetAzureProhibitedTargets()
+
+	{
+		var managedTargets []string
+		for _, target := range managedTargetsList {
+			managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+		}
+		glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
+	}
+	{
+		var prohibitedTargets []string
+		for _, target := range prohibitedTargetsList {
+			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+		}
+
+		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", prohibitedTargets)
+	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, envVariables); err != nil {

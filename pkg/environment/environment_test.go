@@ -1,11 +1,11 @@
 package environment_test
 
 import (
-	"regexp"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"os"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"os"
+	"regexp"
 )
 
 var _ = Describe("Environment", func() {

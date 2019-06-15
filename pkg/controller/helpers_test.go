@@ -6,18 +6,11 @@
 package controller
 
 import (
-	"testing"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-func TestHelpers(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test the helpers")
-}
 
 var _ = Describe("configure App Gateway", func() {
 
@@ -72,16 +65,14 @@ var _ = Describe("configure App Gateway", func() {
 
 	Context("ensure configIsSame works as expected", func() {
 		It("should deal with nil cache and store stuff in it", func() {
-			client := network.ApplicationGateway{
-				Name: to.StringPtr("something"),
-			}
-
 			c := AppGwIngressController{}
-
-			Expect(c.configIsSame(&client)).To(BeFalse())
-			c.updateCache(&client)
-			Expect(c.configIsSame(&client)).To(BeTrue())
-			Expect(string(*c.configCache)).To(Equal(`{"name":"something"}`))
+			config := network.ApplicationGateway{
+				ID: to.StringPtr("something"),
+			}
+			Expect(c.configIsSame(&config)).To(BeFalse())
+			c.updateCache(&config)
+			Expect(c.configIsSame(&config)).To(BeTrue())
+			Expect(string(*c.configCache)).To(Equal(`{"id":"something"}`))
 		})
 	})
 

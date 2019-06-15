@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen=package,register
+// +groupName=azureingressprohibitedtargets.appgw.ingress.k8s.io
 
-// Package v1 is exactly that - first version
-// +groupName=appgw.ingress.kubernetes.io
+// Package v1 is the v1 version of the API.
 package v1

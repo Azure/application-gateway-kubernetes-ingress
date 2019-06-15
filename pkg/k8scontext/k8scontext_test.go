@@ -7,6 +7,7 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -50,22 +51,24 @@ var _ = Describe("K8scontext", func() {
 	BeforeEach(func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
+		crdClient := fake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
 
-		_, err = k8sClient.Extensions().Ingresses(ingressNS).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second, crdClient)
+
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 
 	Context("Checking if we are able to listen to Ingress Resources", func() {
 		It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
-			ingresses, err := k8sClient.Extensions().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
 			Expect(err).Should(BeNil(), "Unabled to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -87,11 +90,11 @@ var _ = Describe("K8scontext", func() {
 		It("Should be able to follow modifications to the Ingress Resource.", func() {
 			ingress.Spec.Rules[0].Host = "hellow-1.com"
 
-			_, err := k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.Extensions().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
 			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -112,11 +115,11 @@ var _ = Describe("K8scontext", func() {
 		})
 
 		It("Should be able to follow deletion of the Ingress Resource.", func() {
-			err := k8sClient.Extensions().Ingresses(ingressNS).Delete(ingressName, nil)
+			err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Delete(ingressName, nil)
 			Expect(err).Should(BeNil(), "Unable to delete ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.Extensions().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
 			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(0), "Expected to have no ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -140,11 +143,11 @@ var _ = Describe("K8scontext", func() {
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
 			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
-			_, err := k8sClient.Extensions().Ingresses(ingressNS).Create(nonAppGWIngress)
+			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(nonAppGWIngress)
 			Expect(err).Should(BeNil(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.Extensions().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
 			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(2), "Expected to have 2 ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
