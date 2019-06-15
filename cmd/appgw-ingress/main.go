@@ -30,6 +30,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -93,14 +94,13 @@ func main() {
 		AppGwName:      env.AppGwName,
 	}
 
-	kubeClient, err := kubernetes.NewForConfig(getKubeClientConfig())
-	if err != nil {
-		glog.Fatal("Error creating Kubernetes client: ", err)
-	}
+	apiConfig := getKubeClientConfig()
+	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
+	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
-
+	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod, crdClient)
 	recorder := getEventRecorder(kubeClient)
 
 	// Run fatal validations
@@ -125,6 +125,14 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
 	if len(nonExistent) > 0 {
 		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
 	}
+}
+
+func getKubeClient(apiConfig *rest.Config) *kubernetes.Clientset {
+	kubeClient, err := kubernetes.NewForConfig(apiConfig)
+	if err != nil {
+		glog.Fatal("Error creating Kubernetes client: ", err)
+	}
+	return kubeClient
 }
 
 func getNamespacesToWatch(namespaceEnvVar string) []string {

@@ -7,6 +7,7 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -50,6 +51,7 @@ var _ = Describe("K8scontext", func() {
 	BeforeEach(func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
+		crdClient := fake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
@@ -58,7 +60,8 @@ var _ = Describe("K8scontext", func() {
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second, crdClient)
+
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 
