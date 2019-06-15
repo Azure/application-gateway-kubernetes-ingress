@@ -9,10 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -112,12 +114,21 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
 	privateIPPresent := false
 	publicIPPresent := false
+	var jsonConfigs []string
 	for _, ip := range *config.FrontendIPConfigurations {
+		if jsonConf, err := ip.MarshalJSON(); err != nil {
+			glog.Error("Could not marshall IP configuration:", *ip.ID, err)
+		} else {
+			jsonConfigs = append(jsonConfigs, string(jsonConf))
+		}
+
 		privateIPPresent = privateIPPresent ||
 			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil)
 		publicIPPresent = publicIPPresent ||
 			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil)
 	}
+
+	glog.Info("HTTP Listener available:", strings.Join(jsonConfigs, ", "))
 
 	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
 		return validationErrors[errKeyNoPrivateIP]
