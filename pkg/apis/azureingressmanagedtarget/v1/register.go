@@ -27,6 +27,7 @@ var (
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 
+	// AddToScheme runs addKnownTypes
 	AddToScheme = apis.AddToScheme
 )
 
