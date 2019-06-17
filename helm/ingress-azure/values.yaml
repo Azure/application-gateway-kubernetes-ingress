@@ -18,6 +18,7 @@ kubernetes:
 #   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 #   resourceGroup: myResourceGroup
 #   name: myApplicationGateway
+#   usePrivateIP: true 
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager

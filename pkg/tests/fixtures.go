@@ -8,11 +8,12 @@ package tests
 import (
 	"fmt"
 
+	"io/ioutil"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +40,7 @@ const (
 	ResourceGroup = "--resource-group--"
 	AppGwName     = "--app-gw-name--"
 	IPID1         = "--front-end-ip-id-1--"
+	IPID2         = "--front-end-ip-id-2--"
 )
 
 // GetIngress creates an Ingress test fixture.
