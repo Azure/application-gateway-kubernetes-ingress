@@ -30,11 +30,11 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
-          {{- if eq .Values.armAuth.type "servicePrincipal"}}
           - name: AZURE_AUTH_LOCATION
             value: /etc/Azure/Networking-AppGW/auth/{{ required "armAuth.secretKey is required if using servicePrincipal" .Values.armAuth.secretKey }}
-          {{- end}}
+        {{- end}}
         envFrom:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
