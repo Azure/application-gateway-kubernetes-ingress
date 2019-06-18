@@ -94,7 +94,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 		}
 
-		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", prohibitedTargets)
+		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
