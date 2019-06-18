@@ -29,7 +29,7 @@ import (
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration, crdClient versioned.Interface) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
 	updateChannel := channels.NewRingChannel(1024)
 
 	var options []informers.SharedInformerOption
@@ -254,6 +254,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}) {
 		i.Pods,
 		i.Service,
 		i.Secret,
+		i.Ingress,
 		i.AzureIngressManagedLocation,
 		i.AzureIngressProhibitedLocation,
 	}
@@ -265,20 +266,12 @@ func (i *InformerCollection) Run(stopCh chan struct{}) {
 
 	glog.V(1).Infoln("Wait for initial cache sync")
 	if !cache.WaitForCacheSync(stopCh, hasSynced...) {
-		glog.V(1).Infoln("initial sync wait stopped")
+		glog.V(1).Infoln("initial cache sync stopped")
 		runtime.HandleError(fmt.Errorf("failed to do initial sync on resources required for ingress"))
 		return
 	}
 
-	go i.Ingress.Run(stopCh)
-
-	if !cache.WaitForCacheSync(stopCh, i.Ingress.HasSynced) {
-		glog.V(1).Infoln("ingress cache wait stopped")
-		runtime.HandleError(fmt.Errorf("failed to do initial sync on ingress"))
-		return
-	}
-
-	glog.V(1).Infoln("ingress initial sync done")
+	glog.V(1).Infoln("initial cache sync done")
 }
 
 // Stop function stops all informers in the context.
