@@ -132,8 +132,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		service,
 	}
 
-	envVariables := environment.GetFakeEnv()
-
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
 	// and allowing the k8s API server to create the `endpoints` resource which we end up consuming.
 	// However since we are using a fake k8s client the resources are dumb which forces us to create the final
@@ -302,12 +300,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
+		kr := &k8scontext.KubernetesResources{
+			IngressList:  ingressList,
+			ServiceList:  serviceList,
+			EnvVariables: environment.GetFakeEnv(),
+		}
 		// Add Health Probes.
-		err := configBuilder.HealthProbesCollection(ingressList, serviceList)
+		err := configBuilder.HealthProbesCollection(kr)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
 		// Add HTTP settings.
-		err = configBuilder.BackendHTTPSettingsCollection(ingressList, serviceList)
+		err = configBuilder.BackendHTTPSettingsCollection(kr)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -326,7 +329,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		err = configBuilder.BackendAddressPools(ingressList, serviceList)
+		err = configBuilder.BackendAddressPools(kr)
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -339,7 +342,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		err = configBuilder.Listeners(ingressList, envVariables)
+		err = configBuilder.Listeners(kr)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -352,7 +355,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
+		err = configBuilder.RequestRoutingRules(kr)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat

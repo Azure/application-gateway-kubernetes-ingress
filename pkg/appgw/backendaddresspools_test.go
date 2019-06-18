@@ -6,13 +6,15 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -48,7 +50,11 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		serviceList := []*v1.Service{
 			tests.NewServiceFixture(),
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
+		kr := &k8scontext.KubernetesResources{
+			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			ServiceList: serviceList,
+		}
+		_ = cb.BackendAddressPools(kr)
 
 		It("should contain correct number of backend address pools", func() {
 			Expect(len(*cb.appGwConfig.BackendAddressPools)).To(Equal(1))
@@ -78,7 +84,11 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
+		kr := &k8scontext.KubernetesResources{
+			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			ServiceList: serviceList,
+		}
+		_ = cb.BackendAddressPools(kr)
 		actualPool := newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
 			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
@@ -108,7 +118,11 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		_ = cb.BackendAddressPools(cb.k8sContext.GetHTTPIngressList(), serviceList)
+		kr := &k8scontext.KubernetesResources{
+			ServiceList: serviceList,
+			IngressList: cb.k8sContext.GetHTTPIngressList(),
+		}
+		_ = cb.BackendAddressPools(kr)
 
 		endpoints := tests.NewEndpointsFixture()
 		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)

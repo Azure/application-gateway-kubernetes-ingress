@@ -3,13 +3,15 @@ package appgw
 import (
 	"os"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -57,8 +59,13 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ing2,
 		}
 
+		kr := &k8scontext.KubernetesResources{
+			IngressList:  ingressList,
+			EnvVariables: envVariables,
+		}
+
 		// !! Action !!
-		listeners, _ := cb.getListeners(ingressList, envVariables)
+		listeners, _ := cb.getListeners(kr)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))

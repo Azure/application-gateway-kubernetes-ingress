@@ -9,14 +9,15 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v1.Service, rule *v1beta1.IngressRule,
@@ -80,12 +81,12 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, envVariables environment.EnvVariables) error {
-	_, httpListenersMap := c.getListeners(ingressList, envVariables)
+func (c *appGwConfigBuilder) RequestRoutingRules(kr *k8scontext.KubernetesResources) error {
+	_, httpListenersMap := c.getListeners(kr)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
-	backendPools := c.newBackendPoolMap(ingressList, serviceList)
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
-	for _, ingress := range ingressList {
+	backendPools := c.newBackendPoolMap(kr.IngressList, kr.ServiceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(kr.IngressList, kr.ServiceList)
+	for _, ingress := range kr.IngressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
@@ -140,13 +141,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, wildcardRule,
+					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, kr.ServiceList, wildcardRule,
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, serviceList, rule,
+				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, kr.ServiceList, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
@@ -159,13 +160,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(ingressList []*v1beta1.Ingress,
 			if httpsAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, wildcardRule,
+					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, kr.ServiceList, wildcardRule,
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, serviceList, rule,
+				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, kr.ServiceList, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}

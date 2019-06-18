@@ -72,25 +72,24 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Create a configbuilder based on current appgw config
 	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
-	// Get environment variables. Some environment variables can affect our config generation.
-	envVariables := environment.GetEnv()
-
-	// Get all the ingresses and services
-	ingressList := c.k8sContext.GetHTTPIngressList()
-	serviceList := c.k8sContext.GetServiceList()
-	managedTargetsList := c.k8sContext.GetAzureIngressManagedTargets()
-	prohibitedTargetsList := c.k8sContext.GetAzureProhibitedTargets()
-
+	kr := &k8scontext.KubernetesResources{
+		// Get all Services
+		ServiceList:       c.k8sContext.GetServiceList(),
+		IngressList:       c.k8sContext.GetHTTPIngressList(),
+		ManagedTargets:    c.k8sContext.GetAzureIngressManagedTargets(),
+		ProhibitedTargets: c.k8sContext.GetAzureProhibitedTargets(),
+		EnvVariables:      environment.GetEnv(),
+	}
 	{
 		var managedTargets []string
-		for _, target := range managedTargetsList {
+		for _, target := range kr.ManagedTargets {
 			managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 		}
 		glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
 	}
 	{
 		var prohibitedTargets []string
-		for _, target := range prohibitedTargetsList {
+		for _, target := range kr.ProhibitedTargets {
 			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 		}
 
@@ -98,32 +97,32 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
-	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, envVariables); err != nil {
+	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, kr.EnvVariables); err != nil {
 		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
 		return err
 	}
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
-	if err = configBuilder.PreBuildValidate(envVariables, ingressList, serviceList); err != nil {
+	if err = configBuilder.PreBuildValidate(kr); err != nil {
 		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
 	}
 
 	// The following operations need to be in sequence
-	err = configBuilder.HealthProbesCollection(ingressList, serviceList)
+	err = configBuilder.HealthProbesCollection(kr)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
 		return errors.New("unable to generate health probes")
 	}
 
 	// The following operations need to be in sequence
-	err = configBuilder.BackendHTTPSettingsCollection(ingressList, serviceList)
+	err = configBuilder.BackendHTTPSettingsCollection(kr)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
 		return errors.New("unable to generate backend http settings")
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
-	err = configBuilder.BackendAddressPools(ingressList, serviceList)
+	err = configBuilder.BackendAddressPools(kr)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
 		return errors.New("unable to generate backend address pools")
@@ -133,21 +132,21 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
-	err = configBuilder.Listeners(ingressList, envVariables)
+	err = configBuilder.Listeners(kr)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
 		return errors.New("unable to generate frontend listeners")
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
-	err = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
+	err = configBuilder.RequestRoutingRules(kr)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
 		return errors.New("unable to generate request routing rules")
 	}
 
 	// Run post validations to report errors in the config generation.
-	if err = configBuilder.PostBuildValidate(envVariables, ingressList, serviceList); err != nil {
+	if err = configBuilder.PostBuildValidate(kr); err != nil {
 		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
 	}
 

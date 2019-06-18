@@ -9,23 +9,25 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress, envVariables environment.EnvVariables) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+func (c *appGwConfigBuilder) getListeners(kr *k8scontext.KubernetesResources) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
 	var listeners []n.ApplicationGatewayHTTPListener
 
-	for listenerID, config := range c.getListenerConfigs(ingressList) {
-		listener := c.newListener(listenerID, config.Protocol, envVariables)
+	for listenerID, config := range c.getListenerConfigs(kr.IngressList) {
+		listener := c.newListener(listenerID, config.Protocol, kr.EnvVariables)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
