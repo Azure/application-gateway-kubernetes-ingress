@@ -57,9 +57,9 @@ func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPo
 }
 
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
-	endpoints := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
-	if endpoints == nil {
-		logLine := fmt.Sprintf("Unable to get endpoints for service key [%s]", backendID.serviceKey())
+	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
+	if err != nil {
+		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", backendID.serviceKey())
 		// TODO(draychev): Move "reason" into an enum
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
 		glog.Warning(logLine)

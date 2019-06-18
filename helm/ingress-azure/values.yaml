@@ -18,6 +18,7 @@ kubernetes:
 #   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 #   resourceGroup: myResourceGroup
 #   name: myApplicationGateway
+#   usePrivateIP: true 
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
@@ -40,8 +41,3 @@ kubernetes:
 # Specify if the cluster is RBAC enabled or not
 # rbac:
 #     enabled: false # true/false
-
-################################################################################
-# Specify if the cluster is RBAC enabled or not
-# aksClusterConfiguration:
-#     apiServerAddress: <>

@@ -84,11 +84,6 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     # Specify if the cluster is RBAC enabled or not
     rbac:
         enabled: false # true/false
-
-    ################################################################################
-    # Specify aks cluster related information
-    aksClusterConfiguration:
-        apiServerAddress: <aks-api-server-address>
     ```
 
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:

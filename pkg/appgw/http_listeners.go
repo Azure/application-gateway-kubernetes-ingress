@@ -6,13 +6,14 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress) error {
+func (c *appGwConfigBuilder) Listeners(ingressList []*v1beta1.Ingress, envVariables environment.EnvVariables) error {
 	c.appGwConfig.SslCertificates = c.getSslCertificates(ingressList)
 	c.appGwConfig.FrontendPorts = c.getFrontendPorts(ingressList)
-	c.appGwConfig.HTTPListeners, _ = c.getListeners(ingressList)
+	c.appGwConfig.HTTPListeners, _ = c.getListeners(ingressList, envVariables)
 
 	// App Gateway Rules can be configured to redirect HTTP traffic to HTTPS URLs.
 	// In this step here we create the redirection configurations. These configs are attached to request routing rules

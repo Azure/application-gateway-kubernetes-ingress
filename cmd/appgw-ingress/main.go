@@ -9,7 +9,9 @@ import (
 	"context"
 	"flag"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -29,6 +31,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -72,7 +75,8 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
-	env := getEnvVars()
+	env := environment.GetEnv()
+	environment.ValidateEnv(env)
 
 	appGwClient := network.NewApplicationGatewaysClient(env.SubscriptionID)
 
@@ -88,27 +92,62 @@ func main() {
 		ResourceGroup:  env.ResourceGroupName,
 		AppGwName:      env.AppGwName,
 	}
-	kubeClient := getKubeClient(env)
-	ctx := k8scontext.NewContext(kubeClient, env.WatchNamespace, *resyncPeriod)
 
-	recorder := getEventRecorder(kubeClient)
-
-	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, ctx, recorder).Start()
-	select {}
-}
-
-func getKubeClient(env envVariables) *kubernetes.Clientset {
 	kubeClient, err := kubernetes.NewForConfig(getKubeClientConfig())
 	if err != nil {
 		glog.Fatal("Error creating Kubernetes client: ", err)
 	}
-	if _, err = kubeClient.CoreV1().Namespaces().Get(env.WatchNamespace, metav1.GetOptions{}); err != nil {
-		glog.Fatalf("Error creating informers, namespace [%v] is not found: %v", env.WatchNamespace, err.Error())
+	namespaces := getNamespacesToWatch(env.WatchNamespace)
+	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
+	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+
+	recorder := getEventRecorder(kubeClient)
+
+	// Run fatal validations
+	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
+		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
-	return kubeClient
+
+	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
+
+	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start()
+	select {}
 }
 
-func getAzAuth(vars envVariables) (autorest.Authorizer, error) {
+func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
+	var nonExistent []string
+	for _, ns := range namespaces {
+		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
+			nonExistent = append(nonExistent, ns)
+		}
+	}
+	if len(nonExistent) > 0 {
+		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+	}
+}
+
+func getNamespacesToWatch(namespaceEnvVar string) []string {
+	if namespaceEnvVar == "" {
+		return []string{}
+	}
+
+	// Namespaces (DNS-1123 label) can have lower case alphanumeric characters or '-'
+	// Commas are safe to use as a separator
+	if strings.Contains(namespaceEnvVar, ",") {
+		var namespaces []string
+		for _, ns := range strings.Split(namespaceEnvVar, ",") {
+			if len(ns) > 0 {
+				namespaces = append(namespaces, strings.TrimSpace(ns))
+			}
+		}
+		sort.Strings(namespaces)
+		return namespaces
+	}
+	return []string{namespaceEnvVar}
+}
+
+func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
 		// see https://github.com/Azure/aad-pod-identity for more information
@@ -119,7 +158,7 @@ func getAzAuth(vars envVariables) (autorest.Authorizer, error) {
 	return auth.NewAuthorizerFromFile(network.DefaultBaseURI)
 }
 
-func waitForAzureAuth(envVars envVariables, client network.ApplicationGatewaysClient) {
+func waitForAzureAuth(envVars environment.EnvVariables, client network.ApplicationGatewaysClient) {
 	maxRetry := 10
 	const retryTime = 10 * time.Second
 	for counter := 0; counter <= maxRetry; counter++ {

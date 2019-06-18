@@ -16,6 +16,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
+const sleepOnErrorSeconds = 5
+
 // EventProcessor provides a mechanism to act on events in the internal queue.
 type EventProcessor interface {
 	Process(QueuedEvent) error
@@ -128,8 +130,9 @@ func (q *EventQueue) worker() {
 
 		// Use callback to process event.
 		if err := q.Process(event); err != nil {
-			// TODO maybe we can implement retry logic for scenarios like failed network.
 			glog.V(1).Infoln("Processing event failed")
+			// TODO(draychev): Implement exponential back-off; Retry etc.
+			time.Sleep(sleepOnErrorSeconds * time.Second)
 		} else {
 			glog.V(1).Infoln("Processing event done, updating lastEventTimestamp")
 			q.queue.Forget(event)
