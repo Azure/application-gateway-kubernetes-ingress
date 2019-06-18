@@ -54,13 +54,13 @@ github.com/golang/glog
 github.com/golang/groupcache/lru
 # github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
-github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/timestamp
+github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/wrappers
-github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/protoc-gen-go/generator
 github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/struct
 github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/protoc-gen-go/generator/internal/remap
@@ -260,8 +260,8 @@ gopkg.in/yaml.v2
 # k8s.io/api v0.0.0-20190614205929-e4e27c96b39a => k8s.io/api v0.0.0-20190612125737-db0771252981
 k8s.io/api/core/v1
 k8s.io/api/extensions/v1beta1
-k8s.io/api/apps/v1
 k8s.io/api/admissionregistration/v1beta1
+k8s.io/api/apps/v1
 k8s.io/api/apps/v1beta1
 k8s.io/api/apps/v1beta2
 k8s.io/api/auditregistration/v1alpha1
@@ -297,20 +297,20 @@ k8s.io/api/storage/v1beta1
 # k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad => k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime
-k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/util/intstr
-k8s.io/apimachinery/pkg/runtime/serializer
-k8s.io/apimachinery/pkg/util/runtime
-k8s.io/apimachinery/pkg/watch
-k8s.io/apimachinery/pkg/types
-k8s.io/apimachinery/pkg/labels
-k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/util/wait
+k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/api/resource
+k8s.io/apimachinery/pkg/runtime/schema
+k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/fields
+k8s.io/apimachinery/pkg/labels
 k8s.io/apimachinery/pkg/selection
+k8s.io/apimachinery/pkg/watch
+k8s.io/apimachinery/pkg/runtime/serializer
 k8s.io/apimachinery/pkg/util/net
+k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/runtime/serializer/streaming
 k8s.io/apimachinery/pkg/util/sets
 k8s.io/apimachinery/pkg/util/errors
@@ -323,13 +323,13 @@ k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
+k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
 k8s.io/apimachinery/pkg/runtime/serializer/versioning
 k8s.io/apimachinery/pkg/util/validation/field
-k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
 k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
@@ -345,13 +345,9 @@ k8s.io/client-go/rest
 k8s.io/client-go/tools/clientcmd
 k8s.io/client-go/tools/record
 k8s.io/client-go/tools/cache
-k8s.io/client-go/discovery
-k8s.io/client-go/util/flowcontrol
-k8s.io/client-go/discovery/fake
-k8s.io/client-go/testing
 k8s.io/client-go/util/workqueue
 k8s.io/client-go/informers
-k8s.io/client-go/rest/fake
+k8s.io/client-go/discovery
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
 k8s.io/client-go/kubernetes/typed/apps/v1
 k8s.io/client-go/kubernetes/typed/apps/v1beta1
@@ -387,6 +383,7 @@ k8s.io/client-go/kubernetes/typed/settings/v1alpha1
 k8s.io/client-go/kubernetes/typed/storage/v1
 k8s.io/client-go/kubernetes/typed/storage/v1alpha1
 k8s.io/client-go/kubernetes/typed/storage/v1beta1
+k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/tools/reference
 k8s.io/client-go/pkg/version
 k8s.io/client-go/plugin/pkg/client/auth/exec
@@ -426,6 +423,7 @@ k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/tools/clientcmd/api/v1
+k8s.io/client-go/discovery/fake
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1/fake
 k8s.io/client-go/kubernetes/typed/apps/v1/fake
 k8s.io/client-go/kubernetes/typed/apps/v1beta1/fake
@@ -462,6 +460,7 @@ k8s.io/client-go/kubernetes/typed/settings/v1alpha1/fake
 k8s.io/client-go/kubernetes/typed/storage/v1/fake
 k8s.io/client-go/kubernetes/typed/storage/v1alpha1/fake
 k8s.io/client-go/kubernetes/typed/storage/v1beta1/fake
+k8s.io/client-go/testing
 k8s.io/client-go/informers/admissionregistration/v1beta1
 k8s.io/client-go/informers/apps/v1
 k8s.io/client-go/informers/apps/v1beta1

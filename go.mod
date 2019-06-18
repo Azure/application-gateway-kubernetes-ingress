@@ -10,7 +10,6 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.1.0
 	github.com/Azure/go-autorest/autorest/to v0.2.0
 	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1
 	github.com/eapache/channels v1.1.0
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
@@ -23,6 +22,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.9.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
+	github.com/knative/pkg v0.0.0-20190618152547-0851b95f902d // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
@@ -41,6 +41,7 @@ require (
 	k8s.io/api v0.0.0-20190614205929-e4e27c96b39a
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/code-generator v0.0.0-20190612125529-c522cb6c26aa // indirect
 	k8s.io/klog v0.3.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
