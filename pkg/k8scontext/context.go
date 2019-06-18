@@ -39,7 +39,11 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
+<<<<<<< HEAD
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
+=======
+	istioGwy := externalversions.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
+>>>>>>> create new informer
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
