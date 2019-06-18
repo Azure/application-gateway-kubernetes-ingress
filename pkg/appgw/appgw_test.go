@@ -390,7 +390,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
 
-		_, err = k8sClient.Extensions().Ingresses(ingressNS).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create the service.
@@ -584,13 +584,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Currently, when TLS spec is specified for an ingress the expectation is that we will not have any HTTP listeners configured for that ingress.
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
-			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
-			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -684,7 +684,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
-			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
@@ -695,7 +695,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
-			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
