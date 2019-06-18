@@ -72,16 +72,14 @@ var _ = Describe("configure App Gateway", func() {
 
 	Context("ensure configIsSame works as expected", func() {
 		It("should deal with nil cache and store stuff in it", func() {
-			client := network.ApplicationGateway{
-				Name: to.StringPtr("something"),
-			}
-
 			c := AppGwIngressController{}
-
+			client := network.ApplicationGateway{
+				ID: to.StringPtr("something"),
+			}
 			Expect(c.configIsSame(&client)).To(BeFalse())
 			c.updateCache(&client)
 			Expect(c.configIsSame(&client)).To(BeTrue())
-			Expect(string(*c.configCache)).To(Equal(`{"name":"something"}`))
+			Expect(string(*c.configCache)).To(Equal(`{"id":"something"}`))
 		})
 	})
 

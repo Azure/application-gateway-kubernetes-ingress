@@ -50,6 +50,11 @@ func (j *JSONPb) marshalTo(w io.Writer, v interface{}) error {
 	return (*jsonpb.Marshaler)(j).Marshal(w, p)
 }
 
+var (
+	// protoMessageType is stored to prevent constant lookup of the same type at runtime.
+	protoMessageType = reflect.TypeOf((*proto.Message)(nil)).Elem()
+)
+
 // marshalNonProto marshals a non-message field of a protobuf message.
 // This function does not correctly marshals arbitrary data structure into JSON,
 // but it is only capable of marshaling non-message field values of protobuf,
@@ -65,6 +70,40 @@ func (j *JSONPb) marshalNonProtoField(v interface{}) ([]byte, error) {
 			return []byte("null"), nil
 		}
 		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.Slice {
+		if rv.IsNil() {
+			if j.EmitDefaults {
+				return []byte("[]"), nil
+			}
+			return []byte("null"), nil
+		}
+
+		if rv.Type().Elem().Implements(protoMessageType) {
+			var buf bytes.Buffer
+			err := buf.WriteByte('[')
+			if err != nil {
+				return nil, err
+			}
+			for i := 0; i < rv.Len(); i++ {
+				if i != 0 {
+					err = buf.WriteByte(',')
+					if err != nil {
+						return nil, err
+					}
+				}
+				if err = (*jsonpb.Marshaler)(j).Marshal(&buf, rv.Index(i).Interface().(proto.Message)); err != nil {
+					return nil, err
+				}
+			}
+			err = buf.WriteByte(']')
+			if err != nil {
+				return nil, err
+			}
+
+			return buf.Bytes(), nil
+		}
 	}
 
 	if rv.Kind() == reflect.Map {
@@ -112,7 +151,15 @@ func (d DecoderWrapper) Decode(v interface{}) error {
 
 // NewEncoder returns an Encoder which writes JSON stream into "w".
 func (j *JSONPb) NewEncoder(w io.Writer) Encoder {
-	return EncoderFunc(func(v interface{}) error { return j.marshalTo(w, v) })
+	return EncoderFunc(func(v interface{}) error {
+		if err := j.marshalTo(w, v); err != nil {
+			return err
+		}
+		// mimic json.Encoder by adding a newline (makes output
+		// easier to read when it contains multiple encoded items)
+		_, err := w.Write(j.Delimiter())
+		return err
+	})
 }
 
 func unmarshalJSONPb(data []byte, v interface{}) error {
