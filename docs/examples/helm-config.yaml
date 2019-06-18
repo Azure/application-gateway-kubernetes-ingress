@@ -32,6 +32,3 @@ armAuth:
 
 rbac:
     enabled: false
-
-aksClusterConfiguration:
-    apiServerAddress: <aks-api-server-address>
