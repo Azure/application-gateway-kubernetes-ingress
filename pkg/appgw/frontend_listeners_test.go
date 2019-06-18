@@ -1,6 +1,9 @@
 package appgw
 
 import (
+	"os"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -12,6 +15,7 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
+	envVariables := environment.GetFakeEnv()
 
 	listener80 := listenerIdentifier{
 		FrontendPort: int32(80),
@@ -54,7 +58,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		}
 
 		// !! Action !!
-		listeners, _ := cb.getListeners(ingressList)
+		listeners, _ := cb.getListeners(ingressList, envVariables)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))
@@ -82,7 +86,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should create a correct App Gwy listener", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
-			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariables)
 			expectedName := agPrefix + "fl-bye.com-80"
 
 			expected := n.ApplicationGatewayHTTPListener{
@@ -98,6 +102,68 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 
 			Expect(listener).To(Equal(expected))
+		})
+	})
+	Context("create a new App Gateway HTTP Listener with Private Ip when private IP is present", func() {
+		const (
+			expectedEnvVarValue = "true"
+		)
+		envVariablesNew := environment.GetFakeEnv()
+		envVariablesNew.UsePrivateIP = expectedEnvVarValue
+		It("should have usePrivateIP true", func() {
+			Expect(envVariablesNew.UsePrivateIP).To(Equal(expectedEnvVarValue))
+		})
+		It("should create a App Gwy listener with private IP", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariablesNew)
+			expectedName := agPrefix + "fl-bye.com-80"
+
+			expected := n.ApplicationGatewayHTTPListener{
+				Etag: to.StringPtr("*"),
+				Name: to.StringPtr(expectedName),
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					// TODO: expose this to external configuration
+					FrontendIPConfiguration: resourceRef(tests.IPID2),
+					FrontendPort:            resourceRef(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(80))),
+					Protocol:                n.ApplicationGatewayProtocol("Https"),
+					HostName:                to.StringPtr(tests.Host),
+				},
+			}
+
+			Expect(listener).To(Equal(expected))
+		})
+	})
+	Context("Fatal if UsePrivateIp is specified and Application Gateway doesn't have a private IP configured.", func() {
+		const (
+			expectedEnvVarValue = "true"
+		)
+		BeforeEach(func() {
+			// Make sure the environment variable we are using for this test does not already exist in the OS.
+			_, exists := os.LookupEnv(environment.UsePrivateIPVarName)
+			Expect(exists).To(BeFalse())
+			// Set it
+			_ = os.Setenv(environment.UsePrivateIPVarName, expectedEnvVarValue)
+			_, exists = os.LookupEnv(environment.UsePrivateIPVarName)
+			Expect(exists).To(BeTrue())
+		})
+		AfterEach(func() {
+			// Clean up the env var after the tests are done
+			_ = os.Unsetenv(environment.UsePrivateIPVarName)
+		})
+		It("should have fatal crash.", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			cb.appGwConfig.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				(*cb.appGwConfig.FrontendIPConfigurations)[0],
+			}
+
+			Expect((*cb.appGwConfig.FrontendIPConfigurations)[0].ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PublicIPAddress).ToNot(Equal(nil))
+			Expect(len(*cb.appGwConfig.FrontendIPConfigurations)).To(Equal(1))
+
+			// exiter = New(func() { cb.newListener(listener80, n.ApplicationGatewayProtocol("Https")) })
+			// exiter.Exit(3)
+			// Expected(exiter.Status(), ShouldEqual, 3)
 		})
 	})
 })

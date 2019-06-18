@@ -1,9 +1,10 @@
 package environment_test
 
 import (
-	"regexp"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"os"
+	"regexp"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
