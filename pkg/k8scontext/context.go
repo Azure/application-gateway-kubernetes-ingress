@@ -248,22 +248,29 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 
 // Run function starts all the informers and waits for an initial sync.
 func (i *InformerCollection) Run(stopCh chan struct{}) {
-	go i.Endpoints.Run(stopCh)
-	go i.Pods.Run(stopCh)
-	go i.Service.Run(stopCh)
-	go i.Secret.Run(stopCh)
+	var hasSynced []cache.InformerSynced
+	sharedInformers := []cache.SharedInformer{
+		i.Endpoints,
+		i.Pods,
+		i.Service,
+		i.Secret,
+		i.AzureIngressManagedLocation,
+		i.AzureIngressProhibitedLocation,
+	}
 
-	glog.V(1).Infoln("start waiting for initial cache sync")
-	if !cache.WaitForCacheSync(stopCh, i.Endpoints.HasSynced, i.Service.HasSynced, i.Secret.HasSynced) {
+	for _, informer := range sharedInformers {
+		go informer.Run(stopCh)
+		hasSynced = append(hasSynced, informer.HasSynced)
+	}
+
+	glog.V(1).Infoln("Wait for initial cache sync")
+	if !cache.WaitForCacheSync(stopCh, hasSynced...) {
 		glog.V(1).Infoln("initial sync wait stopped")
 		runtime.HandleError(fmt.Errorf("failed to do initial sync on resources required for ingress"))
 		return
 	}
 
 	go i.Ingress.Run(stopCh)
-
-	go i.AzureIngressManagedLocation.Run(stopCh)
-	go i.AzureIngressProhibitedLocation.Run(stopCh)
 
 	if !cache.WaitForCacheSync(stopCh, i.Ingress.HasSynced) {
 		glog.V(1).Infoln("ingress cache wait stopped")
