@@ -1,0 +1,4 @@
+dependencies:
+  - name: aad-pod-identity
+    version: 0.1.0
+    repository: https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts/
