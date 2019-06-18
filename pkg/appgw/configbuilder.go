@@ -20,8 +20,8 @@ type ConfigBuilder interface {
 	// builder pattern
 	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	BackendAddressPools(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-	Listeners(ingressList []*v1beta1.Ingress) error
-	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	Listeners(ingressList []*v1beta1.Ingress, envVariables environment.EnvVariables) error
+	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, envVariables environment.EnvVariables) error
 	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 	GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat
 	PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error

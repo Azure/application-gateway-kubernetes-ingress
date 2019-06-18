@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -129,6 +130,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceList := []*v1.Service{
 		service,
 	}
+
+	envVariables := environment.GetFakeEnv()
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
 	// and allowing the k8s API server to create the `endpoints` resource which we end up consuming.
@@ -335,7 +338,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		err = configBuilder.Listeners(ingressList)
+		err = configBuilder.Listeners(ingressList, envVariables)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -348,7 +351,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(ingressList, serviceList)
+		err = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -387,7 +390,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
 
-		_, err = k8sClient.Extensions().Ingresses(ingressNS).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create the service.
@@ -581,13 +584,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Currently, when TLS spec is specified for an ingress the expectation is that we will not have any HTTP listeners configured for that ingress.
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
-			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
-			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -681,7 +684,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
-			ingress, err := k8sClient.Extensions().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
@@ -692,7 +695,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
-			_, err = k8sClient.Extensions().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
