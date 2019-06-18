@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -129,6 +130,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceList := []*v1.Service{
 		service,
 	}
+
+	envVariables := environment.GetFakeEnv()
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
 	// and allowing the k8s API server to create the `endpoints` resource which we end up consuming.
@@ -335,7 +338,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		err = configBuilder.Listeners(ingressList)
+		err = configBuilder.Listeners(ingressList, envVariables)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -348,7 +351,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(ingressList, serviceList)
+		err = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat

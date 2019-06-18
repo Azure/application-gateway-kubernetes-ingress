@@ -106,7 +106,7 @@ func main() {
 	// Run fatal validations
 	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
-		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config.", err)
+		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
 	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
