@@ -19,23 +19,23 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
+func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier]*network.ApplicationGatewayProbe) {
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
-	glog.Info("Adding default probe:", *defaultProbe.Name)
+	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
 	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
+			glog.V(5).Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
+			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
 			probesMap[backendID] = &defaultProbe
 		}
 	}
@@ -44,28 +44,24 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 
 func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	healthProbeCollection, _ := c.newProbesMap(ingressList, serviceList)
-
-	glog.Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
-
+	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
 		probes = append(probes, probe)
 	}
-
 	sort.Sort(sorter.ByHealthProbeName(probes))
-
 	c.appGwConfig.Probes = &probes
 	return nil
 }
 
 func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *network.ApplicationGatewayProbe {
+	// TODO(draychev): remove GetService
 	service := c.k8sContext.GetService(backendID.serviceKey())
 	if service == nil {
 		return nil
 	}
-
 	probe := defaultProbe()
-	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 		probe.Host = to.StringPtr(backendID.Rule.Host)
 	}

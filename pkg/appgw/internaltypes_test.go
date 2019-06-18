@@ -17,12 +17,17 @@ import (
 
 var _ = Describe("Test string key generators", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
+	targetListener := listenerIdentifier{
+		FrontendPort: int32(8080),
+		HostName:     "foo.baz",
+	}
 
 	Context("test each string key generator", func() {
 		backendPortNo := int32(8989)
 		servicePort := tests.ServicePort
 		serviceName := tests.ServiceName
-		ingress := "INGR"
+		ingress := tests.NewIngressFixture()
+		ingress.Name = "INGR"
 		fel := listenerIdentifier{
 			FrontendPort: int32(9898),
 			HostName:     tests.Host,
@@ -35,14 +40,14 @@ var _ = Describe("Test string key generators", func() {
 		})
 
 		It("generateHTTPSettingsName returns expected key", func() {
-			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
+			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress.Name)
 			expected := agPrefix + "bp-" + tests.ServiceName + "-" + tests.ServicePort + "-8989-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateProbeName returns expected key", func() {
 			actual := generateProbeName(serviceName, servicePort, ingress)
-			expected := agPrefix + "pb-" + tests.ServiceName + "-" + tests.ServicePort + "-INGR"
+			expected := agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-" + tests.ServicePort + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
@@ -77,8 +82,8 @@ var _ = Describe("Test string key generators", func() {
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
-			actual := generateSSLRedirectConfigurationName(tests.Namespace, ingress)
-			expected := agPrefix + "sslr-" + tests.Namespace + "-INGR"
+			actual := generateSSLRedirectConfigurationName(targetListener)
+			expected := "sslr-fl-foo.baz-8080"
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -106,18 +111,20 @@ var _ = Describe("Test string key generators", func() {
 			Expect(len(actual)).To(Equal(80))
 		})
 		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
-			expected := agPrefix + "pb-xxxxxx-yyyyyy-zzzz"
+			expected := agPrefix + "pb-" + tests.Namespace + "-xxxxxx-yyyyyy-zzzz"
 			serviceName := "xxxxxx"
 			servicePort := "yyyyyy"
-			ingress := "zzzz"
+			ingress := tests.NewIngressFixture()
+			ingress.Name = "zzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(actual).To(Equal(expected))
 		})
 		It("generateProbeName relies on formatPropName and hashes long keys", func() {
-			expected := "pb-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-y-e13f2840e3eea9616f3f8cea3d3d5f02"
+			expected := "pb-" + tests.Namespace + "-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-a95496d0f08ce51d96b204851450bf64"
 			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+			ingress := tests.NewIngressFixture()
+			ingress.Name = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(len(actual)).To(Equal(80))
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected %s; Got %s", expected, actual))
@@ -152,7 +159,8 @@ var _ = Describe("Test string key generators", func() {
 		serviceName := veryLongString
 		servicePort := veryLongString
 		backendPortNo := int32(8888)
-		ingress := veryLongString
+		ingress := tests.NewIngressFixture()
+		ingress.Name = veryLongString
 		port := int32(88)
 		felID := listenerIdentifier{
 			FrontendPort: port,
@@ -160,14 +168,14 @@ var _ = Describe("Test string key generators", func() {
 		}
 		names := []string{
 			getResourceKey(namespace, name),
-			generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress),
+			generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress.Name),
 			generateProbeName(serviceName, servicePort, ingress),
 			generateAddressPoolName(serviceName, servicePort, backendPortNo),
 			generateFrontendPortName(port),
 			generateListenerName(felID),
 			generateURLPathMapName(felID),
 			generateRequestRoutingRuleName(felID),
-			generateSSLRedirectConfigurationName(namespace, ingress),
+			generateSSLRedirectConfigurationName(targetListener),
 		}
 		It("ensure test is setup correctly", func() {
 			// ensure this is setup correctly

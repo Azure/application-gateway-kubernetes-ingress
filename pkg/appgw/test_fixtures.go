@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -19,7 +20,7 @@ import (
 func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
 		{
-			// Private IP
+			// Public IP
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
@@ -32,11 +33,11 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 			},
 		},
 		{
-			// Public IP
+			// Private IP
 			Name: to.StringPtr("yy3"),
 			Etag: to.StringPtr("yy2"),
 			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr("yy4"),
+			ID:   to.StringPtr(tests.IPID2),
 			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: to.StringPtr("abc"),
 				PublicIPAddress:  nil,
