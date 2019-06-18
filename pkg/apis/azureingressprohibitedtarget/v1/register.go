@@ -13,8 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis"
 )
 
 var (
@@ -28,7 +26,7 @@ var (
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 
 	// AddToScheme adds all Resources to the Scheme
-	AddToScheme = apis.AddToScheme
+	AddToScheme = SchemeBuilder.AddToScheme
 )
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
