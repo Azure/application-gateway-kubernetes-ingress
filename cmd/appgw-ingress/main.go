@@ -96,11 +96,11 @@ func main() {
 
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
-	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
-	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod, crdClient)
+	crdClient := versioned.NewForConfigOrDie(apiConfig)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, namespaces, *resyncPeriod)
 
 	recorder := getEventRecorder(kubeClient)
 
@@ -124,14 +124,6 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
 	if len(nonExistent) > 0 {
 		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
 	}
-}
-
-func getKubeClient(apiConfig *rest.Config) *kubernetes.Clientset {
-	kubeClient, err := kubernetes.NewForConfig(apiConfig)
-	if err != nil {
-		glog.Fatal("Error creating Kubernetes client: ", err)
-	}
-	return kubeClient
 }
 
 func getNamespacesToWatch(namespaceEnvVar string) []string {
