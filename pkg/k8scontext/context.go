@@ -32,6 +32,7 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 	}
 
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
+	istioGwy := externalversions.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
