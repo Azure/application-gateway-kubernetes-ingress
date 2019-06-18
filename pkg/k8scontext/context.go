@@ -6,12 +6,10 @@
 package k8scontext
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
@@ -21,18 +19,28 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	managedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
+	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/informers/externalversions"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
-	var options []informers.SharedInformerOption
+func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration, crdClient versioned.Interface) *Context {
+	updateChannel := channels.NewRingChannel(1024)
 
+	var options []informers.SharedInformerOption
+	var crdOptions []externalversions.SharedInformerOption
 	for _, namespace := range namespaces {
 		options = append(options, informers.WithNamespace(namespace))
+		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
 	}
-
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 	istioGwy := externalversions.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
+	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
@@ -40,14 +48,19 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 		Pods:      informerFactory.Core().V1().Pods().Informer(),
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
+
+		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
+		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
-		Endpoints: informerCollection.Endpoints.GetStore(),
-		Ingress:   informerCollection.Ingress.GetStore(),
-		Pods:      informerCollection.Pods.GetStore(),
-		Secret:    informerCollection.Secret.GetStore(),
-		Service:   informerCollection.Service.GetStore(),
+		Endpoints:                      informerCollection.Endpoints.GetStore(),
+		Ingress:                        informerCollection.Ingress.GetStore(),
+		Pods:                           informerCollection.Pods.GetStore(),
+		Secret:                         informerCollection.Secret.GetStore(),
+		Service:                        informerCollection.Service.GetStore(),
+		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
+		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
 	}
 
 	context := &Context{
@@ -56,7 +69,7 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
 		stopChannel:            make(chan struct{}),
-		UpdateChannel:          channels.NewRingChannel(1024),
+		UpdateChannel:          updateChannel,
 	}
 
 	h := handlers{context}
@@ -127,6 +140,24 @@ func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
 		}
 	}
 	return ingressList
+}
+
+// GetAzureIngressManagedTargets returns a list of App Gwy configs, for which AGIC is explicitly allowed to modify config.
+func (c *Context) GetAzureIngressManagedTargets() []*managedv1.AzureIngressManagedTarget {
+	var targets []*managedv1.AzureIngressManagedTarget
+	for _, obj := range c.Caches.AzureIngressManagedLocation.List() {
+		targets = append(targets, obj.(*managedv1.AzureIngressManagedTarget))
+	}
+	return targets
+}
+
+// GetAzureProhibitedTargets returns a list of App Gwy configs, for which AGIC is not allowed to modify config.
+func (c *Context) GetAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
+	var targets []*prohibitedv1.AzureIngressProhibitedTarget
+	for _, obj := range c.Caches.AzureIngressProhibitedLocation.List() {
+		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
+	}
+	return targets
 }
 
 func hasHTTPRule(ingress *v1beta1.Ingress) bool {
@@ -231,6 +262,9 @@ func (i *InformerCollection) Run(stopCh chan struct{}) {
 	}
 
 	go i.Ingress.Run(stopCh)
+
+	go i.AzureIngressManagedLocation.Run(stopCh)
+	go i.AzureIngressProhibitedLocation.Run(stopCh)
 
 	if !cache.WaitForCacheSync(stopCh, i.Ingress.HasSynced) {
 		glog.V(1).Infoln("ingress cache wait stopped")

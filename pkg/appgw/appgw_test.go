@@ -3,6 +3,7 @@ package appgw
 import (
 	go_flag "flag"
 	"fmt"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
 	"io/ioutil"
 	"time"
 
@@ -405,8 +406,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
 		Expect(err).Should(BeNil(), "Unabled to create pods resource due to: %v", err)
 
+		// Create a mock CRD Client
+		crdClient := fake.NewSimpleClientset()
+
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
+
+		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second, crdClient)
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
