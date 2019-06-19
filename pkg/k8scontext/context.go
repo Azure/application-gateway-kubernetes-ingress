@@ -41,7 +41,6 @@ func NewContext(istioCrdClient istio_versioned.Interface, kubeClient kubernetes.
 		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
-	istioGwy := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
 	istioGwy := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
