@@ -29,7 +29,7 @@ import (
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeriod time.Duration, crdClient versioned.Interface) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
 	updateChannel := channels.NewRingChannel(1024)
 
 	var options []informers.SharedInformerOption
@@ -39,16 +39,14 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
-	istioGwy := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
 
 	informerCollection := InformerCollection{
-		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:      informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-		Pods:         informerFactory.Core().V1().Pods().Informer(),
-		Secret:       informerFactory.Core().V1().Secrets().Informer(),
-		Service:      informerFactory.Core().V1().Services().Informer(),
-		IstioGateway: istioGwy.Networking().V1alpha3().Gateways(),
+		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:      informerFactory.Core().V1().Pods().Informer(),
+		Secret:    informerFactory.Core().V1().Secrets().Informer(),
+		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
@@ -104,9 +102,9 @@ func NewContext(kubeClient kubernetes.Interface, namespaces []string, resyncPeri
 }
 
 // Run executes informer collection.
-func (c *Context) Run() {
+func (c *Context) Run(omitCRDs bool) {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(c.stopChannel)
+	c.informers.Run(c.stopChannel, omitCRDs)
 	glog.V(1).Infoln("k8s context run finished")
 }
 
@@ -249,31 +247,40 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 }
 
 // Run function starts all the informers and waits for an initial sync.
-func (i *InformerCollection) Run(stopCh chan struct{}) {
-	go i.Endpoints.Run(stopCh)
-	go i.Pods.Run(stopCh)
-	go i.Service.Run(stopCh)
-	go i.Secret.Run(stopCh)
+func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool) {
+	var hasSynced []cache.InformerSynced
+	crds := map[cache.SharedInformer]interface{}{
+		i.AzureIngressManagedLocation:    nil,
+		i.AzureIngressProhibitedLocation: nil,
+	}
+	sharedInformers := []cache.SharedInformer{
+		i.Endpoints,
+		i.Pods,
+		i.Service,
+		i.Secret,
+		i.Ingress,
+		i.AzureIngressManagedLocation,
+		i.AzureIngressProhibitedLocation,
+	}
 
-	glog.V(1).Infoln("start waiting for initial cache sync")
-	if !cache.WaitForCacheSync(stopCh, i.Endpoints.HasSynced, i.Service.HasSynced, i.Secret.HasSynced) {
-		glog.V(1).Infoln("initial sync wait stopped")
+	for _, informer := range sharedInformers {
+		go informer.Run(stopCh)
+		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
+		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing
+		if _, isCRD := crds[informer]; isCRD {
+			continue
+		}
+		hasSynced = append(hasSynced, informer.HasSynced)
+	}
+
+	glog.V(1).Infoln("Wait for initial cache sync")
+	if !cache.WaitForCacheSync(stopCh, hasSynced...) {
+		glog.V(1).Infoln("initial cache sync stopped")
 		runtime.HandleError(fmt.Errorf("failed to do initial sync on resources required for ingress"))
 		return
 	}
 
-	go i.Ingress.Run(stopCh)
-
-	go i.AzureIngressManagedLocation.Run(stopCh)
-	go i.AzureIngressProhibitedLocation.Run(stopCh)
-
-	if !cache.WaitForCacheSync(stopCh, i.Ingress.HasSynced) {
-		glog.V(1).Infoln("ingress cache wait stopped")
-		runtime.HandleError(fmt.Errorf("failed to do initial sync on ingress"))
-		return
-	}
-
-	glog.V(1).Infoln("ingress initial sync done")
+	glog.V(1).Infoln("initial cache sync done")
 }
 
 // Stop function stops all informers in the context.

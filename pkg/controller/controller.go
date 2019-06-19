@@ -94,7 +94,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 		}
 
-		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", prohibitedTargets)
+		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
@@ -209,7 +209,7 @@ func (c *AppGwIngressController) Start() {
 	go c.eventQueue.Run(time.Second, c.stopChannel)
 
 	// Starts k8scontext which contains all the informers
-	c.k8sContext.Run()
+	c.k8sContext.Run(false)
 
 	// Continue to enqueue events into eventqueue until stopChannel is closed
 	for {
