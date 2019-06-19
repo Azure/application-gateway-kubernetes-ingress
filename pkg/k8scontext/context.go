@@ -40,6 +40,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
+	istioGwy := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
@@ -47,6 +48,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Pods:      informerFactory.Core().V1().Pods().Informer(),
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
+		IstioGateway: istioGwy.Networking().V1alpha3().Gateways().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
