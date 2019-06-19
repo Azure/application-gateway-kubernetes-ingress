@@ -48,6 +48,8 @@ type Context struct {
 	UpdateChannel *channels.RingChannel
 }
 
+// KubernetesResources holds the structs we have fetches from Kubernetes + environment, based on which
+// we will construct App Gateway config.
 type KubernetesResources struct {
 	IngressList       []*v1beta1.Ingress
 	ServiceList       []*v1.Service
