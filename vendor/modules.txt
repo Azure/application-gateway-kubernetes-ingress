@@ -94,6 +94,10 @@ github.com/hpcloud/tail/winfile
 github.com/imdario/mergo
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
+# github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
+github.com/knative/pkg/apis/istio/v1alpha3
+github.com/knative/pkg/apis/istio
+github.com/knative/pkg/apis/istio/common/v1alpha1
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
