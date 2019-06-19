@@ -106,6 +106,8 @@ Steps:
     ################################################################################
     # Specify which kubernetes namespace the ingress controller will watch
     # Default value is "default"
+    # Leaving this variable out or setting it to blank or empty string would
+    # result in Ingress Controller observing all acessible namespaces.
     #
     # kubernetes:
     #   watchNamespace: <namespace>

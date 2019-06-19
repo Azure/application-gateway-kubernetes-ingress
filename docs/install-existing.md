@@ -66,6 +66,8 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     ################################################################################
     # Specify which kubernetes namespace the ingress controller will watch
     # Default value is "default"
+    # Leaving this variable out or setting it to blank or empty string would
+    # result in Ingress Controller observing all acessible namespaces.
     #
     # kubernetes:
     #   watchNamespace: <namespace>
