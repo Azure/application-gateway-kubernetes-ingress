@@ -2,19 +2,31 @@
 [![Build Status](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress.svg?branch=master)](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
 
-The Application Gateway Ingress Controller allows the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) to be used as the ingress for an [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/) aka AKS cluster. As shown in the figure below, the ingress controller runs as a pod within the AKS cluster. It consumes [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) and converts them to an Azure Application Gateway configuration which allows the gateway to load-balance traffic to Kubernetes pods.
+The Application Gateway Ingress Controller allows [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) to be used as the ingress for an [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/) aka AKS cluster.
+
+As shown in the figure below, the ingress controller runs as a pod within the AKS cluster. It consumes [Kubernetes `Ingress` Resources](http://kubernetes.io/docs/user-guide/ingress/) and converts them to an Azure Application Gateway configuration which allows the gateway to load-balance traffic to Kubernetes pods.
 
 ![Azure Application Gateway + AKS](docs/images/architecture.png)
 
-## Setup
-* **Greenfield Deployment**: If you are starting from scratch, refer to these [installation](docs/install-new.md) instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
-* **Brownfield Deployment**: If you have an existing AKS cluster and Application Gateway, refer to these [installation](docs/install-existing.md) instructions to install application gateway ingress controller on the AKS cluster.
+## General
+### Setup
+* [**Greenfield Deployment**](docs/install-new.md): Refer to these installation instructions if you are starting from scratch. It outline steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
+* [**Brownfield Deployment**](docs/install-existing.md): Refer to these installation instructions if you have an existing AKS cluster and Application Gateway. It outlines steps to install application gateway ingress controller on the AKS cluster.
 
-## Usage
-Refer to the [tutorials](docs/tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
+### Usage
+[**Tutorials**](docs/tutorial.md): Refer to these to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
-## Annotations
-The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to the [annotations](docs/annotations.md) to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
+[**Features**](docs/features.md): This document maintains a list of available features.
+
+[**Annotations**](docs/annotations.md): The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to these to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
+
+[**How-To**](docs/how-to.md): This document maintains a collection of complex scenarios.
+
+### Troubleshooting
+For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
+
+### Frequently asked questions
+For FAQ, please refer to this [guide](docs/faq.md).
 
 ## Reporting Issues
 The best way to report an issue is to create a Github Issue for the project. Please include the following information when creating the issue:
