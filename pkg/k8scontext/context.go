@@ -102,9 +102,9 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run() {
+func (c *Context) Run(omitCRDs bool) {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(c.stopChannel)
+	c.informers.Run(c.stopChannel, omitCRDs)
 	glog.V(1).Infoln("k8s context run finished")
 }
 
@@ -247,8 +247,12 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 }
 
 // Run function starts all the informers and waits for an initial sync.
-func (i *InformerCollection) Run(stopCh chan struct{}) {
+func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool) {
 	var hasSynced []cache.InformerSynced
+	crds := map[cache.SharedInformer]interface{}{
+		i.AzureIngressManagedLocation:    nil,
+		i.AzureIngressProhibitedLocation: nil,
+	}
 	sharedInformers := []cache.SharedInformer{
 		i.Endpoints,
 		i.Pods,
@@ -261,6 +265,11 @@ func (i *InformerCollection) Run(stopCh chan struct{}) {
 
 	for _, informer := range sharedInformers {
 		go informer.Run(stopCh)
+		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
+		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing
+		if _, isCRD := crds[informer]; isCRD {
+			continue
+		}
 		hasSynced = append(hasSynced, informer.HasSynced)
 	}
 

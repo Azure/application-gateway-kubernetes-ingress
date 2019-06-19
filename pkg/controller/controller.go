@@ -209,7 +209,7 @@ func (c *AppGwIngressController) Start() {
 	go c.eventQueue.Run(time.Second, c.stopChannel)
 
 	// Starts k8scontext which contains all the informers
-	c.k8sContext.Run()
+	c.k8sContext.Run(false)
 
 	// Continue to enqueue events into eventqueue until stopChannel is closed
 	for {
