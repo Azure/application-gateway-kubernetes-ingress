@@ -7,19 +7,21 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 var _ = Describe("K8scontext", func() {
@@ -50,6 +52,7 @@ var _ = Describe("K8scontext", func() {
 	BeforeEach(func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
+		crdClient := fake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
@@ -58,7 +61,8 @@ var _ = Describe("K8scontext", func() {
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, []string{ingressNS}, 1000*time.Second)
+
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 
@@ -70,7 +74,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			Expect(len(ingressListInterface)).To(Equal(1), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
@@ -97,7 +101,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -122,7 +126,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -150,7 +154,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should two ingress resource.
@@ -182,7 +186,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
 
 			// Run context
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Get and check that one of the pods exists.
 			_, exists, _ := ctxt.Caches.Pods.Get(pod)
