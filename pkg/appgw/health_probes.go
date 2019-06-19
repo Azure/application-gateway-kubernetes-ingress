@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -43,7 +42,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	return healthProbeCollection, probesMap
 }
 
-func (c *appGwConfigBuilder) HealthProbesCollection(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) HealthProbesCollection(kr *KubernetesResources) error {
 	healthProbeCollection, _ := c.newProbesMap(kr.IngressList, kr.ServiceList)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))

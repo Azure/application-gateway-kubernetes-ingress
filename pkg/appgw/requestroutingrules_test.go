@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -140,7 +139,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 		serviceList := []*v1.Service{tests.NewServiceFixture()}
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}

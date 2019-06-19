@@ -300,7 +300,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList:  ingressList,
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),

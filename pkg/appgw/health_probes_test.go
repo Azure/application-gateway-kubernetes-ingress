@@ -15,7 +15,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -37,7 +36,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
@@ -127,7 +126,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}

@@ -18,14 +18,14 @@ import (
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
 	// builder pattern
-	BackendHTTPSettingsCollection(kr *k8scontext.KubernetesResources) error
-	BackendAddressPools(kr *k8scontext.KubernetesResources) error
-	Listeners(kr *k8scontext.KubernetesResources) error
-	RequestRoutingRules(kr *k8scontext.KubernetesResources) error
-	HealthProbesCollection(kr *k8scontext.KubernetesResources) error
+	BackendHTTPSettingsCollection(kr *KubernetesResources) error
+	BackendAddressPools(kr *KubernetesResources) error
+	Listeners(kr *KubernetesResources) error
+	RequestRoutingRules(kr *KubernetesResources) error
+	HealthProbesCollection(kr *KubernetesResources) error
 	GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat
-	PreBuildValidate(kr *k8scontext.KubernetesResources) error
-	PostBuildValidate(kr *k8scontext.KubernetesResources) error
+	PreBuildValidate(kr *KubernetesResources) error
+	PostBuildValidate(kr *KubernetesResources) error
 }
 
 type appGwConfigBuilder struct {
@@ -106,7 +106,7 @@ func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network
 type valFunc func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 
 // PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
-func (c *appGwConfigBuilder) PreBuildValidate(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) PreBuildValidate(kr *KubernetesResources) error {
 
 	validationFunctions := []valFunc{
 		validateServiceDefinition,
@@ -116,7 +116,7 @@ func (c *appGwConfigBuilder) PreBuildValidate(kr *k8scontext.KubernetesResources
 }
 
 // PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
-func (c *appGwConfigBuilder) PostBuildValidate(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) PostBuildValidate(kr *KubernetesResources) error {
 	validationFunctions := []valFunc{
 		validateURLPathMaps,
 	}
@@ -124,7 +124,7 @@ func (c *appGwConfigBuilder) PostBuildValidate(kr *k8scontext.KubernetesResource
 	return c.runValidationFunctions(kr, validationFunctions)
 }
 
-func (c *appGwConfigBuilder) runValidationFunctions(kr *k8scontext.KubernetesResources, validationFunctions []valFunc) error {
+func (c *appGwConfigBuilder) runValidationFunctions(kr *KubernetesResources, validationFunctions []valFunc) error {
 	for _, fn := range validationFunctions {
 		if err := fn(c.recorder, &c.appGwConfig, kr.EnvVariables, kr.IngressList, kr.ServiceList); err != nil {
 			return err

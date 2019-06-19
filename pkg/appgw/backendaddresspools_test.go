@@ -13,7 +13,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -50,7 +49,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		serviceList := []*v1.Service{
 			tests.NewServiceFixture(),
 		}
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 			ServiceList: serviceList,
 		}
@@ -84,7 +83,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 			ServiceList: serviceList,
 		}
@@ -118,7 +117,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			ServiceList: serviceList,
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 		}

@@ -15,7 +15,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -35,7 +34,7 @@ func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, s
 	return backendPoolMap
 }
 
-func (c *appGwConfigBuilder) BackendAddressPools(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) BackendAddressPools(kr *KubernetesResources) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,

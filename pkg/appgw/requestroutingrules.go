@@ -16,7 +16,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -81,7 +80,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) RequestRoutingRules(kr *KubernetesResources) error {
 	_, httpListenersMap := c.getListeners(kr)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(kr.IngressList, kr.ServiceList)

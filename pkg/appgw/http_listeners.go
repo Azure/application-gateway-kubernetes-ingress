@@ -5,11 +5,7 @@
 
 package appgw
 
-import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-)
-
-func (c *appGwConfigBuilder) Listeners(kr *k8scontext.KubernetesResources) error {
+func (c *appGwConfigBuilder) Listeners(kr *KubernetesResources) error {
 
 	c.appGwConfig.SslCertificates = c.getSslCertificates(kr.IngressList)
 	c.appGwConfig.FrontendPorts = c.getFrontendPorts(kr.IngressList)

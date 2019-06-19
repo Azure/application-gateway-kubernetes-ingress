@@ -10,7 +10,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -59,7 +58,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ing2,
 		}
 
-		kr := &k8scontext.KubernetesResources{
+		kr := &KubernetesResources{
 			IngressList:  ingressList,
 			EnvVariables: envVariables,
 		}
