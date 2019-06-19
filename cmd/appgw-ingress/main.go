@@ -30,6 +30,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -93,13 +94,13 @@ func main() {
 		AppGwName:      env.AppGwName,
 	}
 
-	kubeClient, err := kubernetes.NewForConfig(getKubeClientConfig())
-	if err != nil {
-		glog.Fatal("Error creating Kubernetes client: ", err)
-	}
+	apiConfig := getKubeClientConfig()
+	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+	crdClient := versioned.NewForConfigOrDie(apiConfig)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, namespaces, *resyncPeriod)
 
 	recorder := getEventRecorder(kubeClient)
 
@@ -108,8 +109,6 @@ func main() {
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
-
-	k8sContext := k8scontext.NewContext(kubeClient, namespaces, *resyncPeriod)
 
 	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start()
 	select {}

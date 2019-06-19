@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -405,8 +406,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
 		Expect(err).Should(BeNil(), "Unabled to create pods resource due to: %v", err)
 
+		// Create a mock CRD Client
+		crdClient := fake.NewSimpleClientset()
+
 		// Create a `k8scontext` to start listiening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, []string{ingressNS}, 1000*time.Second)
+
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, []string{ingressNS}, 1000*time.Second)
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
@@ -435,7 +440,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Configuration", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -483,7 +488,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unable to delete endpoint resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -594,7 +599,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -699,7 +704,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -785,7 +790,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
 		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run()
+			ctxt.Run(true)
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
