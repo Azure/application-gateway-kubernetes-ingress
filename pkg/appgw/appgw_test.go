@@ -3,7 +3,6 @@ package appgw
 import (
 	go_flag "flag"
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned/fake"
 	"io/ioutil"
 	"time"
 
