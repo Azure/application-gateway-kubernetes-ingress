@@ -39,18 +39,16 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
-<<<<<<< HEAD
+	istioGwy := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
-=======
-	istioGwy := externalversions.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod)
->>>>>>> create new informer
 
 	informerCollection := InformerCollection{
-		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-		Pods:      informerFactory.Core().V1().Pods().Informer(),
-		Secret:    informerFactory.Core().V1().Secrets().Informer(),
-		Service:   informerFactory.Core().V1().Services().Informer(),
+		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:      informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:         informerFactory.Core().V1().Pods().Informer(),
+		Secret:       informerFactory.Core().V1().Secrets().Informer(),
+		Service:      informerFactory.Core().V1().Services().Informer(),
+		IstioGateway: istioGwy.Networking().V1alpha3().Gateways(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
