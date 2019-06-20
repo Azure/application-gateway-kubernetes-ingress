@@ -18,14 +18,14 @@ import (
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
 	// builder pattern
-	BackendHTTPSettingsCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-	BackendAddressPools(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-	Listeners(ingressList []*v1beta1.Ingress, envVariables environment.EnvVariables) error
-	RequestRoutingRules(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, envVariables environment.EnvVariables) error
-	HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error
+	BackendAddressPools(cbCtx *ConfigBuilderContext) error
+	Listeners(cbCtx *ConfigBuilderContext) error
+	RequestRoutingRules(cbCtx *ConfigBuilderContext) error
+	HealthProbesCollection(cbCtx *ConfigBuilderContext) error
 	GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat
-	PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-	PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+	PreBuildValidate(cbCtx *ConfigBuilderContext) error
+	PostBuildValidate(cbCtx *ConfigBuilderContext) error
 }
 
 type appGwConfigBuilder struct {
@@ -106,26 +106,27 @@ func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network
 type valFunc func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 
 // PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
-func (c *appGwConfigBuilder) PreBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func (c *appGwConfigBuilder) PreBuildValidate(cbCtx *ConfigBuilderContext) error {
+
 	validationFunctions := []valFunc{
 		validateServiceDefinition,
 	}
 
-	return c.runValidationFunctions(envVariables, ingressList, serviceList, validationFunctions)
+	return c.runValidationFunctions(cbCtx, validationFunctions)
 }
 
 // PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
-func (c *appGwConfigBuilder) PostBuildValidate(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func (c *appGwConfigBuilder) PostBuildValidate(cbCtx *ConfigBuilderContext) error {
 	validationFunctions := []valFunc{
 		validateURLPathMaps,
 	}
 
-	return c.runValidationFunctions(envVariables, ingressList, serviceList, validationFunctions)
+	return c.runValidationFunctions(cbCtx, validationFunctions)
 }
 
-func (c *appGwConfigBuilder) runValidationFunctions(envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service, validationFunctions []valFunc) error {
+func (c *appGwConfigBuilder) runValidationFunctions(cbCtx *ConfigBuilderContext, validationFunctions []valFunc) error {
 	for _, fn := range validationFunctions {
-		if err := fn(c.recorder, &c.appGwConfig, envVariables, ingressList, serviceList); err != nil {
+		if err := fn(c.recorder, &c.appGwConfig, cbCtx.EnvVariables, cbCtx.IngressList, cbCtx.ServiceList); err != nil {
 			return err
 		}
 	}

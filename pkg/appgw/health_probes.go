@@ -42,8 +42,8 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	return healthProbeCollection, probesMap
 }
 
-func (c *appGwConfigBuilder) HealthProbesCollection(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
-	healthProbeCollection, _ := c.newProbesMap(ingressList, serviceList)
+func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
+	healthProbeCollection, _ := c.newProbesMap(cbCtx.IngressList, cbCtx.ServiceList)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
