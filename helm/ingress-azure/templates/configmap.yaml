@@ -14,5 +14,6 @@ data:
   APPGW_SUBSCRIPTION_ID: {{ required "A valid appgw entry is required!" .Values.appgw.subscriptionId }}
   APPGW_RESOURCE_GROUP:  {{ required "A valid appgw entry is required!" .Values.appgw.resourceGroup }}
   APPGW_NAME:            {{ required "A valid appgw entry is required!" .Values.appgw.name }}
+  APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel }}
   KUBERNETES_WATCHNAMESPACE:  {{ required "A valid kubernetes watch namespace is required!" .Values.kubernetes.watchNamespace }}
   USE_PRIVATE_IP: "{{ .Values.appgw.usePrivateIP }}"
