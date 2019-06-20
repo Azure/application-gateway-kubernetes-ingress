@@ -34,12 +34,12 @@ func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, s
 	return backendPoolMap
 }
 
-func (c *appGwConfigBuilder) BackendAddressPools(kr *ConfigBuilderContext) error {
+func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(kr.IngressList, kr.ServiceList)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			addressPools[*pool.Name] = pool

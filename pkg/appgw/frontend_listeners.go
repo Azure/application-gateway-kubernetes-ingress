@@ -19,14 +19,14 @@ import (
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(kr *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
 	var listeners []n.ApplicationGatewayHTTPListener
 
-	for listenerID, config := range c.getListenerConfigs(kr.IngressList) {
-		listener := c.newListener(listenerID, config.Protocol, kr.EnvVariables)
+	for listenerID, config := range c.getListenerConfigs(cbCtx.IngressList) {
+		listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)

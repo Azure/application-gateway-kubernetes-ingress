@@ -300,17 +300,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
-		cbCxt := &ConfigBuilderContext{
+		cbCtx := &ConfigBuilderContext{
 			IngressList:  ingressList,
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
 		}
 		// Add Health Probes.
-		err := configBuilder.HealthProbesCollection(cbCxt)
+		err := configBuilder.HealthProbesCollection(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
 		// Add HTTP settings.
-		err = configBuilder.BackendHTTPSettingsCollection(cbCxt)
+		err = configBuilder.BackendHTTPSettingsCollection(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -329,7 +329,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		err = configBuilder.BackendAddressPools(cbCxt)
+		err = configBuilder.BackendAddressPools(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -342,7 +342,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		err = configBuilder.Listeners(cbCxt)
+		err = configBuilder.Listeners(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
@@ -355,7 +355,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(cbCxt)
+		err = configBuilder.RequestRoutingRules(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Get a pointer to the modified ApplicationGatewayPropertiesFormat

@@ -58,13 +58,13 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ing2,
 		}
 
-		kr := &ConfigBuilderContext{
+		cbCtx := &ConfigBuilderContext{
 			IngressList:  ingressList,
 			EnvVariables: envVariables,
 		}
 
 		// !! Action !!
-		listeners, _ := cb.getListeners(kr)
+		listeners, _ := cb.getListeners(cbCtx)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))

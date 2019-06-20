@@ -36,13 +36,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &ConfigBuilderContext{
+		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
 
 		// !! Action !!
-		_ = cb.HealthProbesCollection(kr)
+		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
@@ -126,13 +126,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &ConfigBuilderContext{
+		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
 
 		// !! Action !!
-		_ = cb.HealthProbesCollection(kr)
+		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup

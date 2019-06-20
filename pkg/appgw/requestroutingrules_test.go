@@ -139,11 +139,11 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 		serviceList := []*v1.Service{tests.NewServiceFixture()}
-		kr := &ConfigBuilderContext{
+		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
-		_ = configBuilder.RequestRoutingRules(kr)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))

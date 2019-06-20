@@ -80,12 +80,12 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(kr *ConfigBuilderContext) error {
-	_, httpListenersMap := c.getListeners(kr)
+func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
+	_, httpListenersMap := c.getListeners(cbCtx)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
-	backendPools := c.newBackendPoolMap(kr.IngressList, kr.ServiceList)
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(kr.IngressList, kr.ServiceList)
-	for _, ingress := range kr.IngressList {
+	backendPools := c.newBackendPoolMap(cbCtx.IngressList, cbCtx.ServiceList)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
+	for _, ingress := range cbCtx.IngressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
@@ -140,13 +140,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(kr *ConfigBuilderContext) error
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, kr.ServiceList, wildcardRule,
+					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx.ServiceList, wildcardRule,
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, kr.ServiceList, rule,
+				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx.ServiceList, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
@@ -159,13 +159,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(kr *ConfigBuilderContext) error
 			if httpsAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, kr.ServiceList, wildcardRule,
+					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx.ServiceList, wildcardRule,
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, kr.ServiceList, rule,
+				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx.ServiceList, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
