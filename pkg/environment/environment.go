@@ -25,6 +25,8 @@ const (
 	WatchNamespaceVarName = "KUBERNETES_WATCHNAMESPACE"
 	// UsePrivateIPVarName is the name of the USE_PRIVATE_IP
 	UsePrivateIPVarName = "USE_PRIVATE_IP"
+	// VerbosityLevelVarName sets the level of glog verbosity should the CLI argument be blank
+	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -35,6 +37,7 @@ type EnvVariables struct {
 	AuthLocation      string
 	WatchNamespace    string
 	UsePrivateIP      string
+	VerbosityLevel    string
 }
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
@@ -46,6 +49,7 @@ func GetEnv() EnvVariables {
 		AuthLocation:      os.Getenv(AuthLocationVarName),
 		WatchNamespace:    os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:      os.Getenv(UsePrivateIPVarName),
+		VerbosityLevel:    os.Getenv(VerbosityLevelVarName),
 	}
 
 	return env
@@ -58,7 +62,7 @@ func ValidateEnv(env EnvVariables) {
 	}
 
 	if env.WatchNamespace == "" {
-		glog.Info("KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.")
+		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
 }
 
