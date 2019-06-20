@@ -9,22 +9,26 @@ Kubernetes allows for one or more ingress resources to be defined independently
 within each namespace.
 
 As of version 0.7 [Azure Application Gateway Kubernetes
-Ingress Controller](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/README.md) (AGIC) can ingest events from and observe multiple namespaces.
-Should the AKS administrator decide to use [App Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) as an ingress, all
-namespaces will use the same instance of App Gateway. A single installation of
-Ingress Controller will monitor accessible namespaces and will configure the App
-Gateway it is associated with.
+IngressController](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/README.md)
+(AGIC) can ingest events from and observe multiple namespaces. Should the AKS
+administrator decide to use [App
+Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) as an
+ingress, all namespaces will use the same instance of App Gateway. A single
+installation of Ingress Controller will monitor accessible namespaces and will
+configure the App Gateway it is associated with.
 
 #### Defaults
-By default, as of version 0.7, AGIC is configured to observe ingress resources
-from **default** namespace only. This is configured in
-[values.yaml](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/d213b8803c302dd003ec07f8765faa70ad2ee43e/helm/ingress-azure/values.yaml#L12).
+As of version 0.7, AGIC is configured to observe ingress resources from the
+*default* namespace or the namespace explicitly defined in the Helm
+configuration.
 
 #### Enable multiple namespace support
-To enable miltiple namespace support - modify the
-[values.yaml](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/d213b8803c302dd003ec07f8765faa70ad2ee43e/helm/ingress-azure/values.yaml#L12) file in one of the following ways:
-  1. delete the `watchNamespace` key entirely from values.yaml - AGIC will observe all namespaces
+To enable miltiple namespace support - modify the [helm-config.yaml](examples/helm-config.yaml) file in one of the following ways:
+  1. delete the `watchNamespace` key entirely from [helm-config.yaml](examples/helm-config.yaml) - AGIC will observe all namespaces
+  1. set `watchNamespace` to an empty string - AGIC will observe all namespaces
   2. add multiple namespaces separated by a comma (`watchNamespace: default,secondNamespace`) - AGIC will observe these namespaces exclusively
+
+Install Helm template changes with: `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
 
 Once deployed with the ability to observe multiple namespaces, AGIC will:
   - list ingress resources from all accessible namespaces
@@ -94,7 +98,7 @@ Note that except for *listener* and *routing rule*, the App Gateway resources cr
 of the namespace (`production`) for which they were created.
 
 If the two ingress resources are introduced into the AKS cluster at different
-points in time, it is possible to for AGIC to end up in a scenario where it
+points in time, it is likely for AGIC to end up in a scenario where it
 reconfigures App Gateway and re-routes traffic from `namespace-B` to
 `namespace-A`.
 
@@ -107,5 +111,5 @@ to the `production` backend pool.
 By default AGIC will configure App Gateway based on annotated Ingress within
 any namespace. Should you want to limit this behaviour you have the following
 options:
-  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` variable in [values.yaml](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/d213b8803c302dd003ec07f8765faa70ad2ee43e/helm/ingress-azure/values.yaml#L12)
-  - Use [Role/RoleBinding](https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac) to limit AGIC to specific namespaces
+  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` YAML key in [helm-config.yaml](examples/helm-config.yaml)
+  - use [Role/RoleBinding](https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac) to limit AGIC to specific namespaces
