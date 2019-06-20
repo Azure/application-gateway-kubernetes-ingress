@@ -33,6 +33,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -105,7 +106,8 @@ func main() {
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, namespaces, *resyncPeriod)
+	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 
 	recorder := getEventRecorder(kubeClient)
 

@@ -43,6 +43,10 @@ const (
 	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller
 	// whether it should act on this ingress resource or not.
 	ApplicationGatewayIngressClass = "azure/application-gateway"
+
+	// ApplicationGatewayIstioIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller whether
+	// this ingress resource is from Istio or not.
+	ApplicationGatewayIstioIngressClass = "istio-ingress"
 )
 
 // IngressClass ingress class
