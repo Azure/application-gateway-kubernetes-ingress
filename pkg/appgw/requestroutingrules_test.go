@@ -6,9 +6,6 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -17,6 +14,9 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
@@ -139,8 +139,11 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 		serviceList := []*v1.Service{tests.NewServiceFixture()}
-		envVariables := environment.GetFakeEnv()
-		_ = configBuilder.RequestRoutingRules(ingressList, serviceList, envVariables)
+		cbCtx := &ConfigBuilderContext{
+			IngressList: ingressList,
+			ServiceList: serviceList,
+		}
+		_ = configBuilder.RequestRoutingRules(cbCtx)
 
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))

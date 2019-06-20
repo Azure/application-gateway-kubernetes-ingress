@@ -7,13 +7,15 @@ package appgw
 
 import (
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -34,8 +36,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
+		cbCtx := &ConfigBuilderContext{
+			IngressList: ingressList,
+			ServiceList: serviceList,
+		}
+
 		// !! Action !!
-		_ = cb.HealthProbesCollection(ingressList, serviceList)
+		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
@@ -119,8 +126,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
+		cbCtx := &ConfigBuilderContext{
+			IngressList: ingressList,
+			ServiceList: serviceList,
+		}
+
 		// !! Action !!
-		_ = cb.HealthProbesCollection(ingressList, serviceList)
+		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGwConfig.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
