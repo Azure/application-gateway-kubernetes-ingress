@@ -31,7 +31,7 @@ import (
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(istioCrdClient istio_versioned.Interface, kubeClient kubernetes.Interface, crdClient versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
 	updateChannel := channels.NewRingChannel(1024)
 
 	var options []informers.SharedInformerOption
@@ -42,7 +42,7 @@ func NewContext(istioCrdClient istio_versioned.Interface, kubeClient kubernetes.
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
-	istioGwy := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
+	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
 		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
@@ -50,10 +50,11 @@ func NewContext(istioCrdClient istio_versioned.Interface, kubeClient kubernetes.
 		Pods:         informerFactory.Core().V1().Pods().Informer(),
 		Secret:       informerFactory.Core().V1().Secrets().Informer(),
 		Service:      informerFactory.Core().V1().Services().Informer(),
-		IstioGateway: istioGwy.Networking().V1alpha3().Gateways().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+
+		IstioGateway: istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 	}
 
 	cacheCollection := CacheCollection{

@@ -97,12 +97,12 @@ func main() {
 
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
-	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
-	k8sContext := k8scontext.NewContext(istioCrdClient, kubeClient, crdClient, namespaces, *resyncPeriod)
+	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 
 	recorder := getEventRecorder(kubeClient)
 
