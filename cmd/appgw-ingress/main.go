@@ -38,6 +38,11 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
+const (
+	verbosityFlag = "verbosity"
+	maxAuthRetry  = 10
+)
+
 var (
 	flags = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
 
@@ -55,7 +60,7 @@ var (
 
 	versionInfo = flags.Bool("version", false, "Print version")
 
-	verbosity = flags.Int("verbosity", 1, "Set logging verbosity level")
+	verbosity = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
 )
 
 func main() {
@@ -65,7 +70,10 @@ func main() {
 		glog.Fatal("Error parsing command line arguments:", err)
 	}
 
-	glog.Infof("Logging at verbosity level %d", *verbosity)
+	env := environment.GetEnv()
+	environment.ValidateEnv(env)
+
+	glog.Infof("Logging at verbosity level %d", getVerbosity(*verbosity, env.VerbosityLevel))
 
 	if *versionInfo {
 		version.PrintVersionAndExit()
@@ -76,9 +84,6 @@ func main() {
 	_ = flag.CommandLine.Parse([]string{})
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
-
-	env := environment.GetEnv()
-	environment.ValidateEnv(env)
 
 	appGwClient := network.NewApplicationGatewaysClient(env.SubscriptionID)
 
@@ -160,9 +165,8 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 }
 
 func waitForAzureAuth(envVars environment.EnvVariables, client network.ApplicationGatewaysClient) {
-	maxRetry := 10
 	const retryTime = 10 * time.Second
-	for counter := 0; counter <= maxRetry; counter++ {
+	for counter := 0; counter <= maxAuthRetry; counter++ {
 		if _, err := client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName); err != nil {
 			glog.Error("Error getting Application Gateway", envVars.AppGwName, err)
 			glog.Infof("Retrying in %v", retryTime)
@@ -210,4 +214,14 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 		Host:      hostname,
 	}
 	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
+}
+
+func getVerbosity(flagVerbosity int, envVerbosity string) int {
+	envVerbosityInt, err := strconv.Atoi(envVerbosity)
+	if err != nil {
+		glog.Infof("Using verbosity level %d from CLI flag %s", flagVerbosity, verbosityFlag)
+		return flagVerbosity
+	}
+	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
+	return envVerbosityInt
 }
