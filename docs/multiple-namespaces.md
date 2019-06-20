@@ -17,18 +17,17 @@ ingress, all namespaces will use the same instance of App Gateway. A single
 installation of Ingress Controller will monitor accessible namespaces and will
 configure the App Gateway it is associated with.
 
-#### Defaults
-As of version 0.7, AGIC is configured to observe ingress resources from the
-*default* namespace or the namespace explicitly defined in the Helm
-configuration.
+Version 0.7 of AGIC will continue to exclusively observe the `default`
+namespace, unless this is explicitly changed to one or more different
+namespaces in the Helm configuration (see section below).
 
 #### Enable multiple namespace support
-To enable miltiple namespace support - modify the [helm-config.yaml](examples/helm-config.yaml) file in one of the following ways:
-  1. delete the `watchNamespace` key entirely from [helm-config.yaml](examples/helm-config.yaml) - AGIC will observe all namespaces
-  1. set `watchNamespace` to an empty string - AGIC will observe all namespaces
-  2. add multiple namespaces separated by a comma (`watchNamespace: default,secondNamespace`) - AGIC will observe these namespaces exclusively
-
-Install Helm template changes with: `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
+To enable multiple namespace support:
+1. modify the [helm-config.yaml](examples/helm-config.yaml) file in one of the following ways:
+   - delete the `watchNamespace` key entirely from [helm-config.yaml](examples/helm-config.yaml) - AGIC will observe all namespaces
+   - set `watchNamespace` to an empty string - AGIC will observe all namespaces
+   - add multiple namespaces separated by a comma (`watchNamespace: default,secondNamespace`) - AGIC will observe these namespaces exclusively
+2. apply  Helm template changes with: `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
 
 Once deployed with the ability to observe multiple namespaces, AGIC will:
   - list ingress resources from all accessible namespaces
@@ -37,12 +36,18 @@ Once deployed with the ability to observe multiple namespaces, AGIC will:
   - apply the config to the associated App Gateway via [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview)
 
 #### Conflicting Configurations
-It is possible for [ingress resources](https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource) from different namespaces to attempt to configure the same HTTP target.
+Multiple namespaced [ingress resources](https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource)
+could instruct AGIC to create conflicting configurations for a single App Gateway. (Two ingresses claiming the same
+domain for instance.)
 
-For example, consider the following two ingress resources:
+At the top of the hierarchy - **listeners** (IP address, port, and host) and **routing rules** (binding listener,
+backend pool and HTTP settings) could be created and shared by multiple namespaces/ingresses.
 
-Ingress definition in namespace `staging` and namespace `production` for the
-same host.
+On the other hand - paths, backend pools, HTTP settings, and TLS certificates could be created by one namespace only
+and duplicates will removed..
+
+For example, consider the following duplicate ingress resources defined
+namespaces `staging` and `production` for `www.contoso.com`:
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -80,10 +85,10 @@ spec:
 ```
 
 Despite the two ingress resources demanding traffic for `www.contoso.com` to be
-routed to the respective Kubernetes namespaces, only one App Gateway listener
-and routing rule can be created. AGIC would create a configuration on "first
-come, first served" basis for one of the resources. If two ingresses resources
-are created at the same time, the one earlier in the alphabet will take
+routed to the respective Kubernetes namespaces, only one backend can service
+the traffic. AGIC would create a configuration on "first come, first served"
+basis for one of the resources. If two ingresses resources are created at the
+same time, the one earlier in the alphabet will take
 precedence. From the example above we will only be able to create settings for
 the `production` ingress. App Gateway will be configured with the following
 resources:
