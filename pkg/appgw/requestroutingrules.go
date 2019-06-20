@@ -80,7 +80,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 	return urlPathMap
 }
 
-func (c *appGwConfigBuilder) RequestRoutingRules(kr *KubernetesResources) error {
+func (c *appGwConfigBuilder) RequestRoutingRules(kr *ConfigBuilderContext) error {
 	_, httpListenersMap := c.getListeners(kr)
 	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(kr.IngressList, kr.ServiceList)

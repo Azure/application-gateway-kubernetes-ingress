@@ -9,9 +9,9 @@ import (
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
-// KubernetesResources holds the structs we have fetches from Kubernetes + environment, based on which
+// ConfigBuilderContext holds the structs we have fetches from Kubernetes + environment, based on which
 // we will construct App Gateway config.
-type KubernetesResources struct {
+type ConfigBuilderContext struct {
 	IngressList       []*v1beta1.Ingress
 	ServiceList       []*v1.Service
 	ManagedTargets    []*mtv1.AzureIngressManagedTarget

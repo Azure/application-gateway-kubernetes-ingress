@@ -36,7 +36,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
@@ -126,7 +126,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}

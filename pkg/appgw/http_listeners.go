@@ -5,7 +5,7 @@
 
 package appgw
 
-func (c *appGwConfigBuilder) Listeners(kr *KubernetesResources) error {
+func (c *appGwConfigBuilder) Listeners(kr *ConfigBuilderContext) error {
 
 	c.appGwConfig.SslCertificates = c.getSslCertificates(kr.IngressList)
 	c.appGwConfig.FrontendPorts = c.getFrontendPorts(kr.IngressList)

@@ -72,7 +72,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	// Create a configbuilder based on current appgw config
 	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw.ApplicationGatewayPropertiesFormat, c.recorder)
 
-	kr := &appgw.KubernetesResources{
+	kr := &appgw.ConfigBuilderContext{
 		// Get all Services
 		ServiceList:       c.k8sContext.GetServiceList(),
 		IngressList:       c.k8sContext.GetHTTPIngressList(),

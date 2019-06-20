@@ -58,7 +58,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ing2,
 		}
 
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList:  ingressList,
 			EnvVariables: envVariables,
 		}

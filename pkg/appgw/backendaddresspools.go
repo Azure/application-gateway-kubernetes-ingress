@@ -34,7 +34,7 @@ func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, s
 	return backendPoolMap
 }
 
-func (c *appGwConfigBuilder) BackendAddressPools(kr *KubernetesResources) error {
+func (c *appGwConfigBuilder) BackendAddressPools(kr *ConfigBuilderContext) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,

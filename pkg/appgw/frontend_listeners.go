@@ -19,7 +19,7 @@ import (
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(kr *KubernetesResources) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+func (c *appGwConfigBuilder) getListeners(kr *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 

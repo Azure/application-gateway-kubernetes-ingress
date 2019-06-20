@@ -42,7 +42,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	return healthProbeCollection, probesMap
 }
 
-func (c *appGwConfigBuilder) HealthProbesCollection(kr *KubernetesResources) error {
+func (c *appGwConfigBuilder) HealthProbesCollection(kr *ConfigBuilderContext) error {
 	healthProbeCollection, _ := c.newProbesMap(kr.IngressList, kr.ServiceList)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))

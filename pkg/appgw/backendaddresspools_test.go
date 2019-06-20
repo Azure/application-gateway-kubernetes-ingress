@@ -49,7 +49,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		serviceList := []*v1.Service{
 			tests.NewServiceFixture(),
 		}
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 			ServiceList: serviceList,
 		}
@@ -83,7 +83,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 			ServiceList: serviceList,
 		}
@@ -117,7 +117,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			ServiceList: serviceList,
 			IngressList: cb.k8sContext.GetHTTPIngressList(),
 		}

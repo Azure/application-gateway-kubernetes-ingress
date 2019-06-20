@@ -195,7 +195,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	return &httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(kr *KubernetesResources) error {
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(kr *ConfigBuilderContext) error {
 	httpSettings, _, _, err := c.getBackendsAndSettingsMap(kr.IngressList, kr.ServiceList)
 	c.appGwConfig.BackendHTTPSettingsCollection = httpSettings
 	return err

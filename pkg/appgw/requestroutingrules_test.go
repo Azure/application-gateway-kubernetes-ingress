@@ -139,7 +139,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		ingressList := []*v1beta1.Ingress{&ingress}
 		serviceList := []*v1.Service{tests.NewServiceFixture()}
-		kr := &KubernetesResources{
+		kr := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
