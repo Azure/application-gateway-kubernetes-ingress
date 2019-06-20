@@ -25,7 +25,7 @@ const (
 	WatchNamespaceVarName = "KUBERNETES_WATCHNAMESPACE"
 	// UsePrivateIPVarName is the name of the USE_PRIVATE_IP
 	UsePrivateIPVarName = "USE_PRIVATE_IP"
-	// VerbosityLevel sets the level of glog verbosity should the CLI argument be blank
+	// VerbosityLevelVarName sets the level of glog verbosity should the CLI argument be blank
 	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
 )
 
