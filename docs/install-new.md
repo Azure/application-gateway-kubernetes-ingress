@@ -95,6 +95,9 @@ Steps:
     ```yaml
     # This file contains the essential configs for the ingress controller helm chart
 
+    # Verbosity level of the App Gateway Ingress Controller
+    verbosityLevel: 3
+
     ################################################################################
     # Specify which application gateway the ingress controller will manage
     #

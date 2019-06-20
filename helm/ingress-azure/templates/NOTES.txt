@@ -1,11 +1,11 @@
-Thank you for installing {{ .Chart.Name }}:{{ .Chart.Version }}. 
+Thank you for installing {{ .Chart.Name }}:{{ .Chart.Version }}.
 
-Your release is named {{ .Release.Name }}. 
+Your release is named {{ .Release.Name }}.
 The controller is deployed in deployment {{ template "application-gateway-kubernetes-ingress.fullname" . }}.
 
 Configuration Details:
 ----------------------
- * AzureRM Authentication Method: 
+ * AzureRM Authentication Method:
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
     - Use AAD-Pod-Identity
 {{- else if eq .Values.armAuth.type "servicePrincipal"}}
@@ -19,6 +19,7 @@ Configuration Details:
     - Application Gateway Name : {{ .Values.appgw.name }}
  * Kubernetes:
     - Watch Namespace : {{ .Values.kubernetes.watchNamespace }}
+ * Verbosity level: {{ .Values.verbosityLevel }}
 {{ if eq .Values.armAuth.type "aadPodIdentity"}}
 Please make sure the associated aadpodidentity and aadpodidbinding is configured.
 For more information on AAD-Pod-Identity, please visit https://github.com/Azure/aad-pod-identity

@@ -25,11 +25,13 @@ import (
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/informers/externalversions"
+	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/clientset/versioned"
+	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
 	updateChannel := channels.NewRingChannel(1024)
 
 	var options []informers.SharedInformerOption
@@ -40,16 +42,19 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
+	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
-		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-		Pods:      informerFactory.Core().V1().Pods().Informer(),
-		Secret:    informerFactory.Core().V1().Secrets().Informer(),
-		Service:   informerFactory.Core().V1().Services().Informer(),
+		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:      informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:         informerFactory.Core().V1().Pods().Informer(),
+		Secret:       informerFactory.Core().V1().Secrets().Informer(),
+		Service:      informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+
+		IstioGateway: istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
