@@ -26,7 +26,7 @@ const (
 	// UsePrivateIPVarName is the name of the USE_PRIVATE_IP
 	UsePrivateIPVarName = "USE_PRIVATE_IP"
 	// VerbosityLevel sets the level of glog verbosity should the CLI argument be blank
-	VerbosityLevel = "APPGW_VERBOSITY_LEVEL"
+	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -49,7 +49,7 @@ func GetEnv() EnvVariables {
 		AuthLocation:      os.Getenv(AuthLocationVarName),
 		WatchNamespace:    os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:      os.Getenv(UsePrivateIPVarName),
-		VerbosityLevel:    os.Getenv(VerbosityLevel),
+		VerbosityLevel:    os.Getenv(VerbosityLevelVarName),
 	}
 
 	return env
@@ -62,7 +62,7 @@ func ValidateEnv(env EnvVariables) {
 	}
 
 	if env.WatchNamespace == "" {
-		glog.V(1).Infof("%s is not set. Watching all available namespaces.", VerbosityLevel)
+		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
 }
 

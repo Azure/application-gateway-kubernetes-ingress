@@ -220,6 +220,6 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 		glog.Infof("Using verbosity level %d from CLI flag %s", flagVerbosity, verbosityFlag)
 		return flagVerbosity
 	}
-	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevel)
+	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
 }
