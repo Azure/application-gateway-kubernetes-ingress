@@ -45,11 +45,11 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
-		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:      informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-		Pods:         informerFactory.Core().V1().Pods().Informer(),
-		Secret:       informerFactory.Core().V1().Secrets().Informer(),
-		Service:      informerFactory.Core().V1().Services().Informer(),
+		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:      informerFactory.Core().V1().Pods().Informer(),
+		Secret:    informerFactory.Core().V1().Secrets().Informer(),
+		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
@@ -65,6 +65,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:                        informerCollection.Service.GetStore(),
 		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
+		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
 	}
 
 	context := &Context{
