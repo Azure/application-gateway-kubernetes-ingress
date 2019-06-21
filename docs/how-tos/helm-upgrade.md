@@ -1,4 +1,4 @@
-# Upgrading your helm installation
+# Upgrading AGIC using helm
 
 1) Update the helm repo and check the available chart versions.
 
