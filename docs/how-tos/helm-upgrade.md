@@ -21,14 +21,25 @@
 
 2) Now to upgrade to a new version, use
 
-```bash
-helm upgrade application-gateway-kubernetes-ingress/ingress-azure --version <version>
-```
+    ```bash
+    $> helm upgrade application-gateway-kubernetes-ingress/ingress-azure -n <release-name> --version <version>
+    ```
 
 ## Rollback
 
-If for some reason, the new deployment of the ingres controller goes to a bad state, rollback to the previous version using
+If for some reason, the new deployment of the ingres controller goes to a bad state.
+Check your previous revision number by,
 
 ```bash
-helm rollback
+$> helm history odd-billygoat
+REVISION        UPDATED                         STATUS          CHART                   DESCRIPTION                                                 
+1               Mon Jun 17 13:49:42 2019        DEPLOYED      ingress-azure-0.6.0     Install complete                                            
+2              Fri Jun 21 15:56:06 2019        FAILED          ingress-azure-xx    xxxx
+```
+
+Rollback using:
+
+```bash
+$> helm rollback odd-billygoat 1
+Rollback was a success! Happy Helming!
 ```
