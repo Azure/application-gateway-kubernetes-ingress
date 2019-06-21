@@ -41,6 +41,8 @@ REVISION        UPDATED                         STATUS          CHART           
 2              Fri Jun 21 15:56:06 2019        FAILED          ingress-azure-xx    xxxx
 ```
 
+Previous Successful Revision: `1`
+
 Rollback using:
 
 ```bash
