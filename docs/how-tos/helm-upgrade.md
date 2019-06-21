@@ -10,6 +10,8 @@
     application-gateway-kubernetes-ingress/ingress-azure    0.6.0-rc1       0.6.0-rc1       Use Azure Application Gateway as the ingress for an Azure...
     ...
     ```
+    
+    Latest Version (current): `0.7.0-rc1`
 
 2) Look up your helm chart release name
 
@@ -19,10 +21,12 @@
     odd-billygoat   22              Fri Jun 21 15:56:06 2019        FAILED  ingress-azure-0.7.0-rc1 0.7.0-rc1       default
     ```
 
+    Release name: `odd-billygoat`
+
 2) Now to upgrade to a new version, use
 
     ```bash
-    $> helm upgrade application-gateway-kubernetes-ingress/ingress-azure -n <release-name> --version <version>
+    $> helm upgrade application-gateway-kubernetes-ingress/ingress-azure -n odd-billygoat --version 0.7.0-rc1
     ```
 
 ## Rollback
