@@ -66,6 +66,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:                        informerCollection.Service.GetStore(),
 		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
+		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
 	}
 
 	context := &Context{
