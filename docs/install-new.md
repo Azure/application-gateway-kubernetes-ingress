@@ -91,7 +91,8 @@ Steps:
     helm repo update
     ```
 
-4) Edit [helm-config.yaml](examples/helm-config.yaml) and fill in the values for `appgw` and `armAuth`
+4) Edit [helm-config.yaml](examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`
+
     ```yaml
     # This file contains the essential configs for the ingress controller helm chart
 
@@ -129,7 +130,13 @@ Steps:
     # Specify if the cluster is RBAC enabled or not
     rbac:
         enabled: false # true/false
+
+    ################################################################################
+    # Specify aks cluster related information. THIS IS BEING DEPRECATED.
+    aksClusterConfiguration:
+        apiServerAddress: <aks-api-server-address>
     ```
+
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>
@@ -137,8 +144,9 @@ Steps:
         Where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
 
     Then execute the following to the install the Application Gateway ingress controller package.
+
     ```bash
     helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
     ```
 
-Refer to the [tutorials](tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
+Jump next to **[tutorials](tutorial.md)** to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.

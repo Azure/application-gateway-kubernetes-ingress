@@ -50,7 +50,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     helm repo update
     ```
 
-2. Edit [helm-config.yaml](examples/helm-config.yaml) and fill in the values for `appgw` and `armAuth`
+2. Edit [helm-config.yaml](examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`
 
     ```yaml
     # This file contains the essential configs for the ingress controller helm chart
@@ -89,12 +89,18 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     # Specify if the cluster is RBAC enabled or not
     rbac:
         enabled: false # true/false
+
+    ################################################################################
+    # Specify aks cluster related information. THIS IS BEING DEPRECATED.
+    aksClusterConfiguration:
+        apiServerAddress: <aks-api-server-address>
     ```
 
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
         ```bash
         az identity show -g <resourcegroup> -n <identity-name>
         ```
+
         Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
 
 3. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
