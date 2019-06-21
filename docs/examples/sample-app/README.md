@@ -1,8 +1,9 @@
 # Instructions
 
-## Pre-requisite:
+## Pre-requisite
 
-Application Gateway and AKS cluster.
+AKS cluster with networking plugin `azure` and AGIC installed
+Application Gateway in the same vnet
 
 ## Steps
 
