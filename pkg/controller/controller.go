@@ -203,12 +203,12 @@ func addTags(appGw *network.ApplicationGateway) {
 
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
-func (c *AppGwIngressController) Start() {
+func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
 	// Starts event queue
 	go c.eventQueue.Run(time.Second, c.stopChannel)
 
 	// Starts k8scontext which contains all the informers
-	c.k8sContext.Run(false)
+	c.k8sContext.Run(false, envVariables)
 
 	// Continue to enqueue events into eventqueue until stopChannel is closed
 	for {
