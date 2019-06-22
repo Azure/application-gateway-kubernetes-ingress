@@ -447,7 +447,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Configuration", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true)
+			ctxt.Run(true, environment.GetFakeEnv())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -495,7 +495,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unable to delete endpoint resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true)
+			ctxt.Run(true, environment.GetFakeEnv())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -606,7 +606,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true)
+			ctxt.Run(true, environment.GetFakeEnv())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -711,7 +711,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true)
+			ctxt.Run(true, environment.GetFakeEnv())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -797,7 +797,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
 		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true)
+			ctxt.Run(true, environment.GetFakeEnv())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()

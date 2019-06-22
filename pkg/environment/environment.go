@@ -15,41 +15,57 @@ import (
 const (
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
+
 	// ResourceGroupNameVarName is the name of the APPGW_RESOURCE_GROUP
 	ResourceGroupNameVarName = "APPGW_RESOURCE_GROUP"
+
 	// AppGwNameVarName is the name of the APPGW_NAME
 	AppGwNameVarName = "APPGW_NAME"
+
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
+
 	// WatchNamespaceVarName is the name of the KUBERNETES_WATCHNAMESPACE
 	WatchNamespaceVarName = "KUBERNETES_WATCHNAMESPACE"
+
 	// UsePrivateIPVarName is the name of the USE_PRIVATE_IP
 	UsePrivateIPVarName = "USE_PRIVATE_IP"
+
 	// VerbosityLevelVarName sets the level of glog verbosity should the CLI argument be blank
 	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
+
+	// EnableBrownfieldDeploymentVarName is a feature flag enabling observation of {Managed,Prohibited}Target CRDs
+	EnableBrownfieldDeploymentVarName = "APPGW_ENABLE_BROWNFIELD_DEPLOYMENT"
+
+	// EnableIstioIntegrationVarName is a feature flag enabling observation of Istio specific CRDs
+	EnableIstioIntegrationVarName = "APPGW_ENABLE_ISTIO_INTEGRATION"
 )
 
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
-	SubscriptionID    string
-	ResourceGroupName string
-	AppGwName         string
-	AuthLocation      string
-	WatchNamespace    string
-	UsePrivateIP      string
-	VerbosityLevel    string
+	SubscriptionID             string
+	ResourceGroupName          string
+	AppGwName                  string
+	AuthLocation               string
+	WatchNamespace             string
+	UsePrivateIP               string
+	VerbosityLevel             string
+	EnableBrownfieldDeployment string
+	EnableIstioIntegration     string
 }
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
 	env := EnvVariables{
-		SubscriptionID:    os.Getenv(SubscriptionIDVarName),
-		ResourceGroupName: os.Getenv(ResourceGroupNameVarName),
-		AppGwName:         os.Getenv(AppGwNameVarName),
-		AuthLocation:      os.Getenv(AuthLocationVarName),
-		WatchNamespace:    os.Getenv(WatchNamespaceVarName),
-		UsePrivateIP:      os.Getenv(UsePrivateIPVarName),
-		VerbosityLevel:    os.Getenv(VerbosityLevelVarName),
+		SubscriptionID:             os.Getenv(SubscriptionIDVarName),
+		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
+		AppGwName:                  os.Getenv(AppGwNameVarName),
+		AuthLocation:               os.Getenv(AuthLocationVarName),
+		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
+		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
+		VerbosityLevel:             os.Getenv(VerbosityLevelVarName),
+		EnableBrownfieldDeployment: os.Getenv(EnableBrownfieldDeploymentVarName),
+		EnableIstioIntegration:     os.Getenv(EnableIstioIntegrationVarName),
 	}
 
 	return env

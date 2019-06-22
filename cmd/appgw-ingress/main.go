@@ -117,7 +117,7 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start()
+	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start(env)
 	select {}
 }
 
