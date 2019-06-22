@@ -20,7 +20,8 @@ kubectl get namespaces
 kubectl get pods --all-namespaces -o wide
 ```
 
-* The AGIC pod should be in the `default` namespace (see column `NAMESPACE`). A healthy pod would have `Running` in the `STATUS` column. There should be exactly one AGIC pod.
+
+* The AGIC pod should be in the `default` namespace (see column `NAMESPACE`). A healthy pod would have `Running` in the `STATUS` column. There should be at least one AGIC pod.
 ```bash
 # Get a list of the Application Gateway Ingress Controller pods
 kubectl get pods --all-namespaces --selector app=ingress-azure
@@ -45,11 +46,12 @@ kubectl get ingress --all-namespaces -o wide
 ```
 
 
-* Is your [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) annotated with: `kubernetes.io/ingress.class: azure/application-gateway`
+* Is your [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) annotated with: `kubernetes.io/ingress.class: azure/application-gateway`? AGIC will only watch for Kubernetes Ingress resources that have this annotation.
 ```bash
 # Get the YAML definition of a particular ingress resource
 kubectl get ingress --namespace  <which-namespace?>  <which-ingress?>  -o yaml
 ```
+
 
 * AGIC has verbose logging capability. It is not enabled by default. This is controlled via an environment variable. Increase the **verbosity level** of AGIC to `5` to get the JSON config
 dispatched to [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview):
