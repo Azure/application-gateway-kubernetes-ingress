@@ -30,6 +30,7 @@ type CacheCollection struct {
 	Namespaces                     cache.Store
 	AzureIngressManagedLocation    cache.Store
 	AzureIngressProhibitedLocation cache.Store
+	IstioGateway                   cache.Store
 }
 
 // Context : cache and listener for k8s resources.
