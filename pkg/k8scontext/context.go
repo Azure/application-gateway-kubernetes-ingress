@@ -13,6 +13,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
+	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -164,6 +165,15 @@ func (c *Context) GetAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhib
 		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
 	}
 	return targets
+}
+
+// GetIstioGateways returns a list of discovered Istio Gateways
+func (c *Context) GetIstioGateways() []*v1alpha3.Gateway {
+	var gateways []*v1alpha3.Gateway
+	for _, gateway := range c.Caches.IstioGateway.List() {
+		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
+	}
+	return gateways
 }
 
 func hasHTTPRule(ingress *v1beta1.Ingress) bool {
