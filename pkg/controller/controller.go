@@ -96,7 +96,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 	}
-	{
+	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
 		var gatewaysInfo []string
 		for _, gateway := range cbCtx.IstioGateways {
 			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
