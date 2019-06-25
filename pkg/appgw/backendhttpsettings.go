@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -27,7 +28,7 @@ func newBackendIdsFiltered(ingressList []*v1beta1.Ingress, serviceList []*v1.Ser
 	for _, ingress := range ingressList {
 		if ingress.Spec.Backend != nil {
 			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
-			glog.Info("Found default backend:", backendID.serviceKey())
+			glog.V(3).Info("Found default backend:", backendID.serviceKey())
 			backendIDs[backendID] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
@@ -82,7 +83,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 		if service == nil {
 			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "ServiceNotFound", logLine)
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonServiceNotFound, logLine)
 			glog.Errorf(logLine)
 			pair := serviceBackendPortPair{
 				ServicePort: backendID.Backend.ServicePort.IntVal,
@@ -139,7 +140,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 
 		if len(resolvedBackendPorts) == 0 {
 			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", backendID.serviceKey())
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
 			glog.Error(logLine)
 
 			unresolvedBackendID = append(unresolvedBackendID, backendID)
@@ -170,7 +171,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 			// more than one possible backend port exposed through ingress
 			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "PortResolutionError", logLine)
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
 			glog.Warning(logLine)
 			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
 		}

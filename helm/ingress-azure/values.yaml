@@ -5,7 +5,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.6.0
+  tag: 0.7.0-rc2
   pullPolicy: Always
 
 ################################################################################
@@ -21,7 +21,6 @@ kubernetes:
 #   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 #   resourceGroup: myResourceGroup
 #   name: myApplicationGateway
-#   usePrivateIP: true
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
@@ -32,7 +31,6 @@ kubernetes:
 #   type: aadPodIdentity
 #   identityResourceID: <>
 #   identityClientID:  <>
-#   namespaced: false # if true adds namespaced annotation to AzureIdentity
 #
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
@@ -42,5 +40,5 @@ kubernetes:
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
-# rbac:
-#     enabled: false # true/false
+rbac:
+    enabled: false # true/false

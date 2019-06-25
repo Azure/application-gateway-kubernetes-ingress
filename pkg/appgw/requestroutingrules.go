@@ -247,7 +247,7 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *netwo
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"
 		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
-		glog.Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
+		glog.V(5).Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 
 		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
 		httpURLPathMap.DefaultRedirectConfiguration = redirectRef
@@ -262,7 +262,7 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *netwo
 		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
 		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
-		glog.Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
+		glog.V(5).Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
 
 		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
 		pathRule.RedirectConfiguration = redirectRef

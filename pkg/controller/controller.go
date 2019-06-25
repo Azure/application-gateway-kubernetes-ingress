@@ -58,8 +58,6 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 // Process is the callback function that will be executed for every event
 // in the EventQueue.
 func (c AppGwIngressController) Process(event QueuedEvent) error {
-	glog.V(1).Infof("controller.Process called with type %T", event.Event)
-
 	ctx := context.Background()
 
 	// Get current application gateway config
@@ -79,6 +77,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		ManagedTargets:    c.k8sContext.GetAzureIngressManagedTargets(),
 		ProhibitedTargets: c.k8sContext.GetAzureProhibitedTargets(),
 		EnvVariables:      environment.GetEnv(),
+		IstioGateways:     c.k8sContext.GetIstioGateways(),
 	}
 	{
 		var managedTargets []string
@@ -94,6 +93,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		}
 
 		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+	}
+	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
+		var gatewaysInfo []string
+		for _, gateway := range cbCtx.IstioGateways {
+			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
+		}
+		glog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
@@ -156,12 +162,12 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	addTags(&appGw)
 
 	if c.configIsSame(&appGw) {
-		glog.Infoln("cache: Config has NOT changed! No need to connect to ARM.")
+		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
 
-	glog.V(1).Info("BEGIN ApplicationGateway deployment")
-	defer glog.V(1).Info("END ApplicationGateway deployment")
+	glog.V(3).Info("BEGIN ApplicationGateway deployment")
+	defer glog.V(3).Info("END ApplicationGateway deployment")
 
 	deploymentStart := time.Now()
 	// Initiate deployment
@@ -177,16 +183,18 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
 	configJSON, _ := c.dumpSanitizedJSON(&appGw)
 	glog.V(5).Info(string(configJSON))
-	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
+
+	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
+	glog.V(1).Infof("Applied App Gateway config in %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
-		return errors.New("unable to deploy ApplicationGateway")
+		glog.Warning("Unable to deploy App Gateway config.", err)
+		return errors.New("unable to deploy App Gateway config")
 	}
 
-	glog.Info("cache: Updated with latest applied config.")
+	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(&appGw)
 
 	return nil
@@ -203,12 +211,12 @@ func addTags(appGw *network.ApplicationGateway) {
 
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
-func (c *AppGwIngressController) Start() {
+func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
 	// Starts event queue
 	go c.eventQueue.Run(time.Second, c.stopChannel)
 
 	// Starts k8scontext which contains all the informers
-	c.k8sContext.Run(false)
+	c.k8sContext.Run(false, envVariables)
 
 	// Continue to enqueue events into eventqueue until stopChannel is closed
 	for {

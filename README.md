@@ -22,6 +22,8 @@ As shown in the figure below, the ingress controller runs as a pod within the AK
 
 [**How-To**](docs/how-to.md): This document maintains a collection of complex scenarios.
 
+[**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
+
 ### Troubleshooting
 For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
 

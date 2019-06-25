@@ -15,6 +15,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -41,6 +42,7 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 	}
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		glog.V(5).Info("Constructing backend pool for service:", backendID.serviceKey())
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			addressPools[*pool.Name] = pool
 		}
@@ -61,9 +63,8 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
 		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", backendID.serviceKey())
-		// TODO(draychev): Move "reason" into an enum
-		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "EndpointsEmpty", logLine)
-		glog.Warning(logLine)
+		glog.Errorf(logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, logLine)
 		return nil
 	}
 
@@ -78,10 +79,8 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 			return newPool(poolName, subset)
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
-		// TODO(draychev): Move "reason" into an enum
-		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, "BackendPortTargetMatch", logLine)
-		glog.Warning(logLine)
-
+		glog.Error(logLine)
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonBackendPortTargetMatch, logLine)
 	}
 	return nil
 }

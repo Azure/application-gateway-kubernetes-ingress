@@ -13,6 +13,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
+	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -25,6 +26,7 @@ import (
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/informers/externalversions"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -45,11 +47,11 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
-		Endpoints:    informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:      informerFactory.Extensions().V1beta1().Ingresses().Informer(),
-		Pods:         informerFactory.Core().V1().Pods().Informer(),
-		Secret:       informerFactory.Core().V1().Secrets().Informer(),
-		Service:      informerFactory.Core().V1().Services().Informer(),
+		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
+		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
+		Pods:      informerFactory.Core().V1().Pods().Informer(),
+		Secret:    informerFactory.Core().V1().Secrets().Informer(),
+		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
@@ -65,6 +67,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:                        informerCollection.Service.GetStore(),
 		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
+		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
 	}
 
 	context := &Context{
@@ -107,9 +110,9 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(omitCRDs bool) {
+func (c *Context) Run(omitCRDs bool, envVariables environment.EnvVariables) {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(c.stopChannel, omitCRDs)
+	c.informers.Run(c.stopChannel, omitCRDs, envVariables)
 	glog.V(1).Infoln("k8s context run finished")
 }
 
@@ -162,6 +165,15 @@ func (c *Context) GetAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhib
 		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
 	}
 	return targets
+}
+
+// GetIstioGateways returns a list of discovered Istio Gateways
+func (c *Context) GetIstioGateways() []*v1alpha3.Gateway {
+	var gateways []*v1alpha3.Gateway
+	for _, gateway := range c.Caches.IstioGateway.List() {
+		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
+	}
+	return gateways
 }
 
 func hasHTTPRule(ingress *v1beta1.Ingress) bool {
@@ -252,20 +264,32 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 }
 
 // Run function starts all the informers and waits for an initial sync.
-func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool) {
+func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	var hasSynced []cache.InformerSynced
 	crds := map[cache.SharedInformer]interface{}{
 		i.AzureIngressManagedLocation:    nil,
 		i.AzureIngressProhibitedLocation: nil,
+		i.IstioGateway:                   nil,
 	}
+
 	sharedInformers := []cache.SharedInformer{
 		i.Endpoints,
 		i.Pods,
 		i.Service,
 		i.Secret,
 		i.Ingress,
-		i.AzureIngressManagedLocation,
-		i.AzureIngressProhibitedLocation,
+	}
+
+	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
+	if envVariables.EnableBrownfieldDeployment == "true" {
+		sharedInformers = append(sharedInformers,
+			i.AzureIngressManagedLocation,
+			i.AzureIngressProhibitedLocation)
+	}
+
+	if envVariables.EnableIstioIntegration == "true" {
+		sharedInformers = append(sharedInformers,
+			i.IstioGateway)
 	}
 
 	for _, informer := range sharedInformers {

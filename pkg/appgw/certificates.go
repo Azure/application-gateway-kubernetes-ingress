@@ -8,6 +8,7 @@ package appgw
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
@@ -52,7 +53,7 @@ func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress)
 			secretIDCertificateMap[tlsSecret] = to.StringPtr(base64.StdEncoding.EncodeToString(cert))
 		} else {
 			logLine := fmt.Sprintf("Unable to find the secret associated to secretId: [%s]", tlsSecret.secretKey())
-			c.recorder.Event(ingress, v1.EventTypeWarning, "SecretNotFound", logLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonSecretNotFound, logLine)
 		}
 	}
 	return secretIDCertificateMap
