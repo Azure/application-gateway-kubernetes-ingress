@@ -65,7 +65,7 @@ Level 5, on the other hand, would display all logs, including sanitized contents
 to ARM.
 
 The Kubernetes community has established 9 levels of logging for
-the [kubectl](go get github.com/knative/pkg/apis/istio/v1alpha3) tool. In this
+the [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-output-verbosity-and-debugging) tool. In this
 repository we are utilizing 3 of these, with similar semantics:
 
 

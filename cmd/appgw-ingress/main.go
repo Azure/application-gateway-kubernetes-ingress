@@ -17,6 +17,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
@@ -73,7 +74,7 @@ func main() {
 	env := environment.GetEnv()
 	environment.ValidateEnv(env)
 
-	glog.Infof("Logging at verbosity level %d", getVerbosity(*verbosity, env.VerbosityLevel))
+	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
 
 	if *versionInfo {
 		version.PrintVersionAndExit()
