@@ -5,7 +5,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.7.0-rc1
+  tag: 0.7.0-rc2
   pullPolicy: Always
 
 ################################################################################
@@ -41,4 +41,4 @@ kubernetes:
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
-  enabled: false # true/false
+    enabled: false # true/false

@@ -79,6 +79,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		ManagedTargets:    c.k8sContext.GetAzureIngressManagedTargets(),
 		ProhibitedTargets: c.k8sContext.GetAzureProhibitedTargets(),
 		EnvVariables:      environment.GetEnv(),
+		IstioGateways:     c.k8sContext.GetIstioGateways(),
 	}
 	{
 		var managedTargets []string
@@ -94,6 +95,13 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 		}
 
 		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+	}
+	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
+		var gatewaysInfo []string
+		for _, gateway := range cbCtx.IstioGateways {
+			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
+		}
+		glog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
