@@ -8,11 +8,11 @@ package controller
 import (
 	"testing"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -23,7 +23,7 @@ func TestController(t *testing.T) {
 
 var _ = Describe("configure App Gateway", func() {
 	Context("ensure app gwy is tagged", func() {
-		agw := &network.ApplicationGateway{}
+		agw := &n.ApplicationGateway{}
 		version.Version = "a"
 		version.GitCommit = "b"
 		version.BuildDate = "c"

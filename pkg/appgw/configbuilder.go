@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -24,7 +24,7 @@ type ConfigBuilder interface {
 	Listeners(cbCtx *ConfigBuilderContext) error
 	RequestRoutingRules(cbCtx *ConfigBuilderContext) error
 	HealthProbesCollection(cbCtx *ConfigBuilderContext) error
-	GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat
+	GetApplicationGatewayPropertiesFormatPtr() *n.ApplicationGatewayPropertiesFormat
 	PreBuildValidate(cbCtx *ConfigBuilderContext) error
 	PostBuildValidate(cbCtx *ConfigBuilderContext) error
 }
@@ -32,12 +32,12 @@ type ConfigBuilder interface {
 type appGwConfigBuilder struct {
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
-	appGwConfig     network.ApplicationGatewayPropertiesFormat
+	appGwConfig     n.ApplicationGatewayPropertiesFormat
 	recorder        record.EventRecorder
 }
 
 // NewConfigBuilder construct a builder
-func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *network.ApplicationGatewayPropertiesFormat, recorder record.EventRecorder) ConfigBuilder {
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *n.ApplicationGatewayPropertiesFormat, recorder record.EventRecorder) ConfigBuilder {
 	return &appGwConfigBuilder{
 		// TODO(draychev): Decommission internal state
 		k8sContext:      context,
@@ -84,9 +84,9 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 }
 
 func generateListenerID(rule *v1beta1.IngressRule,
-	protocol network.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
+	protocol n.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)
-	if protocol == network.HTTPS {
+	if protocol == n.HTTPS {
 		frontendPort = int32(443)
 	}
 	if overridePort != nil {
@@ -100,11 +100,11 @@ func generateListenerID(rule *v1beta1.IngressRule,
 }
 
 // GetApplicationGatewayPropertiesFormatPtr gets a pointer to updated ApplicationGatewayPropertiesFormat.
-func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *network.ApplicationGatewayPropertiesFormat {
+func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *n.ApplicationGatewayPropertiesFormat {
 	return &c.appGwConfig
 }
 
-type valFunc func(eventRecorder record.EventRecorder, config *network.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
 
 // PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
 func (c *appGwConfigBuilder) PreBuildValidate(cbCtx *ConfigBuilderContext) error {

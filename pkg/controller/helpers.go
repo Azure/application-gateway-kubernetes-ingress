@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 )
 
@@ -19,7 +19,7 @@ var keysToDeleteForCache = []string{
 	"etag",
 }
 
-func (c *AppGwIngressController) updateCache(appGw *network.ApplicationGateway) {
+func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		glog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
@@ -37,7 +37,7 @@ func (c *AppGwIngressController) updateCache(appGw *network.ApplicationGateway) 
 }
 
 // configIsSame compares the newly created App Gwy configuration with a cache to determine whether anything has changed.
-func (c *AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) bool {
+func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool {
 	if c.configCache == nil {
 		return false
 	}
@@ -58,7 +58,7 @@ func (c *AppGwIngressController) configIsSame(appGw *network.ApplicationGateway)
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGateway) ([]byte, error) {
+func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err

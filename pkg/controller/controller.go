@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
@@ -27,7 +27,7 @@ import (
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
 type AppGwIngressController struct {
-	appGwClient     network.ApplicationGatewaysClient
+	appGwClient     n.ApplicationGatewaysClient
 	appGwIdentifier appgw.Identifier
 
 	k8sContext       *k8scontext.Context
@@ -42,7 +42,7 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:      appGwClient,
 		appGwIdentifier:  appGwIdentifier,
@@ -201,7 +201,7 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 }
 
 // addTags will add certain tags to Application Gateway
-func addTags(appGw *network.ApplicationGateway) {
+func addTags(appGw *n.ApplicationGateway) {
 	if appGw.Tags == nil {
 		appGw.Tags = make(map[string]*string)
 	}
