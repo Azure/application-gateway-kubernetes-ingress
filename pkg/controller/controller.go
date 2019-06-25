@@ -190,8 +190,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warning("unable to deploy App Gateway config.", err)
-		return errors.New("unable to deploy App Gateway config.")
+		glog.Warning("Unable to deploy App Gateway config.", err)
+		return errors.New("unable to deploy App Gateway config")
 	}
 
 	glog.V(3).Info("cache: Updated with latest applied config.")

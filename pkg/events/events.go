@@ -9,11 +9,17 @@ package events
 type EventType int
 
 const (
+	// Create is a type of a Kubernetes API event.
 	Create EventType = iota + 1
+
+	// Update is a type of a Kubernetes API event.
 	Update
+
+	// Delete is a type of a Kubernetes API event.
 	Delete
 )
 
+// EventTypeLookup is a reverse map of the EventType enums; used for logging purposes
 var EventTypeLookup = map[EventType]string{
 	1: "Create",
 	2: "Update",
