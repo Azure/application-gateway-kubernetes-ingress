@@ -284,7 +284,11 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	if envVariables.EnableBrownfieldDeployment == "true" {
 		sharedInformers = append(sharedInformers,
 			i.AzureIngressManagedLocation,
-			i.AzureIngressProhibitedLocation,
+			i.AzureIngressProhibitedLocation)
+	}
+
+	if envVariables.EnableIstioIntegration == "true" {
+		sharedInformers = append(sharedInformers,
 			i.IstioGateway)
 	}
 
