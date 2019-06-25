@@ -8,9 +8,19 @@ set -auexo pipefail
 echo -e "Cleanup previously generated code..."
 rm -rf pkg/client $(find ./pkg -name 'zz_*.go')
 
-echo -e "Generate All..."
+echo -e "Generate AzureIngressManagedTarget, AzureIngressProhibitedTarget..."
 ../code-generator/generate-groups.sh \
     all \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/client \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis \
     "azureingressmanagedtarget:v1 azureingressprohibitedtarget:v1"
+
+go get github.com/knative/pkg/apis/istio/v1alpha3
+
+go vendor
+
+echo -e "Generate Istio CRDs..."
+../code-generator/generate-groups.sh \
+    all \
+    github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client \
+    github.com/knative/pkg/apis "istio:v1alpha3"
