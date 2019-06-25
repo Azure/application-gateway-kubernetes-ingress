@@ -58,8 +58,6 @@ func NewAppGwIngressController(appGwClient network.ApplicationGatewaysClient, ap
 // Process is the callback function that will be executed for every event
 // in the EventQueue.
 func (c AppGwIngressController) Process(event QueuedEvent) error {
-	glog.V(1).Infof("controller.Process called with type %T", event.Event)
-
 	ctx := context.Background()
 
 	// Get current application gateway config
@@ -164,12 +162,12 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	addTags(&appGw)
 
 	if c.configIsSame(&appGw) {
-		glog.Infoln("cache: Config has NOT changed! No need to connect to ARM.")
+		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
 
-	glog.V(1).Info("BEGIN ApplicationGateway deployment")
-	defer glog.V(1).Info("END ApplicationGateway deployment")
+	glog.V(3).Info("BEGIN ApplicationGateway deployment")
+	defer glog.V(3).Info("END ApplicationGateway deployment")
 
 	deploymentStart := time.Now()
 	// Initiate deployment
@@ -185,16 +183,18 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
 	configJSON, _ := c.dumpSanitizedJSON(&appGw)
 	glog.V(5).Info(string(configJSON))
-	glog.V(1).Infof("deployment took %+v", time.Now().Sub(deploymentStart).String())
+
+	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
+	glog.V(1).Infof("Applied App Gateway config in %+v", time.Now().Sub(deploymentStart).String())
 
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warningf("unable to deploy ApplicationGateway, error [%v]", err.Error())
-		return errors.New("unable to deploy ApplicationGateway")
+		glog.Warning("Unable to deploy App Gateway config.", err)
+		return errors.New("unable to deploy App Gateway config")
 	}
 
-	glog.Info("cache: Updated with latest applied config.")
+	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(&appGw)
 
 	return nil
