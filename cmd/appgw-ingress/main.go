@@ -204,9 +204,9 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.Infof)
-	eventBroadcaster.StartRecordingToSink(
-		&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
+	eventBroadcaster.StartLogging(glog.V(3).Infof)
+	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
+	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()
 	if err != nil {
 		glog.Error("Could not obtain host name from the operating system", err)

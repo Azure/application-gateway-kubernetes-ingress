@@ -9,13 +9,16 @@ package events
 type EventType int
 
 const (
-	// Create type = 1
 	Create EventType = iota + 1
-	// Update type = 2
 	Update
-	// Delete type = 3
 	Delete
 )
+
+var EventTypeLookup = map[EventType]string{
+	1: "Create",
+	2: "Update",
+	3: "Delete",
+}
 
 // Event is the combined type and actual object we received from Kubernetes
 type Event struct {
