@@ -269,6 +269,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	crds := map[cache.SharedInformer]interface{}{
 		i.AzureIngressManagedLocation:    nil,
 		i.AzureIngressProhibitedLocation: nil,
+		i.IstioGateway:                   nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -284,6 +285,11 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 		sharedInformers = append(sharedInformers,
 			i.AzureIngressManagedLocation,
 			i.AzureIngressProhibitedLocation)
+	}
+
+	if envVariables.EnableIstioIntegration == "true" {
+		sharedInformers = append(sharedInformers,
+			i.IstioGateway)
 	}
 
 	for _, informer := range sharedInformers {
