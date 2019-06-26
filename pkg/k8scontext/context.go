@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"

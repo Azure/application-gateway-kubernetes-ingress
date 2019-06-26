@@ -51,7 +51,7 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 	if pools != nil {
 		sort.Sort(sorter.ByBackendPoolName(*pools))
 	}
-	c.appGwConfig.BackendAddressPools = pools
+	c.appGw.BackendAddressPools = pools
 	return nil
 }
 

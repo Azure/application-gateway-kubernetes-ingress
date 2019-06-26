@@ -73,13 +73,14 @@ func keyFunc(obj interface{}) (string, error) {
 }
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
+	appGwConfig := newAppGwyConfigFixture()
 	cb := appGwConfigBuilder{
 		appGwIdentifier: Identifier{
 			SubscriptionID: tests.Subscription,
 			ResourceGroup:  tests.ResourceGroup,
 			AppGwName:      tests.AppGwName,
 		},
-		appGwConfig: newAppGwyConfigFixture(),
+		appGw: n.ApplicationGateway{ApplicationGatewayPropertiesFormat: &appGwConfig},
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
 				Endpoints: cache.NewStore(keyFunc),

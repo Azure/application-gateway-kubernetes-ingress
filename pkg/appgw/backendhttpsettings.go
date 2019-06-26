@@ -205,7 +205,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 	if httpSettings != nil {
 		sort.Sort(sorter.BySettingsName(*httpSettings))
 	}
-	c.appGwConfig.BackendHTTPSettingsCollection = httpSettings
+	c.appGw.BackendHTTPSettingsCollection = httpSettings
 	return err
 }
 

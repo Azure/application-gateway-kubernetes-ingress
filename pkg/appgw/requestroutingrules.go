@@ -227,10 +227,10 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	}
 
 	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
-	c.appGwConfig.RequestRoutingRules = &requestRoutingRules
+	c.appGw.RequestRoutingRules = &requestRoutingRules
 
 	sort.Sort(sorter.ByPathMap(urlPathMapFiltered))
-	c.appGwConfig.URLPathMaps = &urlPathMapFiltered
+	c.appGw.URLPathMaps = &urlPathMapFiltered
 
 	return nil
 }

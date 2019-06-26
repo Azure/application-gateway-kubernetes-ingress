@@ -51,7 +51,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 		probes = append(probes, probe)
 	}
 	sort.Sort(sorter.ByHealthProbeName(probes))
-	c.appGwConfig.Probes = &probes
+	c.appGw.Probes = &probes
 	return nil
 }
 
