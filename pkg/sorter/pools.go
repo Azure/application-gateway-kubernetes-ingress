@@ -18,9 +18,9 @@ func (a ByBackendPoolName) Less(i, j int) bool {
 	return getPoolName(a[i]) < getPoolName(a[j])
 }
 
-func getPoolName(redirect n.ApplicationGatewayBackendAddressPool) string {
-	if redirect.Name == nil {
+func getPoolName(pool n.ApplicationGatewayBackendAddressPool) string {
+	if pool.Name == nil {
 		return ""
 	}
-	return *redirect.Name
+	return *pool.Name
 }

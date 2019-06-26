@@ -18,9 +18,9 @@ func (a BySettingsName) Less(i, j int) bool {
 	return getSettingsName(a[i]) < getSettingsName(a[j])
 }
 
-func getSettingsName(redirect n.ApplicationGatewayBackendHTTPSettings) string {
-	if redirect.Name == nil {
+func getSettingsName(setting n.ApplicationGatewayBackendHTTPSettings) string {
+	if setting.Name == nil {
 		return ""
 	}
-	return *redirect.Name
+	return *setting.Name
 }
