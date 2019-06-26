@@ -59,8 +59,8 @@ Before we begin the upgrade procedure, ensure that you have added the required r
 
     ```bash
     helm upgrade \
+        odd-billygoat \
         application-gateway-kubernetes-ingress/ingress-azure \
-        -n odd-billygoat \
         --version 0.7.0-rc1
     ```
 
