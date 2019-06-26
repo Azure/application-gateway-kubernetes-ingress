@@ -19,6 +19,18 @@ import (
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
+	requestRoutingRules, pathMaps := c.getRules(cbCtx)
+
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	c.appGw.RequestRoutingRules = &requestRoutingRules
+
+	sort.Sort(sorter.ByPathMap(pathMaps))
+	c.appGw.URLPathMaps = &pathMaps
+
+	return nil
+}
+
+func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
 	_, httpListenersMap := c.getListeners(cbCtx)
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(cbCtx)
@@ -125,21 +137,26 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		}
 	}
 
-	var urlPathMapFiltered []n.ApplicationGatewayURLPathMap
+	return urlPathMaps
+}
+
+func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
+	_, httpListenersMap := c.getListeners(cbCtx)
+	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
-	for listenerID, urlPathMap := range urlPathMaps {
+	for listenerID, urlPathMap := range c.getURLPathMaps(cbCtx) {
 		httpListener := httpListenersMap[listenerID]
+		rule := n.ApplicationGatewayRequestRoutingRule{
+			Etag: to.StringPtr("*"),
+			Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
+			ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
+			},
+		}
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
-			rule := n.ApplicationGatewayRequestRoutingRule{
-				Etag: to.StringPtr("*"),
-				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
-				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-					RuleType:              n.Basic,
-					HTTPListener:          &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
-					RedirectConfiguration: urlPathMap.DefaultRedirectConfiguration,
-				},
-			}
+			rule.RuleType = n.Basic
+			rule.RedirectConfiguration = urlPathMap.DefaultRedirectConfiguration
 
 			// We setup the default backend address pools and default backend HTTP settings only if
 			// this rule does not have an `ssl-redirect` configuration.
@@ -147,30 +164,15 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
 			}
-			requestRoutingRules = append(requestRoutingRules, rule)
 		} else {
 			// Path-based Rule
-			rule := n.ApplicationGatewayRequestRoutingRule{
-				Etag: to.StringPtr("*"),
-				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
-				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-					RuleType:     n.PathBasedRouting,
-					HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
-					URLPathMap:   &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))},
-				},
-			}
-			urlPathMapFiltered = append(urlPathMapFiltered, *urlPathMap)
-			requestRoutingRules = append(requestRoutingRules, rule)
+			rule.RuleType = n.PathBasedRouting
+			rule.URLPathMap = &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))}
+			pathMap = append(pathMap, *urlPathMap)
 		}
+		requestRoutingRules = append(requestRoutingRules, rule)
 	}
-
-	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
-	c.appGw.RequestRoutingRules = &requestRoutingRules
-
-	sort.Sort(sorter.ByPathMap(urlPathMapFiltered))
-	c.appGw.URLPathMaps = &urlPathMapFiltered
-
-	return nil
+	return requestRoutingRules, pathMap
 }
 
 func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, cbCtx *ConfigBuilderContext, rule *v1beta1.IngressRule,
