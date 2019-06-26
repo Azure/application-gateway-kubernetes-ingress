@@ -8,26 +8,26 @@ package appgw
 import (
 	"fmt"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/client-go/tools/cache"
 )
 
-func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
-	feIPConfigs := []network.ApplicationGatewayFrontendIPConfiguration{
+func newAppGwyConfigFixture() n.ApplicationGatewayPropertiesFormat {
+	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
 		{
 			// Public IP
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
 			ID:   to.StringPtr(tests.IPID1),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: nil,
-				PublicIPAddress: &network.SubResource{
+				PublicIPAddress: &n.SubResource{
 					ID: to.StringPtr("xyz"),
 				},
 			},
@@ -38,13 +38,13 @@ func newAppGwyConfigFixture() network.ApplicationGatewayPropertiesFormat {
 			Etag: to.StringPtr("yy2"),
 			Type: to.StringPtr("yy1"),
 			ID:   to.StringPtr(tests.IPID2),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: to.StringPtr("abc"),
 				PublicIPAddress:  nil,
 			},
 		},
 	}
-	return network.ApplicationGatewayPropertiesFormat{
+	return n.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
 	}
 }
@@ -112,13 +112,13 @@ func newCertsFixture() map[string]interface{} {
 	return toAdd
 }
 
-func newURLPathMap() network.ApplicationGatewayURLPathMap {
-	rule := network.ApplicationGatewayPathRule{
+func newURLPathMap() n.ApplicationGatewayURLPathMap {
+	rule := n.ApplicationGatewayPathRule{
 		ID:   to.StringPtr("-the-id-"),
 		Type: to.StringPtr("-the-type-"),
 		Etag: to.StringPtr("-the-etag-"),
 		Name: to.StringPtr("/some/path"),
-		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
 			RedirectConfiguration: nil,
 
@@ -130,16 +130,16 @@ func newURLPathMap() network.ApplicationGatewayURLPathMap {
 		},
 	}
 
-	return network.ApplicationGatewayURLPathMap{
+	return n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr("-path-map-name-"),
-		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
+		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
 			DefaultRedirectConfiguration: nil,
 
 			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
 			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
 
-			PathRules: &[]network.ApplicationGatewayPathRule{rule},
+			PathRules: &[]n.ApplicationGatewayPathRule{rule},
 		},
 	}
 }

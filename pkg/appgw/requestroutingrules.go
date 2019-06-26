@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -20,21 +20,21 @@ import (
 )
 
 func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v1.Service, rule *v1beta1.IngressRule,
-	listenerID listenerIdentifier, urlPathMap *network.ApplicationGatewayURLPathMap,
-	defaultAddressPoolID string, defaultHTTPSettingsID string) *network.ApplicationGatewayURLPathMap {
+	listenerID listenerIdentifier, urlPathMap *n.ApplicationGatewayURLPathMap,
+	defaultAddressPoolID string, defaultHTTPSettingsID string) *n.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
-		urlPathMap = &network.ApplicationGatewayURLPathMap{
+		urlPathMap = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateURLPathMapName(listenerID)),
-			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-				DefaultBackendAddressPool:  &network.SubResource{ID: &defaultAddressPoolID},
-				DefaultBackendHTTPSettings: &network.SubResource{ID: &defaultHTTPSettingsID},
+			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
+				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
 			},
 		}
 	}
 
 	if urlPathMap.ApplicationGatewayURLPathMapPropertiesFormat.PathRules == nil {
-		urlPathMap.PathRules = &[]network.ApplicationGatewayPathRule{}
+		urlPathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
 	}
 
 	ingressList := c.k8sContext.GetHTTPIngressList()
@@ -50,8 +50,8 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 		}
 		pathRules := *urlPathMap.PathRules
 
-		backendPoolSubResource := network.SubResource{ID: to.StringPtr(c.appGwIdentifier.addressPoolID(*backendPool.Name))}
-		backendHTTPSettingsSubResource := network.SubResource{ID: to.StringPtr(c.appGwIdentifier.httpSettingsID(*backendHTTPSettings.Name))}
+		backendPoolSubResource := n.SubResource{ID: to.StringPtr(c.appGwIdentifier.addressPoolID(*backendPool.Name))}
+		backendHTTPSettingsSubResource := n.SubResource{ID: to.StringPtr(c.appGwIdentifier.httpSettingsID(*backendHTTPSettings.Name))}
 
 		if len(path.Path) == 0 || path.Path == "/*" || path.Path == "/" {
 			// this backend should be a default backend, catches all traffic
@@ -63,10 +63,10 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 			}
 		} else {
 			// associate backend with a path-based rule
-			pathRules = append(pathRules, network.ApplicationGatewayPathRule{
+			pathRules = append(pathRules, n.ApplicationGatewayPathRule{
 				Etag: to.StringPtr("*"),
 				Name: to.StringPtr(generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))),
-				ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+				ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 					Paths:               &[]string{path.Path},
 					BackendAddressPool:  &backendPoolSubResource,
 					BackendHTTPSettings: &backendHTTPSettingsSubResource,
@@ -82,7 +82,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	_, httpListenersMap := c.getListeners(cbCtx)
-	urlPathMaps := make(map[listenerIdentifier]*network.ApplicationGatewayURLPathMap)
+	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(cbCtx.IngressList, cbCtx.ServiceList)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
 	for _, ingress := range cbCtx.IngressList {
@@ -131,10 +131,10 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 				continue
 			}
 
-			listenerHTTPID := generateListenerID(rule, network.HTTP, nil)
+			listenerHTTPID := generateListenerID(rule, n.HTTP, nil)
 			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			listenerHTTPSID := generateListenerID(rule, network.HTTPS, nil)
+			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil)
 			_, httpsAvailable := httpListenersMap[listenerHTTPSID]
 
 			if httpAvailable {
@@ -176,29 +176,29 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
-		urlPathMaps[listenerID] = &network.ApplicationGatewayURLPathMap{
+		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateURLPathMapName(listenerID)),
-			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
-				DefaultBackendAddressPool:  &network.SubResource{ID: &defaultAddressPoolID},
-				DefaultBackendHTTPSettings: &network.SubResource{ID: &defaultHTTPSettingsID},
-				PathRules:                  &[]network.ApplicationGatewayPathRule{},
+			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
+				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
+				PathRules:                  &[]n.ApplicationGatewayPathRule{},
 			},
 		}
 	}
 
-	var urlPathMapFiltered []network.ApplicationGatewayURLPathMap
-	var requestRoutingRules []network.ApplicationGatewayRequestRoutingRule
+	var urlPathMapFiltered []n.ApplicationGatewayURLPathMap
+	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range urlPathMaps {
 		httpListener := httpListenersMap[listenerID]
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
-			rule := network.ApplicationGatewayRequestRoutingRule{
+			rule := n.ApplicationGatewayRequestRoutingRule{
 				Etag: to.StringPtr("*"),
 				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
-				ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-					RuleType:              network.Basic,
-					HTTPListener:          &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
+				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+					RuleType:              n.Basic,
+					HTTPListener:          &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 					RedirectConfiguration: urlPathMap.DefaultRedirectConfiguration,
 				},
 			}
@@ -212,13 +212,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 			requestRoutingRules = append(requestRoutingRules, rule)
 		} else {
 			// Path-based Rule
-			rule := network.ApplicationGatewayRequestRoutingRule{
+			rule := n.ApplicationGatewayRequestRoutingRule{
 				Etag: to.StringPtr("*"),
 				Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
-				ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-					RuleType:     network.PathBasedRouting,
-					HTTPListener: &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
-					URLPathMap:   &network.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))},
+				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+					RuleType:     n.PathBasedRouting,
+					HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
+					URLPathMap:   &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))},
 				},
 			}
 			urlPathMapFiltered = append(urlPathMapFiltered, *urlPathMap)
@@ -235,13 +235,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	return nil
 }
 
-func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListener listenerIdentifier) *network.SubResource {
+func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListener listenerIdentifier) *n.SubResource {
 	configName := generateSSLRedirectConfigurationName(targetListener)
 	sslRedirectConfigID := c.appGwIdentifier.redirectConfigurationID(configName)
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *network.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
+func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
 	// Application Gateway supports Basic and Path-based rules
 
 	if len(*httpURLPathMap.PathRules) == 0 {

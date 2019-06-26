@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -86,7 +86,7 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
-	appGwClient := network.NewApplicationGatewaysClient(env.SubscriptionID)
+	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
 
 	var err error
 	if appGwClient.Authorizer, err = getAzAuth(env); err != nil || appGwClient.Authorizer == nil {
@@ -165,10 +165,10 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 		return auth.NewAuthorizerFromEnvironment()
 	}
 	glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
-	return auth.NewAuthorizerFromFile(network.DefaultBaseURI)
+	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 }
 
-func waitForAzureAuth(envVars environment.EnvVariables, client network.ApplicationGatewaysClient) {
+func waitForAzureAuth(envVars environment.EnvVariables, client n.ApplicationGatewaysClient) {
 	const retryTime = 10 * time.Second
 	for counter := 0; counter <= maxAuthRetry; counter++ {
 		if _, err := client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName); err != nil {
