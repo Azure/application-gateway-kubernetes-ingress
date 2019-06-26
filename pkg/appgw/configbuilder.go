@@ -38,7 +38,6 @@ type appGwConfigBuilder struct {
 // NewConfigBuilder construct a builder
 func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder) ConfigBuilder {
 	return &appGwConfigBuilder{
-		// TODO(draychev): Decommission internal state
 		k8sContext:      context,
 		appGwIdentifier: *appGwIdentifier,
 		appGw:           *original,
@@ -48,14 +47,12 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 
 // Build gets a pointer to updated ApplicationGatewayPropertiesFormat.
 func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
-	// The following operations need to be in sequence
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
 		return nil, errors.New("unable to generate health probes")
 	}
 
-	// The following operations need to be in sequence
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
