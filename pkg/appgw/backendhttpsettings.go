@@ -8,6 +8,7 @@ package appgw
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 const (
@@ -200,6 +202,9 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
 	httpSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
+	if httpSettings != nil {
+		sort.Sort(sorter.BySettingsName(*httpSettings))
+	}
 	c.appGwConfig.BackendHTTPSettingsCollection = httpSettings
 	return err
 }

@@ -64,8 +64,10 @@ var _ = Describe("configure App Gateway", func() {
 	})
 
 	Context("ensure configIsSame works as expected", func() {
-		It("should deal with nil cache and store stuff in it", func() {
-			c := AppGwIngressController{}
+		It("should deal with empty cache and store stuff in it", func() {
+			c := AppGwIngressController{
+				configCache: to.ByteSlicePtr([]byte{}),
+			}
 			config := n.ApplicationGateway{
 				ID: to.StringPtr("something"),
 			}

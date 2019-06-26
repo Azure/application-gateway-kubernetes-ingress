@@ -33,7 +33,7 @@ func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
 		c.configCache = nil
 		return
 	}
-	c.configCache = &sanitized
+	*c.configCache = sanitized
 }
 
 // configIsSame compares the newly created App Gwy configuration with a cache to determine whether anything has changed.
@@ -68,14 +68,14 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway) 
 	keysToDelete := []string{
 		"sslCertificates",
 	}
-	var stripped []byte
-	if stripped, err = deleteKeyFromJSON(jsonConfig, keysToDelete...); err != nil {
+	var sanitized []byte
+	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDelete...); err != nil {
 		return nil, err
 	}
 
 	// Unmarshal and Marshall again with Indent so it is human readable
 	var config interface{}
-	_ = json.Unmarshal(stripped, &config)
+	_ = json.Unmarshal(sanitized, &config)
 	return json.MarshalIndent(config, "-- App Gwy config --", "    ")
 }
 
