@@ -19,22 +19,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
-func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
-	defaultPool := defaultBackendAddressPool()
-	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
-	}
-	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
-	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		backendPoolMap[backendID] = defaultPool
-		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			backendPoolMap[backendID] = pool
-		}
-	}
-	return backendPoolMap
-}
-
 func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
@@ -53,6 +37,22 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 	}
 	c.appGw.BackendAddressPools = pools
 	return nil
+}
+
+func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: defaultPool,
+	}
+	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		backendPoolMap[backendID] = defaultPool
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[backendID] = pool
+		}
+	}
+	return backendPoolMap
 }
 
 func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {

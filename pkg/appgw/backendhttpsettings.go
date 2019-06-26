@@ -27,6 +27,15 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
+func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
+	httpSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
+	if httpSettings != nil {
+		sort.Sort(sorter.BySettingsName(*httpSettings))
+	}
+	c.appGw.BackendHTTPSettingsCollection = httpSettings
+	return err
+}
+
 func newBackendIdsFiltered(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
@@ -198,15 +207,6 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	}
 
 	return &httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
-}
-
-func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
-	httpSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
-	if httpSettings != nil {
-		sort.Sort(sorter.BySettingsName(*httpSettings))
-	}
-	c.appGw.BackendHTTPSettingsCollection = httpSettings
-	return err
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) n.ApplicationGatewayBackendHTTPSettings {
