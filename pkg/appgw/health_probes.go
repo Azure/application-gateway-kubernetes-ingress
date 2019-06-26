@@ -13,7 +13,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -21,7 +20,7 @@ import (
 )
 
 func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
-	healthProbeCollection, _ := c.newProbesMap(cbCtx.IngressList, cbCtx.ServiceList)
+	healthProbeCollection, _ := c.newProbesMap(cbCtx)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
@@ -32,7 +31,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	return nil
 }
 
-func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
+func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
@@ -40,7 +39,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
+	for backendID := range newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
