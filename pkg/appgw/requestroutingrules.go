@@ -16,13 +16,31 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
-	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
-	c.appGw.RequestRoutingRules = &requestRoutingRules
+	poolSet := make(map[string]interface{})
+	for _, p := range c.getPools(cbCtx) {
+		poolSet[*p.Name] = nil
+	}
+
+	// Filter out rules that point to a BackendAddressPool that does not exist
+	var filteredRules []n.ApplicationGatewayRequestRoutingRule
+	for _, rule := range requestRoutingRules {
+		if rule.BackendAddressPool != nil {
+			poolName := utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID)
+			if _, exists := poolSet[poolName]; !exists {
+				continue
+			}
+		}
+		filteredRules = append(filteredRules, rule)
+	}
+
+	sort.Sort(sorter.ByRequestRoutingRuleName(filteredRules))
+	c.appGw.RequestRoutingRules = &filteredRules
 
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps

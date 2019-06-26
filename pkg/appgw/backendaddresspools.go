@@ -8,12 +8,14 @@ package appgw
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -45,7 +47,41 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		allPools = append(allPools, *addr)
 	}
 
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		var listeners []*n.ApplicationGatewayHTTPListener
+		_, listenerMap := c.getListeners(cbCtx)
+		for _, listener := range listenerMap {
+			listeners = append(listeners, listener)
+		}
+
+		routingRules, paths := c.getRules(cbCtx)
+
+		// These are backend pools we created from Ingress definition. These are pools we are allowed to control.
+		newManaged := brownfield.GetManagedPools(allPools, cbCtx.ManagedTargets, cbCtx.ProhibitedTargets, listeners, routingRules, paths)
+
+		var allExisting []n.ApplicationGatewayBackendAddressPool
+		if c.appGw.BackendAddressPools != nil {
+			allExisting = *c.appGw.BackendAddressPools
+		}
+
+		// These are pools we fetch from App Gateway; These we are NOT allowed to mutate.
+		existingUnmanaged := brownfield.PruneManagedPools(allExisting, cbCtx.ManagedTargets, cbCtx.ProhibitedTargets, listeners, routingRules, paths)
+
+		glog.V(3).Info("All backend pools from Ingress definition:", getPoolNames(allPools))
+		glog.V(3).Info("Subset of pools from Ingress; AGIC will manage:", getPoolNames(newManaged))
+		glog.V(3).Info("Pools from App Gateway; AGIC will not mutate:", getPoolNames(existingUnmanaged))
+
+		allPools = brownfield.MergePools(existingUnmanaged, newManaged)
+	}
 	return allPools
+}
+
+func getPoolNames(pool []n.ApplicationGatewayBackendAddressPool) string {
+	var names []string
+	for _, p := range pool {
+		names = append(names, *p.Name)
+	}
+	return strings.Join(names, ", ")
 }
 
 func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
