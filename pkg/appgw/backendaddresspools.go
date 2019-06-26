@@ -47,7 +47,11 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 			addressPools[*pool.Name] = pool
 		}
 	}
-	c.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
+	pools := getBackendPoolMapValues(&addressPools)
+	if pools != nil {
+		sort.Sort(sorter.ByBackendPoolName(*pools))
+	}
+	c.appGwConfig.BackendAddressPools = pools
 	return nil
 }
 
