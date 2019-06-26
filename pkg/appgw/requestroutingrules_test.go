@@ -146,7 +146,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
 		It("should have correct RequestRoutingRules", func() {
-			Expect(len(*configBuilder.appGwConfig.RequestRoutingRules)).To(Equal(1))
+			Expect(len(*configBuilder.appGw.RequestRoutingRules)).To(Equal(1))
 			expected := n.ApplicationGatewayRequestRoutingRule{
 				ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 					RuleType: "Basic",
@@ -174,11 +174,11 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				Type: nil,
 				ID:   nil,
 			}
-			Expect(*configBuilder.appGwConfig.RequestRoutingRules).To(ContainElement(expected))
+			Expect(*configBuilder.appGw.RequestRoutingRules).To(ContainElement(expected))
 		})
 
 		It("should have correct URLPathMaps", func() {
-			Expect(len(*configBuilder.appGwConfig.URLPathMaps)).To(Equal(0))
+			Expect(len(*configBuilder.appGw.URLPathMaps)).To(Equal(0))
 		})
 	})
 })

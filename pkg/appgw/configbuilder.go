@@ -6,7 +6,11 @@
 package appgw
 
 import (
+	"errors"
+	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -14,37 +18,108 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
-	// builder pattern
-	BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error
-	BackendAddressPools(cbCtx *ConfigBuilderContext) error
-	Listeners(cbCtx *ConfigBuilderContext) error
-	RequestRoutingRules(cbCtx *ConfigBuilderContext) error
-	HealthProbesCollection(cbCtx *ConfigBuilderContext) error
-	GetApplicationGatewayPropertiesFormatPtr() *n.ApplicationGatewayPropertiesFormat
 	PreBuildValidate(cbCtx *ConfigBuilderContext) error
+	Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error)
 	PostBuildValidate(cbCtx *ConfigBuilderContext) error
 }
 
 type appGwConfigBuilder struct {
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
-	appGwConfig     n.ApplicationGatewayPropertiesFormat
+	appGw           n.ApplicationGateway
 	recorder        record.EventRecorder
 }
 
 // NewConfigBuilder construct a builder
-func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, originalConfig *n.ApplicationGatewayPropertiesFormat, recorder record.EventRecorder) ConfigBuilder {
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder) ConfigBuilder {
 	return &appGwConfigBuilder{
 		// TODO(draychev): Decommission internal state
 		k8sContext:      context,
 		appGwIdentifier: *appGwIdentifier,
-		appGwConfig:     *originalConfig,
+		appGw:           *original,
 		recorder:        recorder,
 	}
+}
+
+// Build gets a pointer to updated ApplicationGatewayPropertiesFormat.
+func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
+	// The following operations need to be in sequence
+	err := c.HealthProbesCollection(cbCtx)
+	if err != nil {
+		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
+		return nil, errors.New("unable to generate health probes")
+	}
+
+	// The following operations need to be in sequence
+	err = c.BackendHTTPSettingsCollection(cbCtx)
+	if err != nil {
+		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
+		return nil, errors.New("unable to generate backend http settings")
+	}
+
+	// BackendAddressPools depend on BackendHTTPSettings
+	err = c.BackendAddressPools(cbCtx)
+	if err != nil {
+		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
+		return nil, errors.New("unable to generate backend address pools")
+	}
+
+	// HTTPListener configures the frontend listeners
+	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
+	// This configuration must be attached to request routing rules, which are created in the steps below.
+	// The order of operations matters.
+	err = c.Listeners(cbCtx)
+	if err != nil {
+		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
+		return nil, errors.New("unable to generate frontend listeners")
+	}
+
+	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
+	err = c.RequestRoutingRules(cbCtx)
+	if err != nil {
+		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
+		return nil, errors.New("unable to generate request routing rules")
+	}
+
+	c.addTags()
+
+	return &c.appGw, nil
+}
+
+type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+
+// PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
+func (c *appGwConfigBuilder) PreBuildValidate(cbCtx *ConfigBuilderContext) error {
+
+	validationFunctions := []valFunc{
+		validateServiceDefinition,
+	}
+
+	return c.runValidationFunctions(cbCtx, validationFunctions)
+}
+
+// PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
+func (c *appGwConfigBuilder) PostBuildValidate(cbCtx *ConfigBuilderContext) error {
+	validationFunctions := []valFunc{
+		validateURLPathMaps,
+	}
+
+	return c.runValidationFunctions(cbCtx, validationFunctions)
+}
+
+func (c *appGwConfigBuilder) runValidationFunctions(cbCtx *ConfigBuilderContext, validationFunctions []valFunc) error {
+	for _, fn := range validationFunctions {
+		if err := fn(c.recorder, c.appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables, cbCtx.IngressList, cbCtx.ServiceList); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // resolvePortName function goes through the endpoints of a given service and
@@ -99,38 +174,11 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	return listenerID
 }
 
-// GetApplicationGatewayPropertiesFormatPtr gets a pointer to updated ApplicationGatewayPropertiesFormat.
-func (c *appGwConfigBuilder) GetApplicationGatewayPropertiesFormatPtr() *n.ApplicationGatewayPropertiesFormat {
-	return &c.appGwConfig
-}
-
-type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
-
-// PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
-func (c *appGwConfigBuilder) PreBuildValidate(cbCtx *ConfigBuilderContext) error {
-
-	validationFunctions := []valFunc{
-		validateServiceDefinition,
+// addTags will add certain tags to Application Gateway
+func (c *appGwConfigBuilder) addTags() {
+	if c.appGw.Tags == nil {
+		c.appGw.Tags = make(map[string]*string)
 	}
-
-	return c.runValidationFunctions(cbCtx, validationFunctions)
-}
-
-// PostBuildValidate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
-func (c *appGwConfigBuilder) PostBuildValidate(cbCtx *ConfigBuilderContext) error {
-	validationFunctions := []valFunc{
-		validateURLPathMaps,
-	}
-
-	return c.runValidationFunctions(cbCtx, validationFunctions)
-}
-
-func (c *appGwConfigBuilder) runValidationFunctions(cbCtx *ConfigBuilderContext, validationFunctions []valFunc) error {
-	for _, fn := range validationFunctions {
-		if err := fn(c.recorder, &c.appGwConfig, cbCtx.EnvVariables, cbCtx.IngressList, cbCtx.ServiceList); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
+	c.appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
 }

@@ -43,7 +43,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		// !! Action !!
 		_ = cb.HealthProbesCollection(cbCtx)
-		actual := cb.appGwConfig.Probes
+		actual := cb.appGw.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
 		defaultProbe := n.ApplicationGatewayProbe{
@@ -133,7 +133,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		// !! Action !!
 		_ = cb.HealthProbesCollection(cbCtx)
-		actual := cb.appGwConfig.Probes
+		actual := cb.appGw.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
 		defaultProbe := n.ApplicationGatewayProbe{

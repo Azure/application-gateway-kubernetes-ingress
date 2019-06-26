@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 type appGWSettingsChecker struct {
@@ -46,6 +47,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	var k8sClient kubernetes.Interface
 	var ctxt *k8scontext.Context
 	var configBuilder ConfigBuilder
+
+	version.Version = "a"
+	version.GitCommit = "b"
+	version.BuildDate = "c"
 
 	domainName := "hello.com"
 	ingressNS := "test-ingress-controller"
@@ -306,73 +311,56 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
 		}
-		// Add Health Probes.
-		err := configBuilder.HealthProbesCollection(cbCtx)
+
+		appGW, err := configBuilder.Build(cbCtx)
 		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
 
-		// Add HTTP settings.
-		err = configBuilder.BackendHTTPSettingsCollection(cbCtx)
-		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
-
-		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
-		appGW := configBuilder.GetApplicationGatewayPropertiesFormatPtr()
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
 
 		// Test the value of the health probes if the checker has been setup.
 		if settings.healthProbesCollection.checker != nil {
-			settings.healthProbesCollection.checker(appGW)
+			settings.healthProbesCollection.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
 
 		// Test the value of the backend HTTP settings if the checker has been setup.
 		if settings.backendHTTPSettingsCollection.checker != nil {
-			settings.backendHTTPSettingsCollection.checker(appGW)
+			settings.backendHTTPSettingsCollection.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
 
-		// Add backend address pools. We need the HTTP settings before we can add the backend address pools.
-		err = configBuilder.BackendAddressPools(cbCtx)
-		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
-
-		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
-		appGW = configBuilder.GetApplicationGatewayPropertiesFormatPtr()
 		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
 		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
 
 		if settings.backendAddressPools.checker != nil {
-			settings.backendAddressPools.checker(appGW)
+			settings.backendAddressPools.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
 
-		// Add the listeners. We need the backend address pools before we can add HTTP listeners.
-		err = configBuilder.Listeners(cbCtx)
-		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
-
-		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
-		appGW = configBuilder.GetApplicationGatewayPropertiesFormatPtr()
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.listeners.total), "Did not find expected number of HTTP listeners")
 
 		if settings.listeners.checker != nil {
-			settings.listeners.checker(appGW)
+			settings.listeners.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
 
-		// RequestRoutingRules depends on the previous operations
-		err = configBuilder.RequestRoutingRules(cbCtx)
-		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
-
-		// Get a pointer to the modified ApplicationGatewayPropertiesFormat
-		appGW = configBuilder.GetApplicationGatewayPropertiesFormatPtr()
 		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total),
 			fmt.Sprintf("Expected %d request routing rules; Got %d", settings.requestRoutingRules.total, len(*appGW.RequestRoutingRules)))
 
 		if settings.requestRoutingRules.checker != nil {
-			settings.requestRoutingRules.checker(appGW)
+			settings.requestRoutingRules.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
 
 		// Check the `urlPathMaps`
 		Expect(len(*appGW.URLPathMaps)).To(Equal(settings.uRLPathMaps.total), "Did not find expected number of URL path maps")
 		if settings.uRLPathMaps.checker != nil {
-			settings.uRLPathMaps.checker(appGW)
+			settings.uRLPathMaps.checker(appGW.ApplicationGatewayPropertiesFormat)
 		}
+
+		// Check tags
+		Expect(len(appGW.Tags)).To(Equal(1))
+		expected := map[string]*string{
+			managedByK8sIngress: to.StringPtr("a/b/c"),
+		}
+		Expect(appGW.Tags).To(Equal(expected))
 	}
 
 	ingressEvent := func() {
@@ -422,7 +410,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
-		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &n.ApplicationGatewayPropertiesFormat{}, record.NewFakeRecorder(100))
+		configBuilder = NewConfigBuilder(ctxt, &Identifier{}, &n.ApplicationGateway{}, record.NewFakeRecorder(100))
 
 		builder, ok := configBuilder.(*appGwConfigBuilder)
 		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
@@ -430,14 +418,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
 		// the controller would expect the `Application Gateway v2` to have some public IP before it starts generating
 		// configuration for the application gateway, hence creating this dummy configuration in the application gateway configuration.
-		builder.appGwConfig.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
-			{
-				Name: to.StringPtr("*"),
-				Etag: to.StringPtr("*"),
-				ID:   to.StringPtr("*"),
-				ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-					PublicIPAddress: &n.SubResource{
-						ID: to.StringPtr("x/y/z"),
+		builder.appGw.ApplicationGatewayPropertiesFormat = &n.ApplicationGatewayPropertiesFormat{
+			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
+				n.ApplicationGatewayFrontendIPConfiguration{
+					Name: to.StringPtr("*"),
+					Etag: to.StringPtr("*"),
+					ID:   to.StringPtr("*"),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PublicIPAddress: &n.SubResource{
+							ID: to.StringPtr("x/y/z"),
+						},
 					},
 				},
 			},
