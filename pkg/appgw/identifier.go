@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -74,6 +74,6 @@ func (agw Identifier) publicIPID(publicIPName string) string {
 	return agw.resourceID("Microsoft.Network", "publicIPAddresses", publicIPName)
 }
 
-func resourceRef(id string) *network.SubResource {
-	return &network.SubResource{ID: to.StringPtr(id)}
+func resourceRef(id string) *n.SubResource {
+	return &n.SubResource{ID: to.StringPtr(id)}
 }
