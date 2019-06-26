@@ -14,10 +14,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
 const (
@@ -66,7 +67,7 @@ var agPrefix = environment.GetEnvironmentVariable("APPGW_CONFIG_NAME_PREFIX", ""
 
 // create xxx -> xxxconfiguration mappings to contain all the information
 type listenerAzConfig struct {
-	Protocol                     network.ApplicationGatewayProtocol
+	Protocol                     n.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
 }
@@ -146,30 +147,30 @@ var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefi
 var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
 var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
 
-func defaultBackendHTTPSettings(probeID string) network.ApplicationGatewayBackendHTTPSettings {
+func defaultBackendHTTPSettings(probeID string) n.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
-	return network.ApplicationGatewayBackendHTTPSettings{
+	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
-		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: network.HTTP,
+		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+			Protocol: n.HTTP,
 			Port:     &defHTTPSettingsPort,
 			Probe:    resourceRef(probeID),
 		},
 	}
 }
 
-func defaultProbe() network.ApplicationGatewayProbe {
+func defaultProbe() n.ApplicationGatewayProbe {
 	defProbeName := defaultProbeName
-	defProtocol := network.HTTP
+	defProtocol := n.HTTP
 	defHost := "localhost"
 	defPath := "/"
 	defInterval := int32(30)
 	defTimeout := int32(30)
 	defUnHealthyCount := int32(3)
-	return network.ApplicationGatewayProbe{
+	return n.ApplicationGatewayProbe{
 		Name: &defProbeName,
-		ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 			Protocol:           defProtocol,
 			Host:               &defHost,
 			Path:               &defPath,
@@ -180,12 +181,12 @@ func defaultProbe() network.ApplicationGatewayProbe {
 	}
 }
 
-func defaultBackendAddressPool() *network.ApplicationGatewayBackendAddressPool {
+func defaultBackendAddressPool() *n.ApplicationGatewayBackendAddressPool {
 	defBackendAddressPool := defaultBackendAddressPoolName
-	return &network.ApplicationGatewayBackendAddressPool{
+	return &n.ApplicationGatewayBackendAddressPool{
 		Name: &defBackendAddressPool,
-		ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-			BackendAddresses: &[]network.ApplicationGatewayBackendAddress{},
+		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{},
 		},
 	}
 }

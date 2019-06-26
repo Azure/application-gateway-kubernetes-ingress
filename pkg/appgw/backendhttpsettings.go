@@ -8,14 +8,16 @@ package appgw
 import (
 	"errors"
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
 const (
@@ -70,9 +72,9 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 	return servicesSet
 }
 
-func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (*[]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
-	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
+	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
@@ -161,7 +163,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 	}
 
 	probeID := c.appGwIdentifier.probeID(defaultProbeName)
-	httpSettingsCollection := make(map[string]network.ApplicationGatewayBackendHTTPSettings)
+	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
 	defaultBackend := defaultBackendHTTPSettings(probeID)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
@@ -188,7 +190,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.In
 		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
 
-	httpSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
+	httpSettings := make([]n.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
 		httpSettings = append(httpSettings, backend)
 	}
@@ -202,14 +204,14 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 	return err
 }
 
-func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) network.ApplicationGatewayBackendHTTPSettings {
+func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) n.ApplicationGatewayBackendHTTPSettings {
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
-	httpSettings := network.ApplicationGatewayBackendHTTPSettings{
+	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
-		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: network.HTTP,
+		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+			Protocol: n.HTTP,
 			Port:     &port,
 		},
 	}
@@ -227,7 +229,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
-		httpSettings.ConnectionDraining = &network.ApplicationGatewayConnectionDraining{
+		httpSettings.ConnectionDraining = &n.ApplicationGatewayConnectionDraining{
 			Enabled: to.BoolPtr(true),
 		}
 
@@ -239,7 +241,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
-		httpSettings.CookieBasedAffinity = network.Enabled
+		httpSettings.CookieBasedAffinity = n.Enabled
 	}
 
 	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {

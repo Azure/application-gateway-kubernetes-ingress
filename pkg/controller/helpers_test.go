@@ -6,7 +6,7 @@
 package controller
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -66,7 +66,7 @@ var _ = Describe("configure App Gateway", func() {
 	Context("ensure configIsSame works as expected", func() {
 		It("should deal with nil cache and store stuff in it", func() {
 			c := AppGwIngressController{}
-			config := network.ApplicationGateway{
+			config := n.ApplicationGateway{
 				ID: to.StringPtr("something"),
 			}
 			Expect(c.configIsSame(&config)).To(BeFalse())

@@ -5,7 +5,6 @@
 - [Expose services over HTTPS](#expose-services-over-https)
   * [Without specified hostname](#without-specified-hostname)
   * [With specified hostname](#with-specified-hostname)
-  * [Certificate issuance with `Lets Encrypt`](#certificate-issuance-with-lets-encrypt)
 - [Integrate with other services](#integrate-with-other-services)
 
 # Tutorials
