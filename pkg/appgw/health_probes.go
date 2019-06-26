@@ -20,6 +20,18 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
+func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
+	healthProbeCollection, _ := c.newProbesMap(cbCtx.IngressList, cbCtx.ServiceList)
+	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
+	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
+	for _, probe := range healthProbeCollection {
+		probes = append(probes, probe)
+	}
+	sort.Sort(sorter.ByHealthProbeName(probes))
+	c.appGw.Probes = &probes
+	return nil
+}
+
 func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
@@ -41,18 +53,6 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 		}
 	}
 	return healthProbeCollection, probesMap
-}
-
-func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
-	healthProbeCollection, _ := c.newProbesMap(cbCtx.IngressList, cbCtx.ServiceList)
-	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
-	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
-	for _, probe := range healthProbeCollection {
-		probes = append(probes, probe)
-	}
-	sort.Sort(sorter.ByHealthProbeName(probes))
-	c.appGw.Probes = &probes
-	return nil
 }
 
 func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n.ApplicationGatewayProbe {
