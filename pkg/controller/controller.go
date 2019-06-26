@@ -49,6 +49,7 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		k8sContext:       k8sContext,
 		k8sUpdateChannel: k8sContext.UpdateChannel,
 		recorder:         recorder,
+		configCache:      to.ByteSlicePtr([]byte{}),
 	}
 
 	controller.eventQueue = NewEventQueue(controller)
