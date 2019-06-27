@@ -54,3 +54,10 @@ func GetLastChunkOfSlashed(s string) string {
 	split := strings.Split(s, "/")
 	return split[len(split)-1]
 }
+
+// PrettyJSON Unmarshals and Marshall again with Indent so it is human readable
+func PrettyJSON(js []byte, prefix string) ([]byte, error) {
+	var jsonObj interface{}
+	_ = json.Unmarshal(js, &jsonObj)
+	return json.MarshalIndent(jsonObj, prefix, "    ")
+}

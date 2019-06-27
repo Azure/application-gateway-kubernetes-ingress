@@ -8,6 +8,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"reflect"
 	"strings"
 
