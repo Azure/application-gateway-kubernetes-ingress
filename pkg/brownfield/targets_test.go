@@ -12,9 +12,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mtv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
-	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
 func TestAppgw(t *testing.T) {
@@ -32,21 +31,7 @@ var _ = Describe("test blacklist/whitelist health probes", func() {
 	})
 
 	Context("test GetManagedTargetList", func() {
-		managedTargets := []*mtv1.AzureIngressManagedTarget{
-			{
-				Spec: mtv1.AzureIngressManagedTargetSpec{
-					IP:       "123",
-					Hostname: tests.Host,
-					Port:     443,
-					Paths: []string{
-						"/foo",
-						"/bar",
-						"/baz",
-					},
-				},
-			},
-		}
-		actual := GetManagedTargetList(managedTargets)
+		actual := GetManagedTargetList(fixtures.GetManagedTargets())
 		It("Should have produced correct Managed Targets list", func() {
 			Expect(len(*actual)).To(Equal(3))
 			{
@@ -77,20 +62,7 @@ var _ = Describe("test blacklist/whitelist health probes", func() {
 	})
 
 	Context("test getProhibitedTargetList", func() {
-		prohibitedTargets := []*ptv1.AzureIngressProhibitedTarget{
-			{
-				Spec: ptv1.AzureIngressProhibitedTargetSpec{
-					IP:       "123",
-					Hostname: tests.Host,
-					Port:     443,
-					Paths: []string{
-						"/fox",
-						"/bar",
-					},
-				},
-			},
-		}
-		actual := GetProhibitedTargetList(prohibitedTargets)
+		actual := GetProhibitedTargetList(fixtures.GetProhibitedTargets())
 		It("should have produced correct Prohibited Targets list", func() {
 			Expect(len(*actual)).To(Equal(2))
 			{

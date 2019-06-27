@@ -1,6 +1,8 @@
 package brownfield
 
 import (
+	"encoding/json"
+	"github.com/golang/glog"
 	"reflect"
 	"strings"
 
@@ -28,6 +30,28 @@ func (t Target) IsIn(targetList *[]Target) bool {
 
 	// Did not find it
 	return false
+}
+
+type prettyTarget struct {
+	Hostname string `json:"Hostname"`
+	Port     int32  `json:"Port"`
+	Path     string `json:"Path,omitempty"`
+}
+
+// MarshalJSON converts the Target object to a JSON byte array.
+func (t Target) MarshalJSON() []byte {
+	pt := prettyTarget{
+		Hostname: t.Hostname,
+		Port:     t.Port,
+	}
+	if t.Path != nil {
+		pt.Path = *t.Path
+	}
+	jsonBytes, err := json.MarshalIndent(pt, "-- Target --", "    ")
+	if err != nil {
+		glog.Error("Failed Marshaling Target object:", err)
+	}
+	return jsonBytes
 }
 
 // GetProhibitedTargetList returns the list of Targets given a list ProhibitedTarget CRDs.
@@ -74,7 +98,6 @@ func GetManagedTargetList(managedTargets []*mtv1.AzureIngressManagedTarget) *[]T
 	return &target
 }
 
-// TODO(draychev)
 func normalizePath(path string) string {
 	trimmed, prevTrimmed := "", path
 	cutset := "*/"

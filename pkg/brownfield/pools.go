@@ -2,6 +2,7 @@ package brownfield
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 
 	mtv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
@@ -10,31 +11,36 @@ import (
 )
 
 // GetPoolToTargetMapping creates a map from backend pool to target objects.
-func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, requestRoutingRules []n.ApplicationGatewayRequestRoutingRule, pathMaps []n.ApplicationGatewayURLPathMap) map[string]Target {
+func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, routingRules []n.ApplicationGatewayRequestRoutingRule, pathMaps []n.ApplicationGatewayURLPathMap) map[string][]Target {
+
+	// Index listeners by their Name
 	listenerMap := make(map[string]*n.ApplicationGatewayHTTPListener)
 	for _, listener := range listeners {
 		listenerMap[*listener.Name] = listener
 	}
 
-	poolToTarget := make(map[string]Target)
-
+	// Index Path Maps by their Name
 	pathNameToPath := make(map[string]n.ApplicationGatewayURLPathMap)
 	for _, pm := range pathMaps {
 		pathNameToPath[*pm.Name] = pm
 	}
 
-	for _, rule := range requestRoutingRules {
+	poolToTarget := make(map[string][]Target)
+
+	for _, rule := range routingRules {
+
 		listenerName := utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID)
+
 		var hostName string
 		if listener, found := listenerMap[listenerName]; !found {
 			continue
 		} else {
 			hostName = *listener.HostName
 		}
-		port := portFromListener(listenerMap[listenerName])
+
 		target := Target{
 			Hostname: hostName,
-			Port:     port,
+			Port:     portFromListener(listenerMap[listenerName]),
 		}
 
 		if rule.URLPathMap == nil {
@@ -43,7 +49,7 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, reque
 				continue
 			}
 			poolName := utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID)
-			poolToTarget[poolName] = target
+			poolToTarget[poolName] = append(poolToTarget[poolName], target)
 		} else {
 			// Follow the path map
 			pathMapName := utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID)
@@ -54,8 +60,8 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, reque
 				}
 				for _, path := range *pathRule.Paths {
 					poolName := utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID)
-					target.Path = &path
-					poolToTarget[poolName] = target
+					target.Path = to.StringPtr(normalizePath(path))
+					poolToTarget[poolName] = append(poolToTarget[poolName], target)
 				}
 			}
 		}
@@ -91,10 +97,12 @@ func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTarg
 	whitelist := GetManagedTargetList(managedTargets)
 
 	if len(*blacklist) == 0 && len(*whitelist) == 0 {
+		// There is neither blacklist nor whitelist -- AGIC manages all available backend pools.
 		return pools
 	}
 
 	var managedPools []n.ApplicationGatewayBackendAddressPool
+	managedPoolsMap := make(map[string]n.ApplicationGatewayBackendAddressPool)
 
 	poolToTarget := GetPoolToTargetMapping(listeners, routingRules, paths)
 
@@ -102,27 +110,32 @@ func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTarg
 	if len(*blacklist) > 0 {
 		// Apply blacklist
 		for _, pool := range pools {
-			target := poolToTarget[*pool.Name]
-			if target.IsIn(blacklist) {
-				continue
+			for _, target := range poolToTarget[*pool.Name] {
+				if target.IsIn(blacklist) {
+					glog.V(5).Infof("Target is in blacklist: %s", target.MarshalJSON())
+					continue
+				}
+				glog.V(5).Infof("Target is implicitly managed: %s", target.MarshalJSON())
+				managedPoolsMap[*pool.Name] = pool
 			}
-			managedPools = append(managedPools, pool)
 		}
-		return managedPools
+
+	} else {
+		// Is it whitelisted?
+		for _, pool := range pools {
+			for _, target := range poolToTarget[*pool.Name] {
+				if target.IsIn(whitelist) {
+					glog.V(5).Infof("Target is in whitelist: %s", target.MarshalJSON())
+					managedPoolsMap[*pool.Name] = pool
+				}
+			}
+		}
 	}
 
-	// Is it whitelisted?
-	for _, pool := range pools {
-		if poolToTarget[*pool.Name].IsIn(whitelist) {
-			managedPools = append(managedPools, pool)
-		}
+	for _, pool := range managedPoolsMap {
+		managedPools = append(managedPools, pool)
 	}
 
-	for _, pool := range pools {
-		if poolToTarget[*pool.Name].IsIn(blacklist) {
-			managedPools = append(managedPools, pool)
-		}
-	}
 	return managedPools
 }
 

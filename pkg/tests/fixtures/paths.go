@@ -5,9 +5,15 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
+const (
+	PathMapName       = "URLPathMap-1"
+	PathRuleName      = "PathRule-1"
+	PathRuleNameBasic = "PathRule-Basic"
+)
+
 func GeURLPathMap() *network.ApplicationGatewayURLPathMap {
 	return &network.ApplicationGatewayURLPathMap{
-		Name: to.StringPtr("URLPathMap-1"),
+		Name: to.StringPtr(PathMapName),
 		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
 			// DefaultBackendAddressPool - Default backend address pool resource of URL path map.
 			DefaultBackendAddressPool: &network.SubResource{
@@ -40,12 +46,13 @@ func GeURLPathMap() *network.ApplicationGatewayURLPathMap {
 
 func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
 	return &network.ApplicationGatewayPathRule{
-		Name: to.StringPtr("PathRule-1"),
+		Name: to.StringPtr(PathRuleName),
 		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
-				"/foo",
-				"/bar",
+				PathFoo + "/",
+				PathBar + "/**/*",
+				PathBaz,
 			},
 
 			// BackendAddressPool - Backend address pool resource of URL path map path rule.
@@ -73,7 +80,7 @@ func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
 
 func GetPathRuleBasic() *network.ApplicationGatewayPathRule {
 	return &network.ApplicationGatewayPathRule{
-		Name: to.StringPtr("PathRule-1"),
+		Name: to.StringPtr(PathRuleNameBasic),
 		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: nil,
