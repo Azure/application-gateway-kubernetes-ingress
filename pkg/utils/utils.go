@@ -6,6 +6,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,3 +41,11 @@ func IntsToString(l []int, delim string) string {
 func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
 }
+
+// PrettyJSON Unmarshals and Marshall again with Indent so it is human readable
+func PrettyJSON(js []byte, prefix string) ([]byte, error) {
+	var jsonObj interface{}
+	_ = json.Unmarshal(js, &jsonObj)
+	return json.MarshalIndent(jsonObj, prefix, "    ")
+}
+
