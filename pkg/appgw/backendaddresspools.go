@@ -19,6 +19,15 @@ import (
 )
 
 func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
+	pools := c.getPools(cbCtx)
+	if pools != nil {
+		sort.Sort(sorter.ByBackendPoolName(pools))
+	}
+	c.appGw.BackendAddressPools = &pools
+	return nil
+}
+
+func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
@@ -30,12 +39,13 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 			addressPools[*pool.Name] = pool
 		}
 	}
-	pools := getBackendPoolMapValues(&addressPools)
-	if pools != nil {
-		sort.Sort(sorter.ByBackendPoolName(*pools))
+
+	var allPools []n.ApplicationGatewayBackendAddressPool
+	for _, addr := range addressPools {
+		allPools = append(allPools, *addr)
 	}
-	c.appGw.BackendAddressPools = pools
-	return nil
+
+	return allPools
 }
 
 func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
@@ -52,14 +62,6 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 		}
 	}
 	return backendPoolMap
-}
-
-func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
-	var backendAddressPools []n.ApplicationGatewayBackendAddressPool
-	for _, addr := range *m {
-		backendAddressPools = append(backendAddressPools, *addr)
-	}
-	return &backendAddressPools
 }
 
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
