@@ -12,7 +12,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -22,8 +21,8 @@ import (
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	_, httpListenersMap := c.getListeners(cbCtx)
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
-	backendPools := c.newBackendPoolMap(cbCtx.IngressList, cbCtx.ServiceList)
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
+	backendPools := c.newBackendPoolMap(cbCtx)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for _, ingress := range cbCtx.IngressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
@@ -79,13 +78,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 			if httpAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx.ServiceList, wildcardRule,
+					urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx, wildcardRule,
 						listenerHTTPID, urlPathMaps[listenerHTTPID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx.ServiceList, rule,
+				urlPathMaps[listenerHTTPID] = c.pathMaps(ingress, cbCtx, rule,
 					listenerHTTPID, urlPathMaps[listenerHTTPID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 
@@ -98,13 +97,13 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 			if httpsAvailable {
 				if wildcardRule != nil && len(rule.Host) != 0 {
 					// only add wildcard rules when host is specified
-					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx.ServiceList, wildcardRule,
+					urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx, wildcardRule,
 						listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 						defaultAddressPoolID, defaultHTTPSettingsID)
 				}
 
 				// need to eliminate non-unique paths
-				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx.ServiceList, rule,
+				urlPathMaps[listenerHTTPSID] = c.pathMaps(ingress, cbCtx, rule,
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
@@ -174,7 +173,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	return nil
 }
 
-func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v1.Service, rule *v1beta1.IngressRule,
+func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, cbCtx *ConfigBuilderContext, rule *v1beta1.IngressRule,
 	listenerID listenerIdentifier, urlPathMap *n.ApplicationGatewayURLPathMap,
 	defaultAddressPoolID string, defaultHTTPSettingsID string) *n.ApplicationGatewayURLPathMap {
 	if urlPathMap == nil {
@@ -192,9 +191,8 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, serviceList []*v
 		urlPathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
 	}
 
-	ingressList := c.k8sContext.GetHTTPIngressList()
-	backendPools := c.newBackendPoolMap(ingressList, serviceList)
-	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	backendPools := c.newBackendPoolMap(cbCtx)
+	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
