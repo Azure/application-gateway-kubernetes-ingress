@@ -6,6 +6,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -39,6 +40,13 @@ func IntsToString(l []int, delim string) string {
 // GetResourceKey generates the key in k8s format for a given resource
 func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
+}
+
+// PrettyJSON Unmarshals and Marshall again with Indent so it is human readable
+func PrettyJSON(js []byte, prefix string) ([]byte, error) {
+	var jsonObj interface{}
+	_ = json.Unmarshal(js, &jsonObj)
+	return json.MarshalIndent(jsonObj, prefix, "    ")
 }
 
 // GetLastChunkOfSlashed splits a string by slash and returns the last chunk.

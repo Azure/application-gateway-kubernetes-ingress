@@ -13,6 +13,8 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 var keysToDeleteForCache = []string{
@@ -73,10 +75,7 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway) 
 		return nil, err
 	}
 
-	// Unmarshal and Marshall again with Indent so it is human readable
-	var config interface{}
-	_ = json.Unmarshal(sanitized, &config)
-	return json.MarshalIndent(config, "-- App Gwy config --", "    ")
+	return utils.PrettyJSON(sanitized, "-- App Gwy config --")
 }
 
 func isMap(v interface{}) bool {

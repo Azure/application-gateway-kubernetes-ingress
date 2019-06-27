@@ -124,7 +124,9 @@ func (q *EventQueue) worker() {
 			glog.Error("Failed marshalling event:", err)
 		} else {
 			if eventType, exists := events.EventTypeLookup[event.Event.Type]; exists {
-				glog.V(5).Infof("Received event %s: %s", eventType, jsonEvent)
+				jsonEvent, _ = utils.PrettyJSON(jsonEvent, "-- Kubernetes Event --")
+				eventTime := time.Unix(event.Timestamp/1000000000, 0)
+				glog.V(5).Infof("Received event %s for time %d (%+v), with value: %s", eventType, event.Timestamp, eventTime, jsonEvent)
 			} else {
 				glog.V(5).Infof("Received event: %s", jsonEvent)
 			}
