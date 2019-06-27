@@ -59,7 +59,7 @@ spec:
             ip:
               description: "(required) IP address of the target managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
               type: string
-            host:
+            hostname:
               description: "(optional) Hostname of the target"
               type: string
             port:
@@ -98,7 +98,7 @@ spec:
             ip:
               description: "(required) IP address of the prohibited target; Could be the public or private address attached to the Application Gateway"
               type: string
-            host:
+            hostname:
               description: "(optional) Hostname of the prohibited target"
               type: string
             port:
@@ -125,7 +125,7 @@ metadata:
   name: ingress-managed-target
 spec:
   ip: 23.45.67.89
-  host: "www.contoso.com"
+  hostname: "www.contoso.com"
   port: 80
   paths:
     - "/foo/*"
