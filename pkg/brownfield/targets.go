@@ -47,7 +47,7 @@ func (t Target) MarshalJSON() []byte {
 	if t.Path != nil {
 		pt.Path = *t.Path
 	}
-	jsonBytes, err := json.MarshalIndent(pt, "-- Target --", "    ")
+	jsonBytes, err := json.Marshal(pt)
 	if err != nil {
 		glog.Error("Failed Marshaling Target object:", err)
 	}
@@ -69,7 +69,7 @@ func GetProhibitedTargetList(prohibitedTargets []*ptv1.AzureIngressProhibitedTar
 			target = append(target, Target{
 				Hostname: prohibitedTarget.Spec.Hostname,
 				Port:     prohibitedTarget.Spec.Port,
-				Path:     to.StringPtr(path),
+				Path:     to.StringPtr(normalizePath(path)),
 			})
 		}
 	}
@@ -91,7 +91,7 @@ func GetManagedTargetList(managedTargets []*mtv1.AzureIngressManagedTarget) *[]T
 			target = append(target, Target{
 				Hostname: managedTarget.Spec.Hostname,
 				Port:     managedTarget.Spec.Port,
-				Path:     to.StringPtr(path),
+				Path:     to.StringPtr(normalizePath(path)),
 			})
 		}
 	}

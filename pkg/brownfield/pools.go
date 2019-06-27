@@ -54,12 +54,16 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, routi
 			// Follow the path map
 			pathMapName := utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID)
 			for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
+				if pathRule.BackendAddressPool == nil {
+					glog.Errorf("Path Rule %+v %+v does not have BackendAddressPool", *pathRule.Name)
+					continue
+				}
+				poolName := utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID)
 				if pathRule.Paths == nil {
 					glog.V(5).Infof("Path Rule %+v does not have paths list", *pathRule.Name)
 					continue
 				}
 				for _, path := range *pathRule.Paths {
-					poolName := utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID)
 					target.Path = to.StringPtr(normalizePath(path))
 					poolToTarget[poolName] = append(poolToTarget[poolName], target)
 				}
@@ -92,7 +96,7 @@ func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.Applicati
 }
 
 // GetManagedPools returns the list of backend pools that will be managed by AGIC.
-func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTargets []*mtv1.AzureIngressManagedTarget, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, listeners []*n.ApplicationGatewayHTTPListener, routingRules []n.ApplicationGatewayRequestRoutingRule, paths []n.ApplicationGatewayURLPathMap) []n.ApplicationGatewayBackendAddressPool {
+func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTargets []*mtv1.AzureIngressManagedTarget, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, listeners []*n.ApplicationGatewayHTTPListener, routingRules []n.ApplicationGatewayRequestRoutingRule, pathMaps []n.ApplicationGatewayURLPathMap) []n.ApplicationGatewayBackendAddressPool {
 	blacklist := GetProhibitedTargetList(prohibitedTargets)
 	whitelist := GetManagedTargetList(managedTargets)
 
@@ -101,10 +105,9 @@ func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTarg
 		return pools
 	}
 
-	var managedPools []n.ApplicationGatewayBackendAddressPool
 	managedPoolsMap := make(map[string]n.ApplicationGatewayBackendAddressPool)
 
-	poolToTarget := GetPoolToTargetMapping(listeners, routingRules, paths)
+	poolToTarget := GetPoolToTargetMapping(listeners, routingRules, pathMaps)
 
 	// Process Blacklist first
 	if len(*blacklist) > 0 {
@@ -119,23 +122,29 @@ func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTarg
 				managedPoolsMap[*pool.Name] = pool
 			}
 		}
+		return poolsMapToList(managedPoolsMap)
+	}
 
-	} else {
-		// Is it whitelisted?
-		for _, pool := range pools {
-			for _, target := range poolToTarget[*pool.Name] {
-				if target.IsIn(whitelist) {
-					glog.V(5).Infof("Target is in whitelist: %s", target.MarshalJSON())
-					managedPoolsMap[*pool.Name] = pool
-				}
+	// Is it whitelisted?
+	for _, pool := range pools {
+		for _, target := range poolToTarget[*pool.Name] {
+			if !target.IsIn(whitelist) {
+				glog.V(5).Infof("Target is NOT in whitelist: %s", target.MarshalJSON())
+				continue
+
 			}
+			glog.V(5).Infof("Target is in whitelist: %s", target.MarshalJSON())
+			managedPoolsMap[*pool.Name] = pool
 		}
 	}
+	return poolsMapToList(managedPoolsMap)
+}
 
-	for _, pool := range managedPoolsMap {
+func poolsMapToList(poolSet map[string]n.ApplicationGatewayBackendAddressPool) []n.ApplicationGatewayBackendAddressPool {
+	var managedPools []n.ApplicationGatewayBackendAddressPool
+	for _, pool := range poolSet {
 		managedPools = append(managedPools, pool)
 	}
-
 	return managedPools
 }
 
