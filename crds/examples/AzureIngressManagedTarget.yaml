@@ -4,7 +4,7 @@ metadata:
   name: ingress-managed-location
 spec:
   ip: 23.45.67.89
-  host: "www.contoso.com"
+  hostname: "www.contoso.com"
   port: 80
   paths:
     - "/foo/*"

@@ -4,7 +4,7 @@ metadata:
   name: ingress-prohibited-location
 spec:
   ip: 23.45.67.21
-  host: "ftp.contoso.com"
+  hostname: "ftp.contoso.com"
   port: 88
   paths:
     - "/fox/*"
