@@ -40,3 +40,9 @@ func IntsToString(l []int, delim string) string {
 func GetResourceKey(namespace, name string) string {
 	return fmt.Sprintf("%v/%v", namespace, name)
 }
+
+// GetLastChunkOfSlashed splits a string by slash and returns the last chunk.
+func GetLastChunkOfSlashed(s string) string {
+	split := strings.Split(s, "/")
+	return split[len(split)-1]
+}
