@@ -53,9 +53,9 @@ func GetProhibitedTargetList(prohibitedTargets []*ptv1.AzureIngressProhibitedTar
 }
 
 // GetManagedTargetList returns the list of Targets given a list ManagedTarget CRDs.
-func GetManagedTargetList(managedTarget []*mtv1.AzureIngressManagedTarget) *[]Target {
+func GetManagedTargetList(managedTargets []*mtv1.AzureIngressManagedTarget) *[]Target {
 	var target []Target
-	for _, managedTarget := range managedTarget {
+	for _, managedTarget := range managedTargets {
 		if len(managedTarget.Spec.Paths) == 0 {
 			target = append(target, Target{
 				Hostname: managedTarget.Spec.Hostname,

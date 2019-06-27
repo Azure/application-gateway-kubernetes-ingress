@@ -2,6 +2,7 @@ package brownfield
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/golang/glog"
 
 	mtv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
@@ -9,7 +10,7 @@ import (
 )
 
 // GetPoolToTargetMapping creates a map from backend pool to target objects.
-func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, requestRoutingRules []n.ApplicationGatewayRequestRoutingRule, paths []n.ApplicationGatewayURLPathMap) map[string]Target {
+func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, requestRoutingRules []n.ApplicationGatewayRequestRoutingRule, pathMaps []n.ApplicationGatewayURLPathMap) map[string]Target {
 	listenerMap := make(map[string]*n.ApplicationGatewayHTTPListener)
 	for _, listener := range listeners {
 		listenerMap[*listener.Name] = listener
@@ -17,33 +18,44 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, reque
 
 	poolToTarget := make(map[string]Target)
 
-	pathMap := make(map[string]n.ApplicationGatewayURLPathMap)
-	for _, path := range paths {
-		pathMap[*path.Name] = path
+	pathNameToPath := make(map[string]n.ApplicationGatewayURLPathMap)
+	for _, pm := range pathMaps {
+		pathNameToPath[*pm.Name] = pm
 	}
 
 	for _, rule := range requestRoutingRules {
 		listenerName := utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID)
+		var hostName string
+		if listener, found := listenerMap[listenerName]; !found {
+			continue
+		} else {
+			hostName = *listener.HostName
+		}
+		port := portFromListener(listenerMap[listenerName])
+		target := Target{
+			Hostname: hostName,
+			Port:     port,
+		}
+
 		if rule.URLPathMap == nil {
-			// SSL Redirects won't have BackendAddressPool
-			if rule.BackendAddressPool != nil {
-				poolName := utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID)
-				poolToTarget[poolName] = Target{
-					Hostname: *listenerMap[listenerName].HostName,
-					Port:     portFromListener(listenerMap[listenerName]),
-				}
+			// SSL Redirects do not have BackendAddressPool
+			if rule.BackendAddressPool == nil {
+				continue
 			}
+			poolName := utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID)
+			poolToTarget[poolName] = target
 		} else {
 			// Follow the path map
 			pathMapName := utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID)
-			for _, pathRule := range *pathMap[pathMapName].PathRules {
+			for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
+				if pathRule.Paths == nil {
+					glog.V(5).Infof("Path Rule %+v does not have paths list", *pathRule.Name)
+					continue
+				}
 				for _, path := range *pathRule.Paths {
 					poolName := utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID)
-					poolToTarget[poolName] = Target{
-						Hostname: *listenerMap[listenerName].HostName,
-						Port:     portFromListener(listenerMap[listenerName]),
-						Path:     &path,
-					}
+					target.Path = &path
+					poolToTarget[poolName] = target
 				}
 			}
 		}
