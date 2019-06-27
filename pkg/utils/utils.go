@@ -49,3 +49,8 @@ func PrettyJSON(js []byte, prefix string) ([]byte, error) {
 	return json.MarshalIndent(jsonObj, prefix, "    ")
 }
 
+// GetLastChunkOfSlashed splits a string by slash and returns the last chunk.
+func GetLastChunkOfSlashed(s string) string {
+	split := strings.Split(s, "/")
+	return split[len(split)-1]
+}

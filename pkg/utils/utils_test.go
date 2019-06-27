@@ -31,5 +31,15 @@ var _ = Describe("Utils", func() {
 				Expect(utils.GetResourceKey("default", "pod")).To(Equal("default/pod"))
 			})
 		})
+
+		Context("Test GetLastChunkOfSlashed", func() {
+			It("Should return the last slice of a string split on a slash.", func() {
+				Expect(utils.GetLastChunkOfSlashed("a/b/c")).To(Equal("c"))
+			})
+
+			It("Should return the full string when there are no slashes.", func() {
+				Expect(utils.GetLastChunkOfSlashed("abc")).To(Equal("abc"))
+			})
+		})
 	})
 })
