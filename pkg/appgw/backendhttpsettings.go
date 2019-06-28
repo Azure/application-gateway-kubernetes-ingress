@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -31,6 +32,37 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 	if httpSettings != nil {
 		sort.Sort(sorter.BySettingsName(*httpSettings))
 	}
+
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+
+		newHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
+		if err != nil {
+			return err
+		}
+		routingRules, _ := c.getRules(cbCtx)
+		listenersByName := c.getListenersByName(cbCtx)
+		pathMapsByName := c.getPathsByName(cbCtx)
+
+		// Get existing && remove managed
+		newManaged, err := brownfield.GetManagedSettings(newHTTPSettings, routingRules, listenersByName, pathMapsByName, cbCtx.ManagedTargets, cbCtx.ProhibitedTargets)
+		if err != nil {
+			return err
+		}
+
+		existingUnmanaged, err := c.getExistingUnmanagedSettings(cbCtx)
+		if err != nil {
+			return err
+		}
+		allSettings := mergeSettings(newManaged, existingUnmanaged)
+
+		// allSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
+		if allSettings != nil {
+			sort.Sort(sorter.BySettingsName(*allSettings))
+		}
+		c.appGw.BackendHTTPSettingsCollection = allSettings
+		return err
+	}
+
 	c.appGw.BackendHTTPSettingsCollection = httpSettings
 	return err
 }

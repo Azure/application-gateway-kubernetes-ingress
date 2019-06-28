@@ -78,13 +78,6 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, routi
 	return poolToTarget
 }
 
-func portFromListener(listener *n.ApplicationGatewayHTTPListener) int32 {
-	if listener != nil && listener.Protocol == n.HTTPS {
-		return int32(443)
-	}
-	return int32(80)
-}
-
 // MergePools merges list of lists of backend address pools into a single list, maintaining uniqueness.
 func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.ApplicationGatewayBackendAddressPool {
 	uniqPool := make(map[string]n.ApplicationGatewayBackendAddressPool)

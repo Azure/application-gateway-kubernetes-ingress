@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package brownfield
 
 import (
@@ -6,11 +11,18 @@ import (
 	"reflect"
 	"strings"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	mtv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
+
+type NameToTarget map[string]Target
+
+type ListenersByName map[string]*n.ApplicationGatewayHTTPListener
+
+type URLPathMapByName map[string]n.ApplicationGatewayURLPathMap
 
 // Target uniquely identifies a subset of App Gateway configuration, which AGIC will manage or be prohibited from managing.
 type Target struct {
