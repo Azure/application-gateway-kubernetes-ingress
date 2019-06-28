@@ -30,8 +30,8 @@ var _ = Describe("test blacklist/whitelist health probes", func() {
 		})
 	})
 
-	Context("test GetManagedTargetList", func() {
-		actual := GetManagedTargetList(fixtures.GetManagedTargets())
+	Context("test getManagedTargetList", func() {
+		actual := getManagedTargetList(fixtures.GetManagedTargets())
 		It("Should have produced correct Managed Targets list", func() {
 			Expect(len(*actual)).To(Equal(3))
 			{
@@ -62,7 +62,7 @@ var _ = Describe("test blacklist/whitelist health probes", func() {
 	})
 
 	Context("test getProhibitedTargetList", func() {
-		actual := GetProhibitedTargetList(fixtures.GetProhibitedTargets())
+		actual := getProhibitedTargetList(fixtures.GetProhibitedTargets())
 		It("should have produced correct Prohibited Targets list", func() {
 			Expect(len(*actual)).To(Equal(2))
 			{

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package brownfield
 
 import (
@@ -97,8 +102,8 @@ func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.Applicati
 
 // GetManagedPools returns the list of backend pools that will be managed by AGIC.
 func GetManagedPools(pools []n.ApplicationGatewayBackendAddressPool, managedTargets []*mtv1.AzureIngressManagedTarget, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, listeners []*n.ApplicationGatewayHTTPListener, routingRules []n.ApplicationGatewayRequestRoutingRule, pathMaps []n.ApplicationGatewayURLPathMap) []n.ApplicationGatewayBackendAddressPool {
-	blacklist := GetProhibitedTargetList(prohibitedTargets)
-	whitelist := GetManagedTargetList(managedTargets)
+	blacklist := getProhibitedTargetList(prohibitedTargets)
+	whitelist := getManagedTargetList(managedTargets)
 
 	if len(*blacklist) == 0 && len(*whitelist) == 0 {
 		// There is neither blacklist nor whitelist -- AGIC manages all available backend pools.

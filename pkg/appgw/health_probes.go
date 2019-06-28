@@ -36,6 +36,18 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 		brownfield.PruneHealthProbes(&probes, poolSet)
 	}
 
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		newManagedProbes := brownfield.GetManagedProbes(probes, cbCtx.ManagedTargets, cbCtx.ProhibitedTargets)
+		var existingProbes []n.ApplicationGatewayProbe
+		if c.appGw.Probes != nil {
+			existingProbes = *c.appGw.Probes
+		}
+		existingPruned := brownfield.PruneManagedProbes(existingProbes, cbCtx.ManagedTargets, cbCtx.ProhibitedTargets)
+		mergedProbes := brownfield.MergeProbes(existingPruned, newManagedProbes)
+		sort.Sort(sorter.ByHealthProbeName(mergedProbes))
+		c.appGw.Probes = &mergedProbes
+
+	}
 	sort.Sort(sorter.ByHealthProbeName(probes))
 	c.appGw.Probes = &probes
 	return nil

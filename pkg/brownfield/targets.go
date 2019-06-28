@@ -55,8 +55,8 @@ func (t Target) MarshalJSON() []byte {
 	return jsonBytes
 }
 
-// GetProhibitedTargetList returns the list of Targets given a list ProhibitedTarget CRDs.
-func GetProhibitedTargetList(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) *[]Target {
+// getProhibitedTargetList returns the list of Targets given a list ProhibitedTarget CRDs.
+func getProhibitedTargetList(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) *[]Target {
 	var target []Target
 	for _, prohibitedTarget := range prohibitedTargets {
 		if len(prohibitedTarget.Spec.Paths) == 0 {
@@ -77,8 +77,8 @@ func GetProhibitedTargetList(prohibitedTargets []*ptv1.AzureIngressProhibitedTar
 	return &target
 }
 
-// GetManagedTargetList returns the list of Targets given a list ManagedTarget CRDs.
-func GetManagedTargetList(managedTargets []*mtv1.AzureIngressManagedTarget) *[]Target {
+// getManagedTargetList returns the list of Targets given a list ManagedTarget CRDs.
+func getManagedTargetList(managedTargets []*mtv1.AzureIngressManagedTarget) *[]Target {
 	var target []Target
 	for _, managedTarget := range managedTargets {
 		if len(managedTarget.Spec.Paths) == 0 {
