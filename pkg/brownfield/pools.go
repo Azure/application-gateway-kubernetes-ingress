@@ -55,7 +55,7 @@ func GetPoolToTargetMapping(listeners []*n.ApplicationGatewayHTTPListener, routi
 			pathMapName := utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID)
 			for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
 				if pathRule.BackendAddressPool == nil {
-					glog.Errorf("Path Rule %+v %+v does not have BackendAddressPool", *pathRule.Name)
+					glog.Errorf("Path Rule %+v does not have BackendAddressPool", *pathRule.Name)
 					continue
 				}
 				poolName := utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID)

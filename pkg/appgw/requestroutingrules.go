@@ -15,33 +15,27 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
-	poolSet := make(map[string]interface{})
+	poolSet := make(brownfield.PoolSet)
 	for _, p := range c.getPools(cbCtx) {
 		poolSet[*p.Name] = nil
 	}
 
-	// Filter out rules that point to a BackendAddressPool that does not exist
-	var filteredRules []n.ApplicationGatewayRequestRoutingRule
-	for _, rule := range requestRoutingRules {
-		if rule.BackendAddressPool != nil {
-			poolName := utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID)
-			if _, exists := poolSet[poolName]; !exists {
-				continue
-			}
-		}
-		filteredRules = append(filteredRules, rule)
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		brownfield.PruneRoutingRules(&requestRoutingRules, poolSet)
 	}
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	c.appGw.RequestRoutingRules = &requestRoutingRules
 
-	sort.Sort(sorter.ByRequestRoutingRuleName(filteredRules))
-	c.appGw.RequestRoutingRules = &filteredRules
-
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		brownfield.PrunePathMaps(&pathMaps, poolSet)
+	}
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
 

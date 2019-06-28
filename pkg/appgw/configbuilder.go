@@ -8,7 +8,6 @@ package appgw
 import (
 	"errors"
 	"fmt"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"

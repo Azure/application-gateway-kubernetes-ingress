@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"sort"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -26,6 +27,15 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	for _, probe := range healthProbeCollection {
 		probes = append(probes, probe)
 	}
+
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		poolSet := make(brownfield.PoolSet)
+		for _, p := range c.getPools(cbCtx) {
+			poolSet[*p.Name] = nil
+		}
+		brownfield.PruneHealthProbes(&probes, poolSet)
+	}
+
 	sort.Sort(sorter.ByHealthProbeName(probes))
 	c.appGw.Probes = &probes
 	return nil

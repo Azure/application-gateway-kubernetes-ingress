@@ -32,6 +32,7 @@ func (t Target) IsIn(targetList *[]Target) bool {
 	return false
 }
 
+// prettyTarget is used for pretty-printing the Target struct for debugging purposes.
 type prettyTarget struct {
 	Hostname string `json:"Hostname"`
 	Port     int32  `json:"Port"`
