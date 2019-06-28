@@ -50,7 +50,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			tests.NewServiceFixture(),
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
 		}
 		_ = cb.BackendAddressPools(cbCtx)
@@ -84,7 +84,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
 		}
 		_ = cb.BackendAddressPools(cbCtx)
@@ -119,7 +119,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 		cbCtx := &ConfigBuilderContext{
 			ServiceList: serviceList,
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 

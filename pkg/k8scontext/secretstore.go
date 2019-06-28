@@ -37,16 +37,6 @@ func NewSecretStore() SecretsKeeper {
 	}
 }
 
-func writeFileDecode(data []byte, fileHandle *os.File) error {
-	if _, err := fileHandle.Write(data); err != nil {
-		return err
-	}
-	if err := fileHandle.Close(); err != nil {
-		return err
-	}
-	return nil
-}
-
 // GetPfxCertificate returns the certificate for the given secret key.
 func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
 	certInterface, exists := s.Cache.Get(secretKey)
@@ -129,4 +119,14 @@ func (s *SecretsStore) convertSecret(secretKey string, secret *v1.Secret) bool {
 	}
 
 	return true
+}
+
+func writeFileDecode(data []byte, fileHandle *os.File) error {
+	if _, err := fileHandle.Write(data); err != nil {
+		return err
+	}
+	if err := fileHandle.Close(); err != nil {
+		return err
+	}
+	return nil
 }

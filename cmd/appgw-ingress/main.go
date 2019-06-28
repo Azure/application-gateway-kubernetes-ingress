@@ -86,6 +86,7 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
+	// initialize clients and dependencies
 	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
 
 	var err error
@@ -103,27 +104,31 @@ func main() {
 
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
+	crdClient := versioned.NewForConfigOrDie(apiConfig)
+	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
+	recorder := getEventRecorder(kubeClient)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
+
+	// namespace validations
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	if len(namespaces) == 0 {
 		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
 		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
 	}
-	crdClient := versioned.NewForConfigOrDie(apiConfig)
-	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 
-	recorder := getEventRecorder(kubeClient)
-
-	// Run fatal validations
+	// fatal config validations
 	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	go controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder).Start(env)
-	select {}
+	// initiliaze controller
+	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
+
+	// start controller
+	appGwIngressController.Start(env)
 }
 
 func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
@@ -139,7 +144,6 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
 }
 
 func getNamespacesToWatch(namespaceEnvVar string) []string {
-
 	// Returning an empty array effectively switches Ingress Controller
 	// in a mode of observing all accessible namespaces.
 	if namespaceEnvVar == "" {
