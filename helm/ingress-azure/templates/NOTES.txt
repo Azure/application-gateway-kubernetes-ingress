@@ -18,7 +18,15 @@ Configuration Details:
     - Resource Group  : {{ .Values.appgw.resourceGroup }}
     - Application Gateway Name : {{ .Values.appgw.name }}
  * Kubernetes:
-    - Watch Namespace : {{ .Values.kubernetes.watchNamespace }}
+{{- if .Values.kubernetes }}
+    {{- if .Values.kubernetes.watchNamespace }}
+    - Watching Namespaces: {{ .Values.kubernetes.watchNamespace }}
+    {{- else }}
+    - Watching All Namespaces
+    {{- end }}
+{{- else }}
+    - Watching All Namespaces
+{{- end }}
  * Verbosity level: {{ .Values.verbosityLevel }}
 {{ if eq .Values.armAuth.type "aadPodIdentity"}}
 Please make sure the associated aadpodidentity and aadpodidbinding is configured.
