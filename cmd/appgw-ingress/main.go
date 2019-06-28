@@ -31,10 +31,10 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -105,7 +105,11 @@ func main() {
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
-	glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+	if len(namespaces) == 0 {
+		glog.Info("Ingress Controller will observe all namespaces.")
+	} else {
+		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+	}
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
