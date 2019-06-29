@@ -34,12 +34,12 @@ func (c AppGwIngressController) Process(event eventqueue.QueuedEvent) error {
 
 	cbCtx := &appgw.ConfigBuilderContext{
 		// Get all Services
-		ServiceList:       c.k8sContext.GetServiceList(),
-		IngressList:       c.k8sContext.GetHTTPIngressList(),
-		ManagedTargets:    c.k8sContext.GetAzureIngressManagedTargets(),
-		ProhibitedTargets: c.k8sContext.GetAzureProhibitedTargets(),
+		ServiceList:       c.k8sContext.ListServices(),
+		IngressList:       c.k8sContext.ListHTTPIngresses(),
+		ManagedTargets:    c.k8sContext.ListAzureIngressManagedTargets(),
+		ProhibitedTargets: c.k8sContext.ListAzureProhibitedTargets(),
+		IstioGateways:     c.k8sContext.ListIstioGateways(),
 		EnvVariables:      environment.GetEnv(),
-		IstioGateways:     c.k8sContext.GetIstioGateways(),
 	}
 	{
 		var managedTargets []string

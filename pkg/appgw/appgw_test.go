@@ -179,7 +179,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	// Method to test all the ingress that have been added to the K8s context.
 	testIngress := func() []*v1beta1.Ingress {
 		// Get all the ingresses
-		ingressList := ctxt.GetHTTPIngressList()
+		ingressList := ctxt.ListHTTPIngresses()
 		// There should be only one ingress
 		Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
 		// Make sure it is the ingress we stored.
@@ -642,7 +642,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Method to test all the ingress that have been added to the K8s context.
 			testTLSIngress := func() []*v1beta1.Ingress {
 				// Get all the ingresses
-				ingressList := ctxt.GetHTTPIngressList()
+				ingressList := ctxt.ListHTTPIngresses()
 				// There should be only one ingress
 				Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
 				// Make sure it is the ingress we stored.
@@ -709,7 +709,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Method to test all the ingress that have been added to the K8s context.
 			annotationIngress := func() []*v1beta1.Ingress {
 				// Get all the ingresses
-				ingressList := ctxt.GetHTTPIngressList()
+				ingressList := ctxt.ListHTTPIngresses()
 				// There should be only one ingress
 				Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
 				// Make sure it is the ingress we stored.
