@@ -123,7 +123,7 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 		}
 	}
 
-	podList := c.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
+	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
 	for _, pod := range podList {
 		for _, container := range pod.Spec.Containers {
 			for _, port := range container.Ports {

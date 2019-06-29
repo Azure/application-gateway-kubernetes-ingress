@@ -171,6 +171,7 @@ func (h handlers) secretDeleteFunc(obj interface{}) {
 	}
 }
 
+// general resource handlers
 func (h handlers) addFunc(obj interface{}) {
 	h.context.UpdateChannel.In() <- events.Event{
 		Type:  events.Create,
