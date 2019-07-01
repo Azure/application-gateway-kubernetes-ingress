@@ -12,10 +12,10 @@ import (
 
 const (
 	// PathMapName is a string constant.
-	PathMapName       = "URLPathMap-1"
+	PathMapName = "URLPathMap-1"
 
 	// PathRuleName is a string constant.
-	PathRuleName      = "PathRule-1"
+	PathRuleName = "PathRule-1"
 
 	// PathRuleNameBasic is a string constant.
 	PathRuleNameBasic = "PathRule-Basic"

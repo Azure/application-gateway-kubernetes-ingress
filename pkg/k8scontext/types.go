@@ -40,7 +40,6 @@ type Context struct {
 	CertificateSecretStore SecretsKeeper
 
 	ingressSecretsMap utils.ThreadsafeMultiMap
-	stopChannel       chan struct{}
 
 	UpdateChannel *channels.RingChannel
 }

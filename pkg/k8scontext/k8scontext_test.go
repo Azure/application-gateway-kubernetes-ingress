@@ -31,6 +31,7 @@ var _ = Describe("K8scontext", func() {
 	var ctxt *k8scontext.Context
 	ingressNS := "test-ingress-controller"
 	ingressName := "hello-world"
+	var stopChannel chan struct{}
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -52,6 +53,8 @@ var _ = Describe("K8scontext", func() {
 	_ = go_flag.Set("v", "3")
 
 	BeforeEach(func() {
+		stopChannel = make(chan struct{})
+
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
 		crdClient := fake.NewSimpleClientset()
@@ -69,6 +72,10 @@ var _ = Describe("K8scontext", func() {
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 
+	AfterEach(func() {
+		close(stopChannel)
+	})
+
 	Context("Checking if we are able to listen to Ingress Resources", func() {
 		It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
@@ -77,7 +84,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true, environment.GetFakeEnv())
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			Expect(len(ingressListInterface)).To(Equal(1), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
@@ -104,7 +111,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true, environment.GetFakeEnv())
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -129,7 +136,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true, environment.GetFakeEnv())
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -157,7 +164,7 @@ var _ = Describe("K8scontext", func() {
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(true, environment.GetFakeEnv())
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should two ingress resource.
@@ -189,7 +196,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
 
 			// Run context
-			ctxt.Run(true, environment.GetFakeEnv())
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
 			// Get and check that one of the pods exists.
 			_, exists, _ := ctxt.Caches.Pods.Get(pod)
