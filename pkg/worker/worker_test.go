@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
-var _ = Describe("WorkerTest", func() {
+var _ = Describe("Worker Test", func() {
 	var stopChannel chan struct{}
 	var eventChannel *channels.RingChannel
 
@@ -29,8 +29,8 @@ var _ = Describe("WorkerTest", func() {
 		close(stopChannel)
 	})
 
-	Context("Check that worker executes the processFunc and Exists", func() {
-		It("Should be able to run the process function on update event", func() {
+	Context("Check that worker executes the process", func() {
+		It("Should be able to run process func", func() {
 			backChannel := make(chan struct{})
 			eventProcessor := NewFakeProcessor(func(events.Event) error {
 				backChannel <- struct{}{}

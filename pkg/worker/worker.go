@@ -17,8 +17,8 @@ import (
 
 const sleepOnErrorSeconds = 5
 
-// NewWorker creates an EventQueue with a callback function. The callback
-// function processFunc is executed for each event in the queue.
+// NewWorker creates a worker with a callback function. The callback
+// function is executed for each event in the queue.
 func NewWorker(processor EventProcessor) *Worker {
 	w := &Worker{
 		EventProcessor: processor,
@@ -27,7 +27,7 @@ func NewWorker(processor EventProcessor) *Worker {
 	return w
 }
 
-// Run starts the worker . It loops until
+// Run starts the worker which listens for events in eventChannel. It loops until
 // stopChannel is closed.
 func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct{}) {
 	go func() {
@@ -47,7 +47,7 @@ func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct
 					glog.Error("Processing event failed:", err)
 					time.Sleep(sleepOnErrorSeconds * time.Second)
 				} else {
-					glog.V(3).Infoln("Processing event done, updating lastEventTimestamp")
+					glog.V(3).Infoln("Successfully processed event")
 				}
 			case <-stopChannel:
 				break
