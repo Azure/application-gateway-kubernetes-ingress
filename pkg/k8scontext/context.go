@@ -57,7 +57,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 
-		IstioGateway: istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
+		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
@@ -70,6 +70,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
 		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:            informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
@@ -125,6 +126,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 		i.AzureIngressManagedLocation:    nil,
 		i.AzureIngressProhibitedLocation: nil,
 		i.IstioGateway:                   nil,
+		i.IstioVirtualService:            nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -144,7 +146,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 
 	if envVariables.EnableIstioIntegration == "true" {
 		sharedInformers = append(sharedInformers,
-			i.IstioGateway)
+			i.IstioGateway, i.IstioVirtualService)
 	}
 
 	for _, informer := range sharedInformers {
