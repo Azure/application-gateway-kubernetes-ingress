@@ -58,6 +58,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 
 		IstioGateway: istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
+		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
