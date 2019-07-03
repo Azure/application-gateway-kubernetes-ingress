@@ -20,7 +20,6 @@ const (
 	// BackendAddressPoolName3 is a string constant.
 	BackendAddressPoolName3 = "BackendAddressPool-3"
 
-
 	// IPAddress1 is a string constant.
 	IPAddress1 = "1.2.3.4"
 
@@ -29,7 +28,6 @@ const (
 
 	// IPAddress3 is a string constant.
 	IPAddress3 = "99.95.94.93"
-
 )
 
 // GetBackendPool1 creates a new struct for use in unit tests.

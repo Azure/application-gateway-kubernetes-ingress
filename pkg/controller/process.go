@@ -41,21 +41,7 @@ func (c AppGwIngressController) Process(event eventqueue.QueuedEvent) error {
 		IstioGateways:     c.k8sContext.ListIstioGateways(),
 		EnvVariables:      environment.GetEnv(),
 	}
-	{
-		var managedTargets []string
-		for _, target := range cbCtx.ManagedTargets {
-			managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
-		}
-		glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
-	}
-	{
-		var prohibitedTargets []string
-		for _, target := range cbCtx.ProhibitedTargets {
-			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
-		}
 
-		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
-	}
 	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
 		var gatewaysInfo []string
 		for _, gateway := range cbCtx.IstioGateways {
