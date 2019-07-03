@@ -8,19 +8,19 @@ package appgw
 import (
 	"sort"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 // getRedirectConfigurations creates App Gateway redirect configuration based on Ingress annotations.
-func (c *appGwConfigBuilder) getRedirectConfigurations(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayRedirectConfiguration {
+func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayRedirectConfiguration {
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
-	for listenerID, listenerConfig := range c.getListenerConfigs(ingressList) {
+	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx.IngressList) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""

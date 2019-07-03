@@ -22,7 +22,11 @@ var _ = Describe("Process ingress rules", func() {
 			tests.NewIngressFixture(),
 		}
 
-		ports := cb.getFrontendPorts(ingressList)
+		cbCtx := ConfigBuilderContext{
+			IngressList: ingressList,
+		}
+
+		ports := cb.getFrontendPorts(&cbCtx)
 
 		It("should have correct count of ports", func() {
 			Expect(len(*ports)).To(Equal(2))

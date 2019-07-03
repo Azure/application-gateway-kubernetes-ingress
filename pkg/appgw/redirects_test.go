@@ -8,13 +8,14 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
@@ -47,7 +48,10 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("Test RequestRoutingRules with TLS and with SSL Redirect Annotation", func() {
 		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
-		actualRedirects := cb.getRedirectConfigurations(ingressList)
+		cbCtx := ConfigBuilderContext{
+			IngressList: ingressList,
+		}
+		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 		expectedRedirect := n.ApplicationGatewayRedirectConfiguration{
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType: "Permanent",
@@ -93,7 +97,10 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ingress := tests.NewIngressFixture()
 		ingress.Spec.TLS = nil
 		ingressList := []*v1beta1.Ingress{ingress}
-		actualRedirects := cb.getRedirectConfigurations(ingressList)
+		cbCtx := ConfigBuilderContext{
+			IngressList: ingressList,
+		}
+		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
 		_, actualListeners := cb.processIngressRules(ingress)
@@ -115,7 +122,10 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ingress := tests.NewIngressFixture()
 		delete(ingress.Annotations, annotations.SslRedirectKey)
 		ingressList := []*v1beta1.Ingress{ingress}
-		actualRedirects := cb.getRedirectConfigurations(ingressList)
+		cbCtx := ConfigBuilderContext{
+			IngressList: ingressList,
+		}
+		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
 		_, actualListeners := cb.processIngressRules(ingress)

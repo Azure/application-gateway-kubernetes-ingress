@@ -10,14 +10,13 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
-func (c *appGwConfigBuilder) getFrontendPorts(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewayFrontendPort {
+func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayFrontendPort {
 	allPorts := make(map[int32]interface{})
-	for _, ingress := range ingressList {
+	for _, ingress := range cbCtx.IngressList {
 		fePorts, _ := c.processIngressRules(ingress)
 		for port := range fePorts {
 			allPorts[port] = nil

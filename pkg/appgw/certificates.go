@@ -20,10 +20,10 @@ import (
 )
 
 // getSslCertificates obtains all SSL Certificates for the given Ingress object.
-func (c *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) *[]n.ApplicationGatewaySslCertificate {
+func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewaySslCertificate {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
-	for _, ingress := range ingressList {
+	for _, ingress := range cbCtx.IngressList {
 		for k, v := range c.getSecretToCertificateMap(ingress) {
 			secretIDCertificateMap[k] = v
 		}
