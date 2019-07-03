@@ -39,6 +39,9 @@ fi
 # Print Version
 ./bin/appgw-ingress --version || true
 
+# Feature Flags
+export APPGW_ENABLE_SAVE_CONFIG_TO_FILE="true"
+
 # Run
 ./bin/appgw-ingress \
     --in-cluster=false \

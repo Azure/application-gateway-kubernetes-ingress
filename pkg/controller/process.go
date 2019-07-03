@@ -84,19 +84,21 @@ func (c AppGwIngressController) Process(event eventqueue.QueuedEvent) error {
 	glog.V(3).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(3).Info("END ApplicationGateway deployment")
 
+	logToFile := cbCtx.EnvVariables.EnableSaveConfigToFile == "true"
+
 	deploymentStart := time.Now()
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, *generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := c.dumpSanitizedJSON(&appGw)
+		configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
 		glog.Errorf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		return err
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	configJSON, _ := c.dumpSanitizedJSON(&appGw)
+	configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
