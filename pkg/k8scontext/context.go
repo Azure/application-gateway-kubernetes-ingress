@@ -8,13 +8,14 @@ package k8scontext
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -30,6 +31,7 @@ import (
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -236,6 +238,10 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 			ingressList = append(ingressList, ingress)
 		}
 	}
+	// Sorting the return list ensures that the iterations over this list and
+	// subsequently created structs have deterministic order. This increases
+	// cache hits, and lowers the load on ARM.
+	sort.Sort(sorter.ByIngressUID(ingressList))
 	return ingressList
 }
 
