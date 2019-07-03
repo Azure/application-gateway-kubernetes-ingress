@@ -13,10 +13,11 @@ import (
 // ConfigBuilderContext holds the structs we have fetches from Kubernetes + environment, based on which
 // we will construct App Gateway config.
 type ConfigBuilderContext struct {
-	IngressList       []*v1beta1.Ingress
-	ServiceList       []*v1.Service
-	ManagedTargets    []*mtv1.AzureIngressManagedTarget
-	ProhibitedTargets []*ptv1.AzureIngressProhibitedTarget
-	EnvVariables      environment.EnvVariables
-	IstioGateways     []*v1alpha3.Gateway
+	IngressList          []*v1beta1.Ingress
+	ServiceList          []*v1.Service
+	ManagedTargets       []*mtv1.AzureIngressManagedTarget
+	ProhibitedTargets    []*ptv1.AzureIngressProhibitedTarget
+	EnvVariables         environment.EnvVariables
+	IstioGateways        []*v1alpha3.Gateway
+	IstioVirtualServices []*v1alpha3.VirtualService
 }
