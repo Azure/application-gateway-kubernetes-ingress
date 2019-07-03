@@ -232,6 +232,7 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 			ingressList = append(ingressList, ingress)
 		}
 	}
+
 	// Sorting the return list ensures that the iterations over this list and
 	// subsequently created structs have deterministic order. This increases
 	// cache hits, and lowers the load on ARM.

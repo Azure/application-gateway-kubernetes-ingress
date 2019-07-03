@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"strings"
 	"time"
 
@@ -32,15 +33,27 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		return errors.New("unable to get specified ApplicationGateway")
 	}
 
+	envVars := environment.GetEnv()
+
+	blacklist := brownfield.GetProhibitedTargetList(c.k8sContext.ListAzureProhibitedTargets())
+	whitelist := brownfield.GetManagedTargetList(c.k8sContext.ListAzureIngressManagedTargets())
+
+	ingressList := c.k8sContext.ListHTTPIngresses()
+	if envVars.EnableBrownfieldDeployment == "true" {
+		for idx, ingress := range ingressList {
+			glog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+			brownfield.PruneIngress(ingress, blacklist, whitelist)
+			glog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+		}
+	}
 	cbCtx := &appgw.ConfigBuilderContext{
-		// Get all Services
 		ServiceList:          c.k8sContext.ListServices(),
-		IngressList:          c.k8sContext.ListHTTPIngresses(),
+		IngressList:          ingressList,
 		ManagedTargets:       c.k8sContext.ListAzureIngressManagedTargets(),
 		ProhibitedTargets:    c.k8sContext.ListAzureProhibitedTargets(),
 		IstioGateways:        c.k8sContext.ListIstioGateways(),
 		IstioVirtualServices: c.k8sContext.ListIstioVirtualServices(),
-		EnvVariables:         environment.GetEnv(),
+		EnvVariables:         envVars,
 	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
@@ -113,6 +126,5 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(&appGw)
-
 	return nil
 }
