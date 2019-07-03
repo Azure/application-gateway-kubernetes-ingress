@@ -17,7 +17,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -64,7 +63,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) ([]byte, error) {
+func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -81,21 +80,21 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, 
 
 	prettyJSON, err := utils.PrettyJSON(sanitized, "-- App Gwy config --")
 
-	if cbCtx.EnvVariables.EnableSaveConfigToFile == "true" {
-		logToFile(prettyJSON)
+	if logToFile {
+		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
+		saveToFile(fileName, prettyJSON)
 	}
 
 	return prettyJSON, err
 }
 
-func logToFile(prettyJSON []byte) {
-	nowNano := time.Now().UnixNano()
-	tempFile, err := ioutil.TempFile("", fmt.Sprintf("app-gateway-config-%d.json", nowNano))
+func saveToFile(fileName string, content []byte) {
+	tempFile, err := ioutil.TempFile("", fileName)
 	if err != nil {
 		glog.Error(err)
 		return
 	}
-	if _, err := tempFile.Write(prettyJSON); err != nil {
+	if _, err := tempFile.Write(content); err != nil {
 		glog.Error(err)
 		return
 	}
