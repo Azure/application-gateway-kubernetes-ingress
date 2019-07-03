@@ -39,6 +39,9 @@ const (
 
 	// EnableIstioIntegrationVarName is a feature flag enabling observation of Istio specific CRDs
 	EnableIstioIntegrationVarName = "APPGW_ENABLE_ISTIO_INTEGRATION"
+
+	// EnableSaveConfigToFileVarName is a feature flag, which enables saving the App Gwy config to disk.
+	EnableSaveConfigToFileVarName = "APPGW_ENABLE_SAVE_CONFIG_TO_FILE"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -52,6 +55,7 @@ type EnvVariables struct {
 	VerbosityLevel             string
 	EnableBrownfieldDeployment string
 	EnableIstioIntegration     string
+	EnableSaveConfigToFile     string
 }
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
@@ -66,6 +70,7 @@ func GetEnv() EnvVariables {
 		VerbosityLevel:             os.Getenv(VerbosityLevelVarName),
 		EnableBrownfieldDeployment: os.Getenv(EnableBrownfieldDeploymentVarName),
 		EnableIstioIntegration:     os.Getenv(EnableIstioIntegrationVarName),
+		EnableSaveConfigToFile:     os.Getenv(EnableSaveConfigToFileVarName),
 	}
 
 	return env
