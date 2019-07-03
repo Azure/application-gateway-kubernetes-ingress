@@ -2,9 +2,10 @@
 
 set -eauo pipefail
 
-GIT_TAG=$(git describe --abbrev=0 --tags)
+TAG=${1:-$(git describe --abbrev=0 --tags)}
 
-TGZ_FILE=(ingress-azure-$GIT_TAG.tgz)
+echo " - tagging with [$TAG]"
+TGZ_FILE=(ingress-azure-$TAG.tgz)
 
 if [ -f $TGZ_FILE ]; then
   echo "File $TGZ_FILE already exists!"
@@ -12,11 +13,11 @@ if [ -f $TGZ_FILE ]; then
 fi
 
 echo " - update helm templates"
-cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/Chart.yaml
-cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$GIT_TAG/g" > ingress-azure/values.yaml
+cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ingress-azure/Chart.yaml
+cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ingress-azure/values.yaml
 
 echo " - running helm package"
-helm package ingress-azure --version "$GIT_TAG"
+helm package ingress-azure --version "$TAG"
 
 echo " - updating helm repo index"
 helm repo index . --url https://azure.github.io/application-gateway-kubernetes-ingress/helm
