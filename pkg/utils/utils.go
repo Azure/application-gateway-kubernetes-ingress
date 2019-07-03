@@ -58,6 +58,7 @@ func GetLastChunkOfSlashed(s string) string {
 	return split[len(split)-1]
 }
 
+// SaveToFile saves the content into a fileName - a tool primarily used for debugging purposes.
 func SaveToFile(fileName string, content []byte) {
 	tempFile, err := ioutil.TempFile("", fileName)
 	if err != nil {
