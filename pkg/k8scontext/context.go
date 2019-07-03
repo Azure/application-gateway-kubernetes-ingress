@@ -326,6 +326,25 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	return secret
 }
 
+// GetVirtualServicesForGateway returns the VirtualServices for the provided gateway
+func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1alpha3.VirtualService {
+	virtualServices := make([]*v1alpha3.VirtualService, 0)
+	allVirtualServices := c.ListIstioVirtualServices()
+	gatewayName := gateway.Name
+	for _, service := range allVirtualServices {
+		hasGateway := false
+		for _, serviceGateway := range service.Spec.Gateways {
+			if gatewayName == serviceGateway {
+				hasGateway = true
+			}
+		}
+		if hasGateway {
+			virtualServices = append(virtualServices, service)
+		}
+	}
+	return virtualServices
+}
+
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
