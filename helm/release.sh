@@ -24,7 +24,7 @@ helm package ingress-azure --version "$TAG"
 
 INDEX_FILE_URL="$HELM_REPO_URL/index.yaml"
 echo " - check if helm index [$INDEX_FILE_URL] exists in helm repo [$HELM_REPO_URL]"
-status_code=$(curl -s --http1.0 --head $INDEX_FILE_URL | head -n 1 | awk '{print $2}')
+status_code=$(curl -s --head $INDEX_FILE_URL | head -n 1 | awk '{print $2}')
 
 if [ $status_code -eq "200" ]; then
   echo " - get current helm index from helm repo [$HELM_REPO_URL]"
