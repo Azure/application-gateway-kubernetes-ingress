@@ -342,6 +342,11 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 			virtualServices = append(virtualServices, service)
 		}
 	}
+	var virtualServiceLogging []string
+	for _, virtualService := range virtualServices {
+		virtualServiceLogging = append(virtualServiceLogging, fmt.Sprintf("%s/%s", virtualService.Namespace, virtualService.Name))
+	}
+	glog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
 	return virtualServices
 }
 
