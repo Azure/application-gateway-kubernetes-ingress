@@ -9,10 +9,14 @@ func GetVirtualServicesForGateway(gateway v1alpha3.Gateway, c *k8scontext.Contex
 	allVirtualServices := c.ListIstioVirtualServices()
 	gatewayName := gateway.Name
 	for _, service := range allVirtualServices {
+		hasGateway := false
 		for _, serviceGateway := range service.Spec.Gateways {
 			if gatewayName == serviceGateway {
-				virtualServices = append(virtualServices, service)
+				hasGateway = true
 			}
+		}
+		if hasGateway {
+			virtualServices = append(virtualServices, service)
 		}
 	}
 	return virtualServices
