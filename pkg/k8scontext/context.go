@@ -8,6 +8,7 @@ package k8scontext
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
@@ -241,6 +242,13 @@ func (c *Context) ListAzureIngressManagedTargets() []*managedv1.AzureIngressMana
 	for _, obj := range c.Caches.AzureIngressManagedLocation.List() {
 		targets = append(targets, obj.(*managedv1.AzureIngressManagedTarget))
 	}
+
+	var managedTargets []string
+	for _, target := range targets {
+		managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+	}
+	glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
+
 	return targets
 }
 
@@ -250,6 +258,14 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	for _, obj := range c.Caches.AzureIngressProhibitedLocation.List() {
 		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
 	}
+
+	var prohibitedTargets []string
+	for _, target := range targets {
+		prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+	}
+
+	glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+
 	return targets
 }
 
