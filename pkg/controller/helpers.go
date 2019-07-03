@@ -8,8 +8,11 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strings"
+	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
@@ -60,7 +63,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway) ([]byte, error) {
+func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -75,7 +78,31 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway) 
 		return nil, err
 	}
 
-	return utils.PrettyJSON(sanitized, "-- App Gwy config --")
+	prettyJSON, err := utils.PrettyJSON(sanitized, "-- App Gwy config --")
+
+	if logToFile {
+		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
+		saveToFile(fileName, prettyJSON)
+	}
+
+	return prettyJSON, err
+}
+
+func saveToFile(fileName string, content []byte) {
+	tempFile, err := ioutil.TempFile("", fileName)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	if _, err := tempFile.Write(content); err != nil {
+		glog.Error(err)
+		return
+	}
+	if err := tempFile.Close(); err != nil {
+		glog.Error(err)
+		return
+	}
+	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
 }
 
 func isMap(v interface{}) bool {
