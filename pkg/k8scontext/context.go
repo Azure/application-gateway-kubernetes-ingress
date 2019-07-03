@@ -80,7 +80,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
-		stopChannel:            make(chan struct{}),
 		UpdateChannel:          updateChannel,
 	}
 
@@ -115,9 +114,9 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(omitCRDs bool, envVariables environment.EnvVariables) {
+func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(c.stopChannel, omitCRDs, envVariables)
+	c.informers.Run(stopChannel, omitCRDs, envVariables)
 	glog.V(1).Infoln("k8s context run finished")
 }
 
@@ -169,11 +168,6 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	}
 
 	glog.V(1).Infoln("initial cache sync done")
-}
-
-// Stop function stops all informers in the context.
-func (c *Context) Stop() {
-	c.stopChannel <- struct{}{}
 }
 
 // ListServices returns a list of all the Services from cache.

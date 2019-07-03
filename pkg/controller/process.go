@@ -17,12 +17,12 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/eventqueue"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
 // Process is the callback function that will be executed for every event
 // in the EventQueue.
-func (c AppGwIngressController) Process(event eventqueue.QueuedEvent) error {
+func (c AppGwIngressController) Process(event events.Event) error {
 	ctx := context.Background()
 
 	// Get current application gateway config
