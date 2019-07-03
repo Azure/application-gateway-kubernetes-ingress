@@ -8,8 +8,11 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // MaxInt64 returns the greater one of the two
@@ -53,4 +56,21 @@ func PrettyJSON(js []byte, prefix string) ([]byte, error) {
 func GetLastChunkOfSlashed(s string) string {
 	split := strings.Split(s, "/")
 	return split[len(split)-1]
+}
+
+func SaveToFile(fileName string, content []byte) {
+	tempFile, err := ioutil.TempFile("", fileName)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	if _, err := tempFile.Write(content); err != nil {
+		glog.Error(err)
+		return
+	}
+	if err := tempFile.Close(); err != nil {
+		glog.Error(err)
+		return
+	}
+	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
 }

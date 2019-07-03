@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"reflect"
 	"strings"
 	"time"
@@ -82,27 +81,10 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, 
 
 	if logToFile {
 		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
-		saveToFile(fileName, prettyJSON)
+		utils.SaveToFile(fileName, prettyJSON)
 	}
 
 	return prettyJSON, err
-}
-
-func saveToFile(fileName string, content []byte) {
-	tempFile, err := ioutil.TempFile("", fileName)
-	if err != nil {
-		glog.Error(err)
-		return
-	}
-	if _, err := tempFile.Write(content); err != nil {
-		glog.Error(err)
-		return
-	}
-	if err := tempFile.Close(); err != nil {
-		glog.Error(err)
-		return
-	}
-	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
 }
 
 func isMap(v interface{}) bool {
