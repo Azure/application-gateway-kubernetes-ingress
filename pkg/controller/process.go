@@ -34,28 +34,15 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	cbCtx := &appgw.ConfigBuilderContext{
 		// Get all Services
-		ServiceList:       c.k8sContext.ListServices(),
-		IngressList:       c.k8sContext.ListHTTPIngresses(),
-		ManagedTargets:    c.k8sContext.ListAzureIngressManagedTargets(),
-		ProhibitedTargets: c.k8sContext.ListAzureProhibitedTargets(),
-		IstioGateways:     c.k8sContext.ListIstioGateways(),
-		EnvVariables:      environment.GetEnv(),
+		ServiceList:          c.k8sContext.ListServices(),
+		IngressList:          c.k8sContext.ListHTTPIngresses(),
+		ManagedTargets:       c.k8sContext.ListAzureIngressManagedTargets(),
+		ProhibitedTargets:    c.k8sContext.ListAzureProhibitedTargets(),
+		IstioGateways:        c.k8sContext.ListIstioGateways(),
+		IstioVirtualServices: c.k8sContext.ListIstioVirtualServices(),
+		EnvVariables:         environment.GetEnv(),
 	}
-	{
-		var managedTargets []string
-		for _, target := range cbCtx.ManagedTargets {
-			managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
-		}
-		glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
-	}
-	{
-		var prohibitedTargets []string
-		for _, target := range cbCtx.ProhibitedTargets {
-			prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
-		}
 
-		glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
-	}
 	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
 		var gatewaysInfo []string
 		for _, gateway := range cbCtx.IstioGateways {
@@ -97,19 +84,21 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	glog.V(3).Info("BEGIN ApplicationGateway deployment")
 	defer glog.V(3).Info("END ApplicationGateway deployment")
 
+	logToFile := cbCtx.EnvVariables.EnableSaveConfigToFile == "true"
+
 	deploymentStart := time.Now()
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, *generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := c.dumpSanitizedJSON(&appGw)
+		configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
 		glog.Errorf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		return err
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	configJSON, _ := c.dumpSanitizedJSON(&appGw)
+	configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.

@@ -1,0 +1,34 @@
+trigger:
+  tags:
+    include:
+      - '*'
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  GOPATH: '$(system.defaultWorkingDirectory)/gopath'
+  GOBIN:  '$(GOPATH)/bin'
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)'
+  GOOS: 'linux'
+  GO111MODULE: 'on'
+  GO_PROJ: 'github.com/Azure/$(build.repository.name)'
+
+steps:
+- template: build.yml
+
+- task: CopyFiles@2
+  inputs:
+    contents: |
+     $(GOBIN)/appgw-ingress
+     $(modulePath)/dockerfiles/deploy.Dockerfile
+     $(modulePath)/scripts/**
+     $(modulePath)/helm/**
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: drop
