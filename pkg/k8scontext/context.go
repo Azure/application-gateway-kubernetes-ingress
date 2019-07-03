@@ -281,6 +281,7 @@ func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
 	return gateways
 }
 
+// ListIstioVirtualServices returns a list of discovered Istio Virtual Services
 func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
 	var virtualServices []*v1alpha3.VirtualService
 	for _, virtualService := range c.Caches.IstioVirtualService.List() {
