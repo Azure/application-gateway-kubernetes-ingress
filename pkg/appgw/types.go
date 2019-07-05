@@ -2,7 +2,7 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
