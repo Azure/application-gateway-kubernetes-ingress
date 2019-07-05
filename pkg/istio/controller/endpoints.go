@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 )
@@ -15,5 +19,11 @@ func GetEndpointsForVirtualService(virtualService v1alpha3.VirtualService) v1.En
 		addresses = append(addresses, newAddress)
 	}
 	endpointSubset.Addresses = addresses
+	var endpointsLogging []string
+	for _, endpoint := range addresses {
+		endpointsLogging = append(endpointsLogging, fmt.Sprintf(endpoint.IP))
+	}
+	glog.V(5).Infof("Found Endpoints: %+v", strings.Join(endpointsLogging, ","))
+	print(strings.Join(endpointsLogging, ","))
 	return endpointSubset
 }
