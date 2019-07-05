@@ -8,12 +8,14 @@ package k8scontext
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
-	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -24,11 +26,12 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	managedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/clientset/versioned"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/client/informers/externalversions"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
+	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
+	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/clientset/versioned"
-	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/istio_client/informers/externalversions"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -56,7 +59,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 
-		IstioGateway: istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
+		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
+		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
@@ -68,6 +72,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
 		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:            informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
@@ -75,7 +80,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
-		stopChannel:            make(chan struct{}),
 		UpdateChannel:          updateChannel,
 	}
 
@@ -110,157 +114,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(omitCRDs bool, envVariables environment.EnvVariables) {
+func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(c.stopChannel, omitCRDs, envVariables)
+	c.informers.Run(stopChannel, omitCRDs, envVariables)
 	glog.V(1).Infoln("k8s context run finished")
-}
-
-// GetServiceList returns a list of all the Services from cache.
-func (c *Context) GetServiceList() []*v1.Service {
-	var serviceList []*v1.Service
-	for _, ingressInterface := range c.Caches.Service.List() {
-		service := ingressInterface.(*v1.Service)
-		if hasTCPPort(service) {
-			serviceList = append(serviceList, service)
-		}
-	}
-	return serviceList
-}
-
-func hasTCPPort(service *v1.Service) bool {
-	for _, port := range service.Spec.Ports {
-		if port.Protocol == v1.ProtocolTCP {
-			return true
-		}
-	}
-	return false
-}
-
-// GetHTTPIngressList returns a list of all the ingresses for HTTP from cache.
-func (c *Context) GetHTTPIngressList() []*v1beta1.Ingress {
-	var ingressList []*v1beta1.Ingress
-	for _, ingressInterface := range c.Caches.Ingress.List() {
-		ingress := ingressInterface.(*v1beta1.Ingress)
-		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
-			ingressList = append(ingressList, ingress)
-		}
-	}
-	return ingressList
-}
-
-// GetAzureIngressManagedTargets returns a list of App Gwy configs, for which AGIC is explicitly allowed to modify config.
-func (c *Context) GetAzureIngressManagedTargets() []*managedv1.AzureIngressManagedTarget {
-	var targets []*managedv1.AzureIngressManagedTarget
-	for _, obj := range c.Caches.AzureIngressManagedLocation.List() {
-		targets = append(targets, obj.(*managedv1.AzureIngressManagedTarget))
-	}
-	return targets
-}
-
-// GetAzureProhibitedTargets returns a list of App Gwy configs, for which AGIC is not allowed to modify config.
-func (c *Context) GetAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
-	var targets []*prohibitedv1.AzureIngressProhibitedTarget
-	for _, obj := range c.Caches.AzureIngressProhibitedLocation.List() {
-		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
-	}
-	return targets
-}
-
-// GetIstioGateways returns a list of discovered Istio Gateways
-func (c *Context) GetIstioGateways() []*v1alpha3.Gateway {
-	var gateways []*v1alpha3.Gateway
-	for _, gateway := range c.Caches.IstioGateway.List() {
-		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
-	}
-	return gateways
-}
-
-func hasHTTPRule(ingress *v1beta1.Ingress) bool {
-	for _, rule := range ingress.Spec.Rules {
-		if rule.HTTP != nil {
-			return true
-		}
-	}
-	return false
-}
-
-// GetEndpointsByService returns the endpoints associated with a specific service.
-func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
-	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
-
-	if err != nil {
-		glog.Error("Error fetching endpoints from store, error occurred ", err)
-		return nil, err
-	}
-
-	if !exist {
-		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
-		glog.Error(msg)
-		return nil, errors.New(msg)
-	}
-
-	return endpointsInterface.(*v1.Endpoints), nil
-}
-
-// GetService returns the service identified by the key.
-// Deprecated: Please use a map instead
-func (c *Context) GetService(serviceKey string) *v1.Service {
-	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
-
-	if err != nil {
-		glog.V(1).Infof("unable to get service from store, error occurred %s", err.Error())
-		return nil
-	}
-
-	if !exist {
-		glog.V(1).Infof("unable to get service from store, no such service %s", serviceKey)
-		return nil
-	}
-
-	service := serviceInterface.(*v1.Service)
-	return service
-}
-
-// GetPodsByServiceSelector returns pods that are associated with a specific service.
-func (c *Context) GetPodsByServiceSelector(selector map[string]string) []*v1.Pod {
-	selectorSet := mapset.NewSet()
-	for k, v := range selector {
-		selectorSet.Add(k + ":" + v)
-	}
-
-	var podList []*v1.Pod
-	for _, podInterface := range c.Caches.Pods.List() {
-		pod := podInterface.(*v1.Pod)
-		podLabelSet := mapset.NewSet()
-		for k, v := range pod.Labels {
-			podLabelSet.Add(k + ":" + v)
-		}
-
-		if selectorSet.IsSubset(podLabelSet) {
-			podList = append(podList, pod)
-		}
-	}
-
-	return podList
-}
-
-// GetSecret returns the secret identified by the key
-func (c *Context) GetSecret(secretKey string) *v1.Secret {
-	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
-
-	if err != nil {
-		glog.Error("Error fetching secret from store:", err)
-		return nil
-	}
-
-	if !exist {
-		glog.Error("Error fetching secret from store! Service does not exist:", secretKey)
-		return nil
-	}
-
-	secret := secretInterface.(*v1.Secret)
-	return secret
 }
 
 // Run function starts all the informers and waits for an initial sync.
@@ -270,6 +127,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 		i.AzureIngressManagedLocation:    nil,
 		i.AzureIngressProhibitedLocation: nil,
 		i.IstioGateway:                   nil,
+		i.IstioVirtualService:            nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -289,7 +147,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 
 	if envVariables.EnableIstioIntegration == "true" {
 		sharedInformers = append(sharedInformers,
-			i.IstioGateway)
+			i.IstioGateway, i.IstioVirtualService)
 	}
 
 	for _, informer := range sharedInformers {
@@ -312,12 +170,205 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	glog.V(1).Infoln("initial cache sync done")
 }
 
-// Stop function stops all informers in the context.
-func (c *Context) Stop() {
-	c.stopChannel <- struct{}{}
+// ListServices returns a list of all the Services from cache.
+func (c *Context) ListServices() []*v1.Service {
+	var serviceList []*v1.Service
+	for _, ingressInterface := range c.Caches.Service.List() {
+		service := ingressInterface.(*v1.Service)
+		if hasTCPPort(service) {
+			serviceList = append(serviceList, service)
+		}
+	}
+	return serviceList
+}
+
+// GetEndpointsByService returns the endpoints associated with a specific service.
+func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
+	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
+
+	if err != nil {
+		glog.Error("Error fetching endpoints from store, error occurred ", err)
+		return nil, err
+	}
+
+	if !exist {
+		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
+		glog.Error(msg)
+		return nil, errors.New(msg)
+	}
+
+	return endpointsInterface.(*v1.Endpoints), nil
+}
+
+// ListPodsByServiceSelector returns pods that are associated with a specific service.
+func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Pod {
+	selectorSet := mapset.NewSet()
+	for k, v := range selector {
+		selectorSet.Add(k + ":" + v)
+	}
+
+	var podList []*v1.Pod
+	for _, podInterface := range c.Caches.Pods.List() {
+		pod := podInterface.(*v1.Pod)
+		podLabelSet := mapset.NewSet()
+		for k, v := range pod.Labels {
+			podLabelSet.Add(k + ":" + v)
+		}
+
+		if selectorSet.IsSubset(podLabelSet) {
+			podList = append(podList, pod)
+		}
+	}
+
+	return podList
+}
+
+// ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
+func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
+	var ingressList []*v1beta1.Ingress
+	for _, ingressInterface := range c.Caches.Ingress.List() {
+		ingress := ingressInterface.(*v1beta1.Ingress)
+		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
+			ingressList = append(ingressList, ingress)
+		}
+	}
+	// Sorting the return list ensures that the iterations over this list and
+	// subsequently created structs have deterministic order. This increases
+	// cache hits, and lowers the load on ARM.
+	sort.Sort(sorter.ByIngressUID(ingressList))
+	return ingressList
+}
+
+// ListAzureIngressManagedTargets returns a list of App Gwy configs, for which AGIC is explicitly allowed to modify config.
+func (c *Context) ListAzureIngressManagedTargets() []*managedv1.AzureIngressManagedTarget {
+	var targets []*managedv1.AzureIngressManagedTarget
+	for _, obj := range c.Caches.AzureIngressManagedLocation.List() {
+		targets = append(targets, obj.(*managedv1.AzureIngressManagedTarget))
+	}
+
+	var managedTargets []string
+	for _, target := range targets {
+		managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+	}
+	glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
+
+	return targets
+}
+
+// ListAzureProhibitedTargets returns a list of App Gwy configs, for which AGIC is not allowed to modify config.
+func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
+	var targets []*prohibitedv1.AzureIngressProhibitedTarget
+	for _, obj := range c.Caches.AzureIngressProhibitedLocation.List() {
+		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
+	}
+
+	var prohibitedTargets []string
+	for _, target := range targets {
+		prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+	}
+
+	glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+
+	return targets
+}
+
+// ListIstioGateways returns a list of discovered Istio Gateways
+func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
+	var gateways []*v1alpha3.Gateway
+	for _, gateway := range c.Caches.IstioGateway.List() {
+		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
+	}
+	return gateways
+}
+
+// ListIstioVirtualServices returns a list of discovered Istio Virtual Services
+func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
+	var virtualServices []*v1alpha3.VirtualService
+	for _, virtualService := range c.Caches.IstioVirtualService.List() {
+		virtualServices = append(virtualServices, virtualService.(*v1alpha3.VirtualService))
+	}
+	return virtualServices
+}
+
+// GetService returns the service identified by the key.
+func (c *Context) GetService(serviceKey string) *v1.Service {
+	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
+
+	if err != nil {
+		glog.V(1).Infof("unable to get service from store, error occurred %s", err.Error())
+		return nil
+	}
+
+	if !exist {
+		glog.V(1).Infof("unable to get service from store, no such service %s", serviceKey)
+		return nil
+	}
+
+	service := serviceInterface.(*v1.Service)
+	return service
+}
+
+// GetSecret returns the secret identified by the key
+func (c *Context) GetSecret(secretKey string) *v1.Secret {
+	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
+
+	if err != nil {
+		glog.Error("Error fetching secret from store:", err)
+		return nil
+	}
+
+	if !exist {
+		glog.Error("Error fetching secret from store! Service does not exist:", secretKey)
+		return nil
+	}
+
+	secret := secretInterface.(*v1.Secret)
+	return secret
+}
+
+// GetVirtualServicesForGateway returns the VirtualServices for the provided gateway
+func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1alpha3.VirtualService {
+	virtualServices := make([]*v1alpha3.VirtualService, 0)
+	allVirtualServices := c.ListIstioVirtualServices()
+	gatewayName := gateway.Name
+	for _, service := range allVirtualServices {
+		hasGateway := false
+		for _, serviceGateway := range service.Spec.Gateways {
+			if gatewayName == serviceGateway {
+				hasGateway = true
+			}
+		}
+		if hasGateway {
+			virtualServices = append(virtualServices, service)
+		}
+	}
+	var virtualServiceLogging []string
+	for _, virtualService := range virtualServices {
+		virtualServiceLogging = append(virtualServiceLogging, fmt.Sprintf("%s/%s", virtualService.Namespace, virtualService.Name))
+	}
+	glog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
+	return virtualServices
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
+}
+
+func hasHTTPRule(ingress *v1beta1.Ingress) bool {
+	for _, rule := range ingress.Spec.Rules {
+		if rule.HTTP != nil {
+			return true
+		}
+	}
+	return false
+}
+
+func hasTCPPort(service *v1.Service) bool {
+	for _, port := range service.Spec.Ports {
+		if port.Protocol == v1.ProtocolTCP {
+			return true
+		}
+	}
+	return false
 }

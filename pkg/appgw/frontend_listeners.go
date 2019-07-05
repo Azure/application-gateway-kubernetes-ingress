@@ -82,7 +82,7 @@ func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n
 
 func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVariables) *string {
 	usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP)
-	for _, ip := range *c.appGwConfig.FrontendIPConfigurations {
+	for _, ip := range *c.appGw.FrontendIPConfigurations {
 		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil &&
 			((usePrivateIP && ip.PrivateIPAddress != nil) ||
 				(!usePrivateIP && ip.PublicIPAddress != nil)) {

@@ -8,27 +8,28 @@ package appgw
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"sort"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 // getSslCertificates obtains all SSL Certificates for the given Ingress object.
-func (c *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ingress) *[]network.ApplicationGatewaySslCertificate {
+func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewaySslCertificate {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
-	for _, ingress := range ingressList {
+	for _, ingress := range cbCtx.IngressList {
 		for k, v := range c.getSecretToCertificateMap(ingress) {
 			secretIDCertificateMap[k] = v
 		}
 	}
 
-	var sslCertificates []network.ApplicationGatewaySslCertificate
+	var sslCertificates []n.ApplicationGatewaySslCertificate
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, newCert(secretID, cert))
 	}
@@ -116,11 +117,11 @@ func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[st
 	return hostToSecretMap
 }
 
-func newCert(secretID secretIdentifier, cert *string) network.ApplicationGatewaySslCertificate {
-	return network.ApplicationGatewaySslCertificate{
+func newCert(secretID secretIdentifier, cert *string) n.ApplicationGatewaySslCertificate {
+	return n.ApplicationGatewaySslCertificate{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(secretID.secretFullName()),
-		ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
+		ApplicationGatewaySslCertificatePropertiesFormat: &n.ApplicationGatewaySslCertificatePropertiesFormat{
 			Data:     cert,
 			Password: to.StringPtr("msazure"),
 		},

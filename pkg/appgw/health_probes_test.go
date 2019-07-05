@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -43,13 +43,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		// !! Action !!
 		_ = cb.HealthProbesCollection(cbCtx)
-		actual := cb.appGwConfig.Probes
+		actual := cb.appGw.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
-		defaultProbe := network.ApplicationGatewayProbe{
+		defaultProbe := n.ApplicationGatewayProbe{
 
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            network.HTTP,
+			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr("localhost"),
 				Path:                                to.StringPtr("/"),
 				Interval:                            to.Int32Ptr(30),
@@ -65,9 +65,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Type: nil,
 			ID:   nil,
 		}
-		probeForHost := network.ApplicationGatewayProbe{
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            network.HTTP,
+		probeForHost := n.ApplicationGatewayProbe{
+			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.URLPath),
 				Interval:                            to.Int32Ptr(30),
@@ -84,9 +84,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 			ID:   nil,
 		}
 
-		probeForOtherHost := network.ApplicationGatewayProbe{
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            network.HTTP,
+		probeForOtherHost := n.ApplicationGatewayProbe{
+			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.URLPath),
 				Interval:                            to.Int32Ptr(20),
@@ -133,13 +133,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		// !! Action !!
 		_ = cb.HealthProbesCollection(cbCtx)
-		actual := cb.appGwConfig.Probes
+		actual := cb.appGw.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
-		defaultProbe := network.ApplicationGatewayProbe{
+		defaultProbe := n.ApplicationGatewayProbe{
 
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            network.HTTP,
+			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
+				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr("localhost"),
 				Path:                                to.StringPtr("/"),
 				Interval:                            to.Int32Ptr(30),

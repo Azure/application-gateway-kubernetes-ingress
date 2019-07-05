@@ -18,6 +18,7 @@ type InformerCollection struct {
 	AzureIngressManagedLocation    cache.SharedInformer
 	AzureIngressProhibitedLocation cache.SharedInformer
 	IstioGateway                   cache.SharedIndexInformer
+	IstioVirtualService            cache.SharedIndexInformer
 }
 
 // CacheCollection : all the listers from the informers.
@@ -31,6 +32,7 @@ type CacheCollection struct {
 	AzureIngressManagedLocation    cache.Store
 	AzureIngressProhibitedLocation cache.Store
 	IstioGateway                   cache.Store
+	IstioVirtualService            cache.Store
 }
 
 // Context : cache and listener for k8s resources.
@@ -40,7 +42,6 @@ type Context struct {
 	CertificateSecretStore SecretsKeeper
 
 	ingressSecretsMap utils.ThreadsafeMultiMap
-	stopChannel       chan struct{}
 
 	UpdateChannel *channels.RingChannel
 }

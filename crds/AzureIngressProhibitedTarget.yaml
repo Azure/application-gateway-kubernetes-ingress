@@ -17,7 +17,7 @@ spec:
             ip:
               description: "(required) IP address of the prohibited target; Could be the public or private address attached to the Application Gateway"
               type: string
-            host:
+            hostname:
               description: "(optional) Hostname of the prohibited target"
               type: string
             port:

@@ -13,19 +13,48 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
-func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
+func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
+	pools := c.getPools(cbCtx)
+	if pools != nil {
+		sort.Sort(sorter.ByBackendPoolName(pools))
+	}
+	c.appGw.BackendAddressPools = &pools
+	return nil
+}
+
+func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
+	defaultPool := defaultBackendAddressPool()
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: defaultPool,
+	}
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
+	for backendID, serviceBackendPair := range serviceBackendPairMap {
+		glog.V(5).Info("Constructing backend pool for service:", backendID.serviceKey())
+		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+			addressPools[*pool.Name] = pool
+		}
+	}
+
+	var allPools []n.ApplicationGatewayBackendAddressPool
+	for _, addr := range addressPools {
+		allPools = append(allPools, *addr)
+	}
+
+	return allPools
+}
+
+func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
 	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList, serviceList)
+	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		backendPoolMap[backendID] = defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
@@ -33,30 +62,6 @@ func (c *appGwConfigBuilder) newBackendPoolMap(ingressList []*v1beta1.Ingress, s
 		}
 	}
 	return backendPoolMap
-}
-
-func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
-	defaultPool := defaultBackendAddressPool()
-	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
-	}
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx.IngressList, cbCtx.ServiceList)
-	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		glog.V(5).Info("Constructing backend pool for service:", backendID.serviceKey())
-		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
-			addressPools[*pool.Name] = pool
-		}
-	}
-	c.appGwConfig.BackendAddressPools = getBackendPoolMapValues(&addressPools)
-	return nil
-}
-
-func getBackendPoolMapValues(m *map[string]*n.ApplicationGatewayBackendAddressPool) *[]n.ApplicationGatewayBackendAddressPool {
-	var backendAddressPools []n.ApplicationGatewayBackendAddressPool
-	for _, addr := range *m {
-		backendAddressPools = append(backendAddressPools, *addr)
-	}
-	return &backendAddressPools
 }
 
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {

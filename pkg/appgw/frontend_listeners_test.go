@@ -160,12 +160,12 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should have fatal crash.", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
-			cb.appGwConfig.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
-				(*cb.appGwConfig.FrontendIPConfigurations)[0],
+			cb.appGw.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				(*cb.appGw.FrontendIPConfigurations)[0],
 			}
 
-			Expect((*cb.appGwConfig.FrontendIPConfigurations)[0].ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PublicIPAddress).ToNot(Equal(nil))
-			Expect(len(*cb.appGwConfig.FrontendIPConfigurations)).To(Equal(1))
+			Expect((*cb.appGw.FrontendIPConfigurations)[0].ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PublicIPAddress).ToNot(Equal(nil))
+			Expect(len(*cb.appGw.FrontendIPConfigurations)).To(Equal(1))
 
 			// exiter = New(func() { cb.newListener(listener80, n.ApplicationGatewayProtocol("Https")) })
 			// exiter.Exit(3)

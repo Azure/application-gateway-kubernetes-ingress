@@ -1,12 +1,13 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -21,15 +22,19 @@ var _ = Describe("Process ingress rules", func() {
 			tests.NewIngressFixture(),
 		}
 
-		ports := cb.getFrontendPorts(ingressList)
+		cbCtx := ConfigBuilderContext{
+			IngressList: ingressList,
+		}
+
+		ports := cb.getFrontendPorts(&cbCtx)
 
 		It("should have correct count of ports", func() {
 			Expect(len(*ports)).To(Equal(2))
 		})
 
 		It("should have port 80", func() {
-			expected := network.ApplicationGatewayFrontendPort{
-				ApplicationGatewayFrontendPortPropertiesFormat: &network.ApplicationGatewayFrontendPortPropertiesFormat{
+			expected := n.ApplicationGatewayFrontendPort{
+				ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
 					Port:              to.Int32Ptr(80),
 					ProvisioningState: nil,
 				},
@@ -42,8 +47,8 @@ var _ = Describe("Process ingress rules", func() {
 		})
 
 		It("should have port 443", func() {
-			expected := network.ApplicationGatewayFrontendPort{
-				ApplicationGatewayFrontendPortPropertiesFormat: &network.ApplicationGatewayFrontendPortPropertiesFormat{
+			expected := n.ApplicationGatewayFrontendPort{
+				ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
 					Port:              to.Int32Ptr(443),
 					ProvisioningState: nil,
 				},

@@ -50,13 +50,13 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			tests.NewServiceFixture(),
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 
 		It("should contain correct number of backend address pools", func() {
-			Expect(len(*cb.appGwConfig.BackendAddressPools)).To(Equal(1))
+			Expect(len(*cb.appGw.BackendAddressPools)).To(Equal(1))
 
 		})
 
@@ -73,7 +73,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				ID:   nil,
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: props,
 			}
-			Expect(*cb.appGwConfig.BackendAddressPools).To(ContainElement(expected))
+			Expect(*cb.appGw.BackendAddressPools).To(ContainElement(expected))
 		})
 	})
 
@@ -84,7 +84,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
 		}
 		_ = cb.BackendAddressPools(cbCtx)
@@ -119,7 +119,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 		cbCtx := &ConfigBuilderContext{
 			ServiceList: serviceList,
-			IngressList: cb.k8sContext.GetHTTPIngressList(),
+			IngressList: cb.k8sContext.ListHTTPIngresses(),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 

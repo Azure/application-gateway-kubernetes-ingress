@@ -8,18 +8,22 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 var keysToDeleteForCache = []string{
 	"etag",
 }
 
-func (c *AppGwIngressController) updateCache(appGw *network.ApplicationGateway) {
+func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		glog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
@@ -33,11 +37,11 @@ func (c *AppGwIngressController) updateCache(appGw *network.ApplicationGateway) 
 		c.configCache = nil
 		return
 	}
-	c.configCache = &sanitized
+	*c.configCache = sanitized
 }
 
 // configIsSame compares the newly created App Gwy configuration with a cache to determine whether anything has changed.
-func (c *AppGwIngressController) configIsSame(appGw *network.ApplicationGateway) bool {
+func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool {
 	if c.configCache == nil {
 		return false
 	}
@@ -58,7 +62,7 @@ func (c *AppGwIngressController) configIsSame(appGw *network.ApplicationGateway)
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGateway) ([]byte, error) {
+func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -68,15 +72,19 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *network.ApplicationGat
 	keysToDelete := []string{
 		"sslCertificates",
 	}
-	var stripped []byte
-	if stripped, err = deleteKeyFromJSON(jsonConfig, keysToDelete...); err != nil {
+	var sanitized []byte
+	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDelete...); err != nil {
 		return nil, err
 	}
 
-	// Unmarshal and Marshall again with Indent so it is human readable
-	var config interface{}
-	_ = json.Unmarshal(stripped, &config)
-	return json.MarshalIndent(config, "-- App Gwy config --", "    ")
+	prettyJSON, err := utils.PrettyJSON(sanitized, "-- App Gwy config --")
+
+	if logToFile {
+		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
+		utils.SaveToFile(fileName, prettyJSON)
+	}
+
+	return prettyJSON, err
 }
 
 func isMap(v interface{}) bool {

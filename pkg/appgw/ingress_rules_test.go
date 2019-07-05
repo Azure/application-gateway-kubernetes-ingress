@@ -76,7 +76,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 
 		// check the request routing rules
 		It("should have no request routing rules", func() {
-			Expect(cb.appGwConfig.RequestRoutingRules).To(BeNil())
+			Expect(cb.appGw.RequestRoutingRules).To(BeNil())
 		})
 
 		It("should construct the App Gateway listeners correctly without SSL", func() {
@@ -142,7 +142,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 
 		It("should have no request routing rules ", func() {
-			Expect(cb.appGwConfig.RequestRoutingRules).To(BeNil())
+			Expect(cb.appGw.RequestRoutingRules).To(BeNil())
 		})
 
 		It("should configure App Gateway listeners correctly", func() {

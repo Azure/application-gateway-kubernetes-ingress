@@ -9,25 +9,37 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
-func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, serviceList []*v1.Service) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier]*network.ApplicationGatewayProbe) {
-	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
-	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
+func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
+	healthProbeCollection, _ := c.newProbesMap(cbCtx)
+	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
+	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
+	for _, probe := range healthProbeCollection {
+		probes = append(probes, probe)
+	}
+	sort.Sort(sorter.ByHealthProbeName(probes))
+	c.appGw.Probes = &probes
+	return nil
+}
+
+func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
+	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
+	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
 	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for backendID := range newBackendIdsFiltered(ingressList, serviceList) {
+	for backendID := range newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
@@ -42,19 +54,7 @@ func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress, servic
 	return healthProbeCollection, probesMap
 }
 
-func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
-	healthProbeCollection, _ := c.newProbesMap(cbCtx.IngressList, cbCtx.ServiceList)
-	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
-	probes := make([]network.ApplicationGatewayProbe, 0, len(healthProbeCollection))
-	for _, probe := range healthProbeCollection {
-		probes = append(probes, probe)
-	}
-	sort.Sort(sorter.ByHealthProbeName(probes))
-	c.appGwConfig.Probes = &probes
-	return nil
-}
-
-func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *network.ApplicationGatewayProbe {
+func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n.ApplicationGatewayProbe {
 	// TODO(draychev): remove GetService
 	service := c.k8sContext.GetService(backendID.serviceKey())
 	if service == nil {
@@ -82,7 +82,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
 		}
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
-			probe.Protocol = network.HTTPS
+			probe.Protocol = n.HTTPS
 		}
 		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
 			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
@@ -123,7 +123,7 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 		}
 	}
 
-	podList := c.k8sContext.GetPodsByServiceSelector(service.Spec.Selector)
+	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
 	for _, pod := range podList {
 		for _, container := range pod.Spec.Containers {
 			for _, port := range container.Ports {

@@ -11,8 +11,8 @@ image:
 ################################################################################
 # Specify which kubernetes namespace the ingress controller will watch
 #
-kubernetes:
-  watchNamespace: default
+# kubernetes:
+#   watchNamespace: default
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
@@ -40,5 +40,5 @@ kubernetes:
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
-# rbac:
-#     enabled: false # true/false
+rbac:
+    enabled: false # true/false

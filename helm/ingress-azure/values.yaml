@@ -5,14 +5,14 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.7.0-rc2
+  tag: 0.7.1
   pullPolicy: Always
 
 ################################################################################
 # Specify which kubernetes namespace the ingress controller will watch
 #
-kubernetes:
-  watchNamespace: default
+# kubernetes:
+#   watchNamespace: default
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
