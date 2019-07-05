@@ -66,7 +66,7 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 			},
 		}
 
-		PruneIngressRules(&ingress, prohibited, managed)
+		actualRules := PruneIngressRules(&ingress, prohibited, managed)
 
 		expected := v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
@@ -103,7 +103,7 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 		}
 
 		It("should have trimmed the ingress rules to what AGIC is allowed to manage", func() {
-			Expect(ingress.Spec.Rules).To(Equal(expected.Spec.Rules))
+			Expect(actualRules).To(Equal(expected.Spec.Rules))
 		})
 	})
 

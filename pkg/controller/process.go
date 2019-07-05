@@ -47,7 +47,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
 		for idx, ingress := range cbCtx.IngressList {
 			glog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-			brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets, cbCtx.ManagedTargets)
+			cbCtx.IngressList[0].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets, cbCtx.ManagedTargets)
 			glog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
 		}
 	}
