@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestAppgw(t *testing.T) {
+func TestApplicationGatewayKubernetesIngress(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Brownfield Deployment Tests")
+	RunSpecs(t, "ApplicationGatewayKubernetesIngress Suite")
 }
