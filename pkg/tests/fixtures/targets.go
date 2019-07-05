@@ -6,7 +6,6 @@
 package fixtures
 
 import (
-	mtv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -24,25 +23,6 @@ const (
 	// PathBaz is a URL path.
 	PathBaz = "/baz"
 )
-
-// GetManagedTargets creates a new struct for use in unit tests.
-func GetManagedTargets() []*mtv1.AzureIngressManagedTarget {
-	return []*mtv1.AzureIngressManagedTarget{
-		{
-			Spec: mtv1.AzureIngressManagedTargetSpec{
-				IP:       IPAddress1,
-				Hostname: tests.Host,
-				Port:     443,
-				Paths: []string{
-					PathFoo,
-					PathBar,
-					PathBaz,
-				},
-			},
-		},
-	}
-
-}
 
 // GetProhibitedTargets creates a new struct for use in unit tests.
 func GetProhibitedTargets() []*ptv1.AzureIngressProhibitedTarget {

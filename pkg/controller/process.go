@@ -36,7 +36,6 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		// Get all Services
 		ServiceList:          c.k8sContext.ListServices(),
 		IngressList:          c.k8sContext.ListHTTPIngresses(),
-		ManagedTargets:       c.k8sContext.ListAzureIngressManagedTargets(),
 		ProhibitedTargets:    c.k8sContext.ListAzureProhibitedTargets(),
 		IstioGateways:        c.k8sContext.ListIstioGateways(),
 		IstioVirtualServices: c.k8sContext.ListIstioVirtualServices(),

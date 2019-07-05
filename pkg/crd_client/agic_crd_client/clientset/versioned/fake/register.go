@@ -19,7 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	azureingressmanagedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +31,6 @@ var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 var parameterCodec = runtime.NewParameterCodec(scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
-	azureingressmanagedtargetsv1.AddToScheme,
 	azureingressprohibitedtargetsv1.AddToScheme,
 }
 
