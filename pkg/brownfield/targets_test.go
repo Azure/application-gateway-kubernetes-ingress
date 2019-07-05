@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
-var _ = Describe("test TargetBlacklist/TargetWhitelist health probes", func() {
+var _ = Describe("Test blacklisting targets", func() {
 
 	expected := Target{
 		Hostname: tests.Host,
@@ -22,23 +22,9 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist health probes", func() {
 	}
 
 	Context("Test normalizing permit/prohibit URL paths", func() {
-		actual := NormalizePath("*//*hello/**/*//")
+		actual := NormalizePath("*//*heLLo/**/*//")
 		It("should have exactly 1 record", func() {
 			Expect(actual).To(Equal("*//*hello"))
-		})
-	})
-
-	Context("test GetTargetWhitelist", func() {
-		whitelist := GetTargetWhitelist(fixtures.GetManagedTargets())
-		It("Should have produced correct Managed Targets list", func() {
-			Expect(len(*whitelist)).To(Equal(3))
-			for _, path := range []string{fixtures.PathFoo, fixtures.PathBar, fixtures.PathBaz} {
-				expected.Path = to.StringPtr(path)
-				Expect(*whitelist).To(ContainElement(expected))
-			}
-			expected.Path = to.StringPtr(fixtures.PathFox)
-			Expect(*whitelist).ToNot(ContainElement(expected))
-
 		})
 	})
 
@@ -57,14 +43,26 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist health probes", func() {
 		})
 	})
 
-	Context("Test IsIn", func() {
-		t1 := Target{
+	Context("Test IsBlacklisted", func() {
+		targetInBlacklist := Target{
 			Hostname: tests.Host,
 			Port:     443,
 			Path:     to.StringPtr(fixtures.PathBar),
 		}
 
-		t2 := Target{
+		targetPartialPathInBlacklist := Target{
+			Hostname: tests.Host,
+			Port:     443,
+			Path:     to.StringPtr("/path/with/"),
+		}
+
+		targetPartialPathNotInBlacklist := Target{
+			Hostname: tests.Host,
+			Port:     443,
+			Path:     to.StringPtr("/path/with/XXX/"),
+		}
+
+		targetNotInList := Target{
 			Hostname: tests.Host,
 			Port:     9898,
 			Path:     to.StringPtr("/xyz"),
@@ -86,7 +84,12 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist health probes", func() {
 			Path:     to.StringPtr(fixtures.PathBar + "Non-Existent-Path"),
 		}
 
-		targetList := []Target{
+		targetNoHost := Target{
+			Port: 443,
+			Path: to.StringPtr(fixtures.PathBar),
+		}
+
+		blacklist := []Target{
 			{
 				Hostname: tests.Host,
 				Port:     443,
@@ -98,18 +101,51 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist health probes", func() {
 				Path:     to.StringPtr(fixtures.PathBar),
 			},
 			{
+				Hostname: tests.Host,
+				Port:     443,
+				Path:     to.StringPtr("/path/with/high/specificity/*"),
+			},
+			{
 				Hostname: "other-host-no-paths",
 				Port:     123,
 			},
 		}
 
 		It("Should be able to find a new Target in an existing list of Targets", func() {
-			Expect(t1.IsIn(&targetList)).To(BeTrue())
-			Expect(t2.IsIn(&targetList)).To(BeFalse())
-			Expect(targetNoPort.IsIn(&targetList)).To(BeTrue())
-			Expect(targetNoPaths.IsIn(&targetList)).To(BeTrue())
-			Expect(targetNonExistentPath.IsIn(&targetList)).To(BeFalse())
+			// Blacklisted targets
+			Expect(targetInBlacklist.IsBlacklisted(&blacklist)).To(BeTrue())
+			Expect(targetPartialPathInBlacklist.IsBlacklisted(&blacklist)).To(BeTrue())
+
+			// Non-blacklisted targets
+			Expect(targetPartialPathNotInBlacklist.IsBlacklisted(&blacklist)).To(BeFalse())
+			Expect(targetNotInList.IsBlacklisted(&blacklist)).To(BeFalse())
+			Expect(targetNoPort.IsBlacklisted(&blacklist)).To(BeTrue())
+			Expect(targetNoPaths.IsBlacklisted(&blacklist)).To(BeTrue())
+			Expect(targetNonExistentPath.IsBlacklisted(&blacklist)).To(BeFalse())
+			Expect(targetNoHost.IsBlacklisted(&blacklist)).To(BeFalse())
 		})
+	})
+
+	Context("", func() {
+
+		It("Should be able to determine that a needle is in a haystack", func() {
+			needle := "/a/b/c/d/e/f/g/*"
+			haystack := "/a/b/*"
+			Expect(pathsOverlap(needle, haystack)).To(BeTrue())
+		})
+
+		It("Should be to determine that a needle is covering the entire haystack", func() {
+			needle := "/a/b/c"
+			haystack := "/a/b/c/d/e/f/g/*"
+			Expect(pathsOverlap(needle, haystack)).To(BeTrue())
+		})
+
+		It("Should be able to determine that the needle is not in the haystack", func() {
+			needle := "/a/b/c"
+			haystack := "/x/y/z/*"
+			Expect(pathsOverlap(needle, haystack)).To(BeFalse())
+		})
+
 	})
 
 })
