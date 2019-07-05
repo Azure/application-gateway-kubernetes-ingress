@@ -62,15 +62,12 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 
 // canManage determines whether the target identified by the given host & path should be managed by AGIC.
 func canManage(host string, path *string, blacklist TargetBlacklist) bool {
-	target := Target{
-		Hostname: host,
-	}
-	if path != nil {
-		target.Path = path
-	}
-
 	if blacklist == nil || len(*blacklist) == 0 {
 		return true
+	}
+	target := Target{Hostname: host}
+	if path != nil {
+		target.Path = path
 	}
 	targetJSON, _ := target.MarshalJSON()
 	if target.IsBlacklisted(blacklist) {

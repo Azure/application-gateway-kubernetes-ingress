@@ -40,6 +40,9 @@ func (t Target) IsBlacklisted(blacklist *[]Target) bool {
 
 		pathIsSame := strings.ToLower(targetPath) == strings.ToLower(blacklistPath)
 
+		// With this version we keep things as simple as possible: match host and exact path to determine
+		// whether given target is in the blacklist. Ideally this would be URL Path set overlap operation,
+		// which we deliberately leave for a later time.
 		if hostIsSame && pathIsSame {
 			return true // Found it
 		}
