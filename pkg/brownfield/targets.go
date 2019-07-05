@@ -17,17 +17,17 @@ import (
 // Target uniquely identifies a subset of App Gateway configuration, which AGIC will manage or be prohibited from managing.
 type Target struct {
 	Hostname string
-	Port     int32
 	Path     *string
 }
 
 // IsBlacklisted figures out whether a given Target objects in a list of blacklisted targets.
 func (t Target) IsBlacklisted(blacklist *[]Target) bool {
 	for _, blTarget := range *blacklist {
-		hostIsSame := strings.ToLower(t.Hostname) == strings.ToLower(blTarget.Hostname)
 
-		// If one of the ports is not defined (0) - ignore port comparison
-		portIsSame := t.Port == blTarget.Port || t.Port == 0 || blTarget.Port == 0
+		// An empty blacklist hostname indicates that any hostname would be blacklisted.
+		// If host names match - this target is in the blacklist.
+		// AGIC is allowed to create and modify App Gwy config for blank host.
+		hostIsSame := blTarget.Hostname == "" || strings.ToLower(t.Hostname) == strings.ToLower(blTarget.Hostname)
 
 		// Set defaults to blank string, so we can compare strings even if nulls.
 		targetPath, blacklistPath := "", ""
@@ -38,52 +38,18 @@ func (t Target) IsBlacklisted(blacklist *[]Target) bool {
 			blacklistPath = *blTarget.Path
 		}
 
-		if hostIsSame && portIsSame && pathsOverlap(targetPath, blacklistPath) {
-			// Found it
-			return true
+		pathIsSame := strings.ToLower(targetPath) == strings.ToLower(blacklistPath)
+
+		if hostIsSame && pathIsSame {
+			return true // Found it
 		}
 	}
-
-	// Did not find it
-	return false
-}
-
-// pathsOverlap determines whether 2 paths have any overlap.
-// Example:  /a/b  and /a/b/c overlap;  /a/b and /a/x don't overlap.
-func pathsOverlap(needle string, haystack string) bool {
-	needle = NormalizePath(needle)
-	haystack = NormalizePath(haystack)
-
-	if needle == haystack {
-		return true
-	}
-
-	needleChunks := strings.Split(needle, "/")
-	haystackChunks := strings.Split(haystack, "/")
-
-	for idx := 0; idx <= int(max(len(needleChunks), len(haystackChunks))); idx++ {
-		if len(needleChunks) == idx || len(haystackChunks) == idx {
-			return true
-		}
-
-		if needleChunks[idx] != haystackChunks[idx] {
-			return false
-		}
-	}
-	return true
-}
-
-func max(x, y int) int {
-	if x > y {
-		return x
-	}
-	return y
+	return false // Did not find it
 }
 
 // prettyTarget is used for pretty-printing the Target struct for debugging purposes.
 type prettyTarget struct {
 	Hostname string `json:"Hostname"`
-	Port     int32  `json:"Port"`
 	Path     string `json:"Path,omitempty"`
 }
 
@@ -91,7 +57,6 @@ type prettyTarget struct {
 func (t Target) MarshalJSON() ([]byte, error) {
 	pt := prettyTarget{
 		Hostname: t.Hostname,
-		Port:     t.Port,
 	}
 	if t.Path != nil {
 		pt.Path = *t.Path
@@ -106,40 +71,15 @@ func GetTargetBlacklist(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) 
 		if len(prohibitedTarget.Spec.Paths) == 0 {
 			target = append(target, Target{
 				Hostname: prohibitedTarget.Spec.Hostname,
-				Port:     prohibitedTarget.Spec.Port,
 				Path:     nil,
 			})
 		}
 		for _, path := range prohibitedTarget.Spec.Paths {
 			target = append(target, Target{
 				Hostname: prohibitedTarget.Spec.Hostname,
-				Port:     prohibitedTarget.Spec.Port,
-				Path:     to.StringPtr(NormalizePath(path)),
+				Path:     to.StringPtr(strings.ToLower(path)),
 			})
 		}
-	}
-	return &target
-}
-
-// NormalizePath re-formats the path string so that we can discover semantically identical paths.
-func NormalizePath(path string) string {
-	trimmed, prevTrimmed := "", path
-	cutset := "*/"
-	for trimmed != prevTrimmed {
-		prevTrimmed = trimmed
-		trimmed = strings.TrimRight(path, cutset)
-	}
-	return strings.ToLower(trimmed)
-}
-
-// rulePathToTarget constructs a Target struct based on the host and path provided
-// TODO(draychev): Add port number to enable port-specific target management.
-func rulePathToTarget(host string, path *string) *Target {
-	target := Target{
-		Hostname: host,
-	}
-	if path != nil {
-		target.Path = path
 	}
 	return &target
 }

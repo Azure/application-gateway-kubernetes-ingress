@@ -109,7 +109,6 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 	Context("Test canManage()", func() {
 		blacklist := []Target{{
 			Hostname: tests.Host,
-			Port:     80,
 			Path:     to.StringPtr(fixtures.PathFox),
 		}}
 
