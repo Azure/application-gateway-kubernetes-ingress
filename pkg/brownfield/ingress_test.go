@@ -6,13 +6,12 @@
 package brownfield
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
@@ -109,16 +108,16 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 	Context("Test canManage()", func() {
 		blacklist := []Target{{
 			Hostname: tests.Host,
-			Path:     to.StringPtr(fixtures.PathFox),
+			Path:     fixtures.PathFox,
 		}}
 
 		It("should have properly identified the ingress rules AGIC is NOT allowed to manage", func() {
-			actual := canManage(tests.Host, to.StringPtr(fixtures.PathFox), &blacklist)
+			actual := canManage(tests.Host, fixtures.PathFox, &blacklist)
 			Expect(actual).To(BeFalse())
 		})
 
 		It("should have properly identified the ingress rules AGIC is allowed to manage", func() {
-			actual := canManage(tests.Host, to.StringPtr(fixtures.PathBaz), &blacklist)
+			actual := canManage(tests.Host, fixtures.PathBaz, &blacklist)
 			Expect(actual).To(BeTrue())
 		})
 	})
