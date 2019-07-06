@@ -20,7 +20,7 @@ func GetRequestRoutingRulePathBased() *network.ApplicationGatewayRequestRoutingR
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &network.SubResource{
-				ID: to.StringPtr("x/y/z/BackendAddressPool-1"),
+				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName1),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of the application gateway.
@@ -61,7 +61,7 @@ func GetRequestRoutingRuleBasic() *network.ApplicationGatewayRequestRoutingRule 
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &network.SubResource{
-				ID: to.StringPtr("x/y/z/BackendAddressPool-2"),
+				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName2),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of the application gateway.

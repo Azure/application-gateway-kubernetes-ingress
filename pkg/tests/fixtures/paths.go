@@ -62,14 +62,14 @@ func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
 		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
-				PathFoo + "/",
-				PathBar + "/**/*",
+				PathFoo,
+				PathBar,
 				PathBaz,
 			},
 
 			// BackendAddressPool - Backend address pool resource of URL path map path rule.
 			BackendAddressPool: &network.SubResource{
-				ID: to.StringPtr("x/y/z/BackendAddressPool-1"),
+				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName1),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of URL path map path rule.
@@ -100,7 +100,7 @@ func GetPathRuleBasic() *network.ApplicationGatewayPathRule {
 
 			// BackendAddressPool - Backend address pool resource of URL path map path rule.
 			BackendAddressPool: &network.SubResource{
-				ID: to.StringPtr("x/y/z/BackendAddressPool-2"),
+				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName2),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of URL path map path rule.

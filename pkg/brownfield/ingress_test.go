@@ -18,7 +18,7 @@ import (
 var _ = Describe("test pruning Ingress based on white/white lists", func() {
 
 	Context("Test PruneIngressRules()", func() {
-		prohibited := fixtures.GetProhibitedTargets()
+		prohibited := fixtures.GetAzureIngressProhibitedTargets()
 
 		ingress := v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
@@ -69,13 +69,6 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 		expected := v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
-					{
-						// Should have kept the rule with no Paths
-						Host: tests.OtherHost,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{},
-						},
-					},
 					{
 						// Should have kept one of the Paths of this Rule
 						Host: tests.Host,
