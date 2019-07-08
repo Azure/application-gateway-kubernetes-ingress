@@ -19,7 +19,6 @@ limitations under the License.
 package versioned
 
 import (
-	azureingressmanagedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressmanagedtarget/v1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
@@ -28,7 +27,6 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	AzureingressmanagedtargetsV1() azureingressmanagedtargetsv1.AzureingressmanagedtargetsV1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
 }
 
@@ -36,13 +34,7 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	azureingressmanagedtargetsV1    *azureingressmanagedtargetsv1.AzureingressmanagedtargetsV1Client
 	azureingressprohibitedtargetsV1 *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
-}
-
-// AzureingressmanagedtargetsV1 retrieves the AzureingressmanagedtargetsV1Client
-func (c *Clientset) AzureingressmanagedtargetsV1() azureingressmanagedtargetsv1.AzureingressmanagedtargetsV1Interface {
-	return c.azureingressmanagedtargetsV1
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
@@ -66,10 +58,6 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.azureingressmanagedtargetsV1, err = azureingressmanagedtargetsv1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
 	cs.azureingressprohibitedtargetsV1, err = azureingressprohibitedtargetsv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -86,7 +74,6 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.azureingressmanagedtargetsV1 = azureingressmanagedtargetsv1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -96,7 +83,6 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.azureingressmanagedtargetsV1 = azureingressmanagedtargetsv1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)

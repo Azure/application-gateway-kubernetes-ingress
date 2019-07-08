@@ -3,9 +3,7 @@ kind: AzureIngressProhibitedTarget
 metadata:
   name: ingress-prohibited-location
 spec:
-  ip: 23.45.67.21
   hostname: "ftp.contoso.com"
-  port: 88
   paths:
     - "/fox/*"
     - "/box/*"
