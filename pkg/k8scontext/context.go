@@ -334,14 +334,17 @@ func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualS
 	endpointList := make([]v1.Endpoints, 0)
 	namespace := virtualService.Namespace
 	for _, httpRouteRule := range virtualService.Spec.HTTP {
-		for _, route := range httpRouteRule {
+		for _, route := range httpRouteRule.Route {
 			serviceKey := fmt.Sprintf("%v/%v", namespace, route.Destination.Host)
 			endpoint, err := c.GetEndpointsByService(serviceKey)
 			if err == nil {
-				endpointList = append(endpointList, endpoint)
+				endpointList = append(endpointList, *endpoint)
 			}
+		}
 	}
-	return endpointList
+	return v1.EndpointsList{
+		Items: endpointList,
+	}
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
