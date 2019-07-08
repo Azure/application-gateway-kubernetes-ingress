@@ -24,7 +24,6 @@ import (
 	time "time"
 
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
-	azureingressmanagedtarget "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureingressmanagedtarget"
 	azureingressprohibitedtarget "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureingressprohibitedtarget"
 	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -173,12 +172,7 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	Azureingressmanagedtargets() azureingressmanagedtarget.Interface
 	Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface
-}
-
-func (f *sharedInformerFactory) Azureingressmanagedtargets() azureingressmanagedtarget.Interface {
-	return azureingressmanagedtarget.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface {
