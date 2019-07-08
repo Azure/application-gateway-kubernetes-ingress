@@ -11,7 +11,7 @@ import (
 
 // GetEndpointsForVirtualService returns all endpoints for the given virtual service.
 func GetEndpointsForVirtualService(virtualService v1alpha3.VirtualService) v1.EndpointSubset {
-	var endpointSubset v1.EndpointSubset
+	/* var endpointSubset v1.EndpointSubset
 	addresses := make([]v1.EndpointAddress, len(virtualService.Spec.Hosts))
 	for _, host := range virtualService.Spec.Hosts {
 		var newAddress v1.EndpointAddress
@@ -25,5 +25,6 @@ func GetEndpointsForVirtualService(virtualService v1alpha3.VirtualService) v1.En
 	}
 	glog.V(5).Infof("Found Endpoints: %+v", strings.Join(endpointsLogging, ","))
 	print(strings.Join(endpointsLogging, ","))
-	return endpointSubset
+	return endpointSubset */
+	
 }
