@@ -179,3 +179,36 @@ func (c *appGwConfigBuilder) addTags() {
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
 	c.appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
 }
+
+func (c *appGwConfigBuilder) getExistingBackendPools() []n.ApplicationGatewayBackendAddressPool {
+	if c.appGw.BackendAddressPools == nil {
+		return []n.ApplicationGatewayBackendAddressPool{}
+	}
+	return *c.appGw.BackendAddressPools
+}
+
+func (c *appGwConfigBuilder) getExistingListeners() []*n.ApplicationGatewayHTTPListener {
+	var listeners []*n.ApplicationGatewayHTTPListener
+	if c.appGw.HTTPListeners == nil {
+		return listeners
+	}
+	for _, listener := range *c.appGw.HTTPListeners {
+		listeners = append(listeners, &listener)
+	}
+	return listeners
+}
+
+func (c *appGwConfigBuilder) getExistingRoutingRules() []n.ApplicationGatewayRequestRoutingRule {
+	if c.appGw.BackendAddressPools == nil {
+		return []n.ApplicationGatewayRequestRoutingRule{}
+	}
+	return *c.appGw.RequestRoutingRules
+}
+
+func (c *appGwConfigBuilder) getExistingPathMaps() []n.ApplicationGatewayURLPathMap {
+	if c.appGw.BackendAddressPools == nil {
+		return []n.ApplicationGatewayURLPathMap{}
+
+	}
+	return *c.appGw.URLPathMaps
+}
