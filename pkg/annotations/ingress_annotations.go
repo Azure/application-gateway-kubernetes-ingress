@@ -60,6 +60,12 @@ func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 	return controllerName == ApplicationGatewayIngressClass, err
 }
 
+// IsIstioGatewayIngress checks if the Ingress resource is from Istio
+func IsIstioGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
+	controllerName, err := parseString(ing, IngressClassKey)
+	return controllerName == ApplicationGatewayIstioIngressClass, err
+}
+
 // IsSslRedirect for HTTP end points.
 func IsSslRedirect(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, SslRedirectKey)
