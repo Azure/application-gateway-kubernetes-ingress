@@ -329,6 +329,24 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 	return virtualServices
 }
 
+// GetEndpointsForVirtualService returns a list of Endpoints associated with a Virtual Service
+func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualService) v1.EndpointsList {
+	endpointList := make([]v1.Endpoints, 0)
+	namespace := virtualService.Namespace
+	for _, httpRouteRule := range virtualService.Spec.HTTP {
+		for _, route := range httpRouteRule.Route {
+			serviceKey := fmt.Sprintf("%v/%v", namespace, route.Destination.Host)
+			endpoint, err := c.GetEndpointsByService(serviceKey)
+			if err == nil {
+				endpointList = append(endpointList, *endpoint)
+			}
+		}
+	}
+	return v1.EndpointsList{
+		Items: endpointList,
+	}
+}
+
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
