@@ -16,9 +16,9 @@ import (
 
 var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
 
-	listeners := []*n.ApplicationGatewayHTTPListener{
-		fixtures.GetListener1(),
-		fixtures.GetListener2(),
+	listeners := []n.ApplicationGatewayHTTPListener{
+		*fixtures.GetListener1(),
+		*fixtures.GetListener2(),
 	}
 
 	routingRules := []n.ApplicationGatewayRequestRoutingRule{
@@ -30,12 +30,6 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
 		*fixtures.GeURLPathMap(),
 	}
 
-	brownfieldContext := PoolContext{
-		Listeners:    listeners,
-		RoutingRules: routingRules,
-		PathMaps:     paths,
-	}
-
 	pool1 := fixtures.GetBackendPool1()
 	pool2 := fixtures.GetBackendPool2()
 	pool3 := fixtures.GetBackendPool3()
@@ -45,6 +39,13 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
 		pool1, // managed
 		pool2, // managed
 		pool3, // prohibited
+	}
+
+	brownfieldContext := PoolContext{
+		Listeners:    listeners,
+		RoutingRules: routingRules,
+		PathMaps:     paths,
+		BackendPools: pools,
 	}
 
 	prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
@@ -110,27 +111,20 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
 		})
 	})
 
-	Context("Test GetManagedPools()", func() {
-
-		It("should get managed pools only, excluding blacklisted ones", func() {
-			actualPools := GetManagedPools(pools, prohibitedTargets, brownfieldContext)
-
-			Expect(len(actualPools)).To(Equal(1))
-			Expect(actualPools).ToNot(ContainElement(pool1))
-			Expect(actualPools).ToNot(ContainElement(pool2))
-			Expect(actualPools).To(ContainElement(pool3))
-		})
-	})
-
-	Context("Test PruneManagedPools()", func() {
+	Context("Test GetExistingBlacklistedPools()", func() {
 
 		It("should be able to prune the managed pools from the lists of all pools", func() {
-			actual := PruneManagedPools(pools, prohibitedTargets, brownfieldContext)
+			blacklisted, notBlacklisted := GetExistingBlacklistedPools(prohibitedTargets, brownfieldContext)
 
-			Expect(len(actual)).To(Equal(2))
-			Expect(actual).To(ContainElement(pool1))
-			Expect(actual).To(ContainElement(pool2))
-			Expect(actual).ToNot(ContainElement(pool3))
+			Expect(len(blacklisted)).To(Equal(2))
+			Expect(blacklisted).To(ContainElement(pool1))
+			Expect(blacklisted).To(ContainElement(pool2))
+			Expect(blacklisted).ToNot(ContainElement(pool3))
+
+			Expect(len(notBlacklisted)).To(Equal(1))
+			Expect(notBlacklisted).ToNot(ContainElement(pool1))
+			Expect(notBlacklisted).ToNot(ContainElement(pool2))
+			Expect(notBlacklisted).To(ContainElement(pool3))
 		})
 	})
 })

@@ -187,15 +187,11 @@ func (c *appGwConfigBuilder) getExistingBackendPools() []n.ApplicationGatewayBac
 	return *c.appGw.BackendAddressPools
 }
 
-func (c *appGwConfigBuilder) getExistingListeners() []*n.ApplicationGatewayHTTPListener {
-	var listeners []*n.ApplicationGatewayHTTPListener
+func (c *appGwConfigBuilder) getExistingListeners() []n.ApplicationGatewayHTTPListener {
 	if c.appGw.HTTPListeners == nil {
-		return listeners
+		return []n.ApplicationGatewayHTTPListener{}
 	}
-	for _, listener := range *c.appGw.HTTPListeners {
-		listeners = append(listeners, &listener)
-	}
-	return listeners
+	return *c.appGw.HTTPListeners
 }
 
 func (c *appGwConfigBuilder) getExistingRoutingRules() []n.ApplicationGatewayRequestRoutingRule {

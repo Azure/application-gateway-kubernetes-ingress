@@ -98,21 +98,4 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 		})
 	})
 
-	Context("Test canManage()", func() {
-		blacklist := []Target{{
-			Hostname: tests.Host,
-			Path:     fixtures.PathFox,
-		}}
-
-		It("should have properly identified the ingress rules AGIC is NOT allowed to manage", func() {
-			actual := canManage(tests.Host, fixtures.PathFox, &blacklist)
-			Expect(actual).To(BeFalse())
-		})
-
-		It("should have properly identified the ingress rules AGIC is allowed to manage", func() {
-			actual := canManage(tests.Host, fixtures.PathBaz, &blacklist)
-			Expect(actual).To(BeTrue())
-		})
-	})
-
 })

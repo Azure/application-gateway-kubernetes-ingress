@@ -12,9 +12,10 @@ import (
 // PoolContext is the basket of App Gateway configs necessary to determine what settings should be
 // managed and what should be left as-is.
 type PoolContext struct {
-	Listeners    []*n.ApplicationGatewayHTTPListener
+	Listeners    []n.ApplicationGatewayHTTPListener
 	RoutingRules []n.ApplicationGatewayRequestRoutingRule
 	PathMaps     []n.ApplicationGatewayURLPathMap
+	BackendPools []n.ApplicationGatewayBackendAddressPool
 }
 
 type listenerName string
@@ -23,7 +24,7 @@ type backendPoolName string
 
 type poolToTargets map[backendPoolName][]Target
 
-type poolsByName map[backendPoolName]n.ApplicationGatewayBackendAddressPool
+type PoolsByName map[backendPoolName]n.ApplicationGatewayBackendAddressPool
 
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
