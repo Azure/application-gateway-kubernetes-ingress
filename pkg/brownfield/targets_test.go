@@ -6,7 +6,6 @@
 package brownfield
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -27,10 +26,10 @@ var _ = Describe("Test blacklisting targets", func() {
 
 			// Targets /fox and /bar are in the blacklist
 			for _, path := range []string{fixtures.PathFox, fixtures.PathBar} {
-				expected.Path = to.StringPtr(path)
+				expected.Path = path
 				Expect(*blacklist).To(ContainElement(expected))
 			}
-			expected.Path = to.StringPtr(fixtures.PathFoo)
+			expected.Path = fixtures.PathFoo
 			Expect(*blacklist).ToNot(ContainElement(expected))
 		})
 	})
@@ -38,12 +37,12 @@ var _ = Describe("Test blacklisting targets", func() {
 	Context("Test IsBlacklisted", func() {
 		targetInBlacklist := Target{
 			Hostname: tests.Host,
-			Path:     to.StringPtr(fixtures.PathBar),
+			Path:     fixtures.PathBar,
 		}
 
 		targetInBlacklistNoHost := Target{
 			Hostname: tests.Host,
-			Path:     to.StringPtr("/xyz"),
+			Path:     "/xyz",
 		}
 
 		targetNoPaths := Target{
@@ -52,27 +51,27 @@ var _ = Describe("Test blacklisting targets", func() {
 
 		targetNonExistentPath := Target{
 			Hostname: tests.Host,
-			Path:     to.StringPtr(fixtures.PathBar + "Non-Existent-Path"),
+			Path:     fixtures.PathBar + "Non-Existent-Path",
 		}
 
 		targetNoHost := Target{
-			Path: to.StringPtr(fixtures.PathBar),
+			Path: fixtures.PathBar,
 		}
 
 		blacklist := []Target{
 			{
 				Hostname: tests.Host,
-				Path:     to.StringPtr(fixtures.PathFoo),
+				Path:     fixtures.PathFoo,
 			},
 			{
 				Hostname: tests.Host,
-				Path:     to.StringPtr(fixtures.PathBar),
+				Path:     fixtures.PathBar,
 			},
 			{
 				Hostname: "other-host-no-paths",
 			},
 			{
-				Path: to.StringPtr("/xyz"),
+				Path: "/xyz",
 			},
 		}
 
