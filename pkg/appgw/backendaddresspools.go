@@ -57,12 +57,15 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 
 		// These are pools we fetch from App Gateway; These we are NOT allowed to mutate.
-		existingUnmanaged := brownfield.PruneManagedPools(allExisting, cbCtx.ProhibitedTargets, brownfieldCtx)
+		existingBlacklisted := brownfield.PruneManagedPools(allExisting, cbCtx.ProhibitedTargets, brownfieldCtx)
 
-		glog.V(3).Info("Subset of pools from Ingress; AGIC will manage:", getPoolNames(allPools))
-		glog.V(3).Info("Existing pools from App Gateway; AGIC will not mutate:", getPoolNames(existingUnmanaged))
+		garbage := []n.ApplicationGatewayBackendAddressPool{}
 
-		allPools = brownfield.MergePools(existingUnmanaged, allPools)
+		glog.V(3).Info("[brownfield] Backend Address Pools AGIC created:", getPoolNames(allPools))
+		glog.V(3).Info("[brownfield] Blacklisted Backend Address Pools AGIC will retain:", getPoolNames(existingBlacklisted))
+		glog.V(3).Info("[brownfield] Backend Address Pools AGIC will remove:", getPoolNames(garbage))
+
+		allPools = brownfield.MergePools(existingBlacklisted, allPools)
 	}
 
 	return allPools

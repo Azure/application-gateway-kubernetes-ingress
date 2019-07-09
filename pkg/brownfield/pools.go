@@ -85,7 +85,7 @@ func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.Applicati
 }
 
 func indexByName(pools []n.ApplicationGatewayBackendAddressPool) poolsByName {
-	indexed := make(map[backendPoolName]n.ApplicationGatewayBackendAddressPool)
+	indexed := make(poolsByName)
 	for _, pool := range pools {
 		indexed[backendPoolName(*pool.Name)] = pool
 	}
