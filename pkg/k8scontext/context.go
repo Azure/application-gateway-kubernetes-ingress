@@ -347,6 +347,11 @@ func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualS
 	}
 }
 
+/*// GetGateways returns all Istio Gateways that are annotated.
+func GetGateways(annotation string) []*v1alpha3.Gateway {
+	return []*v1alpha3.Gateway{}
+}*/
+
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
