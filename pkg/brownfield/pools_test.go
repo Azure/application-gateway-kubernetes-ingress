@@ -111,7 +111,7 @@ var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
 		})
 	})
 
-	Context("Test GetExistingBlacklistedPools()", func() {
+	Context("Test GetBlacklistedPools()", func() {
 
 		It("should be able to prune the managed pools from the lists of all pools", func() {
 			blacklisted, notBlacklisted := GetExistingBlacklistedPools(prohibitedTargets, brownfieldContext)

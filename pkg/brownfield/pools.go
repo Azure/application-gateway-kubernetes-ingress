@@ -12,13 +12,12 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 
-	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-// GetExistingBlacklistedPools removes the managed pools from the given list of pools; resulting in a list of pools not managed by AGIC.
-func GetExistingBlacklistedPools(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, ctx PoolContext) ([]n.ApplicationGatewayBackendAddressPool, []n.ApplicationGatewayBackendAddressPool) {
-	blacklist := GetTargetBlacklist(prohibitedTargets)
+// GetBlacklistedPools removes the managed pools from the given list of pools; resulting in a list of pools not managed by AGIC.
+func (ctx PoolContext) GetBlacklistedPools() ([]n.ApplicationGatewayBackendAddressPool, []n.ApplicationGatewayBackendAddressPool) {
+	blacklist := GetTargetBlacklist(ctx.ProhibitedTargets)
 	if blacklist == nil {
 		return []n.ApplicationGatewayBackendAddressPool{}, ctx.BackendPools
 	}
@@ -55,7 +54,7 @@ func GetExistingBlacklistedPools(prohibitedTargets []*ptv1.AzureIngressProhibite
 
 // MergePools merges list of lists of backend address pools into a single list, maintaining uniqueness.
 func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.ApplicationGatewayBackendAddressPool {
-	uniqPool := make(PoolsByName)
+	uniqPool := make(poolsByName)
 	for _, bucket := range pools {
 		for _, pool := range bucket {
 			uniqPool[backendPoolName(*pool.Name)] = pool
@@ -88,8 +87,8 @@ func LogPools(existingBlacklisted []n.ApplicationGatewayBackendAddressPool, exis
 	glog.V(3).Info("[brownfield] Existing Pools AGIC will remove: ", getPoolNames(garbage))
 }
 
-func indexPoolsByName(pools []n.ApplicationGatewayBackendAddressPool) PoolsByName {
-	indexed := make(PoolsByName)
+func indexPoolsByName(pools []n.ApplicationGatewayBackendAddressPool) poolsByName {
+	indexed := make(poolsByName)
 	for _, pool := range pools {
 		indexed[backendPoolName(*pool.Name)] = pool
 	}
