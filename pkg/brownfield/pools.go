@@ -68,22 +68,14 @@ func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.Applicati
 	return merged
 }
 
-func IndexPoolsByName(pools []n.ApplicationGatewayBackendAddressPool) PoolsByName {
-	indexed := make(PoolsByName)
-	for _, pool := range pools {
-		indexed[backendPoolName(*pool.Name)] = pool
-	}
-	return indexed
-}
-
 // LogPools emits a few log lines detailing what pools are created, blacklisted, and removed from ARM.
 func LogPools(existingBlacklisted []n.ApplicationGatewayBackendAddressPool, existingNonBlacklisted []n.ApplicationGatewayBackendAddressPool, managedPools []n.ApplicationGatewayBackendAddressPool) {
 	var garbage []n.ApplicationGatewayBackendAddressPool
 
-	blacklistedSet := IndexPoolsByName(existingBlacklisted)
-	managedSet := IndexPoolsByName(managedPools)
+	blacklistedSet := indexPoolsByName(existingBlacklisted)
+	managedSet := indexPoolsByName(managedPools)
 
-	for poolName, pool := range IndexPoolsByName(existingNonBlacklisted) {
+	for poolName, pool := range indexPoolsByName(existingNonBlacklisted) {
 		_, existsInBlacklist := blacklistedSet[poolName]
 		_, existsInNewPools := managedSet[poolName]
 		if !existsInBlacklist && !existsInNewPools {
@@ -94,6 +86,14 @@ func LogPools(existingBlacklisted []n.ApplicationGatewayBackendAddressPool, exis
 	glog.V(3).Info("[brownfield] Pools AGIC created: ", getPoolNames(managedPools))
 	glog.V(3).Info("[brownfield] Existing Blacklisted Pools AGIC will retain: ", getPoolNames(existingBlacklisted))
 	glog.V(3).Info("[brownfield] Existing Pools AGIC will remove: ", getPoolNames(garbage))
+}
+
+func indexPoolsByName(pools []n.ApplicationGatewayBackendAddressPool) PoolsByName {
+	indexed := make(PoolsByName)
+	for _, pool := range pools {
+		indexed[backendPoolName(*pool.Name)] = pool
+	}
+	return indexed
 }
 
 func getPoolNames(pool []n.ApplicationGatewayBackendAddressPool) string {
