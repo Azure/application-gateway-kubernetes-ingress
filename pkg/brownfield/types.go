@@ -13,11 +13,12 @@ import (
 // PoolContext is the basket of App Gateway configs necessary to determine what settings should be
 // managed and what should be left as-is.
 type PoolContext struct {
-	Listeners         []n.ApplicationGatewayHTTPListener
-	RoutingRules      []n.ApplicationGatewayRequestRoutingRule
-	PathMaps          []n.ApplicationGatewayURLPathMap
-	BackendPools      []n.ApplicationGatewayBackendAddressPool
-	ProhibitedTargets []*ptv1.AzureIngressProhibitedTarget
+	Listeners          []n.ApplicationGatewayHTTPListener
+	RoutingRules       []n.ApplicationGatewayRequestRoutingRule
+	PathMaps           []n.ApplicationGatewayURLPathMap
+	BackendPools       []n.ApplicationGatewayBackendAddressPool
+	ProhibitedTargets  []*ptv1.AzureIngressProhibitedTarget
+	DefaultBackendPool n.ApplicationGatewayBackendAddressPool
 }
 
 type listenerName string

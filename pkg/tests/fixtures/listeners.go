@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	// DefaultHTTPListenerName is a string constant.
+	DefaultHTTPListenerName = "fl-80"
+
 	// Listener1 is a string constant.
 	Listener1 = "HTTPListener-PathBased"
 
@@ -46,6 +49,18 @@ func GetListener2() *n.ApplicationGatewayHTTPListener {
 			HostName:                    to.StringPtr(tests.OtherHost),
 			SslCertificate:              &n.SubResource{ID: to.StringPtr("")},
 			RequireServerNameIndication: to.BoolPtr(true),
+		},
+	}
+}
+
+// GetDefaultListener creates a new struct for use in unit tests.
+func GetDefaultListener() *n.ApplicationGatewayHTTPListener {
+	return &n.ApplicationGatewayHTTPListener{
+		Name: to.StringPtr(DefaultHTTPListenerName),
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+			FrontendIPConfiguration: &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultIPName)},
+			FrontendPort:            &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultPortName)},
+			Protocol:                n.HTTP,
 		},
 	}
 }

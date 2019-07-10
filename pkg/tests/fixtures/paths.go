@@ -6,11 +6,14 @@
 package fixtures
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 const (
+	// DefaultPathMapName is a string constant.
+	DefaultPathMapName = "default-pathmap-name"
+
 	// PathMapName is a string constant.
 	PathMapName = "URLPathMap-1"
 
@@ -22,32 +25,32 @@ const (
 )
 
 // GeURLPathMap creates a new struct for use in unit tests.
-func GeURLPathMap() *network.ApplicationGatewayURLPathMap {
-	return &network.ApplicationGatewayURLPathMap{
+func GeURLPathMap() *n.ApplicationGatewayURLPathMap {
+	return &n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr(PathMapName),
-		ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
+		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			// DefaultBackendAddressPool - Default backend address pool resource of URL path map.
-			DefaultBackendAddressPool: &network.SubResource{
+			DefaultBackendAddressPool: &n.SubResource{
 				ID: to.StringPtr(""),
 			},
 
 			// DefaultBackendHTTPSettings - Default backend http settings resource of URL path map.
-			DefaultBackendHTTPSettings: &network.SubResource{
+			DefaultBackendHTTPSettings: &n.SubResource{
 				ID: to.StringPtr(""),
 			},
 
 			// DefaultRewriteRuleSet - Default Rewrite rule set resource of URL path map.
-			DefaultRewriteRuleSet: &network.SubResource{
+			DefaultRewriteRuleSet: &n.SubResource{
 				ID: to.StringPtr(""),
 			},
 
 			// DefaultRedirectConfiguration - Default redirect configuration resource of URL path map.
-			DefaultRedirectConfiguration: &network.SubResource{
+			DefaultRedirectConfiguration: &n.SubResource{
 				ID: to.StringPtr(""),
 			},
 
 			// PathRules - Path rule of URL path map resource.
-			PathRules: &[]network.ApplicationGatewayPathRule{
+			PathRules: &[]n.ApplicationGatewayPathRule{
 				*GetPathRulePathBased(),
 				*GetPathRuleBasic(),
 			},
@@ -56,10 +59,10 @@ func GeURLPathMap() *network.ApplicationGatewayURLPathMap {
 }
 
 // GetPathRulePathBased creates a new struct for use in unit tests.
-func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
-	return &network.ApplicationGatewayPathRule{
+func GetPathRulePathBased() *n.ApplicationGatewayPathRule {
+	return &n.ApplicationGatewayPathRule{
 		Name: to.StringPtr(PathRuleName),
-		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
 				PathFoo,
@@ -68,22 +71,22 @@ func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
 			},
 
 			// BackendAddressPool - Backend address pool resource of URL path map path rule.
-			BackendAddressPool: &network.SubResource{
+			BackendAddressPool: &n.SubResource{
 				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName1),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of URL path map path rule.
-			BackendHTTPSettings: &network.SubResource{
+			BackendHTTPSettings: &n.SubResource{
 				ID: to.StringPtr("x/y/z/BackendHTTPSettings-1"),
 			},
 
 			// RedirectConfiguration - Redirect configuration resource of URL path map path rule.
-			RedirectConfiguration: &network.SubResource{
+			RedirectConfiguration: &n.SubResource{
 				ID: to.StringPtr("x/y/z/RedirectConfiguration-1"),
 			},
 
 			// RewriteRuleSet - Rewrite rule set resource of URL path map path rule.
-			RewriteRuleSet: &network.SubResource{
+			RewriteRuleSet: &n.SubResource{
 				ID: to.StringPtr("x/y/z/RewriteRuleSet-1"),
 			},
 		},
@@ -91,32 +94,44 @@ func GetPathRulePathBased() *network.ApplicationGatewayPathRule {
 }
 
 // GetPathRuleBasic creates a new struct for use in unit tests.
-func GetPathRuleBasic() *network.ApplicationGatewayPathRule {
-	return &network.ApplicationGatewayPathRule{
+func GetPathRuleBasic() *n.ApplicationGatewayPathRule {
+	return &n.ApplicationGatewayPathRule{
 		Name: to.StringPtr(PathRuleNameBasic),
-		ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: nil,
 
 			// BackendAddressPool - Backend address pool resource of URL path map path rule.
-			BackendAddressPool: &network.SubResource{
+			BackendAddressPool: &n.SubResource{
 				ID: to.StringPtr("x/y/z/" + BackendAddressPoolName2),
 			},
 
 			// BackendHTTPSettings - Backend http settings resource of URL path map path rule.
-			BackendHTTPSettings: &network.SubResource{
+			BackendHTTPSettings: &n.SubResource{
 				ID: to.StringPtr("x/y/z/BackendHTTPSettings-1"),
 			},
 
 			// RedirectConfiguration - Redirect configuration resource of URL path map path rule.
-			RedirectConfiguration: &network.SubResource{
+			RedirectConfiguration: &n.SubResource{
 				ID: to.StringPtr("x/y/z/RedirectConfiguration-1"),
 			},
 
 			// RewriteRuleSet - Rewrite rule set resource of URL path map path rule.
-			RewriteRuleSet: &network.SubResource{
+			RewriteRuleSet: &n.SubResource{
 				ID: to.StringPtr("x/y/z/RewriteRuleSet-1"),
 			},
+		},
+	}
+}
+
+// GetDefaultURLPathMap makes a default ApplicationGatewayURLPathMap.
+func GetDefaultURLPathMap() *n.ApplicationGatewayURLPathMap {
+	return &n.ApplicationGatewayURLPathMap{
+		Etag: to.StringPtr("*"),
+		Name: to.StringPtr(DefaultPathMapName),
+		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+			DefaultBackendAddressPool:  &n.SubResource{ID: to.StringPtr("/" + DefaultBackendPoolName)},
+			DefaultBackendHTTPSettings: &n.SubResource{ID: to.StringPtr("/" + DefaultBackendHTTPSettingsName)},
 		},
 	}
 }

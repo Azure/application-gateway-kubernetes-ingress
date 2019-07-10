@@ -49,11 +49,12 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
 		// These are existing resources we obtain from App Gateway
 		existingBrownfieldCtx := brownfield.PoolContext{
-			Listeners:         c.getExistingListeners(),
-			RoutingRules:      c.getExistingRoutingRules(),
-			PathMaps:          c.getExistingPathMaps(),
-			BackendPools:      c.getExistingBackendPools(),
-			ProhibitedTargets: cbCtx.ProhibitedTargets,
+			Listeners:          c.getExistingListeners(),
+			RoutingRules:       c.getExistingRoutingRules(),
+			PathMaps:           c.getExistingPathMaps(),
+			BackendPools:       c.getExistingBackendPools(),
+			ProhibitedTargets:  cbCtx.ProhibitedTargets,
+			DefaultBackendPool: *defaultPool,
 		}
 
 		// Pools we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.

@@ -6,6 +6,7 @@
 package brownfield
 
 import (
+	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,38 +18,47 @@ import (
 var _ = Describe("Test blacklisting backend pools", func() {
 
 	listeners := []n.ApplicationGatewayHTTPListener{
+		*fixtures.GetDefaultListener(),
 		*fixtures.GetListener1(),
 		*fixtures.GetListener2(),
 	}
 
 	routingRules := []n.ApplicationGatewayRequestRoutingRule{
+		*fixtures.GetDefaultRoutingRule(),
 		*fixtures.GetRequestRoutingRulePathBased(),
 		*fixtures.GetRequestRoutingRuleBasic(),
 	}
 
 	paths := []n.ApplicationGatewayURLPathMap{
 		*fixtures.GeURLPathMap(),
+		*fixtures.GetDefaultURLPathMap(),
 	}
 
+	defaultPool := fixtures.GetDefaultBackendPool()
 	pool1 := fixtures.GetBackendPool1()
 	pool2 := fixtures.GetBackendPool2()
 	pool3 := fixtures.GetBackendPool3()
 
 	// Create a list of pools
 	pools := []n.ApplicationGatewayBackendAddressPool{
+		defaultPool,
 		pool1, // managed
 		pool2, // managed
 		pool3, // prohibited
 	}
 
 	brownfieldContext := PoolContext{
-		Listeners:    listeners,
-		RoutingRules: routingRules,
-		PathMaps:     paths,
-		BackendPools: pools,
+		Listeners:          listeners,
+		RoutingRules:       routingRules,
+		PathMaps:           paths,
+		BackendPools:       pools,
+		ProhibitedTargets:  fixtures.GetAzureIngressProhibitedTargets(),
+		DefaultBackendPool: defaultPool,
 	}
 
-	prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
+	prohibitWildcard := &ptv1.AzureIngressProhibitedTarget{
+		Spec: ptv1.AzureIngressProhibitedTargetSpec{},
+	}
 
 	Context("Test getPoolToTargetsMap", func() {
 
@@ -56,6 +66,12 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 		It("should have created map of pool name to list of targets", func() {
 			expected := poolToTargets{
+				fixtures.DefaultBackendPoolName: {
+					{
+						Hostname: "",
+						Path:     "",
+					},
+				},
 				fixtures.BackendAddressPoolName1: {
 					{
 						Hostname: tests.Host,
@@ -78,6 +94,27 @@ var _ = Describe("Test blacklisting backend pools", func() {
 						Hostname: tests.OtherHost,
 					},
 				},
+			}
+			Expect(actual).To(Equal(expected))
+		})
+	})
+
+	Context("Test getPoolToTargetsMap with empty routing rules and pathmaps", func() {
+
+		bfCtx := PoolContext{
+			Listeners:          listeners,
+			RoutingRules:       nil,
+			PathMaps:           nil,
+			BackendPools:       pools,
+			ProhibitedTargets:  nil,
+			DefaultBackendPool: defaultPool,
+		}
+
+		actual := bfCtx.getPoolToTargetsMap()
+
+		It("should have retained the default backendpool", func() {
+			expected := poolToTargets{
+				fixtures.DefaultBackendPoolName: {},
 			}
 			Expect(actual).To(Equal(expected))
 		})
@@ -113,17 +150,69 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 	Context("Test GetBlacklistedPools()", func() {
 
-		It("should be able to prune the managed pools from the lists of all pools", func() {
-			blacklisted, notBlacklisted := GetExistingBlacklistedPools(prohibitedTargets, brownfieldContext)
+		It("Should determine what pools are blacklisted", func() {
+			blacklisted, notBlacklisted := brownfieldContext.GetBlacklistedPools()
 
 			Expect(len(blacklisted)).To(Equal(2))
 			Expect(blacklisted).To(ContainElement(pool1))
 			Expect(blacklisted).To(ContainElement(pool2))
+
+			// Default backend pool is NOT in the blacklist.
+			Expect(blacklisted).ToNot(ContainElement(defaultPool))
+
+			// This pool is not linked to any listeners so we leave it alone.
 			Expect(blacklisted).ToNot(ContainElement(pool3))
+
+			// --- inverse check
+
+			Expect(len(notBlacklisted)).To(Equal(2))
+			Expect(notBlacklisted).ToNot(ContainElement(pool1))
+			Expect(notBlacklisted).ToNot(ContainElement(pool2))
+
+			// Default backend pool is NOT in the blacklist.
+			Expect(notBlacklisted).To(ContainElement(defaultPool))
+
+			// This pool is not linked to any listeners so we leave it alone.
+			Expect(notBlacklisted).To(ContainElement(pool3))
+		})
+	})
+
+	Context("Test GetBlacklistedPools() with everyhting blacklisted", func() {
+
+		It("blacklists everything linked to a listener", func() {
+
+			bfCtx := PoolContext{
+				Listeners:          listeners,
+				RoutingRules:       routingRules,
+				PathMaps:           paths,
+				BackendPools:       pools,
+				ProhibitedTargets:  append(fixtures.GetAzureIngressProhibitedTargets(), prohibitWildcard),
+				DefaultBackendPool: defaultPool,
+			}
+
+			blacklisted, notBlacklisted := bfCtx.GetBlacklistedPools()
+
+			Expect(len(blacklisted)).To(Equal(3))
+			Expect(blacklisted).To(ContainElement(pool1))
+			Expect(blacklisted).To(ContainElement(pool2))
+			Expect(blacklisted).To(ContainElement(pool2))
+
+			// Default backend pool is blacklisted under the prohibitWildcard target.
+			Expect(blacklisted).To(ContainElement(defaultPool))
+
+			// This is a backendpool that is not connected to any listener so we leave it alone
+			Expect(blacklisted).ToNot(ContainElement(pool3))
+
+			// --- inverse check
 
 			Expect(len(notBlacklisted)).To(Equal(1))
 			Expect(notBlacklisted).ToNot(ContainElement(pool1))
 			Expect(notBlacklisted).ToNot(ContainElement(pool2))
+
+			// Default backend pool is blacklisted under the prohibitWildcard target.
+			Expect(notBlacklisted).ToNot(ContainElement(defaultPool))
+
+			// This is a backendpool that is not connected to any listener so we leave it alone
 			Expect(notBlacklisted).To(ContainElement(pool3))
 		})
 	})
