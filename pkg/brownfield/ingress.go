@@ -6,9 +6,6 @@
 package brownfield
 
 import (
-	"encoding/json"
-
-	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
@@ -33,11 +30,14 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 		if rule.HTTP == nil {
 			continue
 		}
-
+		target := Target{
+			Hostname: rule.Host,
+		}
 		if rule.HTTP.Paths == nil {
-			if canManage(rule.Host, "", blacklist) {
-				rules = append(rules, rule)
+			if target.IsBlacklisted(blacklist) {
+				continue
 			}
+			rules = append(rules, rule)
 			continue // to next rule
 		}
 
@@ -50,9 +50,11 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 			},
 		}
 		for _, path := range rule.HTTP.Paths {
-			if canManage(rule.Host, path.Path, blacklist) {
-				newRule.HTTP.Paths = append(newRule.HTTP.Paths, path)
+			target.Path = path.Path
+			if target.IsBlacklisted(blacklist) {
+				continue
 			}
+			newRule.HTTP.Paths = append(newRule.HTTP.Paths, path)
 		}
 		if len(newRule.HTTP.Paths) > 0 {
 			rules = append(rules, newRule)
@@ -60,22 +62,4 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 	}
 
 	return rules
-}
-
-// canManage determines whether the target identified by the given host & path should be managed by AGIC.
-func canManage(host string, path string, blacklist TargetBlacklist) bool {
-	if blacklist == nil || len(*blacklist) == 0 {
-		return true
-	}
-	target := Target{
-		Hostname: host,
-		Path:     path,
-	}
-	targetJSON, _ := json.Marshal(target)
-	if target.IsBlacklisted(blacklist) {
-		glog.V(5).Infof("Target is in blacklist. Ignore: %s", string(targetJSON))
-		return false
-	}
-	glog.V(5).Infof("Target is not in blacklist. Keep: %s", string(targetJSON))
-	return true
 }

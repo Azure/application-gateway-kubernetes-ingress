@@ -22,19 +22,32 @@ const (
 
 	// PathBaz is a URL path.
 	PathBaz = "/baz"
+
+	// PathForbidden is a URL path.
+	PathForbidden = "/forbidden-path"
 )
 
-// GetProhibitedTargets creates a new struct for use in unit tests.
-func GetProhibitedTargets() []*ptv1.AzureIngressProhibitedTarget {
+// GetAzureIngressProhibitedTargets creates a new struct for use in unit tests.
+func GetAzureIngressProhibitedTargets() []*ptv1.AzureIngressProhibitedTarget {
 	return []*ptv1.AzureIngressProhibitedTarget{
 		{
 			Spec: ptv1.AzureIngressProhibitedTargetSpec{
-				IP:       IPAddress1,
 				Hostname: tests.Host,
-				Port:     443,
 				Paths: []string{
 					PathFox,
 					PathBar,
+				},
+			},
+		},
+		{
+			Spec: ptv1.AzureIngressProhibitedTargetSpec{
+				Hostname: tests.OtherHost,
+			},
+		},
+		{
+			Spec: ptv1.AzureIngressProhibitedTargetSpec{
+				Paths: []string{
+					PathForbidden,
 				},
 			},
 		},
