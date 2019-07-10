@@ -157,33 +157,28 @@ func (c PoolContext) getPoolToTargetsMap() poolToTargets {
 		} else {
 			// Follow the path map
 			pathMapName := pathmapName(utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
-
-			// In case there are no PathRules
-			if pathNameToPath[pathMapName].PathRules == nil {
-				if pathNameToPath[pathMapName].DefaultBackendAddressPool == nil {
-					glog.Errorf("Path map with name %s does not have PathRules and does not have DefaultBackendAddressPool", pathMapName)
+			if pathNameToPath[pathMapName].DefaultBackendAddressPool == nil {
+				glog.Errorf("Path map with name %s does not have PathRules and does not have DefaultBackendAddressPool", pathMapName)
+				continue
+			}
+			poolName := backendPoolName(*c.DefaultBackendPool.Name)
+			poolToTarget[poolName] = append(poolToTarget[poolName], target)
+			for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
+				if pathRule.BackendAddressPool == nil {
+					glog.Errorf("Path Rule %+v does not have BackendAddressPool", *pathRule.Name)
 					continue
 				}
-				poolName := backendPoolName(*c.DefaultBackendPool.Name)
-				poolToTarget[poolName] = append(poolToTarget[poolName], target)
-			} else {
-				// Go through the path rules
-				for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
-					if pathRule.BackendAddressPool == nil {
-						glog.Errorf("Path Rule %+v does not have BackendAddressPool", *pathRule.Name)
-						continue
-					}
-					poolName := backendPoolName(utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID))
-					if pathRule.Paths == nil {
-						glog.V(5).Infof("Path Rule %+v does not have paths list", *pathRule.Name)
-						continue
-					}
-					for _, path := range *pathRule.Paths {
-						target.Path = strings.ToLower(path)
-						poolToTarget[poolName] = append(poolToTarget[poolName], target)
-					}
+				poolName := backendPoolName(utils.GetLastChunkOfSlashed(*pathRule.BackendAddressPool.ID))
+				if pathRule.Paths == nil {
+					glog.V(5).Infof("Path Rule %+v does not have paths list", *pathRule.Name)
+					continue
+				}
+				for _, path := range *pathRule.Paths {
+					target.Path = strings.ToLower(path)
+					poolToTarget[poolName] = append(poolToTarget[poolName], target)
 				}
 			}
+
 		}
 	}
 	return poolToTarget

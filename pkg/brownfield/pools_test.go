@@ -6,11 +6,11 @@
 package brownfield
 
 import (
-	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
@@ -69,6 +69,10 @@ var _ = Describe("Test blacklisting backend pools", func() {
 				fixtures.DefaultBackendPoolName: {
 					{
 						Hostname: "",
+						Path:     "",
+					},
+					{
+						Hostname: "bye.com",
 						Path:     "",
 					},
 				},
