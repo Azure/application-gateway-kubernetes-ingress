@@ -8,6 +8,7 @@ package annotations
 import (
 	"strconv"
 
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
@@ -40,13 +41,17 @@ const (
 	// that this is an ingress resource meant for the application gateway ingress controller.
 	IngressClassKey = "kubernetes.io/ingress.class"
 
+	// IstioGatewayKey defines the key of the annotation which needs to be set in order to specify
+	// that this is sa gateway meant for the application gateway ingress controller.
+	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
+
 	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller
 	// whether it should act on this ingress resource or not.
 	ApplicationGatewayIngressClass = "azure/application-gateway"
 
 	// ApplicationGatewayIstioIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller whether
-	// this ingress resource is from Istio or not.
-	ApplicationGatewayIstioIngressClass = "istio-ingress"
+	// this gateway should be handled by AGIC or not
+	ApplicationGatewayIstioIngressClass = "controls-app-gw"
 )
 
 // IngressClass ingress class
@@ -60,10 +65,13 @@ func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 	return controllerName == ApplicationGatewayIngressClass, err
 }
 
-// IsIstioGatewayIngress checks if the Ingress resource is from Istio
-func IsIstioGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
-	controllerName, err := parseString(ing, IngressClassKey)
-	return controllerName == ApplicationGatewayIstioIngressClass, err
+// IsIstioGatewayIngress checks if this gateway should be handled by AGIC or not
+func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
+	val, ok := gateway.Annotations[IstioGatewayKey]
+	if ok {
+		return val == ApplicationGatewayIstioIngressClass, nil
+	}
+	return false, errors.ErrMissingAnnotations
 }
 
 // IsSslRedirect for HTTP end points.
