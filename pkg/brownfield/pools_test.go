@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
-var _ = Describe("test TargetBlacklist/TargetWhitelist backend pools", func() {
+var _ = Describe("Test blacklisting backend pools", func() {
 
 	listeners := []n.ApplicationGatewayHTTPListener{
 		*fixtures.GetListener1(),
