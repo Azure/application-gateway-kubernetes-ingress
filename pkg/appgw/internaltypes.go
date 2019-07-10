@@ -182,9 +182,8 @@ func defaultProbe() n.ApplicationGatewayProbe {
 }
 
 func defaultBackendAddressPool() *n.ApplicationGatewayBackendAddressPool {
-	defBackendAddressPool := defaultBackendAddressPoolName
 	return &n.ApplicationGatewayBackendAddressPool{
-		Name: &defBackendAddressPool,
+		Name: &defaultBackendAddressPoolName,
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{},
 		},
