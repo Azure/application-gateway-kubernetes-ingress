@@ -195,14 +195,14 @@ func (c *appGwConfigBuilder) getExistingListeners() []n.ApplicationGatewayHTTPLi
 }
 
 func (c *appGwConfigBuilder) getExistingRoutingRules() []n.ApplicationGatewayRequestRoutingRule {
-	if c.appGw.BackendAddressPools == nil {
+	if c.appGw.RequestRoutingRules == nil {
 		return []n.ApplicationGatewayRequestRoutingRule{}
 	}
 	return *c.appGw.RequestRoutingRules
 }
 
 func (c *appGwConfigBuilder) getExistingPathMaps() []n.ApplicationGatewayURLPathMap {
-	if c.appGw.BackendAddressPools == nil {
+	if c.appGw.URLPathMaps == nil {
 		return []n.ApplicationGatewayURLPathMap{}
 	}
 	return *c.appGw.URLPathMaps
