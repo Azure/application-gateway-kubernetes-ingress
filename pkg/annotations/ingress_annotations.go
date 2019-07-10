@@ -45,13 +45,9 @@ const (
 	// that this is a gateway meant for the application gateway ingress controller.
 	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
-	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller
-	// whether it should act on this ingress resource or not.
+	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
+	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
 	ApplicationGatewayIngressClass = "azure/application-gateway"
-
-	// ApplicationGatewayIstioIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller whether
-	// this gateway should be handled by AGIC or not
-	ApplicationGatewayIstioIngressClass = "controls-app-gw"
 )
 
 // IngressClass ingress class
@@ -69,7 +65,7 @@ func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
 	val, ok := gateway.Annotations[IstioGatewayKey]
 	if ok {
-		return val == ApplicationGatewayIstioIngressClass, nil
+		return val == ApplicationGatewayIngressClass, nil
 	}
 	return false, errors.ErrMissingAnnotations
 }
