@@ -218,6 +218,26 @@ func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Po
 	return podList
 }
 
+// IsPodReferencedByAnyIngress provides whether a POD is useful i.e. a POD is used by an ingress
+func (c *Context) IsPodReferencedByAnyIngress(pod *v1.Pod) bool {
+	// first find all the services
+	services := c.listServicesByPodSelector(pod.Labels)
+
+	for _, service := range services {
+		if c.isServiceReferencedByAnyIngress(service) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. a Endpoint is used by an ingress
+func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool {
+	service := c.GetService(fmt.Sprintf("%v/%v", endpoints.Namespace, endpoints.Name))
+	return service != nil && c.isServiceReferencedByAnyIngress(service)
+}
+
 // ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
 func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
@@ -378,5 +398,41 @@ func hasTCPPort(service *v1.Service) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func (c *Context) listServicesByPodSelector(selector map[string]string) []*v1.Service {
+	selectorSet := mapset.NewSet()
+	for k, v := range selector {
+		selectorSet.Add(k + ":" + v)
+	}
+
+	var serviceList []*v1.Service
+	for _, service := range c.ListServices() {
+		serviceLabelSet := mapset.NewSet()
+		for k, v := range service.Labels {
+			serviceLabelSet.Add(k + ":" + v)
+		}
+
+		if serviceLabelSet.IsSubset(selectorSet) {
+			serviceList = append(serviceList, service)
+		}
+	}
+
+	return serviceList
+}
+
+func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
+	for _, ingress := range c.ListHTTPIngresses() {
+		for _, rule := range ingress.Spec.Rules {
+			for _, path := range rule.HTTP.Paths {
+				// TODO(akshaysngupta) Use service ports
+				if path.Backend.ServiceName == service.Name {
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
