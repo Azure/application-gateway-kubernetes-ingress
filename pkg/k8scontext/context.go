@@ -24,7 +24,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	managedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
@@ -56,7 +55,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
-		AzureIngressManagedLocation:    crdInformerFactory.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer(),
 		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
@@ -69,7 +67,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Pods:                           informerCollection.Pods.GetStore(),
 		Secret:                         informerCollection.Secret.GetStore(),
 		Service:                        informerCollection.Service.GetStore(),
-		AzureIngressManagedLocation:    informerCollection.AzureIngressManagedLocation.GetStore(),
 		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
 		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
 		IstioVirtualService:            informerCollection.IstioVirtualService.GetStore(),
@@ -124,7 +121,6 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	var hasSynced []cache.InformerSynced
 	crds := map[cache.SharedInformer]interface{}{
-		i.AzureIngressManagedLocation:    nil,
 		i.AzureIngressProhibitedLocation: nil,
 		i.IstioGateway:                   nil,
 		i.IstioVirtualService:            nil,
@@ -141,7 +137,6 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment == "true" {
 		sharedInformers = append(sharedInformers,
-			i.AzureIngressManagedLocation,
 			i.AzureIngressProhibitedLocation)
 	}
 
@@ -239,22 +234,6 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	return ingressList
 }
 
-// ListAzureIngressManagedTargets returns a list of App Gwy configs, for which AGIC is explicitly allowed to modify config.
-func (c *Context) ListAzureIngressManagedTargets() []*managedv1.AzureIngressManagedTarget {
-	var targets []*managedv1.AzureIngressManagedTarget
-	for _, obj := range c.Caches.AzureIngressManagedLocation.List() {
-		targets = append(targets, obj.(*managedv1.AzureIngressManagedTarget))
-	}
-
-	var managedTargets []string
-	for _, target := range targets {
-		managedTargets = append(managedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
-	}
-	glog.V(5).Infof("AzureIngressManagedTargets: %+v", strings.Join(managedTargets, ","))
-
-	return targets
-}
-
 // ListAzureProhibitedTargets returns a list of App Gwy configs, for which AGIC is not allowed to modify config.
 func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
 	var targets []*prohibitedv1.AzureIngressProhibitedTarget
@@ -348,6 +327,24 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 	}
 	glog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
 	return virtualServices
+}
+
+// GetEndpointsForVirtualService returns a list of Endpoints associated with a Virtual Service
+func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualService) v1.EndpointsList {
+	endpointList := make([]v1.Endpoints, 0)
+	namespace := virtualService.Namespace
+	for _, httpRouteRule := range virtualService.Spec.HTTP {
+		for _, route := range httpRouteRule.Route {
+			serviceKey := fmt.Sprintf("%v/%v", namespace, route.Destination.Host)
+			endpoint, err := c.GetEndpointsByService(serviceKey)
+			if err == nil {
+				endpointList = append(endpointList, *endpoint)
+			}
+		}
+	}
+	return v1.EndpointsList{
+		Items: endpointList,
+	}
 }
 
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {

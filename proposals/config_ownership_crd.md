@@ -1,9 +1,10 @@
 # CRD for configuration ownership in brownfield deployments
+
 ##### Deploying Ingress Controller to hybrid environments with partial Application Gateway configuration ownership
 
 
 ### Document Purpose
-This document is a proposal for the creation of 2 new [CRDs](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) with the goal of
+This document is a proposal for the creation of a new [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) with the goal of
 augmenting the configuration of [Azure Application Gateway Ingress Controller](https://azure.github.io/application-gateway-kubernetes-ingress/).
 
   - Authors: [Akshay Gupta](https://github.com/akshaysngupta), [Delyan Raychev](https://github.com/draychev)
@@ -24,60 +25,16 @@ in hybrid environments where Application Gateway configuration is managed in par
 Ingress Controller.
 
 ### Proposed Solution
-We propose the creation of two new Kubernetes custom resource definitions ([CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)):
-  - `AzureIngressManagedTarget` - defines a reference to an App Gateway listener/target. Ingress Controller will assume ownership
-  and will mutate configuration for the listener and all related underlying resources: health probes, HTTP settings,
-  backend pools etc.
+We propose the creation of a new Kubernetes custom resource definitions ([CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)):
   - `AzureIngressProhibitedTarget` - defines a reference to an App Gateway listener/target, which Ingress Controller is not permitted
     to mutate. This and all related resources and configuration are assumed to be under control by another
     system; Ingress Controller will not make any modifications to these.
 
-These CRDs will be automatically created when the Ingress Controller is deployed to an AKS cluster.
+This CRD will be automatically created when the Ingress Controller is deployed to an AKS cluster.
 
 ### Proposed CRD schema:
-Both `AzureIngressManagedTarget` and `AzureIngressProhibitedTarget` would have the same shape:
+`AzureIngressProhibitedTarget` would have the following shape:
 
-##### AzureIngressManagedTarget
-
-```yaml
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: azureingressmanagedtargets.appgw.ingress.k8s.io
-spec:
-  group: appgw.ingress.k8s.io
-  version: v1
-  names:
-    kind: AzureIngressManagedTarget
-    plural: azureingressmanagedtargets
-  scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      properties:
-        spec:
-          properties:
-            ip:
-              description: "(required) IP address of the target managed by Ingress Controller; Could be the public or private address attached to the Application Gateway"
-              type: string
-            hostname:
-              description: "(optional) Hostname of the target"
-              type: string
-            port:
-              description: "(required) Port number of the target"
-              type: integer
-              minimum: 1
-              maximum: 65535
-            paths:
-              description: "(optional) A list of URL paths, for which the Ingress Controller is allowed to mutate Application Gateway configuration; Must begin with a / and end with /*"
-              type: array
-              items:
-                  type: string
-                  pattern: '^\/.*\/\*$'
-          required:
-            - port
-```
-
-##### AzureIngressProhibitedTarget
 ```yaml
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -95,50 +52,31 @@ spec:
       properties:
         spec:
           properties:
-            ip:
-              description: "(required) IP address of the prohibited target; Could be the public or private address attached to the Application Gateway"
-              type: string
             hostname:
-              description: "(optional) Hostname of the prohibited target"
+              description: "Hostname of the prohibited target"
               type: string
-            port:
-              description: "(required) Port number of the prohibited target"
-              type: integer
-              minimum: 1
-              maximum: 65535
             paths:
-              description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
+              description: "A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
               type: array
               items:
                   type: string
                   pattern: '^\/.*\/\*$'
-          required:
-            - port
 ```
 
 ### Example
 A sample YAML creating new instances of this resource would have the following shape:
 ```yaml
 apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressManagedTarget
+kind: AzureIngressProhibitedTarget
 metadata:
-  name: ingress-managed-target
+  name: ingress-prohibited-target
 spec:
-  ip: 23.45.67.89
   hostname: "www.contoso.com"
-  port: 80
   paths:
     - "/foo/*"
     - "/bar/*"
-
 ```
 
-The sample `ingress-managed-target` object above will be created by the AKS administrator. It will permit the
-Ingress Controller to apply configuration changes only to resources related to (and including) listener/target
-for www.contoso.com on ip 23.45.67.89 and port 80 and under path /bar/*
-
-
-### A Note on Rule Precedence
-If a listener/target is referenced in both a `AzureIngressManagedTarget` object as well as a
-`AzureIngressProhibitedTarget` object, ingress controller would treat it as `prohibited` to avoid unsafe configuration
-mutations. `AzureIngressProhibitedTarget` takes precedence over `AzureIngressManagedTarget`
+The sample `ingress-prohibited-target` object above will be created by the AKS administrator. It will prohibit the
+Ingress Controller from applying configuration changes to resources related to (and including) listener/target
+for www.contoso.com under path `/bar/*`.

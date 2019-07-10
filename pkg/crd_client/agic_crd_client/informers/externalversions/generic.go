@@ -21,7 +21,6 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressmanagedtarget/v1"
 	azureingressprohibitedtargetv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -53,11 +52,7 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=azureingressmanagedtargets.appgw.ingress.k8s.io, Version=v1
-	case v1.SchemeGroupVersion.WithResource("azureingressmanagedtargets"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressmanagedtargets().V1().AzureIngressManagedTargets().Informer()}, nil
-
-		// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
+	// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
 	case azureingressprohibitedtargetv1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer()}, nil
 

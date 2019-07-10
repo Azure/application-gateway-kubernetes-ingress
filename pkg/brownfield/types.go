@@ -3,8 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-// +k8s:deepcopy-gen=package,register
-// +groupName=azureingressmanagedtargets.appgw.ingress.k8s.io
+package brownfield
 
-// Package v1 is the v1 version of the API.
-package v1
+// TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
+type TargetBlacklist *[]Target
