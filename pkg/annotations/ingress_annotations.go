@@ -8,6 +8,7 @@ package annotations
 import (
 	"strconv"
 
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
@@ -40,13 +41,13 @@ const (
 	// that this is an ingress resource meant for the application gateway ingress controller.
 	IngressClassKey = "kubernetes.io/ingress.class"
 
-	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller
-	// whether it should act on this ingress resource or not.
-	ApplicationGatewayIngressClass = "azure/application-gateway"
+	// IstioGatewayKey defines the key of the annotation which needs to be set in order to specify
+	// that this is a gateway meant for the application gateway ingress controller.
+	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
-	// ApplicationGatewayIstioIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller whether
-	// this ingress resource is from Istio or not.
-	ApplicationGatewayIstioIngressClass = "istio-ingress"
+	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
+	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
+	ApplicationGatewayIngressClass = "azure/application-gateway"
 )
 
 // IngressClass ingress class
@@ -58,6 +59,15 @@ func IngressClass(ing *v1beta1.Ingress) (string, error) {
 func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 	controllerName, err := parseString(ing, IngressClassKey)
 	return controllerName == ApplicationGatewayIngressClass, err
+}
+
+// IsIstioGatewayIngress checks if this gateway should be handled by AGIC or not
+func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
+	val, ok := gateway.Annotations[IstioGatewayKey]
+	if ok {
+		return val == ApplicationGatewayIngressClass, nil
+	}
+	return false, errors.ErrMissingAnnotations
 }
 
 // IsSslRedirect for HTTP end points.
