@@ -42,7 +42,7 @@ const (
 	IngressClassKey = "kubernetes.io/ingress.class"
 
 	// IstioGatewayKey defines the key of the annotation which needs to be set in order to specify
-	// that this is sa gateway meant for the application gateway ingress controller.
+	// that this is a gateway meant for the application gateway ingress controller.
 	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
 	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` annotation that will tell the ingress controller

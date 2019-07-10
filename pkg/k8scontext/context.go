@@ -348,11 +348,10 @@ func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualS
 }
 
 // GetGateways returns all Istio Gateways that are annotated.
-func (c *Context) GetGateways(annotation string) []*v1alpha3.Gateway {
+func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	annotatedGateways := make([]*v1alpha3.Gateway, 0)
 	for _, gateway := range c.ListIstioGateways() {
-		annotated, _ := annotations.IsIstioGatewayIngress(gateway)
-		if annotated {
+		if annotated, _ := annotations.IsIstioGatewayIngress(gateway); annotated {
 			annotatedGateways = append(annotatedGateways, gateway)
 		}
 	}
