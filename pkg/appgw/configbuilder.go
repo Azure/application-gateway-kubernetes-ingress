@@ -204,7 +204,6 @@ func (c *appGwConfigBuilder) getExistingRoutingRules() []n.ApplicationGatewayReq
 func (c *appGwConfigBuilder) getExistingPathMaps() []n.ApplicationGatewayURLPathMap {
 	if c.appGw.BackendAddressPools == nil {
 		return []n.ApplicationGatewayURLPathMap{}
-
 	}
 	return *c.appGw.URLPathMaps
 }
