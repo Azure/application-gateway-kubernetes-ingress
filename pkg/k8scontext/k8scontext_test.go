@@ -7,9 +7,8 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
+	"reflect"
 	"time"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 
 	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
@@ -24,6 +23,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -53,6 +53,30 @@ var _ = Describe("K8scontext", func() {
 
 	_ = go_flag.Lookup("logtostderr").Value.Set("true")
 	_ = go_flag.Set("v", "5")
+
+	// function to wait until sync
+	waitContextSync := func(ctxt *k8scontext.Context, resourceList ...interface{}) {
+		exists := make(map[interface{}]string)
+
+		for {
+			select {
+			case in := <-ctxt.UpdateChannel.Out():
+				event := in.(events.Event)
+				for _, resource := range resourceList {
+					if reflect.DeepEqual(resource, event.Value) {
+						exists[resource] = ""
+						break
+					}
+				}
+			case <-time.After(1 * time.Second):
+				break
+			}
+
+			if len(exists) == len(resourceList) {
+				return
+			}
+		}
+	}
 
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
@@ -252,20 +276,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
-			for {
-				serviceInCache := false
-				select {
-				case in := <-ctxt.UpdateChannel.Out():
-					event := in.(events.Event)
-					if _, ok := event.Value.(*v1.Service); ok {
-						serviceInCache = true
-					}
-				}
-
-				if serviceInCache {
-					break
-				}
-			}
+			waitContextSync(ctxt, ingress, pod, service)
 
 			// check that ctxt synced the service
 			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
@@ -293,20 +304,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
-			for {
-				serviceInCache := false
-				select {
-				case in := <-ctxt.UpdateChannel.Out():
-					event := in.(events.Event)
-					if _, ok := event.Value.(*v1.Service); ok {
-						serviceInCache = true
-					}
-				}
-
-				if serviceInCache {
-					break
-				}
-			}
+			waitContextSync(ctxt, ingress, pod, service)
 
 			// check that ctxt synced the service
 			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
