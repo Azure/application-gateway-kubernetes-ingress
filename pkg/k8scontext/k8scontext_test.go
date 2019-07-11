@@ -9,6 +9,8 @@ import (
 	go_flag "flag"
 	"time"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+
 	"github.com/getlantern/deepcopy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,7 +52,7 @@ var _ = Describe("K8scontext", func() {
 	pod := &podObj
 
 	_ = go_flag.Lookup("logtostderr").Value.Set("true")
-	_ = go_flag.Set("v", "3")
+	_ = go_flag.Set("v", "5")
 
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
@@ -63,10 +65,11 @@ var _ = Describe("K8scontext", func() {
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
 
+		// create ingress in namespace
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
-		// Create a `k8scontext` to start listiening to ingress resources.
+		// Create a `k8scontext` to start listening to ingress resources.
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
@@ -230,5 +233,97 @@ var _ = Describe("K8scontext", func() {
 			filteredPodList = ctxt.ListPodsByServiceSelector(service.Spec.Selector)
 			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
 		})
+	})
+
+	Context("Checking if we are able to skip unrelated pod events", func() {
+		It("should be able to select related pods", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			// create a POD with labels
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			for {
+				serviceInCache := false
+				select {
+				case in := <-ctxt.UpdateChannel.Out():
+					event := in.(events.Event)
+					if _, ok := event.Value.(*v1.Service); ok {
+						serviceInCache = true
+					}
+				}
+
+				if serviceInCache {
+					break
+				}
+			}
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: true
+			Expect(ctxt.IsPodReferencedByAnyIngress(pod)).To(BeTrue(), "Expected is Pod is selected by the service and ingress.")
+		})
+
+		It("should be able to skip unrelated pods", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			// modify the labels on the POD
+			pod.Labels = map[string]string{
+				"random": "random",
+			}
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			for {
+				serviceInCache := false
+				select {
+				case in := <-ctxt.UpdateChannel.Out():
+					event := in.(events.Event)
+					if _, ok := event.Value.(*v1.Service); ok {
+						serviceInCache = true
+					}
+				}
+
+				if serviceInCache {
+					break
+				}
+			}
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: false
+			Expect(ctxt.IsPodReferencedByAnyIngress(pod)).To(BeFalse(), "Expected is Pod is not selected by the service and ingress.")
+		})
+	})
+
+	Context("Checking IsEndpointReferencedByAnyIngress", func() {
+		// create a endpoints with labels
+		// create a service with label
+		// create an ingress that uses that service
+		// run IsPodReferencedByAnyIngress: true
+		// ctxt.IsPodReferencedByAnyIngress()
+
+		// modify ingress
+		// run IsPodReferencedByAnyIngress: false
 	})
 })

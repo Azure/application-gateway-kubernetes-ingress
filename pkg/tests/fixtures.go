@@ -353,7 +353,7 @@ func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress
 								{
 									Path: "/hi",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "hello-world",
+										ServiceName: ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
 											IntVal: 80,
@@ -376,7 +376,7 @@ func NewPodTestFixture(namespace string, podName string) v1.Pod {
 			Name:      podName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app": "pod",
+				SelectorKey: SelectorValue,
 			},
 		},
 		Spec: v1.PodSpec{},
