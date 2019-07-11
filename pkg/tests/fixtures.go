@@ -298,6 +298,10 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 // NewEndpointsFixture makes a new endpoint for testing
 func NewEndpointsFixture() *v1.Endpoints {
 	return &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ServiceName,
+			Namespace: Namespace,
+		},
 		Subsets: []v1.EndpointSubset{
 			{
 				// IP addresses which offer the related ports that are marked as ready. These endpoints
@@ -353,7 +357,7 @@ func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress
 								{
 									Path: "/hi",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: "hello-world",
+										ServiceName: ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
 											IntVal: 80,
@@ -376,7 +380,7 @@ func NewPodTestFixture(namespace string, podName string) v1.Pod {
 			Name:      podName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app": "pod",
+				SelectorKey: SelectorValue,
 			},
 		},
 		Spec: v1.PodSpec{},
