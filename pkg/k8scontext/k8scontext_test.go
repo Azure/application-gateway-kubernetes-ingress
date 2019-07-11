@@ -7,6 +7,7 @@ package k8scontext_test
 
 import (
 	go_flag "flag"
+	"reflect"
 	"time"
 
 	"github.com/getlantern/deepcopy"
@@ -22,6 +23,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -50,7 +52,31 @@ var _ = Describe("K8scontext", func() {
 	pod := &podObj
 
 	_ = go_flag.Lookup("logtostderr").Value.Set("true")
-	_ = go_flag.Set("v", "3")
+	_ = go_flag.Set("v", "5")
+
+	// function to wait until sync
+	waitContextSync := func(ctxt *k8scontext.Context, resourceList ...interface{}) {
+		exists := make(map[interface{}]string)
+
+		for {
+			select {
+			case in := <-ctxt.UpdateChannel.Out():
+				event := in.(events.Event)
+				for _, resource := range resourceList {
+					if reflect.DeepEqual(resource, event.Value) {
+						exists[resource] = ""
+						break
+					}
+				}
+			case <-time.After(1 * time.Second):
+				break
+			}
+
+			if len(exists) == len(resourceList) {
+				return
+			}
+		}
+	}
 
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
@@ -63,10 +89,11 @@ var _ = Describe("K8scontext", func() {
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
 
+		// create ingress in namespace
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
-		// Create a `k8scontext` to start listiening to ingress resources.
+		// Create a `k8scontext` to start listening to ingress resources.
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
@@ -229,6 +256,120 @@ var _ = Describe("K8scontext", func() {
 			}
 			filteredPodList = ctxt.ListPodsByServiceSelector(service.Spec.Selector)
 			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
+		})
+	})
+
+	Context("Checking if we are able to skip unrelated pod events", func() {
+		It("should be able to select related pods", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			// create a POD with labels
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			waitContextSync(ctxt, ingress, pod, service)
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: true
+			Expect(ctxt.IsPodReferencedByAnyIngress(pod)).To(BeTrue(), "Expected is Pod is selected by the service and ingress.")
+		})
+
+		It("should be able to skip unrelated pods", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			// modify the labels on the POD
+			pod.Labels = map[string]string{
+				"random": "random",
+			}
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			waitContextSync(ctxt, ingress, pod, service)
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: false
+			Expect(ctxt.IsPodReferencedByAnyIngress(pod)).To(BeFalse(), "Expected is Pod is not selected by the service and ingress.")
+		})
+	})
+
+	Context("Checking if we are able to skip unrelated endpoints events", func() {
+		It("should be able to select related endpoints", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			endpoints := tests.NewEndpointsFixture()
+			endpoints.Namespace = ingressNS
+
+			// create a POD with labels
+			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+			Expect(err).Should(BeNil(), "Unable to create endpoints resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			waitContextSync(ctxt, ingress, service, endpoints)
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: true
+			Expect(ctxt.IsEndpointReferencedByAnyIngress(endpoints)).To(BeTrue(), "Expected is endpoints is selected by the service and ingress.")
+		})
+
+		It("should be able to skip unrelated endpoints", func() {
+			// start context for syncing
+			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+
+			endpoints := tests.NewEndpointsFixture()
+			endpoints.Name = "random"
+			endpoints.Namespace = ingressNS
+
+			// create a POD with labels
+			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+			Expect(err).Should(BeNil(), "Unable to create endpoints resource due to: %v", err)
+
+			// create a service with label
+			servicePort := tests.NewServicePortsFixture()
+			service := tests.NewServiceFixture(*servicePort...)
+			service.Namespace = ingressNS
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+
+			// wait for sync
+			waitContextSync(ctxt, ingress, service, endpoints)
+
+			// check that ctxt synced the service
+			Expect(len(ctxt.ListServices())).To(Equal(1), "Context was not able to sync in time")
+
+			// run IsPodReferencedByAnyIngress: true
+			Expect(ctxt.IsEndpointReferencedByAnyIngress(endpoints)).To(BeFalse(), "Expected is endpoints is not selected by the service and ingress.")
 		})
 	})
 })
