@@ -168,8 +168,8 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 // ListServices returns a list of all the Services from cache.
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
-	for _, ingressInterface := range c.Caches.Service.List() {
-		service := ingressInterface.(*v1.Service)
+	for _, serviceInterface := range c.Caches.Service.List() {
+		service := serviceInterface.(*v1.Service)
 		if hasTCPPort(service) {
 			serviceList = append(serviceList, service)
 		}
@@ -221,7 +221,7 @@ func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Po
 // IsPodReferencedByAnyIngress provides whether a POD is useful i.e. a POD is used by an ingress
 func (c *Context) IsPodReferencedByAnyIngress(pod *v1.Pod) bool {
 	// first find all the services
-	services := c.listServicesByPodSelector(pod.Labels)
+	services := c.listServicesByPodSelector(pod)
 
 	for _, service := range services {
 		if c.isServiceReferencedByAnyIngress(service) {
@@ -401,20 +401,20 @@ func hasTCPPort(service *v1.Service) bool {
 	return false
 }
 
-func (c *Context) listServicesByPodSelector(selector map[string]string) []*v1.Service {
-	selectorSet := mapset.NewSet()
-	for k, v := range selector {
-		selectorSet.Add(k + ":" + v)
+func (c *Context) listServicesByPodSelector(pod *v1.Pod) []*v1.Service {
+	labelSet := mapset.NewSet()
+	for k, v := range pod.Labels {
+		labelSet.Add(k + ":" + v)
 	}
 
 	var serviceList []*v1.Service
 	for _, service := range c.ListServices() {
 		serviceLabelSet := mapset.NewSet()
-		for k, v := range service.Labels {
+		for k, v := range service.Spec.Selector {
 			serviceLabelSet.Add(k + ":" + v)
 		}
 
-		if serviceLabelSet.IsSubset(selectorSet) {
+		if serviceLabelSet.IsSubset(labelSet) {
 			serviceList = append(serviceList, service)
 		}
 	}
