@@ -23,6 +23,7 @@ import (
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health_probes"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -208,7 +209,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(len(probes)).To(Equal(2))
 
 		// Test the default health probe.
-		Expect(probes).To(ContainElement(defaultProbe()))
+		Expect(probes).To(ContainElement(health_probes.GetDefaultProbe(agPrefix)))
 		// Test the ingress health probe that we installed.
 		Expect(probes).To(ContainElement(*probe))
 	}
@@ -501,7 +502,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressList := testIngress()
 
 			EmptyHealthProbeChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
-				Expect((*appGW.Probes)[0]).To(Equal(defaultProbe()))
+				Expect((*appGW.Probes)[0]).To(Equal(health_probes.GetDefaultProbe(agPrefix)))
 			}
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {

@@ -19,6 +19,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health_probes"
 )
 
 const (
@@ -145,7 +146,7 @@ func generatePathRuleName(namespace, ingress, suffix string) string {
 
 var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
 var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
-var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
+var defaultProbeName = health_probes.GetDefaultProbeName(agPrefix)
 
 func defaultBackendHTTPSettings(probeID string) n.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
@@ -156,27 +157,6 @@ func defaultBackendHTTPSettings(probeID string) n.ApplicationGatewayBackendHTTPS
 			Protocol: n.HTTP,
 			Port:     &defHTTPSettingsPort,
 			Probe:    resourceRef(probeID),
-		},
-	}
-}
-
-func defaultProbe() n.ApplicationGatewayProbe {
-	defProbeName := defaultProbeName
-	defProtocol := n.HTTP
-	defHost := "localhost"
-	defPath := "/"
-	defInterval := int32(30)
-	defTimeout := int32(30)
-	defUnHealthyCount := int32(3)
-	return n.ApplicationGatewayProbe{
-		Name: &defProbeName,
-		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-			Protocol:           defProtocol,
-			Host:               &defHost,
-			Path:               &defPath,
-			Interval:           &defInterval,
-			Timeout:            &defTimeout,
-			UnhealthyThreshold: &defUnHealthyCount,
 		},
 	}
 }

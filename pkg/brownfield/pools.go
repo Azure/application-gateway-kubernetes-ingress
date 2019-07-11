@@ -113,7 +113,7 @@ func logTarget(verbosity glog.Level, target Target, message string) {
 
 // getPoolToTargetsMap creates a map from backend pool to targets this backend pool is responsible for.
 // We rely on the configuration that AGIC has already constructed: Frontend Listener, Routing Rules, etc.
-// We use the Listener to obtain the target hostname, the RoutingRule to get the
+// We use the Listener to obtain the target hostname, the RoutingRule to get the URL etc.
 func (c PoolContext) getPoolToTargetsMap() poolToTargets {
 
 	// Index listeners by their name

@@ -31,3 +31,6 @@ type poolsByName map[backendPoolName]n.ApplicationGatewayBackendAddressPool
 
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
+
+type probeName string
+type probesByName map[probeName]n.ApplicationGatewayProbe

@@ -16,25 +16,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health_probes"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
 	healthProbeCollection, _ := c.newProbesMap(cbCtx)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
-	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
+	agicCreatedProbes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
-		probes = append(probes, probe)
+		agicCreatedProbes = append(agicCreatedProbes, probe)
 	}
-	sort.Sort(sorter.ByHealthProbeName(probes))
-	c.appGw.Probes = &probes
+
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		var allExisting []n.ApplicationGatewayProbe
+		if c.appGw.Probes != nil {
+			allExisting = *c.appGw.Probes
+		}
+		existingBlacklisted, existingNonBlacklisted := brownfield.GetBlacklistedProbes(allExisting, cbCtx.ProhibitedTargets)
+		brownfield.LogProbes(existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
+		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
+	}
+
+	sort.Sort(sorter.ByHealthProbeName(agicCreatedProbes))
+	c.appGw.Probes = &agicCreatedProbes
 	return nil
 }
-
 func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
-	defaultProbe := defaultProbe()
+	defaultProbe := health_probes.GetDefaultProbe(agPrefix)
 
 	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
@@ -60,7 +72,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if service == nil {
 		return nil
 	}
-	probe := defaultProbe()
+	probe := health_probes.GetDefaultProbe(agPrefix)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 		probe.Host = to.StringPtr(backendID.Rule.Host)

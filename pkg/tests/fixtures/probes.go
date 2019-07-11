@@ -6,6 +6,8 @@
 package fixtures
 
 import (
+	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
@@ -26,7 +28,7 @@ func GetApplicationGatewayProbe(host *string, path *string) n.ApplicationGateway
 			Host:     host,
 			Path:     path,
 		},
-		Name: to.StringPtr("probe-name"),
+		Name: to.StringPtr(fmt.Sprintf("probe-name-%s-%s", *host, *path)),
 		ID:   to.StringPtr("abcd"),
 	}
 }
