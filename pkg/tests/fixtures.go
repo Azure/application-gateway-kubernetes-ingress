@@ -298,6 +298,10 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 // NewEndpointsFixture makes a new endpoint for testing
 func NewEndpointsFixture() *v1.Endpoints {
 	return &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ServiceName,
+			Namespace: Namespace,
+		},
 		Subsets: []v1.EndpointSubset{
 			{
 				// IP addresses which offer the related ports that are marked as ready. These endpoints
