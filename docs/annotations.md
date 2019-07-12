@@ -1,5 +1,3 @@
-# Annotations
-
 ## Introductions
 
 Kubernetes Ingress specification allows for annotations. We use annotations to expose Application Gateway specific features that can't be exposed using the ingress specification. It is important to note that annotations defined on an ingress resource are applied to all HTTP setting, backend pools and listeners defined within a given ingress resource.
@@ -14,6 +12,7 @@ Kubernetes Ingress specification allows for annotations. We use annotations to e
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` |
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` |
+| [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `int32` (seconds) | `30` |
 
 ## Backend Path Prefix
 
@@ -89,7 +88,6 @@ spec:
 ```
 
 ## Connection Draining
-
 `connection-draining`: This annotation allows to specify whether to enable connection draining.
 `connection-draining-timeout`: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.
 
@@ -123,7 +121,6 @@ spec:
 ```
 
 ## Cookie Based Affinity
-
 This annotation allows to specify whether to enable cookie based affinity.
 
 ### Usage
@@ -154,7 +151,6 @@ spec:
 ```
 
 ## Request Timeout
-
 This annotation allows to specify the request timeout in seconds after which Application Gateway will fail the request if response is not received.
 
 ### Usage
@@ -174,6 +170,39 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/request-timeout: 20
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
+```
+
+## Use Private IP
+This annotation allows to specify whether to expose this endpoint on Private IP of Application Gateway.
+
+> **Note**
+1) Application Gateway doesn't support multiple IPs on the same port (example: 80/443). So, if you have one ingress with annotation `use-private-ip: "false"` and other with `use-private-ip: "true"` on `HTTP`, they will fail the update on the Gateway.
+2) In case where Application Gateway doesn't have a private IP, specific ingresses with `use-private-ip: "true"` be pruned out. This will reflected in the controller logs and ingress events for those ingresses with `NoPrivateIP` .
+
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/use-private-ip: "true"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
 spec:
   rules:
   - http:
