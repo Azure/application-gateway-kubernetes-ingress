@@ -18,7 +18,7 @@ import (
 var _ = Describe("test pruning Ingress based on white/white lists", func() {
 
 	Context("Test PruneIngressRules()", func() {
-		prohibited := fixtures.GetProhibitedTargets()
+		prohibited := fixtures.GetAzureIngressProhibitedTargets()
 
 		ingress := v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
@@ -70,13 +70,6 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
 					{
-						// Should have kept the rule with no Paths
-						Host: tests.OtherHost,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{},
-						},
-					},
-					{
 						// Should have kept one of the Paths of this Rule
 						Host: tests.Host,
 						IngressRuleValue: v1beta1.IngressRuleValue{
@@ -102,23 +95,6 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 
 		It("should have trimmed the ingress rules to what AGIC is allowed to manage", func() {
 			Expect(actualRules).To(Equal(expected.Spec.Rules))
-		})
-	})
-
-	Context("Test canManage()", func() {
-		blacklist := []Target{{
-			Hostname: tests.Host,
-			Path:     fixtures.PathFox,
-		}}
-
-		It("should have properly identified the ingress rules AGIC is NOT allowed to manage", func() {
-			actual := canManage(tests.Host, fixtures.PathFox, &blacklist)
-			Expect(actual).To(BeFalse())
-		})
-
-		It("should have properly identified the ingress rules AGIC is allowed to manage", func() {
-			actual := canManage(tests.Host, fixtures.PathBaz, &blacklist)
-			Expect(actual).To(BeTrue())
 		})
 	})
 

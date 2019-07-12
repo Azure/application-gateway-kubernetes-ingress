@@ -11,6 +11,9 @@ import (
 )
 
 const (
+	// DefaultBackendPool is a string constant.
+	DefaultBackendPoolName = "defaultaddresspool"
+
 	// BackendAddressPoolName1 is a string constant.
 	BackendAddressPoolName1 = "BackendAddressPool-1"
 
@@ -29,6 +32,20 @@ const (
 	// IPAddress3 is a string constant.
 	IPAddress3 = "99.95.94.93"
 )
+
+// GetDefaultBackendPool creates a new struct for use in unit tests.
+func GetDefaultBackendPool() n.ApplicationGatewayBackendAddressPool {
+	return n.ApplicationGatewayBackendAddressPool{
+		Name: to.StringPtr(DefaultBackendPoolName),
+		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{
+				{
+					IPAddress: to.StringPtr(IPAddress1),
+				},
+			},
+		},
+	}
+}
 
 // GetBackendPool1 creates a new struct for use in unit tests.
 func GetBackendPool1() n.ApplicationGatewayBackendAddressPool {

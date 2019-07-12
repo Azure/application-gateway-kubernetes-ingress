@@ -168,8 +168,8 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 // ListServices returns a list of all the Services from cache.
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
-	for _, ingressInterface := range c.Caches.Service.List() {
-		service := ingressInterface.(*v1.Service)
+	for _, serviceInterface := range c.Caches.Service.List() {
+		service := serviceInterface.(*v1.Service)
 		if hasTCPPort(service) {
 			serviceList = append(serviceList, service)
 		}
@@ -216,6 +216,26 @@ func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Po
 	}
 
 	return podList
+}
+
+// IsPodReferencedByAnyIngress provides whether a POD is useful i.e. a POD is used by an ingress
+func (c *Context) IsPodReferencedByAnyIngress(pod *v1.Pod) bool {
+	// first find all the services
+	services := c.listServicesByPodSelector(pod)
+
+	for _, service := range services {
+		if c.isServiceReferencedByAnyIngress(service) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. a Endpoint is used by an ingress
+func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool {
+	service := c.GetService(fmt.Sprintf("%v/%v", endpoints.Namespace, endpoints.Name))
+	return service != nil && c.isServiceReferencedByAnyIngress(service)
 }
 
 // ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
@@ -347,6 +367,17 @@ func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualS
 	}
 }
 
+// GetGateways returns all Istio Gateways that are annotated.
+func (c *Context) GetGateways() []*v1alpha3.Gateway {
+	annotatedGateways := make([]*v1alpha3.Gateway, 0)
+	for _, gateway := range c.ListIstioGateways() {
+		if annotated, _ := annotations.IsIstioGatewayIngress(gateway); annotated {
+			annotatedGateways = append(annotatedGateways, gateway)
+		}
+	}
+	return annotatedGateways
+}
+
 func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
@@ -367,5 +398,41 @@ func hasTCPPort(service *v1.Service) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func (c *Context) listServicesByPodSelector(pod *v1.Pod) []*v1.Service {
+	labelSet := mapset.NewSet()
+	for k, v := range pod.Labels {
+		labelSet.Add(k + ":" + v)
+	}
+
+	var serviceList []*v1.Service
+	for _, service := range c.ListServices() {
+		serviceLabelSet := mapset.NewSet()
+		for k, v := range service.Spec.Selector {
+			serviceLabelSet.Add(k + ":" + v)
+		}
+
+		if serviceLabelSet.IsSubset(labelSet) {
+			serviceList = append(serviceList, service)
+		}
+	}
+
+	return serviceList
+}
+
+func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
+	for _, ingress := range c.ListHTTPIngresses() {
+		for _, rule := range ingress.Spec.Rules {
+			for _, path := range rule.HTTP.Paths {
+				// TODO(akshaysngupta) Use service ports
+				if path.Backend.ServiceName == service.Name {
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }

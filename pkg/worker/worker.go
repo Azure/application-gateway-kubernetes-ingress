@@ -42,6 +42,11 @@ func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct
 					glog.V(5).Infof("Received event: %s", jsonEvent)
 				}
 
+				if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
+					glog.V(5).Infof("Skipping event: %s", reason)
+					continue
+				}
+
 				// Use callback to process event.
 				if err := w.Process(event); err != nil {
 					glog.Error("Processing event failed:", err)
