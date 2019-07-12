@@ -49,6 +49,7 @@ type serviceBackendPortPair struct {
 type listenerIdentifier struct {
 	FrontendPort int32
 	HostName     string
+	UsePrivateIP bool
 }
 
 type serviceIdentifier struct {

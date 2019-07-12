@@ -259,7 +259,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Test the listener.
 		appGwIdentifier := Identifier{}
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		listenerName := generateListenerName(listenerIdentifier{80, domainName})
+		listenerName := generateListenerName(listenerIdentifier{80, domainName, false})
 		listener := &n.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: &listenerName,
@@ -275,7 +275,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{listener, host})))
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{listener, host, false})))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.PathBasedRouting))
 	}
 
@@ -288,7 +288,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{listener, host})))
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{listener, host, false})))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
@@ -626,7 +626,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
-				httpsListenerName := generateListenerName(listenerIdentifier{443, domainName})
+				httpsListenerName := generateListenerName(listenerIdentifier{443, domainName, false})
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
 				httpsListener := &n.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),

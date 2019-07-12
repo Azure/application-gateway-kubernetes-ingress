@@ -18,6 +18,7 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[
 
 	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
+	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 
 	for _, rule := range ingress.Spec.Rules {
 		if rule.HTTP == nil {
@@ -30,7 +31,7 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[
 		// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
 		// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
 		if hasTLS {
-			listenerID := generateListenerID(&rule, n.HTTPS, nil)
+			listenerID := generateListenerID(&rule, n.HTTPS, nil, usePrivateIP)
 			frontendPorts[listenerID.FrontendPort] = nil
 			// Only associate the Listener with a Redirect if redirect is enabled
 			redirect := ""
@@ -47,7 +48,7 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress) (map[
 
 		// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 		if sslRedirect || !hasTLS {
-			listenerID := generateListenerID(&rule, n.HTTP, nil)
+			listenerID := generateListenerID(&rule, n.HTTP, nil, usePrivateIP)
 			frontendPorts[listenerID.FrontendPort] = nil
 			listeners[listenerID] = listenerAzConfig{
 				Protocol: n.HTTP,

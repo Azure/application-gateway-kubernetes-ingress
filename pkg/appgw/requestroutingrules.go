@@ -38,6 +38,8 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 	for _, ingress := range cbCtx.IngressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+		usePrivateIP, _ := annotations.UsePrivateIP(ingress)
+		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
 
 		var wildcardRule *v1beta1.IngressRule
 		wildcardRule = nil
@@ -81,10 +83,10 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 				continue
 			}
 
-			listenerHTTPID := generateListenerID(rule, n.HTTP, nil)
+			listenerHTTPID := generateListenerID(rule, n.HTTP, nil, usePrivateIP)
 			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil)
+			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil, usePrivateIP)
 			_, httpsAvailable := httpListenersMap[listenerHTTPSID]
 
 			if httpAvailable {

@@ -37,6 +37,9 @@ const (
 	// SslRedirectKey defines the key for defining with SSL redirect should be turned on for an HTTP endpoint.
 	SslRedirectKey = ApplicationGatewayPrefix + "/ssl-redirect"
 
+	// UsePrivateIP defines the key to use private ip with the ingress.
+	UsePrivateIPKey = ApplicationGatewayPrefix + "/use-private-ip"
+
 	// IngressClassKey defines the key of the annotation which needs to be set in order to specify
 	// that this is an ingress resource meant for the application gateway ingress controller.
 	IngressClassKey = "kubernetes.io/ingress.class"
@@ -98,6 +101,11 @@ func ConnectionDrainingTimeout(ing *v1beta1.Ingress) (int32, error) {
 // IsCookieBasedAffinity provides value to enable/disable cookie based affinity for client connection.
 func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
+}
+
+// UsePrivateIP specifies whether to use private IP with the ingress
+func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
+	return parseBool(ing, UsePrivateIPKey)
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
