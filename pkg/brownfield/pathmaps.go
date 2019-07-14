@@ -115,7 +115,6 @@ func (er ExistingResources) getURLPathMapsByName() pathMapsByName {
 	for _, pm := range er.URLPathMaps {
 		urlpathMapsByName[urlPathMapName(*pm.Name)] = pm
 	}
-
 	er.urlPathMapsByName = urlpathMapsByName
 	return urlpathMapsByName
 }

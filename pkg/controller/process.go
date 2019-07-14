@@ -39,7 +39,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	cbCtx := &appgw.ConfigBuilderContext{
 		ServiceList:                c.k8sContext.ListServices(),
 		IngressList:                c.k8sContext.ListHTTPIngresses(),
-		ProhibitedTargets:          c.k8sContext.ListAzureProhibitedTargets(),
+		ProhibitedTargets:          prohibitedTargets,
 		IstioGateways:              c.k8sContext.ListIstioGateways(),
 		IstioVirtualServices:       c.k8sContext.ListIstioVirtualServices(),
 		EnvVariables:               envVars,

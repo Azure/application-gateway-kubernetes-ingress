@@ -49,7 +49,6 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			Expect(len(ruleToTargets[fixtures.RequestRoutingRuleName2])).To(Equal(3))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetFox))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetOtherHostNoPath))
-
 		})
 	})
 
