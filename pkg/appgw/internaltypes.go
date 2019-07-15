@@ -45,7 +45,9 @@ type backendIdentifier struct {
 type istioBackendIdentifier struct {
 	serviceIdentifier
 	VirtualService *v1alpha3.VirtualService
-	/* TODO(rhea): add rule, path, backend equivalent fields here */
+	Rule *v1alpha3.HTTPRoute
+	Match *v1alpha3.HTTPMatchRequest
+	Destination *v1alpha3.Destination
 }
 
 type serviceBackendPortPair struct {
