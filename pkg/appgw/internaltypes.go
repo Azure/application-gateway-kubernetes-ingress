@@ -17,6 +17,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
@@ -39,6 +40,12 @@ type backendIdentifier struct {
 	Rule    *v1beta1.IngressRule
 	Path    *v1beta1.HTTPIngressPath
 	Backend *v1beta1.IngressBackend
+}
+
+type istioBackendIdentifier struct {
+	serviceIdentifier
+	VirtualService *v1alpha3.VirtualService
+	/* TODO(rhea): add rule, path, backend equivalent fields here */
 }
 
 type serviceBackendPortPair struct {

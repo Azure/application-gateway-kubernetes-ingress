@@ -73,6 +73,20 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 	return finalBackendIDs
 }
 
+func istioBackendIds(cbCtx *ConfigBuilderContext) map[istioBackendIdentifier]interface{} {
+	backendIDs := make(map[istioBackendIdentifier]interface{})
+	for _, virtualService := range cbCtx.IstioVirtualServices {
+		/* TODO(rhea): check default backend */
+		for ruleIdx, rule := range virtualService.Spec.HTTP {
+			/* TODO(rhea): 
+			1. Make generate backend Id function for Istio virtual services
+			2. Generate backend Id using match and route fields 
+			*/
+		}
+	}
+	/* Filter out backends for virtual services referencing non-existent Services */ 
+}
+
 func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 	servicesSet := make(map[string]*v1.Service)
 	for _, service := range *services {
