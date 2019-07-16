@@ -1,7 +1,7 @@
 # Upgrading AGIC using Helm
 
 The Azure Application Gateway Ingress Controller for Kubernetes (AGIC) can be upgraded
-using [a Helm repository hosted on GitHub](https://azure.github.io/application-gateway-kubernetes-ingress/helm/).
+using a Helm repository hosted on Azure Storage.
 
 Before we begin the upgrade procedure, ensure that you have added the required repository:
 
@@ -16,7 +16,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
     ```bash
     helm repo add \
         application-gateway-kubernetes-ingress \
-        https://azure.github.io/application-gateway-kubernetes-ingress/helm/
+        https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
     ```
 
 ## Upgrade
