@@ -155,6 +155,20 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
+func generateIstioBackendID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destination *v1alpha3.Destination) istioBackendIdentifier {
+	return istioBackendIdentifier{
+		serviceIdentifier: serviceIdentifier{
+			Namespace:	virtualService.Namespace,
+			Name:		destination.Name,
+		},
+		VirtualService: virtualService,
+		Rule: rule,
+		Match: match,
+		Destination: destination,
+		Gateways: match.Gateways,
+	}
+}
+
 func generateListenerID(rule *v1beta1.IngressRule,
 	protocol n.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)

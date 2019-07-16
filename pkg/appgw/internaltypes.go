@@ -48,6 +48,7 @@ type istioBackendIdentifier struct {
 	Rule *v1alpha3.HTTPRoute
 	Match *v1alpha3.HTTPMatchRequest
 	Destination *v1alpha3.Destination
+	Gateways []*v1alpha3.Gateway
 }
 
 type serviceBackendPortPair struct {
