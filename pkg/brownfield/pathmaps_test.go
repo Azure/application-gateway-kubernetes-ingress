@@ -23,7 +23,6 @@ var _ = Describe("Test blacklisting path maps", func() {
 
 	Context("Test GetBlacklistedHTTPSettings() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted path maps", func() {
-			// Blacklisted targets: Host: "bye.com", Paths: [/fox, /bar]
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 

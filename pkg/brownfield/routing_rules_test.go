@@ -84,6 +84,8 @@ var _ = Describe("Test blacklist request routing rules", func() {
 
 			Expect(blacklisted).To(ContainElement(ruleBasic))
 			Expect(blacklisted).To(ContainElement(rulePathBased1))
+			Expect(blacklisted).To(ContainElement(rulePathBased2))
+			Expect(blacklisted).To(ContainElement(ruleDefault))
 		})
 	})
 })
