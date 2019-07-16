@@ -22,12 +22,12 @@ import (
 func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
 	healthProbeCollection, _ := c.newProbesMap(cbCtx)
 	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
-	probes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
+	agicCreatedProbes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
-		probes = append(probes, probe)
+		agicCreatedProbes = append(agicCreatedProbes, probe)
 	}
-	sort.Sort(sorter.ByHealthProbeName(probes))
-	c.appGw.Probes = &probes
+	sort.Sort(sorter.ByHealthProbeName(agicCreatedProbes))
+	c.appGw.Probes = &agicCreatedProbes
 	return nil
 }
 
