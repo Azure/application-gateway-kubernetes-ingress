@@ -19,18 +19,18 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 	listeners := []n.ApplicationGatewayHTTPListener{
 		*fixtures.GetDefaultListener(),
-		*fixtures.GetListener1(),
-		*fixtures.GetListener2(),
+		*fixtures.GetListenerBasic(),
+		*fixtures.GetListenerPathBased1(),
 	}
 
 	routingRules := []n.ApplicationGatewayRequestRoutingRule{
 		*fixtures.GetDefaultRoutingRule(),
-		*fixtures.GetRequestRoutingRulePathBased(),
+		*fixtures.GetRequestRoutingRulePathBased1(),
 		*fixtures.GetRequestRoutingRuleBasic(),
 	}
 
 	paths := []n.ApplicationGatewayURLPathMap{
-		*fixtures.GeURLPathMap(),
+		*fixtures.GetURLPathMap1(),
 		*fixtures.GetDefaultURLPathMap(),
 	}
 
