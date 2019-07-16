@@ -1,0 +1,11 @@
+title: Page Title
+collapse: true
+arrange:
+    - index.md
+    - setup
+    - tutorial.md
+    - annotations.md
+    - features
+    - how-tos
+    - faq.md
+    - troubleshooting.md

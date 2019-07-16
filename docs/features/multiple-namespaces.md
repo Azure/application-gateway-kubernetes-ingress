@@ -116,5 +116,5 @@ to the `production` backend pool.
 By default AGIC will configure App Gateway based on annotated Ingress within
 any namespace. Should you want to limit this behaviour you have the following
 options:
-  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` YAML key in [helm-config.yaml](examples/helm-config.yaml)
+  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` YAML key in [helm-config.yaml](../examples/sample-helm-config.yaml)
   - use [Role/RoleBinding](https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac) to limit AGIC to specific namespaces
