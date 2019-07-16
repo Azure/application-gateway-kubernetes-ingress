@@ -13,6 +13,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -73,18 +74,31 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 	return finalBackendIDs
 }
 
-func istioBackendIds(cbCtx *ConfigBuilderContext) map[istioBackendIdentifier]interface{} {
-	backendIDs := make(map[istioBackendIdentifier]interface{})
+func istioBackendIds(cbCtx *ConfigBuilderContext) []istioBackendIdentifier {
+	backendIDs := make([]istioBackendIdentifier, 0)
 	for _, virtualService := range cbCtx.IstioVirtualServices {
-		/* TODO(rhea): check default backend */
-		for ruleIdx, rule := range virtualService.Spec.HTTP {
-			/* TODO(rhea): 
-			1. Make generate backend Id function for Istio virtual services
-			2. Generate backend Id using match and route fields 
-			*/
+		for _, rule := range virtualService.Spec.HTTP {
+			destinations := make([]*v1alpha3.Destination, 0)
+			for _, routeDestination := range rule.Route {
+				if routeDestination.Weight != 0 {
+					destinations = append(destinations, &routeDestination.Destination)
+					/* TODO(rhea): Weights are being ignored for now, since this is not
+					yet supported on App Gateway. Include gates from routeDestination when
+					this is supported */
+				}
+			}
+			for _, match := range rule.Match {
+				if match.URI == nil {
+					glog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
+					continue
+				}
+				backendID := generateIstioBackendID(virtualService, &rule, &match, destinations)
+				backendIDs = append(backendIDs, backendID)
+			}
 		}
 	}
-	/* Filter out backends for virtual services referencing non-existent Services */ 
+	/* TODO(rhea): Filter out backends for virtual services referencing non-existent Services */
+	return backendIDs
 }
 
 func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {

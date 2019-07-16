@@ -12,6 +12,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -155,17 +156,14 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateIstioBackendID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destination *v1alpha3.Destination) istioBackendIdentifier {
+func generateIstioBackendID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destinations []*v1alpha3.Destination) istioBackendIdentifier {
 	return istioBackendIdentifier{
-		serviceIdentifier: serviceIdentifier{
-			Namespace:	virtualService.Namespace,
-			Name:		destination.Name,
-		},
+		Namespace:      virtualService.Namespace,
 		VirtualService: virtualService,
-		Rule: rule,
-		Match: match,
-		Destination: destination,
-		Gateways: match.Gateways,
+		Rule:           rule,
+		Match:          match,
+		Destinations:   destinations,
+		Gateways:       match.Gateways,
 	}
 }
 
