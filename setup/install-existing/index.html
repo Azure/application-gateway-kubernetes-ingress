@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Brownfield Deployment - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Brownfield Deployment";
+    var mkdocs_page_input_path = "setup\\install-existing.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">Brownfield Deployment</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#brownfield-deployment">Brownfield Deployment</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#table-of-contents">Table of Contents</a></li>
+        
+            <li><a class="toctree-l4" href="#setting-up-application-gateway-ingress-controller-on-aks">Setting up Application Gateway ingress controller on AKS</a></li>
+        
+            <li><a class="toctree-l4" href="#install-ingress-controller-as-a-helm-chart">Install Ingress Controller as a Helm Chart</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../tutorial/">Tutorials</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../troubleshooting/">Troubleshooting</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Setup &raquo;</li>
+        
+      
+    
+    <li>Brownfield Deployment</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/setup/install-existing.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="brownfield-deployment">Brownfield Deployment</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#setting-up-authentication-with-azure-resource-manager">Setting up Authentication with Azure Resource Manager (ARM)</a><ul>
+<li><a href="#setting-up-aad-pod-identity">Setting up aad-pod-identity</a>
+    -<a href="#create-azure-identity-on-arm">Create Azure Identity on ARM</a></li>
+</ul>
+</li>
+<li><a href="#install-ingress-controller-as-a-helm-chart">Install Ingress Controller using Helm</a></li>
+</ul>
+<h2 id="setting-up-application-gateway-ingress-controller-on-aks">Setting up Application Gateway ingress controller on AKS</h2>
+<p>The Application Gateway Ingress controller runs as pod within the AKS cluster. It listens to <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Kubernetes Ingress Resources</a> from the Kubernetes API server and converts them to Azure Application Gateway configuration and updates the Application Gateway through the Azure Resource Manager (ARM).</p>
+<p>In order to install the ingress controller on AKS we use <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a>.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>An existing <a href="https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant">Azure Application Gateway v2</a>.</li>
+<li>An existing Azure Kubernetes Service cluster with <a href="https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni">Advanced Networking</a> enabled.</li>
+<li>The <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> service is installed on the AKS cluster.</li>
+</ul>
+<h3 id="setting-up-authentication-with-azure-resource-manager">Setting up Authentication with Azure Resource Manager</h3>
+<p>Since the ingress controller needs to talk to the Kubernetes API server and the Azure Resource Manager it will need an identity to access both these entities. Since we are currently supporting only a non-RBAC cluster, the ingress controller currently does not need an identity to talk to the Kubernetes API server but needs and identity to talk to ARM.</p>
+<h3 id="setting-up-aad-pod-identity">Setting up aad-pod-identity</h3>
+<p>The <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> gives a clean way of exposing an existing Azure AD identity to a pod. Kindly follow the <a href="https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra">aad-pod-identity installation instructions</a> to deploy the aad-pod-identity service on your AKS cluster. This is a pre-requisite for installing the ingress controller.</p>
+<h4 id="create-azure-identity-on-arm">Create Azure Identity on ARM</h4>
+<ol>
+<li>
+<p>Create an Azure identity <strong>in the same resource group as the AKS nodes</strong> (typically the resource group with a <code>MC_</code> prefix string)</p>
+<pre class="highlight"><code class="language-bash">az identity create -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
+
+</li>
+<li>
+<p>Find the principal, resource and client ID for this identity</p>
+<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
+
+</li>
+<li>
+<p>Assign this new identity <code>Contributor</code> access on the application gateway</p>
+<pre class="highlight"><code class="language-bash">az role assignment create --role Contributor --assignee &lt;principal ID from the command above&gt; --scope &lt;Resource ID of Application Gateway&gt;</code></pre>
+
+</li>
+<li>
+<p>Assign this new identity <code>Reader</code> access on the resource group that the application gateway belongs to</p>
+<pre class="highlight"><code class="language-bash">az role assignment create --role Reader --assignee &lt;principal ID from the command above&gt; --scope &lt;Resource ID of Application Gateway Resource Group&gt;</code></pre>
+
+</li>
+</ol>
+<h2 id="install-ingress-controller-as-a-helm-chart">Install Ingress Controller as a Helm Chart</h2>
+<ol>
+<li>
+<p>Add the <code>application-gateway-kubernetes-ingress</code> helm repo and perform a helm update</p>
+<pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://azure.github.io/application-gateway-kubernetes-ingress/helm/
+helm repo update</code></pre>
+
+</li>
+<li>
+<p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code></p>
+<pre class="highlight"><code class="language-yaml"># This file contains the essential configs for the ingress controller helm chart
+
+# Verbosity level of the App Gateway Ingress Controller
+verbosityLevel: 3
+
+################################################################################
+# Specify which application gateway the ingress controller will manage
+#
+appgw:
+    subscriptionId: &lt;subscription-id&gt;
+    resourceGroup: &lt;resourcegroup-name&gt;
+    name: &lt;applicationgateway-name&gt;
+
+################################################################################
+# Specify which kubernetes namespace the ingress controller will watch
+# Default value is "default"
+# Leaving this variable out or setting it to blank or empty string would
+# result in Ingress Controller observing all acessible namespaces.
+#
+# kubernetes:
+#   watchNamespace: &lt;namespace&gt;
+
+################################################################################
+# Specify the authentication with Azure Resource Manager
+#
+# Two authentication methods are available:
+# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
+armAuth:
+    type: aadPodIdentity
+    identityResourceID: &lt;identity-resource-id&gt;
+    identityClientID:  &lt;identity-client-id&gt;
+
+################################################################################
+# Specify if the cluster is RBAC enabled or not
+rbac:
+    enabled: false # true/false
+
+################################################################################
+# Specify aks cluster related information. THIS IS BEING DEPRECATED.
+aksClusterConfiguration:
+    apiServerAddress: &lt;aks-api-server-address&gt;</code></pre>
+
+<p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:</p>
+<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
+
+<p>Where <code>&lt;resourcegroup&gt;</code> is the resource group in which AKS cluster is running (this would have the prefix <code>MC_</code>).</p>
+</li>
+<li>
+<p>Install the helm chart <code>application-gateway-kubernetes-ingress</code> with the <code>helm-config.yaml</code> configuration from the previous step</p>
+<pre class="highlight"><code class="language-bash">helm install -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure</code></pre>
+
+</li>
+<li>
+<p>Check the log of the newly created pod to verify if it started properly</p>
+</li>
+</ol>
+<p>Refer to the <a href="../../tutorial/">tutorials</a> to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../install-new/" class="btn btn-neutral float-right" title="Greenfield Deployment">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../.." class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../install-new/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Tutorials - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Tutorials";
+    var mkdocs_page_input_path = "tutorial.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../setup/install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Tutorials</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#tutorials">Tutorials</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#table-of-contents">Table of Contents</a></li>
+        
+            <li><a class="toctree-l3" href="#prerequisites">Prerequisites</a></li>
+        
+            <li><a class="toctree-l3" href="#deploy-guestbook-application">Deploy guestbook application</a></li>
+        
+            <li><a class="toctree-l3" href="#expose-services-over-http">Expose services over HTTP</a></li>
+        
+            <li><a class="toctree-l3" href="#expose-services-over-https">Expose services over HTTPS</a></li>
+        
+            <li><a class="toctree-l3" href="#integrate-with-other-services">Integrate with other services</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../troubleshooting/">Troubleshooting</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/contribute/">Contribution Guidelines</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Tutorials</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/tutorial.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="tutorials">Tutorials</h1>
+<p>These tutorials help illustrate the usage of <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Kubernetes Ingress Resources</a> to expose an example Kubernetes service through the <a href="https://azure.microsoft.com/en-us/services/application-gateway/">Azure Application Gateway</a> over HTTP or HTTPS.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#deploy-guestbook-application">Deploy <code>guestbook</code> application</a></li>
+<li><a href="#expose-services-over-http">Expose services over HTTP</a></li>
+<li><a href="#expose-services-over-https">Expose services over HTTPS</a></li>
+<li><a href="#without-specified-hostname">Without specified hostname</a></li>
+<li><a href="#with-specified-hostname">With specified hostname</a></li>
+<li><a href="#integrate-with-other-services">Integrate with other services</a></li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Installed <code>ingress-azure</code> helm chart.</li>
+<li><a href="../setup/install-new/"><strong>Greenfield Deployment</strong></a>: If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.</li>
+<li><a href="../setup/install-existing/"><strong>Brownfield Deployment</strong></a>: If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.</li>
+<li>If you want to use HTTPS on this application, you will need a x509 certificate and its private key.</li>
+</ul>
+<h2 id="deploy-guestbook-application">Deploy <code>guestbook</code> application</h2>
+<p>The guestbook application is a canonical Kubernetes application that composes of a Web UI frontend, a backend and a Redis database. By default, <code>guestbook</code> exposes its application through a service with name <code>frontend</code> on port <code>80</code>. Without a Kubernetes Ingress Resource the service is not accessible from outside the AKS cluster. We will use the application and setup Ingress Resources to access the application through HTTP and HTTPS.</p>
+<p>Follow the instructions below to deploy the guestbook application.</p>
+<ol>
+<li>Download <code>guestbook-all-in-one.yaml</code> from <a href="https://raw.githubusercontent.com/kubernetes/examples/master/guestbook/all-in-one/guestbook-all-in-one.yaml">here</a></li>
+<li>Deploy <code>guestbook-all-in-one.yaml</code> into your AKS cluster by running</li>
+</ol>
+<pre class="highlight"><code class="language-bash">kubectl apply -f guestbook-all-in-one.yaml</code></pre>
+
+<p>Now, the <code>guestbook</code> application has been deployed.</p>
+<h2 id="expose-services-over-http">Expose services over HTTP</h2>
+<p>In order to expose the guestbook application we will using the following ingress resource:</p>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
+
+<p>This ingress will expose the <code>frontend</code> service of the <code>guestbook-all-in-one</code> deployment
+as a default backend of the Application Gateway.</p>
+<p>Save the above ingress resource as <code>ing-guestbook.yaml</code>.</p>
+<ol>
+<li>
+<p>Deploy <code>ing-guestbook.yaml</code> by running:</p>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook.yaml</code></pre>
+
+</li>
+<li>
+<p>Check the log of the ingress controller for deployment status.</p>
+</li>
+</ol>
+<p>Now the <code>guestbook</code> application should be available. You can check this by visiting the
+public address of the Application Gateway.</p>
+<h2 id="expose-services-over-https">Expose services over HTTPS</h2>
+<h3 id="without-specified-hostname">Without specified hostname</h3>
+<p>Without specifying hostname, the guestbook service will be available on all the host-names pointing to the application gateway.</p>
+<ol>
+<li>
+<p>Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running</p>
+<pre class="highlight"><code class="language-bash">kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;</code></pre>
+
+</li>
+<li>
+<p>Define the following ingress. In the ingress, specify the name of the secret in the <code>secretName</code> section.</p>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  tls:
+    - secretName: &lt;guestbook-secret-name&gt;
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
+
+<p><em>NOTE:</em> Replace <code>&lt;guestbook-secret-name&gt;</code> in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name <code>ing-guestbook-tls.yaml</code>.</p>
+</li>
+<li>
+<p>Deploy ing-guestbook-tls.yaml by running</p>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls.yaml</code></pre>
+
+</li>
+<li>
+<p>Check the log of the ingress controller for deployment status.</p>
+</li>
+</ol>
+<p>Now the <code>guestbook</code> application will be available on both HTTP and HTTPS.</p>
+<h3 id="with-specified-hostname">With specified hostname</h3>
+<p>You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
+By specifying hostname, the guestbook service will only be available on the specified host.</p>
+<ol>
+<li>
+<p>Define the following ingress.
+    In the ingress, specify the name of the secret in the <code>secretName</code> section and replace the hostname in the <code>hosts</code> section accordingly.</p>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  tls:
+    - hosts:
+      - &lt;guestbook.contoso.com&gt;
+      secretName: &lt;guestbook-secret-name&gt;
+  rules:
+  - host: &lt;guestbook.contoso.com&gt;
+    http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
+
+</li>
+<li>
+<p>Deploy <code>ing-guestbook-tls-sni.yaml</code> by running</p>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls-sni.yaml</code></pre>
+
+</li>
+<li>
+<p>Check the log of the ingress controller for deployment status.</p>
+</li>
+</ol>
+<p>Now the <code>guestbook</code> application will be available on both HTTP and HTTPS only on the specified host (<code>&lt;guestbook.contoso.com&gt;</code> in this example).</p>
+<h2 id="integrate-with-other-services">Integrate with other services</h2>
+<p>The following ingress will allow you to add additional paths into this ingress and redirect those paths to other services:</p>
+<pre><code>```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+  - http:
+      paths:
+      - path: &lt;/other/*&gt;
+        backend:
+          serviceName: &lt;other-service&gt;
+          servicePort: 80
+      - backend:
+          serviceName: frontend
+          servicePort: 80
+```
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../annotations/" class="btn btn-neutral float-right" title="Annotations">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../setup/install-new/" class="btn btn-neutral" title="Greenfield Deployment"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../setup/install-new/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../annotations/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>

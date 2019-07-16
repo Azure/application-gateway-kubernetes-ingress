@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Certificate issuance with LetsEncrypt.org - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Certificate issuance with LetsEncrypt.org";
+    var mkdocs_page_input_path = "how-tos\\lets-encrypt.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../tutorial/">Tutorials</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Certificate issuance with LetsEncrypt.org</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#certificate-issuance-with-letsencryptorg">Certificate issuance with LetsEncrypt.org</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../troubleshooting/">Troubleshooting</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>How tos &raquo;</li>
+        
+      
+    
+    <li>Certificate issuance with LetsEncrypt.org</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/how-tos/lets-encrypt.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="certificate-issuance-with-letsencryptorg">Certificate issuance with LetsEncrypt.org</h1>
+<p>This section configures your AKS to leverage <a href="https://letsencrypt.org/">LetsEncrypt.org</a> and automatically obtain a
+TLS/SSL certificate for your domain. The certificate will be installed on Application Gateway, which will perform
+SSL/TLS termination for your AKS cluster. The setup described here uses the
+<a href="https://github.com/jetstack/cert-manager">cert-manager</a> Kubernetes add-on, which automates the creation and management of certificates.</p>
+<p>Follow the steps below to install <a href="https://docs.cert-manager.io">cert-manager</a> on your existing AKS cluster.</p>
+<ol>
+<li>
+<p>Helm Chart</p>
+<p>Run the following script to install the <code>cert-manager</code> helm chart. This will:</p>
+<ul>
+<li>create a new <code>cert-manager</code> namespace on your AKS</li>
+<li>create the following CRDs: Certificate, Challenge, ClusterIssuer, Issuer, Order</li>
+<li>install cert-manager chart (from <a href="https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps">docs.cert-manager.io)</a></li>
+</ul>
+<pre class="highlight"><code class="language-bash">#!/bin/bash
+
+# Install the CustomResourceDefinition resources separately
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
+
+# Create the namespace for cert-manager
+kubectl create namespace cert-manager
+
+# Label the cert-manager namespace to disable resource validation
+kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+# Update your local Helm chart repository cache
+helm repo update
+
+# Install the cert-manager Helm chart
+helm install \
+  --name cert-manager \
+  --namespace cert-manager \
+  --version v0.8.0 \
+  jetstack/cert-manager</code></pre>
+
+</li>
+<li>
+<p>ClusterIssuer Resource</p>
+<p>Create a <code>ClusterIssuer</code> resource. It is required by <code>cert-manager</code> to represent the <code>Lets Encrypt</code> certificate
+authority where the signed certificates will be obtained.</p>
+<p>By using the non-namespaced <code>ClusterIssuer</code> resource, cert-manager will issue certificates that can be consumed from
+multiple namespaces. <code>Let’s Encrypt</code> uses the ACME protocol to verify that you control a given domain name and to issue
+you a certificate. More details on configuring <code>ClusterIssuer</code> properties
+<a href="https://docs.cert-manager.io/en/latest/tasks/issuers/index.html">here</a>. <code>ClusterIssuer</code> will instruct <code>cert-manager</code>
+to issue certificates using the <code>Lets Encrypt</code> staging environment used for testing (the root certificate not present
+in browser/client trust stores).</p>
+<p>The default challenge type in the YAML below is <code>http01</code>. Other challenges are documented on <a href="https://letsencrypt.org/docs/challenge-types/">letsencrypt.org - Challenge Types</a></p>
+<p><strong>IMPORTANT:</strong> Update <code>&lt;YOUR.EMAIL@ADDRESS&gt;</code> in the YAML below</p>
+<pre class="highlight"><code class="language-bash">#!/bin/bash
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+name: letsencrypt-staging
+spec:
+acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: &lt;YOUR.EMAIL@ADDRESS&gt;
+    # ACME server URL for Let’s Encrypt’s staging environment.
+    # The staging environment will not issue trusted certificates but is
+    # used to ensure that the verification process is working properly
+    # before moving to production
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+    # Secret resource used to store the account's private key.
+    name: example-issuer-account-key
+    # Enable the HTTP-01 challenge provider
+    # you prove ownership of a domain by ensuring that a particular
+    # file is present at the domain
+    http01: {}
+EOF</code></pre>
+
+</li>
+<li>
+<p>Deploy App</p>
+<p>Create an Ingress resource to Expose the <code>guestbook</code> application using the Application Gateway with the Lets Encrypt Certificate.</p>
+<p>Ensure you Application Gateway has a public Frontend IP configuration with a DNS name (either using the
+default <code>azure.com</code> domain, or provision a <code>Azure DNS Zone</code> service, and assign your own custom domain).
+Note the annotation <code>certmanager.k8s.io/cluster-issuer: letsencrypt-staging</code>, which tells cert-manager to process the
+tagged Ingress resource.</p>
+<p><strong>IMPORTANT:</strong>  Update <code>&lt;PLACEHOLDERS.COM&gt;</code> in the YAML below with your own domain (or the Application Gateway one, for example
+'kh-aks-ingress.westeurope.cloudapp.azure.com')</p>
+<pre class="highlight"><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+name: guestbook-letsencrypt-staging
+annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
+spec:
+tls:
+- hosts:
+    - &lt;PLACEHOLDERS.COM&gt;
+    secretName: guestbook-secret-name
+rules:
+- host: &lt;PLACEHOLDERS.COM&gt;
+    http:
+    paths:
+    - backend:
+        serviceName: frontend
+        servicePort: 80
+EOF</code></pre>
+
+<p>After a few seconds, you  can access the <code>guestbook</code> service through the Application Gateway HTTPS url using the automatically issued <strong>staging</strong> <code>Lets Encrypt</code> certificate.
+Your browser may warn you of an invalid cert authority. The staging certificate is issued by <code>CN=Fake LE Intermediate X1</code>. This is an indication that the system worked as expected and you are ready for your production certificate.</p>
+</li>
+<li>
+<p>Production Certificate
+    Once your staging certificate is setup successfully you can switch to a production ACME server:</p>
+<ol>
+<li>Replace the staging annotation on your Ingress resource with: <code>certmanager.k8s.io/cluster-issuer: letsencrypt-prod</code></li>
+<li>Delete the existing staging <code>ClusterIssuer</code> you created in the previous step and create a new one by replacing the ACME server from the ClusterIssuer YAML above with <code>https://acme-v02.api.letsencrypt.org/directory</code></li>
+</ol>
+</li>
+<li>
+<p>Certificate Expiration and Renewal
+    Before the <code>Lets Encrypt</code> certificate expires, <code>cert-manager</code> will automatically update the certificate in the Kubernetes secret store. At that point, Application Gateway Ingress Controller will apply the updated secret referenced in the ingress resources it is using to configure the Application Gateway.</p>
+</li>
+</ol>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../websockets/" class="btn btn-neutral float-right" title="Websockets">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../helm-upgrade/" class="btn btn-neutral" title="Upgrading AGIC using Helm"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../helm-upgrade/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../websockets/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

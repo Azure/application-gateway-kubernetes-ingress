@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Annotations - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Annotations";
+    var mkdocs_page_input_path = "annotations.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../setup/install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../tutorial/">Tutorials</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Annotations</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#annotations">Annotations</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#introductions">Introductions</a></li>
+        
+            <li><a class="toctree-l3" href="#list-of-supported-annotations">List of supported annotations</a></li>
+        
+            <li><a class="toctree-l3" href="#backend-path-prefix">Backend Path Prefix</a></li>
+        
+            <li><a class="toctree-l3" href="#ssl-redirect">SSL Redirect</a></li>
+        
+            <li><a class="toctree-l3" href="#connection-draining">Connection Draining</a></li>
+        
+            <li><a class="toctree-l3" href="#cookie-based-affinity">Cookie Based Affinity</a></li>
+        
+            <li><a class="toctree-l3" href="#request-timeout">Request Timeout</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../troubleshooting/">Troubleshooting</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/contribute/">Contribution Guidelines</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Annotations</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/annotations.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="annotations">Annotations</h1>
+<h2 id="introductions">Introductions</h2>
+<p>Kubernetes Ingress specification allows for annotations. We use annotations to expose Application Gateway specific features that can't be exposed using the ingress specification. It is important to note that annotations defined on an ingress resource are applied to all HTTP setting, backend pools and listeners defined within a given ingress resource.</p>
+<h2 id="list-of-supported-annotations">List of supported annotations</h2>
+<table>
+<thead>
+<tr>
+<th>Annotation Key</th>
+<th>Value Type</th>
+<th>Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#backend-path-prefix">appgw.ingress.kubernetes.io/backend-path-prefix</a></td>
+<td><code>string</code></td>
+<td><code>nil</code></td>
+</tr>
+<tr>
+<td><a href="#ssl-redirect">appgw.ingress.kubernetes.io/ssl-redirect</a></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><a href="#connection-draining">appgw.ingress.kubernetes.io/connection-draining</a></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><a href="#connection-draining">appgw.ingress.kubernetes.io/connection-draining-timeout</a></td>
+<td><code>int32</code> (seconds)</td>
+<td><code>30</code></td>
+</tr>
+<tr>
+<td><a href="#cookie-based-affinity">appgw.ingress.kubernetes.io/cookie-based-affinity</a></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><a href="#request-timeout">appgw.ingress.kubernetes.io/request-timeout</a></td>
+<td><code>int32</code> (seconds)</td>
+<td><code>30</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="backend-path-prefix">Backend Path Prefix</h2>
+<p>This annotation allows the backend path specified in an ingress resource to be re-written with prefix specified in this annotation. This allows users to expose services whose endpoints are different than endpoint names used to expose a service in an ingress resource.</p>
+<h3 id="usage">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/backend-path-prefix: &lt;path prefix&gt;</code></pre>
+
+<h3 id="example">Example</h3>
+<p><pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80</code></pre>
+In the example above we have defined an ingress resource named <code>go-server-ingress-bkprefix</code> with an annotation <code>appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"</code> . The annotation tells application gateway to create an HTTP setting which will have a path prefix override for the path <code>/hello</code> to <code>/test/</code>.</p>
+<p><strong><em>NOTE:</em></strong> In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths sepcified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.</p>
+<h2 id="ssl-redirect">SSL Redirect</h2>
+<p>Application Gateway <a href="https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-redirect-overview">can be configured</a>
+to automatically redirect HTTP URLs to their HTTPS counterparts. When this
+annotation is present and TLS is properly configured, Kubernetes Ingress
+controller will create a <a href="https://docs.microsoft.com/en-us/azure/application-gateway/redirect-http-to-https-portal#add-a-routing-rule-with-a-redirection-configuration">routing rule with a redirection configuration</a>
+and apply the changes to your App Gateway. The redirect created will be HTTP <code>301 Moved Permanently</code>.</p>
+<h3 id="usage_1">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/ssl-redirect: "true"</code></pre>
+
+<h3 id="example_1">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-redirect
+  namespace: test-tag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+   - hosts:
+     - www.contoso.com
+     secretName: testsecret-tls
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80</code></pre>
+
+<h2 id="connection-draining">Connection Draining</h2>
+<p><code>connection-draining</code>: This annotation allows to specify whether to enable connection draining.
+<code>connection-draining-timeout</code>: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.</p>
+<h3 id="usage_2">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/connection-draining: "true"
+appgw.ingress.kubernetes.io/connection-draining-timeout: 60</code></pre>
+
+<h3 id="example_2">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-drain
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/connection-draining: "true"
+    appgw.ingress.kubernetes.io/connection-draining-timeout: 60
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80</code></pre>
+
+<h2 id="cookie-based-affinity">Cookie Based Affinity</h2>
+<p>This annotation allows to specify whether to enable cookie based affinity.</p>
+<h3 id="usage_3">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/cookie-based-affinity: "true"</code></pre>
+
+<h3 id="example_3">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-affinity
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80</code></pre>
+
+<h2 id="request-timeout">Request Timeout</h2>
+<p>This annotation allows to specify the request timeout in seconds after which Application Gateway will fail the request if response is not received.</p>
+<h3 id="usage_4">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/request-timeout: 20</code></pre>
+
+<h3 id="example_4">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/request-timeout: 20
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../features/cookie-affinity/" class="btn btn-neutral float-right" title="Cookie affinity">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../tutorial/" class="btn btn-neutral" title="Tutorials"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../tutorial/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../features/cookie-affinity/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
