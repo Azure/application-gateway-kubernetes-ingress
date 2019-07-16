@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
@@ -29,7 +29,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 
 			ruleToTargets, pathMapToTargets := er.getRuleToTargets()
 
-			Expect(len(ruleToTargets)).To(Equal(2))
+			Expect(len(ruleToTargets)).To(Equal(3))
 			Expect(len(pathMapToTargets)).To(Equal(2))
 
 			targetFoo := Target{Hostname: tests.Host, Path: fixtures.PathFoo}
@@ -73,11 +73,14 @@ var _ = Describe("Test blacklist request routing rules", func() {
 	Context("Test GetBlacklistedRoutingRules() with a blacklist with a wild card", func() {
 		It("should create a list of blacklisted and non blacklisted request routing rules", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
-			prohibitedTargets = append(prohibitedTargets, &v1.AzureIngressProhibitedTarget{})
+			wildcard := &ptv1.AzureIngressProhibitedTarget{}
+			prohibitedTargets = append(prohibitedTargets, wildcard)
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
+
 			blacklisted, nonBlacklisted := er.GetBlacklistedRoutingRules()
-			Expect(len(blacklisted)).To(Equal(3))
-			Expect(len(nonBlacklisted)).To(Equal(1))
+
+			Expect(len(blacklisted)).To(Equal(4))
+			Expect(len(nonBlacklisted)).To(Equal(0))
 
 			Expect(blacklisted).To(ContainElement(ruleBasic))
 			Expect(blacklisted).To(ContainElement(rulePathBased1))
