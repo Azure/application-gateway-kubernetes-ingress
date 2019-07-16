@@ -48,7 +48,9 @@ type ExistingResources struct {
 	ProhibitedTargets  []*ptv1.AzureIngressProhibitedTarget
 	DefaultBackendPool *n.ApplicationGatewayBackendAddressPool
 
-	listenersByName map[listenerName]n.ApplicationGatewayHTTPListener
+	// Cache helper structs
+	listenersByName   map[listenerName]n.ApplicationGatewayHTTPListener
+	urlPathMapsByName pathMapsByName
 }
 
 // NewExistingResources creates a new ExistingResources struct.
