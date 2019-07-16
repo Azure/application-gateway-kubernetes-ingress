@@ -42,7 +42,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		ProhibitedTargets:          c.k8sContext.ListAzureProhibitedTargets(),
 		IstioGateways:              c.k8sContext.ListIstioGateways(),
 		IstioVirtualServices:       c.k8sContext.ListIstioVirtualServices(),
-		EnvVariables:               environment.GetEnv(),
+		EnvVariables:               envVars,
 		EnableBrownfieldDeployment: envVars.EnableBrownfieldDeployment == "true" && len(prohibitedTargets) > 0,
 	}
 
