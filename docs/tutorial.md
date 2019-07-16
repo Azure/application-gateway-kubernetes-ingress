@@ -59,11 +59,11 @@ as a default backend of the Application Gateway.
 
 Save the above ingress resource as `ing-guestbook.yaml`.
 
-1. Deploy `ing-guestbook.yaml` by running
+1. Deploy `ing-guestbook.yaml` by running:
 
-  ```bash
-  kubectl apply -f ing-guestbook.yaml
-  ```
+    ```bash
+    kubectl apply -f ing-guestbook.yaml
+    ```
 
 1. Check the log of the ingress controller for deployment status.
 
@@ -78,13 +78,13 @@ Without specifying hostname, the guestbook service will be available on all the 
 
 1. Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running
 
-  ```bash
-  kubectl create secret tls <guestbook-secret-name> --key <path-to-key> --cert <path-to-cert>
-  ```
+    ```bash
+    kubectl create secret tls <guestbook-secret-name> --key <path-to-key> --cert <path-to-cert>
+    ```
 
 1. Define the following ingress. In the ingress, specify the name of the secret in the `secretName` section.
 
-  ```yaml
+    ```yaml
     apiVersion: extensions/v1beta1
     kind: Ingress
     metadata:
@@ -100,15 +100,15 @@ Without specifying hostname, the guestbook service will be available on all the 
           - backend:
               serviceName: frontend
               servicePort: 80
-  ```
+    ```
 
-  *NOTE:* Replace `<guestbook-secret-name>` in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name `ing-guestbook-tls.yaml`.
+    *NOTE:* Replace `<guestbook-secret-name>` in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name `ing-guestbook-tls.yaml`.
 
 1. Deploy ing-guestbook-tls.yaml by running
 
-  ```bash
-  kubectl apply -f ing-guestbook-tls.yaml
-  ```
+    ```bash
+    kubectl apply -f ing-guestbook-tls.yaml
+    ```
 
 1. Check the log of the ingress controller for deployment status.
 
@@ -122,32 +122,32 @@ By specifying hostname, the guestbook service will only be available on the spec
 1. Define the following ingress.
     In the ingress, specify the name of the secret in the `secretName` section and replace the hostname in the `hosts` section accordingly.
 
-  ```yaml
-  apiVersion: extensions/v1beta1
-  kind: Ingress
-  metadata:
-    name: guestbook
-    annotations:
-      kubernetes.io/ingress.class: azure/application-gateway
-  spec:
-    tls:
-      - hosts:
-        - <guestbook.contoso.com>
-        secretName: <guestbook-secret-name>
-    rules:
-    - host: <guestbook.contoso.com>
-      http:
-        paths:
-        - backend:
-            serviceName: frontend
-            servicePort: 80
-  ```
+    ```yaml
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: guestbook
+      annotations:
+        kubernetes.io/ingress.class: azure/application-gateway
+    spec:
+      tls:
+        - hosts:
+          - <guestbook.contoso.com>
+          secretName: <guestbook-secret-name>
+      rules:
+      - host: <guestbook.contoso.com>
+        http:
+          paths:
+          - backend:
+              serviceName: frontend
+              servicePort: 80
+    ```
 
 1. Deploy `ing-guestbook-tls-sni.yaml` by running
 
-  ```bash
-  kubectl apply -f ing-guestbook-tls-sni.yaml
-  ```
+    ```bash
+    kubectl apply -f ing-guestbook-tls-sni.yaml
+    ```
 
 1. Check the log of the ingress controller for deployment status.
 
@@ -157,22 +157,22 @@ Now the `guestbook` application will be available on both HTTP and HTTPS only on
 
 The following ingress will allow you to add additional paths into this ingress and redirect those paths to other services:
 
-  ```yaml
-  apiVersion: extensions/v1beta1
-  kind: Ingress
-  metadata:
-    name: guestbook
-    annotations:
-      kubernetes.io/ingress.class: azure/application-gateway
-  spec:
-    rules:
-    - http:
-        paths:
-        - path: </other/*>
-          backend:
-            serviceName: <other-service>
-            servicePort: 80
-        - backend:
-            serviceName: frontend
-            servicePort: 80
-  ```
+    ```yaml
+    apiVersion: extensions/v1beta1
+    kind: Ingress
+    metadata:
+      name: guestbook
+      annotations:
+        kubernetes.io/ingress.class: azure/application-gateway
+    spec:
+      rules:
+      - http:
+          paths:
+          - path: </other/*>
+            backend:
+              serviceName: <other-service>
+              servicePort: 80
+          - backend:
+              serviceName: frontend
+              servicePort: 80
+    ```
