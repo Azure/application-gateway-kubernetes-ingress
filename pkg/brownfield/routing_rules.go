@@ -6,7 +6,7 @@
 package brownfield
 
 import (
-	"github.com/Azure/go-autorest/autorest/to"
+	"errors"
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -110,14 +110,16 @@ func indexRulesByName(rules []n.ApplicationGatewayRequestRoutingRule) rulesByNam
 	return indexed
 }
 
-func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayRequestRoutingRule) *string {
+func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayRequestRoutingRule) (string, error) {
 	listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))
 	if listener, found := er.getListenersByName()[listenerName]; !found {
-		return nil
+		glog.Errorf("[brownfield] Could not find listener %s in index", listenerName)
+		// TODO(draychev): move this error into a top-level file
+		return "", errors.New("failed looking up listener")
 	} else if listener.HostName != nil {
-		return listener.HostName
+		return *listener.HostName, nil
 	}
-	return to.StringPtr("")
+	return "", nil
 }
 
 // getRuleToTargets creates a map from backend pool to targets this backend pool is responsible for.
@@ -126,52 +128,48 @@ func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayR
 func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets) {
 	ruleToTargets := make(ruleToTargets)
 	pathMapToTargets := make(pathmapToTargets)
-
-	// Index URLPathMaps by the path map name
-	pathNameToPath := make(map[urlPathMapName]n.ApplicationGatewayURLPathMap)
-	for _, pm := range er.URLPathMaps {
-		pathNameToPath[urlPathMapName(*pm.Name)] = pm
-	}
-
 	for _, rule := range er.RoutingRules {
 		if rule.HTTPListener == nil || rule.HTTPListener.ID == nil {
 			continue
 		}
-		ruleNm := ruleName(*rule.Name)
-		hostName := er.getHostNameForRoutingRule(rule)
-		if hostName == nil {
+		hostName, err := er.getHostNameForRoutingRule(rule)
+		if err != nil {
+			glog.Errorf("[brownfield] Could not obtain hostname for rule %s; Skipping rule", ruleName(*rule.Name))
 			continue
 		}
 
 		// Regardless of whether we have a URL PathMap or not. This matches the default backend pool.
-		target := Target{
-			Hostname: *hostName,
+		ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], Target{
+			Hostname: hostName,
 			// Path deliberately omitted
-		}
-		ruleToTargets[ruleNm] = append(ruleToTargets[ruleNm], target)
+		})
 
-		if rule.URLPathMap == nil {
-			// SSL Redirects do not have BackendAddressPool
-			continue
-		}
-		// Follow the path map
-		pathMapName := urlPathMapName(utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
-
-		for _, pathRule := range *pathNameToPath[pathMapName].PathRules {
-			if pathRule.Paths == nil {
-				glog.V(5).Infof("[brownfield] Path Rule %+v does not have paths list", *pathRule.Name)
-				continue
-			}
-
-			for _, path := range *pathRule.Paths {
-				target := Target{
-					Hostname: *hostName,
-					Path:     strings.ToLower(path),
+		// SSL Redirects do not have BackendAddressPool
+		if rule.URLPathMap != nil {
+			// Follow the path map
+			pathMapName, pathRules := er.getPathRules(rule)
+			for _, pathRule := range pathRules {
+				if pathRule.Paths == nil {
+					glog.V(5).Infof("[brownfield] Path Rule %+v does not have paths list", *pathRule.Name)
+					continue
 				}
-				ruleToTargets[ruleNm] = append(ruleToTargets[ruleNm], target)
-				pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
+				for _, path := range *pathRule.Paths {
+					target := Target{hostName, strings.ToLower(path)}
+					ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], target)
+					pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
+				}
 			}
 		}
 	}
 	return ruleToTargets, pathMapToTargets
+}
+
+func (er ExistingResources) getPathRules(rule n.ApplicationGatewayRequestRoutingRule) (urlPathMapName, []n.ApplicationGatewayPathRule) {
+	pathMapName := urlPathMapName(utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
+	pathMapsByName := er.getURLPathMapsByName()
+	if pathMap, ok := pathMapsByName[pathMapName]; ok {
+		return pathMapName, *pathMap.PathRules
+	}
+	glog.Errorf("[brownfield] Did not find URLPathMap with ID %s", pathMapName)
+	return pathMapName, []n.ApplicationGatewayPathRule{}
 }

@@ -107,10 +107,15 @@ func indexPathMapsByName(pathMaps []n.ApplicationGatewayURLPathMap) pathMapsByNa
 }
 
 func (er ExistingResources) getURLPathMapsByName() pathMapsByName {
+	if er.urlPathMapsByName != nil {
+		return er.urlPathMapsByName
+	}
 	// Index URLPathMaps by the path map name
 	urlpathMapsByName := make(pathMapsByName)
 	for _, pm := range er.URLPathMaps {
 		urlpathMapsByName[urlPathMapName(*pm.Name)] = pm
 	}
+
+	er.urlPathMapsByName = urlpathMapsByName
 	return urlpathMapsByName
 }

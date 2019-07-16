@@ -26,19 +26,30 @@ var _ = Describe("Test blacklist request routing rules", func() {
 		It("should create a map of routing rules to targets", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
+
 			ruleToTargets, pathMapToTargets := er.getRuleToTargets()
+
 			Expect(len(ruleToTargets)).To(Equal(2))
 			Expect(len(pathMapToTargets)).To(Equal(2))
 
-			targetFox := Target{Hostname: tests.OtherHost, Path: fixtures.PathFox}
 			targetFoo := Target{Hostname: tests.Host, Path: fixtures.PathFoo}
 			targetBar := Target{Hostname: tests.Host, Path: fixtures.PathBar}
 			targetBaz := Target{Hostname: tests.Host, Path: fixtures.PathBaz}
+			targetHostNoPath := Target{Hostname: tests.Host}
 
-			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetFox))
+			Expect(len(ruleToTargets[fixtures.RequestRoutingRuleName1])).To(Equal(4))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName1]).To(ContainElement(targetFoo))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName1]).To(ContainElement(targetBar))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName1]).To(ContainElement(targetBaz))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName1]).To(ContainElement(targetHostNoPath))
+
+			targetFox := Target{Hostname: tests.OtherHost, Path: fixtures.PathFox}
+			targetOtherHostNoPath := Target{Hostname: tests.OtherHost}
+
+			Expect(len(ruleToTargets[fixtures.RequestRoutingRuleName2])).To(Equal(3))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetFox))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetOtherHostNoPath))
+
 		})
 	})
 
