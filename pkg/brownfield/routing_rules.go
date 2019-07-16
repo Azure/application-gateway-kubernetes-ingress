@@ -143,13 +143,15 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 			continue
 		}
 
+		// Regardless of whether we have a URL PathMap or not. This matches the default backend pool.
+		target := Target{
+			Hostname: *hostName,
+			// Path deliberately omitted
+		}
+		ruleToTargets[ruleNm] = append(ruleToTargets[ruleNm], target)
+
 		if rule.URLPathMap == nil {
 			// SSL Redirects do not have BackendAddressPool
-			target := Target{
-				Hostname: *hostName,
-				// Path deliberately omitted
-			}
-			ruleToTargets[ruleNm] = append(ruleToTargets[ruleNm], target)
 			continue
 		}
 		// Follow the path map
