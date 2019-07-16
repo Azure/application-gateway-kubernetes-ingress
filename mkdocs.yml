@@ -1,0 +1,48 @@
+site_name: Application Gateway Ingress Controller
+repo_name: "Azure/application-gateway-kubernetes-ingress"
+repo_url: "https://github.com/Azure/application-gateway-kubernetes-ingress"
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust
+    - bash
+    - go
+  shortcuts:
+    help: 191    # ?
+    next: 78     # n
+    previous: 80 # p
+    search: 83   # s
+
+plugins:
+  - search
+  - awesome-pages:
+      filename: .index
+      collapse_single_pages: true  
+  - exclude:
+      glob:
+        - examples/guestbooks/*
+        - examples/sample-app/*
+
+extra_css:
+  - css/extra.css
+
+markdown_extensions:
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
