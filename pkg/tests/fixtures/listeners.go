@@ -16,38 +16,26 @@ const (
 	// DefaultHTTPListenerName is a string constant.
 	DefaultHTTPListenerName = "fl-80"
 
-	// Listener1 is a string constant.
-	Listener1 = "HTTPListener-PathBased"
+	// HTTPListenerNameBasic is a string constant.
+	HTTPListenerNameBasic = "HTTPListener-Basic"
 
-	// Listener2 is a string constant.
-	Listener2 = "HTTPListener-Basic"
+	// HTTPListenerPathBased1 is a string constant.
+	HTTPListenerPathBased1 = "HTTPListener-PathBased"
+
+	// HTTPListenerPathBased2 is a string constant.
+	HTTPListenerPathBased2 = "HTTPListener-PathBased2"
 )
 
-// GetListener1 creates a new struct for use in unit tests.
-func GetListener1() *n.ApplicationGatewayHTTPListener {
+// GetListenerBasic creates a new struct for use in unit tests.
+func GetListenerBasic() *n.ApplicationGatewayHTTPListener {
 	return &n.ApplicationGatewayHTTPListener{
-		Name: to.StringPtr(Listener1),
-		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
-			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
-			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTPS,
-			HostName:                    to.StringPtr(tests.Host),
-			SslCertificate:              &n.SubResource{ID: to.StringPtr("")},
-			RequireServerNameIndication: to.BoolPtr(true),
-		},
-	}
-}
-
-// GetListener2 creates a new struct for use in unit tests.
-func GetListener2() *n.ApplicationGatewayHTTPListener {
-	return &n.ApplicationGatewayHTTPListener{
-		Name: to.StringPtr(Listener2),
+		Name: to.StringPtr(HTTPListenerNameBasic),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
 			Protocol:                    n.HTTP,
 			HostName:                    to.StringPtr(tests.OtherHost),
-			SslCertificate:              &n.SubResource{ID: to.StringPtr("")},
+			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName1)},
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
 	}
@@ -61,6 +49,36 @@ func GetDefaultListener() *n.ApplicationGatewayHTTPListener {
 			FrontendIPConfiguration: &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultIPName)},
 			FrontendPort:            &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultPortName)},
 			Protocol:                n.HTTP,
+		},
+	}
+}
+
+// GetListenerPathBased1 creates a new struct for use in unit tests.
+func GetListenerPathBased1() *n.ApplicationGatewayHTTPListener {
+	return &n.ApplicationGatewayHTTPListener{
+		Name: to.StringPtr(HTTPListenerPathBased1),
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
+			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
+			Protocol:                    n.HTTPS,
+			HostName:                    to.StringPtr(tests.Host),
+			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName2)},
+			RequireServerNameIndication: to.BoolPtr(true),
+		},
+	}
+}
+
+// GetListenerPathBased2 creates a new struct for use in unit tests.
+func GetListenerPathBased2() *n.ApplicationGatewayHTTPListener {
+	return &n.ApplicationGatewayHTTPListener{
+		Name: to.StringPtr(HTTPListenerPathBased2),
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
+			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
+			Protocol:                    n.HTTP,
+			HostName:                    to.StringPtr(tests.OtherHost),
+			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName3)},
+			RequireServerNameIndication: to.BoolPtr(true),
 		},
 	}
 }
