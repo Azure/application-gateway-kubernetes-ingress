@@ -27,11 +27,11 @@ const (
 )
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
-	httpSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
-	if httpSettings != nil {
-		sort.Sort(sorter.BySettingsName(*httpSettings))
+	agicHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
+	if agicHTTPSettings != nil {
+		sort.Sort(sorter.BySettingsName(*agicHTTPSettings))
 	}
-	c.appGw.BackendHTTPSettingsCollection = httpSettings
+	c.appGw.BackendHTTPSettingsCollection = agicHTTPSettings
 	return err
 }
 
