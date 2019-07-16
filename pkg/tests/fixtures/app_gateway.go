@@ -24,9 +24,10 @@ func GetAppGateway() n.ApplicationGateway {
 			},
 
 			HTTPListeners: &[]n.ApplicationGatewayHTTPListener{
+				*GetDefaultListener(),
+				*GetListenerBasic(),
 				*GetListenerPathBased1(),
 				*GetListenerPathBased2(),
-				*GetListenerBasic(),
 			},
 
 			SslCertificates: &[]n.ApplicationGatewaySslCertificate{
