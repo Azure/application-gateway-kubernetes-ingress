@@ -26,4 +26,7 @@ type ConfigBuilderContext struct {
 
 	// Feature flag toggling Brownfield Deployment across the entire AGIC code base.
 	EnableBrownfieldDeployment bool
+
+	// Feature flag toggling Istio Integration across the entire AGIC code base.
+	EnableIstioIntegration bool
 }
