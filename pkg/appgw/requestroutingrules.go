@@ -15,11 +15,37 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
+
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		{
+			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()
+
+			brownfield.LogRules(existingBlacklisted, existingNonBlacklisted, requestRoutingRules)
+
+			// MergeRules would produce unique list of routing rules based on Name. Routing rules, which have the same name
+			// as a managed rule would be overwritten.
+			requestRoutingRules = brownfield.MergeRules(existingBlacklisted, requestRoutingRules)
+		}
+		{
+			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedPathMaps()
+
+			brownfield.LogPathMaps(existingBlacklisted, existingNonBlacklisted, pathMaps)
+
+			// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
+			// as a managed rule would be overwritten.
+			pathMaps = brownfield.MergePathMaps(existingBlacklisted, pathMaps)
+		}
+	}
 
 	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
 	c.appGw.RequestRoutingRules = &requestRoutingRules
