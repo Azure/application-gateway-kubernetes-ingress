@@ -7,15 +7,15 @@ package appgw
 
 import (
 	"fmt"
-	"sort"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -26,6 +26,14 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	for _, probe := range healthProbeCollection {
 		agicCreatedProbes = append(agicCreatedProbes, probe)
 	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedProbes()
+		brownfield.LogProbes(existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
+		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
+	}
+
 	sort.Sort(sorter.ByHealthProbeName(agicCreatedProbes))
 	c.appGw.Probes = &agicCreatedProbes
 	return nil
