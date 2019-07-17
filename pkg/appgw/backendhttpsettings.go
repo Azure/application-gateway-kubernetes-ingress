@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -28,10 +29,25 @@ const (
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
 	agicHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
-	if agicHTTPSettings != nil {
-		sort.Sort(sorter.BySettingsName(*agicHTTPSettings))
+
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		allExistingSettings := rCtx.HTTPSettings
+
+		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
+
+		brownfield.LogHTTPSettings(existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+
+		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
+		// as a managed rule would be overwritten.
+		agicHTTPSettings = brownfield.MergeHTTPSettings(allExistingSettings, agicHTTPSettings)
 	}
-	c.appGw.BackendHTTPSettingsCollection = agicHTTPSettings
+
+	if agicHTTPSettings != nil {
+		sort.Sort(sorter.BySettingsName(agicHTTPSettings))
+	}
+	c.appGw.BackendHTTPSettingsCollection = &agicHTTPSettings
 	return err
 }
 
@@ -82,7 +98,7 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 	return servicesSet
 }
 
-func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
@@ -205,7 +221,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		httpSettings = append(httpSettings, backend)
 	}
 
-	return &httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
