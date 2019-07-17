@@ -59,7 +59,7 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
 1. Add the `application-gateway-kubernetes-ingress` helm repo and perform a helm update
 
     ```bash
-    helm repo add application-gateway-kubernetes-ingress https://azure.github.io/application-gateway-kubernetes-ingress/helm/
+    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
     helm repo update
     ```
 
