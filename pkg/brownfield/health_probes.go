@@ -6,101 +6,93 @@
 package brownfield
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"strings"
 
-	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-var _ = Describe("Test blacklist health probes", func() {
+type probeName string
+type probesByName map[probeName]n.ApplicationGatewayProbe
 
-	appGw := fixtures.GetAppGateway()
-
-	managedProbe := (*appGw.Probes)[0]
-	blacklistedProbe := (*appGw.Probes)[1]
-
-	Context("Test GetBlacklistedProbes() with a blacklist", func() {
-
-		It("should create a list of blacklisted and non blacklisted health probes", func() {
-
-			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // /fox  /bar
-
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
-
-			blacklisted, nonBlacklisted := er.GetBlacklistedProbes()
-
-			// When there is both blacklist and whitelist - the whitelist is ignored.
-			Expect(len(blacklisted)).To(Equal(2))
-			Expect(len(nonBlacklisted)).To(Equal(1))
-
-			// not explicitly blacklisted (does not matter that it is in blacklist)
-			Expect(blacklisted).To(ContainElement(managedProbe))
-			Expect(blacklisted).To(ContainElement(blacklistedProbe))
-		})
-	})
-
-	Context("Test GetBlacklistedProbes() with a blacklist containing a wildcard blacklist target", func() {
-
-		It("should create a list of blacklisted and non blacklisted health probes with a wildcard", func() {
-
-			wildcard := &ptv1.AzureIngressProhibitedTarget{
-				Spec: ptv1.AzureIngressProhibitedTargetSpec{},
-			}
-			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), wildcard)
-
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
-
-			// Everything is blacklisted
-			blacklisted, nonBlacklisted := er.GetBlacklistedProbes()
-
-			Expect(len(blacklisted)).To(Equal(2))
-			Expect(len(nonBlacklisted)).To(Equal(1))
-
-			Expect(blacklisted).To(ContainElement(managedProbe))
-			Expect(blacklisted).To(ContainElement(blacklistedProbe))
-		})
-	})
-
-	Context("Test MergeProbes()", func() {
-
-		probeList1 := []n.ApplicationGatewayProbe{
-			managedProbe,
+// GetBlacklistedProbes filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+func (er ExistingResources) GetBlacklistedProbes() ([]n.ApplicationGatewayProbe, []n.ApplicationGatewayProbe) {
+	blacklistedProbesSet := er.getBlacklistedProbesSet()
+	var nonBlacklistedProbes []n.ApplicationGatewayProbe
+	var blacklistedProbes []n.ApplicationGatewayProbe
+	for _, probe := range er.Probes {
+		if _, isBlacklisted := blacklistedProbesSet[probeName(*probe.Name)]; isBlacklisted {
+			glog.V(5).Infof("Probe %s is blacklisted", *probe.Name)
+			blacklistedProbes = append(blacklistedProbes, probe)
+			continue
 		}
+		glog.V(5).Infof("Probe %s is not blacklisted", *probe.Name)
+		nonBlacklistedProbes = append(nonBlacklistedProbes, probe)
+	}
+	return blacklistedProbes, nonBlacklistedProbes
+}
 
-		probeList2 := []n.ApplicationGatewayProbe{
-			managedProbe,
-			blacklistedProbe,
+// MergeProbes merges list of lists of health probes into a single list, maintaining uniqueness.
+func MergeProbes(probesBuckets ...[]n.ApplicationGatewayProbe) []n.ApplicationGatewayProbe {
+	uniqProbes := make(probesByName)
+	for _, bucket := range probesBuckets {
+		for _, probe := range bucket {
+			uniqProbes[probeName(*probe.Name)] = probe
 		}
+	}
+	var managedProbes []n.ApplicationGatewayProbe
+	for _, probe := range uniqProbes {
+		managedProbes = append(managedProbes, probe)
+	}
+	return managedProbes
+}
 
-		probeList3 := []n.ApplicationGatewayProbe{
-			blacklistedProbe,
+// LogProbes emits a few log lines detailing what probes are created, blacklisted, and removed from ARM.
+func LogProbes(existingBlacklisted []n.ApplicationGatewayProbe, existingNonBlacklisted []n.ApplicationGatewayProbe, managedProbes []n.ApplicationGatewayProbe) {
+	var garbage []n.ApplicationGatewayProbe
+
+	blacklistedSet := indexProbesByName(existingBlacklisted)
+	managedSet := indexProbesByName(managedProbes)
+
+	for probeName, probe := range indexProbesByName(existingNonBlacklisted) {
+		_, existsInBlacklist := blacklistedSet[probeName]
+		_, existsInNewProbes := managedSet[probeName]
+		if !existsInBlacklist && !existsInNewProbes {
+			garbage = append(garbage, probe)
 		}
+	}
 
-		It("should correctly merge lists of probes", func() {
-			merge1 := MergeProbes(probeList2, probeList3)
-			Expect(len(merge1)).To(Equal(2))
-			Expect(merge1).To(ContainElement(managedProbe))
-			Expect(merge1).To(ContainElement(blacklistedProbe))
+	glog.V(3).Info("[brownfield] Probes AGIC created: ", getProbeNames(managedProbes))
+	glog.V(3).Info("[brownfield] Existing Blacklisted Probes AGIC will retain: ", getProbeNames(existingBlacklisted))
+	glog.V(3).Info("[brownfield] Existing Probes AGIC will remove: ", getProbeNames(garbage))
+}
 
-			merge2 := MergeProbes(probeList1, probeList3)
-			Expect(len(merge2)).To(Equal(2))
-			Expect(merge1).To(ContainElement(managedProbe))
-			Expect(merge1).To(ContainElement(blacklistedProbe))
-		})
-	})
+func indexProbesByName(probes []n.ApplicationGatewayProbe) probesByName {
+	probesByName := make(probesByName)
+	for _, probe := range probes {
+		probesByName[probeName(*probe.Name)] = probe
+	}
+	return probesByName
+}
 
-	Context("Test getBlacklistedProbesSet()", func() {
-		It("should create a set of blacklisted probes", func() {
-			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
-			set := er.getBlacklistedProbesSet()
-			Expect(len(set)).To(Equal(2))
-			_, exists := set[fixtures.ProbeName1]
-			Expect(exists).To(BeTrue())
-			_, exists = set[fixtures.ProbeName2]
-			Expect(exists).To(BeTrue())
-		})
-	})
-})
+func getProbeNames(Probe []n.ApplicationGatewayProbe) string {
+	var names []string
+	for _, p := range Probe {
+		names = append(names, *p.Name)
+	}
+	return strings.Join(names, ", ")
+}
+
+func (er ExistingResources) getBlacklistedProbesSet() map[probeName]interface{} {
+	blacklistedHTTPSettings, _ := er.GetBlacklistedHTTPSettings()
+	blacklistedProbesSet := make(map[probeName]interface{})
+	for _, setting := range blacklistedHTTPSettings {
+		if setting.Probe != nil && setting.Probe.ID != nil {
+			probeName := probeName(utils.GetLastChunkOfSlashed(*setting.Probe.ID))
+			blacklistedProbesSet[probeName] = nil
+		}
+	}
+	return blacklistedProbesSet
+}
