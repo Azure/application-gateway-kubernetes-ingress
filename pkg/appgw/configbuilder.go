@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, errors.New("unable to generate backend address pools")
 	}
 
-	// HTTPListener configures the frontend listeners
+	// Listener configures the frontend listeners
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
