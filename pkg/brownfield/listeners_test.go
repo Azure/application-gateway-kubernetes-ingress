@@ -72,6 +72,7 @@ var _ = Describe("Test blacklist listeners", func() {
 			Expect(blacklisted).To(ContainElement(listener1))
 			Expect(blacklisted).To(ContainElement(listener2))
 			Expect(blacklisted).To(ContainElement(listener3))
+			Expect(blacklisted).To(ContainElement(defaultListener))
 
 			Expect(len(nonBlacklisted)).To(Equal(0))
 		})
