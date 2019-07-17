@@ -97,5 +97,24 @@ func (er ExistingResources) getBlacklistedPoolsSet() map[backendPoolName]interfa
 			blacklistedPoolsSet[poolName] = nil
 		}
 	}
+
+	blacklistedPathMaps, _ := er.GetBlacklistedPathMaps()
+	for _, pathMap := range blacklistedPathMaps {
+		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
+			poolName := backendPoolName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendAddressPool.ID))
+			blacklistedPoolsSet[poolName] = nil
+		}
+		if pathMap.PathRules == nil {
+			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
+				poolName := backendPoolName(utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID))
+				blacklistedPoolsSet[poolName] = nil
+			}
+		}
+	}
+
 	return blacklistedPoolsSet
 }
