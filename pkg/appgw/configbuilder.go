@@ -167,6 +167,17 @@ func generateIstioMatchID(virtualService *v1alpha3.VirtualService, rule *v1alpha
 	}
 }
 
+func generateIstioDestinationID(virtualService *v1alpha3.VirtualService, destination *v1alpha3.Destination) istioDestinationIdentifier {
+	return istioDestinationIdentifier{
+		serviceIdentifier: serviceIdentifier{
+			Namespace: virtualService.Namespace,
+			Name:      destination.Host,
+		},
+		VirtualService: virtualService,
+		Destination:    destination,
+	}
+}
+
 func generateListenerID(rule *v1beta1.IngressRule,
 	protocol n.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
 	frontendPort := int32(80)
