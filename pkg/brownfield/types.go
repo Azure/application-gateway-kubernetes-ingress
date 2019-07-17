@@ -23,11 +23,7 @@ type PoolContext struct {
 
 type listenerName string
 type pathmapName string
-type backendPoolName string
-
 type poolToTargets map[backendPoolName][]Target
-
-type poolsByName map[backendPoolName]n.ApplicationGatewayBackendAddressPool
 
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
