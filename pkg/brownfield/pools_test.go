@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
@@ -19,8 +18,8 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 	listeners := []n.ApplicationGatewayHTTPListener{
 		*fixtures.GetDefaultListener(),
-		*fixtures.GetListenerBasic(),
 		*fixtures.GetListenerPathBased1(),
+		*fixtures.GetListenerBasic(),
 	}
 
 	routingRules := []n.ApplicationGatewayRequestRoutingRule{
@@ -47,82 +46,22 @@ var _ = Describe("Test blacklisting backend pools", func() {
 		pool3, // prohibited
 	}
 
-	brownfieldContext := PoolContext{
-		Listeners:          listeners,
-		RoutingRules:       routingRules,
-		PathMaps:           paths,
-		BackendPools:       pools,
-		ProhibitedTargets:  fixtures.GetAzureIngressProhibitedTargets(),
-		DefaultBackendPool: defaultPool,
+	appGw := n.ApplicationGateway{
+		ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+			HTTPListeners:       &listeners,
+			RequestRoutingRules: &routingRules,
+			URLPathMaps:         &paths,
+			BackendAddressPools: &pools,
+		},
 	}
+
+	prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
+
+	brownfieldContext := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
 
 	prohibitWildcard := &ptv1.AzureIngressProhibitedTarget{
 		Spec: ptv1.AzureIngressProhibitedTargetSpec{},
 	}
-
-	Context("Test getPoolToTargetsMap", func() {
-
-		actual := brownfieldContext.getPoolToTargetsMap()
-
-		It("should have created map of pool name to list of targets", func() {
-			expected := poolToTargets{
-				fixtures.DefaultBackendPoolName: {
-					{
-						Hostname: "",
-						Path:     "",
-					},
-					{
-						Hostname: "bye.com",
-						Path:     "",
-					},
-				},
-				fixtures.BackendAddressPoolName1: {
-					{
-						Hostname: tests.Host,
-						Path:     fixtures.PathFoo,
-					},
-
-					{
-						Hostname: tests.Host,
-						Path:     fixtures.PathBar,
-					},
-
-					{
-						Hostname: tests.Host,
-						Path:     fixtures.PathBaz,
-					},
-				},
-
-				fixtures.BackendAddressPoolName2: {
-					{
-						Hostname: tests.OtherHost,
-					},
-				},
-			}
-			Expect(actual).To(Equal(expected))
-		})
-	})
-
-	Context("Test getPoolToTargetsMap with empty routing rules and pathmaps", func() {
-
-		bfCtx := PoolContext{
-			Listeners:          listeners,
-			RoutingRules:       nil,
-			PathMaps:           nil,
-			BackendPools:       pools,
-			ProhibitedTargets:  nil,
-			DefaultBackendPool: defaultPool,
-		}
-
-		actual := bfCtx.getPoolToTargetsMap()
-
-		It("should have retained the default backendpool", func() {
-			expected := poolToTargets{
-				fixtures.DefaultBackendPoolName: {},
-			}
-			Expect(actual).To(Equal(expected))
-		})
-	})
 
 	Context("Test MergePools()", func() {
 
@@ -184,16 +123,8 @@ var _ = Describe("Test blacklisting backend pools", func() {
 	Context("Test GetBlacklistedPools() with everyhting blacklisted", func() {
 
 		It("blacklists everything linked to a listener", func() {
-
-			bfCtx := PoolContext{
-				Listeners:          listeners,
-				RoutingRules:       routingRules,
-				PathMaps:           paths,
-				BackendPools:       pools,
-				ProhibitedTargets:  append(fixtures.GetAzureIngressProhibitedTargets(), prohibitWildcard),
-				DefaultBackendPool: defaultPool,
-			}
-
+			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), prohibitWildcard)
+			bfCtx := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
 			blacklisted, notBlacklisted := bfCtx.GetBlacklistedPools()
 
 			Expect(len(blacklisted)).To(Equal(3))

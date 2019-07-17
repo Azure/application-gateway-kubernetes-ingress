@@ -46,19 +46,11 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
 	}
 
-	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
-		// These are existing resources we obtain from App Gateway
-		existingBrownfieldCtx := brownfield.PoolContext{
-			Listeners:          c.getExistingListeners(),
-			RoutingRules:       c.getExistingRoutingRules(),
-			PathMaps:           c.getExistingPathMaps(),
-			BackendPools:       c.getExistingBackendPools(),
-			ProhibitedTargets:  cbCtx.ProhibitedTargets,
-			DefaultBackendPool: *defaultPool,
-		}
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, defaultPool)
 
-		// Pools we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := existingBrownfieldCtx.GetBlacklistedPools()
+		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPools()
 
 		brownfield.LogPools(existingBlacklisted, existingNonBlacklisted, agicCreatedPools)
 
