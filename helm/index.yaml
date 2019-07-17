@@ -9,7 +9,7 @@ entries:
     digest: 97e41fbb116cdbcfacf7399fbc0e2737a7299bfb0098fc40e54fc8584f51653e
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.7.1.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.7.1.tgz
     version: 0.7.1
   - apiVersion: v1
     appVersion: 0.7.0
@@ -19,7 +19,7 @@ entries:
     digest: b07b280f583d179641714372c5105331710952951b2bca25c3ee09484ac5e08a
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.7.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.7.0.tgz
     version: 0.7.0
   - apiVersion: v1
     appVersion: 0.7.0-rc2
@@ -29,7 +29,7 @@ entries:
     digest: d2a365b9e393fed442de57b2c9322959a3143d1dbbfa15f2ddd3f5300d4d52da
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.7.0-rc2.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.7.0-rc2.tgz
     version: 0.7.0-rc2
   - apiVersion: v1
     appVersion: 0.7.0-rc1
@@ -39,7 +39,7 @@ entries:
     digest: 08f399f9613d45f174d1bbf29ccc91f378ced9c528cc5a99ebb2cf22a816290b
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.7.0-rc1.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.7.0-rc1.tgz
     version: 0.7.0-rc1
   - apiVersion: v1
     appVersion: 0.6.0
@@ -49,7 +49,7 @@ entries:
     digest: 117231708e3825ac83d12934fd45c1ce21b1efde92cedf2a14bbc00c2e18f330
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.6.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.6.0.tgz
     version: 0.6.0
   - apiVersion: v1
     appVersion: 0.6.0-rc1
@@ -59,7 +59,7 @@ entries:
     digest: adf76e27a7c67d9c6b3187eebcf9f88c1bfd41ba88a41c5c5b85fbaa78769228
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.6.0-rc1.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.6.0-rc1.tgz
     version: 0.6.0-rc1
   - apiVersion: v1
     appVersion: 0.5.0
@@ -69,7 +69,7 @@ entries:
     digest: e4bd414c5036ddcf4577680183d1edcca35bcb2c54ee01845bd3805df1a26e58
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.5.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.5.0.tgz
     version: 0.5.0
   - apiVersion: v1
     appVersion: 0.4.0
@@ -79,7 +79,7 @@ entries:
     digest: e0d4471193cf067d143b234f102bc472ee94feb5f6589081159356f64b2ed057
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.4.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.4.0.tgz
     version: 0.4.0
   - apiVersion: v1
     appVersion: 0.4.0-rc1
@@ -89,7 +89,7 @@ entries:
     digest: ddb28c63ae5409e3c50f1bea8bea7773bc262664944abf1eb45059c33bda3554
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.4.0-rc1.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.4.0-rc1.tgz
     version: 0.4.0-rc1
   - apiVersion: v1
     appVersion: 0.3.0
@@ -99,7 +99,7 @@ entries:
     digest: e27932e3d967028a19bf58e12d9ef8d6224ee680c9e4c9fb6448bebb3912597d
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.3.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.3.0.tgz
     version: 0.3.0
   - apiVersion: v1
     appVersion: 0.2.0
@@ -109,7 +109,7 @@ entries:
     digest: db2888d19f352be77378d4e0bfec9f15ffaac61e9d793ef1cfb5ef2f2b5079c7
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.2.0.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.2.0.tgz
     version: 0.2.0
   - apiVersion: v1
     appVersion: "1.0"
@@ -119,7 +119,7 @@ entries:
     digest: 1255b1c15cca79c7ec722eeb338de202ee66e431c8790ed55108ffad4af4bbd9
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.1.5.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.1.5.tgz
     version: 0.1.5
   - apiVersion: v1
     appVersion: "1.0"
@@ -129,7 +129,7 @@ entries:
     digest: 39cc6e0c535835667fd26f609a56daf32d31f6a256811a93ee04e265b1bb7216
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.1.4.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.1.4.tgz
     version: 0.1.4
   - apiVersion: v1
     appVersion: "1.0"
@@ -139,7 +139,7 @@ entries:
     digest: 643f5b99c847952108e781ce746f27bed55b248a002ee04b6b6ca3f0b51320ba
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.1.3.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.1.3.tgz
     version: 0.1.3
   - apiVersion: v1
     appVersion: "1.0"
@@ -149,6 +149,6 @@ entries:
     digest: 9664986a6affd3487d5a41772c7e92b23d79693e89d37143e094fec0fbcec1c2
     name: ingress-azure
     urls:
-    - https://azure.github.io/application-gateway-kubernetes-ingress/helm/ingress-azure-0.1.2.tgz
+    - https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/ingress-azure-0.1.2.tgz
     version: 0.1.2
 generated: 2019-06-28T16:46:42.797421362-07:00
