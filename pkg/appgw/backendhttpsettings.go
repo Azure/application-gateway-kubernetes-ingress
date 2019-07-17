@@ -90,8 +90,9 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 	return finalBackendIDs
 }
 
-func istioMatchIds(cbCtx *ConfigBuilderContext) []istioMatchIdentifier {
+func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifier, map[istioDestinationIdentifier]interface{}) {
 	matchIDs := make([]istioMatchIdentifier, 0)
+	destinationIDs := make(map[istioDestinationIdentifier]interface{})
 	for _, virtualService := range cbCtx.IstioVirtualServices {
 		for _, rule := range virtualService.Spec.HTTP {
 			destinations := make([]*v1alpha3.Destination, 0)
@@ -102,6 +103,8 @@ func istioMatchIds(cbCtx *ConfigBuilderContext) []istioMatchIdentifier {
 					yet supported on App Gateway. Include gates from routeDestination when
 					this is supported */
 				}
+				destinationID := generateIstioDestinationID(virtualService, &routeDestination.Destination)
+				destinationIDs[destinationID] = nil
 			}
 			for _, match := range rule.Match {
 				if match.URI == nil {
@@ -114,7 +117,7 @@ func istioMatchIds(cbCtx *ConfigBuilderContext) []istioMatchIdentifier {
 		}
 	}
 	/* TODO(rhea): Filter out backends for virtual services referencing non-existent Services */
-	return matchIDs
+	return matchIDs, destinationIDs
 }
 
 func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
