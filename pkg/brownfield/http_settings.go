@@ -95,5 +95,24 @@ func (er ExistingResources) getBlacklistedSettingsSet() map[settingName]interfac
 			blacklistedSettingsSet[settingName] = nil
 		}
 	}
+
+	blacklistedPathMaps, _ := er.GetBlacklistedPathMaps()
+	for _, pathMap := range blacklistedPathMaps {
+		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
+			settingName := settingName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendHTTPSettings.ID))
+			blacklistedSettingsSet[settingName] = nil
+		}
+		if pathMap.PathRules == nil {
+			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
+				settingName := settingName(utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+				blacklistedSettingsSet[settingName] = nil
+			}
+		}
+	}
+
 	return blacklistedSettingsSet
 }
