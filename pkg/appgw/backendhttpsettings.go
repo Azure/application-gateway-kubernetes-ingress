@@ -13,6 +13,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -87,6 +88,33 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 		finalBackendIDs[be] = nil
 	}
 	return finalBackendIDs
+}
+
+func istioMatchIds(cbCtx *ConfigBuilderContext) []istioMatchIdentifier {
+	matchIDs := make([]istioMatchIdentifier, 0)
+	for _, virtualService := range cbCtx.IstioVirtualServices {
+		for _, rule := range virtualService.Spec.HTTP {
+			destinations := make([]*v1alpha3.Destination, 0)
+			for _, routeDestination := range rule.Route {
+				if routeDestination.Weight != 0 {
+					destinations = append(destinations, &routeDestination.Destination)
+					/* TODO(rhea): Weights are being ignored for now, since this is not
+					yet supported on App Gateway. Include gates from routeDestination when
+					this is supported */
+				}
+			}
+			for _, match := range rule.Match {
+				if match.URI == nil {
+					glog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
+					continue
+				}
+				matchID := generateIstioMatchID(virtualService, &rule, &match, destinations)
+				matchIDs = append(matchIDs, matchID)
+			}
+		}
+	}
+	/* TODO(rhea): Filter out backends for virtual services referencing non-existent Services */
+	return matchIDs
 }
 
 func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
