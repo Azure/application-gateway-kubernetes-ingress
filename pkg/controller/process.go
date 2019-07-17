@@ -34,16 +34,29 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	envVars := environment.GetEnv()
-	prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
 
 	cbCtx := &appgw.ConfigBuilderContext{
-		ServiceList:                c.k8sContext.ListServices(),
-		IngressList:                c.k8sContext.ListHTTPIngresses(),
-		ProhibitedTargets:          c.k8sContext.ListAzureProhibitedTargets(),
-		IstioGateways:              c.k8sContext.ListIstioGateways(),
-		IstioVirtualServices:       c.k8sContext.ListIstioVirtualServices(),
-		EnvVariables:               envVars,
-		EnableBrownfieldDeployment: envVars.EnableBrownfieldDeployment == "true" && len(prohibitedTargets) > 0,
+		ServiceList:  c.k8sContext.ListServices(),
+		IngressList:  c.k8sContext.ListHTTPIngresses(),
+		EnvVariables: envVars,
+	}
+
+	if envVars.EnableBrownfieldDeployment == "true" {
+		prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
+		if len(prohibitedTargets) > 0 {
+			cbCtx.ProhibitedTargets = prohibitedTargets
+			cbCtx.EnableBrownfieldDeployment = true
+		}
+	}
+
+	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
+		istioServices := c.k8sContext.ListIstioVirtualServices()
+		istioGateways := c.k8sContext.ListIstioGateways()
+		if len(istioGateways) > 0 && len(istioServices) > 0 {
+			cbCtx.IstioGateways = istioGateways
+			cbCtx.IstioVirtualServices = istioServices
+			cbCtx.EnableIstioIntegration = true
+		}
 	}
 
 	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
@@ -55,7 +68,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		}
 	}
 
-	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
+	if cbCtx.EnableIstioIntegration {
 		var gatewaysInfo []string
 		for _, gateway := range cbCtx.IstioGateways {
 			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
