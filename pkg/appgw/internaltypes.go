@@ -42,7 +42,7 @@ type backendIdentifier struct {
 	Backend *v1beta1.IngressBackend
 }
 
-type istioBackendIdentifier struct {
+type istioMatchIdentifier struct {
 	Namespace      string
 	VirtualService *v1alpha3.VirtualService
 	Rule           *v1alpha3.HTTPRoute

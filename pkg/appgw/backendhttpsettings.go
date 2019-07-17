@@ -74,8 +74,8 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 	return finalBackendIDs
 }
 
-func istioBackendIds(cbCtx *ConfigBuilderContext) []istioBackendIdentifier {
-	backendIDs := make([]istioBackendIdentifier, 0)
+func istioMatchIds(cbCtx *ConfigBuilderContext) []istioMatchIdentifier {
+	matchIDs := make([]istioMatchIdentifier, 0)
 	for _, virtualService := range cbCtx.IstioVirtualServices {
 		for _, rule := range virtualService.Spec.HTTP {
 			destinations := make([]*v1alpha3.Destination, 0)
@@ -92,13 +92,13 @@ func istioBackendIds(cbCtx *ConfigBuilderContext) []istioBackendIdentifier {
 					glog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
 					continue
 				}
-				backendID := generateIstioBackendID(virtualService, &rule, &match, destinations)
-				backendIDs = append(backendIDs, backendID)
+				matchID := generateIstioMatchID(virtualService, &rule, &match, destinations)
+				matchIDs = append(matchIDs, matchID)
 			}
 		}
 	}
 	/* TODO(rhea): Filter out backends for virtual services referencing non-existent Services */
-	return backendIDs
+	return matchIDs
 }
 
 func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {

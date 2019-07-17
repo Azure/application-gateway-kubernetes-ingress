@@ -156,8 +156,8 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateIstioBackendID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destinations []*v1alpha3.Destination) istioBackendIdentifier {
-	return istioBackendIdentifier{
+func generateIstioMatchID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destinations []*v1alpha3.Destination) istioMatchIdentifier {
+	return istioMatchIdentifier{
 		Namespace:      virtualService.Namespace,
 		VirtualService: virtualService,
 		Rule:           rule,
