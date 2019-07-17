@@ -116,7 +116,7 @@ func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifi
 			}
 		}
 	}
-	/* TODO(rhea): Filter out backends for virtual services referencing non-existent Services */
+	/* TODO(rhea): Filter out destinations for virtual services referencing non-existent Services */
 	return matchIDs, destinationIDs
 }
 
@@ -127,6 +127,80 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 		servicesSet[serviceKey] = service
 	}
 	return servicesSet
+}
+
+func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]serviceBackendPortPair, error) {
+	//serviceBackendPairsMap := make(map[istioDestinationIdentifier]map[serviceBackendPortPair]interface{})
+	//backendHTTPSettingsMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
+	finalServiceBackendPairMap := make(map[istioDestinationIdentifier]serviceBackendPortPair)
+
+	//var unresolvedBackendID []istioDestinationIdentifier
+	_, destinationIDs := istioMatchDestinationIds(cbCtx)
+	for destinationID := range destinationIDs {
+		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
+
+		service := c.k8sContext.GetService(destinationID.serviceKey())
+		destinationPortNum := int32(destinationID.Destination.Port.Number)
+		if service == nil {
+			// Once services are filtered in the istioMatchDestinationIDs function, this should never happen
+			logLine := fmt.Sprintf("Unable to get the service [%s]", destinationID.serviceKey())
+			glog.Errorf(logLine)
+			// TODO(rhea): add error event
+			pair := serviceBackendPortPair{
+				ServicePort: destinationPortNum,
+				BackendPort: destinationPortNum,
+			}
+			resolvedBackendPorts[pair] = nil
+		} else {
+			for _, sp := range service.Spec.Ports {
+				// find the backend port number
+				// check if any service ports matches the specified ports
+				if sp.Protocol != v1.ProtocolTCP {
+					// ignore UDP ports
+					continue
+				}
+				if sp.Port == destinationPortNum ||
+					sp.Name == destinationID.Destination.Port.Name ||
+					sp.TargetPort.String() == destinationID.Destination.Port.Name ||
+					sp.TargetPort.String() == string(destinationPortNum) {
+					// matched a service port with a port from the service
+
+					if sp.TargetPort.String() == "" {
+						// targetPort is not defined, by default targetPort == port
+						pair := serviceBackendPortPair{
+							ServicePort: sp.Port,
+							BackendPort: sp.Port,
+						}
+						resolvedBackendPorts[pair] = nil
+					} else {
+						// target port is defined as name or port number
+						if sp.TargetPort.Type == intstr.Int {
+							// port is defined as port number
+							pair := serviceBackendPortPair{
+								ServicePort: sp.Port,
+								BackendPort: sp.TargetPort.IntVal,
+							}
+							resolvedBackendPorts[pair] = nil
+						} else {
+							// if service port is defined by name, need to resolve
+							targetPortName := sp.TargetPort.StrVal
+							glog.V(1).Infof("resolving port name %s", targetPortName)
+							targetPortsResolved := c.resolveIstioPortName(targetPortName, &destinationID)
+							for targetPort := range targetPortsResolved {
+								pair := serviceBackendPortPair{
+									ServicePort: sp.Port,
+									BackendPort: targetPort,
+								}
+								resolvedBackendPorts[pair] = nil
+							}
+						}
+					}
+					break
+				}
+			}
+		}
+	}
+	return nil, nil, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
