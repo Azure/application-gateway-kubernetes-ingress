@@ -12,9 +12,6 @@ import (
 
 type listenerName string
 
-type pathmapName string
-type poolToTargets map[backendPoolName][]Target
-
 // ExistingResources is used in brownfield deployments and
 // holds a copy of the existing App Gateway config, based
 // on which AGIC will determine what should be retained and
