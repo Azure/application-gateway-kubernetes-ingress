@@ -14,6 +14,7 @@ import (
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -33,6 +34,19 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		}
 		listeners = append(listeners, listener)
 		legacyMap[listenerID] = &listener
+	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedListeners()
+
+		brownfield.LogListeners(existingBlacklisted, existingNonBlacklisted, listeners)
+
+		// MergeListeners would produce unique list of listeners based on Name. Blacklisted listeners,
+		// which have the same name as a managed listeners would be overwritten.
+		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
 	}
 
 	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP

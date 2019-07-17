@@ -15,6 +15,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -33,6 +34,20 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, newCert(secretID, cert))
 	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Certs we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedCertificates()
+
+		brownfield.LogCertificates(existingBlacklisted, existingNonBlacklisted, sslCertificates)
+
+		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
+		// as a managed pool would be overwritten.
+		sslCertificates = brownfield.MergeCerts(existingBlacklisted, sslCertificates)
+	}
+
 	sort.Sort(sorter.ByCertificateName(sslCertificates))
 	return &sslCertificates
 }
