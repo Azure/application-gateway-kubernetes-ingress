@@ -11,6 +11,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -40,6 +41,20 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 			},
 		})
 	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Ports we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPorts()
+
+		brownfield.LogPorts(existingBlacklisted, existingNonBlacklisted, frontendPorts)
+
+		// MergePorts would produce unique list of ports based on Name. Blacklisted ports,
+		// which have the same name as a managed ports would be overwritten.
+		frontendPorts = brownfield.MergePorts(existingBlacklisted, frontendPorts)
+	}
+
 	sort.Sort(sorter.ByFrontendPortName(frontendPorts))
 	return &frontendPorts
 }
