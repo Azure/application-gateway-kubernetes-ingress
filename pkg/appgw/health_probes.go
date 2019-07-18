@@ -7,12 +7,13 @@ package appgw
 
 import (
 	"fmt"
+	"sort"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -124,7 +125,7 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 				// port is defined as port number
 				allPorts[sp.TargetPort.IntVal] = nil
 			} else {
-				for targetPort := range c.resolvePortName(sp.TargetPort.StrVal, &backendID) {
+				for targetPort := range c.resolvePortName(sp.Name, &backendID) {
 					allPorts[targetPort] = nil
 				}
 			}

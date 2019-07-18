@@ -177,9 +177,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 							resolvedBackendPorts[pair] = nil
 						} else {
 							// if service port is defined by name, need to resolve
-							targetPortName := sp.TargetPort.StrVal
-							glog.V(1).Infof("resolving port name %s", targetPortName)
-							targetPortsResolved := c.resolvePortName(targetPortName, &backendID)
+							glog.V(3).Infof("resolving port name %s", sp.Name)
+							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
 									ServicePort: sp.Port,
