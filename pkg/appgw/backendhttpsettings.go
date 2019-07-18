@@ -234,15 +234,14 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 	for destinationID, serviceBackendPairs := range serviceBackendPairsMap {
 		if len(serviceBackendPairs) > 1 {
 			// more than one possible backend port exposed through ingress
-			/* backendServicePort := ""
-			if destinationID.Destination.Port.Number != nil {
+			backendServicePort := ""
+			if destinationID.Destination.Port.Number != 0 {
 				backendServicePort = string(destinationID.Destination.Port.Number)
 			} else {
 				backendServicePort = destinationID.Destination.Port.Name
-			} */
-			//TODO(rhea): Figure out how to check which field of struct is being used
+			}
 			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
-				destinationID.serviceKey(), destinationID.Destination.Port.Name)
+				destinationID.serviceKey(), backendServicePort)
 			glog.Warning(logLine)
 			//TODO(rhea): add error event recorder
 			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
