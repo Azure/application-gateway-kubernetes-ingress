@@ -44,10 +44,18 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		// as a managed rule would be overwritten.
 		agicHTTPSettings = brownfield.MergeHTTPSettings(allExistingSettings, agicHTTPSettings)
 	}
+	if cbCtx.EnableIstioIntegration {
+		istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+		if istioHTTPSettings != nil {
+			sort.Sort(sorter.BySettingsName(istioHTTPSettings))
+		}
+		agicHTTPSettings = append(agicHTTPSettings, istioHTTPSettings...)
+	}
 
 	if agicHTTPSettings != nil {
 		sort.Sort(sorter.BySettingsName(agicHTTPSettings))
 	}
+
 	c.appGw.BackendHTTPSettingsCollection = &agicHTTPSettings
 	return err
 }
@@ -130,11 +138,11 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 }
 
 func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]serviceBackendPortPair, error) {
-	//serviceBackendPairsMap := make(map[istioDestinationIdentifier]map[serviceBackendPortPair]interface{})
+	serviceBackendPairsMap := make(map[istioDestinationIdentifier]map[serviceBackendPortPair]interface{})
 	//backendHTTPSettingsMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[istioDestinationIdentifier]serviceBackendPortPair)
 
-	//var unresolvedBackendID []istioDestinationIdentifier
+	var unresolvedDestinationID []istioDestinationIdentifier
 	_, destinationIDs := istioMatchDestinationIds(cbCtx)
 	for destinationID := range destinationIDs {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
@@ -199,8 +207,64 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 				}
 			}
 		}
+		if len(resolvedBackendPorts) == 0 {
+			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", destinationID.serviceKey())
+			glog.Error(logLine)
+			//TODO(rhea): Add error event
+
+			unresolvedDestinationID = append(unresolvedDestinationID, destinationID)
+			break
+		}
+
+		// Merge serviceBackendPairsMap[backendID] into resolvedBackendPorts
+		if _, ok := serviceBackendPairsMap[destinationID]; !ok {
+			serviceBackendPairsMap[destinationID] = make(map[serviceBackendPortPair]interface{})
+		}
+		for portPair := range resolvedBackendPorts {
+			serviceBackendPairsMap[destinationID][portPair] = nil
+		}
 	}
-	return nil, nil, finalServiceBackendPairMap, nil
+	if len(unresolvedDestinationID) > 0 {
+		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
+	}
+
+	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
+	//TODO(rhea): Add probeID and create default backend in httpSettingsCollection
+
+	for destinationID, serviceBackendPairs := range serviceBackendPairsMap {
+		if len(serviceBackendPairs) > 1 {
+			// more than one possible backend port exposed through ingress
+			/* backendServicePort := ""
+			if destinationID.Destination.Port.Number != nil {
+				backendServicePort = string(destinationID.Destination.Port.Number)
+			} else {
+				backendServicePort = destinationID.Destination.Port.Name
+			} */
+			//TODO(rhea): Figure out how to check which field of struct is being used
+			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
+				destinationID.serviceKey(), destinationID.Destination.Port.Name)
+			glog.Warning(logLine)
+			//TODO(rhea): add error event recorder
+			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
+		}
+
+		// At this point there will be only one pair
+		var uniquePair serviceBackendPortPair
+		for k := range serviceBackendPairs {
+			uniquePair = k
+		}
+
+		finalServiceBackendPairMap[destinationID] = uniquePair
+	}
+
+	//TODO(rhea): fill httpSettingsCollection
+
+	httpSettings := make([]n.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
+	for _, backend := range httpSettingsCollection {
+		httpSettings = append(httpSettings, backend)
+	}
+
+	return httpSettings, nil, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
