@@ -41,6 +41,16 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 	}
 
+	if cbCtx.EnableIstioIntegration {
+		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
+			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
+			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
+				managedPoolsByName[*pool.Name] = pool
+			}
+		}
+	}
+
 	var agicCreatedPools []n.ApplicationGatewayBackendAddressPool
 	for _, managedPool := range managedPoolsByName {
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
