@@ -30,10 +30,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	if cbCtx.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
 			listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
-			if config.Protocol == n.HTTPS {
-				sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
-				listener.SslCertificate = resourceRef(sslCertificateID)
-			}
 			listeners = append(listeners, listener)
 			listenersByID[listenerID] = &listener
 		}
