@@ -41,6 +41,16 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 	}
 
+	if cbCtx.EnableIstioIntegration {
+		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
+			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
+			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
+				managedPoolsByName[*pool.Name] = pool
+			}
+		}
+	}
+
 	var agicCreatedPools []n.ApplicationGatewayBackendAddressPool
 	for _, managedPool := range managedPoolsByName {
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
@@ -76,6 +86,36 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 		}
 	}
 	return backendPoolMap
+}
+
+func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDestinationIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
+	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
+	if err != nil {
+		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", destinationID.serviceKey())
+		glog.Errorf(logLine)
+		//TODO(rhea): add recorder event for error
+		return nil
+	}
+
+	for _, subset := range endpoints.Subsets {
+		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
+			backendServicePort := ""
+			if destinationID.Destination.Port.Number != 0 {
+				backendServicePort = string(destinationID.Destination.Port.Number)
+			} else {
+				backendServicePort = destinationID.Destination.Port.Name
+			}
+			poolName := generateAddressPoolName(destinationID.serviceFullName(), backendServicePort, serviceBackendPair.BackendPort)
+			if pool, ok := addressPools[poolName]; ok {
+				return pool
+			}
+			return newPool(poolName, subset)
+		}
+		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
+		glog.Error(logLine)
+		//TODO(rhea): add recorder event for error
+	}
+	return nil
 }
 
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
