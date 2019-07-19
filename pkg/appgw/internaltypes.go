@@ -51,6 +51,12 @@ type istioMatchIdentifier struct {
 	Gateways       []string
 }
 
+type istioDestinationIdentifier struct {
+	serviceIdentifier
+	VirtualService *v1alpha3.VirtualService
+	Destination    *v1alpha3.Destination
+}
+
 type serviceBackendPortPair struct {
 	ServicePort int32
 	BackendPort int32
