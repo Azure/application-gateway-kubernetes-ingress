@@ -143,6 +143,27 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 	return resolvedPorts
 }
 
+func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID *istioDestinationIdentifier) map[int32]interface{} {
+	resolvedPorts := make(map[int32]interface{})
+	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
+	if err != nil {
+		glog.Error("Could not fetch endpoint by service key from cache", err)
+		return resolvedPorts
+	}
+
+	if endpoints == nil {
+		return resolvedPorts
+	}
+	for _, subset := range endpoints.Subsets {
+		for _, epPort := range subset.Ports {
+			if epPort.Name == portName {
+				resolvedPorts[epPort.Port] = nil
+			}
+		}
+	}
+	return resolvedPorts
+}
+
 func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path *v1beta1.HTTPIngressPath, backend *v1beta1.IngressBackend) backendIdentifier {
 	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
@@ -164,6 +185,17 @@ func generateIstioMatchID(virtualService *v1alpha3.VirtualService, rule *v1alpha
 		Match:          match,
 		Destinations:   destinations,
 		Gateways:       match.Gateways,
+	}
+}
+
+func generateIstioDestinationID(virtualService *v1alpha3.VirtualService, destination *v1alpha3.Destination) istioDestinationIdentifier {
+	return istioDestinationIdentifier{
+		serviceIdentifier: serviceIdentifier{
+			Namespace: virtualService.Namespace,
+			Name:      destination.Host,
+		},
+		VirtualService: virtualService,
+		Destination:    destination,
 	}
 }
 
