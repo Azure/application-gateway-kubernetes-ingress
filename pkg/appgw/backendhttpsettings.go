@@ -438,3 +438,26 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	return httpSettings
 }
+
+func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestinationIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
+	backendServicePort := ""
+	if destinationID.Destination.Port.Number != 0 {
+		backendServicePort = string(destinationID.Destination.Port.Number)
+	} else {
+		backendServicePort = destinationID.Destination.Port.Name
+	}
+	httpSettingsName := generateHTTPSettingsName(destinationID.serviceFullName(), backendServicePort, port, destinationID.VirtualService.Name)
+	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
+		Etag: to.StringPtr("*"),
+		Name: &httpSettingsName,
+		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+			Protocol: n.HTTP,
+			Port:     &port,
+		},
+	}
+
+	//TODO(rhea): check relevant annotations and modify http settings accordingly
+
+	return httpSettings
+}
