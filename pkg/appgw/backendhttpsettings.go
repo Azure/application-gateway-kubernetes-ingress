@@ -139,7 +139,7 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 
 func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[istioDestinationIdentifier]serviceBackendPortPair, error) {
 	serviceBackendPairsMap := make(map[istioDestinationIdentifier]map[serviceBackendPortPair]interface{})
-	//backendHTTPSettingsMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
+	backendHTTPSettingsMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[istioDestinationIdentifier]serviceBackendPortPair)
 
 	var unresolvedDestinationID []istioDestinationIdentifier
@@ -228,8 +228,10 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
+	probeID := c.appGwIdentifier.probeID(defaultProbeName)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	//TODO(rhea): Add probeID and create default backend in httpSettingsCollection
+	defaultBackend := defaultBackendHTTPSettings(probeID)
+	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	for destinationID, serviceBackendPairs := range serviceBackendPairsMap {
 		if len(serviceBackendPairs) > 1 {
@@ -254,16 +256,17 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		}
 
 		finalServiceBackendPairMap[destinationID] = uniquePair
+		httpSettings := c.generateIstioHTTPSettings(destinationID, uniquePair.BackendPort, cbCtx)
+		httpSettingsCollection[*httpSettings.Name] = httpSettings
+		backendHTTPSettingsMap[destinationID] = &httpSettings
 	}
-
-	//TODO(rhea): fill httpSettingsCollection
 
 	httpSettings := make([]n.ApplicationGatewayBackendHTTPSettings, 0, len(httpSettingsCollection))
 	for _, backend := range httpSettingsCollection {
 		httpSettings = append(httpSettings, backend)
 	}
 
-	return httpSettings, nil, finalServiceBackendPairMap, nil
+	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
