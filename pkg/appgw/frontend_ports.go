@@ -17,6 +17,15 @@ import (
 
 func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayFrontendPort {
 	allPorts := make(map[int32]interface{})
+
+	if cbCtx.EnableIstioIntegration {
+		for _, gwy := range cbCtx.IstioGateways {
+			for _, server := range gwy.Spec.Servers {
+				allPorts[int32(server.Port.Number)] = nil
+			}
+		}
+	}
+
 	for _, ingress := range cbCtx.IngressList {
 		fePorts, _ := c.processIngressRules(ingress)
 		for port := range fePorts {

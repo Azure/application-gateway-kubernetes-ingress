@@ -12,6 +12,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -22,9 +23,17 @@ import (
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
 func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 
 	var listeners []n.ApplicationGatewayHTTPListener
+
+	if cbCtx.EnableIstioIntegration {
+		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
+			listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
+			listeners = append(listeners, listener)
+			listenersByID[listenerID] = &listener
+		}
+	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx.IngressList) {
 		listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
@@ -33,7 +42,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, listener)
-		legacyMap[listenerID] = &listener
+		listenersByID[listenerID] = &listener
 	}
 
 	if cbCtx.EnableBrownfieldDeployment {
@@ -49,9 +58,8 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
 	}
 
-	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	sort.Sort(sorter.ByListenerName(listeners))
-	return &listeners, legacyMap
+	return &listeners, listenersByID
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
@@ -106,4 +114,43 @@ func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVa
 
 	// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
 	return nil
+}
+
+func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alpha3.Gateway, istioVirtualServices []*v1alpha3.VirtualService) map[listenerIdentifier]listenerAzConfig {
+	knownHosts := make(map[string]interface{})
+	for _, virtualService := range istioVirtualServices {
+		for _, host := range virtualService.Spec.Hosts {
+			knownHosts[host] = nil
+		}
+	}
+
+	allListeners := make(map[listenerIdentifier]listenerAzConfig)
+	for _, igwy := range istioGateways {
+		for _, server := range igwy.Spec.Servers {
+			if server.Port.Protocol != v1alpha3.ProtocolHTTP {
+				glog.Infof("[istio] AGIC does not support Gateway with Server.Port.Protocol=%+v", server.Port.Protocol)
+				continue
+			}
+			for _, host := range server.Hosts {
+				if _, exist := knownHosts[host]; !exist {
+					continue
+				}
+				listenerID := listenerIdentifier{
+					FrontendPort: int32(server.Port.Number),
+					HostName:     host,
+				}
+				allListeners[listenerID] = listenerAzConfig{Protocol: n.HTTP}
+			}
+		}
+	}
+
+	// App Gateway must have at least one listener - the default one!
+	if len(allListeners) == 0 {
+		allListeners[defaultFrontendListenerIdentifier()] = listenerAzConfig{
+			// Default protocol
+			Protocol: n.HTTP,
+		}
+	}
+
+	return allListeners
 }
