@@ -294,12 +294,12 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get service from store, error occurred %s", err.Error())
+		glog.V(3).Infof("unable to get service from store, error occurred %s", err.Error())
 		return nil
 	}
 
 	if !exist {
-		glog.V(1).Infof("unable to get service from store, no such service %s", serviceKey)
+		glog.V(3).Infof("unable to get service from store, no such service %s", serviceKey)
 		return nil
 	}
 

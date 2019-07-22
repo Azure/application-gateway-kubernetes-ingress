@@ -94,6 +94,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	// Replace the current appgw config with the generated one
 	if generatedAppGw, err = configBuilder.Build(cbCtx); err != nil {
 		glog.Error("ConfigBuilder Build returned error:", err)
+		return err
 	}
 
 	// Run post validations to report errors in the config generation.
