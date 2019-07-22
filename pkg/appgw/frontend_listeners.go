@@ -162,16 +162,3 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 
 	return allListeners
 }
-
-func (c *appGwConfigBuilder) lookupListener(listenerID listenerIdentifier) *n.ApplicationGatewayHTTPListener {
-	frontendPortID := *c.lookupFrontendPortByListenerIdentifier(listenerID).ID
-	for _, listener := range *c.appGw.HTTPListeners {
-		if *listener.FrontendIPConfiguration.ID == frontendPortID &&
-			((listener.HostName != nil && listenerID.HostName == "") ||
-				(*listener.HostName == listenerID.HostName)) {
-			return &listener
-		}
-	}
-
-	return nil
-}
