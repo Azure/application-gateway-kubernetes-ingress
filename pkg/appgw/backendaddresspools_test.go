@@ -19,7 +19,6 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Test the creation of Backend Pools from Ingress definition", func() {
-
 	subset := v1.EndpointSubset{
 		Addresses: []v1.EndpointAddress{
 			{Hostname: "abc"},
@@ -61,19 +60,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		})
 
 		It("should contain correct backend address pools", func() {
-			props := &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-				BackendIPConfigurations: nil,
-				BackendAddresses:        &[]n.ApplicationGatewayBackendAddress{},
-				ProvisioningState:       nil,
-			}
-			expected := n.ApplicationGatewayBackendAddressPool{
-				Name: to.StringPtr("defaultaddresspool"),
-				Etag: nil,
-				Type: nil,
-				ID:   nil,
-				ApplicationGatewayBackendAddressPoolPropertiesFormat: props,
-			}
-			Expect(*cb.appGw.BackendAddressPools).To(ContainElement(expected))
+			Expect(*cb.appGw.BackendAddressPools).To(ContainElement(defaultBackendAddressPool(cb.appGwIdentifier)))
 		})
 	})
 
