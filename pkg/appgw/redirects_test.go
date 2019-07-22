@@ -72,7 +72,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			Name: to.StringPtr("sslr-fl-bye.com-443"),
 			Etag: to.StringPtr("*"),
 			Type: nil,
-			ID:   nil,
+			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-fl-bye.com-443")),
 		}
 
 		_, actualListeners := cb.processIngressRules(ingress)

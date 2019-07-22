@@ -41,7 +41,7 @@ var _ = Describe("Process ingress rules", func() {
 				Name: to.StringPtr("fp-80"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   nil,
+				ID:   to.StringPtr(cb.appGwIdentifier.frontendPortID("fp-80")),
 			}
 			Expect(*ports).To(ContainElement(expected))
 		})
@@ -55,7 +55,7 @@ var _ = Describe("Process ingress rules", func() {
 				Name: to.StringPtr("fp-443"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   nil,
+				ID:   to.StringPtr(cb.appGwIdentifier.frontendPortID("fp-443")),
 			}
 			Expect(*ports).To(ContainElement(expected))
 		})

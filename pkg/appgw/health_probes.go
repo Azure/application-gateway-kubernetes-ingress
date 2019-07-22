@@ -7,12 +7,13 @@ package appgw
 
 import (
 	"fmt"
+	"sort"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -42,7 +43,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
-	defaultProbe := defaultProbe()
+	defaultProbe := defaultProbe(c.appGwIdentifier)
 
 	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
@@ -68,8 +69,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if service == nil {
 		return nil
 	}
-	probe := defaultProbe()
+	probe := defaultProbe(c.appGwIdentifier)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
+	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 		probe.Host = to.StringPtr(backendID.Rule.Host)
 	}

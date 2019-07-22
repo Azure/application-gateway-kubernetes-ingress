@@ -15,6 +15,7 @@ import (
 	"regexp"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
@@ -163,20 +164,21 @@ var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefi
 var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
 var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
 
-func defaultBackendHTTPSettings(probeID string) n.ApplicationGatewayBackendHTTPSettings {
+func defaultBackendHTTPSettings(appGWIdentifier Identifier, probeName string) n.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
 	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
+		ID:   to.StringPtr(appGWIdentifier.httpSettingsID(defHTTPSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
 			Port:     &defHTTPSettingsPort,
-			Probe:    resourceRef(probeID),
+			Probe:    resourceRef(appGWIdentifier.probeID(probeName)),
 		},
 	}
 }
 
-func defaultProbe() n.ApplicationGatewayProbe {
+func defaultProbe(appGWIdentifier Identifier) n.ApplicationGatewayProbe {
 	defProbeName := defaultProbeName
 	defProtocol := n.HTTP
 	defHost := "localhost"
@@ -186,6 +188,7 @@ func defaultProbe() n.ApplicationGatewayProbe {
 	defUnHealthyCount := int32(3)
 	return n.ApplicationGatewayProbe{
 		Name: &defProbeName,
+		ID:   to.StringPtr(appGWIdentifier.probeID(defProbeName)),
 		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 			Protocol:           defProtocol,
 			Host:               &defHost,
@@ -197,9 +200,10 @@ func defaultProbe() n.ApplicationGatewayProbe {
 	}
 }
 
-func defaultBackendAddressPool() *n.ApplicationGatewayBackendAddressPool {
-	return &n.ApplicationGatewayBackendAddressPool{
+func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayBackendAddressPool {
+	return n.ApplicationGatewayBackendAddressPool{
 		Name: &defaultBackendAddressPoolName,
+		ID:   to.StringPtr(appGWIdentifier.addressPoolID(defaultBackendAddressPoolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{},
 		},

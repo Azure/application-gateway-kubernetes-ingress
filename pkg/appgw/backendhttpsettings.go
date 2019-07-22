@@ -228,9 +228,8 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
-	probeID := c.appGwIdentifier.probeID(defaultProbeName)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(probeID)
+	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	for destinationID, serviceBackendPairs := range serviceBackendPairsMap {
@@ -359,9 +358,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
 	}
 
-	probeID := c.appGwIdentifier.probeID(defaultProbeName)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(probeID)
+	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
@@ -401,6 +399,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
+		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
 			Port:     &port,
@@ -454,6 +453,7 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
+		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
 			Port:     &port,

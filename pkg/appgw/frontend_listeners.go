@@ -88,10 +88,11 @@ func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) 
 func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol, envVariables environment.EnvVariables) n.ApplicationGatewayHTTPListener {
 	frontendPortName := generateFrontendPortName(listener.FrontendPort)
 	frontendPortID := c.appGwIdentifier.frontendPortID(frontendPortName)
-
+	listenerName := generateListenerName(listener)
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateListenerName(listener)),
+		Name: to.StringPtr(listenerName),
+		ID:   to.StringPtr(c.appGwIdentifier.listenerID(listenerName)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
 			FrontendIPConfiguration: resourceRef(*c.getIPConfigurationID(envVariables)),

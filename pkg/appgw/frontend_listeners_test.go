@@ -98,6 +98,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
 				Name: to.StringPtr(expectedName),
+				ID:   to.StringPtr(cb.appGwIdentifier.listenerID(expectedName)),
 				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 					// TODO: expose this to external configuration
 					FrontendIPConfiguration: resourceRef(tests.IPID1),
@@ -128,6 +129,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
 				Name: to.StringPtr(expectedName),
+				ID:   to.StringPtr(cb.appGwIdentifier.listenerID(expectedName)),
 				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 					// TODO: expose this to external configuration
 					FrontendIPConfiguration: resourceRef(tests.IPID2),

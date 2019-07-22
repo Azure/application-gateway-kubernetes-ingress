@@ -172,7 +172,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				Name: to.StringPtr("rr-80"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   nil,
+				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-80")),
 			}
 			Expect(*configBuilder.appGw.RequestRoutingRules).To(ContainElement(expected))
 		})

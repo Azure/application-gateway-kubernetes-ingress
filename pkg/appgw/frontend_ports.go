@@ -45,6 +45,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 		frontendPorts = append(frontendPorts, n.ApplicationGatewayFrontendPort{
 			Etag: to.StringPtr("*"),
 			Name: &frontendPortName,
+			ID:   to.StringPtr(c.appGwIdentifier.frontendPortID(frontendPortName)),
 			ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
 				Port: to.Int32Ptr(port),
 			},

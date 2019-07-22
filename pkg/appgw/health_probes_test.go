@@ -46,25 +46,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		actual := cb.appGw.Probes
 
 		// We expect our health probe configurator to have arrived at this final setup
-		defaultProbe := n.ApplicationGatewayProbe{
-
-			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
-				Host:                                to.StringPtr("localhost"),
-				Path:                                to.StringPtr("/"),
-				Interval:                            to.Int32Ptr(30),
-				Timeout:                             to.Int32Ptr(30),
-				UnhealthyThreshold:                  to.Int32Ptr(3),
-				PickHostNameFromBackendHTTPSettings: nil,
-				MinServers:                          nil,
-				Match:                               nil,
-				ProvisioningState:                   nil,
-			},
-			Name: to.StringPtr(agPrefix + "defaultprobe"),
-			Etag: nil,
-			Type: nil,
-			ID:   nil,
-		}
+		probeName := agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-443---name--"
 		probeForHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            n.HTTP,
@@ -78,12 +60,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr(agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-443---name--"),
+			Name: to.StringPtr(probeName),
 			Etag: nil,
 			Type: nil,
-			ID:   nil,
+			ID:   to.StringPtr(cb.appGwIdentifier.probeID(probeName)),
 		}
 
+		probeName = agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-80---name--"
 		probeForOtherHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            n.HTTP,
@@ -97,10 +80,10 @@ var _ = Describe("configure App Gateway health probes", func() {
 				Match:                               nil,
 				ProvisioningState:                   nil,
 			},
-			Name: to.StringPtr(agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-80---name--"),
+			Name: to.StringPtr(probeName),
 			Etag: nil,
 			Type: nil,
-			ID:   nil,
+			ID:   to.StringPtr(cb.appGwIdentifier.probeID(probeName)),
 		}
 
 		It("should have exactly 3 records", func() {
@@ -108,7 +91,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
 		})
 
 		It("should have created 1 probe for Host", func() {
@@ -135,33 +118,12 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGw.Probes
 
-		// We expect our health probe configurator to have arrived at this final setup
-		defaultProbe := n.ApplicationGatewayProbe{
-
-			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
-				Host:                                to.StringPtr("localhost"),
-				Path:                                to.StringPtr("/"),
-				Interval:                            to.Int32Ptr(30),
-				Timeout:                             to.Int32Ptr(30),
-				UnhealthyThreshold:                  to.Int32Ptr(3),
-				PickHostNameFromBackendHTTPSettings: nil,
-				MinServers:                          nil,
-				Match:                               nil,
-				ProvisioningState:                   nil,
-			},
-			Name: to.StringPtr(agPrefix + "defaultprobe"),
-			Etag: nil,
-			Type: nil,
-			ID:   nil,
-		}
-
 		It("should have exactly 1 record", func() {
 			Expect(len(*actual)).To(Equal(1), fmt.Sprintf("Actual probes: %+v", *actual))
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
 		})
 	})
 })
