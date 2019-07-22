@@ -33,7 +33,7 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 	return blacklisted, nonBlacklisted
 }
 
-type listenerConfig struct {
+type uniqueListenerConfig struct {
 	HostName                string
 	Protocol                n.ApplicationGatewayProtocol
 	FrontendPortID          string
@@ -42,10 +42,10 @@ type listenerConfig struct {
 
 // MergeListeners merges list of lists of listeners into a single list, maintaining uniqueness.
 func MergeListeners(listenerBuckets ...[]n.ApplicationGatewayHTTPListener) []n.ApplicationGatewayHTTPListener {
-	uniq := make(map[listenerConfig]n.ApplicationGatewayHTTPListener)
+	uniq := make(map[uniqueListenerConfig]n.ApplicationGatewayHTTPListener)
 	for _, bucket := range listenerBuckets {
 		for _, listener := range bucket {
-			listenerConfig := listenerConfig{
+			listenerConfig := uniqueListenerConfig{
 				HostName:                *listener.HostName,
 				Protocol:                listener.Protocol,
 				FrontendIPConfiguration: *listener.FrontendIPConfiguration.ID,

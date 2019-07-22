@@ -75,8 +75,9 @@ func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.Appli
 	return merged
 }
 
-// MergePathMapsWithBasicRule merges a Url paht map with a basic routing rule
+// MergePathMapsWithBasicRule merges a Url pathmap with a basic routing rule
 func MergePathMapsWithBasicRule(pathMap *n.ApplicationGatewayURLPathMap, rule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayURLPathMap {
+	// Replace the default values in the path map with values from the routing rule
 	pathMap.DefaultBackendAddressPool = rule.BackendAddressPool
 	pathMap.DefaultBackendHTTPSettings = rule.BackendHTTPSettings
 	pathMap.DefaultRedirectConfiguration = rule.RedirectConfiguration
@@ -110,7 +111,7 @@ func LookupPathMap(pathMaps *[]n.ApplicationGatewayURLPathMap, resourceID *strin
 	return nil
 }
 
-// DeletePathMap deletes a path map from the list of path maps
+// DeletePathMap deletes a path map from the list of path maps and return the new list
 func DeletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *string) *[]n.ApplicationGatewayURLPathMap {
 	pathMaps := *pathMapsPtr
 	deleteIdx := -1

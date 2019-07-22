@@ -43,6 +43,7 @@ func MergePorts(portBuckets ...[]n.ApplicationGatewayFrontendPort) []n.Applicati
 	uniq := make(map[int32]n.ApplicationGatewayFrontendPort)
 	for _, bucket := range portBuckets {
 		for _, port := range bucket {
+			// Add the port from the list only when it is missing, otherwise use the existing one.
 			if _, exists := uniq[*port.Port]; !exists {
 				uniq[*port.Port] = port
 			}
