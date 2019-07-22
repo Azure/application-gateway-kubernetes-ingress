@@ -6,8 +6,9 @@
 package brownfield
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"strings"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
@@ -39,10 +40,12 @@ func (er ExistingResources) GetBlacklistedPorts() ([]n.ApplicationGatewayFronten
 
 // MergePorts merges list of lists of ports into a single list, maintaining uniqueness.
 func MergePorts(portBuckets ...[]n.ApplicationGatewayFrontendPort) []n.ApplicationGatewayFrontendPort {
-	uniq := make(portsByName)
+	uniq := make(map[int32]n.ApplicationGatewayFrontendPort)
 	for _, bucket := range portBuckets {
 		for _, port := range bucket {
-			uniq[portName(*port.Name)] = port
+			if _, exists := uniq[*port.Port]; !exists {
+				uniq[*port.Port] = port
+			}
 		}
 	}
 	var merged []n.ApplicationGatewayFrontendPort

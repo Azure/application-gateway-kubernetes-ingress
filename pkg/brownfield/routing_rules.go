@@ -57,18 +57,57 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 }
 
 // MergeRules merges list of lists of rules into a single list, maintaining uniqueness.
-func MergeRules(ruleBuckets ...[]n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
-	uniq := make(rulesByName)
+func MergeRules(appGw *n.ApplicationGateway, ruleBuckets ...[]n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
+	uniq := make(map[string]*n.ApplicationGatewayRequestRoutingRule)
 	for _, bucket := range ruleBuckets {
-		for _, rule := range bucket {
-			uniq[ruleName(*rule.Name)] = rule
+		for idx := range bucket {
+			rule := &bucket[idx]
+			// If two rules share the listener, we merge them.
+			if existingRule, exists := uniq[*rule.HTTPListener.ID]; exists {
+				uniq[*rule.HTTPListener.ID] = DeepMergeRoutingRules(appGw, existingRule, rule)
+			} else {
+				uniq[*rule.HTTPListener.ID] = rule
+			}
 		}
 	}
 	var merged []n.ApplicationGatewayRequestRoutingRule
 	for _, rule := range uniq {
-		merged = append(merged, rule)
+		merged = append(merged, *rule)
 	}
 	return merged
+}
+
+// DeepMergeRoutingRules merges two routing rules by merging their pathRules
+func DeepMergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.ApplicationGatewayRequestRoutingRule, secondRoutingRule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayRequestRoutingRule {
+	if firstRoutingRule.RuleType == n.Basic && secondRoutingRule.RuleType == n.PathBasedRouting {
+		glog.V(5).Infof("[brownfield] Merging basic rule %s with path based rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
+		pathMap := LookupPathMap(appGw.URLPathMaps, secondRoutingRule.URLPathMap.ID)
+		glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *pathMap.Name, *firstRoutingRule.Name)
+		MergePathMapsWithBasicRule(pathMap, firstRoutingRule)
+		return secondRoutingRule
+	} else if firstRoutingRule.RuleType == n.PathBasedRouting && secondRoutingRule.RuleType == n.Basic {
+		glog.V(5).Infof("[brownfield] Merging path based rule %s with basic rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
+		pathMap := LookupPathMap(appGw.URLPathMaps, firstRoutingRule.URLPathMap.ID)
+		glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *pathMap.Name, *secondRoutingRule.Name)
+		MergePathMapsWithBasicRule(pathMap, secondRoutingRule)
+		return firstRoutingRule
+	} else if firstRoutingRule.RuleType == n.PathBasedRouting && secondRoutingRule.RuleType == n.PathBasedRouting {
+		glog.V(5).Infof("[brownfield] Merging path based rule %s with path based rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
+		firstPathMap := LookupPathMap(appGw.URLPathMaps, firstRoutingRule.URLPathMap.ID)
+		secondPathMap := LookupPathMap(appGw.URLPathMaps, secondRoutingRule.URLPathMap.ID)
+
+		glog.V(5).Infof("[brownfield] Merging path map %s with path map %s", *firstPathMap.Name, *secondPathMap.Name)
+		// Merge path rules from second path map to first path map
+		firstPathMap.PathRules = MergePathRules(firstPathMap.PathRules, secondPathMap.PathRules)
+
+		// Delete the second path map
+		glog.V(5).Infof("[brownfield] Deleting AGIC created path map %s", *secondPathMap.Name)
+		appGw.URLPathMaps = DeletePathMap(appGw.URLPathMaps, secondPathMap.ID)
+
+		return firstRoutingRule
+	}
+
+	return firstRoutingRule
 }
 
 // LogRules emits a few log lines detailing what rules are created, blacklisted, and removed from ARM.

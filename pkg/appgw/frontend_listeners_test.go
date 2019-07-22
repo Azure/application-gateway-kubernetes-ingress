@@ -64,6 +64,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		}
 
 		// !! Action !!
+		cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 		listeners, _ := cb.getListeners(cbCtx)
 
 		It("should have correct number of listeners", func() {
@@ -92,6 +93,19 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should create a correct App Gwy listener", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
+			ing1 := tests.NewIngressFixture()
+			ing2 := tests.NewIngressFixture()
+			ingressList := []*v1beta1.Ingress{
+				ing1,
+				ing2,
+			}
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList:  ingressList,
+				EnvVariables: envVariables,
+			}
+
+			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariables)
 			expectedName := agPrefix + "fl-bye.com-80"
 
@@ -123,6 +137,18 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		It("should create a App Gwy listener with private IP", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
+			ing1 := tests.NewIngressFixture()
+			ing2 := tests.NewIngressFixture()
+			ingressList := []*v1beta1.Ingress{
+				ing1,
+				ing2,
+			}
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList:  ingressList,
+				EnvVariables: envVariables,
+			}
+			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariablesNew)
 			expectedName := agPrefix + "fl-bye.com-80"
 

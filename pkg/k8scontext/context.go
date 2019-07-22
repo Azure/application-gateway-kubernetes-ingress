@@ -106,6 +106,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Pods.AddEventHandler(resourceHandler)
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
+	informerCollection.AzureIngressProhibitedLocation.AddEventHandler(resourceHandler)
 
 	return context
 }

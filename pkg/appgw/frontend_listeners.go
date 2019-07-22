@@ -23,15 +23,12 @@ import (
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
 func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
-
 	var listeners []n.ApplicationGatewayHTTPListener
 
 	if cbCtx.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
 			listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
 			listeners = append(listeners, listener)
-			listenersByID[listenerID] = &listener
 		}
 	}
 
@@ -42,7 +39,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, listener)
-		listenersByID[listenerID] = &listener
 	}
 
 	if cbCtx.EnableBrownfieldDeployment {
@@ -59,6 +55,18 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	}
 
 	sort.Sort(sorter.ByListenerName(listeners))
+
+	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	// Update the listenerMap with the final listener lists
+	for idx, listener := range listeners {
+		port := c.lookupFrontendPortByID(listener.FrontendPort.ID)
+		listenerID := listenerIdentifier{
+			HostName:     *listener.HostName,
+			FrontendPort: *port.Port,
+		}
+		listenersByID[listenerID] = &listeners[idx]
+	}
+
 	return &listeners, listenersByID
 }
 
@@ -85,10 +93,9 @@ func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) 
 	return allListeners
 }
 
-func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol, envVariables environment.EnvVariables) n.ApplicationGatewayHTTPListener {
-	frontendPortName := generateFrontendPortName(listener.FrontendPort)
-	frontendPortID := c.appGwIdentifier.frontendPortID(frontendPortName)
-	listenerName := generateListenerName(listener)
+func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, envVariables environment.EnvVariables) n.ApplicationGatewayHTTPListener {
+	frontendPortID := *c.lookupFrontendPortByListenerIdentifier(listenerID).ID
+	listenerName := generateListenerName(listenerID)
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(listenerName),
@@ -98,7 +105,7 @@ func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n
 			FrontendIPConfiguration: resourceRef(*c.getIPConfigurationID(envVariables)),
 			FrontendPort:            resourceRef(frontendPortID),
 			Protocol:                protocol,
-			HostName:                &listener.HostName,
+			HostName:                &listenerID.HostName,
 		},
 	}
 }
@@ -154,4 +161,17 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 	}
 
 	return allListeners
+}
+
+func (c *appGwConfigBuilder) lookupListener(listenerID listenerIdentifier) *n.ApplicationGatewayHTTPListener {
+	frontendPortID := *c.lookupFrontendPortByListenerIdentifier(listenerID).ID
+	for _, listener := range *c.appGw.HTTPListeners {
+		if *listener.FrontendIPConfiguration.ID == frontendPortID &&
+			((listener.HostName != nil && listenerID.HostName == "") ||
+				(*listener.HostName == listenerID.HostName)) {
+			return &listener
+		}
+	}
+
+	return nil
 }
