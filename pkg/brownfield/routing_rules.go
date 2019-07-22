@@ -88,7 +88,7 @@ func DeepMergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Appl
 		glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *pathMap.Name, *firstRoutingRule.Name)
 		MergePathMapsWithBasicRule(pathMap, firstRoutingRule)
 
-		// return the new url path map
+		// return second rule. Url path map is updated
 		return secondRoutingRule
 	} else if firstRoutingRule.RuleType == n.PathBasedRouting && secondRoutingRule.RuleType == n.Basic {
 		// Get the url path map of the first rule
@@ -99,7 +99,7 @@ func DeepMergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Appl
 		glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *pathMap.Name, *secondRoutingRule.Name)
 		MergePathMapsWithBasicRule(pathMap, secondRoutingRule)
 
-		// return the new url path map
+		// return first rule. Url path map is updated
 		return firstRoutingRule
 	} else if firstRoutingRule.RuleType == n.PathBasedRouting && secondRoutingRule.RuleType == n.PathBasedRouting {
 		glog.V(5).Infof("[brownfield] Merging path based rule %s with path based rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
@@ -116,7 +116,7 @@ func DeepMergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Appl
 		glog.V(5).Infof("[brownfield] Deleting AGIC created path map %s", *secondPathMap.Name)
 		appGw.URLPathMaps = DeletePathMap(appGw.URLPathMaps, secondPathMap.ID)
 
-		// return the new url path map
+		// return first rule. Url path map is updated
 		return firstRoutingRule
 	}
 
