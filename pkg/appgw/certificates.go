@@ -32,20 +32,11 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 
 	var sslCertificates []n.ApplicationGatewaySslCertificate
 	for secretID, cert := range secretIDCertificateMap {
-		sslCertificates = append(sslCertificates, newCert(secretID, cert))
+		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}
 
 	if cbCtx.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
-
-		// Certs we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedCertificates()
-
-		brownfield.LogCertificates(existingBlacklisted, existingNonBlacklisted, sslCertificates)
-
-		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
-		// as a managed pool would be overwritten.
-		sslCertificates = brownfield.MergeCerts(existingBlacklisted, sslCertificates)
+		sslCertificates = brownfield.MergeCerts(*c.appGw.SslCertificates, sslCertificates)
 	}
 
 	sort.Sort(sorter.ByCertificateName(sslCertificates))
@@ -132,10 +123,11 @@ func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[st
 	return hostToSecretMap
 }
 
-func newCert(secretID secretIdentifier, cert *string) n.ApplicationGatewaySslCertificate {
+func (c *appGwConfigBuilder) newCert(secretID secretIdentifier, cert *string) n.ApplicationGatewaySslCertificate {
 	return n.ApplicationGatewaySslCertificate{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(secretID.secretFullName()),
+		ID:   to.StringPtr(c.appGwIdentifier.sslCertificateID(secretID.secretFullName())),
 		ApplicationGatewaySslCertificatePropertiesFormat: &n.ApplicationGatewaySslCertificatePropertiesFormat{
 			Data:     cert,
 			Password: to.StringPtr("msazure"),

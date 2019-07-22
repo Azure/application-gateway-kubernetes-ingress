@@ -29,9 +29,9 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 }
 
 func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
-	defaultPool := defaultBackendAddressPool()
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
+		*defaultPool.Name: &defaultPool,
 	}
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
@@ -57,7 +57,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	if cbCtx.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, defaultPool)
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, &defaultPool)
 
 		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPools()
@@ -73,14 +73,14 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 }
 
 func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
-	defaultPool := defaultBackendAddressPool()
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
+		*defaultPool.Name: &defaultPool,
 	}
 	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		backendPoolMap[backendID] = defaultPool
+		backendPoolMap[backendID] = &defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			backendPoolMap[backendID] = pool
 		}

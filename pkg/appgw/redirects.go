@@ -28,7 +28,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
-			redirectConfigs = append(redirectConfigs, newSSLRedirectConfig(listenerConfig, targetListener))
+			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
 			glog.V(3).Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
 		}
 	}
@@ -37,7 +37,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 }
 
 // newSSLRedirectConfig creates a new Redirect in the form of a ApplicationGatewayRedirectConfiguration struct.
-func newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
+func (c *appGwConfigBuilder) newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
 	props := n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 		// RedirectType could be one of: 301/Permanent, 302/Found, 303/See Other, 307/Temporary
 		RedirectType: n.Permanent,
@@ -56,6 +56,7 @@ func newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.Sub
 	return n.ApplicationGatewayRedirectConfiguration{
 		Etag: to.StringPtr("*"),
 		Name: &listenerConfig.SslRedirectConfigurationName,
+		ID:   to.StringPtr(c.appGwIdentifier.redirectConfigurationID(listenerConfig.SslRedirectConfigurationName)),
 		ApplicationGatewayRedirectConfigurationPropertiesFormat: &props,
 	}
 }

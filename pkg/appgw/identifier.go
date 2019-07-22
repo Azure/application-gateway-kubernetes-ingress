@@ -74,6 +74,10 @@ func (agw Identifier) publicIPID(publicIPName string) string {
 	return agw.resourceID("Microsoft.Network", "publicIPAddresses", publicIPName)
 }
 
+func (agw Identifier) requestRoutingRuleID(settingsName string) string {
+	return agw.gatewayResourceID("requestRoutingRules", settingsName)
+}
+
 func resourceRef(id string) *n.SubResource {
 	return &n.SubResource{ID: to.StringPtr(id)}
 }

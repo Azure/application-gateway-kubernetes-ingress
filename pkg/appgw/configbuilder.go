@@ -48,12 +48,14 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 
 // Build gets a pointer to updated ApplicationGatewayPropertiesFormat.
 func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
+	glog.V(5).Infof("-----Generating Probes-----")
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
 		return nil, errors.New("unable to generate health probes")
 	}
 
+	glog.V(5).Infof("-----Generating Backend Http Settings-----")
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
@@ -61,6 +63,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
+	glog.V(5).Infof("-----Generating Backend Pools-----")
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
@@ -71,6 +74,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
+	glog.V(5).Infof("-----Generating Listener, Ports and Certificates-----")
 	err = c.Listeners(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
@@ -78,6 +82,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
+	glog.V(5).Infof("-----Generating Routing rules and PathMaps-----")
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())

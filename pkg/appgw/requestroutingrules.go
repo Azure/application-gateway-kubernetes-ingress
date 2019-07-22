@@ -175,10 +175,12 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
+			ID:   to.StringPtr(c.appGwIdentifier.requestRoutingRuleID(generateRequestRoutingRuleName(listenerID))),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
 		}
+		glog.V(3).Infof("Binding rule %s to listener %s", *rule.Name, *httpListener.Name)
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
 			rule.RuleType = n.Basic
@@ -208,6 +210,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, cbCtx *ConfigBui
 		urlPathMap = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
 			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
