@@ -24,17 +24,6 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 
 	if cbCtx.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
-
-		{
-			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()
-
-			brownfield.LogRules(existingBlacklisted, existingNonBlacklisted, requestRoutingRules)
-
-			// MergeRules would produce unique list of routing rules based on Name. Routing rules, which have the same name
-			// as a managed rule would be overwritten.
-			requestRoutingRules = brownfield.MergeRules(existingBlacklisted, requestRoutingRules)
-		}
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedPathMaps()
@@ -47,11 +36,25 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		}
 	}
 
-	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
-	c.appGw.RequestRoutingRules = &requestRoutingRules
-
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
+
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		{
+			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()
+
+			brownfield.LogRules(existingBlacklisted, existingNonBlacklisted, requestRoutingRules)
+
+			// MergeRules would produce unique list of routing rules based on Name. Routing rules, which have the same name
+			// as a managed rule would be overwritten.
+			requestRoutingRules = brownfield.MergeRules(&c.appGw, existingBlacklisted, requestRoutingRules)
+		}
+	}
+
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	c.appGw.RequestRoutingRules = &requestRoutingRules
 
 	return nil
 }
