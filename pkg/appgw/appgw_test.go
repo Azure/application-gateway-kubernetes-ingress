@@ -123,7 +123,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Spec: v1.ServiceSpec{
 			Ports: []v1.ServicePort{
 				{
-					Name: "frontendPort",
+					Name: "servicePort",
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.String,
 						StrVal: backendName,
@@ -164,7 +164,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				},
 				Ports: []v1.EndpointPort{
 					{
-						Name:     backendName,
+						Name:     "servicePort",
 						Port:     backendPort,
 						Protocol: v1.ProtocolTCP,
 					},
