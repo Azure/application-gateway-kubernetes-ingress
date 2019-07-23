@@ -17,7 +17,6 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
@@ -70,13 +69,11 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		}
 	}
 
-	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
-	if cbCtx.EnableBrownfieldDeployment {
-		for idx, ingress := range cbCtx.IngressList {
-			glog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-			cbCtx.IngressList[idx].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
-			glog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-		}
+	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
+	if len(cbCtx.IngressList) == 0 {
+		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
+		glog.Error(errorLine)
+		return errors.New(errorLine)
 	}
 
 	if cbCtx.EnableIstioIntegration {

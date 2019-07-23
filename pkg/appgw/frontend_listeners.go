@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"sort"
-	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -80,7 +79,9 @@ func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) 
 }
 
 func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, envVariables environment.EnvVariables) n.ApplicationGatewayHTTPListener {
-	frontendPortID := *c.lookupFrontendPortByListenerIdentifier(listenerID).ID
+	usePrivateIP := listenerID.UsePrivateIP || envVariables.UsePrivateIP == "true"
+	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, usePrivateIP)
+	frontendPort := c.lookupFrontendPortByListenerIdentifier(listenerID)
 	listenerName := generateListenerName(listenerID)
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
@@ -88,26 +89,12 @@ func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol
 		ID:   to.StringPtr(c.appGwIdentifier.listenerID(listenerName)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
-			FrontendIPConfiguration: resourceRef(*c.getIPConfigurationID(envVariables)),
-			FrontendPort:            resourceRef(frontendPortID),
+			FrontendIPConfiguration: resourceRef(*frontIPConfiguration.ID),
+			FrontendPort:            resourceRef(*frontendPort.ID),
 			Protocol:                protocol,
 			HostName:                &listenerID.HostName,
 		},
 	}
-}
-
-func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVariables) *string {
-	usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP)
-	for _, ip := range *c.appGw.FrontendIPConfigurations {
-		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil &&
-			((usePrivateIP && ip.PrivateIPAddress != nil) ||
-				(!usePrivateIP && ip.PublicIPAddress != nil)) {
-			return ip.ID
-		}
-	}
-
-	// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
-	return nil
 }
 
 func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {

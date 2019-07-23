@@ -23,4 +23,6 @@ const (
 
 	// ReasonPortResolutionError is a reason for an event to be emitted.
 	ReasonPortResolutionError = "PortResolutionError"
+
+	ReasonNoPrivateIPError = "NoPrivateIP"
 )

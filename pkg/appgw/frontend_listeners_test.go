@@ -200,4 +200,42 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			// Expected(exiter.Status(), ShouldEqual, 3)
 		})
 	})
+	Context("create a new App Gateway HTTP Listener with Private Ip when usePrivateIP annotation is present", func() {
+		listener80Private := listenerIdentifier{
+			FrontendPort: int32(80),
+			HostName:     tests.Host,
+			UsePrivateIP: true,
+		}
+		It("should have usePrivateIP true", func() {
+			Expect(listener80Private.UsePrivateIP).To(Equal(true))
+		})
+		It("should create a App Gwy listener with private IP", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					tests.NewIngressFixture(),
+					tests.NewIngressFixture(),
+				},
+				EnvVariables: envVariables,
+			}
+			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
+			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"), envVariables)
+			expectedName := agPrefix + "fl-bye.com-80"
+
+			expected := n.ApplicationGatewayHTTPListener{
+				Etag: to.StringPtr("*"),
+				Name: to.StringPtr(expectedName),
+				ID:   to.StringPtr(cb.appGwIdentifier.listenerID(expectedName)),
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					FrontendIPConfiguration: resourceRef(tests.IPID2),
+					FrontendPort:            resourceRef(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(80))),
+					Protocol:                n.ApplicationGatewayProtocol("Https"),
+					HostName:                to.StringPtr(tests.Host),
+				},
+			}
+
+			Expect(listener).To(Equal(expected))
+		})
+	})
 })
