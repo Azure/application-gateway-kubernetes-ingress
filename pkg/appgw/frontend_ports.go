@@ -68,3 +68,23 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	sort.Sort(sorter.ByFrontendPortName(frontendPorts))
 	return &frontendPorts
 }
+
+func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(listenerIdentifier listenerIdentifier) *n.ApplicationGatewayFrontendPort {
+	for _, port := range *c.appGw.FrontendPorts {
+		if *port.Port == listenerIdentifier.FrontendPort {
+			return &port
+		}
+	}
+
+	return nil
+}
+
+func (c *appGwConfigBuilder) lookupFrontendPortByID(ID *string) *n.ApplicationGatewayFrontendPort {
+	for _, port := range *c.appGw.FrontendPorts {
+		if *port.ID == *ID {
+			return &port
+		}
+	}
+
+	return nil
+}
