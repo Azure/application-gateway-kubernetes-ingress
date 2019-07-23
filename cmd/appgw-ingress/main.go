@@ -202,7 +202,7 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
 		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
 		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;"
-		glog.Info(infoLine)
+		glog.Error(infoLine)
 	}
 
 	if response.Response.StatusCode != 200 {
