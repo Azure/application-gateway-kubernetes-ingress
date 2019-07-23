@@ -143,6 +143,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			IngressList: ingressList,
 			ServiceList: serviceList,
 		}
+		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
 		It("should have correct RequestRoutingRules", func() {
