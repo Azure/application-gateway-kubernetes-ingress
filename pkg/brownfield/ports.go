@@ -6,15 +6,16 @@
 package brownfield
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"strings"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/golang/glog"
 )
 
 type portName string
-type portsByName map[portName]n.ApplicationGatewayFrontendPort
+type portsByPortNumber map[int32]n.ApplicationGatewayFrontendPort
 
 // GetBlacklistedPorts filters the given list of ports to the list of ports that AGIC is allowed to manage.
 func (er ExistingResources) GetBlacklistedPorts() ([]n.ApplicationGatewayFrontendPort, []n.ApplicationGatewayFrontendPort) {
@@ -39,10 +40,13 @@ func (er ExistingResources) GetBlacklistedPorts() ([]n.ApplicationGatewayFronten
 
 // MergePorts merges list of lists of ports into a single list, maintaining uniqueness.
 func MergePorts(portBuckets ...[]n.ApplicationGatewayFrontendPort) []n.ApplicationGatewayFrontendPort {
-	uniq := make(portsByName)
+	uniq := make(portsByPortNumber)
 	for _, bucket := range portBuckets {
 		for _, port := range bucket {
-			uniq[portName(*port.Name)] = port
+			// Add the port from the list only when it is missing, otherwise use the existing one.
+			if _, exists := uniq[*port.Port]; !exists {
+				uniq[*port.Port] = port
+			}
 		}
 	}
 	var merged []n.ApplicationGatewayFrontendPort
@@ -56,12 +60,12 @@ func MergePorts(portBuckets ...[]n.ApplicationGatewayFrontendPort) []n.Applicati
 func LogPorts(existingBlacklisted []n.ApplicationGatewayFrontendPort, existingNonBlacklisted []n.ApplicationGatewayFrontendPort, managedPorts []n.ApplicationGatewayFrontendPort) {
 	var garbage []n.ApplicationGatewayFrontendPort
 
-	blacklistedSet := indexPortsByName(existingBlacklisted)
-	managedSet := indexPortsByName(managedPorts)
+	blacklistedSet := indexPortsByPortNumber(existingBlacklisted)
+	managedSet := indexPortsByPortNumber(managedPorts)
 
-	for portName, port := range indexPortsByName(existingNonBlacklisted) {
-		_, existsInBlacklist := blacklistedSet[portName]
-		_, existsInNewPorts := managedSet[portName]
+	for portNumber, port := range indexPortsByPortNumber(existingNonBlacklisted) {
+		_, existsInBlacklist := blacklistedSet[portNumber]
+		_, existsInNewPorts := managedSet[portNumber]
 		if !existsInBlacklist && !existsInNewPorts {
 			garbage = append(garbage, port)
 		}
@@ -83,10 +87,10 @@ func getPortNames(port []n.ApplicationGatewayFrontendPort) string {
 	return strings.Join(names, ", ")
 }
 
-func indexPortsByName(ports []n.ApplicationGatewayFrontendPort) portsByName {
-	indexed := make(portsByName)
+func indexPortsByPortNumber(ports []n.ApplicationGatewayFrontendPort) portsByPortNumber {
+	indexed := make(portsByPortNumber)
 	for _, port := range ports {
-		indexed[portName(*port.Name)] = port
+		indexed[*port.Port] = port
 	}
 	return indexed
 }
