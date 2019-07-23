@@ -94,7 +94,9 @@ func main() {
 		glog.Fatal("Error creating Azure client", err)
 	}
 
-	waitForAzureAuth(env, appGwClient)
+	if err := waitForAzureAuth(env, appGwClient); err != nil {
+		glog.Fatal("Error getting Application Gateway", err)
+	}
 
 	appGwIdentifier := appgw.Identifier{
 		SubscriptionID: env.SubscriptionID,
@@ -176,16 +178,32 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 }
 
-func waitForAzureAuth(envVars environment.EnvVariables, client n.ApplicationGatewaysClient) {
+func waitForAzureAuth(envVars environment.EnvVariables, client n.ApplicationGatewaysClient) error {
+	var response n.ApplicationGateway
+	var err error
 	const retryTime = 10 * time.Second
 	for counter := 0; counter <= maxAuthRetry; counter++ {
-		if _, err := client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName); err != nil {
+		response, err = client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName)
+		if err == nil {
+			return nil
+		}
+
+		if counter < maxAuthRetry {
 			glog.Error("Error getting Application Gateway", envVars.AppGwName, err)
 			glog.Infof("Retrying in %v", retryTime)
 			time.Sleep(retryTime)
 		}
-		return
 	}
+
+	if response.Response.StatusCode == 403 {
+		infoLine := "Possible reasons:"
+		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
+		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
+		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group.;"
+		glog.Info(infoLine)
+	}
+
+	return err
 }
 
 func getKubeClientConfig() *rest.Config {
