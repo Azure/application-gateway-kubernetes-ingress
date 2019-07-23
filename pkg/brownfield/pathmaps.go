@@ -144,7 +144,7 @@ func deletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *st
 
 	if deleteIdx != -1 {
 		pathMaps[deleteIdx] = pathMaps[len(pathMaps)-1]
-    	*pathMapsPtr = pathMaps[:len(pathMaps)-1]
+		*pathMapsPtr = pathMaps[:len(pathMaps)-1]
 	}
 
 	return pathMapsPtr
