@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -87,15 +89,9 @@ func main() {
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
 	// initialize clients and dependencies
-	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
-
-	var err error
-	if appGwClient.Authorizer, err = getAzAuth(env); err != nil || appGwClient.Authorizer == nil {
-		glog.Fatal("Error creating Azure client", err)
-	}
-
-	if err := waitForAzureAuth(env, appGwClient); err != nil {
-		glog.Fatal("Error getting Application Gateway", err)
+	appGwClient, err := initAppGwClient(env)
+	if err != nil {
+		glog.Fatal("Error creating Azure client: ", err)
 	}
 
 	appGwIdentifier := appgw.Identifier{
@@ -127,7 +123,7 @@ func main() {
 	}
 
 	// initiliaze controller
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
+	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
 
 	// start controller
 	appGwIngressController.Start(env)
@@ -167,6 +163,58 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 	return []string{namespaceEnvVar}
 }
 
+func initAppGwClient(env environment.EnvVariables) (*n.ApplicationGatewaysClient, error) {
+	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
+	if err := waitForAzureAuth(env, &appGwClient); err != nil {
+		return nil, err
+	}
+
+	return &appGwClient, nil
+}
+
+func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient) error {
+	var response n.ApplicationGateway
+	var err error
+	const retryTime = 10 * time.Second
+	for counter := 0; counter <= maxAuthRetry; counter++ {
+		// Fetch a new token
+		if client.Authorizer, err = getAzAuth(env); err != nil || client.Authorizer == nil {
+			glog.Fatal("Error creating Azure client", err)
+		}
+
+		// Get Application Gateway
+		response, err = client.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+		if err == nil {
+			return nil
+		}
+
+		// Tries remaining
+		if counter < maxAuthRetry {
+			glog.Error("Error getting Application Gateway", env.AppGwName, err)
+			glog.Infof("Retrying in %v", retryTime)
+			time.Sleep(retryTime)
+		}
+	}
+
+	// Reasons for 403 errors
+	if response.Response.StatusCode == 403 {
+		infoLine := "Possible reasons:"
+		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
+		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
+		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;"
+		glog.Info(infoLine)
+	}
+
+	if response.Response.StatusCode != 200 {
+		// for example, getting 401. This is not expected as we are getting a token before making the call.
+		errorLine := fmt.Sprintf("Recieved an unexpected status code from Azure while getting Application Gateway: %d", response.Response.StatusCode)
+		glog.Error(errorLine)
+		return errors.New(errorLine)
+	}
+
+	return err
+}
+
 func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
@@ -176,34 +224,6 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	}
 	glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
 	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
-}
-
-func waitForAzureAuth(envVars environment.EnvVariables, client n.ApplicationGatewaysClient) error {
-	var response n.ApplicationGateway
-	var err error
-	const retryTime = 10 * time.Second
-	for counter := 0; counter <= maxAuthRetry; counter++ {
-		response, err = client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName)
-		if err == nil {
-			return nil
-		}
-
-		if counter < maxAuthRetry {
-			glog.Error("Error getting Application Gateway", envVars.AppGwName, err)
-			glog.Infof("Retrying in %v", retryTime)
-			time.Sleep(retryTime)
-		}
-	}
-
-	if response.Response.StatusCode == 403 {
-		infoLine := "Possible reasons:"
-		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
-		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
-		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group.;"
-		glog.Info(infoLine)
-	}
-
-	return err
 }
 
 func getKubeClientConfig() *rest.Config {
