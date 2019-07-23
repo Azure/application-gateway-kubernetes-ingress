@@ -57,16 +57,22 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 }
 
 // MergeRules merges list of lists of rules into a single list, maintaining uniqueness.
-func MergeRules(ruleBuckets ...[]n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
-	uniq := make(rulesByName)
+func MergeRules(appGw *n.ApplicationGateway, ruleBuckets ...[]n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
+	uniq := make(map[string]*n.ApplicationGatewayRequestRoutingRule)
 	for _, bucket := range ruleBuckets {
-		for _, rule := range bucket {
-			uniq[ruleName(*rule.Name)] = rule
+		for idx := range bucket {
+			rule := &bucket[idx]
+			// If two rules share the listener, we merge them. We keep the existing rule and merge the url path maps.
+			if existingRule, exists := uniq[*rule.HTTPListener.ID]; exists {
+				uniq[*rule.HTTPListener.ID] = mergeRoutingRules(appGw, existingRule, rule)
+			} else {
+				uniq[*rule.HTTPListener.ID] = rule
+			}
 		}
 	}
 	var merged []n.ApplicationGatewayRequestRoutingRule
 	for _, rule := range uniq {
-		merged = append(merged, rule)
+		merged = append(merged, *rule)
 	}
 	return merged
 }
@@ -89,6 +95,40 @@ func LogRules(existingBlacklisted []n.ApplicationGatewayRequestRoutingRule, exis
 	glog.V(3).Info("[brownfield] Rules AGIC created: ", getRuleNames(managedRules))
 	glog.V(3).Info("[brownfield] Existing Blacklisted Rules AGIC will retain: ", getRuleNames(existingBlacklisted))
 	glog.V(3).Info("[brownfield] Existing Rules AGIC will remove: ", getRuleNames(garbage))
+}
+
+// mergeRoutingRules merges two routing rules by merging their pathRules
+func mergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.ApplicationGatewayRequestRoutingRule, secondRoutingRule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayRequestRoutingRule {
+	if firstRoutingRule.RuleType == n.Basic &&
+		secondRoutingRule.RuleType == n.PathBasedRouting {
+		return mergeRoutingRules(appGw, secondRoutingRule, firstRoutingRule)
+	}
+
+	if firstRoutingRule.RuleType == n.PathBasedRouting {
+		// Get the url path map of the first rule
+		glog.V(5).Infof("[brownfield] Merging path based rule %s with rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
+		firstPathMap := lookupPathMap(appGw.URLPathMaps, firstRoutingRule.URLPathMap.ID)
+
+		if secondRoutingRule.RuleType == n.Basic {
+			// Replace the default values from the second rule
+			glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *firstPathMap.Name, *secondRoutingRule.Name)
+			mergePathMapsWithBasicRule(firstPathMap, secondRoutingRule)
+			return firstRoutingRule
+		}
+
+		// Get the url path map for the second rule
+		secondPathMap := lookupPathMap(appGw.URLPathMaps, secondRoutingRule.URLPathMap.ID)
+
+		// Merge the path rules from second path map to first path map
+		glog.V(5).Infof("[brownfield] Merging path map %s with path map %s", *firstPathMap.Name, *secondPathMap.Name)
+		firstPathMap.PathRules = mergePathRules(firstPathMap.PathRules, secondPathMap.PathRules)
+
+		// Delete the second path map
+		glog.V(5).Infof("[brownfield] Deleting path map %s", *secondPathMap.Name)
+		appGw.URLPathMaps = deletePathMap(appGw.URLPathMaps, secondPathMap.ID)
+	}
+
+	return firstRoutingRule
 }
 
 func getRuleNames(cert []n.ApplicationGatewayRequestRoutingRule) string {
