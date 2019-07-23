@@ -144,7 +144,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			ServiceList: serviceList,
 		}
 		configBuilder.appGw.FrontendPorts = configBuilder.getFrontendPorts(cbCtx)
-		configBuilder.appGw.HTTPListeners, _ = configBuilder.getListeners(cbCtx)
+		configBuilder.appGw.HTTPListeners = configBuilder.getListeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
 		It("should have correct RequestRoutingRules", func() {

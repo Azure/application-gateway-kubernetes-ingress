@@ -21,7 +21,7 @@ import (
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
+func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayHTTPListener {
 	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	var listeners []n.ApplicationGatewayHTTPListener
 
@@ -55,19 +55,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	}
 
 	sort.Sort(sorter.ByListenerName(listeners))
-
-	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
-	// Update the listenerMap with the final listener lists
-	for idx, listener := range listeners {
-		port := c.lookupFrontendPortByID(listener.FrontendPort.ID)
-		listenerID := listenerIdentifier{
-			HostName:     *listener.HostName,
-			FrontendPort: *port.Port,
-		}
-		listenersByID[listenerID] = &listeners[idx]
-	}
-
-	return &listeners, listenersByID
+	return &listeners
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
@@ -161,4 +149,19 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 	}
 
 	return allListeners
+}
+
+func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	// Update the listenerMap with the final listener lists
+	for idx, listener := range *listeners {
+		port := c.lookupFrontendPortByID(listener.FrontendPort.ID)
+		listenerID := listenerIdentifier{
+			HostName:     *listener.HostName,
+			FrontendPort: *port.Port,
+		}
+		listenersByID[listenerID] = &((*listeners)[idx])
+	}
+
+	return listenersByID
 }

@@ -60,7 +60,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 }
 
 func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	_, httpListenersMap := c.getListeners(cbCtx)
+	httpListenersMap := c.groupListenersByListenerIdentifier(c.appGw.HTTPListeners)
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
@@ -170,7 +170,7 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
-	_, httpListenersMap := c.getListeners(cbCtx)
+	httpListenersMap := c.groupListenersByListenerIdentifier(c.appGw.HTTPListeners)
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getURLPathMaps(cbCtx) {

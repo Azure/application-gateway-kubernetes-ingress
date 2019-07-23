@@ -60,10 +60,10 @@ func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.Appli
 	for _, bucket := range pathMapBuckets {
 		for _, pathMap := range bucket {
 			if existingPathMap, exists := uniq[urlPathMapName(*pathMap.Name)]; exists {
-				glog.Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
-				uniq[urlPathMapName(*pathMap.Name)].PathRules = MergePathRules(existingPathMap.PathRules, pathMap.PathRules)
+				glog.V(5).Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
+				uniq[urlPathMapName(*pathMap.Name)].PathRules = mergePathRules(existingPathMap.PathRules, pathMap.PathRules)
 			} else {
-				glog.Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
+				glog.V(5).Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
 				uniq[urlPathMapName(*pathMap.Name)] = pathMap
 			}
 		}
@@ -73,60 +73,6 @@ func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.Appli
 		merged = append(merged, pathMap)
 	}
 	return merged
-}
-
-// MergePathMapsWithBasicRule merges a Url pathmap with a basic routing rule
-func MergePathMapsWithBasicRule(pathMap *n.ApplicationGatewayURLPathMap, rule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayURLPathMap {
-	// Replace the default values in the path map with values from the routing rule
-	pathMap.DefaultBackendAddressPool = rule.BackendAddressPool
-	pathMap.DefaultBackendHTTPSettings = rule.BackendHTTPSettings
-	pathMap.DefaultRedirectConfiguration = rule.RedirectConfiguration
-	pathMap.DefaultRewriteRuleSet = rule.RewriteRuleSet
-	return pathMap
-}
-
-// MergePathRules merges list of lists of pathMaps into a single list, maintaining uniqueness.
-func MergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.ApplicationGatewayPathRule {
-	uniq := make(pathRulesByName)
-	for _, bucket := range pathRulesBucket {
-		for _, pathRule := range *bucket {
-			uniq[pathRuleName(*pathRule.Name)] = pathRule
-		}
-	}
-	var merged []n.ApplicationGatewayPathRule
-	for _, pathRule := range uniq {
-		merged = append(merged, pathRule)
-	}
-	return &merged
-}
-
-// LookupPathMap using resourceID in the list of path map
-func LookupPathMap(pathMaps *[]n.ApplicationGatewayURLPathMap, resourceID *string) *n.ApplicationGatewayURLPathMap {
-	for idx, pathMap := range *pathMaps {
-		if *pathMap.ID == *resourceID {
-			return &(*pathMaps)[idx]
-		}
-	}
-
-	return nil
-}
-
-// DeletePathMap deletes a path map from the list of path maps and return the new list
-func DeletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *string) *[]n.ApplicationGatewayURLPathMap {
-	pathMaps := *pathMapsPtr
-	deleteIdx := -1
-	for idx, pathMap := range pathMaps {
-		if *pathMap.ID == *resourceID {
-			glog.V(5).Infof("[brownfield] Deleting %s", *resourceID)
-			deleteIdx = idx
-		}
-	}
-
-	if deleteIdx != -1 {
-		pathMaps = append(pathMaps[:deleteIdx], pathMaps[deleteIdx+1:]...)
-	}
-
-	return &pathMaps
 }
 
 // LogPathMaps emits a few log lines detailing what pathMaps are created, blacklisted, and removed from ARM.
@@ -147,6 +93,61 @@ func LogPathMaps(existingBlacklisted []n.ApplicationGatewayURLPathMap, existingN
 	glog.V(3).Info("[brownfield] PathMaps AGIC created: ", getPathMapNames(managedPathMaps))
 	glog.V(3).Info("[brownfield] Existing Blacklisted PathMaps AGIC will retain: ", getPathMapNames(existingBlacklisted))
 	glog.V(3).Info("[brownfield] Existing PathMaps AGIC will remove: ", getPathMapNames(garbage))
+}
+
+// mergePathMapsWithBasicRule merges a Url pathmap with a basic routing rule
+func mergePathMapsWithBasicRule(pathMap *n.ApplicationGatewayURLPathMap, rule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayURLPathMap {
+	// Replace the default values in the path map with values from the routing rule
+	pathMap.DefaultBackendAddressPool = rule.BackendAddressPool
+	pathMap.DefaultBackendHTTPSettings = rule.BackendHTTPSettings
+	pathMap.DefaultRedirectConfiguration = rule.RedirectConfiguration
+	pathMap.DefaultRewriteRuleSet = rule.RewriteRuleSet
+	return pathMap
+}
+
+// mergePathRules merges list of lists of pathMaps into a single list, maintaining uniqueness.
+func mergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.ApplicationGatewayPathRule {
+	uniq := make(pathRulesByName)
+	for _, bucket := range pathRulesBucket {
+		for _, pathRule := range *bucket {
+			uniq[pathRuleName(*pathRule.Name)] = pathRule
+		}
+	}
+	var merged []n.ApplicationGatewayPathRule
+	for _, pathRule := range uniq {
+		merged = append(merged, pathRule)
+	}
+	return &merged
+}
+
+// lookupPathMap using resourceID in the list of path map
+func lookupPathMap(pathMaps *[]n.ApplicationGatewayURLPathMap, resourceID *string) *n.ApplicationGatewayURLPathMap {
+	for idx, pathMap := range *pathMaps {
+		if *pathMap.ID == *resourceID {
+			return &(*pathMaps)[idx]
+		}
+	}
+
+	return nil
+}
+
+// deletePathMap deletes a path map from the list of path maps and return the new list
+func deletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *string) *[]n.ApplicationGatewayURLPathMap {
+	pathMaps := *pathMapsPtr
+	deleteIdx := -1
+	for idx, pathMap := range pathMaps {
+		if *pathMap.ID == *resourceID {
+			glog.V(5).Infof("[brownfield] Deleting %s", *resourceID)
+			deleteIdx = idx
+		}
+	}
+
+	if deleteIdx != -1 {
+		pathMaps[deleteIdx] = pathMaps[len(pathMaps)-1]
+    	*pathMapsPtr = pathMaps[:len(pathMaps)-1]
+	}
+
+	return pathMapsPtr
 }
 
 func getPathMapNames(pathMaps []n.ApplicationGatewayURLPathMap) string {
