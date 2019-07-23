@@ -48,13 +48,13 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
 func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
-	// Starts Worker
-	// This will start worker to process events from k8sContext
-	c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
-
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
 	c.k8sContext.Run(c.stopChannel, false, envVariables)
+
+	// Starts Worker
+	// This will start worker to process events from k8sContext
+	c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
 
 	select {}
 }
