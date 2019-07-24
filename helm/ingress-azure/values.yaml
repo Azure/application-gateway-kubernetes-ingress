@@ -35,8 +35,10 @@ image:
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:
 #   type: servicePrincipal
-#   secretName: networking-appgw-k8s-azure-service-principal
-#   secretKey: ServicePrincipal.json
+#
+#   # secretJSON could be derived via base64 -w auth.json
+#   # Generate auth.json with: 'az ad sp create-for-rbac --subscription <subs> --sdk-auth > auth.json'
+#   secretJSON: <base64 encoded, single line value of your auth.json file>
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
