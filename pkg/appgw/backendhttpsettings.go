@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 
@@ -192,7 +191,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, ErrResolvingBackendPortForService
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -207,7 +206,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
 			glog.Warning(logLine)
-			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, ErrMultipleServiceBackendPortBinding
 		}
 
 		// At this point there will be only one pair

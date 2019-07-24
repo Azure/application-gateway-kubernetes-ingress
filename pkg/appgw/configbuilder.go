@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -51,14 +50,14 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
-		return nil, errors.New("unable to generate health probes")
+		return nil, ErrGeneratingProbes
 	}
 
 	glog.V(5).Infof("-----Generating Backend Http Settings-----")
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend http settings")
+		return nil, ErrGeneratingBackendSettings
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
@@ -66,7 +65,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend address pools")
+		return nil, ErrGeneratingPools
 	}
 
 	// Listener configures the frontend listeners
@@ -77,7 +76,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.Listeners(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
-		return nil, errors.New("unable to generate frontend listeners")
+		return nil, ErrGeneratingListeners
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
@@ -85,7 +84,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
-		return nil, errors.New("unable to generate request routing rules")
+		return nil, ErrGeneratingRoutingRules
 	}
 
 	c.addTags()

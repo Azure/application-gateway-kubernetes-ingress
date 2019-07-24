@@ -6,7 +6,6 @@
 package brownfield
 
 import (
-	"errors"
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -155,7 +154,7 @@ func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayR
 	if listener, found := er.getListenersByName()[listenerName]; !found {
 		glog.Errorf("[brownfield] Could not find listener %s in index", listenerName)
 		// TODO(draychev): move this error into a top-level file
-		return "", errors.New("failed looking up listener")
+		return "", ErrListenerLookup
 	} else if listener.HostName != nil {
 		return *listener.HostName, nil
 	}

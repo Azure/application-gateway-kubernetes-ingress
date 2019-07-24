@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -20,7 +19,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -207,9 +205,8 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 
 	if response.Response.StatusCode != 200 {
 		// for example, getting 401. This is not expected as we are getting a token before making the call.
-		errorLine := fmt.Sprintf("Recieved an unexpected status code from Azure while getting Application Gateway: %d", response.Response.StatusCode)
-		glog.Error(errorLine)
-		return errors.New(errorLine)
+		glog.Error("Recieved an unexpected status code from ARM while getting App Gateway: ", response.Response.StatusCode)
+		return ErrUnexpectedARMStatusCode
 	}
 
 	return err
