@@ -183,7 +183,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
 		}
-		glog.V(3).Infof("Binding rule %s to listener %s", *rule.Name, *httpListener.Name)
+		glog.V(5).Infof("Binding rule %s to listener %s", *rule.Name, *httpListener.Name)
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
 			rule.RuleType = n.Basic
