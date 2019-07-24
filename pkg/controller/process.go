@@ -36,9 +36,10 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	envVars := environment.GetEnv()
 
 	cbCtx := &appgw.ConfigBuilderContext{
-		ServiceList:  c.k8sContext.ListServices(),
-		IngressList:  c.k8sContext.ListHTTPIngresses(),
-		EnvVariables: envVars,
+		ServiceList:           c.k8sContext.ListServices(),
+		IngressList:           c.k8sContext.ListHTTPIngresses(),
+		EnvVariables:          envVars,
+		EnablePanicOnPutError: envVars.EnablePanicOnPutError == "true",
 	}
 
 	if envVars.EnableBrownfieldDeployment == "true" {
@@ -119,7 +120,11 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		// Reset cache
 		c.configCache = nil
 		configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
-		glog.Errorf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
+		glogIt := glog.Errorf
+		if cbCtx.EnablePanicOnPutError {
+			glogIt = glog.Fatalf
+		}
+		glogIt("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		return err
 	}
 	// Wait until deployment finshes and save the error message
