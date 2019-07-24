@@ -174,7 +174,7 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(ingressListInterface)).To(Equal(0), "Expected to have no ingress in the k8scontext but found: %d ingresses", len(testIngresses))
 		})
 
-		It("Should be following Ingress Resource with Application Gateway specific annotations only.", func() {
+		It("Should be following Ingress Resource with App Gateway specific annotations only.", func() {
 			nonAppGWIngress := &v1beta1.Ingress{}
 			deepcopy.Copy(nonAppGWIngress, ingress)
 			nonAppGWIngress.Name = ingressName + "123"
@@ -182,7 +182,7 @@ var _ = Describe("K8scontext", func() {
 			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
 			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(nonAppGWIngress)
-			Expect(err).Should(BeNil(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
+			Expect(err).Should(BeNil(), "Unable to create non-App Gateway ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})

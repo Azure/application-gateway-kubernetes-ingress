@@ -29,7 +29,7 @@ type AzureIngressProhibitedTargetSpec struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// IP address of the prohibited target; Could be the public or private address attached to the Application Gateway
+	// IP address of the prohibited target; Could be the public or private address attached to the App Gateway
 	IP string `json:"ip"`
 
 	// +optional
@@ -41,7 +41,7 @@ type AzureIngressProhibitedTargetSpec struct {
 	Port int32 `json:"port,omitempty"`
 
 	// +optional
-	// Paths is a list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*
+	// Paths is a list of URL paths, for which the Ingress Controller is prohibited from mutating App Gateway configuration; Must begin with a / and end with /*
 	Paths []string `json:"paths,omitempty"`
 }
 

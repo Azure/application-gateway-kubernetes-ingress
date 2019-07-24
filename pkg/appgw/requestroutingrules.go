@@ -274,7 +274,7 @@ func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListene
 }
 
 func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
-	// Application Gateway supports Basic and Path-based rules
+	// App Gateway supports Basic and Path-based rules
 
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"

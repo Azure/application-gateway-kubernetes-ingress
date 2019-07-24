@@ -220,7 +220,7 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	return listenerID
 }
 
-// addTags will add certain tags to Application Gateway
+// addTags will add certain tags to App Gateway
 func (c *appGwConfigBuilder) addTags() {
 	if c.appGw.Tags == nil {
 		c.appGw.Tags = make(map[string]*string)

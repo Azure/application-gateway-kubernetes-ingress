@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	// ApplicationGatewayPrefix defines the prefix for all keys associated with Application Gateway Ingress controller.
+	// ApplicationGatewayPrefix defines the prefix for all keys associated with App Gateway Ingress controller.
 	ApplicationGatewayPrefix = "appgw.ingress.kubernetes.io"
 
 	// BackendPathPrefixKey defines the key for Path which should be used as a prefix for all HTTP requests.
@@ -55,7 +55,7 @@ func IngressClass(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, IngressClassKey)
 }
 
-// IsApplicationGatewayIngress checks if the Ingress resource can be handled by the Application Gateway ingress controller.
+// IsApplicationGatewayIngress checks if the Ingress resource can be handled by the App Gateway ingress controller.
 func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 	controllerName, err := parseString(ing, IngressClassKey)
 	return controllerName == ApplicationGatewayIngressClass, err

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-// A note on naming Application Gateway properties:
+// A note on naming App Gateway properties:
 // A constraint on the App Gateway property names - these must begin and end with a word character or an underscore
 // A word character is well defined here: https://docs.microsoft.com/en-us/dotnet/standard/base-types/character-classes-in-regular-expressions#WordCharacter
 

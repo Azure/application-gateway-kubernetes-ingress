@@ -168,7 +168,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			Expect(listener).To(Equal(expected))
 		})
 	})
-	Context("Fatal if UsePrivateIp is specified and Application Gateway doesn't have a private IP configured.", func() {
+	Context("Fatal if UsePrivateIp is specified and App Gateway doesn't have a private IP configured.", func() {
 		const (
 			expectedEnvVarValue = "true"
 		)

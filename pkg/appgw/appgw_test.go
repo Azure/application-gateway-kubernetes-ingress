@@ -425,8 +425,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		builder, ok := configBuilder.(*appGwConfigBuilder)
 		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
 
-		// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
-		// the controller would expect the `Application Gateway v2` to have some public IP before it starts generating
+		// Since this is a mock the `App Gateway v2` does not have a public IP. During configuration process
+		// the controller would expect the `App Gateway v2` to have some public IP before it starts generating
 		// configuration for the application gateway, hence creating this dummy configuration in the application gateway configuration.
 		builder.appGw.ApplicationGatewayPropertiesFormat = &n.ApplicationGatewayPropertiesFormat{
 			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
@@ -448,8 +448,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		close(stopChannel)
 	})
 
-	Context("Tests Application Gateway Configuration", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress", func() {
+	Context("Tests App Gateway Configuration", func() {
+		It("Should be able to create App Gateway Configuration from Ingress", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 
@@ -488,7 +488,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller when Service doesn't exists", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with empty backend pool.", func() {
+		It("Should be able to create App Gateway Configuration from Ingress with empty backend pool.", func() {
 			// Delete the service
 			options := &metav1.DeleteOptions{}
 			err := k8sClient.CoreV1().Services(ingressNS).Delete(serviceName, options)
@@ -568,7 +568,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller TLS", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with TLS.", func() {
+		It("Should be able to create App Gateway Configuration from Ingress with TLS.", func() {
 			// Test setup ........................
 			// 1. Create secrets object in the Kubernetes secret store.
 			ingressSecret := &v1.Secret{
@@ -645,7 +645,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Protocol:                n.HTTPS,
 						HostName:                &domainName,
 
-						// RequireServerNameIndication is not used in Application Gateway v2
+						// RequireServerNameIndication is not used in App Gateway v2
 						RequireServerNameIndication: nil,
 					},
 				}
@@ -699,7 +699,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller Annotations", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
+		It("Should be able to create App Gateway Configuration from Ingress with all annotations.", func() {
 			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
 			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
@@ -798,8 +798,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 	})
 
-	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
-		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
+	Context("Tests App Gateway Generate HTTP Settings Name", func() {
+		It("Should be create an App Gateway Backend Pool Name With Less than 80 Characters", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
 			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 

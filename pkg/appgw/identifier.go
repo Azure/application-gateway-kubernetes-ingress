@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
-// Identifier is identifier for a specific Application Gateway
+// Identifier is identifier for a specific App Gateway
 type Identifier struct {
 	SubscriptionID string
 	ResourceGroup  string

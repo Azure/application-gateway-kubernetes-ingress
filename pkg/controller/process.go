@@ -77,9 +77,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		glog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
-	// Run fatal validations on the existing config of the Application Gateway.
+	// Run fatal validations on the existing config of the App Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
-		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
+		glog.Error("Got a fatal validation error on existing App Gateway config. Will retry getting App Gateway until error is resolved:", err)
 		return err
 	}
 

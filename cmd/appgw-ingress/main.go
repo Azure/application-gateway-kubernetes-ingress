@@ -119,7 +119,7 @@ func main() {
 	// fatal config validations
 	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
-		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
+		glog.Fatal("Got a fatal validation error on existing App Gateway config. Please update App Gateway or the controller's helm config. Error:", err)
 	}
 
 	// initiliaze controller
@@ -182,7 +182,7 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 			glog.Fatal("Error creating Azure client", err)
 		}
 
-		// Get Application Gateway
+		// Get App Gateway
 		response, err = client.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
 		if err == nil {
 			return nil
@@ -190,7 +190,7 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 
 		// Tries remaining
 		if counter < maxAuthRetry {
-			glog.Error("Error getting Application Gateway", env.AppGwName, err)
+			glog.Error("Error getting App Gateway", env.AppGwName, err)
 			glog.Infof("Retrying in %v", retryTime)
 			time.Sleep(retryTime)
 		}
@@ -201,13 +201,13 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 		infoLine := "Possible reasons:"
 		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
 		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
-		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;"
+		infoLine += " AGIC Identity requires 'Contributor' access on App Gateway and 'Reader' access on App Gateway's Resource Group;"
 		glog.Error(infoLine)
 	}
 
 	if response.Response.StatusCode != 200 {
 		// for example, getting 401. This is not expected as we are getting a token before making the call.
-		errorLine := fmt.Sprintf("Recieved an unexpected status code from Azure while getting Application Gateway: %d", response.Response.StatusCode)
+		errorLine := fmt.Sprintf("Recieved an unexpected status code from Azure while getting App Gateway: %d", response.Response.StatusCode)
 		glog.Error(errorLine)
 		return errors.New(errorLine)
 	}
