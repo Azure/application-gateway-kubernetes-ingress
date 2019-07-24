@@ -113,6 +113,9 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 }
 
 func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+	if config == nil {
+		return ErrEmptyConfig
+	}
 	privateIPPresent := false
 	publicIPPresent := false
 	var jsonConfigs []string
