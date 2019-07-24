@@ -36,9 +36,9 @@ image:
 # armAuth:
 #   type: servicePrincipal
 #
-#   # secretJSON could be derived via base64 -w auth.json
-#   # Generate auth.json with: 'az ad sp create-for-rbac --subscription <subs> --sdk-auth > auth.json'
-#   secretJSON: <base64 encoded, single line value of your auth.json file>
+#   # Generate this value with:
+#   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
+#   secretJSON: <base64-encoded-JSON-blob>
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
