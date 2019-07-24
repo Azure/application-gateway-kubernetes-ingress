@@ -131,7 +131,7 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 
 				// If ingress is annotated with "ssl-redirect" and we have TLS - setup redirection configuration.
 				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && httpsAvailable {
-					c.modifyPathRulesForRedirection(urlPathMaps[listenerHTTPID], listenerHTTPSID)
+					c.modifyPathRulesForRedirection(cbCtx, urlPathMaps[listenerHTTPID], listenerHTTPSID)
 				}
 			}
 
@@ -273,12 +273,20 @@ func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListene
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
-	// Application Gateway supports Basic and Path-based rules
+func (c *appGwConfigBuilder) modifyPathRulesForRedirection(cbCtx *ConfigBuilderContext, httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
 
+	// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
+	redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
+	redirectsSet := *c.getRedirectsByID(c.getRedirectConfigurations(cbCtx))
+
+	if _, exists := redirectsSet[*redirectRef.ID]; !exists {
+		glog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
+		return
+	}
+
+	// Application Gateway supports Basic and Path-based rules
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"
-		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.V(5).Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 
 		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
@@ -293,7 +301,6 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.App
 	for idx := range *httpURLPathMap.PathRules {
 		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
-		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.V(5).Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
 
 		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
