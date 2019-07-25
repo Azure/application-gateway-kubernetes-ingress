@@ -25,6 +25,7 @@ type ExistingResources struct {
 	HTTPSettings       []n.ApplicationGatewayBackendHTTPSettings
 	Ports              []n.ApplicationGatewayFrontendPort
 	Probes             []n.ApplicationGatewayProbe
+	Redirects          []n.ApplicationGatewayRedirectConfiguration
 	ProhibitedTargets  []*ptv1.AzureIngressProhibitedTarget
 	DefaultBackendPool *n.ApplicationGatewayBackendAddressPool
 
@@ -75,6 +76,11 @@ func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.
 		allExistingBackendPools = *appGw.BackendAddressPools
 	}
 
+	var allExistingRedirects []n.ApplicationGatewayRedirectConfiguration
+	if appGw.RedirectConfigurations != nil {
+		allExistingRedirects = *appGw.RedirectConfigurations
+	}
+
 	return ExistingResources{
 		BackendPools:       allExistingBackendPools,
 		Certificates:       allExistingCertificates,
@@ -84,6 +90,7 @@ func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.
 		HTTPSettings:       allExistingSettings,
 		Ports:              allExistingPorts,
 		Probes:             allExistingHealthProbes,
+		Redirects:          allExistingRedirects,
 		ProhibitedTargets:  prohibitedTargets,
 		DefaultBackendPool: defaultPool,
 	}
