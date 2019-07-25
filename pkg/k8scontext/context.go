@@ -272,24 +272,6 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	return targets
 }
 
-// ListIstioGateways returns a list of discovered Istio Gateways
-func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
-	var gateways []*v1alpha3.Gateway
-	for _, gateway := range c.Caches.IstioGateway.List() {
-		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
-	}
-	return gateways
-}
-
-// ListIstioVirtualServices returns a list of discovered Istio Virtual Services
-func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
-	var virtualServices []*v1alpha3.VirtualService
-	for _, virtualService := range c.Caches.IstioVirtualService.List() {
-		virtualServices = append(virtualServices, virtualService.(*v1alpha3.VirtualService))
-	}
-	return virtualServices
-}
-
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
