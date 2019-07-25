@@ -7,7 +7,9 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/Azure/go-autorest/autorest/to"
 	"strings"
 	"time"
 
@@ -32,7 +34,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		return ErrFetchingAppGatewayConfig
 	}
 
-	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false)
+	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	envVars := environment.GetEnv()
@@ -49,6 +51,12 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		if len(prohibitedTargets) > 0 {
 			cbCtx.ProhibitedTargets = prohibitedTargets
 			cbCtx.EnableBrownfieldDeployment = true
+			var prohibitedTargetsList []string
+			for _, target := range *brownfield.GetTargetBlacklist(prohibitedTargets) {
+				targetJSON, _ := json.Marshal(target)
+				prohibitedTargetsList = append(prohibitedTargetsList, string(targetJSON))
+			}
+			glog.V(3).Infof("[brownfield] Prohibited targets: %s", strings.Join(prohibitedTargetsList, ", "))
 		}
 	}
 
@@ -121,7 +129,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := dumpSanitizedJSON(&appGw, logToFile)
+		configJSON, _ := dumpSanitizedJSON(&appGw, logToFile, nil)
 		glogIt := glog.Errorf
 		if cbCtx.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
@@ -131,7 +139,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	configJSON, _ := dumpSanitizedJSON(&appGw, logToFile)
+	configJSON, _ := dumpSanitizedJSON(&appGw, logToFile, nil)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
