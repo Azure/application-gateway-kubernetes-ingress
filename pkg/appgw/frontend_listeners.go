@@ -21,7 +21,6 @@ import (
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
 func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayHTTPListener {
-	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
 	var listeners []n.ApplicationGatewayHTTPListener
 
 	if cbCtx.EnableIstioIntegration {
