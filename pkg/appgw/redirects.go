@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -32,6 +33,20 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 			glog.V(5).Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
 		}
 	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedRedirects()
+
+		brownfield.LogRedirects(existingBlacklisted, existingNonBlacklisted, redirectConfigs)
+
+		// MergeRedirects would produce unique list of redirects based on Name. Blacklisted redirects,
+		// which have the same name as a managed redirects would be overwritten.
+		redirectConfigs = brownfield.MergeRedirects(existingBlacklisted, redirectConfigs)
+	}
+
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))
 	return &redirectConfigs
 }
