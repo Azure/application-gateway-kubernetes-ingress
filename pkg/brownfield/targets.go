@@ -74,8 +74,13 @@ func (p TargetPath) lower() string {
 }
 
 func (thisPath TargetPath) contains(otherPath TargetPath) bool {
-	if thisPath == "" || thisPath == "/" || thisPath == "*" || thisPath == "/*" {
+	if thisPath == "" || thisPath == "*" || thisPath == "/*" {
 		return true
+	}
+
+	// For strings that do not end with a * - do exact match
+	if !strings.HasSuffix(thisPath.lower(), "*") {
+		return thisPath.lower() == otherPath.lower()
 	}
 
 	// "/x/*" contains "/x"

@@ -99,10 +99,11 @@ var _ = Describe("Test blacklisting targets", func() {
 			Expect(TargetPath("*").contains("")).To(BeTrue())
 			Expect(TargetPath("*").contains("/*")).To(BeTrue())
 
-			Expect(TargetPath("/").contains("/blah")).To(BeTrue())
+			Expect(TargetPath("/").contains("/blah")).To(BeFalse())
+			Expect(TargetPath("/blah").contains("/blah")).To(BeTrue())
 			Expect(TargetPath("/").contains("/")).To(BeTrue())
-			Expect(TargetPath("/").contains("")).To(BeTrue())
-			Expect(TargetPath("/").contains("/*")).To(BeTrue())
+			Expect(TargetPath("/").contains("")).To(BeFalse())
+			Expect(TargetPath("/").contains("/*")).To(BeFalse())
 
 			Expect(TargetPath("/x/*").contains("/blah")).To(BeFalse())
 			Expect(TargetPath("/x/*").contains("/")).To(BeFalse())
