@@ -61,10 +61,12 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 
 func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
 	httpListenersMap := c.groupListenersByListenerIdentifier(c.appGw.HTTPListeners)
-	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
+	urlPathMapsPerIngress := make(map[int]map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
-	for _, ingress := range cbCtx.IngressList {
+
+	for ingressIdx, ingress := range cbCtx.IngressList {
+		urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
@@ -148,6 +150,15 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 					listenerHTTPSID, urlPathMaps[listenerHTTPSID],
 					defaultAddressPoolID, defaultHTTPSettingsID)
 			}
+		}
+		urlPathMapsPerIngress[ingressIdx] = urlPathMaps
+	}
+
+	// Merge the URL Path Maps per Ingress
+	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
+	for _, pathMapsByListener := range urlPathMapsPerIngress {
+		for listener, urlPathMap := range pathMapsByListener {
+			urlPathMaps[listener] = urlPathMap
 		}
 	}
 
