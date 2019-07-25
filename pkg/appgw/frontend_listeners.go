@@ -12,7 +12,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -110,45 +109,6 @@ func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVa
 
 	// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
 	return nil
-}
-
-func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alpha3.Gateway, istioVirtualServices []*v1alpha3.VirtualService) map[listenerIdentifier]listenerAzConfig {
-	knownHosts := make(map[string]interface{})
-	for _, virtualService := range istioVirtualServices {
-		for _, host := range virtualService.Spec.Hosts {
-			knownHosts[host] = nil
-		}
-	}
-
-	allListeners := make(map[listenerIdentifier]listenerAzConfig)
-	for _, igwy := range istioGateways {
-		for _, server := range igwy.Spec.Servers {
-			if server.Port.Protocol != v1alpha3.ProtocolHTTP {
-				glog.Infof("[istio] AGIC does not support Gateway with Server.Port.Protocol=%+v", server.Port.Protocol)
-				continue
-			}
-			for _, host := range server.Hosts {
-				if _, exist := knownHosts[host]; !exist {
-					continue
-				}
-				listenerID := listenerIdentifier{
-					FrontendPort: int32(server.Port.Number),
-					HostName:     host,
-				}
-				allListeners[listenerID] = listenerAzConfig{Protocol: n.HTTP}
-			}
-		}
-	}
-
-	// App Gateway must have at least one listener - the default one!
-	if len(allListeners) == 0 {
-		allListeners[defaultFrontendListenerIdentifier()] = listenerAzConfig{
-			// Default protocol
-			Protocol: n.HTTP,
-		}
-	}
-
-	return allListeners
 }
 
 func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
