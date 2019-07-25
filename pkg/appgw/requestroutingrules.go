@@ -277,7 +277,7 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(cbCtx *ConfigBuilderC
 
 	// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
 	redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
-	redirectsSet := *c.getRedirectsByID(c.getRedirectConfigurations(cbCtx))
+	redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
 
 	if _, exists := redirectsSet[*redirectRef.ID]; !exists {
 		glog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)

@@ -61,7 +61,7 @@ func (c *appGwConfigBuilder) newSSLRedirectConfig(listenerConfig listenerAzConfi
 	}
 }
 
-func (c *appGwConfigBuilder) getRedirectsByID(redirects *[]n.ApplicationGatewayRedirectConfiguration) *map[string]interface{} {
+func (c *appGwConfigBuilder) groupRedirectsByID(redirects *[]n.ApplicationGatewayRedirectConfiguration) *map[string]interface{} {
 	redirectsSet := make(map[string]interface{})
 	for _, redirect := range *redirects {
 		redirectsSet[*redirect.ID] = nil
