@@ -8,6 +8,17 @@ armAuth:
     identityResourceID: <identityResourceId>
     identityClientID:  <identityClientId>
 
+## Alternatively you can use Service Principal credentials
+# armAuth:
+#    type: servicePrincipal
+#    secretJSON: <<Generate this value with: "az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0" >>
+
 # Specify aks cluster related information. THIS IS BEING DEPRECATED.
 aksClusterConfiguration:
-        apiServerAddress: <aks-api-server-address>
+    apiServerAddress: <aks-api-server-address>
+
+# Setting brownfield.enabled to "true" will create an AzureIngressProhibitedTarget CRD.
+# This blacklist all hostnames and paths, prohibiting AGIC from aplying config for any of them.
+# Use "kubectl get AzureIngressProhibitedTargets" to view and change prohibited targets
+brownfield:
+  enabled: false
