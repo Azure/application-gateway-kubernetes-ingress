@@ -7,7 +7,6 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -29,8 +28,8 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
 	if err != nil {
-		glog.Errorf("unable to get specified ApplicationGateway [%v], check ApplicationGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
-		return errors.New("unable to get specified ApplicationGateway")
+		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
+		return ErrFetchingAppGatewayConfig
 	}
 
 	envVars := environment.GetEnv()
@@ -108,8 +107,8 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		return nil
 	}
 
-	glog.V(3).Info("BEGIN ApplicationGateway deployment")
-	defer glog.V(3).Info("END ApplicationGateway deployment")
+	glog.V(3).Info("BEGIN AppGateway deployment")
+	defer glog.V(3).Info("END AppGateway deployment")
 
 	logToFile := cbCtx.EnvVariables.EnableSaveConfigToFile == "true"
 
@@ -139,7 +138,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		// Reset cache
 		c.configCache = nil
 		glog.Warning("Unable to deploy App Gateway config.", err)
-		return errors.New("unable to deploy App Gateway config")
+		return ErrDeployingAppGatewayConfig
 	}
 
 	glog.V(3).Info("cache: Updated with latest applied config.")

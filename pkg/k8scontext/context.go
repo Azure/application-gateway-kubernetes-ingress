@@ -6,7 +6,6 @@
 package k8scontext
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -188,9 +187,8 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 	}
 
 	if !exist {
-		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
-		glog.Error(msg)
-		return nil, errors.New(msg)
+		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
+		return nil, ErrFetchingEnpdoints
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil
@@ -270,24 +268,6 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 
 	return targets
-}
-
-// ListIstioGateways returns a list of discovered Istio Gateways
-func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
-	var gateways []*v1alpha3.Gateway
-	for _, gateway := range c.Caches.IstioGateway.List() {
-		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
-	}
-	return gateways
-}
-
-// ListIstioVirtualServices returns a list of discovered Istio Virtual Services
-func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
-	var virtualServices []*v1alpha3.VirtualService
-	for _, virtualService := range c.Caches.IstioVirtualService.List() {
-		virtualServices = append(virtualServices, virtualService.(*v1alpha3.VirtualService))
-	}
-	return virtualServices
 }
 
 // GetService returns the service identified by the key.

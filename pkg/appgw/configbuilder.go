@@ -6,13 +6,11 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -52,14 +50,14 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
-		return nil, errors.New("unable to generate health probes")
+		return nil, ErrGeneratingProbes
 	}
 
 	glog.V(5).Infof("-----Generating Backend Http Settings-----")
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend http settings")
+		return nil, ErrGeneratingBackendSettings
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
@@ -67,7 +65,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend address pools")
+		return nil, ErrGeneratingPools
 	}
 
 	// Listener configures the frontend listeners
@@ -78,7 +76,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.Listeners(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
-		return nil, errors.New("unable to generate frontend listeners")
+		return nil, ErrGeneratingListeners
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
@@ -86,7 +84,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
-		return nil, errors.New("unable to generate request routing rules")
+		return nil, ErrGeneratingRoutingRules
 	}
 
 	c.addTags()
@@ -148,27 +146,6 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 	return resolvedPorts
 }
 
-func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID *istioDestinationIdentifier) map[int32]interface{} {
-	resolvedPorts := make(map[int32]interface{})
-	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
-	if err != nil {
-		glog.Error("Could not fetch endpoint by service key from cache", err)
-		return resolvedPorts
-	}
-
-	if endpoints == nil {
-		return resolvedPorts
-	}
-	for _, subset := range endpoints.Subsets {
-		for _, epPort := range subset.Ports {
-			if epPort.Name == portName {
-				resolvedPorts[epPort.Port] = nil
-			}
-		}
-	}
-	return resolvedPorts
-}
-
 func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path *v1beta1.HTTPIngressPath, backend *v1beta1.IngressBackend) backendIdentifier {
 	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
@@ -179,28 +156,6 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 		Rule:    rule,
 		Path:    path,
 		Backend: backend,
-	}
-}
-
-func generateIstioMatchID(virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute, match *v1alpha3.HTTPMatchRequest, destinations []*v1alpha3.Destination) istioMatchIdentifier {
-	return istioMatchIdentifier{
-		Namespace:      virtualService.Namespace,
-		VirtualService: virtualService,
-		Rule:           rule,
-		Match:          match,
-		Destinations:   destinations,
-		Gateways:       match.Gateways,
-	}
-}
-
-func generateIstioDestinationID(virtualService *v1alpha3.VirtualService, destination *v1alpha3.Destination) istioDestinationIdentifier {
-	return istioDestinationIdentifier{
-		serviceIdentifier: serviceIdentifier{
-			Namespace: virtualService.Namespace,
-			Name:      destination.Host,
-		},
-		VirtualService: virtualService,
-		Destination:    destination,
 	}
 }
 
