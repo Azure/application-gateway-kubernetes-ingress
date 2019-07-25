@@ -22,4 +22,4 @@ spec:
               type: array
               items:
                   type: string
-                  pattern: '^\/.*\/\*$'
+                  pattern: '^\/(?:.+\/)?\*$'

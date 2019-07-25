@@ -194,7 +194,7 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 					continue
 				}
 				for _, path := range *pathRule.Paths {
-					target := Target{hostName, strings.ToLower(path)}
+					target := Target{hostName, TargetPath(path)}
 					ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], target)
 					pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
 				}
