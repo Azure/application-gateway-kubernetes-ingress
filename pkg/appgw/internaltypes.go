@@ -17,7 +17,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -41,21 +40,6 @@ type backendIdentifier struct {
 	Rule    *v1beta1.IngressRule
 	Path    *v1beta1.HTTPIngressPath
 	Backend *v1beta1.IngressBackend
-}
-
-type istioMatchIdentifier struct {
-	Namespace      string
-	VirtualService *v1alpha3.VirtualService
-	Rule           *v1alpha3.HTTPRoute
-	Match          *v1alpha3.HTTPMatchRequest
-	Destinations   []*v1alpha3.Destination
-	Gateways       []string
-}
-
-type istioDestinationIdentifier struct {
-	serviceIdentifier
-	VirtualService *v1alpha3.VirtualService
-	Destination    *v1alpha3.Destination
 }
 
 type serviceBackendPortPair struct {

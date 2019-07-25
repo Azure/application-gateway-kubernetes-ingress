@@ -42,8 +42,10 @@ import (
 )
 
 const (
-	verbosityFlag = "verbosity"
-	maxAuthRetry  = 10
+	verbosityFlag     = "verbosity"
+	maxAuthRetryCount = 10
+	tenSeconds        = 10 * time.Second
+	thirtySeconds     = 30 * time.Second
 )
 
 var (
@@ -58,7 +60,7 @@ var (
 	kubeConfigFile = flags.String("kubeconfig", "",
 		"Path to kubeconfig file with authorization and master location information.")
 
-	resyncPeriod = flags.Duration("sync-period", 30*time.Second,
+	resyncPeriod = flags.Duration("sync-period", thirtySeconds,
 		"Interval at which to re-list and confirm cloud resources.")
 
 	versionInfo = flags.Bool("version", false, "Print version")
@@ -175,8 +177,7 @@ func initAppGwClient(env environment.EnvVariables) (*n.ApplicationGatewaysClient
 func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient) error {
 	var response n.ApplicationGateway
 	var err error
-	const retryTime = 10 * time.Second
-	for counter := 0; counter <= maxAuthRetry; counter++ {
+	for counter := 0; counter <= maxAuthRetryCount; counter++ {
 		// Fetch a new token
 		if client.Authorizer, err = getAzAuth(env); err != nil || client.Authorizer == nil {
 			glog.Fatal("Error creating Azure client", err)
@@ -189,10 +190,9 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 		}
 
 		// Tries remaining
-		if counter < maxAuthRetry {
-			glog.Error("Error getting Application Gateway", env.AppGwName, err)
-			glog.Infof("Retrying in %v", retryTime)
-			time.Sleep(retryTime)
+		if counter < maxAuthRetryCount {
+			glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. ARM Error: %s", env.AppGwName, tenSeconds, err)
+			time.Sleep(tenSeconds)
 		}
 	}
 
@@ -219,10 +219,10 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
 		// see https://github.com/Azure/aad-pod-identity for more information
-		glog.V(1).Infoln("Creating authorizer from Azure Managed Service Identity")
+		glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
 		return auth.NewAuthorizerFromEnvironment()
 	}
-	glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
+	glog.V(1).Infof("Creating authorizer from file referenced by %s environment variable: %s", environment.AuthLocationVarName, vars.AuthLocation)
 	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 }
 
