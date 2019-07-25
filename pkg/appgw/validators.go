@@ -112,10 +112,7 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 	return nil
 }
 
-func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
-	if config == nil {
-		return ErrEmptyConfig
-	}
+func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
 	privateIPPresent := false
 	publicIPPresent := false
 	var jsonConfigs []string
@@ -147,13 +144,16 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 
 // FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
 func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+	if config == nil {
+		return ErrEmptyConfig
+	}
 
-	validators := []func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
+	validators := []func(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
 		validateFrontendIPConfiguration,
 	}
 
 	for _, fn := range validators {
-		if err := fn(eventRecorder, config, envVariables); err != nil {
+		if err := fn(eventRecorder, *config, envVariables); err != nil {
 			return err
 		}
 	}
