@@ -17,22 +17,21 @@ import (
 type redirectName string
 type redirectsByName map[redirectName]n.ApplicationGatewayRedirectConfiguration
 
-// GetBlacklistedRedirects filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+// GetBlacklistedRedirects removes the managed redirects from the given list of redirects; resulting in a list of redirects not managed by AGIC.
 func (er ExistingResources) GetBlacklistedRedirects() ([]n.ApplicationGatewayRedirectConfiguration, []n.ApplicationGatewayRedirectConfiguration) {
-	blacklistedListeners := er.getBlacklistedListenersSet()
-	var blacklisted, nonBlacklisted []n.ApplicationGatewayRedirectConfiguration
+	blacklisted := er.getBlacklistedRedirectsSet()
+	var blacklistedRedirects []n.ApplicationGatewayRedirectConfiguration
+	var nonBlacklistedRedirects []n.ApplicationGatewayRedirectConfiguration
 	for _, redirect := range er.Redirects {
-		// We consider a redirect blacklisted if it is pointing (targeting) a listener that is blacklisted
-		listenerNm := listenerName(utils.GetLastChunkOfSlashed(*redirect.TargetListener.ID))
-		if _, exists := blacklistedListeners[listenerNm]; exists {
+		if _, isBlacklisted := blacklisted[redirectName(*redirect.Name)]; isBlacklisted {
+			blacklistedRedirects = append(blacklistedRedirects, redirect)
 			glog.V(5).Infof("[brownfield] Redirect %s is blacklisted", *redirect.Name)
-			blacklisted = append(blacklisted, redirect)
 			continue
 		}
 		glog.V(5).Infof("[brownfield] Redirect %s is not blacklisted", *redirect.Name)
-		nonBlacklisted = append(nonBlacklisted, redirect)
+		nonBlacklistedRedirects = append(nonBlacklistedRedirects, redirect)
 	}
-	return blacklisted, nonBlacklisted
+	return blacklistedRedirects, nonBlacklistedRedirects
 }
 
 // LogRedirects emits a few log lines detailing what Redirects are created, blacklisted, and removed from ARM.
@@ -87,4 +86,35 @@ func indexRedirectsByName(redirects []n.ApplicationGatewayRedirectConfiguration)
 		indexed[redirectName(*redirect.Name)] = redirect
 	}
 	return indexed
+}
+
+func (er ExistingResources) getBlacklistedRedirectsSet() map[redirectName]interface{} {
+	blacklistedRoutingRules, _ := er.GetBlacklistedRoutingRules()
+	blacklisted := make(map[redirectName]interface{})
+	for _, rule := range blacklistedRoutingRules {
+		if rule.RedirectConfiguration != nil && rule.RedirectConfiguration.ID != nil {
+			redirectName := redirectName(utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+			blacklisted[redirectName] = nil
+		}
+	}
+
+	blacklistedPathMaps, _ := er.GetBlacklistedPathMaps()
+	for _, pathMap := range blacklistedPathMaps {
+		if pathMap.DefaultRedirectConfiguration != nil && pathMap.DefaultRedirectConfiguration.ID != nil {
+			redirectName := redirectName(utils.GetLastChunkOfSlashed(*pathMap.DefaultRedirectConfiguration.ID))
+			blacklisted[redirectName] = nil
+		}
+		if pathMap.PathRules == nil {
+			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.RedirectConfiguration != nil && rule.RedirectConfiguration.ID != nil {
+				redirectName := redirectName(utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+				blacklisted[redirectName] = nil
+			}
+		}
+	}
+
+	return blacklisted
 }
