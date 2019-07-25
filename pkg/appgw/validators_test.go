@@ -27,12 +27,12 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 		serviceList := []*v1.Service{}
 		envVariables := environment.GetFakeEnv()
 
-		config := n.ApplicationGatewayPropertiesFormat{
+		config := &n.ApplicationGatewayPropertiesFormat{
 			URLPathMaps: &[]n.ApplicationGatewayURLPathMap{},
 		}
 
 		It("", func() {
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 
@@ -46,7 +46,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyNoDefaults]))
 		})
@@ -61,7 +61,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyEitherDefaults]))
 		})
@@ -76,7 +76,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).ToNot(BeNil())
 			Expect(err).To(Equal(validationErrors[errKeyNoDefaults]))
 		})
@@ -91,7 +91,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 
@@ -105,7 +105,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 				},
 			}
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
-			err := validateURLPathMaps(eventRecorder, &config, envVariables, ingressList, serviceList)
+			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).To(BeNil())
 		})
 	})
@@ -146,19 +146,19 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should error out when Ip Configuration is empty.", func() {
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariables)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
 			Expect(err).To(Equal(validationErrors[errKeyNoPublicIP]))
 		})
 
 		It("should not error out when Ip Configuration is contains 1 PublicIP and UsePrivateIP is false.", func() {
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariables)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
 			Expect(err).To(BeNil())
 		})
 
 		It("should not error out when Ip Configuration is contains both PublicIP & PrivateIP and UsePrivateIP is false.", func() {
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf, privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariables)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
 			Expect(err).To(BeNil())
 		})
 
@@ -167,7 +167,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 			envVariablesNew.UsePrivateIP = "true"
 			Expect(envVariablesNew.UsePrivateIP).To(Equal("true"))
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf, privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariablesNew)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
 			Expect(err).To(BeNil())
 		})
 
@@ -176,13 +176,13 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 			envVariablesNew.UsePrivateIP = "true"
 			Expect(envVariablesNew.UsePrivateIP).To(Equal("true"))
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariablesNew)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
 			Expect(err).To(Equal(validationErrors[errKeyNoPrivateIP]))
 		})
 
 		It("should error out when Ip Configuration is doesn't contain public IP.", func() {
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, &config, envVariables)
+			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
 			Expect(err).To(Equal(validationErrors[errKeyNoPublicIP]))
 		})
 	})

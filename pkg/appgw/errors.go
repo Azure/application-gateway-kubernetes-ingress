@@ -8,6 +8,7 @@ package appgw
 import "errors"
 
 var (
+	ErrEmptyConfig                       = errors.New("empty App Gateway config")
 	ErrResolvingBackendPortForService    = errors.New("unable to resolve backend port for some services")
 	ErrMultipleServiceBackendPortBinding = errors.New("more than one service-backend port binding is not allowed")
 	ErrGeneratingProbes                  = errors.New("unable to generate health probes")
