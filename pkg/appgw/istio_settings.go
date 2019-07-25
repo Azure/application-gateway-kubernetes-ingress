@@ -6,9 +6,15 @@
 package appgw
 
 import (
+	"errors"
 	"fmt"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifier, map[istioDestinationIdentifier]interface{}) {

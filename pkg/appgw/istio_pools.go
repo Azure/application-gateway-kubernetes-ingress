@@ -7,7 +7,10 @@ package appgw
 
 import (
 	"fmt"
+
 	"github.com/golang/glog"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 )
 
 func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDestinationIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
