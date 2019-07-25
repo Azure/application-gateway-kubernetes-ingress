@@ -50,7 +50,7 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 			},
 		}
 		for _, path := range rule.HTTP.Paths {
-			target.Path = path.Path
+			target.Path = TargetPath(path.Path)
 			if target.IsBlacklisted(blacklist) {
 				continue
 			}

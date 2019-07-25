@@ -17,28 +17,30 @@ import (
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
 
+type TargetPath string
+
 // Target uniquely identifies a subset of App Gateway configuration, which AGIC will manage or be prohibited from managing.
 type Target struct {
-	Hostname string `json:"Hostname,omitempty"`
-	Path     string `json:"Path,omitempty"`
+	Hostname string     `json:"Hostname,omitempty"`
+	Path     TargetPath `json:"Path,omitempty"`
 }
 
 // IsBlacklisted figures out whether a given Target objects in a list of blacklisted targets.
-func (t Target) IsBlacklisted(blacklist *[]Target) bool {
+func (t Target) IsBlacklisted(blacklist TargetBlacklist) bool {
 	jsonTarget, _ := json.Marshal(t)
 	for _, blTarget := range *blacklist {
 
 		// An empty blacklist hostname indicates that any hostname would be blacklisted.
 		// If host names match - this target is in the blacklist.
 		// AGIC is allowed to create and modify App Gwy config for blank host.
-		hostIsSame := blTarget.Hostname == "" || strings.ToLower(t.Hostname) == strings.ToLower(blTarget.Hostname)
+		hostIsBlacklisted := blTarget.Hostname == "" || strings.ToLower(t.Hostname) == strings.ToLower(blTarget.Hostname)
 
-		pathIsSame := blTarget.Path == "" || strings.ToLower(t.Path) == strings.ToLower(blTarget.Path)
+		pathIsBlacklisted := blTarget.Path == "" || blTarget.Path == "/*" || t.Path.lower() == blTarget.Path.lower() || blTarget.Path.contains(t.Path) // TODO(draychev): || t.Path.contains(blTarget.Path)
 
 		// With this version we keep things as simple as possible: match host and exact path to determine
 		// whether given target is in the blacklist. Ideally this would be URL Path set overlap operation,
 		// which we deliberately leave for a later time.
-		if hostIsSame && pathIsSame {
+		if hostIsBlacklisted && pathIsBlacklisted {
 			glog.V(5).Infof("[brownfield] Target is in blacklist: %s", jsonTarget)
 			return true // Found it
 		}
@@ -60,9 +62,40 @@ func GetTargetBlacklist(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) 
 		for _, path := range prohibitedTarget.Spec.Paths {
 			target = append(target, Target{
 				Hostname: prohibitedTarget.Spec.Hostname,
-				Path:     strings.ToLower(path),
+				Path:     TargetPath(strings.ToLower(path)),
 			})
 		}
 	}
 	return &target
+}
+
+func (p TargetPath) lower() string {
+	return strings.ToLower(string(p))
+}
+
+func (thisPath TargetPath) contains(otherPath TargetPath) bool {
+	if thisPath == "" || thisPath == "/" || thisPath == "*" || thisPath == "/*" {
+		return true
+	}
+
+	// "/x/*" contains "/x"
+	if strings.TrimRight(thisPath.lower(), "/*") == strings.TrimRight(otherPath.lower(), "/*") {
+		return true
+	}
+
+	if len(thisPath) > len(otherPath) {
+		return false
+	}
+
+	thisPathChunks := strings.Split(thisPath.lower(), "/")
+	otherPathChunks := strings.Split(otherPath.lower(), "/")
+	for idx, _ := range thisPathChunks {
+		if thisPathChunks[idx] == "*" {
+			return true
+		}
+		if thisPathChunks[idx] != otherPathChunks[idx] {
+			return false
+		}
+	}
+	return false
 }
