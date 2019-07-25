@@ -62,7 +62,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
+func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err

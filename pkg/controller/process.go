@@ -32,6 +32,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		return ErrFetchingAppGatewayConfig
 	}
 
+	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false)
+	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
+
 	envVars := environment.GetEnv()
 
 	cbCtx := &appgw.ConfigBuilderContext{
@@ -118,7 +121,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
+		configJSON, _ := dumpSanitizedJSON(&appGw, logToFile)
 		glogIt := glog.Errorf
 		if cbCtx.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
@@ -128,7 +131,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	configJSON, _ := c.dumpSanitizedJSON(&appGw, logToFile)
+	configJSON, _ := dumpSanitizedJSON(&appGw, logToFile)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
