@@ -6,7 +6,6 @@
 package k8scontext
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -188,9 +187,8 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 	}
 
 	if !exist {
-		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
-		glog.Error(msg)
-		return nil, errors.New(msg)
+		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
+		return nil, ErrFetchingEnpdoints
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil
