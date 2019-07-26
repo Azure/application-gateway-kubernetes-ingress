@@ -24,6 +24,9 @@ const (
 
 	// HTTPListenerPathBased2 is a string constant.
 	HTTPListenerPathBased2 = "HTTPListener-PathBased2"
+
+	// HTTPListenerUnassociated is a string constant.
+	HTTPListenerUnassociated = "HTTPListener-Unassociated"
 )
 
 // GetListenerBasic creates a new struct for use in unit tests.
@@ -78,6 +81,20 @@ func GetListenerPathBased2() *n.ApplicationGatewayHTTPListener {
 			Protocol:                    n.HTTP,
 			HostName:                    to.StringPtr(tests.OtherHost),
 			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName3)},
+			RequireServerNameIndication: to.BoolPtr(true),
+		},
+	}
+}
+
+// GetListenerUnassociated creates a new listener, which is not associated with routing rules etc.
+func GetListenerUnassociated() *n.ApplicationGatewayHTTPListener {
+	return &n.ApplicationGatewayHTTPListener{
+		Name: to.StringPtr(HTTPListenerUnassociated),
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
+			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
+			Protocol:                    n.HTTP,
+			HostName:                    to.StringPtr(tests.HostUnassociated),
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
 	}

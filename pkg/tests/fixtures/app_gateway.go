@@ -28,6 +28,7 @@ func GetAppGateway() n.ApplicationGateway {
 				*GetListenerBasic(),
 				*GetListenerPathBased1(),
 				*GetListenerPathBased2(),
+				*GetListenerUnassociated(),
 			},
 
 			SslCertificates: &[]n.ApplicationGatewaySslCertificate{
