@@ -3,26 +3,30 @@
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Setting up Authentication with Azure Resource Manager (ARM)](#setting-up-authentication-with-azure-resource-manager)
-    - [Setting up aad-pod-identity](#setting-up-aad-pod-identity)
+- [Set up Authentication with Azure Resource Manager (ARM)](#set-up-authentication-with-azure-resource-manager)
+    - Option 1: [Setting up aad-pod-identity](#setting-up-aad-pod-identity)
         -[Create Azure Identity on ARM](#create-azure-identity-on-arm)
+    - Option 2: [Using a Service Principal](#using-a-service-principal)
 - [Install Ingress Controller using Helm](#install-ingress-controller-as-a-helm-chart)
+- [Hybrid Environment](hybrid-environment)
 
-## Setting up Application Gateway ingress controller on AKS
+## Set up Application Gateway ingress controller on AKS
 
-The Application Gateway Ingress controller runs as pod within the AKS cluster. It listens to [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) from the Kubernetes API server and converts them to Azure Application Gateway configuration and updates the Application Gateway through the Azure Resource Manager (ARM).
-
-In order to install the ingress controller on AKS we use [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm).
+The Application Gateway Ingress controller runs as pod in your AKS. AGIC listens to
+[Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) and transforms these
+to Application Gateway configuration. App Gateway config is applied via the Azure Resource Manager (ARM).
 
 ### Prerequisites
 
-- An existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant).
-- An existing Azure Kubernetes Service cluster with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni) enabled.
+- [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) installed on your local machine
+- existing [Azure Application Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant)
+- existing [AKS](https://azure.microsoft.com/en-us/services/kubernetes-service/) with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni) enabled
 - The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service is installed on the AKS cluster.
 
-### Setting up Authentication with Azure Resource Manager
+### Set up Authentication with Azure Resource Manager
 
-Since the ingress controller needs to talk to the Kubernetes API server and the Azure Resource Manager it will need an identity to access both these entities. Since we are currently supporting only a non-RBAC cluster, the ingress controller currently does not need an identity to talk to the Kubernetes API server but needs and identity to talk to ARM.
+AGIC communicates with the Kubernetes API server and the Azure Resource Manager. It requires an identity to access
+these APIs.
 
 ### Setting up aad-pod-identity
 
@@ -53,6 +57,19 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     ```bash
     az role assignment create --role Reader --assignee <principal ID from the command above> --scope <Resource ID of Application Gateway Resource Group>
     ```
+### Using a Service Principal
+  Create Service Principal credentials with:
+
+  ```bash
+  az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
+  ```
+
+  Add the base64 encoded JSON blob to the `helm-config.yaml` file (described in the next section):
+   ```yaml
+   armAuth:
+     type: servicePrincipal
+     secretJSON: <base-64-encoded-credentials>
+   ```
 
 ## Install Ingress Controller as a Helm Chart
 
@@ -98,6 +115,11 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
         identityResourceID: <identity-resource-id>
         identityClientID:  <identity-client-id>
 
+    # - Option 2: Service Principal Credentials
+    # armAuth:
+    #     type: servicePrincipal
+    #     secretJSON: <<Generate this value with: "az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0">>
+
     ################################################################################
     # Specify if the cluster is RBAC enabled or not
     rbac:
@@ -107,9 +129,16 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
     # Specify aks cluster related information. THIS IS BEING DEPRECATED.
     aksClusterConfiguration:
         apiServerAddress: <aks-api-server-address>
+
+    # Setting brownfield.enabled to "true" will create an AzureIngressProhibitedTarget CRD.
+    # This blacklist all hostnames and paths, prohibiting AGIC from applying config for any of them.
+    # Use "kubectl get AzureIngressProhibitedTargets" to view and change prohibited targets
+    brownfield:
+        enabled: false
     ```
 
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you
+    setup in the previous section. Run the following command to obtain these values:
 
     ```bash
     az identity show -g <resourcegroup> -n <identity-name>
@@ -117,12 +146,104 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
 
     Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
 
-1. Install the helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
+1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
     helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
     ```
 
+    Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
+    ```bash
+    helm install ./helm/ingress-azure \
+         --name ingress-azure \
+         --version 0.7.1 \
+         --namespace default \
+         --debug \
+         --set appgw.name=applicationgatewayABCD \
+         --set appgw.resourceGroup=your-resource-group \
+         --set appgw.subscriptionId=subscription-uuid \
+         --set armAuth.type=servicePrincipal \
+         --set armAuth.secretJSON=$(az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0) \
+         --set rbac.enabled=true \
+         --set verbosityLevel=3 \
+         --set kubernetes.watchNamespace=default \
+         --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io \
+         --set brownfield.enabled=false
+    ```
+
 1. Check the log of the newly created pod to verify if it started properly
 
 Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
+
+## Hybrid Environment
+You have the option to deploy AGIC in an existing AKS and constrain it so AGIC controls a subset of the traffic flowing
+through App Gateway and into AKS.
+
+### Example
+An example is App Gatway, which manages 2 sites:
+  - prod.contoso.com
+  - dev.contoso.com
+
+Going forward you'd like to:
+  - move load from `dev.contoso.com` to an AKS cluster and will use AGIC
+  - continue serving `prod.contoso.com` from your existing infrastructure - perhaps [Azure VMSS](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/)
+
+The default configuration of AGIC assumes 100% ownership of the configuration of the App Gateway it connects to. AGIC
+will overwrite all of App Gateway's configuration. If your Kubernetes Ingress do not define backends for
+`prod.contoso.com` you will loose the configuration (listeners, routing rules, backends etc.).
+
+To continue routing traffic for `prod.contoso.com` to your VMSS machines create the following [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/):
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prod-contoso-com
+spec:
+  hostname: prod.contoso.com
+EOF
+```
+
+The bash command above will create a `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
+App Gateway config for `prod.contoso.com`, and will retain all configuration related to the domain.
+
+
+### Enable it
+To enable this functionality set `brownfield.enabled` to "true" in the `helm-config.yaml` file above. Helm will:
+  - create a new CRD on your AKS: `AzureIngressProhibitedTarget`
+  - create new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`
+
+The default `prohibit-all-targets` setup prohibits AGIC from changing config for any host and any path. Helm install
+with `brownfield.enabled=true` will deploy AGIC, but will not make any changes to App Gateway.
+
+
+### Broaden permissions
+After deployment you will have the default prohibition `prohibit-all-targets`:
+
+```bash
+kubectl get AzureIngressProhibitedTarget
+```
+
+View the contents of the object:
+```bash
+kubectl get AzureIngressProhibitedTarget prohibit-all-targets -o yaml
+```
+
+You can broaden the permissions AGIC has:
+  1. Create a new `AzureIngressProhibitedTarget` with your specific setup:
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: your-custom-prohibitions
+spec:
+  hostname: your.own-hostname.com
+EOF
+```
+2. Only after you have created your specific prohibition, delete the default one:
+
+```bash
+kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
+```

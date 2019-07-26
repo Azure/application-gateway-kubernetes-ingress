@@ -12,8 +12,8 @@ As shown in the figure below, the ingress controller runs as a pod within the AK
 
 ### Setup
 
-- [**Greenfield Deployment**](docs/setup/install-new.md): Instructions to install AGIC from scratch. These will walk you through deploying a new AKS cluster, new Application Gateway, and installing AGIC.
-- [**Brownfield Deployment**](docs/setup/install-existing.md): Instructions to install AGIC in an existing AKS and Application Gateway.
+- [**Greenfield Deployment**](docs/setup/install-new.md): Install AGIC on blank-slate infrastructure. These will walk you through deploying a new AKS cluster, new Application Gateway, and installing AGIC.
+- [**Brownfield Deployment**](docs/setup/install-existing.md): Install AGIC on an existing AKS and Application Gateway.
 
 ### Usage
 
