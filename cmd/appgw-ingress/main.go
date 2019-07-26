@@ -111,9 +111,9 @@ func main() {
 	// namespace validations
 	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
 	if len(namespaces) == 0 {
-		glog.V(3).Info("Ingress Controller will observe all namespaces.")
+		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
-		glog.V(3).Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
 	}
 
 	// fatal config validations
