@@ -6,6 +6,7 @@
 package brownfield
 
 import (
+	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -118,6 +119,34 @@ var _ = Describe("Test blacklisting targets", func() {
 
 			Expect(TargetPath("/abCD/xyZ/1/*").contains("/AbcD/Xyz/*")).To(BeFalse())
 			Expect(TargetPath("/AbcD/Xyz/*").contains("/abCD/xyZ/1/*")).To(BeTrue())
+		})
+	})
+
+	Context("Test getProhibitedHostnames()", func() {
+		er := ExistingResources{
+			ProhibitedTargets: []*v1.AzureIngressProhibitedTarget{
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						Hostname: tests.Host,
+					},
+				},
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						Paths: []string{
+							"/a",
+							"/b",
+						},
+					},
+				},
+			},
+		}
+		It("should create a list of prohibited hostnames", func() {
+			prohibitedHostnames := er.getProhibitedHostnames()
+			Expect(len(prohibitedHostnames)).To(Equal(1))
+			expected := map[string]interface{}{
+				tests.Host: nil,
+			}
+			Expect(er.getProhibitedHostnames()).To(Equal(expected))
 		})
 	})
 })

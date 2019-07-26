@@ -117,8 +117,20 @@ func (er *ExistingResources) getListenersByName() listenersByName {
 }
 
 func (er ExistingResources) getBlacklistedListenersSet() map[listenerName]interface{} {
-	blacklistedRoutingRules, _ := er.GetBlacklistedRoutingRules()
+	// Determine the list of prohibited listeners from the hostnames
 	blacklistedListenersSet := make(map[listenerName]interface{})
+	prohibitedHostnames := er.getProhibitedHostnames()
+	for _, listener := range er.Listeners {
+		if listener.HostName == nil {
+			continue
+		}
+		if _, exists := prohibitedHostnames[*listener.HostName]; exists {
+			blacklistedListenersSet[listenerName(*listener.Name)] = nil
+		}
+	}
+
+	// Augment the list of prohibited listeners by looking at the rules
+	blacklistedRoutingRules, _ := er.GetBlacklistedRoutingRules()
 	for _, rule := range blacklistedRoutingRules {
 		if rule.HTTPListener != nil && rule.HTTPListener.ID != nil {
 			listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))

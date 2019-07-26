@@ -24,24 +24,25 @@ import (
 
 // constant values to be used for testing
 const (
-	Namespace     = "--namespace--"
-	Name          = "--name--"
-	Host          = "bye.com"
-	OtherHost     = "--some-other-hostname--"
-	NameOfSecret  = "--the-name-of-the-secret--"
-	ServiceName   = "--service-name--"
-	NodeName      = "--node-name--"
-	URLPath       = "/healthz"
-	ContainerName = "--container-name--"
-	ContainerPort = int32(9876)
-	ServicePort   = "service-port"
-	SelectorKey   = "app"
-	SelectorValue = "frontend"
-	Subscription  = "--subscription--"
-	ResourceGroup = "--resource-group--"
-	AppGwName     = "--app-gw-name--"
-	IPID1         = "--front-end-ip-id-1--"
-	IPID2         = "--front-end-ip-id-2--"
+	Namespace        = "--namespace--"
+	Name             = "--name--"
+	Host             = "bye.com"
+	OtherHost        = "--some-other-hostname--"
+	HostUnassociated = "---some-host-without-routing-rules---"
+	NameOfSecret     = "--the-name-of-the-secret--"
+	ServiceName      = "--service-name--"
+	NodeName         = "--node-name--"
+	URLPath          = "/healthz"
+	ContainerName    = "--container-name--"
+	ContainerPort    = int32(9876)
+	ServicePort      = "service-port"
+	SelectorKey      = "app"
+	SelectorValue    = "frontend"
+	Subscription     = "--subscription--"
+	ResourceGroup    = "--resource-group--"
+	AppGwName        = "--app-gw-name--"
+	IPID1            = "--front-end-ip-id-1--"
+	IPID2            = "--front-end-ip-id-2--"
 )
 
 // GetIngress creates an Ingress test fixture.

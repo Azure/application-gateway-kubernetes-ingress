@@ -95,3 +95,14 @@ func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.
 		DefaultBackendPool: defaultPool,
 	}
 }
+
+func (er ExistingResources) getProhibitedHostnames() map[string]interface{} {
+	prohibitedHostnames := make(map[string]interface{})
+	for _, pt := range er.ProhibitedTargets {
+		if len(pt.Spec.Hostname) == 0 {
+			continue
+		}
+		prohibitedHostnames[pt.Spec.Hostname] = nil
+	}
+	return prohibitedHostnames
+}
