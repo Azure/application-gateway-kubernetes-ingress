@@ -206,7 +206,7 @@ The bash command above will create an `AzureIngressProhibitedTarget` object. Thi
 App Gateway config for `prod.contoso.com`. This explicitly instructs App Gateway to avoid changing any configuration related to `hostname` in the command.
 
 
-### Enable it on your AGIC
+### Enable brownfield deployment for a new AGIC installation
 To limit AGIC to a subset of the configuration of your App Gateway, we will tweak the `helm-config.yaml` template. Set `brownfield.enabled` to "true" in the `helm-config.yaml` we created already. With this addition Helm will:
   - create a new CRD on your AKS: `AzureIngressProhibitedTarget`
   - create new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`
@@ -244,3 +244,33 @@ EOF
 ```bash
 kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
 ```
+
+### Enable brownfield for an existing AGIC
+Let's assume that we have already setup AKS, App Gateway and install AGIC on our cluster. We have an Ingress for
+`prod.contosor.com` and are successfully serving traffic for it from AKS. Now we want to add `staging.contoso.com`,
+but we want to host that on a [VM](https://azure.microsoft.com/en-us/services/virtual-machines/). We would like to
+manually configure `staging.contoso.com` on App Gateway. Manually tweaking App Gateway config (via 
+[portal](https://portal.azure.com), [ARM APIs](https://docs.microsoft.com/en-us/rest/api/resources/) or 
+[Terraform](https://www.terraform.io/)) would conflict with AGIC's assumptions of full ownership. Shortly after we apply
+changes manually, AGIC will overwrite (delete) them.
+
+We could, however, explicitly prohibit AGIC from making changes to a specific subset of configuration.
+
+Create an `AzureIngressProhibitedTarget` object:
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: manually-configured-staging-environment
+spec:
+  hostname: staging.contoso.com
+EOF
+```
+
+View the newly created object:
+```bash
+kubectl get AzureIngressProhibitedTargets
+```
+
+The object you created will prohibit AGIC from altering App Gateway configuration related to `staging.contoso.com`. We can now go ahead and create listeners, routing rules, backend pools etc. for `staging.contoso.com`. 
