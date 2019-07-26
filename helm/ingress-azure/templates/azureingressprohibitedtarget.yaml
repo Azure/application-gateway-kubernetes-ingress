@@ -6,7 +6,6 @@ metadata:
   name: azureingressprohibitedtargets.appgw.ingress.k8s.io
   annotations:
     "helm.sh/hook": crd-install
-    "helm.sh/hook-delete-policy": "before-hook-creation"
 spec:
   group: appgw.ingress.k8s.io
   version: v1
