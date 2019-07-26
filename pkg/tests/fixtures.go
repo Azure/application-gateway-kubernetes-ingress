@@ -41,8 +41,8 @@ const (
 	Subscription     = "--subscription--"
 	ResourceGroup    = "--resource-group--"
 	AppGwName        = "--app-gw-name--"
-	IPID1            = "--front-end-ip-id-1--"
-	IPID2            = "--front-end-ip-id-2--"
+	PublicIPID       = "--front-end-ip-id-1--"
+	PrivateIPID      = "--front-end-ip-id-2--"
 )
 
 // GetIngress creates an Ingress test fixture.
