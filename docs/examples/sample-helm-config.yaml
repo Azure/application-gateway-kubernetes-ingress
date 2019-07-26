@@ -21,4 +21,4 @@ aksClusterConfiguration:
 # This blacklist all hostnames and paths, prohibiting AGIC from applying config for any of them.
 # Use "kubectl get AzureIngressProhibitedTargets" to view and change prohibited targets
 brownfield:
-  enabled: false
+    enabled: false
