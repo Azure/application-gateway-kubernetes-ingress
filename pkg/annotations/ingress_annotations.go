@@ -37,7 +37,7 @@ const (
 	// SslRedirectKey defines the key for defining with SSL redirect should be turned on for an HTTP endpoint.
 	SslRedirectKey = ApplicationGatewayPrefix + "/ssl-redirect"
 
-	// UsePrivateIP defines the key to use private ip with the ingress.
+	// UsePrivateIP defines the key to determine whether to use private ip with the ingress.
 	UsePrivateIPKey = ApplicationGatewayPrefix + "/use-private-ip"
 
 	// IngressClassKey defines the key of the annotation which needs to be set in order to specify
@@ -103,7 +103,7 @@ func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
 }
 
-// UsePrivateIP specifies whether to use private IP with the ingress
+// UsePrivateIP determines whether to use private IP with the ingress
 func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, UsePrivateIPKey)
 }

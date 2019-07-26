@@ -14,52 +14,47 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-type pruneFunc func(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress
+type pruneFunc func(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress
+
+var pruneFuncList = []pruneFunc{pruneNoPrivateIP, pruneProhibitedIngress}
 
 // PruneIngress filters ingress list based on filter functions and returns a filtered ingress list
-func (c AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*v1beta1.Ingress {
-
-	pruneFuncList := []pruneFunc{
-		c.pruneNoPrivateIP,
-	}
-
-	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
-		pruneFuncList = append(pruneFuncList, c.pruneProhibitedIngress)
-	}
-
+func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*v1beta1.Ingress {
 	prunedIngresses := cbCtx.IngressList
 	for _, prune := range pruneFuncList {
-		prunedIngresses = prune(appGw, cbCtx, prunedIngresses)
+		prunedIngresses = prune(c, appGw, cbCtx, prunedIngresses)
 	}
 
 	return prunedIngresses
 }
 
-func (c AppGwIngressController) pruneProhibitedIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
-	for idx, ingress := range ingressList {
-		glog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-		ingressList[idx].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
-		glog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
+		for idx, ingress := range ingressList {
+			glog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+			ingressList[idx].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
+			glog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+		}
 	}
 
 	return ingressList
 }
 
-func (c AppGwIngressController) pruneNoPrivateIP(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	prunedIngressList := make([]*v1beta1.Ingress, 0)
+func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	prunedIngresses := make([]*v1beta1.Ingress, 0)
 	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
 		if usePrivateIP && !appGwHasPrivateIP {
-			errorLine := fmt.Sprintf("Removing Ingress %s/%s with '%s: true' annotation as Application Gateway doesn't have a private IP", ingress.Namespace, ingress.Name, annotations.UsePrivateIPKey)
+			errorLine := fmt.Sprintf("Ingress %s/%s requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
 		} else {
-			prunedIngressList = append(prunedIngressList, ingress)
+			prunedIngresses = append(prunedIngresses, ingress)
 		}
 	}
 
-	return prunedIngressList
+	return prunedIngresses
 }

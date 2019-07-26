@@ -71,9 +71,9 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 		usePrivateIPFromEnv := cbCtx.EnvVariables.UsePrivateIP == "true"
 		usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
 		if usePrivateIPFromEnv {
-			glog.V(1).Infof("Using private IP addess as requested from environment for Ingress %s/%s", ingress.Namespace, ingress.Name)
+			glog.V(5).Infof("Using private IP addess as requested from environment for Ingress %s/%s", ingress.Namespace, ingress.Name)
 		} else if usePrivateIPFromAnnotation {
-			glog.V(1).Infof("Using private IP addess as requested from annotation for Ingress %s/%s", ingress.Namespace, ingress.Name)
+			glog.V(5).Infof("Using private IP addess as requested from annotation for Ingress %s/%s", ingress.Namespace, ingress.Name)
 		}
 		usePrivateIP := usePrivateIPFromEnv || usePrivateIPFromAnnotation
 
