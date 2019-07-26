@@ -176,23 +176,20 @@ The [aad-pod-identity](https://github.com/Azure/aad-pod-identity) gives a clean 
 Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
 ## Hybrid Environment
-You have the option to deploy AGIC in an existing AKS and constrain it so AGIC controls a subset of the traffic flowing
-through App Gateway and into AKS.
+We have the option to deploy AGIC in an existing AKS and constrain it so it controls a subset of the traffic from App Gateway to AKS.
 
-### Example
-An example is App Gatway, which manages 2 sites:
+### Scenario
+Let's take an imaginary App Gatway, which manages traffic for 2 web sites:
   - prod.contoso.com
   - dev.contoso.com
 
-Going forward you'd like to:
-  - move load from `dev.contoso.com` to an AKS cluster and will use AGIC
-  - continue serving `prod.contoso.com` from your existing infrastructure - perhaps [Azure VMSS](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/)
+A new assignment requires us to:
+  - start serving `dev.contoso.com` from a new AKS, using App Gateway and the Ingress Controller
+  - continue serving `prod.contoso.com` from an existing [Azure VMSS](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/)
 
-The default configuration of AGIC assumes 100% ownership of the configuration of the App Gateway it connects to. AGIC
-will overwrite all of App Gateway's configuration. If your Kubernetes Ingress do not define backends for
-`prod.contoso.com` you will loose the configuration (listeners, routing rules, backends etc.).
+Until now (and by default) AGIC assumes 100% ownership of the configuration of the App Gateway, to which it connects. AGIC overwrites all of App Gateway's configuration. If `prod.contoso.com` is not defined in the Kubernetes Ingress, the config for `prod.contoso.com` (listeners, routing rules, backends etc.) will be deleted.
 
-To continue routing traffic for `prod.contoso.com` to your VMSS machines create the following [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/):
+To install AGIC and continue serving `prod.contoso.com` from our VMSS machines - we must create the following [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/):
 
 ```bash
 cat <<EOF | kubectl apply -f -
@@ -205,12 +202,12 @@ spec:
 EOF
 ```
 
-The bash command above will create a `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
-App Gateway config for `prod.contoso.com`, and will retain all configuration related to the domain.
+The bash command above will create an `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
+App Gateway config for `prod.contoso.com`. This explicitly instructs App Gateway to avoid changing any configuration related to `hostname` in the command.
 
 
-### Enable it
-To enable this functionality set `brownfield.enabled` to "true" in the `helm-config.yaml` file above. Helm will:
+### Enable it on your AGIC
+To limit AGIC to a subset of the configuration of your App Gateway, we will tweak the `helm-config.yaml` template. Set `brownfield.enabled` to "true" in the `helm-config.yaml` we created already. With this addition Helm will:
   - create a new CRD on your AKS: `AzureIngressProhibitedTarget`
   - create new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`
 
