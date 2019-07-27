@@ -8,7 +8,6 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -75,7 +74,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if len(cbCtx.IngressList) == 0 {
 		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
 		glog.Error(errorLine)
-		return errors.New(errorLine)
+		return nil
 	}
 
 	if cbCtx.EnableIstioIntegration {
