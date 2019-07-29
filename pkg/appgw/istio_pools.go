@@ -42,3 +42,19 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 	}
 	return nil
 }
+
+func (c *appGwConfigBuilder) newIstioBackendPoolMap(cbCtx *ConfigBuilderContext) map[istioDestinationIdentifier]*n.ApplicationGatewayBackendAddressPool {
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: &defaultPool,
+	}
+	backendPoolMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendAddressPool)
+	_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+	for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
+		backendPoolMap[destinationID] = &defaultPool
+		if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[destinationID] = pool
+		}
+	}
+	return backendPoolMap
+}
