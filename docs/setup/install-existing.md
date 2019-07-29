@@ -223,7 +223,7 @@ With default settings, AGIC assumes 100% ownership of the App Gateway it is poin
 Gateway's configuration. If we were to manually create a listener for `prod.contoso.com` (on App Gateway), without
 defining it in the Kubernetes Ingress, AGIC will delete the `prod.contoso.com` config within seconds.
 
-To install AGIC and also serve `prod.contoso.com` from our VMSS machines, we must constrain AGIC to configuring 
+To install AGIC and also serve `prod.contoso.com` from our VMSS machines, we must constrain AGIC to configuring
 `dev.contoso.com` only. This is facilitated by instantiating the following
 [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/):
 
@@ -264,14 +264,14 @@ Apply the Helm changes:
       ```bash
       helm upgrade \
           --recreate-pods \
-          --version 0.7.1 \
-          -f .dev/helm-config.yaml \
+          --version 0.8.0 \
+          -f helm-config.yaml \
           ingress-azure application-gateway-kubernetes-ingress/ingress-azure
       ```
 
 As a result your AKS will have a new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`:
 ```bash
-kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml 
+kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml
 ```
 
 The object `prohibit-all-targets`, as the name implies, prohibits AGIC from changing config for *any* host and path.
@@ -303,10 +303,10 @@ Broaden AGIC permissions with:
 ### Enable for an existing AGIC installation
 Let's assume that we already have a working AKS, App Gateway, and configured AGIC in our cluster. We have an Ingress for
 `prod.contosor.com` and are successfully serving traffic for it from AKS. We want to add `staging.contoso.com` to our
-existing App Gateway, but need to host it on a [VM](https://azure.microsoft.com/en-us/services/virtual-machines/). We 
+existing App Gateway, but need to host it on a [VM](https://azure.microsoft.com/en-us/services/virtual-machines/). We
 are going to re-use the existing App Gateway and manually configure a listener and backend pools for
-`staging.contoso.com`. But manually tweaking App Gateway config (via 
-[portal](https://portal.azure.com), [ARM APIs](https://docs.microsoft.com/en-us/rest/api/resources/) or 
+`staging.contoso.com`. But manually tweaking App Gateway config (via
+[portal](https://portal.azure.com), [ARM APIs](https://docs.microsoft.com/en-us/rest/api/resources/) or
 [Terraform](https://www.terraform.io/)) would conflict with AGIC's assumptions of full ownership. Shortly after we apply
 changes, AGIC will overwrite or delete them.
 
