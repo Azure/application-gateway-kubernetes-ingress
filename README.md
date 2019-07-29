@@ -12,8 +12,11 @@ As shown in the figure below, the ingress controller runs as a pod within the AK
 
 ### Setup
 
-- [**Greenfield Deployment**](docs/setup/install-new.md): Instructions on installing AGIC, AKS and App Gateway on blank-slate infrastructure.
+- [**Greenfield Deployment**](docs/setup/install-new.md): Instructions on installing AGIC, AKS and App Gateway on
+blank-slate infrastructure.
 - [**Brownfield Deployment**](docs/setup/install-existing.md): Install AGIC on an existing AKS and Application Gateway.
+- [**Shared App Gateway**](docs/shared-app-gateway.md): Install AGIC in an environment, where App Gateway is
+shared between one or more AKS custers and/or other Azure components.
 
 ### Usage
 
