@@ -21,7 +21,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
-	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx.IngressList) {
+	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
