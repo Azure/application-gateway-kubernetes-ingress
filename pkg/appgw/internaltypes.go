@@ -50,6 +50,7 @@ type serviceBackendPortPair struct {
 type listenerIdentifier struct {
 	FrontendPort int32
 	HostName     string
+	UsePrivateIP bool
 }
 
 type serviceIdentifier struct {
@@ -125,6 +126,9 @@ func generateFrontendPortName(port int32) string {
 }
 
 func generateListenerName(listenerID listenerIdentifier) string {
+	if listenerID.UsePrivateIP {
+		return formatPropName(fmt.Sprintf("%s%s-%v%v-privateip", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	}
 	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 

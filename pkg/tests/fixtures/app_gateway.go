@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package fixtures
 
 import (
@@ -47,6 +52,10 @@ func GetAppGateway() n.ApplicationGateway {
 				GetHTTPSettings1(),
 				GetHTTPSettings2(),
 				GetHTTPSettings3(),
+			},
+
+			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
+				GetPublicIPConfiguration(),
 			},
 		},
 	}

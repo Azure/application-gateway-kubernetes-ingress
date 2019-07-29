@@ -46,14 +46,16 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{ingress}
-		listenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+		}
+		listenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
 		// Ensure there are no certs
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		frontendPorts, listenerConfigs := cb.processIngressRules(ingress)
+		frontendPorts, listenerConfigs := cb.processIngressRules(ingress, cbCtx.EnvVariables)
 
 		// Verify front end listeners
 		It("should have correct count of frontend listeners", func() {
@@ -92,13 +94,15 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{ingress}
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+		}
 		It("should have setup tests with some TLS certs", func() {
 			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
 		})
 
 		// !! Action !!
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
 		It("should configure App Gateway listeners correctly with SSL", func() {
 			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
@@ -115,12 +119,14 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+		}
 
 		// !! Action !!
-		frontendPorts, frontendListeners := cb.processIngressRules(ingress)
+		frontendPorts, frontendListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
 
-		ingressList := []*v1beta1.Ingress{ingress}
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
 		It("should have correct number of front end listener", func() {
 			Expect(len(frontendListeners)).To(Equal(1))

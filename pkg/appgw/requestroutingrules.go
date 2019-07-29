@@ -68,6 +68,16 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
 
+		// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
+		usePrivateIPFromEnv := cbCtx.EnvVariables.UsePrivateIP == "true"
+		usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
+		if usePrivateIPFromEnv {
+			glog.V(5).Infof("Using private IP addess as requested from environment for Ingress %s/%s", ingress.Namespace, ingress.Name)
+		} else if usePrivateIPFromAnnotation {
+			glog.V(5).Infof("Using private IP addess as requested from annotation for Ingress %s/%s", ingress.Namespace, ingress.Name)
+		}
+		usePrivateIPForIngress := usePrivateIPFromEnv || usePrivateIPFromAnnotation
+
 		var wildcardRule *v1beta1.IngressRule
 		wildcardRule = nil
 		for ruleIdx := range ingress.Spec.Rules {
@@ -110,10 +120,10 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 				continue
 			}
 
-			listenerHTTPID := generateListenerID(rule, n.HTTP, nil)
+			listenerHTTPID := generateListenerID(rule, n.HTTP, nil, usePrivateIPForIngress)
 			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil)
+			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil, usePrivateIPForIngress)
 			_, httpsAvailable := httpListenersMap[listenerHTTPSID]
 
 			if httpAvailable {
