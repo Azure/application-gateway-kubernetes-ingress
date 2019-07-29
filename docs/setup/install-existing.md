@@ -53,7 +53,7 @@ the resource group of the `aks-agentpool` virtual machines. Typically that resou
 1. Give the identity `Contributor` access to you App Gateway. For this you need the ID of the App Gateway, which will
 look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft.Network/applicationGateways/C`
 
-    Get the list of App Gateway IDs in your subscription with: `az network application-gateway list --query '[].id'` 
+    Get the list of App Gateway IDs in your subscription with: `az network application-gateway list --query '[].id'`
 
     ```bash
     az role assignment create \
@@ -63,7 +63,7 @@ look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft
     ```
 
 1. Give the identity `Reader` access to the App Gateway resource group. The resource group ID would look like:
-`/subscriptions/A/resourceGroups/B`. You can get all resource groups with: `az group list --query '[].id'` 
+`/subscriptions/A/resourceGroups/B`. You can get all resource groups with: `az group list --query '[].id'`
 
     ```bash
     az role assignment create \
@@ -73,7 +73,7 @@ look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft
     ```
 
 ### Using a Service Principal
-It is also possible to provide AGIC access to ARM via a Kubernetes secret. 
+It is also possible to provide AGIC access to ARM via a Kubernetes secret.
 
   1. Create an Active Directory Service Principal and encode with base64. The base64 encoding is required for the JSON
   blob to be saved to Kubernetes.
@@ -115,6 +115,11 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
         resourceGroup: <resourcegroup-name>
         name: <applicationgateway-name>
 
+        # Setting appgw.shared to "true" will create an AzureIngressProhibitedTarget CRD.
+        # This prohibits AGIC from applying config for any host/path.
+        # Use "kubectl get AzureIngressProhibitedTargets" to view and change this.
+        shared: false
+
     ################################################################################
     # Specify which kubernetes namespace the ingress controller will watch
     # Default value is "default"
@@ -148,12 +153,6 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
     # Specify aks cluster related information. THIS IS BEING DEPRECATED.
     aksClusterConfiguration:
         apiServerAddress: <aks-api-server-address>
-
-    # Setting brownfield.enabled to "true" will create an AzureIngressProhibitedTarget CRD.
-    # This blacklist all hostnames and paths, prohibiting AGIC from applying config for any of them.
-    # Use "kubectl get AzureIngressProhibitedTargets" to view and change prohibited targets
-    brownfield:
-        enabled: false
     ```
 
     **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you
@@ -187,7 +186,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
          --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io \
-         --set brownfield.enabled=false
+         --set appgw.shared=false
     ```
 
 1. Check the log of the newly created pod to verify if it started properly

@@ -28,9 +28,9 @@ Configuration Details:
     - Watching All Namespaces
 {{- end }}
     - Verbosity level: {{ .Values.verbosityLevel }}
-{{- if .Values.brownfield }}
-{{- if .Values.brownfield.enabled }}
-    - Brownfield deployment is enabled; Use "kubectl get AzureIngressProhibitedTargets" to view and modify config
+{{- if .Values.appgw }}
+{{- if .Values.appgw.shared }}
+    - Shared App Gateway is enabled; Use "kubectl get AzureIngressProhibitedTargets" to view and modify config
 {{- end }}
 {{- end }}
 {{ if eq .Values.armAuth.type "aadPodIdentity"}}

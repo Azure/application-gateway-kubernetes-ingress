@@ -21,8 +21,8 @@ data:
 {{- end }}
 {{- end }}
   USE_PRIVATE_IP: "{{ .Values.appgw.usePrivateIP }}"
-{{- if .Values.brownfield }}
-{{- if .Values.brownfield.enabled }}
-  APPGW_ENABLE_BROWNFIELD_DEPLOYMENT: "{{ .Values.brownfield.enabled }}"
+{{- if .Values.appgw }}
+{{- if .Values.appgw.shared }}
+  APPGW_ENABLE_SHARED_APPGW: "{{ .Values.appgw.enabled }}"
 {{- end }}
 {{- end }}
