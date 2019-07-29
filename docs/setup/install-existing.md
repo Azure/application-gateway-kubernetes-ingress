@@ -183,7 +183,6 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
     ```bash
     helm install ./helm/ingress-azure \
          --name ingress-azure \
-         --version 0.7.1 \
          --namespace default \
          --debug \
          --set appgw.name=applicationgatewayABCD \
