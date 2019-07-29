@@ -203,9 +203,9 @@ Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS
 
 
 ## Multi-cluster / Shared App Gateway
-By default AGIC assumes full ownership of the App Gateway it is linked to. With a few changes,
-AGIC can share App Gateway with other Azure components. For instance, we could use the same App Gateway for an app
-hosted on VMSS as well as AKS.
+By default AGIC assumes full ownership of the App Gateway it is linked to. AGIC version 0.8.0 and later can
+share a single App Gateway with other Azure components. For instance, we could use the same App Gateway for an app
+hosted on VMSS as well as an AKS cluster.
 
 Please __backup your App Gateway's configuration__ before enabling this setting:
   1. using [Azure Portal](https://portal.azure.com/) navigate to your `App Gateway` instance
@@ -237,13 +237,13 @@ spec:
 EOF
 ```
 
-The command above creates an `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
+The command above creates an `AzureIngressProhibitedTarget` object. This makes AGIC (version 0.8.0 and later) aware of the existence of
 App Gateway config for `prod.contoso.com` and explicitly instructs it to avoid changing any configuration
 related to that hostname.
 
 
 ### Enable with new AGIC installation
-To limit AGIC to a subset of the App Gateway configuration modify the `helm-config.yaml` template.
+To limit AGIC (version 0.8.0 and later) to a subset of the App Gateway configuration modify the `helm-config.yaml` template.
 Under the `appgw:` section, add `shared` key and set it to to `true`.
 
 ```yaml
