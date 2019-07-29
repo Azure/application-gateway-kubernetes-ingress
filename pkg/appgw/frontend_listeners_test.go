@@ -34,8 +34,11 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{ingress}
-		httpListenersAzureConfigMap := cb.getListenerConfigs(ingressList)
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+		}
+
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
 		It("should construct the App Gateway listeners correctly without SSL", func() {
 			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
@@ -104,7 +107,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariables)
+			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80"
 
 			expected := n.ApplicationGatewayHTTPListener{
@@ -137,33 +140,18 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			cb := newConfigBuilderFixture(&certs)
 			ing1 := tests.NewIngressFixture()
 			ing2 := tests.NewIngressFixture()
-			ingressList := []*v1beta1.Ingress{
-				ing1,
-				ing2,
-			}
-
 			cbCtx := &ConfigBuilderContext{
-				IngressList:  ingressList,
-				EnvVariables: envVariables,
+				IngressList: []*v1beta1.Ingress{
+					ing1,
+					ing2,
+				},
+				EnvVariables: envVariablesNew,
 			}
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"), envVariablesNew)
-			expectedName := agPrefix + "fl-bye.com-80"
-
-			expected := n.ApplicationGatewayHTTPListener{
-				Etag: to.StringPtr("*"),
-				Name: to.StringPtr(expectedName),
-				ID:   to.StringPtr(cb.appGwIdentifier.listenerID(expectedName)),
-				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
-					// TODO: expose this to external configuration
-					FrontendIPConfiguration: resourceRef(tests.PrivateIPID),
-					FrontendPort:            resourceRef(cb.appGwIdentifier.frontendPortID(generateFrontendPortName(80))),
-					Protocol:                n.ApplicationGatewayProtocol("Https"),
-					HostName:                to.StringPtr(tests.Host),
-				},
+			for listenerID, listenerAzConfig := range cb.getListenerConfigs(cbCtx) {
+				listener := cb.newListener(listenerID, listenerAzConfig.Protocol)
+				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
 			}
-
-			Expect(listener).To(Equal(expected))
 		})
 	})
 
@@ -187,7 +175,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				EnvVariables: envVariables,
 			}
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"), envVariables)
+			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80-privateip"
 
 			expected := n.ApplicationGatewayHTTPListener{

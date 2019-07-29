@@ -27,7 +27,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	}
 
 	for _, ingress := range cbCtx.IngressList {
-		fePorts, _ := c.processIngressRules(ingress)
+		fePorts, _ := c.processIngressRules(ingress, cbCtx.EnvVariables)
 		for port := range fePorts {
 			allPorts[port] = nil
 		}
