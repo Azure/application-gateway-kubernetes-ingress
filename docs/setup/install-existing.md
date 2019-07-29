@@ -180,13 +180,13 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
          --set appgw.name=applicationgatewayABCD \
          --set appgw.resourceGroup=your-resource-group \
          --set appgw.subscriptionId=subscription-uuid \
+         --set appgw.shared=false \
          --set armAuth.type=servicePrincipal \
          --set armAuth.secretJSON=$(az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0) \
          --set rbac.enabled=true \
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
-         --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io \
-         --set appgw.shared=false
+         --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io
     ```
 
 1. Check the log of the newly created pod to verify if it started properly
