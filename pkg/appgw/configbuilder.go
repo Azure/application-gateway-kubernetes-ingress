@@ -154,10 +154,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateListenerID(rule *v1beta1.IngressRule,
-	protocol n.ApplicationGatewayProtocol,
-	overridePort *int32,
-	usePrivateIP bool) listenerIdentifier {
+func generateListenerID(rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *int32, usePrivateIP bool) listenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == n.HTTPS {
 		frontendPort = int32(443)
