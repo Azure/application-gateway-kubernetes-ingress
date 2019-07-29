@@ -263,7 +263,6 @@ Apply the Helm changes:
       ```bash
       helm upgrade \
           --recreate-pods \
-          --version 0.8.0 \
           -f helm-config.yaml \
           ingress-azure application-gateway-kubernetes-ingress/ingress-azure
       ```
