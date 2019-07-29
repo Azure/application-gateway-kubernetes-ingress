@@ -20,6 +20,14 @@ This documents assumes you already have the following tools and infrastructure i
 - [App Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant) in the same virtual network as AKS
 - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) installed on your AKS cluster
 
+Please __backup your App Gateway's configuration__ before installing AGIC:
+  1. using [Azure Portal](https://portal.azure.com/) navigate to your `App Gateway` instance
+  2. from `Export template` click `Download`
+
+The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App
+Gateway should that become necessary
+
+
 ### Azure Resource Manager Authentication
 
 AGIC communicates with the Kubernetes API server and the Azure Resource Manager. It requires an identity to access
@@ -194,27 +202,29 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
 
 Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
 
+
 ## Multi-cluster / Shared App Gateway
-By default AGIC assumes full ownership of the configuration of the App Gateway it is linked to. With minimal tweaks,
-AGIC can share App Gateway with other Azure components. For instance, we could use the same App Gateway for our AKS
-and also an app hosted on VMSS. We have the option to constrain AGIC, so it controls only a subset of the App
-Gateway's properties.
+By default AGIC assumes full ownership of the App Gateway it is linked to. With a few changes,
+AGIC can share App Gateway with other Azure components. For instance, we could use the same App Gateway for an app
+hosted on VMSS as well as AKS.
+
+Please __backup your App Gateway's configuration__ before enabling this setting:
+  1. using [Azure Portal](https://portal.azure.com/) navigate to your `App Gateway` instance
+  2. from `Export template` click `Download`
+
+The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App Gateway
 
 ### Example Scenario
-Let's take an imaginary App Gateway, which manages traffic for 2 web sites:
-  - prod.contoso.com
-  - dev.contoso.com
+Let's look at an imaginary App Gateway, which manages traffic for 2 web sites:
+  - `dev.contoso.com` - hosted on a new AKS, using App Gateway and AGIC
+  - `prod.contoso.com` - hosted on an [Azure VMSS](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/)
 
-We need to:
-  - serve `dev.contoso.com` from a new AKS, using App Gateway and AGIC
-  - serve  `prod.contoso.com` from an existing [Azure VMSS](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/)
-
-Until now (and by default) AGIC assumed 100% ownership of the App Gateway configuration. AGIC overwrites all of App
+With default settings, AGIC assumes 100% ownership of the App Gateway it is pointed to. AGIC overwrites all of App
 Gateway's configuration. If we were to manually create a listener for `prod.contoso.com` (on App Gateway), without
 defining it in the Kubernetes Ingress, AGIC will delete the `prod.contoso.com` config within seconds.
 
 To install AGIC and also serve `prod.contoso.com` from our VMSS machines, we must constrain AGIC to configuring 
-`dev.contoso.com` only. This is is facilitated by instantiating the following
+`dev.contoso.com` only. This is facilitated by instantiating the following
 [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/):
 
 ```bash
@@ -228,12 +238,12 @@ spec:
 EOF
 ```
 
-The command creates an `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
+The command above creates an `AzureIngressProhibitedTarget` object. This makes AGIC aware of the existence of
 App Gateway config for `prod.contoso.com` and explicitly instructs it to avoid changing any configuration
 related to that hostname.
 
 
-### Enable Shared App Gateway for a new AGIC installation
+### Enable with new AGIC installation
 To limit AGIC to a subset of the App Gateway configuration modify the `helm-config.yaml` template.
 Under the `appgw:` section, add `shared` key and set it to to `true`.
 
@@ -245,23 +255,33 @@ appgw:
     shared: true                        # <<<<< Add this field to enable shared App Gateway >>>>>
 ```
 
-This instructs Helm to:
-  - create a new CRD: `AzureIngressProhibitedTarget`
-  - create new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`
+Apply the Helm changes:
+  1. Ensure the `AzureIngressProhibitedTarget` CRD is installed with:
+      ```bash
+      kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml
+      ```
+  2. Update Helm:
+      ```bash
+      helm upgrade \
+          --recreate-pods \
+          --version 0.7.1 \
+          -f .dev/helm-config.yaml \
+          ingress-azure application-gateway-kubernetes-ingress/ingress-azure
+      ```
 
-The default `prohibit-all-targets` prohibits AGIC from changing config for *any* host and path. Helm install
-with `appgw.shared=true` will deploy AGIC, but will not make any changes to App Gateway.
+As a result your AKS will have a new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`:
+```bash
+kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml 
+```
+
+The object `prohibit-all-targets`, as the name implies, prohibits AGIC from changing config for *any* host and path.
+Helm install with `appgw.shared=true` will deploy AGIC, but will not make any changes to App Gateway.
 
 
 ### Broaden permissions
-Enabling `appgw.shared=true` and `helm` installing AGIC, would result in the creation of a `prohibit-all-targets` object in your AKS.
+Since Helm with `appgw.shared=true` and the default `prohibit-all-targets` blocks AGIC from applying any config.
 
-View the contents of the object:
-```bash
-kubectl get AzureIngressProhibitedTarget prohibit-all-targets -o yaml
-```
-
-You can broaden the permissions AGIC has:
+Broaden AGIC permissions with:
 1. Create a new `AzureIngressProhibitedTarget` with your specific setup:
     ```bash
     cat <<EOF | kubectl apply -f -
@@ -280,7 +300,7 @@ You can broaden the permissions AGIC has:
     kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
     ```
 
-### Enable Shared App Gateway for an existing AGIC installation
+### Enable for an existing AGIC installation
 Let's assume that we already have a working AKS, App Gateway, and configured AGIC in our cluster. We have an Ingress for
 `prod.contosor.com` and are successfully serving traffic for it from AKS. We want to add `staging.contoso.com` to our
 existing App Gateway, but need to host it on a [VM](https://azure.microsoft.com/en-us/services/virtual-machines/). We 

@@ -23,6 +23,6 @@ data:
   USE_PRIVATE_IP: "{{ .Values.appgw.usePrivateIP }}"
 {{- if .Values.appgw }}
 {{- if .Values.appgw.shared }}
-  APPGW_ENABLE_SHARED_APPGW: "{{ .Values.appgw.enabled }}"
+  APPGW_ENABLE_SHARED_APPGW: "{{ .Values.appgw.shared }}"
 {{- end }}
 {{- end }}
