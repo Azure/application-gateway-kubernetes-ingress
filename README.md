@@ -1,5 +1,5 @@
 ![Ingress Controller - Status](https://img.shields.io/badge/project--status-beta-orange.svg)
-[![Build Status](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress.svg?branch=master)](https://travis-ci.org/Azure/application-gateway-kubernetes-ingress)
+[![Build Status](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_apis/build/status/Merge%20Builds?branchName=master)](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_build/latest?definitionId=30&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
 
 The Application Gateway Ingress Controller allows [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) to be used as the ingress for an [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/) aka AKS cluster.
