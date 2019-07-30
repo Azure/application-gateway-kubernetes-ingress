@@ -24,11 +24,11 @@ func makeHandler(router *http.ServeMux, url string, probe Probe) {
 }
 
 // NewHealthMux makes a new *http.ServeMux
-func NewHealthMux(healthProbes HealthProbes) *http.ServeMux {
+func NewHealthMux(probes HealthProbes) *http.ServeMux {
 	router := http.NewServeMux()
 	var handlers = map[string]Probe{
-		"/health/ready": healthProbes.Readiness,
-		"/health/alive": healthProbes.Liveness,
+		"/health/ready": probes.Readiness,
+		"/health/alive": probes.Liveness,
 	}
 	for url, probe := range handlers {
 		makeHandler(router, url, probe)
