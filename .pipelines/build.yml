@@ -48,6 +48,33 @@ steps:
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies and build'
 
-- script: go test -v ./...
+- script: |
+    go get github.com/jstemmer/go-junit-report
+    go get github.com/axw/gocov/gocov
+    go get github.com/AlekSi/gocov-xml
+    go get github.com/matm/gocov-html
+    go test -timeout 80s -v -coverprofile=coverage.txt -covermode count ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
+    cat testoutput.txt | go-junit-report > report.xml
+    gocov convert coverage.txt > coverage.json
+    gocov-xml < coverage.json > coverage.xml
+    mkdir coverage
+    gocov-html < coverage.json > coverage/index.html
   workingDirectory: '$(modulePath)'
-  displayName: 'Run tests'
+  displayName: 'Run unit tests with code coverage'
+
+- task: PublishTestResults@2
+  continueOnError: true
+  condition: succeededOrFailed()
+  inputs:
+    failTaskOnFailedTests: true
+    testRunner: JUnit
+    testResultsFiles: $(System.DefaultWorkingDirectory)/**/report.xml
+
+
+- task: PublishCodeCoverageResults@1
+  continueOnError: true
+  condition: succeededOrFailed()
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: $(modulePath)/coverage.xml
+    reportDirectory: $(modulePath)/coverage

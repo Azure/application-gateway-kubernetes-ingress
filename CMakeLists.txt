@@ -82,7 +82,7 @@ add_custom_target(go-tests
             -v ${CMAKE_SOURCE_DIR}:${devenv_workpath}
             -w ${devenv_workpath}
             --name ${devenv_image_name}-devenv ${devenv_image_name}
-            go test -v ./...
+            go test -timeout 80s -v -coverprofile=coverage.txt -covermode count ./...
     DEPENDS appgw-ingress
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

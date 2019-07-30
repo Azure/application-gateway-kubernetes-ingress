@@ -10,6 +10,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.1.0
 	github.com/Azure/go-autorest/autorest/to v0.2.0
 	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
+	github.com/axw/gocov v1.0.0 // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/eapache/channels v1.1.0
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
+	github.com/matm/gocov-html v0.0.0-20160206185555-f6dd0fd0ebc7 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
