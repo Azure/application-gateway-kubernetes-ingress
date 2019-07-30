@@ -30,6 +30,32 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        readinessProbe:
+          tcpSocket:
+        {{- if .Values.kubernetes }}
+        {{- if .Values.kubernetes.healthProbeServicePort }}
+            port: 8080
+        {{ else }}
+            port: 8123
+        {{- end}}
+        {{ else }}
+            port: 8123
+        {{- end}}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+        {{- if .Values.kubernetes }}
+        {{- if .Values.kubernetes.healthProbeServicePort }}
+            port: 8080
+        {{ else }}
+            port: 8123
+        {{- end}}
+        {{ else }}
+            port: 8123
+        {{- end}}
+          initialDelaySeconds: 15
+          periodSeconds: 20
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
           - name: AZURE_AUTH_LOCATION
