@@ -35,7 +35,7 @@ For App Gateways without a Private IP, Ingresses annotated with `appgw.ingress.k
 
 
 ## Assign Globally
-In case, requirement is to restrict all Ingresses to expose over Private IP, use `appgw.usePrivateIP: true` in `helm` config.
+In case, requirement is to restrict all Ingresses to be exposed over Private IP, use `appgw.usePrivateIP: true` in `helm` config.
 
 ### Usage
 ```yaml
