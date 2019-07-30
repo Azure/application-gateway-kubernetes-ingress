@@ -35,7 +35,7 @@ const (
 	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
 
 	// EnableBrownfieldDeploymentVarName is a feature flag enabling observation of {Managed,Prohibited}Target CRDs
-	EnableBrownfieldDeploymentVarName = "APPGW_ENABLE_BROWNFIELD_DEPLOYMENT"
+	EnableBrownfieldDeploymentVarName = "APPGW_ENABLE_SHARED_APPGW"
 
 	// EnableIstioIntegrationVarName is a feature flag enabling observation of Istio specific CRDs
 	EnableIstioIntegrationVarName = "APPGW_ENABLE_ISTIO_INTEGRATION"
