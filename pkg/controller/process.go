@@ -71,7 +71,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
-	if len(cbCtx.IngressList) == 0 {
+	if len(cbCtx.IngressList) == 0 && !cbCtx.EnableIstioIntegration {
 		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
 		glog.Error(errorLine)
 		return nil
