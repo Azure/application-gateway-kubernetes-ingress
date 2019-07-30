@@ -6,7 +6,6 @@
 package k8scontext
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -55,21 +54,21 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
-		AzureIngressProhibitedLocation: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureIngressProhibitedTarget: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
-		Endpoints:                      informerCollection.Endpoints.GetStore(),
-		Ingress:                        informerCollection.Ingress.GetStore(),
-		Pods:                           informerCollection.Pods.GetStore(),
-		Secret:                         informerCollection.Secret.GetStore(),
-		Service:                        informerCollection.Service.GetStore(),
-		AzureIngressProhibitedLocation: informerCollection.AzureIngressProhibitedLocation.GetStore(),
-		IstioGateway:                   informerCollection.IstioGateway.GetStore(),
-		IstioVirtualService:            informerCollection.IstioVirtualService.GetStore(),
+		Endpoints:                    informerCollection.Endpoints.GetStore(),
+		Ingress:                      informerCollection.Ingress.GetStore(),
+		Pods:                         informerCollection.Pods.GetStore(),
+		Secret:                       informerCollection.Secret.GetStore(),
+		Service:                      informerCollection.Service.GetStore(),
+		AzureIngressProhibitedTarget: informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		IstioGateway:                 informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:          informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
@@ -106,6 +105,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Pods.AddEventHandler(resourceHandler)
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
+	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -121,9 +121,9 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	var hasSynced []cache.InformerSynced
 	crds := map[cache.SharedInformer]interface{}{
-		i.AzureIngressProhibitedLocation: nil,
-		i.IstioGateway:                   nil,
-		i.IstioVirtualService:            nil,
+		i.AzureIngressProhibitedTarget: nil,
+		i.IstioGateway:                 nil,
+		i.IstioVirtualService:          nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -137,7 +137,7 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment == "true" {
 		sharedInformers = append(sharedInformers,
-			i.AzureIngressProhibitedLocation)
+			i.AzureIngressProhibitedTarget)
 	}
 
 	if envVariables.EnableIstioIntegration == "true" {
@@ -187,9 +187,8 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 	}
 
 	if !exist {
-		msg := fmt.Sprintf("Error fetching endpoints from store! Service does not exist: %s", serviceKey)
-		glog.Error(msg)
-		return nil, errors.New(msg)
+		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
+		return nil, ErrFetchingEnpdoints
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil
@@ -257,7 +256,7 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 // ListAzureProhibitedTargets returns a list of App Gwy configs, for which AGIC is not allowed to modify config.
 func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
 	var targets []*prohibitedv1.AzureIngressProhibitedTarget
-	for _, obj := range c.Caches.AzureIngressProhibitedLocation.List() {
+	for _, obj := range c.Caches.AzureIngressProhibitedTarget.List() {
 		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
 	}
 
@@ -271,35 +270,17 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	return targets
 }
 
-// ListIstioGateways returns a list of discovered Istio Gateways
-func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
-	var gateways []*v1alpha3.Gateway
-	for _, gateway := range c.Caches.IstioGateway.List() {
-		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
-	}
-	return gateways
-}
-
-// ListIstioVirtualServices returns a list of discovered Istio Virtual Services
-func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
-	var virtualServices []*v1alpha3.VirtualService
-	for _, virtualService := range c.Caches.IstioVirtualService.List() {
-		virtualServices = append(virtualServices, virtualService.(*v1alpha3.VirtualService))
-	}
-	return virtualServices
-}
-
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(1).Infof("unable to get service from store, error occurred %s", err.Error())
+		glog.V(3).Infof("unable to get service from store, error occurred %s", err.Error())
 		return nil
 	}
 
 	if !exist {
-		glog.V(1).Infof("unable to get service from store, no such service %s", serviceKey)
+		glog.V(3).Infof("unable to get service from store, no such service %s", serviceKey)
 		return nil
 	}
 

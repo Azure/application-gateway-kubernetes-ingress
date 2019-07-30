@@ -7,46 +7,59 @@ package appgw
 
 import (
 	"sort"
-	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, map[listenerIdentifier]*n.ApplicationGatewayHTTPListener) {
-	// TODO(draychev): this is for compatibility w/ RequestRoutingRules and should be removed ASAP
-	legacyMap := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
-
+func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayHTTPListener {
 	var listeners []n.ApplicationGatewayHTTPListener
 
-	for listenerID, config := range c.getListenerConfigs(cbCtx.IngressList) {
-		listener := c.newListener(listenerID, config.Protocol, cbCtx.EnvVariables)
+	if cbCtx.EnableIstioIntegration {
+		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
+			listener := c.newListener(listenerID, config.Protocol)
+			listeners = append(listeners, listener)
+		}
+	}
+
+	for listenerID, config := range c.getListenerConfigs(cbCtx) {
+		listener := c.newListener(listenerID, config.Protocol)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, listener)
-		legacyMap[listenerID] = &listener
 	}
 
-	// TODO(draychev): The second map we return is for compatibility w/ RequestRoutingRules and should be removed ASAP
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedListeners()
+
+		brownfield.LogListeners(existingBlacklisted, existingNonBlacklisted, listeners)
+
+		// MergeListeners would produce unique list of listeners based on Name. Blacklisted listeners,
+		// which have the same name as a managed listeners would be overwritten.
+		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
+	}
+
 	sort.Sort(sorter.ByListenerName(listeners))
-	return &listeners, legacyMap
+	return &listeners
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
-func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map[listenerIdentifier]listenerAzConfig {
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
-	for _, ingress := range ingressList {
+	for _, ingress := range cbCtx.IngressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
-		_, azListenerConfigs := c.processIngressRules(ingress)
+		_, azListenerConfigs := c.processIngressRules(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
 		}
@@ -63,33 +76,35 @@ func (c *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) 
 	return allListeners
 }
 
-func (c *appGwConfigBuilder) newListener(listener listenerIdentifier, protocol n.ApplicationGatewayProtocol, envVariables environment.EnvVariables) n.ApplicationGatewayHTTPListener {
-	frontendPortName := generateFrontendPortName(listener.FrontendPort)
-	frontendPortID := c.appGwIdentifier.frontendPortID(frontendPortName)
-
+func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
+	frontendPort := c.lookupFrontendPortByListenerIdentifier(listenerID)
+	listenerName := generateListenerName(listenerID)
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateListenerName(listener)),
+		Name: to.StringPtr(listenerName),
+		ID:   to.StringPtr(c.appGwIdentifier.listenerID(listenerName)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
-			FrontendIPConfiguration: resourceRef(*c.getIPConfigurationID(envVariables)),
-			FrontendPort:            resourceRef(frontendPortID),
+			FrontendIPConfiguration: resourceRef(*frontIPConfiguration.ID),
+			FrontendPort:            resourceRef(*frontendPort.ID),
 			Protocol:                protocol,
-			HostName:                &listener.HostName,
+			HostName:                &listenerID.HostName,
 		},
 	}
 }
 
-func (c *appGwConfigBuilder) getIPConfigurationID(envVariables environment.EnvVariables) *string {
-	usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP)
-	for _, ip := range *c.appGw.FrontendIPConfigurations {
-		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil &&
-			((usePrivateIP && ip.PrivateIPAddress != nil) ||
-				(!usePrivateIP && ip.PublicIPAddress != nil)) {
-			return ip.ID
+func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	// Update the listenerMap with the final listener lists
+	for idx, listener := range *listeners {
+		listenerID := listenerIdentifier{
+			HostName:     *listener.HostName,
+			FrontendPort: *c.lookupFrontendPortByID(listener.FrontendPort.ID).Port,
+			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
+		listenersByID[listenerID] = &((*listeners)[idx])
 	}
 
-	// This should not happen as we are performing validation on frontIpConfiguration to make sure if have the required IP.
-	return nil
+	return listenersByID
 }

@@ -33,22 +33,22 @@ spec:
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
           - name: AZURE_AUTH_LOCATION
-            value: /etc/Azure/Networking-AppGW/auth/{{ required "armAuth.secretKey is required if using servicePrincipal" .Values.armAuth.secretKey }}
+            value: /etc/Azure/Networking-AppGW/auth/armAuth.json
         {{- end}}
         envFrom:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         volumeMounts:
-          - name: {{ required "armAuth.secretName is required if using servicePrincipal" .Values.armAuth.secretName }}-mount
+          - name: networking-appgw-k8s-azure-service-principal-mount
             mountPath: /etc/Azure/Networking-AppGW/auth
             readOnly: true
         {{- end}}
       {{- if eq .Values.armAuth.type "servicePrincipal"}}
       volumes:
-        - name: {{ .Values.armAuth.secretName }}-mount
+        - name: networking-appgw-k8s-azure-service-principal-mount
           secret:
-            secretName: {{ .Values.armAuth.secretName }}
+            secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
       {{- with .Values.nodeSelector }}
       nodeSelector:

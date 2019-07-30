@@ -6,7 +6,6 @@
 package worker
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/eapache/channels"
@@ -35,15 +34,10 @@ func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct
 			select {
 			case in := <-eventChannel.Out():
 				event := in.(events.Event)
-
-				if jsonEvent, err := json.Marshal(event); err != nil {
-					glog.Error("Failed marshalling event:", err)
-				} else {
-					glog.V(5).Infof("Received event: %s", jsonEvent)
-				}
-
 				if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
-					glog.V(5).Infof("Skipping event: %s", reason)
+					if reason != "" {
+						glog.V(5).Infof("Skipping event: %s", reason)
+					}
 					continue
 				}
 

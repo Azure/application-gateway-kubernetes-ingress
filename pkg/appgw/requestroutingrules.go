@@ -15,29 +15,68 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
-	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
-	c.appGw.RequestRoutingRules = &requestRoutingRules
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		{
+			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedPathMaps()
+
+			brownfield.LogPathMaps(existingBlacklisted, existingNonBlacklisted, pathMaps)
+
+			// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
+			// as a managed rule would be overwritten.
+			pathMaps = brownfield.MergePathMaps(existingBlacklisted, pathMaps)
+		}
+	}
 
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
+
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		{
+			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()
+
+			brownfield.LogRules(existingBlacklisted, existingNonBlacklisted, requestRoutingRules)
+
+			// MergeRules would produce unique list of routing rules based on Name. Routing rules, which have the same name
+			// as a managed rule would be overwritten.
+			requestRoutingRules = brownfield.MergeRules(&c.appGw, existingBlacklisted, requestRoutingRules)
+		}
+	}
+
+	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+	c.appGw.RequestRoutingRules = &requestRoutingRules
 
 	return nil
 }
 
 func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	_, httpListenersMap := c.getListeners(cbCtx)
+	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for _, ingress := range cbCtx.IngressList {
 		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+
+		// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
+		usePrivateIPFromEnv := cbCtx.EnvVariables.UsePrivateIP == "true"
+		usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
+		if usePrivateIPFromEnv {
+			glog.V(5).Infof("Using private IP addess as requested from environment for Ingress %s/%s", ingress.Namespace, ingress.Name)
+		} else if usePrivateIPFromAnnotation {
+			glog.V(5).Infof("Using private IP addess as requested from annotation for Ingress %s/%s", ingress.Namespace, ingress.Name)
+		}
+		usePrivateIPForIngress := usePrivateIPFromEnv || usePrivateIPFromAnnotation
 
 		var wildcardRule *v1beta1.IngressRule
 		wildcardRule = nil
@@ -81,10 +120,10 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 				continue
 			}
 
-			listenerHTTPID := generateListenerID(rule, n.HTTP, nil)
+			listenerHTTPID := generateListenerID(rule, n.HTTP, nil, usePrivateIPForIngress)
 			_, httpAvailable := httpListenersMap[listenerHTTPID]
 
-			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil)
+			listenerHTTPSID := generateListenerID(rule, n.HTTPS, nil, usePrivateIPForIngress)
 			_, httpsAvailable := httpListenersMap[listenerHTTPSID]
 
 			if httpAvailable {
@@ -102,7 +141,7 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 
 				// If ingress is annotated with "ssl-redirect" and we have TLS - setup redirection configuration.
 				if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && httpsAvailable {
-					c.modifyPathRulesForRedirection(urlPathMaps[listenerHTTPID], listenerHTTPSID)
+					c.modifyPathRulesForRedirection(cbCtx, urlPathMaps[listenerHTTPID], listenerHTTPSID)
 				}
 			}
 
@@ -141,7 +180,7 @@ func (c *appGwConfigBuilder) getURLPathMaps(cbCtx *ConfigBuilderContext) map[lis
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
-	_, httpListenersMap := c.getListeners(cbCtx)
+	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getURLPathMaps(cbCtx) {
@@ -149,10 +188,12 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
+			ID:   to.StringPtr(c.appGwIdentifier.requestRoutingRuleID(generateRequestRoutingRuleName(listenerID))),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
 		}
+		glog.V(5).Infof("Binding rule %s to listener %s", *rule.Name, *httpListener.Name)
 		if len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
 			rule.RuleType = n.Basic
@@ -182,6 +223,7 @@ func (c *appGwConfigBuilder) pathMaps(ingress *v1beta1.Ingress, cbCtx *ConfigBui
 		urlPathMap = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
 			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
@@ -241,12 +283,20 @@ func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListene
 	return resourceRef(sslRedirectConfigID)
 }
 
-func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
-	// Application Gateway supports Basic and Path-based rules
+func (c *appGwConfigBuilder) modifyPathRulesForRedirection(cbCtx *ConfigBuilderContext, httpURLPathMap *n.ApplicationGatewayURLPathMap, targetListener listenerIdentifier) {
 
+	// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
+	redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
+	redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
+
+	if _, exists := redirectsSet[*redirectRef.ID]; !exists {
+		glog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
+		return
+	}
+
+	// Application Gateway supports Basic and Path-based rules
 	if len(*httpURLPathMap.PathRules) == 0 {
 		// There are no paths. This is a rule of type "Basic"
-		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.V(5).Infof("Attaching redirection config %s to basic request routing rule: %s\n", *redirectRef.ID, *httpURLPathMap.Name)
 
 		// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
@@ -261,7 +311,6 @@ func (c *appGwConfigBuilder) modifyPathRulesForRedirection(httpURLPathMap *n.App
 	for idx := range *httpURLPathMap.PathRules {
 		// This is a rule of type "Path-based"
 		pathRule := &(*httpURLPathMap.PathRules)[idx]
-		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
 		glog.V(5).Infof("Attaching redirection config %s request routing rule: %s\n", *redirectRef.ID, *pathRule.Name)
 
 		// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)

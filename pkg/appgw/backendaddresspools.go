@@ -29,9 +29,9 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 }
 
 func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
-	defaultPool := defaultBackendAddressPool()
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
+		*defaultPool.Name: &defaultPool,
 	}
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
@@ -41,24 +41,26 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 	}
 
+	if cbCtx.EnableIstioIntegration {
+		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
+			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
+			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
+				managedPoolsByName[*pool.Name] = pool
+			}
+		}
+	}
+
 	var agicCreatedPools []n.ApplicationGatewayBackendAddressPool
 	for _, managedPool := range managedPoolsByName {
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
 	}
 
-	if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
-		// These are existing resources we obtain from App Gateway
-		existingBrownfieldCtx := brownfield.PoolContext{
-			Listeners:          c.getExistingListeners(),
-			RoutingRules:       c.getExistingRoutingRules(),
-			PathMaps:           c.getExistingPathMaps(),
-			BackendPools:       c.getExistingBackendPools(),
-			ProhibitedTargets:  cbCtx.ProhibitedTargets,
-			DefaultBackendPool: *defaultPool,
-		}
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, &defaultPool)
 
-		// Pools we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := existingBrownfieldCtx.GetBlacklistedPools()
+		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPools()
 
 		brownfield.LogPools(existingBlacklisted, existingNonBlacklisted, agicCreatedPools)
 
@@ -71,14 +73,14 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 }
 
 func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
-	defaultPool := defaultBackendAddressPool()
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
-		*defaultPool.Name: defaultPool,
+		*defaultPool.Name: &defaultPool,
 	}
 	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		backendPoolMap[backendID] = defaultPool
+		backendPoolMap[backendID] = &defaultPool
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
 			backendPoolMap[backendID] = pool
 		}

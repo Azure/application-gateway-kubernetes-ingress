@@ -62,10 +62,15 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }
 
-func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool) ([]byte, error) {
+func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool, overwritePrefix *string) ([]byte, error) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
 		return nil, err
+	}
+
+	prefix := "-- App Gwy config --"
+	if overwritePrefix != nil {
+		prefix = *overwritePrefix
 	}
 
 	// Remove sensitive data from the JSON config to be logged
@@ -77,7 +82,7 @@ func (c *AppGwIngressController) dumpSanitizedJSON(appGw *n.ApplicationGateway, 
 		return nil, err
 	}
 
-	prettyJSON, err := utils.PrettyJSON(sanitized, "-- App Gwy config --")
+	prettyJSON, err := utils.PrettyJSON(sanitized, prefix)
 
 	if logToFile {
 		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())

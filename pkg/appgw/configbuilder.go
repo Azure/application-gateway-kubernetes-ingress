@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -50,37 +49,37 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
-		return nil, errors.New("unable to generate health probes")
+		return nil, ErrGeneratingProbes
 	}
 
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend http settings")
+		return nil, ErrGeneratingBackendSettings
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
-		return nil, errors.New("unable to generate backend address pools")
+		return nil, ErrGeneratingPools
 	}
 
-	// HTTPListener configures the frontend listeners
+	// Listener configures the frontend listeners
 	// This also creates redirection configuration (if TLS is configured and Ingress is annotated).
 	// This configuration must be attached to request routing rules, which are created in the steps below.
 	// The order of operations matters.
 	err = c.Listeners(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
-		return nil, errors.New("unable to generate frontend listeners")
+		return nil, ErrGeneratingListeners
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
-		return nil, errors.New("unable to generate request routing rules")
+		return nil, ErrGeneratingRoutingRules
 	}
 
 	c.addTags()
@@ -155,8 +154,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateListenerID(rule *v1beta1.IngressRule,
-	protocol n.ApplicationGatewayProtocol, overridePort *int32) listenerIdentifier {
+func generateListenerID(rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *int32, usePrivateIP bool) listenerIdentifier {
 	frontendPort := int32(80)
 	if protocol == n.HTTPS {
 		frontendPort = int32(443)
@@ -167,6 +165,7 @@ func generateListenerID(rule *v1beta1.IngressRule,
 	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
 		HostName:     rule.Host,
+		UsePrivateIP: usePrivateIP,
 	}
 	return listenerID
 }
@@ -178,32 +177,4 @@ func (c *appGwConfigBuilder) addTags() {
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
 	c.appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
-}
-
-func (c *appGwConfigBuilder) getExistingBackendPools() []n.ApplicationGatewayBackendAddressPool {
-	if c.appGw.BackendAddressPools == nil {
-		return []n.ApplicationGatewayBackendAddressPool{}
-	}
-	return *c.appGw.BackendAddressPools
-}
-
-func (c *appGwConfigBuilder) getExistingListeners() []n.ApplicationGatewayHTTPListener {
-	if c.appGw.HTTPListeners == nil {
-		return []n.ApplicationGatewayHTTPListener{}
-	}
-	return *c.appGw.HTTPListeners
-}
-
-func (c *appGwConfigBuilder) getExistingRoutingRules() []n.ApplicationGatewayRequestRoutingRule {
-	if c.appGw.RequestRoutingRules == nil {
-		return []n.ApplicationGatewayRequestRoutingRule{}
-	}
-	return *c.appGw.RequestRoutingRules
-}
-
-func (c *appGwConfigBuilder) getExistingPathMaps() []n.ApplicationGatewayURLPathMap {
-	if c.appGw.URLPathMaps == nil {
-		return []n.ApplicationGatewayURLPathMap{}
-	}
-	return *c.appGw.URLPathMaps
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
@@ -20,7 +21,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
-	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx.IngressList) {
+	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx) {
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
@@ -28,16 +29,30 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
-			redirectConfigs = append(redirectConfigs, newSSLRedirectConfig(listenerConfig, targetListener))
-			glog.V(3).Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
+			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
+			glog.V(5).Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
 		}
 	}
+
+	if cbCtx.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+
+		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedRedirects()
+
+		brownfield.LogRedirects(existingBlacklisted, existingNonBlacklisted, redirectConfigs)
+
+		// MergeRedirects would produce unique list of redirects based on Name. Blacklisted redirects,
+		// which have the same name as a managed redirects would be overwritten.
+		redirectConfigs = brownfield.MergeRedirects(existingBlacklisted, redirectConfigs)
+	}
+
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))
 	return &redirectConfigs
 }
 
 // newSSLRedirectConfig creates a new Redirect in the form of a ApplicationGatewayRedirectConfiguration struct.
-func newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
+func (c *appGwConfigBuilder) newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
 	props := n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 		// RedirectType could be one of: 301/Permanent, 302/Found, 303/See Other, 307/Temporary
 		RedirectType: n.Permanent,
@@ -56,6 +71,15 @@ func newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.Sub
 	return n.ApplicationGatewayRedirectConfiguration{
 		Etag: to.StringPtr("*"),
 		Name: &listenerConfig.SslRedirectConfigurationName,
+		ID:   to.StringPtr(c.appGwIdentifier.redirectConfigurationID(listenerConfig.SslRedirectConfigurationName)),
 		ApplicationGatewayRedirectConfigurationPropertiesFormat: &props,
 	}
+}
+
+func (c *appGwConfigBuilder) groupRedirectsByID(redirects *[]n.ApplicationGatewayRedirectConfiguration) *map[string]interface{} {
+	redirectsSet := make(map[string]interface{})
+	for _, redirect := range *redirects {
+		redirectsSet[*redirect.ID] = nil
+	}
+	return &redirectsSet
 }

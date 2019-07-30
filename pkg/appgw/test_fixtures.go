@@ -24,7 +24,7 @@ func newAppGwyConfigFixture() n.ApplicationGatewayPropertiesFormat {
 			Name: to.StringPtr("xx3"),
 			Etag: to.StringPtr("xx2"),
 			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(tests.IPID1),
+			ID:   to.StringPtr(tests.PublicIPID),
 			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: nil,
 				PublicIPAddress: &n.SubResource{
@@ -37,7 +37,7 @@ func newAppGwyConfigFixture() n.ApplicationGatewayPropertiesFormat {
 			Name: to.StringPtr("yy3"),
 			Etag: to.StringPtr("yy2"),
 			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr(tests.IPID2),
+			ID:   to.StringPtr(tests.PrivateIPID),
 			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
 				PrivateIPAddress: to.StringPtr("abc"),
 				PublicIPAddress:  nil,

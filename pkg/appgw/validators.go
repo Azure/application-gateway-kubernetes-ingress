@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -31,12 +30,12 @@ const (
 )
 
 var validationErrors = map[string]error{
-	errKeyNoDefaults:     errors.New("either a DefaultRedirectConfiguration or (DefaultBackendAddressPool + DefaultBackendHTTPSettings) must be configured"),
-	errKeyEitherDefaults: errors.New("URL Path Map must have either DefaultRedirectConfiguration or (DefaultBackendAddressPool + DefaultBackendHTTPSettings) but not both"),
-	errKeyNoBorR:         errors.New("A valid path rule must have one of RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings)"),
-	errKeyEitherBorR:     errors.New("A Path Rule must have either RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings) but not both"),
-	errKeyNoPrivateIP:    errors.New("A Private IP must be present in the Application Gateway FrontendIPConfiguration if the controller is configured to UsePrivateIP for routing rules"),
-	errKeyNoPublicIP:     errors.New("A Public IP must be present in the Application Gateway FrontendIPConfiguration"),
+	errKeyNoDefaults:     ErrKeyNoDefaults,
+	errKeyEitherDefaults: ErrKeyEitherDefaults,
+	errKeyNoBorR:         ErrKeyNoBorR,
+	errKeyEitherBorR:     ErrKeyEitherBorR,
+	errKeyNoPrivateIP:    ErrKeyNoPrivateIP,
+	errKeyNoPublicIP:     ErrKeyNoPublicIP,
 }
 
 func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
@@ -112,7 +111,7 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 	return nil
 }
 
-func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
 	privateIPPresent := false
 	publicIPPresent := false
 	var jsonConfigs []string
@@ -144,13 +143,16 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 
 // FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
 func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
+	if config == nil {
+		return ErrEmptyConfig
+	}
 
-	validators := []func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
+	validators := []func(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
 		validateFrontendIPConfiguration,
 	}
 
 	for _, fn := range validators {
-		if err := fn(eventRecorder, config, envVariables); err != nil {
+		if err := fn(eventRecorder, *config, envVariables); err != nil {
 			return err
 		}
 	}

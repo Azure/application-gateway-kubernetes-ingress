@@ -40,8 +40,10 @@ import (
 )
 
 const (
-	verbosityFlag = "verbosity"
-	maxAuthRetry  = 10
+	verbosityFlag     = "verbosity"
+	maxAuthRetryCount = 10
+	tenSeconds        = 10 * time.Second
+	thirtySeconds     = 30 * time.Second
 )
 
 var (
@@ -56,7 +58,7 @@ var (
 	kubeConfigFile = flags.String("kubeconfig", "",
 		"Path to kubeconfig file with authorization and master location information.")
 
-	resyncPeriod = flags.Duration("sync-period", 30*time.Second,
+	resyncPeriod = flags.Duration("sync-period", thirtySeconds,
 		"Interval at which to re-list and confirm cloud resources.")
 
 	versionInfo = flags.Bool("version", false, "Print version")
@@ -87,14 +89,10 @@ func main() {
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
 	// initialize clients and dependencies
-	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
-
-	var err error
-	if appGwClient.Authorizer, err = getAzAuth(env); err != nil || appGwClient.Authorizer == nil {
-		glog.Fatal("Error creating Azure client", err)
+	appGwClient, err := initAppGwClient(env)
+	if err != nil {
+		glog.Fatal("Error creating Azure client: ", err)
 	}
-
-	waitForAzureAuth(env, appGwClient)
 
 	appGwIdentifier := appgw.Identifier{
 		SubscriptionID: env.SubscriptionID,
@@ -125,7 +123,7 @@ func main() {
 	}
 
 	// initiliaze controller
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
+	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
 
 	// start controller
 	appGwIngressController.Start(env)
@@ -165,27 +163,64 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 	return []string{namespaceEnvVar}
 }
 
+func initAppGwClient(env environment.EnvVariables) (*n.ApplicationGatewaysClient, error) {
+	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
+	if err := waitForAzureAuth(env, &appGwClient); err != nil {
+		return nil, err
+	}
+
+	return &appGwClient, nil
+}
+
+func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient) error {
+	var response n.ApplicationGateway
+	var err error
+	for counter := 0; counter <= maxAuthRetryCount; counter++ {
+		// Fetch a new token
+		if client.Authorizer, err = getAzAuth(env); err != nil || client.Authorizer == nil {
+			glog.Fatal("Error creating Azure client", err)
+		}
+
+		// Get Application Gateway
+		response, err = client.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+		if err == nil {
+			return nil
+		}
+
+		// Tries remaining
+		if counter < maxAuthRetryCount {
+			glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. ARM Error: %s", env.AppGwName, tenSeconds, err)
+			time.Sleep(tenSeconds)
+		}
+	}
+
+	// Reasons for 403 errors
+	if response.Response.StatusCode == 403 {
+		infoLine := "Possible reasons:"
+		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
+		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
+		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;"
+		glog.Error(infoLine)
+	}
+
+	if response.Response.StatusCode != 200 {
+		// for example, getting 401. This is not expected as we are getting a token before making the call.
+		glog.Error("Recieved an unexpected status code from ARM while getting App Gateway: ", response.Response.StatusCode)
+		return ErrUnexpectedARMStatusCode
+	}
+
+	return err
+}
+
 func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
 		// see https://github.com/Azure/aad-pod-identity for more information
-		glog.V(1).Infoln("Creating authorizer from Azure Managed Service Identity")
+		glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
 		return auth.NewAuthorizerFromEnvironment()
 	}
-	glog.V(1).Infoln("Creating authorizer from file referenced by AZURE_AUTH_LOCATION")
+	glog.V(1).Infof("Creating authorizer from file referenced by %s environment variable: %s", environment.AuthLocationVarName, vars.AuthLocation)
 	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
-}
-
-func waitForAzureAuth(envVars environment.EnvVariables, client n.ApplicationGatewaysClient) {
-	const retryTime = 10 * time.Second
-	for counter := 0; counter <= maxAuthRetry; counter++ {
-		if _, err := client.Get(context.Background(), envVars.ResourceGroupName, envVars.AppGwName); err != nil {
-			glog.Error("Error getting Application Gateway", envVars.AppGwName, err)
-			glog.Infof("Retrying in %v", retryTime)
-			time.Sleep(retryTime)
-		}
-		return
-	}
 }
 
 func getKubeClientConfig() *rest.Config {

@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 
@@ -17,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -27,11 +27,34 @@ const (
 )
 
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
-	httpSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
-	if httpSettings != nil {
-		sort.Sort(sorter.BySettingsName(*httpSettings))
+	agicHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
+
+	if cbCtx.EnableBrownfieldDeployment {
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		allExistingSettings := rCtx.HTTPSettings
+
+		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
+		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
+
+		brownfield.LogHTTPSettings(existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+
+		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
+		// as a managed rule would be overwritten.
+		agicHTTPSettings = brownfield.MergeHTTPSettings(allExistingSettings, agicHTTPSettings)
 	}
-	c.appGw.BackendHTTPSettingsCollection = httpSettings
+	if cbCtx.EnableIstioIntegration {
+		istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+		if istioHTTPSettings != nil {
+			sort.Sort(sorter.BySettingsName(istioHTTPSettings))
+		}
+		agicHTTPSettings = append(agicHTTPSettings, istioHTTPSettings...)
+	}
+
+	if agicHTTPSettings != nil {
+		sort.Sort(sorter.BySettingsName(agicHTTPSettings))
+	}
+
+	c.appGw.BackendHTTPSettingsCollection = &agicHTTPSettings
 	return err
 }
 
@@ -82,7 +105,7 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 	return servicesSet
 }
 
-func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
@@ -133,9 +156,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 							resolvedBackendPorts[pair] = nil
 						} else {
 							// if service port is defined by name, need to resolve
-							targetPortName := sp.TargetPort.StrVal
-							glog.V(1).Infof("resolving port name %s", targetPortName)
-							targetPortsResolved := c.resolvePortName(targetPortName, &backendID)
+							glog.V(3).Infof("resolving port name %s", sp.Name)
+							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
 									ServicePort: sp.Port,
@@ -169,12 +191,11 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, ErrResolvingBackendPortForService
 	}
 
-	probeID := c.appGwIdentifier.probeID(defaultProbeName)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(probeID)
+	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
@@ -185,7 +206,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 				backendID.serviceKey(), backendID.Backend.ServicePort.String())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
 			glog.Warning(logLine)
-			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, ErrMultipleServiceBackendPortBinding
 		}
 
 		// At this point there will be only one pair
@@ -205,7 +226,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		httpSettings = append(httpSettings, backend)
 	}
 
-	return &httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
@@ -214,6 +235,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
+		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
 			Port:     &port,

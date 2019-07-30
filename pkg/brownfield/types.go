@@ -10,24 +10,99 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 )
 
-// PoolContext is the basket of App Gateway configs necessary to determine what settings should be
-// managed and what should be left as-is.
-type PoolContext struct {
-	Listeners          []n.ApplicationGatewayHTTPListener
-	RoutingRules       []n.ApplicationGatewayRequestRoutingRule
-	PathMaps           []n.ApplicationGatewayURLPathMap
+type listenerName string
+
+// ExistingResources is used in brownfield deployments and
+// holds a copy of the existing App Gateway config, based
+// on which AGIC will determine what should be retained and
+// what config should be discarded or overwritten.
+type ExistingResources struct {
 	BackendPools       []n.ApplicationGatewayBackendAddressPool
+	Certificates       []n.ApplicationGatewaySslCertificate
+	RoutingRules       []n.ApplicationGatewayRequestRoutingRule
+	Listeners          []n.ApplicationGatewayHTTPListener
+	URLPathMaps        []n.ApplicationGatewayURLPathMap
+	HTTPSettings       []n.ApplicationGatewayBackendHTTPSettings
+	Ports              []n.ApplicationGatewayFrontendPort
+	Probes             []n.ApplicationGatewayProbe
+	Redirects          []n.ApplicationGatewayRedirectConfiguration
 	ProhibitedTargets  []*ptv1.AzureIngressProhibitedTarget
-	DefaultBackendPool n.ApplicationGatewayBackendAddressPool
+	DefaultBackendPool *n.ApplicationGatewayBackendAddressPool
+
+	// Cache helper structs
+	listenersByName   map[listenerName]n.ApplicationGatewayHTTPListener
+	urlPathMapsByName pathMapsByName
 }
 
-type listenerName string
-type pathmapName string
-type backendPoolName string
+// NewExistingResources creates a new ExistingResources struct.
+func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, defaultPool *n.ApplicationGatewayBackendAddressPool) ExistingResources {
+	var allExistingSettings []n.ApplicationGatewayBackendHTTPSettings
+	if appGw.BackendHTTPSettingsCollection != nil {
+		allExistingSettings = *appGw.BackendHTTPSettingsCollection
+	}
 
-type poolToTargets map[backendPoolName][]Target
+	var allExistingRequestRoutingRules []n.ApplicationGatewayRequestRoutingRule
+	if appGw.RequestRoutingRules != nil {
+		allExistingRequestRoutingRules = *appGw.RequestRoutingRules
+	}
 
-type poolsByName map[backendPoolName]n.ApplicationGatewayBackendAddressPool
+	var allExistingListeners []n.ApplicationGatewayHTTPListener
+	if appGw.HTTPListeners != nil {
+		allExistingListeners = *appGw.HTTPListeners
+	}
 
-// TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
-type TargetBlacklist *[]Target
+	var allExistingURLPathMap []n.ApplicationGatewayURLPathMap
+	if appGw.URLPathMaps != nil {
+		allExistingURLPathMap = *appGw.URLPathMaps
+	}
+
+	var allExistingPorts []n.ApplicationGatewayFrontendPort
+	if appGw.FrontendPorts != nil {
+		allExistingPorts = *appGw.FrontendPorts
+	}
+
+	var allExistingCertificates []n.ApplicationGatewaySslCertificate
+	if appGw.SslCertificates != nil {
+		allExistingCertificates = *appGw.SslCertificates
+	}
+
+	var allExistingHealthProbes []n.ApplicationGatewayProbe
+	if appGw.Probes != nil {
+		allExistingHealthProbes = *appGw.Probes
+	}
+
+	var allExistingBackendPools []n.ApplicationGatewayBackendAddressPool
+	if appGw.BackendAddressPools != nil {
+		allExistingBackendPools = *appGw.BackendAddressPools
+	}
+
+	var allExistingRedirects []n.ApplicationGatewayRedirectConfiguration
+	if appGw.RedirectConfigurations != nil {
+		allExistingRedirects = *appGw.RedirectConfigurations
+	}
+
+	return ExistingResources{
+		BackendPools:       allExistingBackendPools,
+		Certificates:       allExistingCertificates,
+		RoutingRules:       allExistingRequestRoutingRules,
+		Listeners:          allExistingListeners,
+		URLPathMaps:        allExistingURLPathMap,
+		HTTPSettings:       allExistingSettings,
+		Ports:              allExistingPorts,
+		Probes:             allExistingHealthProbes,
+		Redirects:          allExistingRedirects,
+		ProhibitedTargets:  prohibitedTargets,
+		DefaultBackendPool: defaultPool,
+	}
+}
+
+func (er ExistingResources) getProhibitedHostnames() map[string]interface{} {
+	prohibitedHostnames := make(map[string]interface{})
+	for _, pt := range er.ProhibitedTargets {
+		if len(pt.Spec.Hostname) == 0 {
+			continue
+		}
+		prohibitedHostnames[pt.Spec.Hostname] = nil
+	}
+	return prohibitedHostnames
+}
