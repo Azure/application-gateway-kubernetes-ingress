@@ -64,3 +64,15 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
 func (c *AppGwIngressController) Stop() {
 	close(c.stopChannel)
 }
+
+// Liveness fulfills the health.HealthProbe interface; It is evaluated when K8s liveness-checks the AGIC pod.
+func (c *AppGwIngressController) Liveness() bool {
+	// TODO(draychev): implement
+	return true
+}
+
+// Readiness fulfills the health.HealthProbe interface; It is evaluated when K8s readiness-checks the AGIC pod.
+func (c *AppGwIngressController) Readiness() bool {
+	_, ok := <-c.k8sContext.CacheSynced
+	return ok
+}

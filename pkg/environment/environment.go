@@ -45,6 +45,9 @@ const (
 
 	// EnablePanicOnPutErrorVarName is a feature flag.
 	EnablePanicOnPutErrorVarName = "APPGW_ENABLE_PANIC_ON_PUT_ERROR"
+
+	// HealthProbeServicePortVarName is an environment variable name.
+	HealthProbeServicePortVarName = "HEALTH_PROBE_SERVICE_PORT"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -60,7 +63,10 @@ type EnvVariables struct {
 	EnableIstioIntegration     string
 	EnableSaveConfigToFile     string
 	EnablePanicOnPutError      string
+	HealthProbeServicePort     string
 }
+
+var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
@@ -76,6 +82,7 @@ func GetEnv() EnvVariables {
 		EnableIstioIntegration:     os.Getenv(EnableIstioIntegrationVarName),
 		EnableSaveConfigToFile:     os.Getenv(EnableSaveConfigToFileVarName),
 		EnablePanicOnPutError:      os.Getenv(EnablePanicOnPutErrorVarName),
+		HealthProbeServicePort:     GetEnvironmentVariable(HealthProbeServicePortVarName, "8123", portNumberValidator),
 	}
 
 	return env

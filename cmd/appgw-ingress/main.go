@@ -8,6 +8,8 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -37,6 +39,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -129,6 +132,15 @@ func main() {
 
 	// start controller
 	appGwIngressController.Start(env)
+
+	// Start the Health Probe Server
+	srv := &http.Server{
+		Handler: health.NewHealthMux(appGwIngressController),
+		Addr:    fmt.Sprintf(":%s", env.HealthProbeServicePort),
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		glog.Fatal("Failed starting Health Probe Server", err)
+	}
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
