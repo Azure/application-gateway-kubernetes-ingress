@@ -35,7 +35,9 @@ func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct
 			case in := <-eventChannel.Out():
 				event := in.(events.Event)
 				if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
-					glog.V(5).Infof("Skipping event: %s", reason)
+					if reason != "" {
+						glog.V(5).Infof("Skipping event: %s", reason)
+					}
 					continue
 				}
 
