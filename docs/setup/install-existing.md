@@ -11,7 +11,7 @@ configuration based on these. AGIC applies App Gateway config via the Azure Reso
     - Option 2: [Using a Service Principal](#using-a-service-principal)
 - [Install Ingress Controller using Helm](#install-ingress-controller-as-a-helm-chart)
 - [Multi-cluster / Shared App Gateway](#user-content-multi-cluster--shared-app-gateway): Install AGIC in an environment, where App Gateway is
-shared between one or more AKS custers and/or other Azure components.
+shared between one or more AKS clusters and/or other Azure components.
 
 ### Prerequisites
 This documents assumes you already have the following tools and infrastructure installed:
