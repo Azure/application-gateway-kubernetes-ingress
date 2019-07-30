@@ -26,7 +26,7 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
 			backendServicePort := ""
 			if destinationID.Destination.Port.Number != 0 {
-				backendServicePort = string(destinationID.Destination.Port.Number)
+				backendServicePort = fmt.Sprint(destinationID.Destination.Port.Number)
 			} else {
 				backendServicePort = destinationID.Destination.Port.Name
 			}
