@@ -90,6 +90,7 @@ spec:
 ```
 
 ## Connection Draining
+
 `connection-draining`: This annotation allows to specify whether to enable connection draining.
 `connection-draining-timeout`: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.
 
@@ -123,6 +124,7 @@ spec:
 ```
 
 ## Cookie Based Affinity
+
 This annotation allows to specify whether to enable cookie based affinity.
 
 ### Usage
@@ -153,6 +155,7 @@ spec:
 ```
 
 ## Request Timeout
+
 This annotation allows to specify the request timeout in seconds after which Application Gateway will fail the request if response is not received.
 
 ### Usage
@@ -183,6 +186,7 @@ spec:
 ```
 
 ## Use Private IP
+
 This annotation allows to specify whether to expose this endpoint on Private IP of Application Gateway.
 
 > **Note**
