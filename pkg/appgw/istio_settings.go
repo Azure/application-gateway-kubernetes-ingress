@@ -139,9 +139,6 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
-	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
-
 	for destinationID, serviceBackendPairs := range serviceBackendPairsMap {
 		if len(serviceBackendPairs) > 1 {
 			// more than one possible backend port exposed through ingress
