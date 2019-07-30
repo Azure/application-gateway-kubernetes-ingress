@@ -48,3 +48,4 @@ build/
 
 # Development Environment Variables
 .env
+coverage.txt
