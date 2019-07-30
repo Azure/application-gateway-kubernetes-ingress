@@ -2,20 +2,20 @@
 
 This feature allows to expose the ingress endpoint within the `Virtual Network` using a private IP.
 
-**Pre-requisites**
+**Pre-requisites**  
 Application Gateway with a [Private IP configuration](https://docs.microsoft.com/en-us/azure/application-gateway/configure-application-gateway-with-private-frontend-ip)
 
 There are two ways to configure the controller to use Private IP for ingress,
 
 ## Assign to a particular ingress
-To expose a particular ingress over Private IP, use annotation [`use-private-ip`](../annotations.md#use-private-ip) in Ingress.
+To expose a particular ingress over Private IP, use annotation [`appgw.ingress.kubernetes.io/use-private-ip`](../annotations.md#use-private-ip) in Ingress.
 
 ### Usage
 ```yaml
 appgw.ingress.kubernetes.io/use-private-ip: "true"
 ```
 
-If Application Gateway doesn't have a private IP, then Ingresses with this annotation set to `true` will be pruned. This will be indicated in the ingress event and AGIC pod log.
+For App Gateways without a Private IP, Ingresses annotated with `appgw.ingress.kubernetes.io/use-private-ip: "true"` will be ignored. This will be indicated in the ingress event and AGIC pod log.
 
 * Error as indicated in the Ingress Event
 
@@ -50,4 +50,4 @@ This will make the ingress controller filter the ipconfigurations for a Private 
 AGIC will panic and crash if `usePrivateIP: true` and no Private IP is assigned.
 
 **Notes:**
-Application Gateway v2 SKU manadates a Public IP. For meeting compliance requirement where the Application Gateway should be completely private, Attach a [`Network Security Group`](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview) to the Application Gateway's subnet to restrict traffic.
+Application Gateway v2 SKU requires a Public IP. Should you require Application Gateway to be private, Attach a [`Network Security Group`](https://docs.microsoft.com/en-us/azure/virtual-network/security-overview) to the Application Gateway's subnet to restrict traffic.
