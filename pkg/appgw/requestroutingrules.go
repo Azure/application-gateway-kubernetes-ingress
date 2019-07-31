@@ -60,7 +60,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
-	httpListenersMap := c.groupListenersByListenerIdentifier(c.appGw.HTTPListeners)
+	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
@@ -219,7 +219,6 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
-
 		if len(path.Path) == 0 || path.Path == "/*" || path.Path == "/" {
 			continue
 		}
