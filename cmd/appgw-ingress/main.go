@@ -9,9 +9,11 @@ import (
 	"context"
 	"flag"
 	"os"
+	"os/signal"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -127,6 +129,11 @@ func main() {
 
 	// start controller
 	appGwIngressController.Start(env)
+
+	sigChan := make(chan os.Signal)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+	glog.Info("Goodbye!")
 }
 
 func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
