@@ -41,7 +41,9 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		configCache:     to.ByteSlicePtr([]byte{}),
 	}
 
-	controller.worker = worker.NewWorker(controller)
+	controller.worker = &worker.Worker{
+		EventProcessor: controller,
+	}
 	return controller
 }
 
@@ -52,9 +54,8 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
 	// This will start individual go routines for informers
 	c.k8sContext.Run(c.stopChannel, false, envVariables)
 
-	// Starts Worker
-	// This will start worker to process events from k8sContext
-	c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
+	// Starts Worker processing events from k8sContext
+	go c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
 
 	select {}
 }

@@ -36,8 +36,10 @@ var _ = Describe("Worker Test", func() {
 				backChannel <- struct{}{}
 				return nil
 			})
-			worker := NewWorker(eventProcessor)
-			worker.Run(eventChannel, stopChannel)
+			worker := Worker{
+				EventProcessor: eventProcessor,
+			}
+			go worker.Run(eventChannel, stopChannel)
 
 			ingress := *tests.NewIngressFixture()
 			eventChannel.In() <- events.Event{
