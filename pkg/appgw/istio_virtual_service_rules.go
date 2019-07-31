@@ -33,6 +33,7 @@ func (c *appGwConfigBuilder) processIstioIngressRules(virtualService *v1alpha3.V
 func (c *appGwConfigBuilder) processIstioIngressRule(rule *v1alpha3.HTTPRoute, virtualService *v1alpha3.VirtualService, env environment.EnvVariables) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[int32]interface{})
 	//ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
+	/* TODO (rhea): add istio certificates to create a host to secret map for virtual services */
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
 	/*// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
