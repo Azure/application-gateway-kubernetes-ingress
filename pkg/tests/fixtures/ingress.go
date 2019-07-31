@@ -24,7 +24,7 @@ func GetIngress() *v1beta1.Ingress {
 										ServiceName: tests.ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
-											IntVal: 8080,
+											IntVal: 80,
 										},
 									},
 								},
