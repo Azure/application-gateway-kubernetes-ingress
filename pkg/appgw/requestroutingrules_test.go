@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -14,101 +13,134 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
-	targetListener := listenerIdentifier{
-		FrontendPort: int32(443),
-		HostName:     "foo.baz",
-	}
-
-	expectedRedirectID := "/subscriptions/--subscription--" +
-		"/resourceGroups/--resource-group--" +
-		"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
-		"/redirectConfigurations/sslr-fl-foo.baz-443"
-
-	// TODO(draychev): Move to test fixtures
-	ingress := fixtures.GetIngress()
-
-	ingressList := []*v1beta1.Ingress{ingress}
-	serviceList := []*v1.Service{tests.NewServiceFixture()}
-	cbCtx := &ConfigBuilderContext{
-		IngressList: ingressList,
-		ServiceList: serviceList,
-	}
-
-	Context("test getSslRedirectConfigResourceReference", func() {
+	Context("test ssl redirect is configured correctly when a path based rule is created", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		_ = configBuilder.k8sContext.Caches.Service.Add(tests.NewServiceFixture())
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressFixture()
 
-		actualID := configBuilder.getSslRedirectConfigResourceReference(targetListener).ID
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
-		It("generates expected ID", func() {
-			Expect(*actualID).To(Equal(expectedRedirectID))
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+			ServiceList: []*v1.Service{service},
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
+
+		It("should have ingress with TLS and redirect", func() {
+			Expect(len(ingress.Spec.TLS) != 0).To(BeTrue())
+			Expect(ingress.Annotations[annotations.SslRedirectKey]).To(Equal("true"))
+		})
+
+		rule := &ingress.Spec.Rules[0]
+
+		_ = configBuilder.Listeners(cbCtx)
+		// !! Action !! -- will mutate pathMap struct
+		pathMap := configBuilder.getPathMaps(cbCtx)
+		listenerID := generateListenerID(rule, n.HTTP, nil, false)
+		It("has no default backend pool", func() {
+			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
+		})
+		It("has no default backend http settings", func() {
+			Expect(pathMap[listenerID].DefaultBackendHTTPSettings).To(BeNil())
+		})
+
+		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
+			generateSSLRedirectConfigurationName(listenerIdentifier{
+				HostName:     rule.Host,
+				FrontendPort: 443,
+			}))
+		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
+		It("generated expected ID", func() {
+			Expect(actualID).To(Equal(expectedRedirectID))
+		})
+		It("should still have 2 path rules", func() {
+			Expect(2).To(Equal(len(*pathMap[listenerID].PathRules)))
 		})
 	})
 
-	Context("test modifyPathRulesForRedirection with 0 path rules", func() {
+	Context("test ssl redirect is configured correctly when a basic rule is created", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		pathMap := newURLPathMap()
+		secret := tests.NewSecretTestFixture()
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", true)
 
-		// Ensure there are no path rules defined for this test
-		pathMap.PathRules = &[]n.ApplicationGatewayPathRule{}
-
-		// Ensure the test is setup correctly
-		It("should have 0 PathRules", func() {
-			Expect(len(*pathMap.PathRules)).To(Equal(0))
+		It("should have ingress with TLS and redirect", func() {
+			Expect(len(ingress.Spec.TLS) != 0).To(BeTrue())
+			Expect(len(ingress.Spec.TLS[0].SecretName) != 0).To(BeTrue())
+			Expect(ingress.Annotations[annotations.SslRedirectKey]).To(Equal("true"))
 		})
 
-		// !! Action !! -- will mutate pathMap struct
-		configBuilder.modifyPathRulesForRedirection(cbCtx, &pathMap, targetListener)
+		_ = configBuilder.k8sContext.Caches.Secret.Add(secret)
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
-		actualID := *(pathMap.DefaultRedirectConfiguration.ID)
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+			ServiceList: []*v1.Service{service},
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+
+		// !! Action !! -- will mutate pathMap struct
+		pathMap := configBuilder.getPathMaps(cbCtx)
+
+		rule := &ingress.Spec.Rules[0]
+		listenerID := generateListenerID(rule, n.HTTP, nil, false)
+		It("has no default backend pool", func() {
+			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
+		})
+		It("has no default backend http settings", func() {
+			Expect(pathMap[listenerID].DefaultBackendHTTPSettings).To(BeNil())
+		})
+		It("has no pathrules", func() {
+			Expect(pathMap[listenerID].PathRules).To(BeNil())
+		})
+
+		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
+			generateSSLRedirectConfigurationName(listenerIdentifier{
+				HostName:     rule.Host,
+				FrontendPort: 443,
+			}))
+		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
 		It("generated expected ID", func() {
 			Expect(expectedRedirectID).To(Equal(actualID))
-		})
-
-		It("should still have 0 path rules", func() {
-			Expect(0).To(Equal(len(*pathMap.PathRules)))
-		})
-	})
-
-	Context("test modifyPathRulesForRedirection with 1 path rules", func() {
-		configBuilder := newConfigBuilderFixture(nil)
-		pathMap := newURLPathMap()
-
-		// Ensure the test is setup correctly
-		It("should have length of PathRules to be 1", func() {
-			Expect(1).To(Equal(len(*pathMap.PathRules)))
-		})
-
-		firstPathRule := (*pathMap.PathRules)[0]
-		firstPathRule.BackendAddressPool = &n.SubResource{ID: to.StringPtr("-something-")}
-		firstPathRule.BackendHTTPSettings = &n.SubResource{ID: to.StringPtr("-something-")}
-		firstPathRule.RedirectConfiguration = nil
-
-		// !! Action !! -- will mutate pathMap struct
-		configBuilder.modifyPathRulesForRedirection(cbCtx, &pathMap, targetListener)
-
-		actual := *(*pathMap.PathRules)[0].ApplicationGatewayPathRulePropertiesFormat
-
-		It("should have a nil BackendAddressPool", func() {
-			Expect(firstPathRule.BackendAddressPool).To(BeNil())
-		})
-
-		It("should have a nil BackendHTTPSettings", func() {
-			Expect(firstPathRule.BackendHTTPSettings).To(BeNil())
-		})
-
-		It("should have correct RedirectConfiguration ID", func() {
-			Expect(expectedRedirectID).To(Equal(*actual.RedirectConfiguration.ID))
 		})
 	})
 
 	Context("test RequestRoutingRules without HTTPS but with SSL Redirect", func() {
 		configBuilder := newConfigBuilderFixture(nil)
-		_ = configBuilder.k8sContext.Caches.Service.Add(tests.NewServiceFixture())
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := fixtures.GetIngress()
+
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+			ServiceList: []*v1.Service{service},
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
 		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
