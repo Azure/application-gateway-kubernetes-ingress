@@ -113,6 +113,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 // Run executes informer collection.
 func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
+	glog.V(1).Infoln("k8s context run started")
 	var hasSynced []cache.InformerSynced
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
