@@ -16,41 +16,28 @@ import (
 
 const sleepOnErrorSeconds = 5
 
-// NewWorker creates a worker with a callback function. The callback
-// function is executed for each event in the queue.
-func NewWorker(processor EventProcessor) *Worker {
-	w := &Worker{
-		EventProcessor: processor,
-	}
-
-	return w
-}
-
-// Run starts the worker which listens for events in eventChannel. It loops until
-// stopChannel is closed.
+// Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
 func (w *Worker) Run(eventChannel *channels.RingChannel, stopChannel chan struct{}) {
-	go func() {
-		for {
-			select {
-			case in := <-eventChannel.Out():
-				event := in.(events.Event)
-				if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
-					if reason != "" {
-						glog.V(5).Infof("Skipping event: %s", reason)
-					}
-					continue
+	for {
+		select {
+		case in := <-eventChannel.Out():
+			event := in.(events.Event)
+			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
+				if reason != "" {
+					glog.V(5).Infof("Skipping event: %s", reason)
 				}
-
-				// Use callback to process event.
-				if err := w.Process(event); err != nil {
-					glog.Error("Processing event failed:", err)
-					time.Sleep(sleepOnErrorSeconds * time.Second)
-				} else {
-					glog.V(3).Infoln("Successfully processed event")
-				}
-			case <-stopChannel:
-				break
+				continue
 			}
+
+			// Use callback to process event.
+			if err := w.Process(event); err != nil {
+				glog.Error("Processing event failed:", err)
+				time.Sleep(sleepOnErrorSeconds * time.Second)
+			} else {
+				glog.V(3).Infoln("Successfully processed event")
+			}
+		case <-stopChannel:
+			break
 		}
-	}()
+	}
 }
