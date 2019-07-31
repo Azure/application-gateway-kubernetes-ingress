@@ -130,24 +130,26 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		}
 	}
 
-	for _, virtualService := range cbCtx.IstioVirtualServices {
-		for _, rule := range virtualService.Spec.HTTP {
-			_, azListenerConfig := c.processIstioIngressRule(&rule, virtualService, cbCtx.EnvVariables)
-			for listenerID, listenerAzConfig := range azListenerConfig {
-				if _, exists := urlPathMaps[listenerID]; !exists {
-					urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
-						Etag: to.StringPtr("*"),
-						Name: to.StringPtr(generateURLPathMapName(listenerID)),
-						ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
-						ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-							DefaultBackendAddressPool:  &n.SubResource{ID: defaultAddressPoolID},
-							DefaultBackendHTTPSettings: &n.SubResource{ID: defaultHTTPSettingsID},
-						},
+	if cbCtx.EnableIstioIntegration {
+		for _, virtualService := range cbCtx.IstioVirtualServices {
+			for _, rule := range virtualService.Spec.HTTP {
+				_, azListenerConfig := c.processIstioIngressRule(&rule, virtualService, cbCtx.EnvVariables)
+				for listenerID, listenerAzConfig := range azListenerConfig {
+					if _, exists := urlPathMaps[listenerID]; !exists {
+						urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
+							Etag: to.StringPtr("*"),
+							Name: to.StringPtr(generateURLPathMapName(listenerID)),
+							ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
+							ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+								DefaultBackendAddressPool:  &n.SubResource{ID: defaultAddressPoolID},
+								DefaultBackendHTTPSettings: &n.SubResource{ID: defaultHTTPSettingsID},
+							},
+						}
 					}
-				}
 
-				pathMap := c.getIstioPathMap(cbCtx, listenerID, listenerAzConfig, virtualService, &rule)
-				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap)
+					pathMap := c.getIstioPathMap(cbCtx, listenerID, listenerAzConfig, virtualService, &rule)
+					urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap)
+				}
 			}
 		}
 	}
