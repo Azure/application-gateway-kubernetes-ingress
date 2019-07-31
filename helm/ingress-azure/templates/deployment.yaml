@@ -34,7 +34,7 @@ spec:
           tcpSocket:
         {{- if .Values.kubernetes }}
         {{- if .Values.kubernetes.healthProbeServicePort }}
-            port: 8080
+            port: {{ .Values.kubernetes.healthProbeServicePort }}
         {{ else }}
             port: 8123
         {{- end}}
@@ -47,7 +47,7 @@ spec:
           tcpSocket:
         {{- if .Values.kubernetes }}
         {{- if .Values.kubernetes.healthProbeServicePort }}
-            port: 8080
+            port: {{ .Values.kubernetes.healthProbeServicePort }}
         {{ else }}
             port: 8123
         {{- end}}

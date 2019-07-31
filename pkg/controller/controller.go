@@ -71,6 +71,7 @@ func (c *AppGwIngressController) Liveness() bool {
 
 // Readiness fulfills the health.HealthProbe interface; It is evaluated when K8s readiness-checks the AGIC pod.
 func (c *AppGwIngressController) Readiness() bool {
-	_, ok := <-c.k8sContext.CacheSynced
-	return ok
+	_, isOpen := <-c.k8sContext.CacheSynced
+	// When the channel is CLOSED we have synced cache and are READY!
+	return !isOpen
 }
