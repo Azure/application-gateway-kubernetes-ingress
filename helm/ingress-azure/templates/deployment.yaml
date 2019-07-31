@@ -31,7 +31,8 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /health/ready
         {{- if .Values.kubernetes }}
         {{- if .Values.kubernetes.healthProbeServicePort }}
             port: {{ .Values.kubernetes.healthProbeServicePort }}
@@ -44,7 +45,8 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /health/alive
         {{- if .Values.kubernetes }}
         {{- if .Values.kubernetes.healthProbeServicePort }}
             port: {{ .Values.kubernetes.healthProbeServicePort }}
