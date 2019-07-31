@@ -67,4 +67,58 @@ var _ = Describe("prune function tests", func() {
 			Expect(len(prunedIngresses)).To(Equal(2))
 		})
 	})
+
+	Context("ensure pruneRedirectNoTLS prunes ingress", func() {
+		// invalid ingress without https and redirect
+		ingressInvalid := tests.NewIngressFixture()
+		ingressInvalid.Annotations = map[string]string{
+			annotations.SslRedirectKey: "true",
+		}
+		ingressInvalid.Spec.TLS = nil
+		It("should have ingressInvalid without https and redirect", func() {
+			Expect(annotations.IsSslRedirect(ingressInvalid)).To(BeTrue())
+			Expect(ingressInvalid.Spec.TLS).To(BeNil())
+		})
+
+		// valid ingress with https and redirect
+		ingressValid1 := tests.NewIngressFixture()
+		ingressValid1.Annotations = map[string]string{
+			annotations.SslRedirectKey: "true",
+		}
+		It("should have ingressValid1 without https and redirect", func() {
+			Expect(annotations.IsSslRedirect(ingressValid1)).To(BeTrue())
+			Expect(ingressValid1.Spec.TLS).To(Not(BeNil()))
+		})
+
+		// valid ingress without https and redirect
+		ingressValid2 := tests.NewIngressFixture()
+		ingressValid2.Annotations = map[string]string{
+			annotations.SslRedirectKey: "false",
+		}
+		ingressValid2.Spec.TLS = nil
+		It("should have ingressValid2 without https and redirect", func() {
+			Expect(annotations.IsSslRedirect(ingressValid2)).To(BeFalse())
+			Expect(ingressValid2.Spec.TLS).To(BeNil())
+		})
+
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{
+				ingressInvalid,
+				ingressValid1,
+				ingressValid2,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+		}
+		appGw := fixtures.GetAppGateway()
+		It("removes the invalid ingresses", func() {
+			prunedIngresses := pruneRedirectWithNoTLS(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(cbCtx.IngressList)).To(Equal(3))
+			Expect(len(prunedIngresses)).To(Equal(2))
+			Expect(prunedIngresses).To(Not(ContainElement(ingressInvalid)))
+			Expect(prunedIngresses).To(ContainElement(ingressValid1))
+			Expect(prunedIngresses).To(ContainElement(ingressValid2))
+		})
+	})
 })
