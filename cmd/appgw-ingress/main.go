@@ -134,13 +134,16 @@ func main() {
 	appGwIngressController.Start(env)
 
 	// Start the Health Probe Server
-	srv := &http.Server{
+	hpSrv := &http.Server{
 		Handler: health.NewHealthMux(appGwIngressController),
 		Addr:    fmt.Sprintf(":%s", env.HealthProbeServicePort),
 	}
-	if err := srv.ListenAndServe(); err != nil {
-		glog.Fatal("Failed starting Health Probe Server", err)
-	}
+	go func() {
+		glog.Infof("Starting Health Probe Server on %s", hpSrv.Addr)
+		if err := hpSrv.ListenAndServe(); err != nil {
+			glog.Fatal("Failed starting Health Probe Server", err)
+		}
+	}()
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

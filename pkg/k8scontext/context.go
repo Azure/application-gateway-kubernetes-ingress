@@ -113,7 +113,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 // Run executes informer collection.
 func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
-	glog.V(1).Infoln("k8s context run started")
 	var hasSynced []cache.InformerSynced
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
@@ -155,7 +154,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return
 	}
 	// Closing the cacheSynced channel indicates to the rest of the system that... caches have been synced.
-	close(cacheSynced)
+	close(c.CacheSynced)
 	glog.V(1).Infoln("initial cache sync done")
 	glog.V(1).Infoln("k8s context run finished")
 }

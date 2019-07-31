@@ -76,3 +76,7 @@ spec:
           secret:
             secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      {{- end }}
