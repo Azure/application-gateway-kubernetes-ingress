@@ -18,6 +18,9 @@ import (
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
 func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayHTTPListener {
+	if c.appGw.HTTPListeners != nil {
+		return c.appGw.HTTPListeners
+	}
 	var listeners []n.ApplicationGatewayHTTPListener
 
 	if cbCtx.EnableIstioIntegration {
@@ -50,6 +53,10 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 	}
 
 	sort.Sort(sorter.ByListenerName(listeners))
+
+	// Since getListeners() would be called multiple times within the life cycle of a Process(Event)
+	// we cache the results of this function in what would be final place to store the Listeners.
+	c.appGw.HTTPListeners = &listeners
 	return &listeners
 }
 
