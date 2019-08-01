@@ -375,7 +375,7 @@ func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address string) erro
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
 	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
-		errorLine := fmt.Sprintf("Unable to add ip address form ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
 		glog.Error(errorLine)
 		return errors.New(errorLine)
 	}
@@ -404,7 +404,7 @@ func (c *Context) RemoveIngressStatus(ingress v1beta1.Ingress, address string) e
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
 	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
-		errorLine := fmt.Sprintf("Unable to remove ip address form ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
 		glog.Error(errorLine)
 		return errors.New(errorLine)
 	}
