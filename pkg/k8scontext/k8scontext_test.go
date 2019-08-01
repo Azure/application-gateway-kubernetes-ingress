@@ -374,14 +374,14 @@ var _ = Describe("K8scontext", func() {
 	})
 
 	Context("Checking AddIngressStatus and RemoveIngressStatus", func() {
-		ip := "address"
+		ip := k8scontext.IPAddress("address")
 		It("adds IP when not present and then removes", func() {
 			// add test
 			ctxt.AddIngressStatus(*ingress, ip)
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
-				IP:       ip,
+				IP:       string(ip),
 			}))
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 
@@ -399,7 +399,7 @@ var _ = Describe("K8scontext", func() {
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
-				IP:       ip,
+				IP:       string(ip),
 			}))
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 		})

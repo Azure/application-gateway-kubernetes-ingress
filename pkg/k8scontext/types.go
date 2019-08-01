@@ -53,3 +53,6 @@ type Context struct {
 
 	UpdateChannel *channels.RingChannel
 }
+
+// IPAddress is type for IP address string
+type IPAddress string

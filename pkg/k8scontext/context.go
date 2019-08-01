@@ -358,18 +358,18 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 }
 
 // AddIngressStatus adds IP address in Ingress Status
-func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address string) error {
+func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address IPAddress) error {
 	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
 
 	// Skip if already added.
 	for _, loadBalancerIngress := range loadBalancerIngresses {
-		if loadBalancerIngress.IP == address {
+		if loadBalancerIngress.IP == string(address) {
 			return nil
 		}
 	}
 
 	loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-		IP: address,
+		IP: string(address),
 	})
 
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
@@ -384,13 +384,13 @@ func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address string) erro
 }
 
 // RemoveIngressStatus removes IP address in Ingress Status
-func (c *Context) RemoveIngressStatus(ingress v1beta1.Ingress, address string) error {
+func (c *Context) RemoveIngressStatus(ingress v1beta1.Ingress, address IPAddress) error {
 	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
 
 	// find the status the needs to be removed
 	removeIdx := -1
 	for idx, loadBalancerIngress := range loadBalancerIngresses {
-		if loadBalancerIngress.IP == address {
+		if loadBalancerIngress.IP == string(address) {
 			removeIdx = idx
 			break
 		}
