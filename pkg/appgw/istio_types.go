@@ -16,8 +16,16 @@ type istioMatchIdentifier struct {
 	Gateways       []string
 }
 
+type istioVirtualServiceIdentifier struct {
+	Namespace string
+	Name      string
+}
+
 type istioDestinationIdentifier struct {
 	serviceIdentifier
-	VirtualService *v1alpha3.VirtualService
-	Destination    *v1alpha3.Destination
+	istioVirtualServiceIdentifier
+
+	DestinationHost   string
+	DestinationSubset string
+	DestinationPort   uint32
 }
