@@ -372,4 +372,44 @@ var _ = Describe("K8scontext", func() {
 			Expect(ctxt.IsEndpointReferencedByAnyIngress(endpoints)).To(BeFalse(), "Expected is endpoints is not selected by the service and ingress.")
 		})
 	})
+
+	Context("Checking AddIngressStatus and RemoveIngressStatus", func() {
+		ip := k8scontext.IPAddress("address")
+		It("adds IP when not present and then removes", func() {
+			// add test
+			ctxt.AddIngressStatus(*ingress, ip)
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+				Hostname: "",
+				IP:       string(ip),
+			}))
+			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
+
+			// remove test
+			ctxt.RemoveIngressStatus(*updatedIngress, ip)
+			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
+		})
+
+		It("doesn't add IP again when already present", func() {
+			// add
+			ctxt.AddIngressStatus(*ingress, ip)
+			// add again
+			ctxt.AddIngressStatus(*ingress, ip)
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+				Hostname: "",
+				IP:       string(ip),
+			}))
+			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
+		})
+
+		It("remove ip doesn't fail when ip is not present", func() {
+			// remove test
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			ctxt.RemoveIngressStatus(*updatedIngress, ip)
+			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
+		})
+	})
 })

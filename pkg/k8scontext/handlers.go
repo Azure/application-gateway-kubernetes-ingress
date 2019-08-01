@@ -19,7 +19,7 @@ type handlers struct {
 func (h handlers) ingressAddFunc(obj interface{}) {
 	ing := obj.(*v1beta1.Ingress)
 
-	if !isIngressApplicationGateway(ing) {
+	if !IsIngressApplicationGateway(ing) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h handlers) ingressDeleteFunc(obj interface{}) {
 	if ing == nil {
 		return
 	}
-	if !isIngressApplicationGateway(ing) {
+	if !IsIngressApplicationGateway(ing) {
 		return
 	}
 	ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
@@ -81,7 +81,7 @@ func (h handlers) ingressUpdateFunc(oldObj, newObj interface{}) {
 	}
 	oldIng := oldObj.(*v1beta1.Ingress)
 	ing := newObj.(*v1beta1.Ingress)
-	if !isIngressApplicationGateway(ing) && !isIngressApplicationGateway(oldIng) {
+	if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
 		return
 	}
 	if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
