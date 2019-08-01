@@ -8,7 +8,7 @@ package appgw
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
@@ -32,4 +32,14 @@ type ConfigBuilderContext struct {
 
 	// Feature flag enabling panic() when put to ARM fails.
 	EnablePanicOnPutError bool
+}
+
+// InIngressList returns true if an ingress is in the ingress list
+func (cbCtx *ConfigBuilderContext) InIngressList(ingress *v1beta1.Ingress) bool {
+	for _, prunedIngress := range cbCtx.IngressList {
+		if ingress.Name == prunedIngress.Name && ingress.Namespace == prunedIngress.Namespace {
+			return true
+		}
+	}
+	return false
 }
