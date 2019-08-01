@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -72,6 +73,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	context := &Context{
+		kubeClient:     kubeClient,
+		crdClient:      crdClient,
+		istioCrdClient: istioCrdClient,
+
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
@@ -235,7 +240,7 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
-		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
+		if hasHTTPRule(ingress) && IsIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
@@ -352,7 +357,63 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
-func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+// AddIngressStatus adds IP address in Ingress Status
+func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address string) error {
+	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
+
+	// Skip if already added.
+	for _, loadBalancerIngress := range loadBalancerIngresses {
+		if loadBalancerIngress.IP == address {
+			return nil
+		}
+	}
+
+	loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		IP: address,
+	})
+
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
+		errorLine := fmt.Sprintf("Unable to add ip address form ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		glog.Error(errorLine)
+		return errors.New(errorLine)
+	}
+
+	return nil
+}
+
+// RemoveIngressStatus removes IP address in Ingress Status
+func (c *Context) RemoveIngressStatus(ingress v1beta1.Ingress, address string) error {
+	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
+
+	// find the status the needs to be removed
+	removeIdx := -1
+	for idx, loadBalancerIngress := range loadBalancerIngresses {
+		if loadBalancerIngress.IP == address {
+			removeIdx = idx
+			break
+		}
+	}
+
+	if removeIdx != -1 {
+		loadBalancerIngresses[removeIdx] = loadBalancerIngresses[len(loadBalancerIngresses)-1]
+		loadBalancerIngresses = loadBalancerIngresses[:len(loadBalancerIngresses)-1]
+	}
+
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
+		errorLine := fmt.Sprintf("Unable to remove ip address form ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		glog.Error(errorLine)
+		return errors.New(errorLine)
+	}
+
+	return nil
+}
+
+// IsIngressApplicationGateway checks if applicaiton gateway annotation is present on the ingress
+func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
 }
