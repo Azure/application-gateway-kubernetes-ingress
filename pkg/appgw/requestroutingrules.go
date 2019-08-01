@@ -12,7 +12,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -196,18 +195,6 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 
 	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule)
 
-	return &pathMap
-}
-
-func (c *appGwConfigBuilder) getIstioPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, virtualService *v1alpha3.VirtualService, rule *v1alpha3.HTTPRoute) *n.ApplicationGatewayURLPathMap {
-	pathMap := n.ApplicationGatewayURLPathMap{
-		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateURLPathMapName(listenerID)),
-		ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
-		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{},
-	}
-
-	/* TODO(rhea): add defaults and path rules */
 	return &pathMap
 }
 
