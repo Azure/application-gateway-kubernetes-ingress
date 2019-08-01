@@ -58,7 +58,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(destinationID.serviceKey())
-		destinationPortNum := int32(destinationID.Destination.Port.Number)
+		destinationPortNum := int32(destinationID.DestinationPort)
 		if service == nil {
 			// Once services are filtered in the istioMatchDestinationIDs function, this should never happen
 			logLine := fmt.Sprintf("Unable to get the service [%s]", destinationID.serviceKey())
@@ -77,12 +77,10 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 					// ignore UDP ports
 					continue
 				}
-				if sp.Port == destinationPortNum ||
-					sp.Name == destinationID.Destination.Port.Name ||
-					sp.TargetPort.String() == destinationID.Destination.Port.Name ||
-					sp.TargetPort.String() == fmt.Sprint(destinationPortNum) {
-					// matched a service port with a port from the service
 
+				// TODO(delqn): implement correctly port lookup by name
+				if sp.Port == destinationPortNum || sp.TargetPort.String() == fmt.Sprint(destinationPortNum) {
+					// matched a service port with a port from the service
 					if sp.TargetPort.String() == "" {
 						// targetPort is not defined, by default targetPort == port
 						pair := serviceBackendPortPair{
@@ -143,10 +141,10 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		if len(serviceBackendPairs) > 1 {
 			// more than one possible backend port exposed through ingress
 			backendServicePort := ""
-			if destinationID.Destination.Port.Number != 0 {
-				backendServicePort = string(destinationID.Destination.Port.Number)
+			if destinationID.DestinationPort != 0 {
+				backendServicePort = string(destinationID.DestinationPort)
 			} else {
-				backendServicePort = destinationID.Destination.Port.Name
+				// TODO(delqn): implement port lookup by name
 			}
 			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
 				destinationID.serviceKey(), backendServicePort)
@@ -177,12 +175,12 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 
 func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestinationIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	backendServicePort := ""
-	if destinationID.Destination.Port.Number != 0 {
-		backendServicePort = string(destinationID.Destination.Port.Number)
+	if destinationID.DestinationPort != 0 {
+		backendServicePort = string(destinationID.DestinationPort)
 	} else {
-		backendServicePort = destinationID.Destination.Port.Name
+		// TODO(delqn): Implement port lookup by name
 	}
-	httpSettingsName := generateHTTPSettingsName(destinationID.serviceFullName(), backendServicePort, port, destinationID.VirtualService.Name)
+	httpSettingsName := generateHTTPSettingsName(destinationID.serviceFullName(), backendServicePort, port, destinationID.istioVirtualServiceIdentifier.Name)
 	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),

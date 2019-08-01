@@ -129,30 +129,6 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		}
 	}
 
-	if cbCtx.EnableIstioIntegration {
-		for _, virtualService := range cbCtx.IstioVirtualServices {
-			for _, rule := range virtualService.Spec.HTTP {
-				_, azListenerConfig := c.processIstioIngressRule(&rule, virtualService, cbCtx.EnvVariables)
-				for listenerID, listenerAzConfig := range azListenerConfig {
-					if _, exists := urlPathMaps[listenerID]; !exists {
-						urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
-							Etag: to.StringPtr("*"),
-							Name: to.StringPtr(generateURLPathMapName(listenerID)),
-							ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
-							ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-								DefaultBackendAddressPool:  &n.SubResource{ID: defaultAddressPoolID},
-								DefaultBackendHTTPSettings: &n.SubResource{ID: defaultHTTPSettingsID},
-							},
-						}
-					}
-
-					pathMap := c.getIstioPathMap(cbCtx, listenerID, listenerAzConfig, virtualService, &rule)
-					urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap)
-				}
-			}
-		}
-	}
-
 	// if no url pathmaps were created, then add a default path map since this will be translated to
 	// a basic request routing rule which is needed on Application Gateway to avoid validation error.
 	if len(urlPathMaps) == 0 {
@@ -167,6 +143,14 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
 				PathRules:                  &[]n.ApplicationGatewayPathRule{},
 			},
+		}
+	}
+
+	if cbCtx.EnableIstioIntegration {
+		for listenerID, pathMap := range c.getIstioPathMaps(cbCtx) {
+			if _, exists := urlPathMaps[listenerID]; !exists {
+				urlPathMaps[listenerID] = pathMap
+			}
 		}
 	}
 

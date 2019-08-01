@@ -48,7 +48,14 @@ func generateIstioDestinationID(virtualService *v1alpha3.VirtualService, destina
 			Namespace: virtualService.Namespace,
 			Name:      destination.Host,
 		},
-		VirtualService: virtualService,
-		Destination:    destination,
+
+		istioVirtualServiceIdentifier: istioVirtualServiceIdentifier{
+			Namespace: virtualService.Namespace,
+			Name:      virtualService.Name,
+		},
+
+		DestinationHost:   destination.Host,
+		DestinationSubset: destination.Subset,
+		DestinationPort:   destination.Port.Number,
 	}
 }
