@@ -80,7 +80,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 				if sp.Port == destinationPortNum ||
 					sp.Name == destinationID.Destination.Port.Name ||
 					sp.TargetPort.String() == destinationID.Destination.Port.Name ||
-					sp.TargetPort.String() == string(destinationPortNum) {
+					sp.TargetPort.String() == fmt.Sprint(destinationPortNum) {
 					// matched a service port with a port from the service
 
 					if sp.TargetPort.String() == "" {
