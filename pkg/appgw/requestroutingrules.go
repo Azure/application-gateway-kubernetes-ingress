@@ -146,6 +146,14 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		}
 	}
 
+	if cbCtx.EnableIstioIntegration {
+		for listenerID, pathMap := range c.getIstioPathMaps(cbCtx) {
+			if _, exists := urlPathMaps[listenerID]; !exists {
+				urlPathMaps[listenerID] = pathMap
+			}
+		}
+	}
+
 	return urlPathMaps
 }
 

@@ -142,3 +142,9 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 	}
 	return json.Marshal(m)
 }
+
+// ParseResourceID gets subscriptionId, resource group, resource name from resourceID
+func ParseResourceID(ID string) (string, string, string) {
+	split := strings.Split(ID, "/")
+	return split[2], split[4], split[8]
+}

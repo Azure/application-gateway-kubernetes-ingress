@@ -154,7 +154,8 @@ func NewIngressFixture() *v1beta1.Ingress {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.SslRedirectKey: "true",
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: Namespace,
 			Name:      Name,
