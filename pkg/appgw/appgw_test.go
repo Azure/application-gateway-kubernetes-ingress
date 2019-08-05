@@ -246,6 +246,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		addressPool := &n.ApplicationGatewayBackendAddressPool{
 			Etag: to.StringPtr("*"),
 			Name: &addressPoolName,
+			ID:   to.StringPtr(appGwIdentifier.addressPoolID(addressPoolName)),
 			ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 				BackendAddresses: &addressPoolAddresses,
 			},
