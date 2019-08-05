@@ -34,7 +34,7 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 			if pool, ok := addressPools[poolName]; ok {
 				return pool
 			}
-			pool := newPool(poolName, subset)
+			pool := c.newPool(poolName, subset)
 			pool.ID = to.StringPtr(c.appGwIdentifier.addressPoolID(poolName))
 			return pool
 		}
