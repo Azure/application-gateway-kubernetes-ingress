@@ -18,6 +18,7 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -357,53 +358,23 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
-// AddIngressStatus adds IP address in Ingress Status
-func (c *Context) AddIngressStatus(ingress v1beta1.Ingress, address IPAddress) error {
-	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
-
-	// Skip if already added.
-	for _, loadBalancerIngress := range loadBalancerIngresses {
-		if loadBalancerIngress.IP == string(address) {
-			return nil
-		}
+// UpdateIngressStatus adds IP address in Ingress Status
+func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
+	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name)
 	}
 
-	loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-		IP: string(address),
-	})
-
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if address != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(address),
+		})
+	}
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
-	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
-		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
-		glog.Error(errorLine)
-		return errors.New(errorLine)
-	}
-
-	return nil
-}
-
-// RemoveIngressStatus removes IP address in Ingress Status
-func (c *Context) RemoveIngressStatus(ingress v1beta1.Ingress, address IPAddress) error {
-	loadBalancerIngresses := ingress.Status.LoadBalancer.Ingress
-
-	// find the status the needs to be removed
-	removeIdx := -1
-	for idx, loadBalancerIngress := range loadBalancerIngresses {
-		if loadBalancerIngress.IP == string(address) {
-			removeIdx = idx
-			break
-		}
-	}
-
-	if removeIdx != -1 {
-		loadBalancerIngresses[removeIdx] = loadBalancerIngresses[len(loadBalancerIngresses)-1]
-		loadBalancerIngresses = loadBalancerIngresses[:len(loadBalancerIngresses)-1]
-	}
-
-	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
-
-	if _, err := c.kubeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).UpdateStatus(&ingress); err != nil {
+	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
 		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
 		glog.Error(errorLine)
 		return errors.New(errorLine)
