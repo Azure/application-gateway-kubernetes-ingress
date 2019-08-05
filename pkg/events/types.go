@@ -27,6 +27,9 @@ const (
 	// ReasonNoPrivateIPError is a reason for an event to be emitted.
 	ReasonNoPrivateIPError = "NoPrivateIP"
 
-	// ReasonRedirectwithNoTLS is a reason for an event to be emitted.
+	// ReasonRedirectWithNoTLS is a reason for an event to be emitted.
 	ReasonRedirectWithNoTLS = "RedirectWithNoTLS"
+
+	// ReasonUnableToUpdateIngressStatus is a reason for an event to be emitted.
+	ReasonUnableToUpdateIngressStatus = "UnableToUpdateIngressStatus"
 )
