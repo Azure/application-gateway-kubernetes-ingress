@@ -25,6 +25,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 	for virtSvcIdx, virtSvc := range cbCtx.IstioVirtualServices {
 		for _, http := range virtSvc.Spec.HTTP {
 			// TODO(delqn): consider weights
+			host := http.Route[0].Destination.Host
 			for matchIdx, match := range http.Match {
 				dst := istioDestinationIdentifier{
 					serviceIdentifier: serviceIdentifier{
@@ -36,7 +37,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 						Name:      virtSvc.Name,
 					},
 					// TODO(delqn)
-					DestinationHost: "httpbin",
+					DestinationHost: host,
 					DestinationPort: 8000,
 				}
 
