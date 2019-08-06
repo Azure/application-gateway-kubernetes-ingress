@@ -71,7 +71,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-redirect
-  namespace: test-tag
+  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
