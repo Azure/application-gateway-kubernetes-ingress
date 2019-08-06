@@ -26,6 +26,13 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 		for _, http := range virtSvc.Spec.HTTP {
 			// TODO(delqn): consider weights
 			host := http.Route[0].Destination.Host
+			var port uint32
+			if http.Route[0].Destination.Port.Number != 0 {
+				port = http.Route[0].Destination.Port.Number
+			} else {
+				port64, _ := strconv.ParseUint(http.Route[0].Destination.Port.Name, 10, 32)
+				port = uint32(port64)
+			}
 			for matchIdx, match := range http.Match {
 				dst := istioDestinationIdentifier{
 					serviceIdentifier: serviceIdentifier{
@@ -38,7 +45,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 					},
 					// TODO(delqn)
 					DestinationHost: host,
-					DestinationPort: 8000,
+					DestinationPort: port,
 				}
 
 				// TODO(delqn)
