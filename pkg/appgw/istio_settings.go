@@ -142,7 +142,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 			// more than one possible backend port exposed through ingress
 			backendServicePort := ""
 			if destinationID.DestinationPort != 0 {
-				backendServicePort = string(destinationID.DestinationPort)
+				backendServicePort = fmt.Sprint(destinationID.DestinationPort)
 			} else {
 				// TODO(delqn): implement port lookup by name
 			}
@@ -176,7 +176,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestinationIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	backendServicePort := ""
 	if destinationID.DestinationPort != 0 {
-		backendServicePort = string(destinationID.DestinationPort)
+		backendServicePort = fmt.Sprint(destinationID.DestinationPort)
 	} else {
 		// TODO(delqn): Implement port lookup by name
 	}
