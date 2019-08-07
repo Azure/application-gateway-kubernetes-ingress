@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -25,6 +26,14 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 	for virtSvcIdx, virtSvc := range cbCtx.IstioVirtualServices {
 		for _, http := range virtSvc.Spec.HTTP {
 			// TODO(delqn): consider weights
+			host := http.Route[0].Destination.Host
+			var port uint32
+			if http.Route[0].Destination.Port.Number != 0 {
+				port = http.Route[0].Destination.Port.Number
+			} else {
+				port64, _ := strconv.ParseUint(http.Route[0].Destination.Port.Name, 10, 32)
+				port = uint32(port64)
+			}
 			for matchIdx, match := range http.Match {
 				dst := istioDestinationIdentifier{
 					serviceIdentifier: serviceIdentifier{
@@ -36,8 +45,8 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 						Name:      virtSvc.Name,
 					},
 					// TODO(delqn)
-					DestinationHost: "httpbin",
-					DestinationPort: 8000,
+					DestinationHost: host,
+					DestinationPort: port,
 				}
 
 				// TODO(delqn)
