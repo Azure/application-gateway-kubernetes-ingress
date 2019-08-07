@@ -23,24 +23,30 @@ var _ = Describe("Test routing rules generations", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		endpoint := tests.NewEndpointsFixture()
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
-		ingress1 := tests.NewIngressFixture()
-		ingress1.Annotations[annotations.SslRedirectKey] = "false"
-		ingress2 := tests.NewIngressFixture()
-		ingress2.Name = "ingress1"
-		ingress2.Annotations[annotations.SslRedirectKey] = "false"
-		newBackend := tests.NewIngressBackendFixture(tests.ServiceName, 80)
-		newRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *newBackend)
-		ingress2.Spec.Rules = []v1beta1.IngressRule{
-			newRule,
-		}
-
+		ingressPathBased1 := tests.NewIngressFixture()
+		ingressPathBased1.Annotations[annotations.SslRedirectKey] = "false"
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
 		_ = configBuilder.k8sContext.Caches.Service.Add(service)
-		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress1)
-		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress2)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased1)
+
+		ingressPathBased2 := tests.NewIngressFixture()
+		ingressPathBased2.Name = "ingress1"
+		ingressPathBased2.Annotations[annotations.SslRedirectKey] = "false"
+		testEndpoint := tests.NewEndpointsFixture()
+		testEndpoint.Name = "test"
+		testService := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		testService.Name = "test"
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
+		ingressPathBased2.Spec.Rules = []v1beta1.IngressRule{
+			testRule,
+		}
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(testEndpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(testService)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased2)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress1, ingress2},
+			IngressList: []*v1beta1.Ingress{ingressPathBased1, ingressPathBased2},
 			ServiceList: []*v1.Service{service},
 		}
 
@@ -49,7 +55,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
-		rule := &ingress1.Spec.Rules[0]
+		rule := &ingressPathBased1.Spec.Rules[0]
 
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
