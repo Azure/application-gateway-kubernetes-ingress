@@ -199,7 +199,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 				Protocol:           n.HTTP,
 				Host:               to.StringPtr(tests.Host),
-				Path:               to.StringPtr(tests.URLPath),
+				Path:               to.StringPtr(tests.HealthPath),
 				Interval:           to.Int32Ptr(20),
 				UnhealthyThreshold: to.Int32Ptr(3),
 				Timeout:            to.Int32Ptr(5),

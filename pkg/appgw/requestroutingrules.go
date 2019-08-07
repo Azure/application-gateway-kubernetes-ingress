@@ -197,10 +197,10 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	var defPath *v1beta1.HTTPIngressPath
 	defBackend := ingress.Spec.Backend
 	for pathIdx := range rule.HTTP.Paths {
-		path := rule.HTTP.Paths[pathIdx]
+		path := &rule.HTTP.Paths[pathIdx]
 		if path.Path == "" || path.Path == "/*" || path.Path == "/" {
 			defBackend = &path.Backend
-			defPath = &path
+			defPath = path
 			defRule = rule
 		}
 	}
