@@ -51,7 +51,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr(tests.Host),
-				Path:                                to.StringPtr(tests.URLPath),
+				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
 				Timeout:                             to.Int32Ptr(5),
 				UnhealthyThreshold:                  to.Int32Ptr(3),
@@ -71,7 +71,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
 				Protocol:                            n.HTTP,
 				Host:                                to.StringPtr(tests.Host),
-				Path:                                to.StringPtr(tests.URLPath),
+				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
 				Timeout:                             to.Int32Ptr(5),
 				UnhealthyThreshold:                  to.Int32Ptr(3),

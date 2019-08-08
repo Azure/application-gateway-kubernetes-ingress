@@ -32,7 +32,10 @@ const (
 	NameOfSecret     = "--the-name-of-the-secret--"
 	ServiceName      = "--service-name--"
 	NodeName         = "--node-name--"
-	URLPath          = "/healthz"
+	URLPath1         = "/api1"
+	URLPath2         = "/api2"
+	URLPath3         = "/api3"
+	HealthPath       = "/healthz"
 	ContainerName    = "--container-name--"
 	ContainerPort    = int32(9876)
 	ServicePort      = "service-port"
@@ -133,8 +136,8 @@ func NewIngressFixture() *v1beta1.Ingress {
 	return &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
-				NewIngressRuleFixture(Host, URLPath, *be80),
-				NewIngressRuleFixture(Host, URLPath, *be443),
+				NewIngressRuleFixture(Host, URLPath1, *be80),
+				NewIngressRuleFixture(Host, URLPath2, *be443),
 			},
 			TLS: []v1beta1.IngressTLS{
 				{
@@ -237,7 +240,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 		Handler: v1.Handler{
 			HTTPGet: &v1.HTTPGetAction{
 				Host: Host,
-				Path: URLPath,
+				Path: HealthPath,
 				Port: intstr.IntOrString{
 					Type:   intstr.String,
 					StrVal: containerName,
