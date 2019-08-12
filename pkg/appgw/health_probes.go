@@ -152,7 +152,9 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 					probe = container.LivenessProbe
 				}
 
-				return probe
+				if probe.Handler.HTTPGet.Port == backendID.Backend.ServicePort {
+					return probe
+				}
 			}
 		}
 	}
