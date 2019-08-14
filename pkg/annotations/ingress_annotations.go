@@ -53,11 +53,6 @@ const (
 	ApplicationGatewayIngressClass = "azure/application-gateway"
 )
 
-// IngressClass ingress class
-func IngressClass(ing *v1beta1.Ingress) (string, error) {
-	return parseString(ing, IngressClassKey)
-}
-
 // IsApplicationGatewayIngress checks if the Ingress resource can be handled by the Application Gateway ingress controller.
 func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
 	controllerName, err := parseString(ing, IngressClassKey)
@@ -90,7 +85,7 @@ func RequestTimeout(ing *v1beta1.Ingress) (int32, error) {
 
 // IsConnectionDraining provides whether connection draining is enabled or not.
 func IsConnectionDraining(ing *v1beta1.Ingress) (bool, error) {
-	return parseBool(ing, CookieBasedAffinityKey)
+	return parseBool(ing, ConnectionDrainingKey)
 }
 
 // ConnectionDrainingTimeout provides value for draining timeout for backends.
@@ -109,33 +104,26 @@ func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
-	val, ok := ing.Annotations[name]
-	if ok {
-		boolVal, err := strconv.ParseBool(val)
-		if err != nil {
-			return false, errors.NewInvalidAnnotationContent(name, val)
+	if val, ok := ing.Annotations[name]; ok {
+		if boolVal, err := strconv.ParseBool(val); err == nil {
+			return boolVal, nil
 		}
-		return boolVal, nil
+		return false, errors.NewInvalidAnnotationContent(name, val)
 	}
 	return false, errors.ErrMissingAnnotations
 }
 
 func parseString(ing *v1beta1.Ingress, name string) (string, error) {
-	val, ok := ing.Annotations[name]
-	if ok {
+	if val, ok := ing.Annotations[name]; ok {
 		return val, nil
 	}
-
 	return "", errors.ErrMissingAnnotations
 }
 
 func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
-	val, ok := ing.Annotations[name]
-	if ok {
-		intVal, err := strconv.Atoi(val)
-		if err == nil {
-			int32Val := int32(intVal)
-			return int32Val, nil
+	if val, ok := ing.Annotations[name]; ok {
+		if intVal, err := strconv.Atoi(val); err == nil {
+			return int32(intVal), nil
 		}
 		return 0, errors.NewInvalidAnnotationContent(name, val)
 	}

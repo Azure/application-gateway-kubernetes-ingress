@@ -7,9 +7,12 @@ package annotations
 
 import (
 	"fmt"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"testing"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -24,6 +27,184 @@ const (
 	NoError = "Expected to return %s and no error. Returned %v and %v."
 	Error   = "Expected to return error %s. Returned %v and %v."
 )
+
+func TestIt(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Run All main.go Tests")
+}
+
+var _ = Describe("Test ingress annotation functions", func() {
+	annotations := map[string]string{
+		"appgw.ingress.kubernetes.io/use-private-ip":              "true",
+		"appgw.ingress.kubernetes.io/connection-draining":         "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity":       "true",
+		"appgw.ingress.kubernetes.io/ssl-redirect":                "true",
+		"appgw.ingress.kubernetes.io/request-timeout":             "123456",
+		"appgw.ingress.kubernetes.io/connection-draining-timeout": "3456",
+		"appgw.ingress.kubernetes.io/backend-path-prefix":         "prefix-here",
+		"kubernetes.io/ingress.class":                             "azure/application-gateway",
+		"appgw.ingress.istio.io/v1alpha3":                         "azure/application-gateway",
+		"falseKey":                                                "false",
+		"errorKey":                                                "234error!!",
+	}
+
+	ing := &v1beta1.Ingress{
+		ObjectMeta: v1.ObjectMeta{
+			Annotations: annotations,
+		},
+	}
+
+	Context("test IsCookieBasedAffinity", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := IsCookieBasedAffinity(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true", func() {
+			actual, err := IsCookieBasedAffinity(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test ConnectionDrainingTimeout", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := ConnectionDrainingTimeout(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns the timeout", func() {
+			actual, err := ConnectionDrainingTimeout(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(3456)))
+		})
+	})
+
+	Context("test IsConnectionDraining", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := IsConnectionDraining(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true", func() {
+			actual, err := IsConnectionDraining(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test RequestTimeout", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := RequestTimeout(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns the timeout", func() {
+			actual, err := RequestTimeout(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(123456)))
+		})
+	})
+
+	Context("test BackendPathPrefix", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := BackendPathPrefix(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns the prefix", func() {
+			actual, err := BackendPathPrefix(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("prefix-here"))
+		})
+	})
+
+	Context("test IsSslRedirect", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := IsSslRedirect(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true with correct annotation", func() {
+			actual, err := IsSslRedirect(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test IsIstioGatewayIngress", func() {
+		It("returns error when gateway has no annotations", func() {
+			gateway := &v1alpha3.Gateway{}
+			actual, err := IsIstioGatewayIngress(gateway)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true with correct annotation", func() {
+			gateway := &v1alpha3.Gateway{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: annotations,
+				},
+			}
+			actual, err := IsIstioGatewayIngress(gateway)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test IsApplicationGatewayIngress", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := IsApplicationGatewayIngress(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true with correct annotation", func() {
+			actual, err := IsApplicationGatewayIngress(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test UsePrivateIP", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := UsePrivateIP(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true with correct annotation", func() {
+			actual, err := UsePrivateIP(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test parseBol", func() {
+		It("returns true", func() {
+			actual, err := parseBool(ing, UsePrivateIPKey)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+
+		It("returns false", func() {
+			actual, err := parseBool(ing, "falseKey")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+
+		It("returns an error", func() {
+			actual, err := parseBool(ing, "errorKey")
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+	})
+})
 
 func TestParseBoolTrue(t *testing.T) {
 	key := "key"
