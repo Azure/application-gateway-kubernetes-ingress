@@ -49,5 +49,142 @@ var _ = Describe("Test Fixture Object Factories", func() {
 			Expect(namespaces).To(ContainElement("factory-ns"))
 			Expect(namespaces).To(ContainElement("store-ns"))
 		})
+
 	})
+
+	Context("Test GetIngress", func() {
+		It("should work", func() {
+			actual, err := GetIngress()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual.Spec.Rules[0].Host).To(Equal("ws.contoso.com"))
+		})
+	})
+
+	Context("Test GetIngressComplex", func() {
+		It("should work", func() {
+			actual, err := GetIngressComplex()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual.Spec.Rules[0].Host).To(Equal("ws.contoso.com"))
+		})
+	})
+
+	Context("Test GetIngressNamespaced", func() {
+		It("should work", func() {
+			actual, err := GetIngressNamespaced()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test getIngress", func() {
+		It("should throw an error because the file does not exist", func() {
+			_, err := getIngress("blahBlahBlah")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("Test GetApplicationGatewayBackendAddressPool", func() {
+		It("should work", func() {
+			actual, err := GetApplicationGatewayBackendAddressPool()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewIngressBackendFixture", func() {
+		It("should work", func() {
+			actual, err := NewIngressBackendFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewIngressRuleFixture", func() {
+		It("should work", func() {
+			actual, err := NewIngressRuleFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewIngressFixture", func() {
+		It("should work", func() {
+			actual, err := NewIngressFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewServicePortsFixture", func() {
+		It("should work", func() {
+			actual, err := NewServicePortsFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewProbeFixture", func() {
+		It("should work", func() {
+			actual, err := NewProbeFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewPodFixture", func() {
+		It("should work", func() {
+			actual, err := NewPodFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewServiceFixture", func() {
+		It("should work", func() {
+			actual, err := NewServiceFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewEndpointsFixture", func() {
+		It("should work", func() {
+			actual, err := NewEndpointsFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewIngressTestFixture", func() {
+		It("should work", func() {
+			actual, err := NewIngressTestFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewIngressTestFixtureBasic", func() {
+		It("should work", func() {
+			actual, err := NewIngressTestFixtureBasic()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewPodTestFixture", func() {
+		It("should work", func() {
+			actual, err := NewPodTestFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test NewSecretTestFixture", func() {
+		It("should work", func() {
+			actual, err := NewSecretTestFixture()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
 })
