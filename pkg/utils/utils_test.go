@@ -4,7 +4,13 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"testing"
 )
+
+func TestUtils(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Utils Suite")
+}
 
 var _ = Describe("Utils", func() {
 	Describe("Testing `utils` helpers", func() {
