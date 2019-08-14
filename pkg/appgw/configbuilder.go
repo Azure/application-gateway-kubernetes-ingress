@@ -27,11 +27,16 @@ type ConfigBuilder interface {
 	PostBuildValidate(cbCtx *ConfigBuilderContext) error
 }
 
+type memoization struct {
+	listeners *[]n.ApplicationGatewayHTTPListener
+}
+
 type appGwConfigBuilder struct {
 	k8sContext      *k8scontext.Context
 	appGwIdentifier Identifier
 	appGw           n.ApplicationGateway
 	recorder        record.EventRecorder
+	mem             memoization
 }
 
 // NewConfigBuilder construct a builder

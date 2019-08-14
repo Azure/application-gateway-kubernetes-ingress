@@ -2,8 +2,11 @@ package k8scontext
 
 import (
 	"github.com/eapache/channels"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -37,6 +40,11 @@ type CacheCollection struct {
 
 // Context : cache and listener for k8s resources.
 type Context struct {
+	// k8s Clients
+	kubeClient     kubernetes.Interface
+	crdClient      versioned.Interface
+	istioCrdClient istio_versioned.Interface
+
 	informers              *InformerCollection
 	Caches                 *CacheCollection
 	CertificateSecretStore SecretsKeeper
@@ -47,3 +55,6 @@ type Context struct {
 
 	CacheSynced chan interface{}
 }
+
+// IPAddress is type for IP address string
+type IPAddress string

@@ -142,3 +142,23 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 	}
 	return json.Marshal(m)
 }
+
+// SubscriptionID in the resourceID
+type SubscriptionID string
+
+// ResourceGroup in the resourceID
+type ResourceGroup string
+
+// ResourceName in the resourceID
+type ResourceName string
+
+// ParseResourceID gets subscriptionId, resource group, resource name from resourceID
+func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
+	split := strings.Split(ID, "/")
+	if len(split) < 9 {
+		glog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
+		return "", "", ""
+	}
+
+	return SubscriptionID(split[2]), ResourceGroup(split[4]), ResourceName(split[8])
+}

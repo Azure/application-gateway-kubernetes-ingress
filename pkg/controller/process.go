@@ -15,11 +15,15 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 // Process is the callback function that will be executed for every event
@@ -33,6 +37,8 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
 		return ErrFetchingAppGatewayConfig
 	}
+
+	c.updateIPAddressMap(&appGw)
 
 	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
@@ -112,6 +118,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	if c.configIsSame(&appGw) {
+		// update ingresses with appgw gateway ip address
+		c.updateIngressStatus(generatedAppGw, cbCtx, event)
+
 		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
@@ -153,5 +162,65 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(&appGw)
 
+	// update ingresses with appgw gateway ip address
+	c.updateIngressStatus(generatedAppGw, cbCtx, event)
+
 	return nil
+}
+
+func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, event events.Event) {
+	ingress, ok := event.Value.(*v1beta1.Ingress)
+	if !ok {
+		return
+	}
+
+	// check if this ingress is for AGIC or not, it might have been updated
+	if !k8scontext.IsIngressApplicationGateway(ingress) || !cbCtx.InIngressList(ingress) {
+		if err := c.k8sContext.UpdateIngressStatus(*ingress, ""); err != nil {
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
+		}
+		return
+	}
+
+	// determine what ip to attach
+	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
+	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
+	if ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP); ipConf != nil {
+		if ipAddress, ok := c.ipAddressMap[*ipConf.ID]; ok {
+			if err := c.k8sContext.UpdateIngressStatus(*ingress, ipAddress); err != nil {
+				c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
+			}
+		}
+	}
+}
+
+func (c AppGwIngressController) updateIPAddressMap(appGw *n.ApplicationGateway) {
+	for _, ipConf := range *appGw.FrontendIPConfigurations {
+		if _, ok := c.ipAddressMap[*ipConf.ID]; ok {
+			return
+		}
+
+		if ipConf.PrivateIPAddress != nil {
+			c.ipAddressMap[*ipConf.ID] = k8scontext.IPAddress(*ipConf.PrivateIPAddress)
+		} else if ipAddress := c.getPublicIPAddress(ParseResourceID(*ipConf.PublicIPAddress.ID)); ipAddress != nil {
+			c.ipAddressMap[*ipConf.ID] = *ipAddress
+		}
+	}
+}
+
+// getPublicIPAddress gets the ip address associated to public ip on Azure
+func (c AppGwIngressController) getPublicIPAddress(subscriptionID SubscriptionID, resourceGroup ResourceGroup, publicIPName ResourceName) *k8scontext.IPAddress {
+	ctx := context.Background()
+	// initialize public ip client using auth used with appgw client
+	publicIPClient := n.NewPublicIPAddressesClient(string(subscriptionID))
+	publicIPClient.Authorizer = c.appGwClient.Authorizer
+	// get public ip
+	publicIP, err := publicIPClient.Get(ctx, string(resourceGroup), string(publicIPName), "")
+	if err != nil {
+		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPName, err)
+		return nil
+	}
+
+	ipAddress := k8scontext.IPAddress(*publicIP.IPAddress)
+	return &ipAddress
 }

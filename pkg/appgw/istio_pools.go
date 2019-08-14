@@ -8,9 +8,9 @@ package appgw
 import (
 	"fmt"
 
-	"github.com/golang/glog"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 )
 
 func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDestinationIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
@@ -25,20 +25,38 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 	for _, subset := range endpoints.Subsets {
 		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
 			backendServicePort := ""
-			if destinationID.Destination.Port.Number != 0 {
-				backendServicePort = fmt.Sprint(destinationID.Destination.Port.Number)
+			if destinationID.DestinationPort != 0 {
+				backendServicePort = fmt.Sprint(destinationID.DestinationPort)
 			} else {
-				backendServicePort = destinationID.Destination.Port.Name
+				// TODO(delqn): lookup port by name
 			}
 			poolName := generateAddressPoolName(destinationID.serviceFullName(), backendServicePort, serviceBackendPair.BackendPort)
 			if pool, ok := addressPools[poolName]; ok {
 				return pool
 			}
-			return newPool(poolName, subset)
+			pool := c.newPool(poolName, subset)
+			pool.ID = to.StringPtr(c.appGwIdentifier.addressPoolID(poolName))
+			return pool
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
 		glog.Error(logLine)
 		//TODO(rhea): add recorder event for error
 	}
 	return nil
+}
+
+func (c *appGwConfigBuilder) newIstioBackendPoolMap(cbCtx *ConfigBuilderContext) map[istioDestinationIdentifier]*n.ApplicationGatewayBackendAddressPool {
+	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
+	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+		*defaultPool.Name: &defaultPool,
+	}
+	backendPoolMap := make(map[istioDestinationIdentifier]*n.ApplicationGatewayBackendAddressPool)
+	_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
+	for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
+		backendPoolMap[destinationID] = &defaultPool
+		if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, addressPools); pool != nil {
+			backendPoolMap[destinationID] = pool
+		}
+	}
+	return backendPoolMap
 }

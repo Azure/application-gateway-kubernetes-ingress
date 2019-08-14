@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -72,6 +74,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	context := &Context{
+		kubeClient:     kubeClient,
+		crdClient:      crdClient,
+		istioCrdClient: istioCrdClient,
+
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
@@ -239,7 +245,7 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
-		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
+		if hasHTTPRule(ingress) && IsIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
@@ -356,7 +362,33 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
-func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+// UpdateIngressStatus adds IP address in Ingress Status
+func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
+	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name)
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if address != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(address),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		glog.Error(errorLine)
+		return errors.New(errorLine)
+	}
+
+	return nil
+}
+
+// IsIngressApplicationGateway checks if applicaiton gateway annotation is present on the ingress
+func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
 }

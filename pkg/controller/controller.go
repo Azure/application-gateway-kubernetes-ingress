@@ -20,6 +20,7 @@ import (
 type AppGwIngressController struct {
 	appGwClient     n.ApplicationGatewaysClient
 	appGwIdentifier appgw.Identifier
+	ipAddressMap    map[string]k8scontext.IPAddress
 
 	k8sContext *k8scontext.Context
 	worker     *worker.Worker
@@ -39,6 +40,7 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		k8sContext:      k8sContext,
 		recorder:        recorder,
 		configCache:     to.ByteSlicePtr([]byte{}),
+		ipAddressMap:    map[string]k8scontext.IPAddress{},
 	}
 
 	controller.worker = &worker.Worker{

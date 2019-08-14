@@ -6,13 +6,15 @@
 package controller
 
 import (
+	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("configure App Gateway", func() {
+var _ = Describe("test helpers", func() {
 
 	Context("ensure deleteKeyFromJSON works as expected", func() {
 		jsonWithEtag := []byte(`{
@@ -99,6 +101,19 @@ var _ = Describe("configure App Gateway", func() {
 		})
 		It("should return false when passed a map", func() {
 			Expect(isSlice(make(map[string]interface{}))).To(BeFalse())
+		})
+	})
+
+	Context("ensure ParseResourceID works as expected", func() {
+		It("should parse appgw resourceId correctly", func() {
+			subID := SubscriptionID("xxxx")
+			resGp := ResourceGroup("yyyy")
+			resName := ResourceName("zzzz")
+			resourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s", subID, resGp, resName)
+			outSubID, outResGp, outResName := ParseResourceID(resourceID)
+			Expect(outSubID).To(Equal(subID))
+			Expect(resGp).To(Equal(outResGp))
+			Expect(resName).To(Equal(outResName))
 		})
 	})
 })
