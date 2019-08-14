@@ -8,9 +8,11 @@ package main
 import (
 	"testing"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gexec"
+	"k8s.io/client-go/kubernetes"
 )
 
 func TestIt(t *testing.T) {
@@ -52,13 +54,36 @@ var _ = Describe("Test functions used in main.go", func() {
 		})
 	})
 
-	Context("test getKubeClientConfig", func() {
-		It("should return verbosity level integer", func() {
+	Context("test validateNamespaces", func() {
+		It("should validate the namespaces", func() {
+			actual := validateNamespaces([]string{}, &kubernetes.Clientset{})
+			Ω(actual).Should(Succeed())
+		})
+	})
+
+	Context("test getNamespacesToWatch", func() {
+		It("should return a single namespace to watch", func() {
+			actual := getNamespacesToWatch("some-env-var")
+			Ω(actual).Should(Equal([]string{"some-env-var"}))
+		})
+		It("should return a list of namespaces to watch", func() {
+			actual := getNamespacesToWatch("a,b,c")
+			Ω(actual).Should(Equal([]string{"a", "b", "c"}))
+		})
+		It("should return empty list of namespaces to watch", func() {
+			actual := getNamespacesToWatch("")
+			Ω(actual).Should(Equal([]string{}))
+		})
+	})
+
+	Context("test waitForAzureAuth", func() {
+		client := n.ApplicationGatewaysClient{}
+		It("should try and panic", func() {
+			env := environment.EnvVariables{}
 			fn := func() {
-				getKubeClientConfig()
+				_ = waitForAzureAuth(env, &client, 0)
 			}
-			// ERROR: logging before flag.Parse: F0814 09:45:22.251545   70680 main.go:237] Error creating client configuration:unable to load in-cluster configuration, KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined
-			Ω(fn).Should(gexec.Exit(255))
+			Ω(fn).Should(Panic())
 		})
 	})
 })
