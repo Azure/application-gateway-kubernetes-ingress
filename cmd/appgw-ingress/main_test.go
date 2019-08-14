@@ -6,9 +6,11 @@
 package main
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
+	. "github.com/onsi/gomega/gexec"
 )
 
 func TestIt(t *testing.T) {
@@ -50,4 +52,13 @@ var _ = Describe("Test functions used in main.go", func() {
 		})
 	})
 
+	Context("test getKubeClientConfig", func() {
+		It("should return verbosity level integer", func() {
+			fn := func() {
+				getKubeClientConfig()
+			}
+			// ERROR: logging before flag.Parse: F0814 09:45:22.251545   70680 main.go:237] Error creating client configuration:unable to load in-cluster configuration, KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined
+			Ω(fn).Should(gexec.Exit(255))
+		})
+	})
 })
