@@ -3,11 +3,17 @@ package environment_test
 import (
 	"os"
 	"regexp"
+	"testing"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func TestEnvironment(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Environment Suite")
+}
 
 var _ = Describe("Environment", func() {
 	Describe("Testing `Environment` helpers", func() {
