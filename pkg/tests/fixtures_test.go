@@ -6,6 +6,7 @@
 package tests
 
 import (
+	"k8s.io/api/extensions/v1beta1"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -85,105 +86,92 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test GetApplicationGatewayBackendAddressPool", func() {
 		It("should work", func() {
-			actual, err := GetApplicationGatewayBackendAddressPool()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := GetApplicationGatewayBackendAddressPool()
+			Expect(*actual.Name).To(Equal("defaultaddresspool"))
 		})
 	})
 
 	Context("Test NewIngressBackendFixture", func() {
 		It("should work", func() {
-			actual, err := NewIngressBackendFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewIngressBackendFixture("service-name", int32(123))
+			Expect(actual.ServiceName).To(Equal("service-name"))
 		})
 	})
 
 	Context("Test NewIngressRuleFixture", func() {
 		It("should work", func() {
-			actual, err := NewIngressRuleFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewIngressRuleFixture("host", "urlPath", v1beta1.IngressBackend{})
+			Expect(actual.Host).To(Equal("host"))
 		})
 	})
 
 	Context("Test NewIngressFixture", func() {
 		It("should work", func() {
-			actual, err := NewIngressFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewIngressFixture()
+			Expect(actual.Name).To(Equal("--name--"))
 		})
 	})
 
 	Context("Test NewServicePortsFixture", func() {
 		It("should work", func() {
-			actual, err := NewServicePortsFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewServicePortsFixture()
+			Expect((*actual)[0].Name).To(Equal("--service-http-port--"))
 		})
 	})
 
 	Context("Test NewProbeFixture", func() {
 		It("should work", func() {
-			actual, err := NewProbeFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewProbeFixture("container-name")
+			Expect(actual.TimeoutSeconds).To(Equal(int32(5)))
 		})
 	})
 
 	Context("Test NewPodFixture", func() {
 		It("should work", func() {
-			actual, err := NewPodFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewPodFixture("service-name", "namespace", "conatiner-name", int32(80))
+			Expect(actual.Name).To(Equal("service-name"))
 		})
 	})
 
 	Context("Test NewServiceFixture", func() {
 		It("should work", func() {
-			actual, err := NewServiceFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewServiceFixture()
+			Expect(actual.Name).To(Equal("--service-name--"))
 		})
 	})
 
 	Context("Test NewEndpointsFixture", func() {
 		It("should work", func() {
-			actual, err := NewEndpointsFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewEndpointsFixture()
+			Expect(actual.Name).To(Equal("--service-name--"))
 		})
 	})
 
 	Context("Test NewIngressTestFixture", func() {
 		It("should work", func() {
-			actual, err := NewIngressTestFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewIngressTestFixture("namespace", "ingress-name")
+			Expect(actual.Name).To(Equal("ingress-name"))
 		})
 	})
 
 	Context("Test NewIngressTestFixtureBasic", func() {
 		It("should work", func() {
-			actual, err := NewIngressTestFixtureBasic()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewIngressTestFixtureBasic("namespace", "ingress-name", true)
+			Expect(actual.Name).To(Equal("ingress-name"))
 		})
 	})
 
 	Context("Test NewPodTestFixture", func() {
 		It("should work", func() {
-			actual, err := NewPodTestFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewPodTestFixture("namespace", "pod-name")
+			Expect(actual.Name).To(Equal("pod-name"))
 		})
 	})
 
 	Context("Test NewSecretTestFixture", func() {
 		It("should work", func() {
-			actual, err := NewSecretTestFixture()
-			Expect(err).ToNot(HaveOccurred())
-			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+			actual := NewSecretTestFixture()
+			Expect(actual.Name).To(Equal("--the-name-of-the-secret--"))
 		})
 	})
 
