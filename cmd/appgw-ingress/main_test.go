@@ -39,11 +39,11 @@ var _ = Describe("Test functions used in main.go", func() {
 	Context("test getVerbosity", func() {
 		flagVerbosity := 9
 		envVerbosity := "8"
-		It("should return verbosity level integer", func() {
+		It("should return verbosity level based on an environment variable", func() {
 			actual := getVerbosity(flagVerbosity, envVerbosity)
 			Expect(actual).To(Equal(8))
 		})
-		It("should return verbosity level integer", func() {
+		It("should return verbosity level based on a command line flag", func() {
 			envVerbosity := ""
 			actual := getVerbosity(flagVerbosity, envVerbosity)
 			Expect(actual).To(Equal(9))
