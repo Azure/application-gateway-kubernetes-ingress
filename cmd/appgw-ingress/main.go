@@ -128,7 +128,10 @@ func main() {
 	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
 
 	// start controller
-	appGwIngressController.Start(env)
+	if err := appGwIngressController.Start(env); err != nil{
+		glog.Fatal("Could not start AGIC: ", err)
+	}
+
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
