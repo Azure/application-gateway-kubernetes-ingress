@@ -7,6 +7,7 @@ package brownfield
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -101,6 +102,23 @@ var _ = Describe("Test blacklist health probes", func() {
 			Expect(exists).To(BeTrue())
 			_, exists = set[fixtures.ProbeName2]
 			Expect(exists).To(BeTrue())
+		})
+	})
+
+	Context("Test LogHTTPSettings()", func() {
+		It("should log settings", func() {
+			probes := []n.ApplicationGatewayProbe{
+				fixtures.GetApplicationGatewayProbe(to.StringPtr("x"), to.StringPtr("y")),
+			}
+			logger := &mockLogger{}
+
+			LogProbes(logger, probes, probes, probes)
+
+			expected1 := "[brownfield] Probes AGIC created: _probe-name-eA-eQ"
+			Expect(logger.logs).To(ContainElement(expected1))
+
+			expected2 := "[brownfield] Existing Blacklisted Probes AGIC will retain: _probe-name-eA-eQ"
+			Expect(logger.logs).To(ContainElement(expected2))
 		})
 	})
 })

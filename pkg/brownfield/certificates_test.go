@@ -25,12 +25,9 @@ var _ = Describe("Test MergeCerts", func() {
 				fixtures.GetCertificate3(),
 			}
 			actual := MergeCerts(bucket1, bucket2)
-			expected := []n.ApplicationGatewaySslCertificate{
-				fixtures.GetCertificate1(),
-				fixtures.GetCertificate2(),
-				fixtures.GetCertificate3(),
-			}
-			Expect(actual).To(ContainElement(expected))
+			Expect(actual).To(ContainElement(fixtures.GetCertificate1()))
+			Expect(actual).To(ContainElement(fixtures.GetCertificate2()))
+			Expect(actual).To(ContainElement(fixtures.GetCertificate3()))
 		})
 	})
 })
