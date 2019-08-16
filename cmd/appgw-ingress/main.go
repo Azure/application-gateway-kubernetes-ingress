@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"os"
 	"os/signal"
@@ -76,7 +77,9 @@ func main() {
 	}
 
 	env := environment.GetEnv()
-	environment.ValidateEnv(env)
+	if err := environment.ValidateEnv(env); err != nil {
+		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values.", err)
+	}
 
 	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
 
@@ -111,7 +114,9 @@ func main() {
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 
 	// namespace validations
-	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
+	if err := validateNamespaces(namespaces, kubeClient); err != nil {
+		glog.Fatal(err) // side-effect: will panic on non-existent namespace
+	}
 	if len(namespaces) == 0 {
 		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
@@ -139,7 +144,7 @@ func main() {
 	glog.Info("Goodbye!")
 }
 
-func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
+func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) error {
 	var nonExistent []string
 	for _, ns := range namespaces {
 		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
@@ -147,8 +152,10 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
 		}
 	}
 	if len(nonExistent) > 0 {
-		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+		return errors.New("namespace does not exist")
 	}
+	return nil
 }
 
 func getNamespacesToWatch(namespaceEnvVar string) []string {
@@ -175,14 +182,14 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 
 func initAppGwClient(env environment.EnvVariables) (*n.ApplicationGatewaysClient, error) {
 	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
-	if err := waitForAzureAuth(env, &appGwClient); err != nil {
+	if err := waitForAzureAuth(env, &appGwClient, maxAuthRetryCount); err != nil {
 		return nil, err
 	}
 
 	return &appGwClient, nil
 }
 
-func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient) error {
+func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient, maxAuthRetryCount int) error {
 	var response n.ApplicationGateway
 	var err error
 	for counter := 0; counter <= maxAuthRetryCount; counter++ {
@@ -215,7 +222,7 @@ func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGateway
 
 	if response.Response.StatusCode != 200 {
 		// for example, getting 401. This is not expected as we are getting a token before making the call.
-		glog.Error("Recieved an unexpected status code from ARM while getting App Gateway: ", response.Response.StatusCode)
+		glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
 		return ErrUnexpectedARMStatusCode
 	}
 
