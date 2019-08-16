@@ -6,6 +6,7 @@
 package environment
 
 import (
+	"github.com/pkg/errors"
 	"os"
 	"regexp"
 
@@ -81,15 +82,16 @@ func GetEnv() EnvVariables {
 	return env
 }
 
-// ValidateEnv validates IC environment variables.
-func ValidateEnv(env EnvVariables) {
+// ValidateEnv validates environment variables.
+func ValidateEnv(env EnvVariables) error {
 	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
+		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required")
 	}
 
 	if env.WatchNamespace == "" {
 		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
+	return nil
 }
 
 // GetEnvironmentVariable is an augmentation of os.Getenv, providing it with a default value.
