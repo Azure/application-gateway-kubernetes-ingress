@@ -6,27 +6,14 @@
 package brownfield
 
 import (
-	"strings"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 )
-
-type mockLogger struct {
-	logs []string
-}
-
-func (m *mockLogger) Info(args ...interface{}) {
-	var stringArgs []string
-	for _, arg := range args {
-		stringArgs = append(stringArgs, arg.(string))
-	}
-	m.logs = append(m.logs, strings.Join(stringArgs, "_"))
-}
 
 var _ = Describe("Test blacklisting HTTP settings", func() {
 
@@ -108,16 +95,16 @@ var _ = Describe("Test blacklisting HTTP settings", func() {
 				fixtures.GetHTTPSettings1(),
 				fixtures.GetHTTPSettings3(),
 			}
-			logger := &mockLogger{}
+			logger := &mocks.MockLogger{}
 
 			LogHTTPSettings(logger, sett1, sett2, sett2)
 
 			expected1 := "[brownfield] Existing Blacklisted HTTP Settings AGIC will retain:" +
 				" _BackendHTTPSettings-1, BackendHTTPSettings-2"
-			Expect(logger.logs).To(ContainElement(expected1))
+			Expect(logger.LogLines).To(ContainElement(expected1))
 
 			expected2 := "[brownfield] HTTP Settings AGIC created: _BackendHTTPSettings-1, BackendHTTPSettings-3"
-			Expect(logger.logs).To(ContainElement(expected2))
+			Expect(logger.LogLines).To(ContainElement(expected2))
 		})
 	})
 })
