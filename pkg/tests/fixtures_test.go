@@ -6,6 +6,7 @@
 package tests
 
 import (
+	"k8s.io/api/extensions/v1beta1"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -49,5 +50,129 @@ var _ = Describe("Test Fixture Object Factories", func() {
 			Expect(namespaces).To(ContainElement("factory-ns"))
 			Expect(namespaces).To(ContainElement("store-ns"))
 		})
+
 	})
+
+	Context("Test GetIngress", func() {
+		It("should work", func() {
+			actual, err := GetIngress()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual.Spec.Rules[0].Host).To(Equal("ws.contoso.com"))
+		})
+	})
+
+	Context("Test GetIngressComplex", func() {
+		It("should work", func() {
+			actual, err := GetIngressComplex()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual.Spec.Rules[0].Host).To(Equal("ws.contoso.com"))
+		})
+	})
+
+	Context("Test GetIngressNamespaced", func() {
+		It("should work", func() {
+			actual, err := GetIngressNamespaced()
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*actual)[0].Spec.Rules[0].Host).To(Equal("cafe.contoso.com"))
+		})
+	})
+
+	Context("Test getIngress", func() {
+		It("should throw an error because the file does not exist", func() {
+			_, err := getIngress("blahBlahBlah")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("Test GetApplicationGatewayBackendAddressPool", func() {
+		It("should work", func() {
+			actual := GetApplicationGatewayBackendAddressPool()
+			Expect(*actual.Name).To(Equal("defaultaddresspool"))
+		})
+	})
+
+	Context("Test NewIngressBackendFixture", func() {
+		It("should work", func() {
+			actual := NewIngressBackendFixture("service-name", int32(123))
+			Expect(actual.ServiceName).To(Equal("service-name"))
+		})
+	})
+
+	Context("Test NewIngressRuleFixture", func() {
+		It("should work", func() {
+			actual := NewIngressRuleFixture("host", "urlPath", v1beta1.IngressBackend{})
+			Expect(actual.Host).To(Equal("host"))
+		})
+	})
+
+	Context("Test NewIngressFixture", func() {
+		It("should work", func() {
+			actual := NewIngressFixture()
+			Expect(actual.Name).To(Equal("--name--"))
+		})
+	})
+
+	Context("Test NewServicePortsFixture", func() {
+		It("should work", func() {
+			actual := NewServicePortsFixture()
+			Expect((*actual)[0].Name).To(Equal("--service-http-port--"))
+		})
+	})
+
+	Context("Test NewProbeFixture", func() {
+		It("should work", func() {
+			actual := NewProbeFixture("container-name")
+			Expect(actual.TimeoutSeconds).To(Equal(int32(5)))
+		})
+	})
+
+	Context("Test NewPodFixture", func() {
+		It("should work", func() {
+			actual := NewPodFixture("service-name", "namespace", "conatiner-name", int32(80))
+			Expect(actual.Name).To(Equal("service-name"))
+		})
+	})
+
+	Context("Test NewServiceFixture", func() {
+		It("should work", func() {
+			actual := NewServiceFixture()
+			Expect(actual.Name).To(Equal("--service-name--"))
+		})
+	})
+
+	Context("Test NewEndpointsFixture", func() {
+		It("should work", func() {
+			actual := NewEndpointsFixture()
+			Expect(actual.Name).To(Equal("--service-name--"))
+		})
+	})
+
+	Context("Test NewIngressTestFixture", func() {
+		It("should work", func() {
+			actual := NewIngressTestFixture("namespace", "ingress-name")
+			Expect(actual.Name).To(Equal("ingress-name"))
+		})
+	})
+
+	Context("Test NewIngressTestFixtureBasic", func() {
+		It("should work", func() {
+			actual := NewIngressTestFixtureBasic("namespace", "ingress-name", true)
+			Expect(actual.Name).To(Equal("ingress-name"))
+		})
+	})
+
+	Context("Test NewPodTestFixture", func() {
+		It("should work", func() {
+			actual := NewPodTestFixture("namespace", "pod-name")
+			Expect(actual.Name).To(Equal("pod-name"))
+		})
+	})
+
+	Context("Test NewSecretTestFixture", func() {
+		It("should work", func() {
+			actual := NewSecretTestFixture()
+			Expect(actual.Name).To(Equal("--the-name-of-the-secret--"))
+		})
+	})
+
 })
