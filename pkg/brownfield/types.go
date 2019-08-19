@@ -10,6 +10,10 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 )
 
+type Logger interface {
+	Info(args ...interface{})
+}
+
 type listenerName string
 
 // ExistingResources is used in brownfield deployments and

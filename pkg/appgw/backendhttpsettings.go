@@ -36,7 +36,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
 
-		brownfield.LogHTTPSettings(existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+		brownfield.LogHTTPSettings(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
 
 		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
 		// as a managed rule would be overwritten.

@@ -50,7 +50,7 @@ func MergeProbes(probesBuckets ...[]n.ApplicationGatewayProbe) []n.ApplicationGa
 }
 
 // LogProbes emits a few log lines detailing what probes are created, blacklisted, and removed from ARM.
-func LogProbes(existingBlacklisted []n.ApplicationGatewayProbe, existingNonBlacklisted []n.ApplicationGatewayProbe, managedProbes []n.ApplicationGatewayProbe) {
+func LogProbes(logger Logger, existingBlacklisted []n.ApplicationGatewayProbe, existingNonBlacklisted []n.ApplicationGatewayProbe, managedProbes []n.ApplicationGatewayProbe) {
 	var garbage []n.ApplicationGatewayProbe
 
 	blacklistedSet := indexProbesByName(existingBlacklisted)
@@ -64,9 +64,9 @@ func LogProbes(existingBlacklisted []n.ApplicationGatewayProbe, existingNonBlack
 		}
 	}
 
-	glog.V(3).Info("[brownfield] Probes AGIC created: ", getProbeNames(managedProbes))
-	glog.V(3).Info("[brownfield] Existing Blacklisted Probes AGIC will retain: ", getProbeNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing Probes AGIC will remove: ", getProbeNames(garbage))
+	logger.Info("[brownfield] Probes AGIC created: ", getProbeNames(managedProbes))
+	logger.Info("[brownfield] Existing Blacklisted Probes AGIC will retain: ", getProbeNames(existingBlacklisted))
+	logger.Info("[brownfield] Existing Probes AGIC will remove: ", getProbeNames(garbage))
 }
 
 func indexProbesByName(probes []n.ApplicationGatewayProbe) probesByName {

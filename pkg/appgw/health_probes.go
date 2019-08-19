@@ -32,7 +32,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	if cbCtx.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedProbes()
-		brownfield.LogProbes(existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
+		brownfield.LogProbes(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
 		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
 	}
 

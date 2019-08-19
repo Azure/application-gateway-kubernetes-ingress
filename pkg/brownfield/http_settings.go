@@ -51,7 +51,7 @@ func MergeHTTPSettings(settingBuckets ...[]n.ApplicationGatewayBackendHTTPSettin
 }
 
 // LogHTTPSettings emits a few log lines detailing what settings are created, blacklisted, and removed from ARM.
-func LogHTTPSettings(existingBlacklisted []n.ApplicationGatewayBackendHTTPSettings, existingNonBlacklisted []n.ApplicationGatewayBackendHTTPSettings, managedSettings []n.ApplicationGatewayBackendHTTPSettings) {
+func LogHTTPSettings(logger Logger, existingBlacklisted []n.ApplicationGatewayBackendHTTPSettings, existingNonBlacklisted []n.ApplicationGatewayBackendHTTPSettings, managedSettings []n.ApplicationGatewayBackendHTTPSettings) {
 	var garbage []n.ApplicationGatewayBackendHTTPSettings
 
 	blacklistedSet := indexSettingsByName(existingBlacklisted)
@@ -65,9 +65,9 @@ func LogHTTPSettings(existingBlacklisted []n.ApplicationGatewayBackendHTTPSettin
 		}
 	}
 
-	glog.V(3).Info("[brownfield] HTTP Settings AGIC created: ", getSettingNames(managedSettings))
-	glog.V(3).Info("[brownfield] Existing Blacklisted HTTP Settings AGIC will retain: ", getSettingNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing HTTP Settings AGIC will remove: ", getSettingNames(garbage))
+	logger.Info("[brownfield] HTTP Settings AGIC created: ", getSettingNames(managedSettings))
+	logger.Info("[brownfield] Existing Blacklisted HTTP Settings AGIC will retain: ", getSettingNames(existingBlacklisted))
+	logger.Info("[brownfield] Existing HTTP Settings AGIC will remove: ", getSettingNames(garbage))
 }
 
 func indexSettingsByName(settings []n.ApplicationGatewayBackendHTTPSettings) settingsByName {
