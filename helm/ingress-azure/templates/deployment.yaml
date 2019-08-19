@@ -33,29 +33,13 @@ spec:
         readinessProbe:
           httpGet:
             path: /health/ready
-        {{- if .Values.kubernetes }}
-        {{- if .Values.kubernetes.healthProbeServicePort }}
             port: {{ .Values.kubernetes.healthProbeServicePort }}
-        {{ else }}
-            port: 8123
-        {{- end}}
-        {{ else }}
-            port: 8123
-        {{- end}}
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health/alive
-        {{- if .Values.kubernetes }}
-        {{- if .Values.kubernetes.healthProbeServicePort }}
             port: {{ .Values.kubernetes.healthProbeServicePort }}
-        {{ else }}
-            port: 8123
-        {{- end}}
-        {{ else }}
-            port: 8123
-        {{- end}}
           initialDelaySeconds: 15
           periodSeconds: 20
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
