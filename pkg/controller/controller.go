@@ -63,6 +63,7 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 
 	// Starts Worker processing events from k8sContext
 	go c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
+	return nil
 }
 
 // Stop function terminates the k8scontext and signal the stopchannel
