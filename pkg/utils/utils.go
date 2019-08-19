@@ -9,36 +9,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
 )
-
-// MaxInt64 returns the greater one of the two
-func MaxInt64(a int64, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// MaxInt32 returns the greater one of the two
-func MaxInt32(a int32, b int32) int32 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// IntsToString converts a list of int to a string with delim as delimiter
-func IntsToString(l []int, delim string) string {
-	out := make([]string, len(l))
-	for i, v := range l {
-		out[i] = strconv.Itoa(v)
-	}
-	return strings.Join(out, delim)
-}
 
 // GetResourceKey generates the key in k8s format for a given resource
 func GetResourceKey(namespace, name string) string {
@@ -58,20 +32,21 @@ func GetLastChunkOfSlashed(s string) string {
 	return split[len(split)-1]
 }
 
-// SaveToFile saves the content into a fileName - a tool primarily used for debugging purposes.
-func SaveToFile(fileName string, content []byte) {
+// SaveToFile saves the content into a file named "fileName" - a tool primarily used for debugging purposes.
+func SaveToFile(fileName string, content []byte) (string, error) {
 	tempFile, err := ioutil.TempFile("", fileName)
 	if err != nil {
 		glog.Error(err)
-		return
+		return tempFile.Name(), err
 	}
 	if _, err := tempFile.Write(content); err != nil {
 		glog.Error(err)
-		return
+		return tempFile.Name(), err
 	}
 	if err := tempFile.Close(); err != nil {
 		glog.Error(err)
-		return
+		return tempFile.Name(), err
 	}
 	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
+	return tempFile.Name(), nil
 }
