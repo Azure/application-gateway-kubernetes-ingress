@@ -132,23 +132,20 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	// initiliaze controller
 	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
-
-	// start controller
 	if err := appGwIngressController.Start(env); err != nil{
 		glog.Fatal("Could not start AGIC: ", err)
 	}
 
 
-	// Start the Health Probe Server
-	hpSrv := &http.Server{
+	// Start the Health Probe Server (responding to Kubernetes health probes)
+	healthServer := &http.Server{
 		Handler: health.NewHealthMux(appGwIngressController),
 		Addr:    fmt.Sprintf(":%s", env.HealthProbeServicePort),
 	}
 	go func() {
-		glog.Infof("Starting Health Probe Server on %s", hpSrv.Addr)
-		if err := hpSrv.ListenAndServe(); err != nil {
+		glog.Infof("Starting Health Probe Server on %s", healthServer.Addr)
+		if err := healthServer.ListenAndServe(); err != nil {
 			glog.Fatal("Failed starting Health Probe Server", err)
 		}
 	}()
