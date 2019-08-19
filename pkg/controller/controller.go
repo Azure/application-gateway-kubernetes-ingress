@@ -8,6 +8,7 @@ package controller
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -41,6 +42,7 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		recorder:        recorder,
 		configCache:     to.ByteSlicePtr([]byte{}),
 		ipAddressMap:    map[string]k8scontext.IPAddress{},
+		stopChannel:     make(chan struct{}),
 	}
 
 	controller.worker = &worker.Worker{
@@ -51,10 +53,13 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
-func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) {
+func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) error {
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
-	c.k8sContext.Run(c.stopChannel, false, envVariables)
+	if err := c.k8sContext.Run(c.stopChannel, false, envVariables); err != nil {
+		glog.Error("Could not start Kubernetes Context: ", err)
+		return err
+	}
 
 	// Starts Worker processing events from k8sContext
 	go c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
