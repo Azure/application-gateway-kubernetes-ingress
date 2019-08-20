@@ -77,6 +77,7 @@ var _ = Describe("Environment", func() {
 					EnableIstioIntegration:     "EnableIstioIntegrationVarName",
 					EnableSaveConfigToFile:     "EnableSaveConfigToFileVarName",
 					EnablePanicOnPutError:      "EnablePanicOnPutErrorVarName",
+					HealthProbeServicePort:     "8123",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))

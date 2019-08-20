@@ -82,6 +82,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
 		UpdateChannel:          updateChannel,
+		CacheSynced:            make(chan interface{}),
 	}
 
 	h := handlers{context}
@@ -160,6 +161,9 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
 		return errors.New("failed initial sync of resources required for ingress")
 	}
+
+	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
+	close(c.CacheSynced)
 
 	glog.V(1).Infoln("initial cache sync done")
 	glog.V(1).Infoln("k8s context run finished")

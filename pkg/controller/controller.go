@@ -63,11 +63,23 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 
 	// Starts Worker processing events from k8sContext
 	go c.worker.Run(c.k8sContext.UpdateChannel, c.stopChannel)
-
-	select {}
+	return nil
 }
 
 // Stop function terminates the k8scontext and signal the stopchannel
 func (c *AppGwIngressController) Stop() {
 	close(c.stopChannel)
+}
+
+// Liveness fulfills the health.HealthProbe interface; It is evaluated when K8s liveness-checks the AGIC pod.
+func (c *AppGwIngressController) Liveness() bool {
+	// TODO(draychev): implement
+	return true
+}
+
+// Readiness fulfills the health.HealthProbe interface; It is evaluated when K8s readiness-checks the AGIC pod.
+func (c *AppGwIngressController) Readiness() bool {
+	_, isOpen := <-c.k8sContext.CacheSynced
+	// When the channel is CLOSED we have synced cache and are READY!
+	return !isOpen
 }
