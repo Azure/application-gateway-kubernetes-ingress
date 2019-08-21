@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
