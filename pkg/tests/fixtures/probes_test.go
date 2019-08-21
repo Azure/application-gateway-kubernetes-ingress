@@ -3,16 +3,21 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package appgw
+package fixtures
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestAppgw(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Appgw Suite")
-}
+var _ = Describe("Test Fixtures", func() {
+	Context("Testing GetApplicationGatewayProbe", func() {
+		It("should work as expected", func() {
+			host := "host"
+			path := "path"
+			actual := GetApplicationGatewayProbe(&host, &path)
+			expected := "probe-name-aG9zdA-cGF0aA"
+			Expect(*actual.Name).To(Equal(expected))
+		})
+	})
+})

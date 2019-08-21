@@ -3,16 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package appgw
+package fixtures
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestAppgw(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Appgw Suite")
-}
+var _ = Describe("Test Fixtures", func() {
+	Context("Testing GetIngress", func() {
+		It("should work as expected", func() {
+			actual := GetIngress()
+			Expect(actual.Spec.Rules[0].Host).To(Equal("foo.baz"))
+		})
+	})
+})

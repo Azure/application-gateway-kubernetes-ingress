@@ -52,6 +52,8 @@ type Context struct {
 	ingressSecretsMap utils.ThreadsafeMultiMap
 
 	UpdateChannel *channels.RingChannel
+
+	CacheSynced chan interface{}
 }
 
 // IPAddress is type for IP address string

@@ -19,7 +19,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -83,6 +82,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
 		UpdateChannel:          updateChannel,
+		CacheSynced:            make(chan interface{}),
 	}
 
 	h := handlers{context}
@@ -117,9 +117,13 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
+func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) error {
 	glog.V(1).Infoln("k8s context run started")
 	var hasSynced []cache.InformerSynced
+
+	if c.informers == nil {
+		return errors.New("informers are not initialized")
+	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
 		c.informers.IstioGateway:                 nil,
@@ -155,13 +159,15 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	glog.V(1).Infoln("Waiting for initial cache sync")
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
-		glog.V(1).Infoln("initial cache sync stopped")
-		runtime.HandleError(fmt.Errorf("failed initial sync of resources required for ingress"))
-		return
+		return errors.New("failed initial sync of resources required for ingress")
 	}
+
+	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
+	close(c.CacheSynced)
 
 	glog.V(1).Infoln("initial cache sync done")
 	glog.V(1).Infoln("k8s context run finished")
+	return nil
 }
 
 // ListServices returns a list of all the Services from cache.

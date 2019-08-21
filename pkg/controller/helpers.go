@@ -86,7 +86,9 @@ func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool, overwritePre
 
 	if logToFile {
 		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
-		utils.SaveToFile(fileName, prettyJSON)
+		if filePath, err := utils.SaveToFile(fileName, prettyJSON); err != nil {
+			glog.Error("Could not log to file: ", filePath, err)
+		}
 	}
 
 	return prettyJSON, err

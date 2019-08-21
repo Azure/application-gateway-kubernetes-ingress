@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package appgw
+package fixtures
 
 import (
 	"testing"
@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestAppgw(t *testing.T) {
+func TestIngressTestFixtureFactories(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Appgw Suite")
+	RunSpecs(t, "Ingress Test Fixture Factories Suite")
 }

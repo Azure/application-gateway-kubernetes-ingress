@@ -6,6 +6,7 @@
 package environment
 
 import (
+	"github.com/pkg/errors"
 	"os"
 	"regexp"
 
@@ -45,6 +46,9 @@ const (
 
 	// EnablePanicOnPutErrorVarName is a feature flag.
 	EnablePanicOnPutErrorVarName = "APPGW_ENABLE_PANIC_ON_PUT_ERROR"
+
+	// HealthProbeServicePortVarName is an environment variable name.
+	HealthProbeServicePortVarName = "HEALTH_PROBE_SERVICE_PORT"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -60,7 +64,10 @@ type EnvVariables struct {
 	EnableIstioIntegration     string
 	EnableSaveConfigToFile     string
 	EnablePanicOnPutError      string
+	HealthProbeServicePort     string
 }
+
+var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
@@ -76,20 +83,22 @@ func GetEnv() EnvVariables {
 		EnableIstioIntegration:     os.Getenv(EnableIstioIntegrationVarName),
 		EnableSaveConfigToFile:     os.Getenv(EnableSaveConfigToFileVarName),
 		EnablePanicOnPutError:      os.Getenv(EnablePanicOnPutErrorVarName),
+		HealthProbeServicePort:     GetEnvironmentVariable(HealthProbeServicePortVarName, "8123", portNumberValidator),
 	}
 
 	return env
 }
 
-// ValidateEnv validates IC environment variables.
-func ValidateEnv(env EnvVariables) {
+// ValidateEnv validates environment variables.
+func ValidateEnv(env EnvVariables) error {
 	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		glog.Fatalf("Error while initializing values from environment. Please check helm configuration for missing values.")
+		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required")
 	}
 
 	if env.WatchNamespace == "" {
 		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
+	return nil
 }
 
 // GetEnvironmentVariable is an augmentation of os.Getenv, providing it with a default value.

@@ -1,3 +1,7 @@
+# The values.yaml file is important to templates.
+# This file contains the default values for a chart.
+# These values may be overridden during helm install or helm upgrade.
+
 replicaCount: 1
 
 # Verbosity level of the App Gateway Ingress Controller
@@ -8,11 +12,16 @@ image:
   tag: 0.7.1
   pullPolicy: Always
 
-################################################################################
-# Specify which kubernetes namespace the ingress controller will watch
-#
-# kubernetes:
-#   watchNamespace: default
+
+kubernetes:
+
+    # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
+    # Accepts one or many comma-separated values
+    watchNamespace:
+
+    # Port for AGIC's HTTP health probe
+    healthProbeServicePort: 8123
+
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
