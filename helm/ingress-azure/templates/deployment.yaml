@@ -62,6 +62,10 @@ spec:
           secret:
             secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end}}
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
