@@ -1,7 +1,7 @@
 # contrib.go.opencensus.io/exporter/ocagent v0.5.0
 contrib.go.opencensus.io/exporter/ocagent
-# github.com/Azure/azure-sdk-for-go v30.1.0+incompatible
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network
+# github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest/autorest v0.1.0
 github.com/Azure/go-autorest/autorest
@@ -52,7 +52,7 @@ github.com/gogo/protobuf/sortkeys
 github.com/golang/glog
 # github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.3.1
+# github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/timestamp
@@ -73,7 +73,7 @@ github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.3.0
+# github.com/googleapis/gnostic v0.3.1
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -206,7 +206,7 @@ golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
-# google.golang.org/api v0.6.0
+# google.golang.org/api v0.7.0
 google.golang.org/api/support/bundler
 # google.golang.org/appengine v1.6.1
 google.golang.org/appengine/urlfetch
@@ -216,7 +216,7 @@ google.golang.org/appengine/internal/base
 google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto v0.0.0-20190611190212-a7e196e89fd3
+# google.golang.org/genproto v0.0.0-20190817000702-55e96fffbd48
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/protobuf/field_mask
 google.golang.org/genproto/googleapis/rpc/status
@@ -309,7 +309,6 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/labels
 k8s.io/apimachinery/pkg/api/errors
-k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/fields
@@ -327,6 +326,7 @@ k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/diff
+k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
@@ -353,7 +353,6 @@ k8s.io/client-go/discovery
 k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/discovery/fake
 k8s.io/client-go/testing
-k8s.io/client-go/util/workqueue
 k8s.io/client-go/informers
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
 k8s.io/client-go/kubernetes/typed/apps/v1
