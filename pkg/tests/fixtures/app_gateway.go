@@ -57,6 +57,13 @@ func GetAppGateway() n.ApplicationGateway {
 			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
 				GetPublicIPConfiguration(),
 			},
+
+			RedirectConfigurations: &[]n.ApplicationGatewayRedirectConfiguration{
+				{
+					Name: to.StringPtr("redirect-1"),
+					ApplicationGatewayRedirectConfigurationPropertiesFormat: &n.ApplicationGatewayRedirectConfigurationPropertiesFormat{},
+				},
+			},
 		},
 	}
 }

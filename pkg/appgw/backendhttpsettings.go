@@ -36,7 +36,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
 
-		brownfield.LogHTTPSettings(existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+		brownfield.LogHTTPSettings(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
 
 		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
 		// as a managed rule would be overwritten.
@@ -156,7 +156,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 							resolvedBackendPorts[pair] = nil
 						} else {
 							// if service port is defined by name, need to resolve
-							glog.V(3).Infof("resolving port name %s", sp.Name)
+							glog.V(5).Infof("resolving port name [%s] for service [%s] and service port [%s] for Ingress [%s]", sp.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
 							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
@@ -173,7 +173,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		}
 
 		if len(resolvedBackendPorts) == 0 {
-			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", backendID.serviceKey())
+			logLine := fmt.Sprintf("unable to resolve any backend port for service [%s] and service port [%s] for Ingress [%s]", backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
 			glog.Error(logLine)
 

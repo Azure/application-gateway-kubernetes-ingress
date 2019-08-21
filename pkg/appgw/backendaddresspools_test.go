@@ -75,7 +75,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			ServiceList: serviceList,
 		}
 		_ = cb.BackendAddressPools(cbCtx)
-		actualPool := newPool("pool-name", subset)
+		actualPool := cb.newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
 			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
 		})
@@ -138,9 +138,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 
 		It("should have constructed correct ApplicationGatewayBackendAddressPool", func() {
 			// The order here is deliberate -- ensure this is properly sorted
+			expectedPoolName := "pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"
 			expected := n.ApplicationGatewayBackendAddressPool{
-				Name: to.StringPtr("pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"),
-				ID:   nil,
+				Name: to.StringPtr(expectedPoolName),
+				ID:   to.StringPtr(cb.appGwIdentifier.addressPoolID(expectedPoolName)),
 				Etag: to.StringPtr("*"),
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 					BackendIPConfigurations: nil,

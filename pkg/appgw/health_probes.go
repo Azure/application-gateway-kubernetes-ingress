@@ -8,6 +8,7 @@ package appgw
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -31,7 +32,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	if cbCtx.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedProbes()
-		brownfield.LogProbes(existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
+		brownfield.LogProbes(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
 		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
 	}
 
@@ -105,6 +106,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		}
 	}
 
+	if probe.Path != nil {
+		probe.Path = to.StringPtr(strings.TrimRight(*probe.Path, "*"))
+	}
 	return &probe
 }
 

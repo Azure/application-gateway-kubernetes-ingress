@@ -28,6 +28,7 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 			pruneFuncList = append(pruneFuncList, pruneProhibitedIngress)
 		}
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)
+		pruneFuncList = append(pruneFuncList, pruneRedirectWithNoTLS)
 	})
 	prunedIngresses := cbCtx.IngressList
 	for _, prune := range pruneFuncList {
@@ -61,9 +62,27 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 
 		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
 		if usePrivateIP && !appGwHasPrivateIP {
-			errorLine := fmt.Sprintf("Ingress %s/%s requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
+		} else {
+			prunedIngresses = append(prunedIngresses, ingress)
+		}
+	}
+
+	return prunedIngresses
+}
+
+// pruneRedirectWithNoTLS filters ingresses which are annotated for ssl redirect but don't have a TLS section in the spec
+func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	var prunedIngresses []*v1beta1.Ingress
+	for _, ingress := range ingressList {
+		hasTLS := ingress.Spec.TLS != nil && len(ingress.Spec.TLS) > 0
+		sslRedirect, _ := annotations.IsSslRedirect(ingress)
+		if !hasTLS && sslRedirect {
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret. Please add a TLS secret or remove ssl-redirect annotation", ingress.Namespace, ingress.Name)
+			glog.Error(errorLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
 		} else {
 			prunedIngresses = append(prunedIngresses, ingress)
 		}

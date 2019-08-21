@@ -8,11 +8,16 @@ image:
   tag: XXVERSIONXX
   pullPolicy: Always
 
-################################################################################
-# Specify which kubernetes namespace the ingress controller will watch
-#
-# kubernetes:
-#   watchNamespace: default
+
+kubernetes:
+
+    # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
+    # Accepts one or many comma-separated values
+    watchNamespace:
+
+    # Port for AGIC's HTTP health probe
+    healthProbeServicePort: 8123
+
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage

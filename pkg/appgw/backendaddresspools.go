@@ -105,7 +105,7 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 			if pool, ok := addressPools[poolName]; ok {
 				return pool
 			}
-			return newPool(poolName, subset)
+			return c.newPool(poolName, subset)
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
 		glog.Error(logLine)
@@ -124,10 +124,11 @@ func getUniqueTCPPorts(subset v1.EndpointSubset) map[int32]interface{} {
 	return ports
 }
 
-func newPool(poolName string, subset v1.EndpointSubset) *n.ApplicationGatewayBackendAddressPool {
+func (c *appGwConfigBuilder) newPool(poolName string, subset v1.EndpointSubset) *n.ApplicationGatewayBackendAddressPool {
 	return &n.ApplicationGatewayBackendAddressPool{
 		Etag: to.StringPtr("*"),
 		Name: &poolName,
+		ID:   to.StringPtr(c.appGwIdentifier.addressPoolID(poolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: getAddressesForSubset(subset),
 		},

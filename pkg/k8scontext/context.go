@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -17,7 +18,7 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -72,11 +73,16 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	context := &Context{
+		kubeClient:     kubeClient,
+		crdClient:      crdClient,
+		istioCrdClient: istioCrdClient,
+
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
 		UpdateChannel:          updateChannel,
+		CacheSynced:            make(chan interface{}),
 	}
 
 	h := handlers{context}
@@ -111,42 +117,38 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
+func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) error {
 	glog.V(1).Infoln("k8s context run started")
-	c.informers.Run(stopChannel, omitCRDs, envVariables)
-	glog.V(1).Infoln("k8s context run finished")
-}
-
-// Run function starts all the informers and waits for an initial sync.
-func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
 	var hasSynced []cache.InformerSynced
+
+	if c.informers == nil {
+		return errors.New("informers are not initialized")
+	}
 	crds := map[cache.SharedInformer]interface{}{
-		i.AzureIngressProhibitedTarget: nil,
-		i.IstioGateway:                 nil,
-		i.IstioVirtualService:          nil,
+		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.IstioGateway:                 nil,
+		c.informers.IstioVirtualService:          nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
-		i.Endpoints,
-		i.Pods,
-		i.Service,
-		i.Secret,
-		i.Ingress,
+		c.informers.Endpoints,
+		c.informers.Pods,
+		c.informers.Service,
+		c.informers.Secret,
+		c.informers.Ingress,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment == "true" {
-		sharedInformers = append(sharedInformers,
-			i.AzureIngressProhibitedTarget)
+		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
 	}
 
 	if envVariables.EnableIstioIntegration == "true" {
-		sharedInformers = append(sharedInformers,
-			i.IstioGateway, i.IstioVirtualService)
+		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
 	}
 
 	for _, informer := range sharedInformers {
-		go informer.Run(stopCh)
+		go informer.Run(stopChannel)
 		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
 		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing
 		if _, isCRD := crds[informer]; isCRD {
@@ -155,14 +157,17 @@ func (i *InformerCollection) Run(stopCh chan struct{}, omitCRDs bool, envVariabl
 		hasSynced = append(hasSynced, informer.HasSynced)
 	}
 
-	glog.V(1).Infoln("Wait for initial cache sync")
-	if !cache.WaitForCacheSync(stopCh, hasSynced...) {
-		glog.V(1).Infoln("initial cache sync stopped")
-		runtime.HandleError(fmt.Errorf("failed to do initial sync on resources required for ingress"))
-		return
+	glog.V(1).Infoln("Waiting for initial cache sync")
+	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
+		return errors.New("failed initial sync of resources required for ingress")
 	}
 
+	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
+	close(c.CacheSynced)
+
 	glog.V(1).Infoln("initial cache sync done")
+	glog.V(1).Infoln("k8s context run finished")
+	return nil
 }
 
 // ListServices returns a list of all the Services from cache.
@@ -242,7 +247,7 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
-		if hasHTTPRule(ingress) && isIngressApplicationGateway(ingress) {
+		if hasHTTPRule(ingress) && IsIngressApplicationGateway(ingress) {
 			ingressList = append(ingressList, ingress)
 		}
 	}
@@ -359,7 +364,33 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
-func isIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+// UpdateIngressStatus adds IP address in Ingress Status
+func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
+	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name)
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if address != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(address),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		glog.Error(errorLine)
+		return errors.New(errorLine)
+	}
+
+	return nil
+}
+
+// IsIngressApplicationGateway checks if applicaiton gateway annotation is present on the ingress
+func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
 }

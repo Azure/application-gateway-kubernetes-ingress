@@ -14,6 +14,7 @@ Kubernetes Ingress specification allows for annotations. We use annotations to e
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` |
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` |
+| [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` |
 
 ## Backend Path Prefix
 
@@ -70,7 +71,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-redirect
-  namespace: test-tag
+  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
@@ -174,6 +175,40 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/request-timeout: 20
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
+```
+
+## Use Private IP
+
+This annotation allows us to specify whether to expose this endpoint on Private IP of Application Gateway.
+
+> **Note**
+1) App Gateway doesn't support multiple IPs on the same port (example: 80/443). Ingress with annotation `appgw.ingress.kubernetes.io/use-private-ip: "false"` and another with `appgw.ingress.kubernetes.io/use-private-ip: "true"` on `HTTP` will cause AGIC to fail in updating the App Gateway.
+2) For App Gateway that doesn't have a private IP, Ingresses with `appgw.ingress.kubernetes.io/use-private-ip: "true"` will be ignored. This will reflected in the controller logs and ingress events for those ingresses with `NoPrivateIP` warning.
+
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/use-private-ip: "true"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
 spec:
   rules:
   - http:

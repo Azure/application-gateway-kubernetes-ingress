@@ -30,6 +30,18 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: {{ .Values.kubernetes.healthProbeServicePort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health/alive
+            port: {{ .Values.kubernetes.healthProbeServicePort }}
+          initialDelaySeconds: 15
+          periodSeconds: 20
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
           - name: AZURE_AUTH_LOCATION
@@ -53,4 +65,7 @@ spec:
       {{- with .Values.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
       {{- end }}

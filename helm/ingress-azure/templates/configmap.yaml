@@ -17,7 +17,10 @@ data:
   APPGW_VERBOSITY_LEVEL: "{{ .Values.verbosityLevel }}"
 {{- if .Values.kubernetes }}
 {{- if .Values.kubernetes.watchNamespace }}
-  KUBERNETES_WATCHNAMESPACE:  "{{ .Values.kubernetes.watchNamespace }}"
+  KUBERNETES_WATCHNAMESPACE: "{{ .Values.kubernetes.watchNamespace }}"
+{{- end }}
+{{- if .Values.kubernetes.healthProbeServicePort }}
+  HEALTH_PROBE_SERVICE_PORT: "{{ .Values.kubernetes.healthProbeServicePort }}"
 {{- end }}
 {{- end }}
   USE_PRIVATE_IP: "{{ .Values.appgw.usePrivateIP }}"
