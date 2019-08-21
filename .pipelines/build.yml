@@ -38,8 +38,18 @@ steps:
 - script: |
     go version
     echo -e "\e[44;97m Compiling ... \e[0m"
-    if  go install -v ./cmd/appgw-ingress; then
-        chmod -R 777 bin
+
+    # set version
+    VERSION_VAR="${REPO_PATH}/pkg/version.Version"
+    VERSION=$(git describe --abbrev=0 --tags)
+    DATE_VAR="${REPO_PATH}/pkg/version.BuildDate"
+    BUILD_DATE=$(date +%Y-%m-%d-%H:%MT%z)
+    COMMIT_VAR="${REPO_PATH}/pkg/version.GitCommit"
+    GIT_HASH=$(git rev-parse --short HEAD)
+
+    echo "VERSION $VERSION, BUILD_DATE $BUILD_DATE, GIT_HASH $GIT_HASH"
+    if  go install -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -v ./cmd/appgw-ingress; then
+        chmod -R 777 $(GOBIN)
         echo -e "\e[42;97m Build SUCCEEDED \e[0m"
     else
         echo -e "\e[101;97m Build FAILED \e[0m"
