@@ -88,12 +88,12 @@ var _ = Describe("configure App Gateway health probes", func() {
 			ID:   to.StringPtr(cb.appGwIdentifier.probeID(probeName)),
 		}
 
-		It("should have exactly 3 records", func() {
-			Expect(len(*actual)).To(Equal(3))
+		It("should have exactly 4 records", func() {
+			Expect(len(*actual)).To(Equal(4))
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
 		})
 
 		It("should have created 1 probe for Host", func() {
@@ -120,12 +120,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGw.Probes
 
-		It("should have exactly 1 record", func() {
-			Expect(len(*actual)).To(Equal(1), fmt.Sprintf("Actual probes: %+v", *actual))
+		It("should have exactly 2 record", func() {
+			Expect(len(*actual)).To(Equal(2), fmt.Sprintf("Actual probes: %+v", *actual))
 		})
 
-		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
+		It("should have created 2 default probes", func() {
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
 		})
 	})
 })

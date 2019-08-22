@@ -48,10 +48,13 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
-	defaultProbe := defaultProbe(c.appGwIdentifier)
+	defaultHTTPProbe := defaultProbe(c.appGwIdentifier, n.HTTP)
+	defaultHTTPSProbe := defaultProbe(c.appGwIdentifier, n.HTTPS)
 
-	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
-	healthProbeCollection[*defaultProbe.Name] = defaultProbe
+	glog.V(5).Info("Adding default HTTP probe:", *defaultHTTPProbe.Name)
+	glog.V(5).Info("Adding default HTTPS probe:", *defaultHTTPProbe.Name)
+	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
+	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
 
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
@@ -61,8 +64,11 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
-			probesMap[backendID] = &defaultProbe
+			probesMap[backendID] = &defaultHTTPProbe
+			if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+				probesMap[backendID] = &defaultHTTPSProbe
+			}
+			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *probesMap[backendID].Name)
 		}
 	}
 
@@ -77,7 +83,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if service == nil {
 		return nil
 	}
-	probe := defaultProbe(c.appGwIdentifier)
+	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {

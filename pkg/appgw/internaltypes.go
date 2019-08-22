@@ -150,35 +150,37 @@ func generatePathRuleName(namespace, ingress, suffix string) string {
 
 var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
 var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
-var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
 
-func defaultBackendHTTPSettings(appGWIdentifier Identifier, probeName string) n.ApplicationGatewayBackendHTTPSettings {
+func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {
+	return fmt.Sprintf("%sdefaultprobe-%s", agPrefix, protocol)
+}
+
+func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := defaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
 	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
 		ID:   to.StringPtr(appGWIdentifier.httpSettingsID(defHTTPSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: n.HTTP,
+			Protocol: protocol,
 			Port:     &defHTTPSettingsPort,
-			Probe:    resourceRef(appGWIdentifier.probeID(probeName)),
+			Probe:    resourceRef(appGWIdentifier.probeID(defaultProbeName(protocol))),
 		},
 	}
 }
 
-func defaultProbe(appGWIdentifier Identifier) n.ApplicationGatewayProbe {
-	defProbeName := defaultProbeName
-	defProtocol := n.HTTP
+func defaultProbe(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayProbe {
+	defProbeName := defaultProbeName(protocol)
 	defHost := "localhost"
 	defPath := "/"
 	defInterval := int32(30)
 	defTimeout := int32(30)
 	defUnHealthyCount := int32(3)
 	return n.ApplicationGatewayProbe{
-		Name: &defProbeName,
+		Name: to.StringPtr(defProbeName),
 		ID:   to.StringPtr(appGWIdentifier.probeID(defProbeName)),
 		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-			Protocol:           defProtocol,
+			Protocol:           protocol,
 			Host:               &defHost,
 			Path:               &defPath,
 			Interval:           &defInterval,
