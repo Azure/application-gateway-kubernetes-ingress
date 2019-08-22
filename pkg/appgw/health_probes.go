@@ -92,6 +92,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
 			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
 		}
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Port.String()) != 0 {
+			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal)
+		}
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
 		}
@@ -113,6 +116,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 }
 
 func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendID backendIdentifier) *v1.Probe {
+	// find all the target ports used by the service
 	allPorts := make(map[int32]interface{})
 	for _, sp := range service.Spec.Ports {
 		if sp.Protocol != v1.ProtocolTCP {
@@ -138,22 +142,40 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 	}
 
 	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
-	for _, pod := range podList {
-		for _, container := range pod.Spec.Containers {
-			for _, port := range container.Ports {
-				if _, ok := allPorts[port.ContainerPort]; !ok {
-					continue
-				}
 
-				var probe *v1.Probe
-				if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
-					probe = container.ReadinessProbe
-				} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
-					probe = container.LivenessProbe
-				}
+	if len(podList) == 0 {
+		return nil
+	}
 
-				return probe
+	// use the target port to figure out the container and use it's readiness/liveness probe
+	for _, container := range podList[0].Spec.Containers {
+		for _, port := range container.Ports {
+			if _, ok := allPorts[port.ContainerPort]; !ok {
+				continue
 			}
+			
+			// found the container
+			var probe *v1.Probe
+			if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
+				probe = container.ReadinessProbe
+			} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
+				probe = container.LivenessProbe
+			}
+
+			// if probe port is named, resolve it by going through container port and set it in the probe itself
+			if probe != nil && probe.HTTPGet.Port.String() != "" && probe.HTTPGet.Port.Type == intstr.String {
+				for _, port := range container.Ports {
+					if port.Name == probe.HTTPGet.Port.StrVal {
+						probe.HTTPGet.Port = intstr.IntOrString{
+							Type:   intstr.Int,
+							IntVal: port.ContainerPort,
+						}
+						break
+					}
+				}
+			}
+	
+			return probe
 		}
 	}
 
