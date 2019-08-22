@@ -60,14 +60,15 @@ type EnvVariables struct {
 	WatchNamespace             string
 	UsePrivateIP               string
 	VerbosityLevel             string
-	EnableBrownfieldDeployment string
-	EnableIstioIntegration     string
-	EnableSaveConfigToFile     string
-	EnablePanicOnPutError      string
+	EnableBrownfieldDeployment bool
+	EnableIstioIntegration     bool
+	EnableSaveConfigToFile     bool
+	EnablePanicOnPutError      bool
 	HealthProbeServicePort     string
 }
 
 var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
+var boolValidator = regexp.MustCompile(`^(?i)(true|false)$`)
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
@@ -79,10 +80,10 @@ func GetEnv() EnvVariables {
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
 		VerbosityLevel:             os.Getenv(VerbosityLevelVarName),
-		EnableBrownfieldDeployment: os.Getenv(EnableBrownfieldDeploymentVarName),
-		EnableIstioIntegration:     os.Getenv(EnableIstioIntegrationVarName),
-		EnableSaveConfigToFile:     os.Getenv(EnableSaveConfigToFileVarName),
-		EnablePanicOnPutError:      os.Getenv(EnablePanicOnPutErrorVarName),
+		EnableBrownfieldDeployment: GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
+		EnableIstioIntegration:     GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
+		EnableSaveConfigToFile:     GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
+		EnablePanicOnPutError:      GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
 		HealthProbeServicePort:     GetEnvironmentVariable(HealthProbeServicePortVarName, "8123", portNumberValidator),
 	}
 

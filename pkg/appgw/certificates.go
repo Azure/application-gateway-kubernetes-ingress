@@ -35,7 +35,7 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
 		// as a managed pool would be overwritten.
 		sslCertificates = brownfield.MergeCerts(*c.appGw.SslCertificates, sslCertificates)

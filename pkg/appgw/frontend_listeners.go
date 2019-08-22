@@ -23,7 +23,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 	}
 	var listeners []n.ApplicationGatewayHTTPListener
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
 			listener := c.newListener(listenerID, config.Protocol)
 			listeners = append(listeners, listener)
@@ -39,7 +39,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 		listeners = append(listeners, listener)
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 
 		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.

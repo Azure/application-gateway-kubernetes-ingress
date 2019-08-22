@@ -18,7 +18,7 @@ import (
 func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayFrontendPort {
 	allPorts := make(map[int32]interface{})
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for _, gwy := range cbCtx.IstioGateways {
 			for _, server := range gwy.Spec.Servers {
 				allPorts[int32(server.Port.Number)] = nil
@@ -52,7 +52,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 		})
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 
 		// Ports we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.

@@ -139,11 +139,11 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
-	if envVariables.EnableBrownfieldDeployment == "true" {
+	if envVariables.EnableBrownfieldDeployment {
 		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
 	}
 
-	if envVariables.EnableIstioIntegration == "true" {
+	if envVariables.EnableIstioIntegration {
 		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
 	}
 
