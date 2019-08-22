@@ -92,6 +92,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
 			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
 		}
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Port.String()) != 0 {
+			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal)
+		}
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
 		}
@@ -138,6 +141,8 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 	}
 
 	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
+	var probe *v1.Probe
+	var serviceContainer *v1.Container
 	for _, pod := range podList {
 		for _, container := range pod.Spec.Containers {
 			for _, port := range container.Ports {
@@ -145,16 +150,32 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 					continue
 				}
 
-				var probe *v1.Probe
+				serviceContainer = &container
 				if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
 					probe = container.ReadinessProbe
 				} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
 					probe = container.LivenessProbe
 				}
 
-				return probe
+				break
 			}
 		}
+	}
+
+	if probe != nil {
+		if probe.HTTPGet.Port.String() != "" && probe.HTTPGet.Port.Type == intstr.String {
+			for _, port := range serviceContainer.Ports {
+				if port.Name == probe.HTTPGet.Port.StrVal {
+					probe.HTTPGet.Port = intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: port.ContainerPort,
+					}
+					break
+				}
+			}
+		}
+
+		return probe
 	}
 
 	return nil

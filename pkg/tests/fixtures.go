@@ -38,6 +38,8 @@ const (
 	HealthPath       = "/healthz"
 	ContainerName    = "--container-name--"
 	ContainerPort    = int32(9876)
+	ContainerHealthPortName    = "--container-health-port-name--"
+	ContainerHealthPort    = int32(9090)
 	ServicePort      = "service-port"
 	SelectorKey      = "app"
 	SelectorValue    = "frontend"
@@ -243,7 +245,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 				Path: HealthPath,
 				Port: intstr.IntOrString{
 					Type:   intstr.String,
-					StrVal: containerName,
+					StrVal: ContainerHealthPortName,
 				},
 				Scheme: v1.URISchemeHTTP,
 			},
@@ -270,6 +272,10 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 						{
 							Name:          containerName,
 							ContainerPort: containerPort,
+						},
+						{
+							Name:          ContainerHealthPortName,
+							ContainerPort: ContainerHealthPort,
 						},
 					},
 					ReadinessProbe: NewProbeFixture(containerName),
