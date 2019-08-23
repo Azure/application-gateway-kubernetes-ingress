@@ -98,10 +98,8 @@ var _ = Describe("Test functions used in main.go", func() {
 		client := n.ApplicationGatewaysClient{}
 		It("should try and panic", func() {
 			env := environment.EnvVariables{}
-			fn := func() {
-				_ = waitForAzureAuth(env, client, 0)
-			}
-			Ω(fn).Should(Panic())
+			err := waitForAzureAuth(env, client, 0)
+			Ω(err).To(HaveOccurred())
 		})
 	})
 })
