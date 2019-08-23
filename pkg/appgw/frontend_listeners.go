@@ -107,7 +107,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.A
 	for idx, listener := range *listeners {
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
-			FrontendPort: *c.lookupFrontendPortByID(listener.FrontendPort.ID).Port,
+			FrontendPort: Port(*c.lookupFrontendPortByID(listener.FrontendPort.ID).Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])

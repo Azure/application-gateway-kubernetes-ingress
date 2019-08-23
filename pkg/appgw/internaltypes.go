@@ -43,12 +43,12 @@ type backendIdentifier struct {
 }
 
 type serviceBackendPortPair struct {
-	ServicePort int32
-	BackendPort int32
+	ServicePort Port
+	BackendPort Port
 }
 
 type listenerIdentifier struct {
-	FrontendPort int32
+	FrontendPort Port
 	HostName     string
 	UsePrivateIP bool
 }
@@ -109,19 +109,19 @@ func getResourceKey(namespace, name string) string {
 	return formatPropName(fmt.Sprintf("%v/%v", namespace, name))
 }
 
-func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPortNo, ingress))
+func generateHTTPSettingsName(serviceName string, servicePort string, backendPort Port, ingress string) string {
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPort, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%v-%v-%s", agPrefix, prefixProbe, ingress.Namespace, serviceName, servicePort, ingress.Name))
 }
 
-func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPortNo))
+func generateAddressPoolName(serviceName string, servicePort string, backendPort Port) string {
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPort))
 }
 
-func generateFrontendPortName(port int32) string {
+func generateFrontendPortName(port Port) string {
 	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixPort, port))
 }
 
@@ -200,7 +200,7 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 
 func defaultFrontendListenerIdentifier() listenerIdentifier {
 	return listenerIdentifier{
-		FrontendPort: int32(80),
+		FrontendPort: Port(80),
 		HostName:     "",
 	}
 }
