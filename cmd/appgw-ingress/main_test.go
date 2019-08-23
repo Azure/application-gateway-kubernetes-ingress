@@ -76,12 +76,30 @@ var _ = Describe("Test functions used in main.go", func() {
 		})
 	})
 
+	Context("test getAuthorizer", func() {
+		It("should try and get some authorizer", func() {
+			env := environment.EnvVariables{}
+			authorizer, err := getAuthorizer(env)
+			Ω(authorizer).ToNot(BeNil())
+			Ω(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("test getAuthorizerWithRetry", func() {
+		It("should try and get some authorizer", func() {
+			env := environment.EnvVariables{}
+			authorizer, err := getAuthorizerWithRetry(env, 0)
+			Ω(authorizer).ToNot(BeNil())
+			Ω(err).ToNot(HaveOccurred())
+		})
+	})
+
 	Context("test waitForAzureAuth", func() {
 		client := n.ApplicationGatewaysClient{}
 		It("should try and panic", func() {
 			env := environment.EnvVariables{}
 			fn := func() {
-				_ = waitForAzureAuth(env, &client, 0)
+				_ = waitForAzureAuth(env, client, 0)
 			}
 			Ω(fn).Should(Panic())
 		})
