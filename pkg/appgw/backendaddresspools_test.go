@@ -124,8 +124,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 		serviceBackendPair := serviceBackendPortPair{
 			// TODO(draychev): Move to test fixtures
-			ServicePort: int32(4321),
-			BackendPort: tests.ContainerPort,
+			ServicePort: Port(4321),
+			BackendPort: Port(tests.ContainerPort),
 		}
 
 		pool := tests.GetApplicationGatewayBackendAddressPool()

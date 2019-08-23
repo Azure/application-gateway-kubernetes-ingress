@@ -17,7 +17,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	envVariables := environment.GetFakeEnv()
 
 	listener80 := listenerIdentifier{
-		FrontendPort: int32(80),
+		FrontendPort: Port(80),
 		HostName:     tests.Host,
 	}
 
@@ -157,7 +157,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 
 	Context("create a new App Gateway HTTP Listener with Private Ip when usePrivateIP annotation is present", func() {
 		listener80Private := listenerIdentifier{
-			FrontendPort: int32(80),
+			FrontendPort: Port(80),
 			HostName:     tests.Host,
 			UsePrivateIP: true,
 		}

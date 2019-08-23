@@ -18,18 +18,18 @@ import (
 var _ = Describe("Test string key generators", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
 	targetListener := listenerIdentifier{
-		FrontendPort: int32(8080),
+		FrontendPort: Port(8080),
 		HostName:     "foo.baz",
 	}
 
 	Context("test each string key generator", func() {
-		backendPortNo := int32(8989)
+		backendPortNo := Port(8989)
 		servicePort := tests.ServicePort
 		serviceName := tests.ServiceName
 		ingress := tests.NewIngressFixture()
 		ingress.Name = "INGR"
 		fel := listenerIdentifier{
-			FrontendPort: int32(9898),
+			FrontendPort: Port(9898),
 			HostName:     tests.Host,
 		}
 
@@ -58,7 +58,7 @@ var _ = Describe("Test string key generators", func() {
 		})
 
 		It("generateFrontendPortName returns expected key", func() {
-			actual := generateFrontendPortName(int32(8989))
+			actual := generateFrontendPortName(Port(8989))
 			expected := agPrefix + "fp-8989"
 			Expect(actual).To(Equal(expected))
 		})
@@ -134,7 +134,7 @@ var _ = Describe("Test string key generators", func() {
 	Context("test property names that require a host name, but host name is blank", func() {
 		// Listener without a hostname
 		listener := listenerIdentifier{
-			FrontendPort: int32(9898),
+			FrontendPort: Port(9898),
 		}
 
 		listenerName := generateListenerName(listener)
@@ -158,10 +158,10 @@ var _ = Describe("Test string key generators", func() {
 		name := veryLongString
 		serviceName := veryLongString
 		servicePort := veryLongString
-		backendPortNo := int32(8888)
+		backendPortNo := Port(8888)
 		ingress := tests.NewIngressFixture()
 		ingress.Name = veryLongString
-		port := int32(88)
+		port := Port(88)
 		felID := listenerIdentifier{
 			FrontendPort: port,
 			HostName:     namespace,

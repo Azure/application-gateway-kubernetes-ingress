@@ -65,9 +65,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceName := "hello-world"
 
 	// Frontend and Backend port.
-	servicePort := int32(80)
+	servicePort := Port(80)
 	backendName := "http"
-	backendPort := int32(1356)
+	backendPort := Port(1356)
 
 	// Endpoints
 	endpoint1 := "1.1.1.1"
@@ -134,7 +134,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						StrVal: backendName,
 					},
 					Protocol: v1.ProtocolTCP,
-					Port:     servicePort,
+					Port:     int32(servicePort),
 				},
 			},
 			Selector: map[string]string{"app": "frontend"},
@@ -170,7 +170,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Ports: []v1.EndpointPort{
 					{
 						Name:     "servicePort",
-						Port:     backendPort,
+						Port:     int32(backendPort),
 						Protocol: v1.ProtocolTCP,
 					},
 				},
@@ -178,7 +178,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, backendPort)
+	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
 
 	_ = go_flag.Lookup("logtostderr").Value.Set("true")
 	_ = go_flag.Set("v", "3")
@@ -231,7 +231,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				Protocol: n.HTTP,
-				Port:     &backendPort,
+				Port:     to.Int32Ptr(int32(backendPort)),
 				Path:     nil,
 				HostName: nil,
 				Probe:    resourceRef(probeID),
@@ -283,8 +283,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect((*appGW.HTTPListeners)[0]).To(Equal(*listener))
 	}
 
-	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{FrontendPort: listener, HostName: host, UsePrivateIP: false})))
+	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{FrontendPort: frontEndPort, HostName: host, UsePrivateIP: false})))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.PathBasedRouting))
 	}
 
@@ -296,8 +296,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		baseRequestRoutingRulesChecker(appGW, 443, domainName)
 	}
 
-	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, listener int32, host string) {
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{FrontendPort: listener, HostName: host, UsePrivateIP: false})))
+	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{FrontendPort: frontEndPort, HostName: host, UsePrivateIP: false})))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
@@ -529,7 +529,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol: n.HTTP,
-						Port:     &servicePort,
+						Port:     to.Int32Ptr(int32(servicePort)),
 						Path:     nil,
 						Probe:    resourceRef(appGwIdentifier.probeID(defaultProbeName)),
 					},
@@ -756,7 +756,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol:            n.HTTP,
-						Port:                &backendPort,
+						Port:                to.Int32Ptr(int32(backendPort)),
 						Path:                to.StringPtr("/test"),
 						Probe:               resourceRef(probeID),
 						HostName:            nil,
@@ -820,7 +820,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			serviceName := "test-cm-acme-http-solver-j7sxh"
 			servicePort := "8089"
-			var backendPortNo int32 = 8089
+			backendPortNo := Port(8089)
 			ingress := "cm-acme-http-solver-t8rnf"
 
 			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)

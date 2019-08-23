@@ -114,11 +114,11 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 	return nil
 }
 
-func getUniqueTCPPorts(subset v1.EndpointSubset) map[int32]interface{} {
-	ports := make(map[int32]interface{})
+func getUniqueTCPPorts(subset v1.EndpointSubset) map[Port]interface{} {
+	ports := make(map[Port]interface{})
 	for _, endpointsPort := range subset.Ports {
 		if endpointsPort.Protocol == v1.ProtocolTCP {
-			ports[endpointsPort.Port] = nil
+			ports[Port(endpointsPort.Port)] = nil
 		}
 	}
 	return ports

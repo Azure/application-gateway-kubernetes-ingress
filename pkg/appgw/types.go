@@ -34,3 +34,5 @@ func (cbCtx *ConfigBuilderContext) InIngressList(ingress *v1beta1.Ingress) bool 
 	}
 	return false
 }
+
+type Port int32
