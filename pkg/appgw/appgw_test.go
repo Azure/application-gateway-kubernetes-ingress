@@ -323,7 +323,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		appGW, err := configBuilder.Build(cbCtx)
-		Expect(err).Should(BeNil(), "Error in generating the Health Probes: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Error in generating the Health Probes: %v", err)
 
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
@@ -398,22 +398,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		k8sClient = testclient.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
-		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create the service.
 		_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-		Expect(err).Should(BeNil(), "Unabled to create service resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unabled to create service resource due to: %v", err)
 
 		// Create the endpoints associated with this service.
 		_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-		Expect(err).Should(BeNil(), "Unabled to create endpoints resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unabled to create endpoints resource due to: %v", err)
 
 		// Create the pods associated with this service.
 		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-		Expect(err).Should(BeNil(), "Unabled to create pods resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unabled to create pods resource due to: %v", err)
 
 		// Create a mock CRD Client
 		crdClient := fake.NewSimpleClientset()
@@ -458,7 +458,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Configuration", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Ω(err).ToNot(HaveOccurred())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -499,14 +500,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Delete the service
 			options := &metav1.DeleteOptions{}
 			err := k8sClient.CoreV1().Services(ingressNS).Delete(serviceName, options)
-			Expect(err).Should(BeNil(), "Unable to delete service resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to delete service resource due to: %v", err)
 
 			// Delete the Endpoint
 			err = k8sClient.CoreV1().Endpoints(ingressNS).Delete(serviceName, options)
-			Expect(err).Should(BeNil(), "Unable to delete endpoint resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to delete endpoint resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			err = ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Ω(err).ToNot(HaveOccurred())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -588,16 +590,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			}
 
 			key, err := ioutil.ReadFile("../../tests/data/k8s.cert.key")
-			Expect(err).Should(BeNil(), "Unable to read the cert key: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.key"] = key
 
 			cert, err := ioutil.ReadFile("../../tests/data/k8s.x509.cert")
-			Expect(err).Should(BeNil(), "Unable to read the cert key: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.crt"] = cert
 
 			// Create a secret in Kubernetes.
 			_, err = k8sClient.CoreV1().Secrets(ingressNS).Create(ingressSecret)
-			Expect(err).Should(BeNil(), "Unable to create the secret object in K8s: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to create the secret object in K8s: %v", err)
 
 			// 2. Update the ingress TLS spec with a secret from the k8s secret store.
 			ingressTLS := v1beta1.IngressTLS{
@@ -608,16 +610,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
 			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
 			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
-			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			err = ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Ω(err).ToNot(HaveOccurred())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -708,7 +711,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Ingress Controller Annotations", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
 			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
@@ -719,10 +722,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			// Update the ingress.
 			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
-			Expect(err).Should(BeNil(), "Unable to update ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			err = ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Ω(err).ToNot(HaveOccurred())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
@@ -808,7 +812,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Application Gateway Generate HTTP Settings Name", func() {
 		It("Should be create an Application Gateway Backend Pool Name With Less than 80 Characters", func() {
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Ω(err).ToNot(HaveOccurred())
 
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
