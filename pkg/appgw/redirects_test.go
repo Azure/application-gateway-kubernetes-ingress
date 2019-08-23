@@ -20,8 +20,6 @@ import (
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
-	cb := newConfigBuilderFixture(nil)
-
 	listenerID1 := listenerIdentifier{
 		FrontendPort: 80,
 		HostName:     "bye.com",
@@ -46,6 +44,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	}
 
 	Context("Test RequestRoutingRules with TLS and with SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
@@ -94,6 +93,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("Test RequestRoutingRules without TLS but with SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		ingress.Spec.TLS = nil
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -111,7 +111,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		})
 
 		It("should have created correct ApplicationGatewayRedirectConfiguration struct", func() {
-			Expect(len(*actualRedirects)).To(Equal(1))
+			Expect(len(*actualRedirects)).To(Equal(0))
 			Expect(len(actualListeners)).To(Equal(1))
 			Expect(actualListeners[listenerID1]).To(Equal(expectedListenerConfigs[listenerID1]), fmt.Sprintf("Actual: %+v", actualListeners))
 			Expect(actualListeners[listenerID1].SslRedirectConfigurationName).To(Equal(""), fmt.Sprintf("Actual: %+v", actualListeners))
@@ -119,6 +119,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("Test RequestRoutingRules with TLS but without SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		delete(ingress.Annotations, annotations.SslRedirectKey)
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -137,7 +138,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		It("should have created correct ApplicationGatewayRedirectConfiguration struct", func() {
 			// Obviously there should be NO redirects since the annotation has been removed
-			Expect(len(*actualRedirects)).To(Equal(1))
+			Expect(len(*actualRedirects)).To(Equal(0))
 			Expect(len(actualListeners)).To(Equal(1))
 			expectedListenerConfig := listenerAzConfig{
 				Protocol: "Https",
