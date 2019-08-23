@@ -20,8 +20,6 @@ import (
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
-	cb := newConfigBuilderFixture(nil)
-
 	listenerID1 := listenerIdentifier{
 		FrontendPort: 80,
 		HostName:     "bye.com",
@@ -46,6 +44,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	}
 
 	Context("Test RequestRoutingRules with TLS and with SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		ingressList := []*v1beta1.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
@@ -75,7 +74,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-fl-bye.com-443")),
 		}
 
-		_, actualListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).ToNot(BeNil())
@@ -94,6 +93,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("Test RequestRoutingRules without TLS but with SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		ingress.Spec.TLS = nil
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -103,7 +103,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
-		_, actualListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).To(BeNil())
@@ -119,6 +119,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	})
 
 	Context("Test RequestRoutingRules with TLS but without SSL Redirect Annotation", func() {
+		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		delete(ingress.Annotations, annotations.SslRedirectKey)
 		ingressList := []*v1beta1.Ingress{ingress}
@@ -128,7 +129,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
-		_, actualListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).ToNot(BeNil())

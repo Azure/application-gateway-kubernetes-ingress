@@ -58,7 +58,11 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 	return err
 }
 
-func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
+func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
+	if c.mem.backendIDs != nil {
+		return *c.mem.backendIDs
+	}
+
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.Backend != nil {
@@ -93,6 +97,8 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 		}
 		finalBackendIDs[be] = nil
 	}
+
+	c.mem.backendIDs = &finalBackendIDs
 	return finalBackendIDs
 }
 
@@ -106,12 +112,16 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+	if c.mem.settings != nil && c.mem.settingsByBackend != nil && c.mem.serviceBackendPairsByBackend != nil {
+		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
+	}
+
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
-	for backendID := range newBackendIdsFiltered(cbCtx) {
+	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(backendID.serviceKey())
@@ -226,6 +236,9 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		httpSettings = append(httpSettings, backend)
 	}
 
+	c.mem.settings = &httpSettings
+	c.mem.settingsByBackend = &backendHTTPSettingsMap
+	c.mem.serviceBackendPairsByBackend = &finalServiceBackendPairMap
 	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 

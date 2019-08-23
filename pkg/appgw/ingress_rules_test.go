@@ -55,7 +55,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		frontendPorts, listenerConfigs := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
+		listenerConfigs := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		// Verify front end listeners
 		It("should have correct count of frontend listeners", func() {
@@ -124,7 +125,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		}
 
 		// !! Action !!
-		frontendPorts, frontendListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
+		frontendListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
@@ -180,8 +182,8 @@ func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier
 
 func getPortsList(m *map[Port]interface{}) []Port {
 	ports := make([]Port, 0, len(*m))
-	for k := range *m {
-		ports = append(ports, k)
+	for port := range *m {
+		ports = append(ports, port)
 	}
 	return ports
 }

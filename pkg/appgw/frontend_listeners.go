@@ -62,11 +62,15 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
 func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map[listenerIdentifier]listenerAzConfig {
+	if c.mem.listenerConfigs != nil {
+		return *c.mem.listenerConfigs
+	}
+
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
-		_, azListenerConfigs := c.processIngressRules(ingress, cbCtx.EnvVariables)
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
 		}
@@ -80,6 +84,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 		}
 	}
 
+	c.mem.listenerConfigs = &allListeners
 	return allListeners
 }
 

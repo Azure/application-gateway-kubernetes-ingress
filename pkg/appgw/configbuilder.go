@@ -28,7 +28,19 @@ type ConfigBuilder interface {
 }
 
 type memoization struct {
-	listeners *[]n.ApplicationGatewayHTTPListener
+	listeners                    *[]n.ApplicationGatewayHTTPListener
+	listenerConfigs              *map[listenerIdentifier]listenerAzConfig
+	routingRules                 *[]n.ApplicationGatewayRequestRoutingRule
+	pathMaps                     *[]n.ApplicationGatewayURLPathMap
+	probesByName                 *map[string]n.ApplicationGatewayProbe
+	probesByBackend              *map[backendIdentifier]*n.ApplicationGatewayProbe
+	backendIDs                   *map[backendIdentifier]interface{}
+	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
+	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
+	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	pools                        *[]n.ApplicationGatewayBackendAddressPool
+	certs                        *[]n.ApplicationGatewaySslCertificate
+	secretToCert                 *map[secretIdentifier]*string
 }
 
 type appGwConfigBuilder struct {
