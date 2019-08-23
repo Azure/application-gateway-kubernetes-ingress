@@ -41,7 +41,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 	}
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
 		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
 			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
@@ -56,7 +56,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, &defaultPool)
 
 		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.

@@ -43,47 +43,48 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
-	envVars := environment.GetEnv()
-
 	cbCtx := &appgw.ConfigBuilderContext{
-		ServiceList:           c.k8sContext.ListServices(),
-		IngressList:           c.k8sContext.ListHTTPIngresses(),
-		EnvVariables:          envVars,
-		EnablePanicOnPutError: envVars.EnablePanicOnPutError == "true",
+		ServiceList:  c.k8sContext.ListServices(),
+		IngressList:  c.k8sContext.ListHTTPIngresses(),
+		EnvVariables: environment.GetEnv(),
 	}
 
-	if envVars.EnableBrownfieldDeployment == "true" {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
 		if len(prohibitedTargets) > 0 {
 			cbCtx.ProhibitedTargets = prohibitedTargets
-			cbCtx.EnableBrownfieldDeployment = true
 			var prohibitedTargetsList []string
 			for _, target := range *brownfield.GetTargetBlacklist(prohibitedTargets) {
 				targetJSON, _ := json.Marshal(target)
 				prohibitedTargetsList = append(prohibitedTargetsList, string(targetJSON))
 			}
 			glog.V(3).Infof("[brownfield] Prohibited targets: %s", strings.Join(prohibitedTargetsList, ", "))
+		} else {
+			glog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureProhibitedTarget CRDs; Disabling brownfield deployment feature.")
+			cbCtx.EnvVariables.EnableBrownfieldDeployment = false
 		}
 	}
 
-	if cbCtx.EnvVariables.EnableIstioIntegration == "true" {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		istioServices := c.k8sContext.ListIstioVirtualServices()
 		istioGateways := c.k8sContext.ListIstioGateways()
 		if len(istioGateways) > 0 && len(istioServices) > 0 {
 			cbCtx.IstioGateways = istioGateways
 			cbCtx.IstioVirtualServices = istioServices
-			cbCtx.EnableIstioIntegration = true
+		} else {
+			glog.Warning("Istio Integration is enabled, but AGIC needs Istio Gateways and Virtual Services; Disabling Istio integration.")
+			cbCtx.EnvVariables.EnableIstioIntegration = false
 		}
 	}
 
 	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
-	if len(cbCtx.IngressList) == 0 && !cbCtx.EnableIstioIntegration {
+	if len(cbCtx.IngressList) == 0 && !cbCtx.EnvVariables.EnableIstioIntegration {
 		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
 		glog.Error(errorLine)
 		return nil
 	}
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		var gatewaysInfo []string
 		for _, gateway := range cbCtx.IstioGateways {
 			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
@@ -128,17 +129,15 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	glog.V(3).Info("BEGIN AppGateway deployment")
 	defer glog.V(3).Info("END AppGateway deployment")
 
-	logToFile := cbCtx.EnvVariables.EnableSaveConfigToFile == "true"
-
 	deploymentStart := time.Now()
 	// Initiate deployment
 	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, *generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := dumpSanitizedJSON(&appGw, logToFile, nil)
+		configJSON, _ := dumpSanitizedJSON(&appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
 		glogIt := glog.Errorf
-		if cbCtx.EnablePanicOnPutError {
+		if cbCtx.EnvVariables.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
 		}
 		glogIt("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
@@ -146,7 +145,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
-	configJSON, _ := dumpSanitizedJSON(&appGw, logToFile, nil)
+	configJSON, _ := dumpSanitizedJSON(&appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.

@@ -22,7 +22,7 @@ import (
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
@@ -39,7 +39,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
 			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
@@ -146,7 +146,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		}
 	}
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, pathMap := range c.getIstioPathMaps(cbCtx) {
 			if _, exists := urlPathMaps[listenerID]; !exists {
 				urlPathMaps[listenerID] = pathMap

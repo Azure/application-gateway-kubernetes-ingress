@@ -24,7 +24,7 @@ var pruneFuncList []pruneFunc
 // PruneIngress filters ingress list based on filter functions and returns a filtered ingress list
 func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*v1beta1.Ingress {
 	once.Do(func() {
-		if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 			pruneFuncList = append(pruneFuncList, pruneProhibitedIngress)
 		}
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)

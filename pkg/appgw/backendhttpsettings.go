@@ -29,7 +29,7 @@ const (
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
 	agicHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		allExistingSettings := rCtx.HTTPSettings
 
@@ -42,7 +42,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		// as a managed rule would be overwritten.
 		agicHTTPSettings = brownfield.MergeHTTPSettings(allExistingSettings, agicHTTPSettings)
 	}
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
 		if istioHTTPSettings != nil {
 			sort.Sort(sorter.BySettingsName(istioHTTPSettings))
