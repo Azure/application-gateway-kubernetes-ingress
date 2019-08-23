@@ -218,29 +218,31 @@ func getAuthorizerWithRetry(env environment.EnvVariables, maxAuthRetryCount int)
 func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGatewaysClient, maxAuthRetryCount int) error {
 	retryCount := 0
 	for {
-		if response, err := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName); err != nil {
-
-			// Reasons for 403 errors
-			if response.Response.Response != nil && response.Response.StatusCode == 403 {
-				glog.Error("Possible reasons:" +
-					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
-					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
-					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
-			}
-
-			if response.Response.Response != nil && response.Response.StatusCode != 200 {
-				// for example, getting 401. This is not expected as we are getting a token before making the call.
-				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
-			}
-
-			if retryCount >= maxAuthRetryCount {
-				glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
-				return errors.New("failed arm auth")
-			}
-			retryCount++
-			glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, tenSeconds, err)
-			time.Sleep(tenSeconds)
+		response, err := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+		if err == nil {
+			return nil
 		}
+
+		// Reasons for 403 errors
+		if response.Response.Response != nil && response.Response.StatusCode == 403 {
+			glog.Error("Possible reasons:" +
+				" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
+				" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
+				" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+		}
+
+		if response.Response.Response != nil && response.Response.StatusCode != 200 {
+			// for example, getting 401. This is not expected as we are getting a token before making the call.
+			glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
+		}
+
+		if retryCount >= maxAuthRetryCount {
+			glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
+			return errors.New("failed arm auth")
+		}
+		retryCount++
+		glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, tenSeconds, err)
+		time.Sleep(tenSeconds)
 	}
 }
 
