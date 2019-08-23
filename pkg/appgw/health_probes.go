@@ -42,6 +42,10 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 }
 
 func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
+	if c.mem.probesByName != nil && c.mem.probesByBackend != nil {
+		return *c.mem.probesByName, *c.mem.probesByBackend
+	}
+
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe(c.appGwIdentifier)
@@ -49,7 +53,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
 	healthProbeCollection[*defaultProbe.Name] = defaultProbe
 
-	for backendID := range newBackendIdsFiltered(cbCtx) {
+	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
@@ -61,6 +65,9 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 			probesMap[backendID] = &defaultProbe
 		}
 	}
+
+	c.mem.probesByName = &healthProbeCollection
+	c.mem.probesByBackend = &probesMap
 	return healthProbeCollection, probesMap
 }
 

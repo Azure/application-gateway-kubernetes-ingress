@@ -27,7 +27,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	}
 
 	for _, ingress := range cbCtx.IngressList {
-		fePorts, _ := c.processIngressRules(ingress, cbCtx.EnvVariables)
+		fePorts := c.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
 		for port := range fePorts {
 			allPorts[port] = nil
 		}
@@ -71,7 +71,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 
 func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(listenerIdentifier listenerIdentifier) *n.ApplicationGatewayFrontendPort {
 	for _, port := range *c.appGw.FrontendPorts {
-		if *port.Port == int32(listenerIdentifier.FrontendPort) {
+		if Port(*port.Port) == listenerIdentifier.FrontendPort {
 			return &port
 		}
 	}

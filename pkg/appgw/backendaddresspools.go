@@ -29,6 +29,10 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 }
 
 func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
+	if c.mem.pools != nil {
+		return *c.mem.pools
+	}
+
 	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
@@ -69,6 +73,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		return brownfield.MergePools(existingBlacklisted, agicCreatedPools)
 	}
 
+	c.mem.pools = &agicCreatedPools
 	return agicCreatedPools
 }
 

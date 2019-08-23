@@ -60,6 +60,9 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
+	if c.mem.routingRules != nil && c.mem.pathMaps != nil {
+		return *c.mem.routingRules, *c.mem.pathMaps
+	}
 	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
@@ -93,6 +96,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		}
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}
+
+	c.mem.routingRules = &requestRoutingRules
+	c.mem.pathMaps = &pathMap
 	return requestRoutingRules, pathMap
 }
 
@@ -158,7 +164,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 }
 
 func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *n.ApplicationGatewayURLPathMap {
-	// initilize a path map for this listener if doesn't exists
+	// initialize a path map for this listener if doesn't exists
 	pathMap := n.ApplicationGatewayURLPathMap{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(generateURLPathMapName(listenerID)),
