@@ -97,6 +97,10 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
+	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	}
+
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {

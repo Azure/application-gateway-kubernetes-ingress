@@ -15,6 +15,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -31,7 +32,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 	Context("test backend protocol annotation configures protocol on httpsettings", func() {
 
-		// checkBackendProtocolAnnotation tests different annotation values and expected output in http settings
+		// checkBackendProtocolAnnotation function calls generates backend http settings map
+		// based on backend protocol annotation and then test against expected backend http settings.
 		checkBackendProtocolAnnotation := func(annotationValue string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
 			// Setup
 			ingress.Annotations[annotations.BackendProtocolKey] = annotationValue
@@ -44,15 +46,19 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			}
 
 			// Action
+			configBuilder.mem = memoization{}
+			probes, _ := configBuilder.newProbesMap(cbCtx)
 			httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
 			for _, setting := range httpSettings {
 				if *setting.Name == defaultBackendHTTPSettingsName {
 					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
 					continue
 				}
 
 				Expect(setting.Protocol).To(Equal(expectedProtocolValue), "backend %s should have %s", *setting.Name, expectedProtocolValue)
+				Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(expectedProtocolValue), "probe should have same protocol as http setting")
 			}
 		}
 
