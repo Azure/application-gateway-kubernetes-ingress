@@ -111,7 +111,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		})
 
 		It("should have created correct ApplicationGatewayRedirectConfiguration struct", func() {
-			Expect(len(*actualRedirects)).To(Equal(0))
+			Expect(len(*actualRedirects)).To(Equal(1))
 			Expect(len(actualListeners)).To(Equal(1))
 			Expect(actualListeners[listenerID1]).To(Equal(expectedListenerConfigs[listenerID1]), fmt.Sprintf("Actual: %+v", actualListeners))
 			Expect(actualListeners[listenerID1].SslRedirectConfigurationName).To(Equal(""), fmt.Sprintf("Actual: %+v", actualListeners))
@@ -137,7 +137,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 
 		It("should have created correct ApplicationGatewayRedirectConfiguration struct", func() {
 			// Obviously there should be NO redirects since the annotation has been removed
-			Expect(len(*actualRedirects)).To(Equal(0))
+			Expect(len(*actualRedirects)).To(Equal(1))
 			Expect(len(actualListeners)).To(Equal(1))
 			expectedListenerConfig := listenerAzConfig{
 				Protocol: "Https",
