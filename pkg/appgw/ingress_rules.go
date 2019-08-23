@@ -14,8 +14,8 @@ import (
 )
 
 // processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress, env environment.EnvVariables) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
-	frontendPorts := make(map[int32]interface{})
+func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+	frontendPorts := make(map[Port]interface{})
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
@@ -24,18 +24,18 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress, env e
 		}
 
 		ruleFrontendPorts, ruleListeners := c.processIngressRule(rule, ingress, env)
-		for k, v := range ruleFrontendPorts {
-			frontendPorts[k] = v
+		for port, _ := range ruleFrontendPorts {
+			frontendPorts[port] = nil
 		}
-		for k, v := range ruleListeners {
-			listeners[k] = v
+		for listener, listenerConfig := range ruleListeners {
+			listeners[listener] = listenerConfig
 		}
 	}
 	return frontendPorts, listeners
 }
 
-func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
-	frontendPorts := make(map[int32]interface{})
+func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+	frontendPorts := make(map[Port]interface{})
 	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 

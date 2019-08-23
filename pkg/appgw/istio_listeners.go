@@ -31,7 +31,7 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 					continue
 				}
 				listenerID := listenerIdentifier{
-					FrontendPort: int32(server.Port.Number),
+					FrontendPort: Port(server.Port.Number),
 					HostName:     host,
 				}
 				allListeners[listenerID] = listenerAzConfig{Protocol: n.HTTP}
