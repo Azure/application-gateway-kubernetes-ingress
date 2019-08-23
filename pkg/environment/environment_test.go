@@ -60,10 +60,10 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(WatchNamespaceVarName, "WatchNamespaceVarName")
 				_ = os.Setenv(UsePrivateIPVarName, "UsePrivateIPVarName")
 				_ = os.Setenv(VerbosityLevelVarName, "VerbosityLevelVarName")
-				_ = os.Setenv(EnableBrownfieldDeploymentVarName, "EnableBrownfieldDeploymentVarName")
-				_ = os.Setenv(EnableIstioIntegrationVarName, "EnableIstioIntegrationVarName")
-				_ = os.Setenv(EnableSaveConfigToFileVarName, "EnableSaveConfigToFileVarName")
-				_ = os.Setenv(EnablePanicOnPutErrorVarName, "EnablePanicOnPutErrorVarName")
+				_ = os.Setenv(EnableBrownfieldDeploymentVarName, "SomethingIrrelevant1234")
+				_ = os.Setenv(EnableIstioIntegrationVarName, "true")
+				_ = os.Setenv(EnableSaveConfigToFileVarName, "false")
+				_ = os.Setenv(EnablePanicOnPutErrorVarName, "true")
 
 				expected := EnvVariables{
 					SubscriptionID:             "SubscriptionIDVarName",
@@ -73,10 +73,10 @@ var _ = Describe("Environment", func() {
 					WatchNamespace:             "WatchNamespaceVarName",
 					UsePrivateIP:               "UsePrivateIPVarName",
 					VerbosityLevel:             "VerbosityLevelVarName",
-					EnableBrownfieldDeployment: "EnableBrownfieldDeploymentVarName",
-					EnableIstioIntegration:     "EnableIstioIntegrationVarName",
-					EnableSaveConfigToFile:     "EnableSaveConfigToFileVarName",
-					EnablePanicOnPutError:      "EnablePanicOnPutErrorVarName",
+					EnableBrownfieldDeployment: false,
+					EnableIstioIntegration:     true,
+					EnableSaveConfigToFile:     false,
+					EnablePanicOnPutError:      true,
 					HealthProbeServicePort:     "8123",
 				}
 

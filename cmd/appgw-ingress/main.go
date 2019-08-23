@@ -133,10 +133,9 @@ func main() {
 	}
 
 	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
-	if err := appGwIngressController.Start(env); err != nil{
+	if err := appGwIngressController.Start(env); err != nil {
 		glog.Fatal("Could not start AGIC: ", err)
 	}
-
 
 	// Start the Health Probe Server (responding to Kubernetes health probes)
 	healthServer := &http.Server{
