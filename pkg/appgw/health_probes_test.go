@@ -105,6 +105,34 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 	})
 
+	Context("respect liveness/readiness probe even when backend protocol is http on ingress", func() {
+		cb := newConfigBuilderFixture(nil)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme = v1.URISchemeHTTPS
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList: ingressList,
+			ServiceList: serviceList,
+		}
+
+		// !! Action !!
+		probeMap, _ := cb.newProbesMap(cbCtx)
+
+		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
+		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		It("uses the readiness probe to set the protocol on the probe", func() {
+			Expect(probeMap[probeName].Protocol).To(Equal(n.HTTPS))
+		})
+	})
+
 	Context("use default probe when service doesn't exists", func() {
 		cb := newConfigBuilderFixture(nil)
 

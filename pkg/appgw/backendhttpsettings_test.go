@@ -25,12 +25,14 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	configBuilder := newConfigBuilderFixture(nil)
 	endpoint := tests.NewEndpointsFixture()
 	service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+	pod := tests.NewPodTestFixture(service.Namespace, "mybackend")
 	ingress := tests.NewIngressFixture()
+	_ = configBuilder.k8sContext.Caches.Pods.Add(&pod)
 	_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
 	_ = configBuilder.k8sContext.Caches.Service.Add(service)
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
-	Context("test backend protocol annotation configures protocol on httpsettings", func() {
+	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe is missing from pods", func() {
 
 		// checkBackendProtocolAnnotation function calls generates backend http settings map
 		// based on backend protocol annotation and then test against expected backend http settings.
