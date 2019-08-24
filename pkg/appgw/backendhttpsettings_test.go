@@ -32,7 +32,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	_ = configBuilder.k8sContext.Caches.Service.Add(service)
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
-	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe is missing from pods", func() {
+	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe on the pods", func() {
 
 		// checkBackendProtocolAnnotation function calls generates backend http settings map
 		// based on backend protocol annotation and then test against expected backend http settings.
