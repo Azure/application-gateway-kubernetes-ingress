@@ -17,6 +17,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -205,7 +206,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
+	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
@@ -265,6 +266,8 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
+	} else if !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
@@ -277,14 +280,26 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		} else {
 			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
 		}
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
 		httpSettings.CookieBasedAffinity = n.Enabled
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
 		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
+	} else if !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	if backendProtocol, err := annotations.BackendProtocol(backendID.Ingress); err == nil && backendProtocol == annotations.HTTPS {
+		httpSettings.Protocol = n.HTTPS
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	return httpSettings

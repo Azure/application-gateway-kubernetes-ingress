@@ -88,12 +88,12 @@ var _ = Describe("configure App Gateway health probes", func() {
 			ID:   to.StringPtr(cb.appGwIdentifier.probeID(probeName)),
 		}
 
-		It("should have exactly 3 records", func() {
-			Expect(len(*actual)).To(Equal(3))
+		It("should have exactly 4 records", func() {
+			Expect(len(*actual)).To(Equal(4))
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
 		})
 
 		It("should have created 1 probe for Host", func() {
@@ -102,6 +102,34 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		It("should have created 1 probe for OtherHost", func() {
 			Expect(*actual).To(ContainElement(probeForOtherHost))
+		})
+	})
+
+	Context("respect liveness/readiness probe even when backend protocol is http on ingress", func() {
+		cb := newConfigBuilderFixture(nil)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme = v1.URISchemeHTTPS
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList: ingressList,
+			ServiceList: serviceList,
+		}
+
+		// !! Action !!
+		probeMap, _ := cb.newProbesMap(cbCtx)
+
+		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
+		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		It("uses the readiness probe to set the protocol on the probe", func() {
+			Expect(probeMap[probeName].Protocol).To(Equal(n.HTTPS))
 		})
 	})
 
@@ -120,12 +148,13 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.HealthProbesCollection(cbCtx)
 		actual := cb.appGw.Probes
 
-		It("should have exactly 1 record", func() {
-			Expect(len(*actual)).To(Equal(1), fmt.Sprintf("Actual probes: %+v", *actual))
+		It("should have exactly 2 record", func() {
+			Expect(len(*actual)).To(Equal(2), fmt.Sprintf("Actual probes: %+v", *actual))
 		})
 
-		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier)))
+		It("should have created 2 default probes", func() {
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
 		})
 	})
 })
