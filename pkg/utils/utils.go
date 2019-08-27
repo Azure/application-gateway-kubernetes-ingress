@@ -72,8 +72,10 @@ func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 }
 
 // ConvertToClusterResourceGroup converts infra resource group to aks cluster ID
-func ConvertToClusterResourceGroup(nodeResourceID string) string {
-	subscription, resourceGroup, _ := ParseResourceID(nodeResourceID)
+func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup ResourceGroup) string {
 	split := strings.Split(string(resourceGroup), "_")
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s", subscription, split[1], split[2])
+	if len(split) < 3 {
+		return ""
+	}
+	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s", subscriptionID, split[1], split[2])
 }

@@ -67,5 +67,18 @@ var _ = Describe("Utils", func() {
 				Expect(resName).To(Equal(outResName))
 			})
 		})
+
+		Context("ensure ConvertToClusterResourceGroup works as expected", func() {
+			It("should parse empty infra resourse group correctly", func() {
+				subID := SubscriptionID("xxxx")
+				resGp := ResourceGroup("")
+				Expect(ConvertToClusterResourceGroup(subID, resGp)).To(Equal(""))
+			})
+			It("should parse valid infra resourse group correctly", func() {
+				subID := SubscriptionID("xxxx")
+				resGp := ResourceGroup("MC_resgp_resName_location")
+				Expect(ConvertToClusterResourceGroup(subID, resGp)).To(Equal("/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ContainerService/managedClusters/resName"))
+			})
+		})
 	})
 })

@@ -364,14 +364,14 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
-// GetClusterID returns all Istio Gateways that are annotated.
-func (c *Context) GetClusterID() string {
-	clusterID := ""
+// GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
+func (c *Context) GetInfrastructureResourceGroupID() (utils.SubscriptionID, utils.ResourceGroup) {
 	nodes := c.getNodes()
 	if len(nodes) > 0 && strings.Contains(nodes[0].Spec.ProviderID, "azure://") {
-		clusterID = strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://")
+		subscriptionID, resourceGroup, _ := utils.ParseResourceID(strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://"))
+		return subscriptionID, resourceGroup
 	}
-	return clusterID
+	return utils.SubscriptionID(""), utils.ResourceGroup("")
 }
 
 func (c *Context) getNodes() []v1.Node {
