@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/aztags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -82,6 +83,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: ingressNS,
+		},
+	}
+
+	// Create a node
+	node := &v1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-1",
+		},
+		Spec: v1.NodeSpec{
+			ProviderID: "azure:///subscriptions/subid/resourceGroups/MC_aksresgp_aksname_location/providers/Microsoft.Compute/virtualMachines/vmname",
 		},
 	}
 
@@ -366,9 +377,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Check tags
-		Expect(len(appGW.Tags)).To(Equal(1))
+		Expect(len(appGW.Tags)).To(Equal(2))
 		expected := map[string]*string{
-			managedByK8sIngress: to.StringPtr("a/b/c"),
+			aztags.ManagedByK8sIngress:    to.StringPtr("a/b/c"),
+			aztags.IngressForAKSClusterID: to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
 		}
 		Expect(appGW.Tags).To(Equal(expected))
 	}
@@ -399,6 +411,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Ω(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
+
+		_, err = k8sClient.CoreV1().Nodes().Create(node)
+		Ω(err).ToNot(HaveOccurred(), "Unabled to create node resource due to: %v", err)
 
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		Ω(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)

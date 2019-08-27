@@ -364,6 +364,21 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
+// GetClusterID returns all Istio Gateways that are annotated.
+func (c *Context) GetClusterID() string {
+	clusterID := ""
+	nodes := c.getNodes()
+	if len(nodes) > 0 && strings.Contains(nodes[0].Spec.ProviderID, "azure://") {
+		clusterID = strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://")
+	}
+	return clusterID
+}
+
+func (c *Context) getNodes() []v1.Node {
+	nodeList, _ := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	return nodeList.Items
+}
+
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)

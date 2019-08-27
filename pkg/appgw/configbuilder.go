@@ -15,8 +15,10 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/aztags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -193,5 +195,6 @@ func (c *appGwConfigBuilder) addTags() {
 		c.appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	c.appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	c.appGw.Tags[aztags.ManagedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	c.appGw.Tags[aztags.IngressForAKSClusterID] = to.StringPtr(utils.ConvertToClusterResourceGroup(c.k8sContext.GetClusterID()))
 }
