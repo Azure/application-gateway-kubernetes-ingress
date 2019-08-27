@@ -365,6 +365,7 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 }
 
 // GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
+// This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
 func (c *Context) GetInfrastructureResourceGroupID() (utils.SubscriptionID, utils.ResourceGroup) {
 	nodes := c.getNodes()
 	if len(nodes) > 0 && strings.Contains(nodes[0].Spec.ProviderID, "azure://") {
