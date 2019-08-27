@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/aztags"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -379,8 +379,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Check tags
 		Expect(len(appGW.Tags)).To(Equal(2))
 		expected := map[string]*string{
-			aztags.ManagedByK8sIngress:    to.StringPtr("a/b/c"),
-			aztags.IngressForAKSClusterID: to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
+			tags.ManagedByK8sIngress:    to.StringPtr("a/b/c"),
+			tags.IngressForAKSClusterID: to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
 		}
 		Expect(appGW.Tags).To(Equal(expected))
 	}

@@ -20,11 +20,11 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // Process is the callback function that will be executed for every event
@@ -202,14 +202,14 @@ func (c AppGwIngressController) updateIPAddressMap(appGw *n.ApplicationGateway) 
 
 		if ipConf.PrivateIPAddress != nil {
 			c.ipAddressMap[*ipConf.ID] = k8scontext.IPAddress(*ipConf.PrivateIPAddress)
-		} else if ipAddress := c.getPublicIPAddress(utils.ParseResourceID(*ipConf.PublicIPAddress.ID)); ipAddress != nil {
+		} else if ipAddress := c.getPublicIPAddress(azure.ParseResourceID(*ipConf.PublicIPAddress.ID)); ipAddress != nil {
 			c.ipAddressMap[*ipConf.ID] = *ipAddress
 		}
 	}
 }
 
 // getPublicIPAddress gets the ip address associated to public ip on Azure
-func (c AppGwIngressController) getPublicIPAddress(subscriptionID utils.SubscriptionID, resourceGroup utils.ResourceGroup, publicIPName utils.ResourceName) *k8scontext.IPAddress {
+func (c AppGwIngressController) getPublicIPAddress(subscriptionID azure.SubscriptionID, resourceGroup azure.ResourceGroup, publicIPName azure.ResourceName) *k8scontext.IPAddress {
 	ctx := context.Background()
 	// initialize public ip client using auth used with appgw client
 	publicIPClient := n.NewPublicIPAddressesClient(string(subscriptionID))

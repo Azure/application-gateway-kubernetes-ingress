@@ -25,6 +25,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
@@ -366,18 +367,24 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 
 // GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
 // This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
-func (c *Context) GetInfrastructureResourceGroupID() (utils.SubscriptionID, utils.ResourceGroup) {
-	nodes := c.getNodes()
-	if len(nodes) > 0 && strings.Contains(nodes[0].Spec.ProviderID, "azure://") {
-		subscriptionID, resourceGroup, _ := utils.ParseResourceID(strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://"))
-		return subscriptionID, resourceGroup
+func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
+	nodes, err := c.getNodes()
+	if err != nil {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
 	}
-	return utils.SubscriptionID(""), utils.ResourceGroup("")
+	if len(nodes) == 0 {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), errors.New("no nodes were found in the node list")
+	}
+	if !strings.HasPrefix(nodes[0].Spec.ProviderID, "azure://") {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), errors.New("providerID is not prefixed with azure://")
+	}
+	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://"))
+	return subscriptionID, resourceGroup, nil
 }
 
-func (c *Context) getNodes() []v1.Node {
-	nodeList, _ := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
-	return nodeList.Items
+func (c *Context) getNodes() ([]v1.Node, error) {
+	nodeList, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	return nodeList.Items, err
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status

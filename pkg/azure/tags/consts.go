@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package aztags
+package tags
 
 // An App Gateway tag: Resources tagged with this are exclusively managed by a Kubernetes Ingress.
 const(

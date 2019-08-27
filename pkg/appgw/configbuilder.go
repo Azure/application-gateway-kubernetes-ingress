@@ -15,10 +15,10 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/aztags"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -195,6 +195,10 @@ func (c *appGwConfigBuilder) addTags() {
 		c.appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	c.appGw.Tags[aztags.ManagedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
-	c.appGw.Tags[aztags.IngressForAKSClusterID] = to.StringPtr(utils.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()))
+	c.appGw.Tags[tags.ManagedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
+		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
+	} else {
+		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err.Error())
+	}
 }
