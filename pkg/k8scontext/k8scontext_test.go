@@ -3,15 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package k8scontext_test
+package k8scontext
 
 import (
-	go_flag "flag"
+	"flag"
 	"reflect"
 	"time"
 
 	"github.com/getlantern/deepcopy"
-	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -21,16 +21,15 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
-	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
+	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
-var _ = Describe("K8scontext", func() {
+var _ = ginkgo.Describe("K8scontext", func() {
 	var k8sClient kubernetes.Interface
-	var ctxt *k8scontext.Context
+	var ctxt *Context
 	ingressNS := "test-ingress-controller"
 	ingressName := "hello-world"
 	var stopChannel chan struct{}
@@ -51,11 +50,11 @@ var _ = Describe("K8scontext", func() {
 	podObj := tests.NewPodTestFixture(ingressNS, "pod")
 	pod := &podObj
 
-	_ = go_flag.Lookup("logtostderr").Value.Set("true")
-	_ = go_flag.Set("v", "5")
+	_ = flag.Lookup("logtostderr").Value.Set("true")
+	_ = flag.Set("v", "5")
 
 	// function to wait until sync
-	waitContextSync := func(ctxt *k8scontext.Context, resourceList ...interface{}) {
+	waitContextSync := func(ctxt *Context, resourceList ...interface{}) {
 		exists := make(map[interface{}]string)
 
 		for {
@@ -78,40 +77,41 @@ var _ = Describe("K8scontext", func() {
 		}
 	}
 
-	BeforeEach(func() {
+	ginkgo.BeforeEach(func() {
 		stopChannel = make(chan struct{})
 
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
 		crdClient := fake.NewSimpleClientset()
-		istioCrdClient := istio_fake.NewSimpleClientset()
+		istioCrdClient := istioFake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
-		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", ingressNS, err)
+		Expect(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
 		// create ingress in namespace
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
 
-	AfterEach(func() {
+	ginkgo.AfterEach(func() {
 		close(stopChannel)
 	})
 
-	Context("Checking if we are able to listen to Ingress Resources", func() {
-		It("Should be able to retrieve all Ingress Resources", func() {
+	ginkgo.Context("Checking if we are able to listen to Ingress Resources", func() {
+		ginkgo.It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
-			Expect(err).Should(BeNil(), "Unabled to retrieve stored ingresses resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unabled to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			Expect(len(ingressListInterface)).To(Equal(1), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
@@ -125,20 +125,21 @@ var _ = Describe("K8scontext", func() {
 
 		})
 
-		It("Should be able to follow modifications to the Ingress Resource.", func() {
+		ginkgo.It("Should be able to follow modifications to the Ingress Resource.", func() {
 			ingress.Spec.Rules[0].Host = "hellow-1.com"
 
 			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
-			Expect(err).Should(BeNil(), "Unabled to update ingress resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
-			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -152,18 +153,19 @@ var _ = Describe("K8scontext", func() {
 
 		})
 
-		It("Should be able to follow deletion of the Ingress Resource.", func() {
+		ginkgo.It("Should be able to follow deletion of the Ingress Resource.", func() {
 			err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Delete(ingressName, nil)
-			Expect(err).Should(BeNil(), "Unable to delete ingress resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to delete ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
-			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(0), "Expected to have no ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should still be only one ingress resource.
@@ -174,24 +176,27 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(ingressListInterface)).To(Equal(0), "Expected to have no ingress in the k8scontext but found: %d ingresses", len(testIngresses))
 		})
 
-		It("Should be following Ingress Resource with Application Gateway specific annotations only.", func() {
+		ginkgo.It("Should be following Ingress Resource with Application Gateway specific annotations only.", func() {
 			nonAppGWIngress := &v1beta1.Ingress{}
-			deepcopy.Copy(nonAppGWIngress, ingress)
+			err := deepcopy.Copy(nonAppGWIngress, ingress)
+			Expect(err).ToNot(HaveOccurred())
+
 			nonAppGWIngress.Name = ingressName + "123"
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
 			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
-			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(nonAppGWIngress)
-			Expect(err).Should(BeNil(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(nonAppGWIngress)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
-			Expect(err).Should(BeNil(), "Unable to retrieve stored ingresses resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(2), "Expected to have 2 ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Due to the large sync time we don't expect the cache to be synced, till we force sync the cache.
 			// Start the informers. This will sync the cache with the latest ingress.
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			// There should two ingress resource.
@@ -205,9 +210,9 @@ var _ = Describe("K8scontext", func() {
 			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
 		})
 
-		It("Should be able to follow add of the Pod Resource.", func() {
+		ginkgo.It("Should be able to follow add of the Pod Resource.", func() {
 			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			podObj1 := tests.NewPodTestFixture(ingressNS, "pod2")
 			pod1 := &podObj1
@@ -216,14 +221,16 @@ var _ = Describe("K8scontext", func() {
 				"extra": "random",
 			}
 			_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
-			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// Retrieve the Pods to make sure it was updated.
 			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(metav1.ListOptions{})
+			Expect(podList).ToNot(BeNil())
 			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
 
 			// Run context
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			// Get and check that one of the pods exists.
 			_, exists, _ := ctxt.Caches.Pods.Get(pod)
@@ -259,21 +266,22 @@ var _ = Describe("K8scontext", func() {
 		})
 	})
 
-	Context("Checking if we are able to skip unrelated pod events", func() {
-		It("should be able to select related pods", func() {
+	ginkgo.Context("Checking if we are able to skip unrelated pod events", func() {
+		ginkgo.It("should be able to select related pods", func() {
 			// start context for syncing
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			// create a POD with labels
 			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
 			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
 			waitContextSync(ctxt, ingress, pod, service)
@@ -285,23 +293,24 @@ var _ = Describe("K8scontext", func() {
 			Expect(ctxt.IsPodReferencedByAnyIngress(pod)).To(BeTrue(), "Expected is Pod is selected by the service and ingress.")
 		})
 
-		It("should be able to skip unrelated pods", func() {
+		ginkgo.It("should be able to skip unrelated pods", func() {
 			// start context for syncing
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			// modify the labels on the POD
 			pod.Labels = map[string]string{
 				"random": "random",
 			}
 			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-			Expect(err).Should(BeNil(), "Unable to create pod resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
 			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
 			waitContextSync(ctxt, ingress, pod, service)
@@ -314,24 +323,25 @@ var _ = Describe("K8scontext", func() {
 		})
 	})
 
-	Context("Checking if we are able to skip unrelated endpoints events", func() {
-		It("should be able to select related endpoints", func() {
+	ginkgo.Context("Checking if we are able to skip unrelated endpoints events", func() {
+		ginkgo.It("should be able to select related endpoints", func() {
 			// start context for syncing
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			endpoints := tests.NewEndpointsFixture()
 			endpoints.Namespace = ingressNS
 
 			// create a POD with labels
 			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-			Expect(err).Should(BeNil(), "Unable to create endpoints resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
 			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
 			waitContextSync(ctxt, ingress, service, endpoints)
@@ -343,9 +353,10 @@ var _ = Describe("K8scontext", func() {
 			Expect(ctxt.IsEndpointReferencedByAnyIngress(endpoints)).To(BeTrue(), "Expected is endpoints is selected by the service and ingress.")
 		})
 
-		It("should be able to skip unrelated endpoints", func() {
+		ginkgo.It("should be able to skip unrelated endpoints", func() {
 			// start context for syncing
-			ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
 
 			endpoints := tests.NewEndpointsFixture()
 			endpoints.Name = "random"
@@ -353,14 +364,14 @@ var _ = Describe("K8scontext", func() {
 
 			// create a POD with labels
 			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-			Expect(err).Should(BeNil(), "Unable to create endpoints resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
 			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-			Expect(err).Should(BeNil(), "Unable to create service resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
 			waitContextSync(ctxt, ingress, service, endpoints)
@@ -373,11 +384,12 @@ var _ = Describe("K8scontext", func() {
 		})
 	})
 
-	Context("Checking AddIngressStatus and RemoveIngressStatus", func() {
-		ip := k8scontext.IPAddress("address")
-		It("adds IP when not present and then removes", func() {
+	ginkgo.Context("Checking AddIngressStatus and RemoveIngressStatus", func() {
+		ip := IPAddress("address")
+		ginkgo.It("adds IP when not present and then removes", func() {
 			// add test
-			ctxt.UpdateIngressStatus(*ingress, ip)
+			err := ctxt.UpdateIngressStatus(*ingress, ip)
+			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
@@ -386,11 +398,13 @@ var _ = Describe("K8scontext", func() {
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 		})
 
-		It("doesn't add IP again when already present", func() {
+		ginkgo.It("doesn't add IP again when already present", func() {
 			// add
-			ctxt.UpdateIngressStatus(*ingress, ip)
+			err := ctxt.UpdateIngressStatus(*ingress, ip)
+			Expect(err).ToNot(HaveOccurred())
 			// add again
-			ctxt.UpdateIngressStatus(*ingress, ip)
+			err = ctxt.UpdateIngressStatus(*ingress, ip)
+			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
