@@ -194,7 +194,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 
 	if !exist {
 		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
-		return nil, ErrFetchingEnpdoints
+		return nil, ErrorFetchingEnpdoints
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil

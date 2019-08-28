@@ -34,8 +34,7 @@ func (h handlers) ingressAddFunc(obj interface{}) {
 
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
-					done := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret))
-					if !done {
+					if err := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret)); err != nil {
 						continue
 					}
 				}
@@ -96,8 +95,7 @@ func (h handlers) ingressUpdateFunc(oldObj, newObj interface{}) {
 
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
-					done := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret))
-					if !done {
+					if err := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret)); err != nil {
 						continue
 					}
 				}
@@ -119,8 +117,7 @@ func (h handlers) secretAddFunc(obj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		// find if this secKey exists in the map[string]UnorderedSets
-		done := h.context.CertificateSecretStore.convertSecret(secKey, sec)
-		if done {
+		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
 			h.context.UpdateChannel.In() <- events.Event{
 				Type:  events.Create,
 				Value: obj,
@@ -137,8 +134,7 @@ func (h handlers) secretUpdateFunc(oldObj, newObj interface{}) {
 	sec := newObj.(*v1.Secret)
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
-		done := h.context.CertificateSecretStore.convertSecret(secKey, sec)
-		if done {
+		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
 			h.context.UpdateChannel.In() <- events.Event{
 				Type:  events.Update,
 				Value: newObj,
