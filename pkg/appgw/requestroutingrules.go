@@ -17,6 +17,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
@@ -76,7 +77,6 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
 		}
-		glog.V(5).Infof("Binding rule %s to listener %s", *rule.Name, *httpListener.Name)
 		if urlPathMap.PathRules == nil || len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
 			rule.RuleType = n.Basic
@@ -93,6 +93,15 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			rule.RuleType = n.PathBasedRouting
 			rule.URLPathMap = &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))}
 			pathMap = append(pathMap, *urlPathMap)
+		}
+		if rule.RuleType == n.PathBasedRouting {
+			glog.V(5).Infof("Binded path-based rule %s to listener %s(%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
+		} else {
+			if rule.RedirectConfiguration != nil {
+				glog.V(5).Infof("Binded basic rule %s to listener %s(%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+			} else {
+				glog.V(5).Infof("Binded basic rule %s to listener %s(%s, %d), backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+			}
 		}
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}

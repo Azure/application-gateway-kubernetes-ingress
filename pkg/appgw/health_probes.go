@@ -23,7 +23,6 @@ import (
 
 func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext) error {
 	healthProbeCollection, _ := c.newProbesMap(cbCtx)
-	glog.V(5).Infof("Will create %d App Gateway probes.", len(healthProbeCollection))
 	agicCreatedProbes := make([]n.ApplicationGatewayProbe, 0, len(healthProbeCollection))
 	for _, probe := range healthProbeCollection {
 		agicCreatedProbes = append(agicCreatedProbes, probe)
@@ -51,16 +50,15 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 	defaultHTTPProbe := defaultProbe(c.appGwIdentifier, n.HTTP)
 	defaultHTTPSProbe := defaultProbe(c.appGwIdentifier, n.HTTPS)
 
-	glog.V(5).Info("Adding default HTTP probe:", *defaultHTTPProbe.Name)
-	glog.V(5).Info("Adding default HTTPS probe:", *defaultHTTPProbe.Name)
 	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
 	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
+	glog.V(5).Info("Created default HTTP probe:", *defaultHTTPProbe.Name)
+	glog.V(5).Info("Created default HTTPS probe:", *defaultHTTPProbe.Name)
 
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
-			glog.V(5).Infof("Created probe %s for backend: '%s'", *probe.Name, backendID.Name)
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
@@ -68,8 +66,8 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 			if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
-			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *probesMap[backendID].Name)
 		}
+		glog.V(5).Infof("Created probe %s for service %s", *probesMap[backendID].Name, backendID.serviceKey())
 	}
 
 	c.mem.probesByName = &healthProbeCollection
