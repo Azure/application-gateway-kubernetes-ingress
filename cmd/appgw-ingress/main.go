@@ -70,14 +70,14 @@ func main() {
 	}
 
 	env := environment.GetEnv()
-	if err := environment.ValidateEnv(env); err != nil {
-		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values.", err)
-	}
 
 	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
-
 	if *versionInfo {
 		version.PrintVersionAndExit()
+	}
+
+	if err := environment.ValidateEnv(env); err != nil {
+		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values.", err)
 	}
 
 	// Workaround for "ERROR: logging before flag.Parse"
