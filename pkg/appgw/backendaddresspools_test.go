@@ -8,6 +8,7 @@ package appgw
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -155,6 +156,93 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				},
 			}
 			Expect(*actual).To(Equal(expected))
+		})
+	})
+
+	Context("Test Istio components", func() {
+		cb := newConfigBuilderFixture(nil)
+		istioDest := istioDestinationIdentifier{}
+		istioGateways := []*v1alpha3.Gateway{}
+		istioVirtualServices := []*v1alpha3.VirtualService{}
+
+		destinationID := istioDestinationIdentifier{}
+		serviceBackendPair := serviceBackendPortPair{}
+		addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{}
+
+		It("Should resolve Istio Port names", func() {
+			expected := map[Port]interface{}{}
+			actual := cb.resolveIstioPortName("portName", &istioDest)
+			Expect(actual).To(Equal(expected))
+		})
+
+		It("Should get listener config from istio", func() {
+			actual := cb.getListenerConfigsFromIstio(istioGateways, istioVirtualServices)
+			expected := map[listenerIdentifier]listenerAzConfig{
+				listenerIdentifier{FrontendPort: 80, HostName: "", UsePrivateIP: false}: {
+					Protocol:                     "Http",
+					Secret:                       secretIdentifier{Namespace: "", Name: ""},
+					SslRedirectConfigurationName: "",
+				},
+			}
+			Expect(actual).To(Equal(expected))
+		})
+
+		It("Should get backend pools from istio", func() {
+			actual := cb.getIstioBackendAddressPool(destinationID, serviceBackendPair, addressPools)
+			Expect(actual).To(BeNil())
+		})
+
+		It("Should get path maps from istio", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: cb.k8sContext.ListHTTPIngresses(),
+				ServiceList: serviceList,
+			}
+			actual := cb.getIstioPathMaps(cbCtx)
+			expected := map[listenerIdentifier]*n.ApplicationGatewayURLPathMap{
+
+				listenerIdentifier{FrontendPort: 80, HostName: "", UsePrivateIP: false}: {
+
+					ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+						DefaultBackendAddressPool: &n.SubResource{
+							ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
+								"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
+								"/backendAddressPools/defaultaddresspool"),
+						},
+						DefaultBackendHTTPSettings: &n.SubResource{
+							ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
+								"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
+								"/backendHttpSettingsCollection/defaulthttpsetting"),
+						},
+						DefaultRewriteRuleSet:        nil,
+						DefaultRedirectConfiguration: nil,
+						PathRules:                    &[]n.ApplicationGatewayPathRule{},
+						ProvisioningState:            nil,
+					},
+					Name: to.StringPtr("url-80"),
+					Etag: to.StringPtr("*"),
+					Type: nil,
+					ID:   nil,
+				},
+			}
+
+			Expect(actual).To(Equal(expected))
+		})
+
+		It("Should get destinations from istio", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: cb.k8sContext.ListHTTPIngresses(),
+				ServiceList: serviceList,
+			}
+			expectedSettingsList := []n.ApplicationGatewayBackendHTTPSettings{}
+			expectedSettinsgPerDestination := map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings{}
+			expectedPortsPerDestination := map[istioDestinationIdentifier]serviceBackendPortPair{}
+
+			settingsList, settingsPerDestination, portsPerDestination, err := cb.getIstioDestinationsAndSettingsMap(cbCtx)
+
+			Expect(expectedSettingsList).To(Equal(settingsList))
+			Expect(expectedSettinsgPerDestination).To(Equal(settingsPerDestination))
+			Expect(expectedPortsPerDestination).To(Equal(portsPerDestination))
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })
