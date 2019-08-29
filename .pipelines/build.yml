@@ -40,6 +40,9 @@ steps:
     echo -e "\e[44;97m Compiling ... \e[0m"
 
     # set version
+    ORG_PATH="github.com/Azure"
+    PROJECT_NAME="application-gateway-kubernetes-ingress"
+    REPO_PATH="${ORG_PATH}/${PROJECT_NAME}"
     VERSION_VAR="${REPO_PATH}/pkg/version.Version"
     VERSION=$(git describe --abbrev=0 --tags)
     DATE_VAR="${REPO_PATH}/pkg/version.BuildDate"
