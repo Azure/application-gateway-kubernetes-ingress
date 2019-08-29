@@ -52,8 +52,8 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
 	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
-	glog.V(5).Info("Created default HTTP probe:", *defaultHTTPProbe.Name)
-	glog.V(5).Info("Created default HTTPS probe:", *defaultHTTPProbe.Name)
+	glog.V(5).Info("Created default HTTP probe ", *defaultHTTPProbe.Name)
+	glog.V(5).Info("Created default HTTPS probe ", *defaultHTTPProbe.Name)
 
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
 		}
-		glog.V(5).Infof("Created probe %s for service %s", *probesMap[backendID].Name, backendID.serviceKey())
+		glog.V(5).Infof("Created probe %s for ingress %s/%s and service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 	}
 
 	c.mem.probesByName = &healthProbeCollection

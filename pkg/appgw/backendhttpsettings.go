@@ -184,6 +184,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 		finalServiceBackendPairMap[backendID] = uniquePair
 		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort, cbCtx)
+		glog.V(5).Infof("Created backend http settings %s for ingress %s/%s and service %s", *httpSettings.Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
@@ -201,7 +202,6 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
-	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
