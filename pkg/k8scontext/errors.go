@@ -8,5 +8,10 @@ package k8scontext
 import "errors"
 
 var (
-	ErrFetchingEnpdoints = errors.New("FetchingEndpoints")
+	ErrorFetchingEnpdoints    = errors.New("FetchingEndpoints")
+	ErrorUnknownSecretType    = errors.New("unknown secret type")
+	ErrorCreatingFile         = errors.New("unable to create temp file")
+	ErrorMalformedSecret      = errors.New("malformed secret")
+	ErrorWritingToFile        = errors.New("unable to write to file")
+	ErrorExportingWithOpenSSL = errors.New("failed export with OpenSSL")
 )
