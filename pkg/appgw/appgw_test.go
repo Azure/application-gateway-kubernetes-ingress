@@ -239,7 +239,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
-			ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
+			ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				Protocol: n.HTTP,
 				Port:     to.Int32Ptr(int32(backendPort)),
@@ -263,7 +263,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		addressPool := &n.ApplicationGatewayBackendAddressPool{
 			Etag: to.StringPtr("*"),
 			Name: &addressPoolName,
-			ID:   to.StringPtr(appGwIdentifier.addressPoolID(addressPoolName)),
+			ID:   to.StringPtr(appGwIdentifier.AddressPoolID(addressPoolName)),
 			ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 				BackendAddresses: &addressPoolAddresses,
 			},
@@ -541,7 +541,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
-					ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
+					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol: n.HTTP,
 						Port:     to.Int32Ptr(int32(servicePort)),
@@ -768,7 +768,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
-					ID:   to.StringPtr(appGwIdentifier.httpSettingsID(httpSettingsName)),
+					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 						Protocol:            n.HTTP,
 						Port:                to.Int32Ptr(int32(backendPort)),

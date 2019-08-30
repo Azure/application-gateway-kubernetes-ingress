@@ -148,19 +148,19 @@ func generatePathRuleName(namespace, ingress, suffix string) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
 }
 
-var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
-var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
+var DefaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
+var DefaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
 
 func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {
 	return fmt.Sprintf("%sdefaultprobe-%s", agPrefix, protocol)
 }
 
 func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayBackendHTTPSettings {
-	defHTTPSettingsName := defaultBackendHTTPSettingsName
+	defHTTPSettingsName := DefaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
 	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
-		ID:   to.StringPtr(appGWIdentifier.httpSettingsID(defHTTPSettingsName)),
+		ID:   to.StringPtr(appGWIdentifier.HTTPSettingsID(defHTTPSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: protocol,
 			Port:     &defHTTPSettingsPort,
@@ -192,8 +192,8 @@ func defaultProbe(appGWIdentifier Identifier, protocol n.ApplicationGatewayProto
 
 func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayBackendAddressPool {
 	return n.ApplicationGatewayBackendAddressPool{
-		Name: &defaultBackendAddressPoolName,
-		ID:   to.StringPtr(appGWIdentifier.addressPoolID(defaultBackendAddressPoolName)),
+		Name: &DefaultBackendAddressPoolName,
+		ID:   to.StringPtr(appGWIdentifier.AddressPoolID(DefaultBackendAddressPoolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{},
 		},

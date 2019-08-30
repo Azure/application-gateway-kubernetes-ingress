@@ -142,7 +142,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			expectedPoolName := "pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"
 			expected := n.ApplicationGatewayBackendAddressPool{
 				Name: to.StringPtr(expectedPoolName),
-				ID:   to.StringPtr(cb.appGwIdentifier.addressPoolID(expectedPoolName)),
+				ID:   to.StringPtr(cb.appGwIdentifier.AddressPoolID(expectedPoolName)),
 				Etag: to.StringPtr("*"),
 				ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 					BackendIPConfigurations: nil,
