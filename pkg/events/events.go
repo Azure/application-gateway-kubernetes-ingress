@@ -19,13 +19,6 @@ const (
 	Delete
 )
 
-// EventTypeLookup is a reverse map of the EventType enums; used for logging purposes
-var EventTypeLookup = map[EventType]string{
-	1: "Create",
-	2: "Update",
-	3: "Delete",
-}
-
 // Event is the combined type and actual object we received from Kubernetes
 type Event struct {
 	Type  EventType
