@@ -9,19 +9,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
-	"github.com/Azure/go-autorest/autorest/to"
 	"strings"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/client-go/kubernetes"
+
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 
@@ -35,18 +34,12 @@ import (
 )
 
 var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
-	var k8sClient kubernetes.Interface
-	var ctxt *k8scontext.Context
-	var configBuilder ConfigBuilder
-	var appGwIdentifier Identifier
-
 	version.Version = "a"
 	version.GitCommit = "b"
 	version.BuildDate = "c"
 
-	domainName := "hello.com"
 	ingressNS := "test-ingress-controller"
-	ingressName := "hello-world"
+
 	serviceName := "hello-world"
 
 	// Frontend and Backend port.
@@ -58,9 +51,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	endpoint1 := "1.1.1.1"
 	endpoint2 := "1.1.1.2"
 	endpoint3 := "1.1.1.3"
-
-	// Paths
-	hiPath := "/hi"
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -82,27 +72,20 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	// Create the Ingress resource.
 	ingress := &v1beta1.Ingress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ingressName,
-			Namespace: ingressNS,
-			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-			},
-		},
 		Spec: v1beta1.IngressSpec{
 			Rules: []v1beta1.IngressRule{
 				{
-					Host: domainName,
+					Host: "foo.baz",
 					IngressRuleValue: v1beta1.IngressRuleValue{
 						HTTP: &v1beta1.HTTPIngressRuleValue{
 							Paths: []v1beta1.HTTPIngressPath{
 								{
-									Path: hiPath,
+									Path: "/",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
+										ServiceName: tests.ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
-											IntVal: int32(servicePort),
+											IntVal: 80,
 										},
 									},
 								},
@@ -111,6 +94,29 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
+			TLS: []v1beta1.IngressTLS{
+				{
+					Hosts: []string{
+						"www.contoso.com",
+						"ftp.contoso.com",
+						tests.Host,
+						"",
+					},
+					SecretName: tests.NameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: tests.NameOfSecret,
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.SslRedirectKey:  "true",
+			},
+			Namespace: tests.Namespace,
+			Name:      tests.Name,
 		},
 	}
 
@@ -172,14 +178,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", "3")
 
-	appGwIdentifier = Identifier{
+	appGwIdentifier := Identifier{
 		SubscriptionID: tests.Subscription,
 		ResourceGroup:  tests.ResourceGroup,
 		AppGwName:      tests.AppGwName,
 	}
 
 	// Create the mock K8s client.
-	k8sClient = testclient.NewSimpleClientset()
+	k8sClient := testclient.NewSimpleClientset()
 	_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
@@ -200,7 +206,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
-	ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
 	appGwy := &n.ApplicationGateway{}
 	// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
@@ -222,11 +228,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	// Initialize the `ConfigBuilder`
-	configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))
+	configBuilder := NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))
 
 	Context("Tests Application Gateway config creation", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:  []*v1beta1.Ingress{fixtures.GetIngress()},
+			IngressList:  []*v1beta1.Ingress{ingress},
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
 		}
