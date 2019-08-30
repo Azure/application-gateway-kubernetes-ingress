@@ -45,10 +45,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	cbCtx := &appgw.ConfigBuilderContext{
-		ServiceList:  c.k8sContext.ListServices(),
-		IngressList:  c.k8sContext.ListHTTPIngresses(),
-		EnvVariables: environment.GetEnv(),
-
+		ServiceList:           c.k8sContext.ListServices(),
+		IngressList:           c.k8sContext.ListHTTPIngresses(),
+		EnvVariables:          environment.GetEnv(),
 		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
 		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 	}
