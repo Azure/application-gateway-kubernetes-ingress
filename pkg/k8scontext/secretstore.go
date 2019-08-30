@@ -27,7 +27,7 @@ const (
 type SecretsKeeper interface {
 	GetPfxCertificate(secretKey string) []byte
 	convertSecret(secretKey string, secret *v1.Secret) error
-	eraseSecret(secretKey string)
+	delete(secretKey string)
 }
 
 // SecretsStore maintains a cache of the deployment secrets.
@@ -54,7 +54,7 @@ func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
 	return nil
 }
 
-func (s *SecretsStore) eraseSecret(secretKey string) {
+func (s *SecretsStore) delete(secretKey string) {
 	s.conversionSync.Lock()
 	defer s.conversionSync.Unlock()
 

@@ -6,7 +6,6 @@
 package k8scontext
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -34,6 +33,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
+
+const providerPrefix = "azure://"
 
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
@@ -95,15 +96,15 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	ingressResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    h.ingressAddFunc,
-		UpdateFunc: h.ingressUpdateFunc,
-		DeleteFunc: h.ingressDeleteFunc,
+		AddFunc:    h.ingressAdd,
+		UpdateFunc: h.ingressUpdate,
+		DeleteFunc: h.ingressDelete,
 	}
 
 	secretResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    h.secretAddFunc,
-		UpdateFunc: h.secretUpdateFunc,
-		DeleteFunc: h.secretDeleteFunc,
+		AddFunc:    h.secretAdd,
+		UpdateFunc: h.secretUpdate,
+		DeleteFunc: h.secretDelete,
 	}
 
 	// Register event handlers.
@@ -123,7 +124,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	var hasSynced []cache.InformerSynced
 
 	if c.informers == nil {
-		return errors.New("informers are not initialized")
+		return ErrorInformersNotInitialized
 	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
@@ -160,7 +161,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	glog.V(1).Infoln("Waiting for initial cache sync")
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
-		return errors.New("failed initial sync of resources required for ingress")
+		return ErrorFailedInitialCacheSync
 	}
 
 	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
@@ -368,23 +369,18 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 // GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
 // This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
 func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
-	nodes, err := c.getNodes()
+	nodes, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
 	}
-	if len(nodes) == 0 {
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), errors.New("no nodes were found in the node list")
+	if nodes == nil || len(nodes.Items) == 0 {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorNoNodesFound
 	}
-	if !strings.HasPrefix(nodes[0].Spec.ProviderID, "azure://") {
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), errors.New("providerID is not prefixed with azure://")
+	if !strings.HasPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix) {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorUnrecognizedNodeProviderPrefix
 	}
-	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes[0].Spec.ProviderID, "azure://"))
+	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix))
 	return subscriptionID, resourceGroup, nil
-}
-
-func (c *Context) getNodes() ([]v1.Node, error) {
-	nodeList, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
-	return nodeList.Items, err
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status
@@ -406,7 +402,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address I
 	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
 		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
 		glog.Error(errorLine)
-		return errors.New(errorLine)
+		return ErrorUnableToUpdateIngress
 	}
 
 	return nil
