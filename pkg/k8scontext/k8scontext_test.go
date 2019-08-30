@@ -23,7 +23,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -59,8 +58,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 		for {
 			select {
-			case in := <-ctxt.UpdateChannel.Out():
-				event := in.(events.Event)
+			case event := <-ctxt.Work:
 				for _, resource := range resourceList {
 					if reflect.DeepEqual(resource, event.Value) {
 						exists[resource] = ""

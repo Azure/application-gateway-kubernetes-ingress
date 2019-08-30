@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	go_flag "flag"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"time"
@@ -28,7 +28,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -191,8 +190,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
 
-	_ = go_flag.Lookup("logtostderr").Value.Set("true")
-	_ = go_flag.Set("v", "3")
+	_ = flag.Lookup("logtostderr").Value.Set("true")
+	_ = flag.Set("v", "3")
 
 	// Method to test all the ingress that have been added to the K8s context.
 	testIngress := func() []*v1beta1.Ingress {
@@ -388,8 +387,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ingressEvent := func() {
 		for {
 			select {
-			case obj := <-ctxt.UpdateChannel.Out():
-				event := obj.(events.Event)
+			case event := <-ctxt.Work:
 				// Check if we got an event of type secret.
 				if _, ok := event.Value.(*v1beta1.Ingress); ok {
 					return
