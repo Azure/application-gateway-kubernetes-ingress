@@ -12,7 +12,6 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
@@ -30,16 +29,16 @@ import (
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 const providerPrefix = "azure://"
+const workBuffer = 1024
 
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
-	updateChannel := channels.NewRingChannel(1024)
-
 	var options []informers.SharedInformerOption
 	var crdOptions []externalversions.SharedInformerOption
 	for _, namespace := range namespaces {
@@ -83,7 +82,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
-		UpdateChannel:          updateChannel,
+		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
 	}
 
