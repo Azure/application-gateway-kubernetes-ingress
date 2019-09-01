@@ -16,7 +16,7 @@ import (
 const sleepOnErrorSeconds = 5
 
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
-func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
+func (w *Worker) Run(work chan events.Event, lastSync *int64, stopChannel chan struct{}) {
 	for {
 		select {
 		case event := <-work:
@@ -24,6 +24,11 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				if reason != "" {
 					glog.V(5).Infof("Skipping event: %s", reason)
 				}
+				continue
+			}
+
+			if lastSync != nil && event.Timestamp < *lastSync {
+				glog.V(5).Infof("Skipping event %d as time stamp is before last sync %d", event.Timestamp, *lastSync)
 				continue
 			}
 
