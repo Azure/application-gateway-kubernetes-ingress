@@ -22,7 +22,7 @@ func (h handlers) secretAdd(obj interface{}) {
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		// find if this secKey exists in the map[string]UnorderedSets
 		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
-			h.context.UpdateChannel.In() <- events.Event{
+			h.context.Work <- events.Event{
 				Type:  events.Create,
 				Value: obj,
 			}
@@ -39,7 +39,7 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
-			h.context.UpdateChannel.In() <- events.Event{
+			h.context.Work <- events.Event{
 				Type:  events.Update,
 				Value: newObj,
 			}
@@ -64,7 +64,7 @@ func (h handlers) secretDelete(obj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	h.context.CertificateSecretStore.delete(secKey)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
-		h.context.UpdateChannel.In() <- events.Event{
+		h.context.Work <- events.Event{
 			Type:  events.Delete,
 			Value: obj,
 		}

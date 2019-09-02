@@ -8,7 +8,6 @@ package worker
 import (
 	"time"
 
-	"github.com/eapache/channels"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -18,11 +17,11 @@ import (
 
 var _ = Describe("Worker Test", func() {
 	var stopChannel chan struct{}
-	var eventChannel *channels.RingChannel
+	var work chan events.Event
 
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
-		eventChannel = channels.NewRingChannel(1024)
+		work = make(chan events.Event)
 	})
 
 	AfterEach(func() {
@@ -39,10 +38,10 @@ var _ = Describe("Worker Test", func() {
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}
-			go worker.Run(eventChannel, stopChannel)
+			go worker.Run(work, stopChannel)
 
 			ingress := *tests.NewIngressFixture()
-			eventChannel.In() <- events.Event{
+			work <- events.Event{
 				Type:  events.Create,
 				Value: ingress,
 			}
