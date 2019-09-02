@@ -39,7 +39,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 			h.context.ingressSecretsMap.Insert(ingKey, secKey)
 		}
 	}
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Create,
 		Value: obj,
 	}
@@ -64,7 +64,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 	ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 	h.context.ingressSecretsMap.Erase(ingKey)
 
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Delete,
 		Value: obj,
 	}
@@ -101,7 +101,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 		}
 	}
 
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Update,
 		Value: newObj,
 	}

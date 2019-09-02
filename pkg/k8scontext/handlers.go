@@ -12,7 +12,7 @@ type handlers struct {
 
 // general resource handlers
 func (h handlers) addFunc(obj interface{}) {
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Create,
 		Value: obj,
 	}
@@ -22,14 +22,14 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Update,
 		Value: newObj,
 	}
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
-	h.context.UpdateChannel.In() <- events.Event{
+	h.context.Work <- events.Event{
 		Type:  events.Delete,
 		Value: obj,
 	}
