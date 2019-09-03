@@ -21,19 +21,19 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 		select {
 		case event := <-work:
 			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
-				if reason != "" {
-					glog.V(5).Infof("Skipping event: %s", reason)
+				if reason != nil {
+					// This log statement could potentially generate a large amount of log lines and most could be
+					// innocuous - for instance: "endpoint default/aad-pod-identity-mic is not used by any Ingress"
+					glog.V(9).Infof("Skipping event. Reason: %s", *reason)
 				}
 				continue
 			}
 
-			// Use callback to process event.
 			if err := w.Process(event); err != nil {
 				glog.Error("Processing event failed:", err)
 				time.Sleep(sleepOnErrorSeconds * time.Second)
-			} else {
-				glog.V(3).Infoln("Successfully processed event")
 			}
+
 		case <-stopChannel:
 			break
 		}

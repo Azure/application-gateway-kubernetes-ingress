@@ -8,29 +8,33 @@ package controller
 import (
 	"fmt"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
 // ShouldProcess determines whether to process an event.
-func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, string) {
+func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
 	if pod, ok := event.Value.(*v1.Pod); ok {
 		if pod.Namespace == "kube-system" {
 			// Ignore kube-system namespace events
-			return false, ""
+			return false, nil
 		}
 		// this pod is not used by any ingress, skip any event for this
-		return c.k8sContext.IsPodReferencedByAnyIngress(pod), fmt.Sprintf("Skipping pod %s/%s as it is not used by any ingress", pod.Namespace, pod.Name)
+		reason := fmt.Sprintf("pod %s/%s is not used by any Ingress", pod.Namespace, pod.Name)
+		return c.k8sContext.IsPodReferencedByAnyIngress(pod), to.StringPtr(reason)
 	}
 
 	if endpoints, ok := event.Value.(*v1.Endpoints); ok {
 		if endpoints.Namespace == "kube-system" {
 			// Ignore kube-system namespace events
-			return false, ""
+			return false, nil
 		}
 		// this pod is not used by any ingress, skip any event for this
-		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), fmt.Sprintf("Skipping endpoints %s/%s as it is not used by any ingress", endpoints.Namespace, endpoints.Name)
+		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
+		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), to.StringPtr(reason)
 	}
 
-	return true, ""
+	return true, nil
 }
