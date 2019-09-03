@@ -48,6 +48,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		ServiceList:  c.k8sContext.ListServices(),
 		IngressList:  c.k8sContext.ListHTTPIngresses(),
 		EnvVariables: environment.GetEnv(),
+
+		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
+		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {

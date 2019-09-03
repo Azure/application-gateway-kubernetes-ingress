@@ -133,7 +133,7 @@ func (c *appGwConfigBuilder) newPool(poolName string, subset v1.EndpointSubset) 
 	return &n.ApplicationGatewayBackendAddressPool{
 		Etag: to.StringPtr("*"),
 		Name: &poolName,
-		ID:   to.StringPtr(c.appGwIdentifier.addressPoolID(poolName)),
+		ID:   to.StringPtr(c.appGwIdentifier.AddressPoolID(poolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: getAddressesForSubset(subset),
 		},
