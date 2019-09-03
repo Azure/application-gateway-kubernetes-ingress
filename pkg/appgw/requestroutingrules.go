@@ -103,8 +103,6 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 }
 
 func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	// defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName))
-	// defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName))
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	for ingressIdx := range cbCtx.IngressList {
 		ingress := cbCtx.IngressList[ingressIdx]
