@@ -53,7 +53,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
 			for _, setting := range httpSettings {
-				if *setting.Name == defaultBackendHTTPSettingsName {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
 					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
 					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
 					continue

@@ -185,7 +185,7 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
-		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
+		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
 			Port:     to.Int32Ptr(int32(port)),
