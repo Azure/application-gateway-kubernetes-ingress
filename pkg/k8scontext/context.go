@@ -286,7 +286,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	}
 
 	if !exist {
-		glog.V(3).Infof("unable to get service from store, no such service %s", serviceKey)
+		glog.V(9).Infof("Service %s does not exist", serviceKey)
 		return nil
 	}
 
