@@ -4,6 +4,7 @@ metadata:
   name: guestbook
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: /
 spec:
   rules:
   - http:
