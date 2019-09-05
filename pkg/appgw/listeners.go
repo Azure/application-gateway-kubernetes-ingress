@@ -106,23 +106,26 @@ func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol
 	}
 }
 
-func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+func (c *appGwConfigBuilder) groupListeners(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+	portsById := make(map[string]n.ApplicationGatewayFrontendPort)
+	for _, port := range *c.getFrontendPorts(cbCtx) {
+		portsById[*port.ID] = port
+	}
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
+	listeners := c.getListeners(cbCtx)
+	if listeners == nil {
+		return listenersByID
+	}
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
-		var fePort *n.ApplicationGatewayFrontendPort
-		for _, port := range *c.appGw.FrontendPorts {
-			if *port.ID == *listener.FrontendPort.ID {
-				fePort = &port
-				break
-			}
-		}
-		if fePort == nil {
+		if listener.FrontendPort == nil {
+			glog.Errorf("Listener %+v has no Frontend Port", listener.Name)
 			continue
 		}
+		port := portsById[*listener.FrontendPort.ID]
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
-			FrontendPort: Port(*fePort.Port),
+			FrontendPort: Port(*port.Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])
