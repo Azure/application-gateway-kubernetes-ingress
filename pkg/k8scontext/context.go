@@ -166,7 +166,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
 	close(c.CacheSynced)
 
-	glog.V(1).Infoln("initial cache sync done")
+	glog.V(1).Infoln("Initial cache sync done")
 	glog.V(1).Infoln("k8s context run finished")
 	return nil
 }

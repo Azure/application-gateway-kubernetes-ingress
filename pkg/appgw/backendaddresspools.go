@@ -34,23 +34,24 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
+	glog.V(5).Infof("Created default backend pool %s", *defaultPool.Name)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
 	}
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		glog.V(5).Info("Constructing backend pool for service:", backendID.serviceKey())
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, managedPoolsByName); pool != nil {
 			managedPoolsByName[*pool.Name] = pool
+			glog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
 		}
 	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
 		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
-			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
 			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
 				managedPoolsByName[*pool.Name] = pool
+				glog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, destinationID.serviceKey())
 			}
 		}
 	}

@@ -8,7 +8,6 @@ package appgw
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/golang/glog"
@@ -127,8 +126,6 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 		publicIPPresent = publicIPPresent ||
 			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil)
 	}
-
-	glog.V(5).Info("HTTP Listeners:", strings.Join(jsonConfigs, ", "))
 
 	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
 		return validationErrors[errKeyNoPrivateIP]
