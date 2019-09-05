@@ -18,6 +18,10 @@ import (
 
 // getRedirectConfigurations creates App Gateway redirect configuration based on Ingress annotations.
 func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayRedirectConfiguration {
+	if c.mem.redirectConfigs != nil {
+		return c.mem.redirectConfigs
+	}
+
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
@@ -48,6 +52,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	}
 
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))
+	c.mem.redirectConfigs = &redirectConfigs
 	return &redirectConfigs
 }
 
@@ -82,4 +87,10 @@ func (c *appGwConfigBuilder) groupRedirectsByID(redirects *[]n.ApplicationGatewa
 		redirectsSet[*redirect.ID] = nil
 	}
 	return &redirectsSet
+}
+
+func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListener listenerIdentifier) *n.SubResource {
+	configName := generateSSLRedirectConfigurationName(targetListener)
+	sslRedirectConfigID := c.appGwIdentifier.redirectConfigurationID(configName)
+	return resourceRef(sslRedirectConfigID)
 }

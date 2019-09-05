@@ -361,11 +361,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80",
 --                "name": "rr-foo.baz-80",
 --                "properties": {
+--                    "backendAddressPool": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+--                    },
+--                    "backendHttpSettings": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80---name--"
+--                    },
 --                    "httpListener": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
---                    },
---                    "redirectConfiguration": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-foo.baz-443"
 --                    },
 --                    "ruleType": "Basic"
 --                }
@@ -383,7 +386,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			linesAct := strings.Split(jsonTxt, "\n")
 			linesExp := strings.Split(expected, "\n")
 
-			Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\n", jsonTxt)
+			Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\nActual:", jsonTxt, "\nExpected:", expected)
 
 			for idx, line := range linesAct {
 				curatedLineAct := strings.Trim(line, " ")

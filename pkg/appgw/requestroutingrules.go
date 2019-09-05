@@ -103,8 +103,6 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 }
 
 func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName))
-	defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName))
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	for ingressIdx := range cbCtx.IngressList {
 		ingress := cbCtx.IngressList[ingressIdx]
@@ -123,8 +121,8 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 						Name: to.StringPtr(generateURLPathMapName(listenerID)),
 						ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
 						ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-							DefaultBackendAddressPool:  &n.SubResource{ID: defaultAddressPoolID},
-							DefaultBackendHTTPSettings: &n.SubResource{ID: defaultHTTPSettingsID},
+							DefaultBackendAddressPool:  &n.SubResource{ID: cbCtx.DefaultAddressPoolID},
+							DefaultBackendHTTPSettings: &n.SubResource{ID: cbCtx.DefaultHTTPSettingsID},
 						},
 					}
 				}
@@ -189,14 +187,22 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 }
 
 func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) (*string, *string, *string) {
-	var defaultAddressPoolID *string
-	var defaultHTTPSettingsID *string
-	var defaultRedirectConfigurationID *string
-
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
-		redirectName := generateSSLRedirectConfigurationName(listenerIdentifier{HostName: listenerID.HostName, FrontendPort: 443, UsePrivateIP: listenerID.UsePrivateIP})
-		defaultRedirectConfigurationID = to.StringPtr(c.appGwIdentifier.redirectConfigurationID(redirectName))
-		return nil, nil, defaultRedirectConfigurationID
+		targetListener := listenerIdentifier{
+			HostName:     listenerID.HostName,
+			FrontendPort: 443,
+			UsePrivateIP: listenerID.UsePrivateIP,
+		}
+
+		// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
+		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
+		redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
+
+		if _, exists := redirectsSet[*redirectRef.ID]; exists {
+			glog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
+			return nil, nil, redirectRef.ID
+		}
+		glog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
 
 	var defRule *v1beta1.IngressRule
@@ -219,12 +225,13 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
-			defaultAddressPoolID = to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
-			defaultHTTPSettingsID = to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
+			poolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
+			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
+			return poolID, settID, nil
 		}
 	}
 
-	return defaultAddressPoolID, defaultHTTPSettingsID, nil
+	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
 }
 
 func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *[]n.ApplicationGatewayPathRule {
@@ -246,22 +253,38 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
-			redirectName := generateSSLRedirectConfigurationName(listenerIdentifier{HostName: listenerID.HostName, FrontendPort: 443, UsePrivateIP: listenerID.UsePrivateIP})
-			redirectID := c.appGwIdentifier.redirectConfigurationID(redirectName)
-			pathRule.RedirectConfiguration = resourceRef(redirectID)
-			glog.V(5).Infof("Attaching redirection %s to path rule: %s", redirectName, *pathRule.Name)
-		} else {
-			backendID := generateBackendID(ingress, rule, path, &path.Backend)
-			backendPool := backendPools[backendID]
-			backendHTTPSettings := backendHTTPSettingsMap[backendID]
-			if backendPool == nil || backendHTTPSettings == nil {
-				continue
+			targetListener := listenerIdentifier{
+				HostName:     listenerID.HostName,
+				FrontendPort: 443,
+				UsePrivateIP: listenerID.UsePrivateIP,
 			}
 
-			pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
-			pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
-			glog.V(5).Infof("Attaching pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+			// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
+			redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
+			redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
+
+			if _, exists := redirectsSet[*redirectRef.ID]; exists {
+				// This Path Rule has a SSL Redirect!
+				// Add it and move on to the next Path Rule; No need to attach Backend Pools and Settings
+				pathRule.RedirectConfiguration = redirectRef
+				glog.V(5).Infof("Attached redirection %s to path rule: %s", *redirectRef.ID, *pathRule.Name)
+				pathRules = append(pathRules, pathRule)
+				continue
+			} else {
+				glog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
+			}
+
 		}
+		backendID := generateBackendID(ingress, rule, path, &path.Backend)
+		backendPool := backendPools[backendID]
+		backendHTTPSettings := backendHTTPSettingsMap[backendID]
+		if backendPool == nil || backendHTTPSettings == nil {
+			continue
+		}
+
+		pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
+		pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
+		glog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
 
 		pathRules = append(pathRules, pathRule)
 	}
