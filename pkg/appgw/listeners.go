@@ -6,36 +6,37 @@
 package appgw
 
 import (
-	"sort"
-
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"sort"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
 
 // getListeners constructs the unique set of App Gateway HTTP listeners across all ingresses.
-func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayHTTPListener {
-	if c.mem.listeners != nil {
-		return c.mem.listeners
+func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.ApplicationGatewayHTTPListener, *[]n.ApplicationGatewayFrontendPort) {
+	if c.mem.listeners != nil && c.mem.ports != nil {
+		return c.mem.listeners, c.mem.ports
 	}
 	var listeners []n.ApplicationGatewayHTTPListener
+	var ports []n.ApplicationGatewayFrontendPort
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
-			listener, err := c.newListener(cbCtx, listenerID, config.Protocol)
+			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol)
 			if err != nil {
 				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
 			listeners = append(listeners, *listener)
+			ports = append(ports, *port)
 		}
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
-		listener, err := c.newListener(cbCtx, listenerID, config.Protocol)
+		listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol)
 		if err != nil {
 			glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
@@ -45,6 +46,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, *listener)
+		ports = append(ports, *port)
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
@@ -61,11 +63,13 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 	}
 
 	sort.Sort(sorter.ByListenerName(listeners))
+	sort.Sort(sorter.ByFrontendPortName(ports))
 
 	// Since getListeners() would be called multiple times within the life cycle of a Process(Event)
 	// we cache the results of this function in what would be final place to store the Listeners.
 	c.mem.listeners = &listeners
-	return &listeners
+	c.mem.ports = &ports
+	return &listeners, &ports
 }
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
@@ -96,18 +100,17 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 	return allListeners
 }
 
-func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) (*n.ApplicationGatewayHTTPListener, error) {
+func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {
 	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
-	var frontendPort *n.ApplicationGatewayFrontendPort
 
-	for _, port := range *c.getFrontendPorts(cbCtx) {
-		if Port(*port.Port) == listenerID.FrontendPort {
-			frontendPort = &port
-		}
-	}
-
-	if frontendPort == nil {
-		return nil, ErrNoPortAvailable
+	portName := generateFrontendPortName(listenerID.FrontendPort)
+	frontendPort := n.ApplicationGatewayFrontendPort{
+		Etag: to.StringPtr("*"),
+		Name: &portName,
+		ID:   to.StringPtr(c.appGwIdentifier.frontendPortID(portName)),
+		ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+			Port: to.Int32Ptr(int32(listenerID.FrontendPort)),
+		},
 	}
 
 	listenerName := generateListenerName(listenerID)
@@ -123,12 +126,13 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 			HostName:                &listenerID.HostName,
 		},
 	}
-	return &listener, nil
+	return &listener, &frontendPort, nil
 }
 
-func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBuilderContext, listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+	listeners, ports := c.getListeners(cbCtx)
 	portsById := make(map[string]n.ApplicationGatewayFrontendPort)
-	for _, port := range *c.getFrontendPorts(cbCtx) {
+	for _, port := range *ports {
 		portsById[*port.ID] = port
 	}
 

@@ -337,6 +337,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			err = json.Unmarshal(jsonBlob, &into)
 			Ω(err).ToNot(HaveOccurred())
 
+			a := (into["properties"]).(map[string]interface{})
+			b := (a["sslCertificates"]).([]interface{})
+			c := (b[0]).(map[string]interface{})
+			d := (c["properties"]).(map[string]interface{})
+			d["data"] = "hhh"
 			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
 			Ω(err).ToNot(HaveOccurred())
 
@@ -439,7 +444,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "--public--ip--id--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443"
 --                    },
 --                    "hostName": "",
 --                    "protocol": "Https",
@@ -494,6 +499,23 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "requestRoutingRules": [
 --            {
 --                "etag": "*",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-443-pub",
+--                "name": "rr-443-pub",
+--                "properties": {
+--                    "backendAddressPool": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+--                    },
+--                    "backendHttpSettings": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource"
+--                    },
+--                    "httpListener": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443-pub"
+--                    },
+--                    "ruleType": "Basic"
+--                }
+--            },
+--            {
+--                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80-priv",
 --                "name": "rr-80-priv",
 --                "properties": {
@@ -516,7 +538,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
 --                "name": "--namespace-----the-name-of-the-secret--",
 --                "properties": {
---                    "data": "xxx",
+--                    "data": "hhh",
 --                    "password": "msazure"
 --                }
 --            }
