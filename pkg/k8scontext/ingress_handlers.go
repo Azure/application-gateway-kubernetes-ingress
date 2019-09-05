@@ -2,7 +2,9 @@ package k8scontext
 
 import (
 	"reflect"
+	"time"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
@@ -39,9 +41,13 @@ func (h handlers) ingressAdd(obj interface{}) {
 			h.context.ingressSecretsMap.Insert(ingKey, secKey)
 		}
 	}
+
+	currentTime := time.Now().UnixNano()
+	h.context.LastSync = to.Int64Ptr(currentTime)
 	h.context.Work <- events.Event{
-		Type:  events.Create,
-		Value: obj,
+		Type:      events.Create,
+		Value:     obj,
+		Timestamp: currentTime,
 	}
 }
 
@@ -64,9 +70,12 @@ func (h handlers) ingressDelete(obj interface{}) {
 	ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
 	h.context.ingressSecretsMap.Erase(ingKey)
 
+	currentTime := time.Now().UnixNano()
+	h.context.LastSync = to.Int64Ptr(currentTime)
 	h.context.Work <- events.Event{
-		Type:  events.Delete,
-		Value: obj,
+		Type:      events.Delete,
+		Value:     obj,
+		Timestamp: currentTime,
 	}
 }
 
@@ -101,8 +110,11 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 		}
 	}
 
+	currentTime := time.Now().UnixNano()
+	h.context.LastSync = to.Int64Ptr(currentTime)
 	h.context.Work <- events.Event{
-		Type:  events.Update,
-		Value: newObj,
+		Type:      events.Update,
+		Value:     newObj,
+		Timestamp: currentTime,
 	}
 }

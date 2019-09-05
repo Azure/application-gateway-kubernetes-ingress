@@ -21,6 +21,7 @@ const (
 
 // Event is the combined type and actual object we received from Kubernetes
 type Event struct {
-	Type  EventType
-	Value interface{}
+	Type      EventType
+	Value     interface{}
+	Timestamp int64
 }
