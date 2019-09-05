@@ -39,7 +39,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				Namespace: tests.Namespace,
 				Name:      "--the-name-of-the-secret--",
 			},
-			SslRedirectConfigurationName: "sslr-fl-bye.com-443",
+			SslRedirectConfigurationName: "sslr-fl-bye.com-443-pub",
 		},
 	}
 
@@ -59,7 +59,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 						"/resourceGroups/--resource-group--" +
 						"/providers/Microsoft.Network" +
 						"/applicationGateways/--app-gw-name--" +
-						"/httpListeners/fl-bye.com-443"),
+						"/httpListeners/fl-bye.com-443-pub"),
 				},
 				TargetURL:           nil,
 				IncludePath:         to.BoolPtr(true),
@@ -68,10 +68,10 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				URLPathMaps:         nil,
 				PathRules:           nil,
 			},
-			Name: to.StringPtr("sslr-fl-bye.com-443"),
+			Name: to.StringPtr("sslr-fl-bye.com-443-pub"),
 			Etag: to.StringPtr("*"),
 			Type: nil,
-			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-fl-bye.com-443")),
+			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-fl-bye.com-443-pub")),
 		}
 
 		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
@@ -87,7 +87,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			Expect(len(actualListeners)).To(Equal(2))
 			Expect(actualListeners[listenerID1]).To(Equal(expectedListenerConfigs[listenerID1]))
 			Expect(actualListeners[listenerID2]).To(Equal(expectedListenerConfigs[listenerID2]))
-			expected := "sslr-fl-bye.com-443"
+			expected := "sslr-fl-bye.com-443-pub"
 			Expect(actualListeners[listenerID2].SslRedirectConfigurationName).To(Equal(expected), fmt.Sprintf("Actual: %+v", actualListeners))
 		})
 	})

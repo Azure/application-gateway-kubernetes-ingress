@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -39,7 +44,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 			Namespace: tests.Namespace,
 			Name:      tests.NameOfSecret,
 		},
-		SslRedirectConfigurationName: "sslr-fl-bye.com-443",
+		SslRedirectConfigurationName: "sslr-fl-bye.com-443-pub",
 	}
 
 	Context("ingress rules without certificates", func() {

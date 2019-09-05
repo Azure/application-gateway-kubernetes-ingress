@@ -65,7 +65,7 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateListenerName returns expected key", func() {
 			actual := generateListenerName(fel)
-			expected := agPrefix + "fl-" + tests.Host + "-9898"
+			expected := agPrefix + "fl-" + tests.Host + "-9898-pub"
 			Expect(actual).To(Equal(expected))
 		})
 
@@ -77,13 +77,13 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateRequestRoutingRuleName returns expected key", func() {
 			actual := generateRequestRoutingRuleName(fel)
-			expected := agPrefix + "rr-" + tests.Host + "-9898"
+			expected := agPrefix + "rr-" + tests.Host + "-9898-pub"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
 			actual := generateSSLRedirectConfigurationName(targetListener)
-			expected := "sslr-fl-foo.baz-8080"
+			expected := "sslr-fl-foo.baz-8080-pub"
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -139,7 +139,7 @@ var _ = Describe("Test string key generators", func() {
 
 		listenerName := generateListenerName(listener)
 		It("generateListenerName should have generated correct name without host name", func() {
-			Expect(listenerName).To(Equal("fl-9898"))
+			Expect(listenerName).To(Equal("fl-9898-pub"))
 		})
 
 		pathMapName := generateURLPathMapName(listener)
@@ -149,7 +149,7 @@ var _ = Describe("Test string key generators", func() {
 
 		ruleName := generateRequestRoutingRuleName(listener)
 		It("generateRequestRoutingRuleName should have generated correct name without host name", func() {
-			Expect(ruleName).To(Equal("rr-9898"))
+			Expect(ruleName).To(Equal("rr-9898-pub"))
 		})
 	})
 

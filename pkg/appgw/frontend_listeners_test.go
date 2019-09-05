@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -108,7 +113,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
-			expectedName := agPrefix + "fl-bye.com-80"
+			expectedName := agPrefix + "fl-bye.com-80-pub"
 
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
@@ -176,7 +181,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"))
-			expectedName := agPrefix + "fl-bye.com-80-privateip"
+			expectedName := agPrefix + "fl-bye.com-80-priv"
 
 			expected := n.ApplicationGatewayHTTPListener{
 				Etag: to.StringPtr("*"),
