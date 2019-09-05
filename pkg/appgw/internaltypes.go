@@ -121,15 +121,20 @@ func generateAddressPoolName(serviceName string, servicePort string, backendPort
 	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPort))
 }
 
+func getPublicPrivateSuffix(listener listenerIdentifier) string {
+	if listener.UsePrivateIP {
+		return "priv"
+	}
+	return "pub"
+}
+
 func generateFrontendPortName(port Port) string {
 	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixPort, port))
 }
 
 func generateListenerName(listenerID listenerIdentifier) string {
-	if listenerID.UsePrivateIP {
-		return formatPropName(fmt.Sprintf("%s%s-%v%v-privateip", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
-	}
-	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	pubPriv := getPublicPrivateSuffix(listenerID)
+	return formatPropName(fmt.Sprintf("%s%s-%v%v-%s", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort, pubPriv))
 }
 
 func generateURLPathMapName(listenerID listenerIdentifier) string {
@@ -137,7 +142,8 @@ func generateURLPathMapName(listenerID listenerIdentifier) string {
 }
 
 func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixRoutingRule, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	pubPriv := getPublicPrivateSuffix(listenerID)
+	return formatPropName(fmt.Sprintf("%s%s-%v%v-%s", agPrefix, prefixRoutingRule, formatHostname(listenerID.HostName), listenerID.FrontendPort, pubPriv))
 }
 
 func generateSSLRedirectConfigurationName(targetListener listenerIdentifier) string {

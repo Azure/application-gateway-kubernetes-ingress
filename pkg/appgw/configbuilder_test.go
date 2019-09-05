@@ -314,8 +314,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "httpListeners": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80",
---                "name": "fl-foo.baz-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80-pub",
+--                "name": "fl-foo.baz-80-pub",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "*"
@@ -358,14 +358,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "requestRoutingRules": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80",
---                "name": "rr-foo.baz-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80-pub",
+--                "name": "rr-foo.baz-80-pub",
 --                "properties": {
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80-pub"
 --                    },
 --                    "redirectConfiguration": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-foo.baz-443"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-foo.baz-443-pub"
 --                    },
 --                    "ruleType": "Basic"
 --                }

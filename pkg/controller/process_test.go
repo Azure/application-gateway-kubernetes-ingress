@@ -99,7 +99,8 @@ var _ = Describe("process function tests", func() {
 		It("ensure that updateIngressStatus removes ip to ingress not for AGIC", func() {
 			ingress.Annotations[annotations.IngressClassKey] = "otheric"
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
-			controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
+			err := controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
+			Expect(err).ToNot(HaveOccurred())
 			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
 				Type:  events.Update,
 				Value: ingress,

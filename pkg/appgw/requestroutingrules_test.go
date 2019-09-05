@@ -308,20 +308,20 @@ var _ = Describe("Test routing rules generations", func() {
 					BackendHTTPSettings: nil,
 					HTTPListener: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
-							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"),
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80-pub"),
 					},
 					URLPathMap:     nil,
 					RewriteRuleSet: nil,
 					RedirectConfiguration: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
-							"/redirectConfigurations/sslr-fl-foo.baz-443")},
+							"/redirectConfigurations/sslr-fl-foo.baz-443-pub")},
 					ProvisioningState: nil,
 				},
-				Name: to.StringPtr("rr-foo.baz-80"),
+				Name: to.StringPtr("rr-foo.baz-80-pub"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-80")),
+				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-80-pub")),
 			}))
 
 			Expect(*configBuilder.appGw.RequestRoutingRules).To(ContainElement(n.ApplicationGatewayRequestRoutingRule{
@@ -339,17 +339,17 @@ var _ = Describe("Test routing rules generations", func() {
 					},
 					HTTPListener: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
-							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443"),
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443-pub"),
 					},
 					URLPathMap:            nil,
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     nil,
 				},
-				Name: to.StringPtr("rr-foo.baz-443"),
+				Name: to.StringPtr("rr-foo.baz-443-pub"),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-443")),
+				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-443-pub")),
 			}))
 		})
 
