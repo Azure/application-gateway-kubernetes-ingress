@@ -411,22 +411,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Ω(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
 		_, err = k8sClient.CoreV1().Nodes().Create(node)
-		Ω(err).ToNot(HaveOccurred(), "Unabled to create node resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create node resource due to: %v", err)
 
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		Ω(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 		// Create the service.
 		_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-		Ω(err).ToNot(HaveOccurred(), "Unabled to create service resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 		// Create the endpoints associated with this service.
 		_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-		Ω(err).ToNot(HaveOccurred(), "Unabled to create endpoints resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 		// Create the pods associated with this service.
 		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-		Ω(err).ToNot(HaveOccurred(), "Unabled to create pods resource due to: %v", err)
+		Ω(err).ToNot(HaveOccurred(), "Unable to create pods resource due to: %v", err)
 
 		// Create a mock CRD Client
 		crdClient := fake.NewSimpleClientset()
@@ -623,13 +623,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
 			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Ω(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
 			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
-			Ω(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
 			err = ctxt.Run(stopChannel, true, environment.GetFakeEnv())
