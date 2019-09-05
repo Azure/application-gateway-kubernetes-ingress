@@ -17,12 +17,15 @@ const sleepOnErrorSeconds = 5
 
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
 func (w *Worker) Run(work chan events.Event, lastSync *int64, stopChannel chan struct{}) {
+	glog.V(1).Infoln("Worker started")
 	for {
 		select {
 		case event := <-work:
 			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
-				if reason != "" {
-					glog.V(5).Infof("Skipping event: %s", reason)
+				if reason != nil {
+					// This log statement could potentially generate a large amount of log lines and most could be
+					// innocuous - for instance: "endpoint default/aad-pod-identity-mic is not used by any Ingress"
+					glog.V(9).Infof("Skipping event. Reason: %s", *reason)
 				}
 				continue
 			}
@@ -32,13 +35,11 @@ func (w *Worker) Run(work chan events.Event, lastSync *int64, stopChannel chan s
 				continue
 			}
 
-			// Use callback to process event.
 			if err := w.Process(event); err != nil {
 				glog.Error("Processing event failed:", err)
 				time.Sleep(sleepOnErrorSeconds * time.Second)
-			} else {
-				glog.V(3).Infoln("Successfully processed event")
 			}
+
 		case <-stopChannel:
 			break
 		}

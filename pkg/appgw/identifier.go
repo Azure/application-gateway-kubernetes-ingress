@@ -29,7 +29,7 @@ func (agw Identifier) gatewayResourceID(subResourceKind string, resourceName str
 	return agw.resourceID("Microsoft.Network", "applicationGateways", resourcePath)
 }
 
-func (agw Identifier) addressPoolID(poolName string) string {
+func (agw Identifier) AddressPoolID(poolName string) string {
 	return agw.gatewayResourceID("backendAddressPools", poolName)
 }
 
@@ -45,7 +45,7 @@ func (agw Identifier) sslCertificateID(certname string) string {
 	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
-func (agw Identifier) httpSettingsID(settingsName string) string {
+func (agw Identifier) HTTPSettingsID(settingsName string) string {
 	return agw.gatewayResourceID("backendHttpSettingsCollection", settingsName)
 }
 

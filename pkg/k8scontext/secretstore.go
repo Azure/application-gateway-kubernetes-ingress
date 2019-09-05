@@ -26,7 +26,7 @@ const (
 // SecretsKeeper is the interface definition for secret store
 type SecretsKeeper interface {
 	GetPfxCertificate(secretKey string) []byte
-	convertSecret(secretKey string, secret *v1.Secret) error
+	ConvertSecret(secretKey string, secret *v1.Secret) error
 	delete(secretKey string)
 }
 
@@ -45,8 +45,7 @@ func NewSecretStore() SecretsKeeper {
 
 // GetPfxCertificate returns the certificate for the given secret key.
 func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
-	certInterface, exists := s.Cache.Get(secretKey)
-	if exists {
+	if certInterface, exists := s.Cache.Get(secretKey); exists {
 		if cert, ok := certInterface.([]byte); ok {
 			return cert
 		}
@@ -61,7 +60,7 @@ func (s *SecretsStore) delete(secretKey string) {
 	s.Cache.Delete(secretKey)
 }
 
-func (s *SecretsStore) convertSecret(secretKey string, secret *v1.Secret) error {
+func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error {
 	s.conversionSync.Lock()
 	defer s.conversionSync.Unlock()
 
@@ -114,7 +113,7 @@ func (s *SecretsStore) convertSecret(secretKey string, secret *v1.Secret) error 
 
 	pfxCert := cout.Bytes()
 
-	glog.V(1).Infof("converted secret [%v]", secretKey)
+	glog.V(5).Infof("Converted secret [%v]", secretKey)
 	// TODO i'm not sure if comparison against existing certificate can help
 	// us optimize by eliminating some events
 	_, exists := s.Cache.Get(secretKey)

@@ -76,8 +76,8 @@ var _ = Describe("Test routing rules generations", func() {
 				for _, rule := range ingress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
 						backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
-						backendPoolID := configBuilder.appGwIdentifier.addressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
-						httpSettingID := configBuilder.appGwIdentifier.httpSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+						backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+						httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
 						expectedPathRule := n.ApplicationGatewayPathRule{
 							Name: to.StringPtr(generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")),
 							Etag: to.StringPtr("*"),
@@ -140,11 +140,11 @@ var _ = Describe("Test routing rules generations", func() {
 		generatedPathMap := pathMaps[sharedListenerID]
 		backendIDBasic := generateBackendID(ingressBasic, &ruleBasic, pathBasic, backendBasic)
 		It("has default backend pool coming from basic ingress", func() {
-			backendPoolID := configBuilder.appGwIdentifier.addressPoolID(generateAddressPoolName(backendIDBasic.serviceFullName(), backendIDBasic.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+			backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendIDBasic.serviceFullName(), backendIDBasic.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 			Expect(*generatedPathMap.DefaultBackendAddressPool.ID).To(Equal(backendPoolID))
 		})
 		It("has default backend http settings coming from basic ingress", func() {
-			httpSettingID := configBuilder.appGwIdentifier.httpSettingsID(generateHTTPSettingsName(backendIDBasic.serviceFullName(), backendIDBasic.Backend.ServicePort.String(), Port(tests.ContainerPort), ingressBasic.Name))
+			httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendIDBasic.serviceFullName(), backendIDBasic.Backend.ServicePort.String(), Port(tests.ContainerPort), ingressBasic.Name))
 			Expect(*generatedPathMap.DefaultBackendHTTPSettings.ID).To(Equal(httpSettingID))
 		})
 		It("should has 2 path rules", func() {
@@ -154,8 +154,8 @@ var _ = Describe("Test routing rules generations", func() {
 			for _, rule := range ingressPathBased.Spec.Rules {
 				for _, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
-					backendPoolID := configBuilder.appGwIdentifier.addressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
-					httpSettingID := configBuilder.appGwIdentifier.httpSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
 					expectedPathRule := n.ApplicationGatewayPathRule{
 						Name: to.StringPtr(generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")),
 						Etag: to.StringPtr("*"),

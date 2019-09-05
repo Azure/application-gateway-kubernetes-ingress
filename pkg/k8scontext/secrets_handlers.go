@@ -23,7 +23,7 @@ func (h handlers) secretAdd(obj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		// find if this secKey exists in the map[string]UnorderedSets
-		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
+		if err := h.context.CertificateSecretStore.ConvertSecret(secKey, sec); err == nil {
 			currentTime := time.Now().UnixNano()
 			h.context.LastSync = to.Int64Ptr(currentTime)
 			h.context.Work <- events.Event{
@@ -43,7 +43,7 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 	sec := newObj.(*v1.Secret)
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
-		if err := h.context.CertificateSecretStore.convertSecret(secKey, sec); err == nil {
+		if err := h.context.CertificateSecretStore.ConvertSecret(secKey, sec); err == nil {
 			currentTime := time.Now().UnixNano()
 			h.context.LastSync = to.Int64Ptr(currentTime)
 			h.context.Work <- events.Event{

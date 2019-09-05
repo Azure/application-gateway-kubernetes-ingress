@@ -18,6 +18,10 @@ import (
 
 // getRedirectConfigurations creates App Gateway redirect configuration based on Ingress annotations.
 func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayRedirectConfiguration {
+	if c.mem.redirectConfigs != nil {
+		return c.mem.redirectConfigs
+	}
+
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
@@ -30,7 +34,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
 			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
-			glog.V(5).Infof("Created redirection configuration %s; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName)
+			glog.V(5).Infof("Created redirection configuration %s for %s:%d; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName, listenerID.HostName, listenerID.FrontendPort)
 		}
 	}
 
@@ -48,6 +52,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	}
 
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))
+	c.mem.redirectConfigs = &redirectConfigs
 	return &redirectConfigs
 }
 
@@ -82,4 +87,10 @@ func (c *appGwConfigBuilder) groupRedirectsByID(redirects *[]n.ApplicationGatewa
 		redirectsSet[*redirect.ID] = nil
 	}
 	return &redirectsSet
+}
+
+func (c *appGwConfigBuilder) getSslRedirectConfigResourceReference(targetListener listenerIdentifier) *n.SubResource {
+	configName := generateSSLRedirectConfigurationName(targetListener)
+	sslRedirectConfigID := c.appGwIdentifier.redirectConfigurationID(configName)
+	return resourceRef(sslRedirectConfigID)
 }

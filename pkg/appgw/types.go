@@ -23,6 +23,9 @@ type ConfigBuilderContext struct {
 	EnvVariables         environment.EnvVariables
 	IstioGateways        []*v1alpha3.Gateway
 	IstioVirtualServices []*v1alpha3.VirtualService
+
+	DefaultAddressPoolID  *string
+	DefaultHTTPSettingsID *string
 }
 
 // InIngressList returns true if an ingress is in the ingress list
