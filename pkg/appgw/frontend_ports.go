@@ -16,6 +16,9 @@ import (
 )
 
 func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewayFrontendPort {
+	if c.mem.ports != nil {
+		return c.mem.ports
+	}
 	allPorts := make(map[Port]interface{})
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
@@ -66,6 +69,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	}
 
 	sort.Sort(sorter.ByFrontendPortName(frontendPorts))
+	c.mem.ports = &frontendPorts
 	return &frontendPorts
 }
 

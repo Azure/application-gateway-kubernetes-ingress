@@ -43,6 +43,7 @@ type memoization struct {
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	secretToCert                 *map[secretIdentifier]*string
+	ports                        *[]n.ApplicationGatewayFrontendPort
 }
 
 type appGwConfigBuilder struct {
