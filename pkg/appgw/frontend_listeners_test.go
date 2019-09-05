@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package appgw
 
 import (
@@ -64,9 +69,10 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			EnvVariables: envVariables,
 		}
 
+		var listeners *[]n.ApplicationGatewayHTTPListener
+
 		// !! Action !!
-		cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-		listeners := cb.getListeners(cbCtx)
+		listeners, cb.appGw.FrontendPorts = cb.getListeners(cbCtx)
 
 		It("should have correct number of listeners", func() {
 			Expect(len(*listeners)).To(Equal(2))
@@ -106,8 +112,9 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				EnvVariables: envVariables,
 			}
 
-			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			_, cb.appGw.FrontendPorts = cb.getListeners(cbCtx)
+			listener, port, err := cb.newListener(cbCtx, listener80, n.ApplicationGatewayProtocol("Https"))
+			Expect(err).ToNot(HaveOccurred())
 			expectedName := agPrefix + "fl-bye.com-80"
 
 			expected := n.ApplicationGatewayHTTPListener{
@@ -123,7 +130,18 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				},
 			}
 
-			Expect(listener).To(Equal(expected))
+			Expect(*listener).To(Equal(expected))
+
+			expectedPort := n.ApplicationGatewayFrontendPort{
+				ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+					Port: to.Int32Ptr(80),
+				},
+				Name: to.StringPtr("fp-80"),
+				Etag: to.StringPtr("*"),
+				ID:   to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"),
+			}
+			Expect(*port).To(Equal(expectedPort))
+
 		})
 	})
 	Context("create a new App Gateway HTTP Listener with Private Ip when environment USE_PRIVATE_IP is true", func() {
@@ -147,10 +165,46 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				},
 				EnvVariables: envVariablesNew,
 			}
-			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			for listenerID, listenerAzConfig := range cb.getListenerConfigs(cbCtx) {
-				listener := cb.newListener(listenerID, listenerAzConfig.Protocol)
+			_, cb.appGw.FrontendPorts = cb.getListeners(cbCtx)
+
+			listeners := cb.getListenerConfigs(cbCtx)
+
+			{
+				listenerID := listenerIdentifier{80, "bye.com", true}
+				listenerAzConfig, exists := listeners[listenerID]
+				Expect(exists).To(BeTrue())
+				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
+
+				expectedPort := n.ApplicationGatewayFrontendPort{
+					ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+						Port: to.Int32Ptr(80),
+					},
+					Name: to.StringPtr("fp-80"),
+					Etag: to.StringPtr("*"),
+					ID:   to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"),
+				}
+				Expect(*port).To(Equal(expectedPort))
+			}
+
+			{
+				listenerID := listenerIdentifier{443, "bye.com", true}
+				listenerAzConfig, exists := listeners[listenerID]
+				Expect(exists).To(BeTrue())
+				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
+
+				expectedPort := n.ApplicationGatewayFrontendPort{
+					ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+						Port: to.Int32Ptr(443),
+					},
+					Name: to.StringPtr("fp-443"),
+					Etag: to.StringPtr("*"),
+					ID:   to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443"),
+				}
+				Expect(*port).To(Equal(expectedPort))
 			}
 		})
 	})
@@ -174,8 +228,9 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				},
 				EnvVariables: envVariables,
 			}
-			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"))
+			_, cb.appGw.FrontendPorts = cb.getListeners(cbCtx)
+			listener, port, err := cb.newListener(cbCtx, listener80Private, n.ApplicationGatewayProtocol("Https"))
+			Expect(err).ToNot(HaveOccurred())
 			expectedName := agPrefix + "fl-bye.com-80-privateip"
 
 			expected := n.ApplicationGatewayHTTPListener{
@@ -190,7 +245,17 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				},
 			}
 
-			Expect(listener).To(Equal(expected))
+			Expect(*listener).To(Equal(expected))
+
+			expectedPort := n.ApplicationGatewayFrontendPort{
+				ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+					Port: to.Int32Ptr(80),
+				},
+				Name: to.StringPtr("fp-80"),
+				Etag: to.StringPtr("*"),
+				ID:   to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"),
+			}
+			Expect(*port).To(Equal(expectedPort))
 		})
 	})
 })
