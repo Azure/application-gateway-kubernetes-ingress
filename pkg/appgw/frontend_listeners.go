@@ -110,9 +110,19 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.A
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
+		var fePort *n.ApplicationGatewayFrontendPort
+		for _, port := range *c.appGw.FrontendPorts {
+			if *port.ID == *listener.FrontendPort.ID {
+				fePort = &port
+				break
+			}
+		}
+		if fePort == nil {
+			continue
+		}
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
-			FrontendPort: Port(*c.lookupFrontendPortByID(listener.FrontendPort.ID).Port),
+			FrontendPort: Port(*fePort.Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])

@@ -78,13 +78,3 @@ func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(listenerIden
 
 	return nil
 }
-
-func (c *appGwConfigBuilder) lookupFrontendPortByID(ID *string) *n.ApplicationGatewayFrontendPort {
-	for _, port := range *c.appGw.FrontendPorts {
-		if *port.ID == *ID {
-			return &port
-		}
-	}
-
-	return nil
-}
