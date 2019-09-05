@@ -114,7 +114,7 @@ func (s *SecretsStore) convertSecret(secretKey string, secret *v1.Secret) error 
 
 	pfxCert := cout.Bytes()
 
-	glog.V(1).Infof("converted secret [%v]", secretKey)
+	glog.V(5).Infof("Converted secret [%v]", secretKey)
 	// TODO i'm not sure if comparison against existing certificate can help
 	// us optimize by eliminating some events
 	_, exists := s.Cache.Get(secretKey)
