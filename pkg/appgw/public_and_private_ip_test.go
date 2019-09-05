@@ -20,7 +20,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 
@@ -30,6 +29,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -38,13 +38,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	version.GitCommit = "b"
 	version.BuildDate = "c"
 
-	ingressNS := "test-ingressPrivateIP-controller"
-
 	// Create the "test-ingressPrivateIP-controller" namespace.
 	// We will create all our resources under this namespace.
 	nameSpace := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ingressNS,
+			Name: tests.Namespace,
 		},
 	}
 
@@ -67,6 +65,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name:      "external-ingress-resource",
 		},
 		Spec: v1beta1.IngressSpec{
+			TLS: []v1beta1.IngressTLS{
+				{
+					Hosts:      []string{},
+					SecretName: tests.NameOfSecret,
+				},
+			},
 			Rules: []v1beta1.IngressRule{
 				{
 					IngressRuleValue: v1beta1.IngressRuleValue{
@@ -85,22 +89,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 							},
 						},
 					},
-				},
-			},
-			TLS: []v1beta1.IngressTLS{
-				{
-					Hosts: []string{
-						"pub.lic",
-						"www.contoso.com",
-						"ftp.contoso.com",
-						tests.Host,
-						"",
-					},
-					SecretName: tests.NameOfSecret,
-				},
-				{
-					Hosts:      []string{},
-					SecretName: tests.NameOfSecret,
 				},
 			},
 		},
@@ -137,28 +125,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-			TLS: []v1beta1.IngressTLS{
-				{
-					Hosts: []string{
-						"www.contoso.com",
-						"ftp.contoso.com",
-						tests.Host,
-						"",
-					},
-					SecretName: tests.NameOfSecret,
-				},
-				{
-					Hosts:      []string{},
-					SecretName: tests.NameOfSecret,
-				},
-			},
 		},
 	}
 
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tests.ServiceName,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			Ports: []v1.ServicePort{
@@ -192,7 +165,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	endpoints := &v1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      tests.ServiceName,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Subsets: []v1.EndpointSubset{
 			{
@@ -217,8 +190,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod1 := tests.NewPodFixture("pod1", ingressNS, "http", int32(80))
-	pod2 := tests.NewPodFixture("pod2", ingressNS, "https", int32(80))
+	pod1 := tests.NewPodFixture("pod1", tests.Namespace, "http", int32(80))
+	pod2 := tests.NewPodFixture("pod2", tests.Namespace, "https", int32(80))
 
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", "3")
@@ -231,33 +204,84 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	// Create the mock K8s client.
 	k8sClient := testclient.NewSimpleClientset()
-	_, err := k8sClient.CoreV1().Namespaces().Create(nameSpace)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.CoreV1().Nodes().Create(node)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingressPublicIP)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingressPrivateIP)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
-
-	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod2)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Namespaces().Create(nameSpace)
+		Ω(err).ToNot(HaveOccurred())
+	})
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
-	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second)
+
+	secret := tests.NewSecretTestFixture()
+
+	It("should have not failed", func() {
+		err := ctxt.Caches.Secret.Add(secret)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	secKey := utils.GetResourceKey(secret.Namespace, secret.Name)
+
+	It("should have converted the certificate", func() {
+		err := ctxt.CertificateSecretStore.ConvertSecret(secKey, secret)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have found the pfx certificate", func() {
+		pfx := ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
+		Ω(pfx).ToNot(BeNil())
+	})
+
+	It("should have found the secret", func() {
+		ctxtSecret := ctxt.GetSecret(secKey)
+		Ω(ctxtSecret).To(Equal(secret))
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Nodes().Create(node)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingressPublicIP)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Update(ingressPublicIP)
+		Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingressPrivateIP)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Update(ingressPrivateIP)
+		Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Services(tests.Namespace).Create(service)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpoints)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Pods(tests.Namespace).Create(pod1)
+		Ω(err).ToNot(HaveOccurred())
+	})
+
+	It("should have not failed", func() {
+		_, err := k8sClient.CoreV1().Pods(tests.Namespace).Create(pod2)
+		Ω(err).ToNot(HaveOccurred())
+	})
 
 	appGwy := &n.ApplicationGateway{}
 	// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
@@ -302,17 +326,23 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		It("Should have created correct App Gateway config JSON blob", func() {
 			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			var into map[string]interface{}
 			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
+
+			a := (into["properties"]).(map[string]interface{})
+			b := (a["sslCertificates"]).([]interface{})
+			c := (b[0]).(map[string]interface{})
+			d := (c["properties"]).(map[string]interface{})
+			d["data"] = "hhh"
 
 			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			jsonTxt := string(jsonBlob)
 
@@ -388,10 +418,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "frontendPorts": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80",
---                "name": "fp-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443",
+--                "name": "fp-443",
 --                "properties": {
---                    "port": 80
+--                    "port": 443
 --                }
 --            },
 --            {
@@ -406,17 +436,20 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "httpListeners": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80",
---                "name": "fl-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443",
+--                "name": "fl-443",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--public--ip--id--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443"
 --                    },
 --                    "hostName": "",
---                    "protocol": "Http"
+--                    "protocol": "Https",
+--                    "sslCertificate": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
+--                    }
 --                }
 --            },
 --            {
@@ -465,6 +498,23 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "requestRoutingRules": [
 --            {
 --                "etag": "*",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-443",
+--                "name": "rr-443",
+--                "properties": {
+--                    "backendAddressPool": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+--                    },
+--                    "backendHttpSettings": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource"
+--                    },
+--                    "httpListener": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443"
+--                    },
+--                    "ruleType": "Basic"
+--                }
+--            },
+--            {
+--                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
 --                "name": "rr-80",
 --                "properties": {
@@ -479,26 +529,19 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    },
 --                    "ruleType": "Basic"
 --                }
---            },
+--            }
+--        ],
+--        "sslCertificates": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
---                "name": "rr-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
+--                "name": "--namespace-----the-name-of-the-secret--",
 --                "properties": {
---                    "backendAddressPool": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
---                    },
---                    "backendHttpSettings": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource"
---                    },
---                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"
---                    },
---                    "ruleType": "Basic"
+--                    "data": "hhh",
+--                    "password": "msazure"
 --                }
 --            }
 --        ],
---        "sslCertificates": null,
 --        "urlPathMaps": null
 --    },
 --    "tags": {
@@ -510,14 +553,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			linesAct := strings.Split(jsonTxt, "\n")
 			linesExp := strings.Split(expected, "\n")
 
-			Expect(len(linesAct)).To(Equal(len(linesExp)), fmt.Sprintf("Line counts are different: actual=%d vs expected=%d\nActual:%s\nExpected:%s", len(linesAct), len(linesExp), jsonTxt, expected))
+			Ω(len(linesAct)).To(Equal(len(linesExp)), fmt.Sprintf("Line counts are different: actual=%d vs expected=%d\nActual:%s\nExpected:%s", len(linesAct), len(linesExp), jsonTxt, expected))
 
 			for idx, line := range linesAct {
 				curatedLineAct := strings.Trim(line, " ")
 				curatedLineExp := strings.Trim(linesExp[idx], " ")
-				Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
+				Ω(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
 			}
-
 		})
 	})
 })
