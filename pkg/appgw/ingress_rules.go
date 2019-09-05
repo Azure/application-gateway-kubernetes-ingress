@@ -7,6 +7,7 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -84,4 +85,48 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 		}
 	}
 	return frontendPorts, listeners
+}
+
+func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
+	if c.mem.backendIDs != nil {
+		return *c.mem.backendIDs
+	}
+
+	backendIDs := make(map[backendIdentifier]interface{})
+	for _, ingress := range cbCtx.IngressList {
+		if ingress.Spec.Backend != nil {
+			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+			glog.V(3).Info("Found default backend:", backendID.serviceKey())
+			backendIDs[backendID] = nil
+		}
+		for ruleIdx := range ingress.Spec.Rules {
+			rule := &ingress.Spec.Rules[ruleIdx]
+			if rule.HTTP == nil {
+				// skip no http rule
+				glog.V(5).Infof("[%s] Skip rule #%d for host '%s' - it has no HTTP rules.", ingress.Namespace, ruleIdx+1, rule.Host)
+				continue
+			}
+			for pathIdx := range rule.HTTP.Paths {
+				path := &rule.HTTP.Paths[pathIdx]
+				backendID := generateBackendID(ingress, rule, path, &path.Backend)
+				glog.V(5).Info("Found backend:", backendID.serviceKey())
+				backendIDs[backendID] = nil
+			}
+		}
+	}
+
+	finalBackendIDs := make(map[backendIdentifier]interface{})
+	serviceSet := newServiceSet(&cbCtx.ServiceList)
+	// Filter out backends, where Ingresses reference non-existent Services
+	for be := range backendIDs {
+		if _, exists := serviceSet[be.serviceKey()]; !exists {
+			glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
+			// TODO(draychev): Enable this filter when we are certain this won't break anything!
+			// continue
+		}
+		finalBackendIDs[be] = nil
+	}
+
+	c.mem.backendIDs = &finalBackendIDs
+	return finalBackendIDs
 }

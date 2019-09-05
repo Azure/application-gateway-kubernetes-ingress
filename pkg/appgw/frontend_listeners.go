@@ -37,6 +37,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, listener)
+		glog.V(5).Infof("Created listener %s with %s:%d", *listener.Name, listenerID.HostName, listenerID.FrontendPort)
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
@@ -69,7 +70,6 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
-		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
