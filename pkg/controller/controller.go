@@ -62,7 +62,7 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 	}
 
 	// Starts Worker processing events from k8sContext
-	go c.worker.Run(c.k8sContext.Work, c.stopChannel)
+	go c.worker.Run(c.k8sContext.Work, c.k8sContext.LastSync, c.stopChannel)
 	return nil
 }
 
