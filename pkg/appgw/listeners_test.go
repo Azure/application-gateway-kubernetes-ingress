@@ -112,7 +112,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80, n.ApplicationGatewayProtocol("Https"))
+			listener := cb.newListener(cbCtx, listener80, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80-pub"
 
 			expected := n.ApplicationGatewayHTTPListener{
@@ -154,7 +154,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			}
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
 			for listenerID, listenerAzConfig := range cb.getListenerConfigs(cbCtx) {
-				listener := cb.newListener(listenerID, listenerAzConfig.Protocol)
+				listener := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol)
 				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
 			}
 		})
@@ -180,7 +180,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 				EnvVariables: envVariables,
 			}
 			cb.appGw.FrontendPorts = cb.getFrontendPorts(cbCtx)
-			listener := cb.newListener(listener80Private, n.ApplicationGatewayProtocol("Https"))
+			listener := cb.newListener(cbCtx, listener80Private, n.ApplicationGatewayProtocol("Https"))
 			expectedName := agPrefix + "fl-bye.com-80-priv"
 
 			expected := n.ApplicationGatewayHTTPListener{

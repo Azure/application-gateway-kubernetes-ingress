@@ -25,13 +25,13 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
-			listener := c.newListener(listenerID, config.Protocol)
+			listener := c.newListener(cbCtx, listenerID, config.Protocol)
 			listeners = append(listeners, listener)
 		}
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
-		listener := c.newListener(listenerID, config.Protocol)
+		listener := c.newListener(cbCtx, listenerID, config.Protocol)
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
@@ -88,9 +88,9 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 	return allListeners
 }
 
-func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
+func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayHTTPListener {
 	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
-	frontendPort := c.lookupFrontendPortByListenerIdentifier(listenerID)
+	frontendPort := c.lookupFrontendPortByListenerIdentifier(cbCtx, listenerID)
 	listenerName := generateListenerName(listenerID)
 	return n.ApplicationGatewayHTTPListener{
 		Etag: to.StringPtr("*"),
@@ -106,13 +106,19 @@ func (c *appGwConfigBuilder) newListener(listenerID listenerIdentifier, protocol
 	}
 }
 
-func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBuilderContext, listeners *[]n.ApplicationGatewayHTTPListener) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
+	portsById := make(map[string]n.ApplicationGatewayFrontendPort)
+	for _, port := range *c.getFrontendPorts(cbCtx) {
+		portsById[*port.ID] = port
+	}
+
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
+		port := portsById[*listener.FrontendPort.ID]
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
-			FrontendPort: Port(*c.lookupFrontendPortByID(listener.FrontendPort.ID).Port),
+			FrontendPort: Port(*port.Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])

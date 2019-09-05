@@ -19,6 +19,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	if c.mem.ports != nil {
 		return c.mem.ports
 	}
+
 	allPorts := make(map[Port]interface{})
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
@@ -30,8 +31,7 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	}
 
 	for _, ingress := range cbCtx.IngressList {
-		fePorts := c.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
-		for port := range fePorts {
+		for port := range c.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables) {
 			allPorts[port] = nil
 		}
 	}
@@ -73,19 +73,9 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	return &frontendPorts
 }
 
-func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(listenerIdentifier listenerIdentifier) *n.ApplicationGatewayFrontendPort {
+func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(cbCtx *ConfigBuilderContext, listenerIdentifier listenerIdentifier) *n.ApplicationGatewayFrontendPort {
 	for _, port := range *c.appGw.FrontendPorts {
 		if Port(*port.Port) == listenerIdentifier.FrontendPort {
-			return &port
-		}
-	}
-
-	return nil
-}
-
-func (c *appGwConfigBuilder) lookupFrontendPortByID(ID *string) *n.ApplicationGatewayFrontendPort {
-	for _, port := range *c.appGw.FrontendPorts {
-		if *port.ID == *ID {
 			return &port
 		}
 	}
