@@ -34,7 +34,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
 			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
-			glog.V(5).Infof("Created redirection configuration %s for %s:%d", listenerConfig.SslRedirectConfigurationName, listenerID.HostName, listenerID.FrontendPort)
+			glog.V(5).Infof("Created redirection configuration %s for %s:%d; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName, listenerID.HostName, listenerID.FrontendPort)
 		}
 	}
 
