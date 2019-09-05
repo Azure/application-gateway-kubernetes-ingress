@@ -50,10 +50,6 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 }
 
 func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress) map[secretIdentifier]*string {
-	if c.mem.secretToCert != nil {
-		return *c.mem.secretToCert
-	}
-
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -73,8 +69,6 @@ func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonSecretNotFound, logLine)
 		}
 	}
-
-	c.mem.secretToCert = &secretIDCertificateMap
 	return secretIDCertificateMap
 }
 

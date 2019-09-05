@@ -42,7 +42,6 @@ type memoization struct {
 	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
-	secretToCert                 *map[secretIdentifier]*string
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
 }
 
