@@ -13,16 +13,16 @@ import (
 
 var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 	secretsStore := NewSecretStore()
-	ginkgo.Context("Test convertSecret function", func() {
+	ginkgo.Context("Test ConvertSecret function", func() {
 		secret := v1.Secret{}
 		ginkgo.It("Should have returned an error - unrecognized type of secret", func() {
-			err := secretsStore.convertSecret("someKey", &secret)
+			err := secretsStore.ConvertSecret("someKey", &secret)
 			Expect(err).To(Equal(ErrorUnknownSecretType))
 		})
 		ginkgo.It("", func() {
 			malformed := secret
 			malformed.Type = recognizedSecretType
-			err := secretsStore.convertSecret("someKey", &malformed)
+			err := secretsStore.ConvertSecret("someKey", &malformed)
 			Expect(err).To(Equal(ErrorMalformedSecret))
 		})
 		ginkgo.It("", func() {
@@ -31,7 +31,7 @@ var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 			malformed.Data = make(map[string][]byte)
 			malformed.Data[tlsKey] = []byte("X")
 			malformed.Data[tlsCrt] = []byte("Y")
-			err := secretsStore.convertSecret("someKey", &malformed)
+			err := secretsStore.ConvertSecret("someKey", &malformed)
 			Expect(err).To(Equal(ErrorExportingWithOpenSSL))
 		})
 		ginkgo.It("", func() {
@@ -87,7 +87,7 @@ var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 				"o1nu88fKxKLEH6kcBzx35dt3CmMsHCXgX58R+OHD8boJteLkkuc+h+mzO7G8h/Bv\n" +
 				"LloWsUALcQTN0LMl33F8\n" +
 				"-----END CERTIFICATE-----\n")
-			err := secretsStore.convertSecret("someKey", &goodSecret)
+			err := secretsStore.ConvertSecret("someKey", &goodSecret)
 			Expect(err).ToNot(HaveOccurred())
 			actual := secretsStore.GetPfxCertificate("someKey")
 			Expect(len(actual)).To(Equal(2477))
