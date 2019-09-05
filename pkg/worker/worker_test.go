@@ -38,12 +38,15 @@ var _ = Describe("Worker Test", func() {
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}
-			go worker.Run(work, stopChannel)
+			var lastSync *int64
+
+			go worker.Run(work, lastSync, stopChannel)
 
 			ingress := *tests.NewIngressFixture()
 			work <- events.Event{
-				Type:  events.Create,
-				Value: ingress,
+				Type:      events.Create,
+				Value:     ingress,
+				Timestamp: time.Now().Add(999 * time.Hour).UnixNano(),
 			}
 
 			processCalled := false
