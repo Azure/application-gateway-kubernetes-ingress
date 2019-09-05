@@ -7,7 +7,7 @@ package appgw
 
 import (
 	"sort"
-
+	"strings"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -35,6 +35,12 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
+		}
+		// ensure SNI flag set on multi-site listener
+		if len(config.HostName) > 0 {
+			if !strings.HasSuffix(c.appGw.ApplicationGatewayPropertiesFormat.Sku, "v2") {
+				listener.ApplicationGatewayHTTPListenerPropertiesFormat.RequireServerNameIndication = to.BoolPtr(true)
+			}
 		}
 		listeners = append(listeners, listener)
 	}
