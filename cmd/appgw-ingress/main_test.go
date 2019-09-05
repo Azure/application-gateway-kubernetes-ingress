@@ -6,9 +6,13 @@
 package main
 
 import (
+	"testing"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
+	"k8s.io/client-go/kubernetes"
 )
 
 func TestIt(t *testing.T) {
@@ -33,6 +37,69 @@ var _ = Describe("Test functions used in main.go", func() {
 			actual := getNamespacesToWatch("two,one")
 			expected := []string{"one", "two"}
 			Expect(actual).To(Equal(expected))
+		})
+	})
+
+	Context("test getVerbosity", func() {
+		flagVerbosity := 9
+		envVerbosity := "8"
+		It("should return verbosity level based on an environment variable", func() {
+			actual := getVerbosity(flagVerbosity, envVerbosity)
+			Expect(actual).To(Equal(8))
+		})
+		It("should return verbosity level based on a command line flag", func() {
+			envVerbosity := ""
+			actual := getVerbosity(flagVerbosity, envVerbosity)
+			Expect(actual).To(Equal(9))
+		})
+	})
+
+	Context("test validateNamespaces", func() {
+		It("should validate the namespaces", func() {
+			actual := validateNamespaces([]string{}, &kubernetes.Clientset{})
+			Ω(actual).Should(Succeed())
+		})
+	})
+
+	Context("test getNamespacesToWatch", func() {
+		It("should return a single namespace to watch", func() {
+			actual := getNamespacesToWatch("some-env-var")
+			Ω(actual).Should(Equal([]string{"some-env-var"}))
+		})
+		It("should return a list of namespaces to watch", func() {
+			actual := getNamespacesToWatch("a,b,c")
+			Ω(actual).Should(Equal([]string{"a", "b", "c"}))
+		})
+		It("should return empty list of namespaces to watch", func() {
+			actual := getNamespacesToWatch("")
+			Ω(actual).Should(Equal([]string{}))
+		})
+	})
+
+	Context("test getAuthorizer", func() {
+		It("should try and get some authorizer", func() {
+			env := environment.EnvVariables{}
+			authorizer, err := getAuthorizer(env)
+			Ω(authorizer).ToNot(BeNil())
+			Ω(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("test getAuthorizerWithRetry", func() {
+		It("should try and get some authorizer", func() {
+			env := environment.EnvVariables{}
+			authorizer, err := getAuthorizerWithRetry(env, 0)
+			Ω(authorizer).ToNot(BeNil())
+			Ω(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("test waitForAzureAuth", func() {
+		client := n.ApplicationGatewaysClient{}
+		It("should try and panic", func() {
+			env := environment.EnvVariables{}
+			err := waitForAzureAuth(env, client, 0)
+			Ω(err).To(HaveOccurred())
 		})
 	})
 })

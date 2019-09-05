@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strconv"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -22,7 +22,7 @@ import (
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
@@ -39,7 +39,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
 			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
@@ -60,6 +60,9 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
+	if c.mem.routingRules != nil && c.mem.pathMaps != nil {
+		return *c.mem.routingRules, *c.mem.pathMaps
+	}
 	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
@@ -93,12 +96,15 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		}
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}
+
+	c.mem.routingRules = &requestRoutingRules
+	c.mem.pathMaps = &pathMap
 	return requestRoutingRules, pathMap
 }
 
 func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName))
-	defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName))
+	defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName))
+	defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName))
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	for ingressIdx := range cbCtx.IngressList {
 		ingress := cbCtx.IngressList[ingressIdx]
@@ -132,8 +138,8 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	// if no url pathmaps were created, then add a default path map since this will be translated to
 	// a basic request routing rule which is needed on Application Gateway to avoid validation error.
 	if len(urlPathMaps) == 0 {
-		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
-		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
+		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
@@ -146,7 +152,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		}
 	}
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, pathMap := range c.getIstioPathMaps(cbCtx) {
 			if _, exists := urlPathMaps[listenerID]; !exists {
 				urlPathMaps[listenerID] = pathMap
@@ -158,7 +164,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 }
 
 func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *n.ApplicationGatewayURLPathMap {
-	// initilize a path map for this listener if doesn't exists
+	// initialize a path map for this listener if doesn't exists
 	pathMap := n.ApplicationGatewayURLPathMap{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(generateURLPathMapName(listenerID)),
@@ -213,8 +219,8 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
-			defaultAddressPoolID = to.StringPtr(c.appGwIdentifier.addressPoolID(*defaultAddressPool.Name))
-			defaultHTTPSettingsID = to.StringPtr(c.appGwIdentifier.httpSettingsID(*defaultHTTPSettings.Name))
+			defaultAddressPoolID = to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
+			defaultHTTPSettingsID = to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
 		}
 	}
 

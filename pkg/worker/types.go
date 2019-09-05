@@ -12,7 +12,7 @@ import (
 // EventProcessor provides a mechanism to act on events in the internal queue.
 type EventProcessor interface {
 	Process(events.Event) error
-	ShouldProcess(events.Event) (bool, string)
+	ShouldProcess(events.Event) (bool, *string)
 }
 
 // Worker listens on the eventChannel and runs the EventProcessor.Process

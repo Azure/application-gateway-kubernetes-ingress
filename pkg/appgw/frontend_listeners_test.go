@@ -1,7 +1,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 	envVariables := environment.GetFakeEnv()
 
 	listener80 := listenerIdentifier{
-		FrontendPort: int32(80),
+		FrontendPort: Port(80),
 		HostName:     tests.Host,
 	}
 
@@ -157,7 +157,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 
 	Context("create a new App Gateway HTTP Listener with Private Ip when usePrivateIP annotation is present", func() {
 		listener80Private := listenerIdentifier{
-			FrontendPort: int32(80),
+			FrontendPort: Port(80),
 			HostName:     tests.Host,
 			UsePrivateIP: true,
 		}

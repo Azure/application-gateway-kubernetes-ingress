@@ -32,4 +32,7 @@ const (
 
 	// ReasonUnableToUpdateIngressStatus is a reason for an event to be emitted.
 	ReasonUnableToUpdateIngressStatus = "UnableToUpdateIngressStatus"
+
+	// ReasonInvalidAnnotation is a reason for an event to be emitted.
+	ReasonInvalidAnnotation = "InvalidAnnotation"
 )

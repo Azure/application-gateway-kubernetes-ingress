@@ -7,7 +7,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -16,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -37,6 +40,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -49,23 +53,13 @@ const (
 )
 
 var (
-	flags = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
-
-	inCluster = flags.Bool("in-cluster", true,
-		"If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
-
-	apiServerHost = flags.String("apiserver-host", "",
-		"The address of the Kubernetes apiserver. Optional if running in cluster; if omitted, local discovery is attempted.")
-
-	kubeConfigFile = flags.String("kubeconfig", "",
-		"Path to kubeconfig file with authorization and master location information.")
-
-	resyncPeriod = flags.Duration("sync-period", thirtySeconds,
-		"Interval at which to re-list and confirm cloud resources.")
-
-	versionInfo = flags.Bool("version", false, "Print version")
-
-	verbosity = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
+	flags          = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
+	inCluster      = flags.Bool("in-cluster", true, "If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
+	apiServerHost  = flags.String("apiserver-host", "", "The address of the Kubernetes API Server. Optional if running in cluster; if omitted, local discovery is attempted.")
+	kubeConfigFile = flags.String("kubeconfig", "", "Path to kubeconfig file with authorization and master location information.")
+	resyncPeriod   = flags.Duration("sync-period", thirtySeconds, "Interval at which to re-list and confirm cloud resources.")
+	versionInfo    = flags.Bool("version", false, "Print version")
+	verbosity      = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
 )
 
 func main() {
@@ -76,12 +70,14 @@ func main() {
 	}
 
 	env := environment.GetEnv()
-	environment.ValidateEnv(env)
 
 	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
-
 	if *versionInfo {
 		version.PrintVersionAndExit()
+	}
+
+	if err := environment.ValidateEnv(env); err != nil {
+		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values.", err)
 	}
 
 	// Workaround for "ERROR: logging before flag.Parse"
@@ -90,10 +86,13 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
-	// initialize clients and dependencies
-	appGwClient, err := initAppGwClient(env)
-	if err != nil {
-		glog.Fatal("Error creating Azure client: ", err)
+	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
+	var err error
+	if appGwClient.Authorizer, err = getAuthorizerWithRetry(env, maxAuthRetryCount); err != nil {
+		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
+	}
+	if err = waitForAzureAuth(env, appGwClient, maxAuthRetryCount); err != nil {
+		glog.Fatal("Failed authenticating with Azure Resource Manager")
 	}
 
 	appGwIdentifier := appgw.Identifier{
@@ -111,7 +110,9 @@ func main() {
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 
 	// namespace validations
-	validateNamespaces(namespaces, kubeClient) // side-effect: will panic on non-existent namespace
+	if err := validateNamespaces(namespaces, kubeClient); err != nil {
+		glog.Fatal(err) // side-effect: will panic on non-existent namespace
+	}
 	if len(namespaces) == 0 {
 		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
@@ -124,11 +125,23 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	// initiliaze controller
-	appGwIngressController := controller.NewAppGwIngressController(*appGwClient, appGwIdentifier, k8sContext, recorder)
+	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
 
-	// start controller
-	appGwIngressController.Start(env)
+	if err := appGwIngressController.Start(env); err != nil {
+		glog.Fatal("Could not start AGIC: ", err)
+	}
+
+	// Start the Health Probe Server (responding to Kubernetes health probes)
+	healthServer := &http.Server{
+		Handler: health.NewHealthMux(appGwIngressController),
+		Addr:    fmt.Sprintf(":%s", env.HealthProbeServicePort),
+	}
+	go func() {
+		glog.Infof("Starting Health Probe Server on %s", healthServer.Addr)
+		if err := healthServer.ListenAndServe(); err != nil {
+			glog.Fatal("Failed starting Health Probe Server", err)
+		}
+	}()
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -136,7 +149,7 @@ func main() {
 	glog.Info("Goodbye!")
 }
 
-func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
+func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) error {
 	var nonExistent []string
 	for _, ns := range namespaces {
 		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
@@ -144,8 +157,10 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) {
 		}
 	}
 	if len(nonExistent) > 0 {
-		glog.Fatalf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
+		return errors.New("namespace does not exist")
 	}
+	return nil
 }
 
 func getNamespacesToWatch(namespaceEnvVar string) []string {
@@ -170,56 +185,7 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 	return []string{namespaceEnvVar}
 }
 
-func initAppGwClient(env environment.EnvVariables) (*n.ApplicationGatewaysClient, error) {
-	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
-	if err := waitForAzureAuth(env, &appGwClient); err != nil {
-		return nil, err
-	}
-
-	return &appGwClient, nil
-}
-
-func waitForAzureAuth(env environment.EnvVariables, client *n.ApplicationGatewaysClient) error {
-	var response n.ApplicationGateway
-	var err error
-	for counter := 0; counter <= maxAuthRetryCount; counter++ {
-		// Fetch a new token
-		if client.Authorizer, err = getAzAuth(env); err != nil || client.Authorizer == nil {
-			glog.Fatal("Error creating Azure client", err)
-		}
-
-		// Get Application Gateway
-		response, err = client.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
-		if err == nil {
-			return nil
-		}
-
-		// Tries remaining
-		if counter < maxAuthRetryCount {
-			glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. ARM Error: %s", env.AppGwName, tenSeconds, err)
-			time.Sleep(tenSeconds)
-		}
-	}
-
-	// Reasons for 403 errors
-	if response.Response.StatusCode == 403 {
-		infoLine := "Possible reasons:"
-		infoLine += " AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;"
-		infoLine += " 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;"
-		infoLine += " AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;"
-		glog.Error(infoLine)
-	}
-
-	if response.Response.StatusCode != 200 {
-		// for example, getting 401. This is not expected as we are getting a token before making the call.
-		glog.Error("Recieved an unexpected status code from ARM while getting App Gateway: ", response.Response.StatusCode)
-		return ErrUnexpectedARMStatusCode
-	}
-
-	return err
-}
-
-func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
+func getAuthorizer(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	if vars.AuthLocation == "" {
 		// requires aad-pod-identity to be deployed in the AKS cluster
 		// see https://github.com/Azure/aad-pod-identity for more information
@@ -228,6 +194,56 @@ func getAzAuth(vars environment.EnvVariables) (autorest.Authorizer, error) {
 	}
 	glog.V(1).Infof("Creating authorizer from file referenced by %s environment variable: %s", environment.AuthLocationVarName, vars.AuthLocation)
 	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+}
+
+func getAuthorizerWithRetry(env environment.EnvVariables, maxAuthRetryCount int) (autorest.Authorizer, error) {
+	var err error
+	retryCount := 0
+	for {
+		// Fetch a new token
+		if authorizer, err := getAuthorizer(env); err == nil && authorizer != nil {
+			return authorizer, nil
+		}
+
+		if retryCount >= maxAuthRetryCount {
+			glog.Errorf("Tried %d times to get ARM authorization token; Error: %s", retryCount, err)
+			return nil, errors.New("failed obtaining auth token")
+		}
+		retryCount++
+		glog.Errorf("Failed fetching authorization token for ARM. Will retry in %v. Error: %s", tenSeconds, err)
+		time.Sleep(tenSeconds)
+	}
+}
+
+func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGatewaysClient, maxAuthRetryCount int) error {
+	retryCount := 0
+	for {
+		response, err := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+		if err == nil {
+			return nil
+		}
+
+		// Reasons for 403 errors
+		if response.Response.Response != nil && response.Response.StatusCode == 403 {
+			glog.Error("Possible reasons:" +
+				" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
+				" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
+				" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+		}
+
+		if response.Response.Response != nil && response.Response.StatusCode != 200 {
+			// for example, getting 401. This is not expected as we are getting a token before making the call.
+			glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
+		}
+
+		if retryCount >= maxAuthRetryCount {
+			glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
+			return errors.New("failed arm auth")
+		}
+		retryCount++
+		glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, tenSeconds, err)
+		time.Sleep(tenSeconds)
+	}
 }
 
 func getKubeClientConfig() *rest.Config {
@@ -245,7 +261,6 @@ func getKubeClientConfig() *rest.Config {
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
-
 	if err != nil {
 		glog.Fatal("error creating client configuration:", err)
 	}

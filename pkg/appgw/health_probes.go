@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -29,10 +29,10 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 		agicCreatedProbes = append(agicCreatedProbes, probe)
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedProbes()
-		brownfield.LogProbes(existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
+		brownfield.LogProbes(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
 		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
 	}
 
@@ -42,14 +42,21 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 }
 
 func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[string]n.ApplicationGatewayProbe, map[backendIdentifier]*n.ApplicationGatewayProbe) {
+	if c.mem.probesByName != nil && c.mem.probesByBackend != nil {
+		return *c.mem.probesByName, *c.mem.probesByBackend
+	}
+
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
-	defaultProbe := defaultProbe(c.appGwIdentifier)
+	defaultHTTPProbe := defaultProbe(c.appGwIdentifier, n.HTTP)
+	defaultHTTPSProbe := defaultProbe(c.appGwIdentifier, n.HTTPS)
 
-	glog.V(5).Info("Adding default probe:", *defaultProbe.Name)
-	healthProbeCollection[*defaultProbe.Name] = defaultProbe
+	glog.V(5).Info("Adding default HTTP probe:", *defaultHTTPProbe.Name)
+	glog.V(5).Info("Adding default HTTPS probe:", *defaultHTTPProbe.Name)
+	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
+	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
 
-	for backendID := range newBackendIdsFiltered(cbCtx) {
+	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
 
 		if probe != nil {
@@ -57,10 +64,16 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
-			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *defaultProbe.Name)
-			probesMap[backendID] = &defaultProbe
+			probesMap[backendID] = &defaultHTTPProbe
+			if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+				probesMap[backendID] = &defaultHTTPSProbe
+			}
+			glog.V(5).Infof("No k8s probe for backend: '%s'; Adding default probe: '%s'", backendID.Name, *probesMap[backendID].Name)
 		}
 	}
+
+	c.mem.probesByName = &healthProbeCollection
+	c.mem.probesByBackend = &probesMap
 	return healthProbeCollection, probesMap
 }
 
@@ -70,7 +83,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if service == nil {
 		return nil
 	}
-	probe := defaultProbe(c.appGwIdentifier)
+	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
@@ -84,6 +97,10 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
+	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	}
+
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
@@ -91,6 +108,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		}
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
 			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
+		}
+		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Port.String()) != 0 {
+			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal)
 		}
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
@@ -113,6 +133,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 }
 
 func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendID backendIdentifier) *v1.Probe {
+	// find all the target ports used by the service
 	allPorts := make(map[int32]interface{})
 	for _, sp := range service.Spec.Ports {
 		if sp.Protocol != v1.ProtocolTCP {
@@ -138,22 +159,40 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 	}
 
 	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
-	for _, pod := range podList {
-		for _, container := range pod.Spec.Containers {
-			for _, port := range container.Ports {
-				if _, ok := allPorts[port.ContainerPort]; !ok {
-					continue
-				}
 
-				var probe *v1.Probe
-				if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
-					probe = container.ReadinessProbe
-				} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
-					probe = container.LivenessProbe
-				}
+	if len(podList) == 0 {
+		return nil
+	}
 
-				return probe
+	// use the target port to figure out the container and use it's readiness/liveness probe
+	for _, container := range podList[0].Spec.Containers {
+		for _, port := range container.Ports {
+			if _, ok := allPorts[port.ContainerPort]; !ok {
+				continue
 			}
+
+			// found the container
+			var probe *v1.Probe
+			if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
+				probe = container.ReadinessProbe
+			} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
+				probe = container.LivenessProbe
+			}
+
+			// if probe port is named, resolve it by going through container port and set it in the probe itself
+			if probe != nil && probe.HTTPGet.Port.String() != "" && probe.HTTPGet.Port.Type == intstr.String {
+				for _, port := range container.Ports {
+					if port.Name == probe.HTTPGet.Port.StrVal {
+						probe.HTTPGet.Port = intstr.IntOrString{
+							Type:   intstr.Int,
+							IntVal: port.ContainerPort,
+						}
+						break
+					}
+				}
+			}
+
+			return probe
 		}
 	}
 

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -22,6 +22,9 @@ import (
 
 // getSslCertificates obtains all SSL Certificates for the given Ingress object.
 func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]n.ApplicationGatewaySslCertificate {
+	if c.mem.certs != nil {
+		return c.mem.certs
+	}
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
 	for _, ingress := range cbCtx.IngressList {
@@ -35,17 +38,22 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
 		// as a managed pool would be overwritten.
 		sslCertificates = brownfield.MergeCerts(*c.appGw.SslCertificates, sslCertificates)
 	}
 
 	sort.Sort(sorter.ByCertificateName(sslCertificates))
+	c.mem.certs = &sslCertificates
 	return &sslCertificates
 }
 
 func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress) map[secretIdentifier]*string {
+	if c.mem.secretToCert != nil {
+		return *c.mem.secretToCert
+	}
+
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -65,6 +73,8 @@ func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonSecretNotFound, logLine)
 		}
 	}
+
+	c.mem.secretToCert = &secretIDCertificateMap
 	return secretIDCertificateMap
 }
 

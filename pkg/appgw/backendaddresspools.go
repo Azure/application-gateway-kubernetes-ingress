@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -29,6 +29,10 @@ func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) er
 }
 
 func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.ApplicationGatewayBackendAddressPool {
+	if c.mem.pools != nil {
+		return *c.mem.pools
+	}
+
 	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
@@ -41,7 +45,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		}
 	}
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		_, _, istioServiceBackendPairMap, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
 		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
 			glog.V(5).Info("Constructing backend pool for service:", destinationID.serviceKey())
@@ -56,7 +60,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		agicCreatedPools = append(agicCreatedPools, *managedPool)
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, &defaultPool)
 
 		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
@@ -69,6 +73,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		return brownfield.MergePools(existingBlacklisted, agicCreatedPools)
 	}
 
+	c.mem.pools = &agicCreatedPools
 	return agicCreatedPools
 }
 
@@ -114,11 +119,11 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 	return nil
 }
 
-func getUniqueTCPPorts(subset v1.EndpointSubset) map[int32]interface{} {
-	ports := make(map[int32]interface{})
+func getUniqueTCPPorts(subset v1.EndpointSubset) map[Port]interface{} {
+	ports := make(map[Port]interface{})
 	for _, endpointsPort := range subset.Ports {
 		if endpointsPort.Protocol == v1.ProtocolTCP {
-			ports[endpointsPort.Port] = nil
+			ports[Port(endpointsPort.Port)] = nil
 		}
 	}
 	return ports
@@ -128,7 +133,7 @@ func (c *appGwConfigBuilder) newPool(poolName string, subset v1.EndpointSubset) 
 	return &n.ApplicationGatewayBackendAddressPool{
 		Etag: to.StringPtr("*"),
 		Name: &poolName,
-		ID:   to.StringPtr(c.appGwIdentifier.addressPoolID(poolName)),
+		ID:   to.StringPtr(c.appGwIdentifier.AddressPoolID(poolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: getAddressesForSubset(subset),
 		},

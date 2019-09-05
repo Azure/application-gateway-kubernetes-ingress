@@ -6,39 +6,39 @@
 package k8scontext
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
+const providerPrefix = "azure://"
+const workBuffer = 1024
+
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
-	updateChannel := channels.NewRingChannel(1024)
-
 	var options []informers.SharedInformerOption
 	var crdOptions []externalversions.SharedInformerOption
 	for _, namespace := range namespaces {
@@ -82,7 +82,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
 		CertificateSecretStore: NewSecretStore(),
-		UpdateChannel:          updateChannel,
+		Work:                   make(chan events.Event, workBuffer),
+		CacheSynced:            make(chan interface{}),
 	}
 
 	h := handlers{context}
@@ -94,15 +95,15 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	ingressResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    h.ingressAddFunc,
-		UpdateFunc: h.ingressUpdateFunc,
-		DeleteFunc: h.ingressDeleteFunc,
+		AddFunc:    h.ingressAdd,
+		UpdateFunc: h.ingressUpdate,
+		DeleteFunc: h.ingressDelete,
 	}
 
 	secretResourceHandler := cache.ResourceEventHandlerFuncs{
-		AddFunc:    h.secretAddFunc,
-		UpdateFunc: h.secretUpdateFunc,
-		DeleteFunc: h.secretDeleteFunc,
+		AddFunc:    h.secretAdd,
+		UpdateFunc: h.secretUpdate,
+		DeleteFunc: h.secretDelete,
 	}
 
 	// Register event handlers.
@@ -117,9 +118,13 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 }
 
 // Run executes informer collection.
-func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) {
+func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) error {
 	glog.V(1).Infoln("k8s context run started")
 	var hasSynced []cache.InformerSynced
+
+	if c.informers == nil {
+		return ErrorInformersNotInitialized
+	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
 		c.informers.IstioGateway:                 nil,
@@ -135,11 +140,11 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
-	if envVariables.EnableBrownfieldDeployment == "true" {
+	if envVariables.EnableBrownfieldDeployment {
 		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
 	}
 
-	if envVariables.EnableIstioIntegration == "true" {
+	if envVariables.EnableIstioIntegration {
 		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
 	}
 
@@ -155,13 +160,15 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	glog.V(1).Infoln("Waiting for initial cache sync")
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
-		glog.V(1).Infoln("initial cache sync stopped")
-		runtime.HandleError(fmt.Errorf("failed initial sync of resources required for ingress"))
-		return
+		return ErrorFailedInitialCacheSync
 	}
+
+	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
+	close(c.CacheSynced)
 
 	glog.V(1).Infoln("initial cache sync done")
 	glog.V(1).Infoln("k8s context run finished")
+	return nil
 }
 
 // ListServices returns a list of all the Services from cache.
@@ -187,7 +194,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 
 	if !exist {
 		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
-		return nil, ErrFetchingEnpdoints
+		return nil, ErrorFetchingEnpdoints
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil
@@ -279,7 +286,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	}
 
 	if !exist {
-		glog.V(3).Infof("unable to get service from store, no such service %s", serviceKey)
+		glog.V(9).Infof("Service %s does not exist", serviceKey)
 		return nil
 	}
 
@@ -358,6 +365,23 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	return annotatedGateways
 }
 
+// GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
+// This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
+func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
+	nodes, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
+	}
+	if nodes == nil || len(nodes.Items) == 0 {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorNoNodesFound
+	}
+	if !strings.HasPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix) {
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorUnrecognizedNodeProviderPrefix
+	}
+	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix))
+	return subscriptionID, resourceGroup, nil
+}
+
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
@@ -377,7 +401,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address I
 	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
 		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
 		glog.Error(errorLine)
-		return errors.New(errorLine)
+		return ErrorUnableToUpdateIngress
 	}
 
 	return nil

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -24,7 +24,7 @@ var pruneFuncList []pruneFunc
 // PruneIngress filters ingress list based on filter functions and returns a filtered ingress list
 func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*v1beta1.Ingress {
 	once.Do(func() {
-		if cbCtx.EnvVariables.EnableBrownfieldDeployment == "true" {
+		if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 			pruneFuncList = append(pruneFuncList, pruneProhibitedIngress)
 		}
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)

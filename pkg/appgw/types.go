@@ -24,14 +24,8 @@ type ConfigBuilderContext struct {
 	IstioGateways        []*v1alpha3.Gateway
 	IstioVirtualServices []*v1alpha3.VirtualService
 
-	// Feature flag toggling Brownfield Deployment across the entire AGIC code base.
-	EnableBrownfieldDeployment bool
-
-	// Feature flag toggling Istio Integration across the entire AGIC code base.
-	EnableIstioIntegration bool
-
-	// Feature flag enabling panic() when put to ARM fails.
-	EnablePanicOnPutError bool
+	DefaultAddressPoolID  *string
+	DefaultHTTPSettingsID *string
 }
 
 // InIngressList returns true if an ingress is in the ingress list
@@ -43,3 +37,5 @@ func (cbCtx *ConfigBuilderContext) InIngressList(ingress *v1beta1.Ingress) bool 
 	}
 	return false
 }
+
+type Port int32

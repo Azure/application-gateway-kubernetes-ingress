@@ -7,6 +7,7 @@ package annotations
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
@@ -37,8 +38,11 @@ const (
 	// SslRedirectKey defines the key for defining with SSL redirect should be turned on for an HTTP endpoint.
 	SslRedirectKey = ApplicationGatewayPrefix + "/ssl-redirect"
 
-	// UsePrivateIP defines the key to determine whether to use private ip with the ingress.
+	// UsePrivateIPKey defines the key to determine whether to use private ip with the ingress.
 	UsePrivateIPKey = ApplicationGatewayPrefix + "/use-private-ip"
+
+	// BackendProtocolKey defines the key to determine whether to use private ip with the ingress.
+	BackendProtocolKey = ApplicationGatewayPrefix + "/backend-protocol"
 
 	// IngressClassKey defines the key of the annotation which needs to be set in order to specify
 	// that this is an ingress resource meant for the application gateway ingress controller.
@@ -52,6 +56,23 @@ const (
 	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
 	ApplicationGatewayIngressClass = "azure/application-gateway"
 )
+
+// ProtocolEnum is the type for protocol
+type ProtocolEnum int
+
+const (
+	// HTTP is enum for http protocol
+	HTTP ProtocolEnum = iota + 1
+
+	// HTTPS is enum for https protocol
+	HTTPS
+)
+
+// ProtocolEnumLookup is a reverse map of the EventType enums; used for logging purposes
+var ProtocolEnumLookup = map[string]ProtocolEnum{
+	"http":  HTTP,
+	"https": HTTPS,
+}
 
 // IsApplicationGatewayIngress checks if the Ingress resource can be handled by the Application Gateway ingress controller.
 func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
@@ -101,6 +122,20 @@ func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
 // UsePrivateIP determines whether to use private IP with the ingress
 func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, UsePrivateIPKey)
+}
+
+// BackendProtocol provides value for protocol to be used with the backend
+func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
+	protocol, err := parseString(ing, BackendProtocolKey)
+	if err != nil {
+		return HTTP, err
+	}
+
+	if protocolEnum, ok := ProtocolEnumLookup[strings.ToLower(protocol)]; ok {
+		return protocolEnum, nil
+	}
+
+	return HTTP, errors.NewInvalidAnnotationContent(BackendProtocolKey, protocol)
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {

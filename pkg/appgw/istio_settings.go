@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
@@ -58,15 +58,15 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(destinationID.serviceKey())
-		destinationPortNum := int32(destinationID.DestinationPort)
+		destinationPortNum := Port(destinationID.DestinationPort)
 		if service == nil {
 			// Once services are filtered in the istioMatchDestinationIDs function, this should never happen
 			logLine := fmt.Sprintf("Unable to get the service [%s]", destinationID.serviceKey())
 			glog.Errorf(logLine)
 			// TODO(rhea): add error event
 			pair := serviceBackendPortPair{
-				ServicePort: destinationPortNum,
-				BackendPort: destinationPortNum,
+				ServicePort: Port(destinationPortNum),
+				BackendPort: Port(destinationPortNum),
 			}
 			resolvedBackendPorts[pair] = nil
 		} else {
@@ -79,13 +79,13 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 				}
 
 				// TODO(delqn): implement correctly port lookup by name
-				if sp.Port == destinationPortNum || sp.TargetPort.String() == fmt.Sprint(destinationPortNum) {
+				if Port(sp.Port) == destinationPortNum || sp.TargetPort.String() == fmt.Sprint(destinationPortNum) {
 					// matched a service port with a port from the service
 					if sp.TargetPort.String() == "" {
 						// targetPort is not defined, by default targetPort == port
 						pair := serviceBackendPortPair{
-							ServicePort: sp.Port,
-							BackendPort: sp.Port,
+							ServicePort: Port(sp.Port),
+							BackendPort: Port(sp.Port),
 						}
 						resolvedBackendPorts[pair] = nil
 					} else {
@@ -93,8 +93,8 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 						if sp.TargetPort.Type == intstr.Int {
 							// port is defined as port number
 							pair := serviceBackendPortPair{
-								ServicePort: sp.Port,
-								BackendPort: sp.TargetPort.IntVal,
+								ServicePort: Port(sp.Port),
+								BackendPort: Port(sp.TargetPort.IntVal),
 							}
 							resolvedBackendPorts[pair] = nil
 						} else {
@@ -104,8 +104,8 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 							targetPortsResolved := c.resolveIstioPortName(targetPortName, &destinationID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
-									ServicePort: sp.Port,
-									BackendPort: targetPort,
+									ServicePort: Port(sp.Port),
+									BackendPort: Port(targetPort),
 								}
 								resolvedBackendPorts[pair] = nil
 							}
@@ -173,7 +173,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
-func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestinationIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
+func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestinationIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	backendServicePort := ""
 	if destinationID.DestinationPort != 0 {
 		backendServicePort = fmt.Sprint(destinationID.DestinationPort)
@@ -185,10 +185,10 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
-		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
+		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
-			Port:     &port,
+			Port:     to.Int32Ptr(int32(port)),
 		},
 	}
 

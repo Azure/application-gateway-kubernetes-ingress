@@ -6,11 +6,13 @@
 package brownfield
 
 import (
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 )
 
 var _ = Describe("Test blacklisting HTTP settings", func() {
@@ -63,6 +65,46 @@ var _ = Describe("Test blacklisting HTTP settings", func() {
 			Expect(exists).To(BeTrue())
 			_, exists = set[fixtures.BackendHTTPSettingsName2]
 			Expect(exists).To(BeTrue())
+		})
+	})
+
+	Context("Test MergeHTTPSettings()", func() {
+		It("should merge buckets of settings", func() {
+			sett1 := []n.ApplicationGatewayBackendHTTPSettings{
+				fixtures.GetHTTPSettings1(),
+				fixtures.GetHTTPSettings2(),
+			}
+			sett2 := []n.ApplicationGatewayBackendHTTPSettings{
+				fixtures.GetHTTPSettings1(),
+				fixtures.GetHTTPSettings3(),
+			}
+			actual := MergeHTTPSettings(sett1, sett2)
+			Expect(actual).To(ContainElement(fixtures.GetHTTPSettings1()))
+			Expect(actual).To(ContainElement(fixtures.GetHTTPSettings2()))
+			Expect(actual).To(ContainElement(fixtures.GetHTTPSettings3()))
+		})
+	})
+
+	Context("Test LogHTTPSettings()", func() {
+		It("should log settings", func() {
+			sett1 := []n.ApplicationGatewayBackendHTTPSettings{
+				fixtures.GetHTTPSettings1(),
+				fixtures.GetHTTPSettings2(),
+			}
+			sett2 := []n.ApplicationGatewayBackendHTTPSettings{
+				fixtures.GetHTTPSettings1(),
+				fixtures.GetHTTPSettings3(),
+			}
+			logger := &mocks.MockLogger{}
+
+			LogHTTPSettings(logger, sett1, sett2, sett2)
+
+			expected1 := "[brownfield] Existing Blacklisted HTTP Settings AGIC will retain:" +
+				" _BackendHTTPSettings-1, BackendHTTPSettings-2"
+			Expect(logger.LogLines).To(ContainElement(expected1))
+
+			expected2 := "[brownfield] HTTP Settings AGIC created: _BackendHTTPSettings-1, BackendHTTPSettings-3"
+			Expect(logger.LogLines).To(ContainElement(expected2))
 		})
 	})
 })

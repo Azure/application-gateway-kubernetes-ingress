@@ -7,10 +7,9 @@ package tests
 
 import (
 	"fmt"
-
 	"io/ioutil"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -24,30 +23,32 @@ import (
 
 // constant values to be used for testing
 const (
-	Namespace        = "--namespace--"
-	Name             = "--name--"
-	Host             = "bye.com"
-	OtherHost        = "--some-other-hostname--"
-	HostUnassociated = "---some-host-without-routing-rules---"
-	NameOfSecret     = "--the-name-of-the-secret--"
-	ServiceName      = "--service-name--"
-	NodeName         = "--node-name--"
-	URLPath1         = "/api1"
-	URLPath2         = "/api2"
-	URLPath3         = "/api3"
-	HealthPath       = "/healthz"
-	ContainerName    = "--container-name--"
-	ContainerPort    = int32(9876)
-	ServicePort      = "service-port"
-	SelectorKey      = "app"
-	SelectorValue    = "frontend"
-	Subscription     = "--subscription--"
-	ResourceGroup    = "--resource-group--"
-	AppGwName        = "--app-gw-name--"
-	PublicIPID       = "--front-end-ip-id-1--"
-	PrivateIPID      = "--front-end-ip-id-2--"
-	ServiceHTTPPort  = "--service-http-port--"
-	ServiceHTTPSPort = "--service-https-port--"
+	Namespace               = "--namespace--"
+	Name                    = "--name--"
+	Host                    = "bye.com"
+	OtherHost               = "--some-other-hostname--"
+	HostUnassociated        = "---some-host-without-routing-rules---"
+	NameOfSecret            = "--the-name-of-the-secret--"
+	ServiceName             = "--service-name--"
+	NodeName                = "--node-name--"
+	URLPath1                = "/api1"
+	URLPath2                = "/api2"
+	URLPath3                = "/api3"
+	HealthPath              = "/healthz"
+	ContainerName           = "--container-name--"
+	ContainerPort           = int32(9876)
+	ContainerHealthPortName = "--container-health-port-name--"
+	ContainerHealthPort     = int32(9090)
+	ServicePort             = "service-port"
+	SelectorKey             = "app"
+	SelectorValue           = "frontend"
+	Subscription            = "--subscription--"
+	ResourceGroup           = "--resource-group--"
+	AppGwName               = "--app-gw-name--"
+	PublicIPID              = "--front-end-ip-id-1--"
+	PrivateIPID             = "--front-end-ip-id-2--"
+	ServiceHTTPPort         = "--service-http-port--"
+	ServiceHTTPSPort        = "--service-https-port--"
 )
 
 // GetIngress creates an Ingress test fixture.
@@ -243,7 +244,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 				Path: HealthPath,
 				Port: intstr.IntOrString{
 					Type:   intstr.String,
-					StrVal: containerName,
+					StrVal: ContainerHealthPortName,
 				},
 				Scheme: v1.URISchemeHTTP,
 			},
@@ -270,6 +271,10 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 						{
 							Name:          containerName,
 							ContainerPort: containerPort,
+						},
+						{
+							Name:          ContainerHealthPortName,
+							ContainerPort: ContainerHealthPort,
 						},
 					},
 					ReadinessProbe: NewProbeFixture(containerName),

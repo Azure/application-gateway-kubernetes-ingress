@@ -10,8 +10,8 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 )
 
-func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID *istioDestinationIdentifier) map[int32]interface{} {
-	resolvedPorts := make(map[int32]interface{})
+func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID *istioDestinationIdentifier) map[Port]interface{} {
+	resolvedPorts := make(map[Port]interface{})
 	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
 	if err != nil {
 		glog.Error("Could not fetch endpoint by service key from cache", err)
@@ -24,7 +24,7 @@ func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID
 	for _, subset := range endpoints.Subsets {
 		for _, epPort := range subset.Ports {
 			if epPort.Name == portName {
-				resolvedPorts[epPort.Port] = nil
+				resolvedPorts[Port(epPort.Port)] = nil
 			}
 		}
 	}

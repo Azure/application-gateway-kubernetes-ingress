@@ -8,7 +8,7 @@ package appgw
 import (
 	"sort"
 	"strings"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 
@@ -23,7 +23,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 	}
 	var listeners []n.ApplicationGatewayHTTPListener
 
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
 			listener := c.newListener(listenerID, config.Protocol)
 			listeners = append(listeners, listener)
@@ -45,7 +45,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 		listeners = append(listeners, listener)
 	}
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 
 		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
@@ -68,11 +68,15 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) *[]n.Appl
 
 // getListenerConfigs creates an intermediary representation of the listener configs based on the passed list of ingresses
 func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map[listenerIdentifier]listenerAzConfig {
+	if c.mem.listenerConfigs != nil {
+		return *c.mem.listenerConfigs
+	}
+
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
-		_, azListenerConfigs := c.processIngressRules(ingress, cbCtx.EnvVariables)
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
 		}
@@ -86,6 +90,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 		}
 	}
 
+	c.mem.listenerConfigs = &allListeners
 	return allListeners
 }
 
@@ -113,7 +118,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(listeners *[]n.A
 	for idx, listener := range *listeners {
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
-			FrontendPort: *c.lookupFrontendPortByID(listener.FrontendPort.ID).Port,
+			FrontendPort: Port(*c.lookupFrontendPortByID(listener.FrontendPort.ID).Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])

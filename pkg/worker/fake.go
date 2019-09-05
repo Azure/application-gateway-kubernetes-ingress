@@ -20,8 +20,8 @@ func (fp FakeProcessor) Process(event events.Event) error {
 }
 
 // ShouldProcess will return true
-func (fp FakeProcessor) ShouldProcess(event events.Event) (bool, string) {
-	return true, ""
+func (fp FakeProcessor) ShouldProcess(event events.Event) (bool, *string) {
+	return true, nil
 }
 
 // NewFakeProcessor returns a fake processor struct.

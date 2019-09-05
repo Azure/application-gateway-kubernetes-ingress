@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	// ErrMissingAnnotations the ingress rule does not contain annotations
+	// ErrMissingAnnotations is the ingress rule does not contain annotations
 	// This is an error only when annotations are being parsed
 	ErrMissingAnnotations = errors.New("ingress rule without annotations")
 )

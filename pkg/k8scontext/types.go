@@ -1,12 +1,12 @@
 package k8scontext
 
 import (
-	"github.com/eapache/channels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -51,7 +51,9 @@ type Context struct {
 
 	ingressSecretsMap utils.ThreadsafeMultiMap
 
-	UpdateChannel *channels.RingChannel
+	Work chan events.Event
+
+	CacheSynced chan interface{}
 }
 
 // IPAddress is type for IP address string

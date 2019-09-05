@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"strconv"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
 func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
-	defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName))
-	defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName))
+	defaultAddressPoolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName))
+	defaultHTTPSettingsID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName))
 
 	// TODO(delqn)
 	istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
@@ -95,8 +95,8 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 	// if no url pathmaps were created, then add a default path map since this will be translated to
 	// a basic request routing rule which is needed on Application Gateway to avoid validation error.
 	if len(urlPathMaps) == 0 {
-		defaultAddressPoolID := c.appGwIdentifier.addressPoolID(defaultBackendAddressPoolName)
-		defaultHTTPSettingsID := c.appGwIdentifier.httpSettingsID(defaultBackendHTTPSettingsName)
+		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
+		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),

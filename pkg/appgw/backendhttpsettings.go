@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -29,20 +30,20 @@ const (
 func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderContext) error {
 	agicHTTPSettings, _, _, err := c.getBackendsAndSettingsMap(cbCtx)
 
-	if cbCtx.EnableBrownfieldDeployment {
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		allExistingSettings := rCtx.HTTPSettings
 
 		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
 
-		brownfield.LogHTTPSettings(existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+		brownfield.LogHTTPSettings(glog.V(3), existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
 
 		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
 		// as a managed rule would be overwritten.
 		agicHTTPSettings = brownfield.MergeHTTPSettings(allExistingSettings, agicHTTPSettings)
 	}
-	if cbCtx.EnableIstioIntegration {
+	if cbCtx.EnvVariables.EnableIstioIntegration {
 		istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)
 		if istioHTTPSettings != nil {
 			sort.Sort(sorter.BySettingsName(istioHTTPSettings))
@@ -58,7 +59,11 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 	return err
 }
 
-func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
+func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
+	if c.mem.backendIDs != nil {
+		return *c.mem.backendIDs
+	}
+
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.Backend != nil {
@@ -93,6 +98,8 @@ func newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]in
 		}
 		finalBackendIDs[be] = nil
 	}
+
+	c.mem.backendIDs = &finalBackendIDs
 	return finalBackendIDs
 }
 
@@ -106,12 +113,16 @@ func newServiceSet(services *[]*v1.Service) map[string]*v1.Service {
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
+	if c.mem.settings != nil && c.mem.settingsByBackend != nil && c.mem.serviceBackendPairsByBackend != nil {
+		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
+	}
+
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 
 	var unresolvedBackendID []backendIdentifier
-	for backendID := range newBackendIdsFiltered(cbCtx) {
+	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 
 		service := c.k8sContext.GetService(backendID.serviceKey())
@@ -121,8 +132,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonServiceNotFound, logLine)
 			glog.Errorf(logLine)
 			pair := serviceBackendPortPair{
-				ServicePort: backendID.Backend.ServicePort.IntVal,
-				BackendPort: backendID.Backend.ServicePort.IntVal,
+				ServicePort: Port(backendID.Backend.ServicePort.IntVal),
+				BackendPort: Port(backendID.Backend.ServicePort.IntVal),
 			}
 			resolvedBackendPorts[pair] = nil
 		} else {
@@ -141,8 +152,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 					if sp.TargetPort.String() == "" {
 						// targetPort is not defined, by default targetPort == port
 						pair := serviceBackendPortPair{
-							ServicePort: sp.Port,
-							BackendPort: sp.Port,
+							ServicePort: Port(sp.Port),
+							BackendPort: Port(sp.Port),
 						}
 						resolvedBackendPorts[pair] = nil
 					} else {
@@ -150,8 +161,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 						if sp.TargetPort.Type == intstr.Int {
 							// port is defined as port number
 							pair := serviceBackendPortPair{
-								ServicePort: sp.Port,
-								BackendPort: sp.TargetPort.IntVal,
+								ServicePort: Port(sp.Port),
+								BackendPort: Port(sp.TargetPort.IntVal),
 							}
 							resolvedBackendPorts[pair] = nil
 						} else {
@@ -160,8 +171,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
-									ServicePort: sp.Port,
-									BackendPort: targetPort,
+									ServicePort: Port(sp.Port),
+									BackendPort: Port(targetPort),
 								}
 								resolvedBackendPorts[pair] = nil
 							}
@@ -195,7 +206,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, defaultProbeName)
+	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
 
 	// enforce single pair relationship between service port and backend port
@@ -226,19 +237,22 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		httpSettings = append(httpSettings, backend)
 	}
 
+	c.mem.settings = &httpSettings
+	c.mem.settingsByBackend = &backendHTTPSettingsMap
+	c.mem.serviceBackendPairsByBackend = &finalServiceBackendPairMap
 	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
 }
 
-func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port int32, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
+func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
 	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
-		ID:   to.StringPtr(c.appGwIdentifier.httpSettingsID(httpSettingsName)),
+		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 			Protocol: n.HTTP,
-			Port:     &port,
+			Port:     to.Int32Ptr(int32(port)),
 		},
 	}
 
@@ -252,6 +266,8 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
+	} else if !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
@@ -264,14 +280,26 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		} else {
 			httpSettings.ConnectionDraining.DrainTimeoutInSec = to.Int32Ptr(DefaultConnDrainTimeoutInSec)
 		}
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
 		httpSettings.CookieBasedAffinity = n.Enabled
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
 		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
+	} else if !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	if backendProtocol, err := annotations.BackendProtocol(backendID.Ingress); err == nil && backendProtocol == annotations.HTTPS {
+		httpSettings.Protocol = n.HTTPS
+	} else if err != nil && !errors.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
 	return httpSettings

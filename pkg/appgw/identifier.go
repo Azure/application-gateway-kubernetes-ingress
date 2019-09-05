@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -29,7 +29,7 @@ func (agw Identifier) gatewayResourceID(subResourceKind string, resourceName str
 	return agw.resourceID("Microsoft.Network", "applicationGateways", resourcePath)
 }
 
-func (agw Identifier) addressPoolID(poolName string) string {
+func (agw Identifier) AddressPoolID(poolName string) string {
 	return agw.gatewayResourceID("backendAddressPools", poolName)
 }
 
@@ -45,7 +45,7 @@ func (agw Identifier) sslCertificateID(certname string) string {
 	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
-func (agw Identifier) httpSettingsID(settingsName string) string {
+func (agw Identifier) HTTPSettingsID(settingsName string) string {
 	return agw.gatewayResourceID("backendHttpSettingsCollection", settingsName)
 }
 

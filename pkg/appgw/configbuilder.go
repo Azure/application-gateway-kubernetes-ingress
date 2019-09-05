@@ -8,13 +8,15 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -28,7 +30,19 @@ type ConfigBuilder interface {
 }
 
 type memoization struct {
-	listeners *[]n.ApplicationGatewayHTTPListener
+	listeners                    *[]n.ApplicationGatewayHTTPListener
+	listenerConfigs              *map[listenerIdentifier]listenerAzConfig
+	routingRules                 *[]n.ApplicationGatewayRequestRoutingRule
+	pathMaps                     *[]n.ApplicationGatewayURLPathMap
+	probesByName                 *map[string]n.ApplicationGatewayProbe
+	probesByBackend              *map[backendIdentifier]*n.ApplicationGatewayProbe
+	backendIDs                   *map[backendIdentifier]interface{}
+	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
+	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
+	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	pools                        *[]n.ApplicationGatewayBackendAddressPool
+	certs                        *[]n.ApplicationGatewaySslCertificate
+	secretToCert                 *map[secretIdentifier]*string
 }
 
 type appGwConfigBuilder struct {
@@ -159,10 +173,10 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateListenerID(rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *int32, usePrivateIP bool) listenerIdentifier {
-	frontendPort := int32(80)
+func generateListenerID(rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool) listenerIdentifier {
+	frontendPort := Port(80)
 	if protocol == n.HTTPS {
-		frontendPort = int32(443)
+		frontendPort = Port(443)
 	}
 	if overridePort != nil {
 		frontendPort = *overridePort
@@ -181,5 +195,10 @@ func (c *appGwConfigBuilder) addTags() {
 		c.appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	c.appGw.Tags[managedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	c.appGw.Tags[tags.ManagedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
+		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
+	} else {
+		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err.Error())
+	}
 }

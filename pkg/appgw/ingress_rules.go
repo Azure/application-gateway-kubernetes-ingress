@@ -6,16 +6,30 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-// processIngressRules creates the sets of front end listeners and ports, and a map of azure config per listener for the given ingress.
-func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress, env environment.EnvVariables) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
-	frontendPorts := make(map[int32]interface{})
+func (c *appGwConfigBuilder) getFrontendPortsFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[Port]interface{} {
+	frontendPorts := make(map[Port]interface{})
+	for ruleIdx := range ingress.Spec.Rules {
+		rule := &ingress.Spec.Rules[ruleIdx]
+		if rule.HTTP == nil {
+			continue
+		}
+
+		ruleFrontendPorts, _ := c.processIngressRule(rule, ingress, env)
+		for port, _ := range ruleFrontendPorts {
+			frontendPorts[port] = nil
+		}
+	}
+	return frontendPorts
+}
+
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
@@ -23,19 +37,16 @@ func (c *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress, env e
 			continue
 		}
 
-		ruleFrontendPorts, ruleListeners := c.processIngressRule(rule, ingress, env)
-		for k, v := range ruleFrontendPorts {
-			frontendPorts[k] = v
-		}
+		_, ruleListeners := c.processIngressRule(rule, ingress, env)
 		for k, v := range ruleListeners {
 			listeners[k] = v
 		}
 	}
-	return frontendPorts, listeners
+	return listeners
 }
 
-func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[int32]interface{}, map[listenerIdentifier]listenerAzConfig) {
-	frontendPorts := make(map[int32]interface{})
+func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+	frontendPorts := make(map[Port]interface{})
 	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
@@ -50,7 +61,7 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
 	if hasTLS {
 		listenerID := generateListenerID(rule, n.HTTPS, nil, usePrivateIPForIngress)
-		frontendPorts[listenerID.FrontendPort] = nil
+		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		// Only associate the Listener with a Redirect if redirect is enabled
 		redirect := ""
 		if sslRedirect {
@@ -67,11 +78,10 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 	// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 	if sslRedirect || !hasTLS {
 		listenerID := generateListenerID(rule, n.HTTP, nil, usePrivateIPForIngress)
-		frontendPorts[listenerID.FrontendPort] = nil
+		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		listeners[listenerID] = listenerAzConfig{
 			Protocol: n.HTTP,
 		}
 	}
-
 	return frontendPorts, listeners
 }

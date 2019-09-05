@@ -11,8 +11,8 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("Process ingress rules, listeners, and ports", func() {
-	port80 := int32(80)
-	port443 := int32(443)
+	port80 := Port(80)
+	port443 := Port(443)
 
 	expectedListener80 := listenerIdentifier{
 		FrontendPort: port80,
@@ -55,7 +55,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		frontendPorts, listenerConfigs := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
+		listenerConfigs := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		// Verify front end listeners
 		It("should have correct count of frontend listeners", func() {
@@ -72,7 +73,7 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 
 		It("should have one port 80", func() {
-			actualPort := getInt32MapKeys(&frontendPorts)[0]
+			actualPort := getPortsList(&frontendPorts)[0]
 			Expect(actualPort).To(Equal(port80))
 		})
 
@@ -124,7 +125,8 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		}
 
 		// !! Action !!
-		frontendPorts, frontendListeners := cb.processIngressRules(ingress, cbCtx.EnvVariables)
+		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
+		frontendListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
@@ -136,14 +138,14 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		})
 		It("should have a listener on port 443", func() {
 			listeners := getMapKeys(&frontendListeners)
-			ports := make([]int32, 0, len(listeners))
+			ports := make([]Port, 0, len(listeners))
 			for _, listener := range listeners {
 				ports = append(ports, listener.FrontendPort)
 			}
 			Expect(ports).To(ContainElement(port443))
 		})
 		It("should have one port 443", func() {
-			ports := getInt32MapKeys(&frontendPorts)
+			ports := getPortsList(&frontendPorts)
 			Expect(ports).To(ContainElement(port443))
 		})
 
@@ -178,10 +180,10 @@ func getMapKeys(m *map[listenerIdentifier]listenerAzConfig) []listenerIdentifier
 	return keys
 }
 
-func getInt32MapKeys(m *map[int32]interface{}) []int32 {
-	keys := make([]int32, 0, len(*m))
-	for k := range *m {
-		keys = append(keys, k)
+func getPortsList(m *map[Port]interface{}) []Port {
+	ports := make([]Port, 0, len(*m))
+	for port := range *m {
+		ports = append(ports, port)
 	}
-	return keys
+	return ports
 }

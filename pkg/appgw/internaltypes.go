@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"regexp"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -43,12 +43,12 @@ type backendIdentifier struct {
 }
 
 type serviceBackendPortPair struct {
-	ServicePort int32
-	BackendPort int32
+	ServicePort Port
+	BackendPort Port
 }
 
 type listenerIdentifier struct {
-	FrontendPort int32
+	FrontendPort Port
 	HostName     string
 	UsePrivateIP bool
 }
@@ -109,19 +109,19 @@ func getResourceKey(namespace, name string) string {
 	return formatPropName(fmt.Sprintf("%v/%v", namespace, name))
 }
 
-func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPortNo, ingress))
+func generateHTTPSettingsName(serviceName string, servicePort string, backendPort Port, ingress string) string {
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPort, ingress))
 }
 
 func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%v-%v-%s", agPrefix, prefixProbe, ingress.Namespace, serviceName, servicePort, ingress.Name))
 }
 
-func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPortNo))
+func generateAddressPoolName(serviceName string, servicePort string, backendPort Port) string {
+	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPort))
 }
 
-func generateFrontendPortName(port int32) string {
+func generateFrontendPortName(port Port) string {
 	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixPort, port))
 }
 
@@ -148,37 +148,39 @@ func generatePathRuleName(namespace, ingress, suffix string) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
 }
 
-var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
-var defaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
-var defaultProbeName = fmt.Sprintf("%sdefaultprobe", agPrefix)
+var DefaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
+var DefaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
 
-func defaultBackendHTTPSettings(appGWIdentifier Identifier, probeName string) n.ApplicationGatewayBackendHTTPSettings {
-	defHTTPSettingsName := defaultBackendHTTPSettingsName
+func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {
+	return fmt.Sprintf("%sdefaultprobe-%s", agPrefix, protocol)
+}
+
+func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayBackendHTTPSettings {
+	defHTTPSettingsName := DefaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
 	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
-		ID:   to.StringPtr(appGWIdentifier.httpSettingsID(defHTTPSettingsName)),
+		ID:   to.StringPtr(appGWIdentifier.HTTPSettingsID(defHTTPSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: n.HTTP,
+			Protocol: protocol,
 			Port:     &defHTTPSettingsPort,
-			Probe:    resourceRef(appGWIdentifier.probeID(probeName)),
+			Probe:    resourceRef(appGWIdentifier.probeID(defaultProbeName(protocol))),
 		},
 	}
 }
 
-func defaultProbe(appGWIdentifier Identifier) n.ApplicationGatewayProbe {
-	defProbeName := defaultProbeName
-	defProtocol := n.HTTP
+func defaultProbe(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayProbe {
+	defProbeName := defaultProbeName(protocol)
 	defHost := "localhost"
 	defPath := "/"
 	defInterval := int32(30)
 	defTimeout := int32(30)
 	defUnHealthyCount := int32(3)
 	return n.ApplicationGatewayProbe{
-		Name: &defProbeName,
+		Name: to.StringPtr(defProbeName),
 		ID:   to.StringPtr(appGWIdentifier.probeID(defProbeName)),
 		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-			Protocol:           defProtocol,
+			Protocol:           protocol,
 			Host:               &defHost,
 			Path:               &defPath,
 			Interval:           &defInterval,
@@ -190,8 +192,8 @@ func defaultProbe(appGWIdentifier Identifier) n.ApplicationGatewayProbe {
 
 func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayBackendAddressPool {
 	return n.ApplicationGatewayBackendAddressPool{
-		Name: &defaultBackendAddressPoolName,
-		ID:   to.StringPtr(appGWIdentifier.addressPoolID(defaultBackendAddressPoolName)),
+		Name: &DefaultBackendAddressPoolName,
+		ID:   to.StringPtr(appGWIdentifier.AddressPoolID(DefaultBackendAddressPoolName)),
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendAddresses: &[]n.ApplicationGatewayBackendAddress{},
 		},
@@ -200,7 +202,7 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 
 func defaultFrontendListenerIdentifier() listenerIdentifier {
 	return listenerIdentifier{
-		FrontendPort: int32(80),
+		FrontendPort: Port(80),
 		HostName:     "",
 	}
 }
