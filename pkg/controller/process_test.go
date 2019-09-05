@@ -59,7 +59,7 @@ var _ = Describe("process function tests", func() {
 
 		// create ingress in namespace
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingress)
-		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
+		Expect(err).Should(BeNil(), "Unable to create ingress resource due to: %v", err)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 

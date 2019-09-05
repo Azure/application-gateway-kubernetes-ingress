@@ -187,22 +187,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	// Create the mock K8s client.
 	k8sClient := testclient.NewSimpleClientset()
 	_, err := k8sClient.CoreV1().Namespaces().Create(ns)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	_, err = k8sClient.CoreV1().Nodes().Create(node)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
+	It("should have not failed", func() { Ω(err).ToNot(HaveOccurred()) })
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
@@ -239,17 +239,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		It("Should have created correct App Gateway config JSON blob", func() {
 			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			var into map[string]interface{}
 			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
-			Expect(err).ToNot(HaveOccurred())
+			Ω(err).ToNot(HaveOccurred())
 
 			jsonTxt := string(jsonBlob)
 
@@ -383,12 +383,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			linesAct := strings.Split(jsonTxt, "\n")
 			linesExp := strings.Split(expected, "\n")
 
-			Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\n", jsonTxt)
+			Ω(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\n", jsonTxt)
 
 			for idx, line := range linesAct {
 				curatedLineAct := strings.Trim(line, " ")
 				curatedLineExp := strings.Trim(linesExp[idx], " ")
-				Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
+				Ω(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
 			}
 
 		})

@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package k8scontext
 
 import (
@@ -30,7 +35,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
-					if err := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret)); err != nil {
+					if err := h.context.CertificateSecretStore.ConvertSecret(secKey, secret.(*v1.Secret)); err != nil {
 						continue
 					}
 				}
@@ -91,7 +96,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
-					if err := h.context.CertificateSecretStore.convertSecret(secKey, secret.(*v1.Secret)); err != nil {
+					if err := h.context.CertificateSecretStore.ConvertSecret(secKey, secret.(*v1.Secret)); err != nil {
 						continue
 					}
 				}

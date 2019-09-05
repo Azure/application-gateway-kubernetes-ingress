@@ -493,6 +493,7 @@ func NewSecretTestFixture() *v1.Secret {
 		"YfkIyRQ5bIIVGNpP19dEOSsJ8pYAr+Bo/3GjXxUe6O6PxF3hbfPJNWt11refYC27\n" +
 		"dZsRsRJX4pAw+BznAZodf6Q=\n" +
 		"-----END PRIVATE KEY-----\n")
+
 	secret.Data[tlsCrt] = []byte("-----BEGIN CERTIFICATE-----\n" +
 		"MIIDazCCAlOgAwIBAgIUOX75BZ3gP92zRT89ZO34HXdi44QwDQYJKoZIhvcNAQEL\n" +
 		"BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM\n" +

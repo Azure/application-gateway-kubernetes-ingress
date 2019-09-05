@@ -88,7 +88,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 		// create ingress in namespace
 		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
+		Expect(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
 		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
@@ -104,7 +104,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		ginkgo.It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
-			Expect(err).ToNot(HaveOccurred(), "Unabled to retrieve stored ingresses resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -127,7 +127,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			ingress.Spec.Rules[0].Host = "hellow-1.com"
 
 			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
-			Expect(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
+			Expect(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
 			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})

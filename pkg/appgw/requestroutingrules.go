@@ -67,7 +67,11 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
-		httpListener := httpListenersMap[listenerID]
+		httpListener, exists := httpListenersMap[listenerID]
+		if !exists {
+			glog.Errorf("No listener config found for %+v", listenerID)
+			continue
+		}
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),

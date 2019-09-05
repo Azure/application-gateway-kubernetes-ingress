@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"fmt"
 	"sort"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
@@ -42,6 +43,8 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 		allPorts[port] = nil
 	}
 
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>> PORTS:", allPorts)
+
 	var frontendPorts []n.ApplicationGatewayFrontendPort
 	for port := range allPorts {
 		frontendPortName := generateFrontendPortName(port)
@@ -71,14 +74,4 @@ func (c *appGwConfigBuilder) getFrontendPorts(cbCtx *ConfigBuilderContext) *[]n.
 	sort.Sort(sorter.ByFrontendPortName(frontendPorts))
 	c.mem.ports = &frontendPorts
 	return &frontendPorts
-}
-
-func (c *appGwConfigBuilder) lookupFrontendPortByListenerIdentifier(cbCtx *ConfigBuilderContext, listenerIdentifier listenerIdentifier) *n.ApplicationGatewayFrontendPort {
-	for _, port := range *c.appGw.FrontendPorts {
-		if Port(*port.Port) == listenerIdentifier.FrontendPort {
-			return &port
-		}
-	}
-
-	return nil
 }

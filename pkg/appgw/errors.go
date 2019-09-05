@@ -22,4 +22,5 @@ var (
 	ErrKeyEitherBorR                     = errors.New("A Path Rule must have either RedirectConfiguration or (BackendAddressPool + BackendHTTPSettings) but not both")
 	ErrKeyNoPrivateIP                    = errors.New("A Private IP must be present in the Application Gateway FrontendIPConfiguration if the controller is configured to UsePrivateIP for routing rules")
 	ErrKeyNoPublicIP                     = errors.New("A Public IP must be present in the Application Gateway FrontendIPConfiguration")
+	ErrNoPortAvailable                   = errors.New("no port available")
 )
