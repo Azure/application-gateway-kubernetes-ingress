@@ -17,6 +17,7 @@ const sleepOnErrorSeconds = 5
 
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
 func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
+	glog.V(1).Infoln("Worker started")
 	for {
 		select {
 		case event := <-work:
