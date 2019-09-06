@@ -78,10 +78,10 @@ var _ = Describe("Worker Test", func() {
 					break Fill
 				}
 			}
+			Expect(counter).To(Equal(int64(len(work))))
 			def := events.Event{Timestamp: int64(1234567890)}
-
 			lastEvent := drainChan(work, def)
-
+			Expect(len(work)).To(Equal(0))
 			Expect(lastEvent).To(Equal(events.Event{Timestamp: int64(9)}))
 		})
 	})
