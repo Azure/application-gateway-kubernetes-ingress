@@ -61,4 +61,40 @@ var _ = Describe("Worker Test", func() {
 			Expect(processCalled).To(Equal(true), "Worker was not able to call process function within timeout")
 		})
 	})
+
+	Context("Verify that drainChan works", func() {
+		It("Should drain the channel and return the last element", func() {
+			buffSize := 10
+			counter := int64(0)
+
+			// Create and fill the channel
+			work := make(chan events.Event, buffSize)
+		Fill:
+			for {
+				select {
+				case work <- events.Event{Timestamp: counter}:
+					counter++
+				default:
+					break Fill
+				}
+			}
+			def := events.Event{Timestamp: int64(1234567890)}
+
+			lastEvent := drainChan(work, def)
+
+			Expect(lastEvent).To(Equal(events.Event{Timestamp: int64(9)}))
+		})
+	})
+
+	Context("Verify that drainChan works", func() {
+		It("Should drain the channel and return the default element", func() {
+			buffSize := 10
+
+			// Keep the channel empty
+			work := make(chan events.Event, buffSize)
+			def := events.Event{Timestamp: int64(1234567890)}
+			lastEvent := drainChan(work, def)
+			Expect(lastEvent).To(Equal(def))
+		})
+	})
 })
