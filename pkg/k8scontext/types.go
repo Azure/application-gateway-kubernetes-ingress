@@ -54,8 +54,6 @@ type Context struct {
 	Work chan events.Event
 
 	CacheSynced chan interface{}
-
-	LastSync *int64
 }
 
 // IPAddress is type for IP address string
