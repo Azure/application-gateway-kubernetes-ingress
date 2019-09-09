@@ -7,9 +7,7 @@ package k8scontext
 
 import (
 	"reflect"
-	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 
@@ -24,12 +22,9 @@ func (h handlers) secretAdd(obj interface{}) {
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		// find if this secKey exists in the map[string]UnorderedSets
 		if err := h.context.CertificateSecretStore.ConvertSecret(secKey, sec); err == nil {
-			currentTime := time.Now().UnixNano()
-			h.context.LastSync = to.Int64Ptr(currentTime)
 			h.context.Work <- events.Event{
-				Type:      events.Create,
-				Value:     obj,
-				Timestamp: currentTime,
+				Type:  events.Create,
+				Value: obj,
 			}
 		}
 	}
@@ -44,12 +39,9 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		if err := h.context.CertificateSecretStore.ConvertSecret(secKey, sec); err == nil {
-			currentTime := time.Now().UnixNano()
-			h.context.LastSync = to.Int64Ptr(currentTime)
 			h.context.Work <- events.Event{
-				Type:      events.Update,
-				Value:     newObj,
-				Timestamp: currentTime,
+				Type:  events.Update,
+				Value: newObj,
 			}
 		}
 	}
@@ -72,12 +64,9 @@ func (h handlers) secretDelete(obj interface{}) {
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	h.context.CertificateSecretStore.delete(secKey)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
-		currentTime := time.Now().UnixNano()
-		h.context.LastSync = to.Int64Ptr(currentTime)
 		h.context.Work <- events.Event{
-			Type:      events.Delete,
-			Value:     obj,
-			Timestamp: currentTime,
+			Type:  events.Delete,
+			Value: obj,
 		}
 	}
 }
