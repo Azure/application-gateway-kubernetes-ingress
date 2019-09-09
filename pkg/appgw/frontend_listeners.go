@@ -155,6 +155,15 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 			HostName:                &listenerID.HostName,
 		},
 	}
+
+	// Note: This field is only supported on V1 gateway.
+	// For V1 gateway, set RequireServerNameIndication only when listener is HTTPS and is provided with a hostname.
+	if (c.appGw.Sku.Tier == n.ApplicationGatewayTierStandard || c.appGw.Sku.Tier == n.ApplicationGatewayTierWAF) &&
+		len(listenerID.HostName) > 0 &&
+		protocol == n.HTTPS {
+		listener.RequireServerNameIndication = to.BoolPtr(true)
+	}
+
 	return &listener, &frontendPort, nil
 }
 
