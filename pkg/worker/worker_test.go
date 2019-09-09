@@ -69,17 +69,17 @@ var _ = Describe("Worker Test", func() {
 		Fill:
 			for {
 				select {
-				case work <- events.Event{Timestamp: counter}:
+				case work <- events.Event{}:
 					counter++
 				default:
 					break Fill
 				}
 			}
 			Expect(counter).To(Equal(int64(len(work))))
-			def := events.Event{Timestamp: int64(1234567890)}
+			def := events.Event{}
 			lastEvent := drainChan(work, def)
 			Expect(len(work)).To(Equal(0))
-			Expect(lastEvent).To(Equal(events.Event{Timestamp: int64(9)}))
+			Expect(lastEvent).To(Equal(events.Event{}))
 		})
 	})
 
@@ -89,7 +89,7 @@ var _ = Describe("Worker Test", func() {
 
 			// Keep the channel empty
 			work := make(chan events.Event, buffSize)
-			def := events.Event{Timestamp: int64(1234567890)}
+			def := events.Event{}
 			lastEvent := drainChan(work, def)
 			Expect(lastEvent).To(Equal(def))
 		})
