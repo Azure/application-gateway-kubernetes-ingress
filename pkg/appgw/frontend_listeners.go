@@ -21,6 +21,8 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	if c.mem.listeners != nil && c.mem.ports != nil {
 		return c.mem.listeners, c.mem.ports
 	}
+
+	portSet := make(map[string]string)
 	var listeners []n.ApplicationGatewayHTTPListener
 	var ports []n.ApplicationGatewayFrontendPort
 
@@ -31,7 +33,12 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
+			if listenerName, exists := portSet[*port.Name]; exists {
+				glog.Errorf("Can't assign port %s to listener %s; already assigned listener %s", *port.Name, *listener.Name, listenerName)
+				continue
+			}
 			listeners = append(listeners, *listener)
+			portSet[*port.Name] = *listener.Name
 			ports = append(ports, *port)
 		}
 	}
@@ -42,11 +49,16 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
 		}
+		if listenerName, exists := portSet[*port.Name]; exists {
+			glog.Errorf("Can't assign port %s to listener %s; already assigned listener %s", *port.Name, *listener.Name, listenerName)
+			continue
+		}
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, *listener)
+		portSet[*port.Name] = *listener.Name
 		ports = append(ports, *port)
 	}
 
