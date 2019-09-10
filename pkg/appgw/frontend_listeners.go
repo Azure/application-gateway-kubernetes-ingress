@@ -22,7 +22,8 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		return c.mem.listeners, c.mem.ports
 	}
 
-	portSet := make(map[string]string)
+	publIPPorts := make(map[string]string)
+	portSet := make(map[string]interface{})
 	var listeners []n.ApplicationGatewayHTTPListener
 	var ports []n.ApplicationGatewayFrontendPort
 
@@ -33,13 +34,20 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
-			if listenerName, exists := portSet[*port.Name]; exists {
-				glog.Errorf("Can't assign port %s to listener %s; already assigned listener %s", *port.Name, *listener.Name, listenerName)
+			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
+				glog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
 				continue
 			}
+
+			if !listenerID.UsePrivateIP {
+				publIPPorts[*port.Name] = *listener.Name
+			}
+
 			listeners = append(listeners, *listener)
-			portSet[*port.Name] = *listener.Name
-			ports = append(ports, *port)
+			if _, exists := portSet[*port.Name]; !exists {
+				portSet[*port.Name] = nil
+				ports = append(ports, *port)
+			}
 		}
 	}
 
@@ -49,17 +57,25 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
 		}
-		if listenerName, exists := portSet[*port.Name]; exists {
-			glog.Errorf("Can't assign port %s to listener %s; already assigned listener %s", *port.Name, *listener.Name, listenerName)
+
+		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
+			glog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
 			continue
 		}
+
+		if !listenerID.UsePrivateIP {
+			publIPPorts[*port.Name] = *listener.Name
+		}
+
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, *listener)
-		portSet[*port.Name] = *listener.Name
-		ports = append(ports, *port)
+		if _, exists := portSet[*port.Name]; !exists {
+			portSet[*port.Name] = nil
+			ports = append(ports, *port)
+		}
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
