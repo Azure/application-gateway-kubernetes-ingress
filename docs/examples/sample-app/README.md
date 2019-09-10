@@ -2,8 +2,9 @@
 
 ## Prerequisites
 
-1. AKS cluster with networking plugin `azure` and AGIC installed
+1. AKS cluster with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/concepts-network#azure-cni-advanced-networking) enabled (Azure CNI)
 2. [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) in the same [VNet](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview)
+3. Application Gateway Ingress Controller
 
 ## Steps
 
