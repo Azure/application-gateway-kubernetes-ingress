@@ -64,14 +64,19 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	if c.mem.routingRules != nil && c.mem.pathMaps != nil {
 		return *c.mem.routingRules, *c.mem.pathMaps
 	}
-	httpListenersMap := c.groupListenersByListenerIdentifier(c.getListeners(cbCtx))
+	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)
 	var pathMap []n.ApplicationGatewayURLPathMap
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
-		httpListener := httpListenersMap[listenerID]
+		routingRuleName := generateRequestRoutingRuleName(listenerID)
+		httpListener, exists := httpListenersMap[listenerID]
+		if !exists {
+			glog.Errorf("Routing rule %s will not be created; listener %+v does not exist", routingRuleName, listenerID)
+			continue
+		}
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
-			Name: to.StringPtr(generateRequestRoutingRuleName(listenerID)),
+			Name: to.StringPtr(routingRuleName),
 			ID:   to.StringPtr(c.appGwIdentifier.requestRoutingRuleID(generateRequestRoutingRuleName(listenerID))),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},

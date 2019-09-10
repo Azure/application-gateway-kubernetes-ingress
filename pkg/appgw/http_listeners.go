@@ -8,8 +8,7 @@ package appgw
 func (c *appGwConfigBuilder) Listeners(cbCtx *ConfigBuilderContext) error {
 
 	c.appGw.SslCertificates = c.getSslCertificates(cbCtx)
-	c.appGw.FrontendPorts = c.getFrontendPorts(cbCtx)
-	c.appGw.HTTPListeners = c.getListeners(cbCtx)
+	c.appGw.HTTPListeners, c.appGw.FrontendPorts = c.getListeners(cbCtx)
 
 	// App Gateway Rules can be configured to redirect HTTP traffic to HTTPS URLs.
 	// In this step here we create the redirection configurations. These configs are attached to request routing rules

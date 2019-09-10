@@ -43,6 +43,7 @@ type memoization struct {
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
+	ports                        *[]n.ApplicationGatewayFrontendPort
 }
 
 type appGwConfigBuilder struct {
