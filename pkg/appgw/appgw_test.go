@@ -283,7 +283,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &listenerName,
 			ID:   to.StringPtr(appGwIdentifier.listenerID(listenerName)),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
-				FrontendIPConfiguration: resourceRef("*"),
+				FrontendIPConfiguration: resourceRef("--front-end-ip-id-1--"),
 				FrontendPort:            resourceRef(frontendPortID),
 				Protocol:                n.HTTP,
 				HostName:                &domainName,
@@ -440,28 +440,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
-		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, &n.ApplicationGateway{}, record.NewFakeRecorder(100))
-
-		builder, ok := configBuilder.(*appGwConfigBuilder)
-		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
-
-		// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
-		// the controller would expect the `Application Gateway v2` to have some public IP before it starts generating
-		// configuration for the application gateway, hence creating this dummy configuration in the application gateway configuration.
-		builder.appGw.ApplicationGatewayPropertiesFormat = &n.ApplicationGatewayPropertiesFormat{
-			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
-				{
-					Name: to.StringPtr("*"),
-					Etag: to.StringPtr("*"),
-					ID:   to.StringPtr("*"),
-					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-						PublicIPAddress: &n.SubResource{
-							ID: to.StringPtr("x/y/z"),
-						},
-					},
-				},
-			},
+		appGw := &n.ApplicationGateway{
+			ApplicationGatewayPropertiesFormat: newAppGwyConfigFixture(),
 		}
+		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGw, record.NewFakeRecorder(100))
+
+		_, ok := configBuilder.(*appGwConfigBuilder)
+		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
 	})
 
 	AfterEach(func() {
@@ -662,7 +647,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &httpsListenerName,
 					ID:   to.StringPtr(appGwIdentifier.listenerID(httpsListenerName)),
 					ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
-						FrontendIPConfiguration: resourceRef("*"),
+						FrontendIPConfiguration: resourceRef("--front-end-ip-id-1--"),
 						FrontendPort:            resourceRef(frontendPortID),
 						SslCertificate:          resourceRef(sslCert),
 						Protocol:                n.HTTPS,

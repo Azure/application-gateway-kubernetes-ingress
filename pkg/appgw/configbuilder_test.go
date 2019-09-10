@@ -13,7 +13,6 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -208,23 +207,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	istioCrdClient := istio_fake.NewSimpleClientset()
 	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
-	appGwy := &n.ApplicationGateway{}
-	// Since this is a mock the `Application Gateway v2` does not have a public IP. During configuration process
-	// the controller would expect the `Application Gateway v2` to have some public IP before it starts generating
-	// configuration for the application gateway, hence creating this dummy configuration in the application gateway configuration.
-	appGwy.ApplicationGatewayPropertiesFormat = &n.ApplicationGatewayPropertiesFormat{
-		FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{
-			{
-				Name: to.StringPtr("*"),
-				Etag: to.StringPtr("*"),
-				ID:   to.StringPtr("*"),
-				ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-					PublicIPAddress: &n.SubResource{
-						ID: to.StringPtr("x/y/z"),
-					},
-				},
-			},
-		},
+	appGwy := &n.ApplicationGateway{
+		ApplicationGatewayPropertiesFormat: newAppGwyConfigFixture(),
 	}
 
 	// Initialize the `ConfigBuilder`
@@ -257,7 +241,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --    "properties": {
 --        "backendAddressPools": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",    
 --                "name": "defaultaddresspool",
 --                "properties": {
 --                    "backendAddresses": []
@@ -291,14 +275,24 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "frontendIPConfigurations": [
 --            {
---                "etag": "*",
---                "id": "*",
---                "name": "*",
+--                "etag": "xx2",
+--                "id": "--front-end-ip-id-1--",
+--                "name": "xx3",
 --                "properties": {
 --                    "publicIPAddress": {
---                        "id": "x/y/z"
+--                        "id": "xyz"
 --                    }
---                }
+--                },
+--                "type": "xx1"
+--            },
+--            {
+--                "etag": "yy2",
+--                "id": "--front-end-ip-id-2--",
+--                "name": "yy3",
+--                "properties": {
+--                    "privateIPAddress": "abc"
+--                },
+--                "type": "yy1"
 --            }
 --        ],
 --        "frontendPorts": [
@@ -318,7 +312,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "name": "fl-foo.baz-80",
 --                "properties": {
 --                    "frontendIPConfiguration": {
---                        "id": "*"
+--                        "id": "--front-end-ip-id-1--"
 --                    },
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
@@ -368,12 +362,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80---name--"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"        
 --                    },
 --                    "ruleType": "Basic"
 --                }
 --            }
 --        ],
+--        "sku": {
+--            "capacity": 3,
+--            "name": "Standard_v2",
+--            "tier": "Standard_v2"
+--        },
 --        "sslCertificates": null,
 --        "urlPathMaps": null
 --    },
