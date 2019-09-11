@@ -307,4 +307,54 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		})
 	})
 
+	Context("create a new App Gateway HTTP Listener for V1 gateway", func() {
+		ing1 := tests.NewIngressFixture()
+		ing2 := tests.NewIngressFixture()
+		ingressList := []*v1beta1.Ingress{
+			ing1,
+			ing2,
+		}
+
+		listenerID80WithoutHostname := listenerIdentifier{
+			FrontendPort: Port(80),
+			HostName:     "",
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:  ingressList,
+			EnvVariables: envVariables,
+		}
+
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
+
+		// V1 gateway
+		cb.appGw.Sku = &n.ApplicationGatewaySku{
+			Name:     n.StandardLarge,
+			Tier:     n.ApplicationGatewayTierStandard,
+			Capacity: to.Int32Ptr(3),
+		}
+
+		It("should create listener with RequireServerNameIndication when (https, hostname) listener", func() {
+			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"))
+			Expect(*listener.RequireServerNameIndication).To(BeTrue())
+		})
+
+		It("should not create listener with RequireServerNameIndication when (https, no hostname) listener", func() {
+			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Https"))
+			Expect(len(*listener.HostName)).To(Equal(0))
+			Expect(listener.RequireServerNameIndication).To(BeNil())
+		})
+
+		It("should not create listener with RequireServerNameIndication when (http, hostname) listener", func() {
+			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Http"))
+			Expect(listener.RequireServerNameIndication).To(BeNil())
+		})
+
+		It("should not create listener with RequireServerNameIndication when (http, no hostname) listener", func() {
+			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Http"))
+			Expect(len(*listener.HostName)).To(Equal(0))
+			Expect(listener.RequireServerNameIndication).To(BeNil())
+		})
+	})
 })
