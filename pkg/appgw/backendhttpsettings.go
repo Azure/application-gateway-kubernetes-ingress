@@ -158,7 +158,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	if len(unresolvedBackendID) > 0 {
-		return nil, nil, nil, ErrResolvingBackendPortForService
+		glog.Warningf("Unable to resolve %d backends: %+v", len(unresolvedBackendID), unresolvedBackendID)
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
