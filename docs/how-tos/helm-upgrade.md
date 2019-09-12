@@ -65,7 +65,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
     helm upgrade \
         odd-billygoat \
         application-gateway-kubernetes-ingress/ingress-azure \
-        --version 0.7.0-rc1
+        --version 0.9.0-rc2
     ```
 
 ## Rollback
