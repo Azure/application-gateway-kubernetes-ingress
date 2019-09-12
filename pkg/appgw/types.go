@@ -38,4 +38,5 @@ func (cbCtx *ConfigBuilderContext) InIngressList(ingress *v1beta1.Ingress) bool 
 	return false
 }
 
+// Port is a type alias for int32, representing a port number.
 type Port int32

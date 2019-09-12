@@ -21,18 +21,21 @@ const (
 	CertificateName3 = "Certificate-3"
 )
 
+// GetCertificate1 generates a certificate.
 func GetCertificate1() n.ApplicationGatewaySslCertificate {
 	return n.ApplicationGatewaySslCertificate{
 		Name: to.StringPtr(CertificateName1),
 	}
 }
 
+// GetCertificate2 generates a certificate.
 func GetCertificate2() n.ApplicationGatewaySslCertificate {
 	return n.ApplicationGatewaySslCertificate{
 		Name: to.StringPtr(CertificateName2),
 	}
 }
 
+// GetCertificate3 generates a certificate.
 func GetCertificate3() n.ApplicationGatewaySslCertificate {
 	return n.ApplicationGatewaySslCertificate{
 		Name: to.StringPtr(CertificateName3),

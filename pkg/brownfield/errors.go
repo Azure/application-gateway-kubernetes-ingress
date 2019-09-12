@@ -8,5 +8,6 @@ package brownfield
 import "errors"
 
 var (
+	// ErrListenerLookup is an error.
 	ErrListenerLookup = errors.New("failed looking up listener")
 )

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
+// GetIngress creates an Ingress struct.
 func GetIngress() *v1beta1.Ingress {
 	return &v1beta1.Ingress{
 		Spec: v1beta1.IngressSpec{

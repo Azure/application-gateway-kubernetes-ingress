@@ -29,6 +29,7 @@ func (agw Identifier) gatewayResourceID(subResourceKind string, resourceName str
 	return agw.resourceID("Microsoft.Network", "applicationGateways", resourcePath)
 }
 
+// AddressPoolID generates an ID for a backend address pool.
 func (agw Identifier) AddressPoolID(poolName string) string {
 	return agw.gatewayResourceID("backendAddressPools", poolName)
 }
@@ -45,6 +46,7 @@ func (agw Identifier) sslCertificateID(certname string) string {
 	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
+// HTTPSettingsID generates an ID for App Gateway HTTP settings resource.
 func (agw Identifier) HTTPSettingsID(settingsName string) string {
 	return agw.gatewayResourceID("backendHttpSettingsCollection", settingsName)
 }

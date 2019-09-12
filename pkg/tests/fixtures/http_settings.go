@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// DefaultBackendHTTPSettingsName is a string constant.
 	DefaultBackendHTTPSettingsName = "DefaultBackendHTTPSettings"
 
 	// BackendHTTPSettingsName1 is a string constant.
@@ -18,6 +19,7 @@ const (
 	BackendHTTPSettingsName3 = "BackendHTTPSettings-3"
 )
 
+// GetHTTPSettings1 generates HTTP settings.
 func GetHTTPSettings1() n.ApplicationGatewayBackendHTTPSettings {
 	return n.ApplicationGatewayBackendHTTPSettings{
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
@@ -27,6 +29,7 @@ func GetHTTPSettings1() n.ApplicationGatewayBackendHTTPSettings {
 	}
 }
 
+// GetHTTPSettings2 generates HTTP settings.
 func GetHTTPSettings2() n.ApplicationGatewayBackendHTTPSettings {
 	return n.ApplicationGatewayBackendHTTPSettings{
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
@@ -36,6 +39,7 @@ func GetHTTPSettings2() n.ApplicationGatewayBackendHTTPSettings {
 	}
 }
 
+// GetHTTPSettings3 generates HTTP settings.
 func GetHTTPSettings3() n.ApplicationGatewayBackendHTTPSettings {
 	return n.ApplicationGatewayBackendHTTPSettings{
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{

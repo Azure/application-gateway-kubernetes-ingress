@@ -17,6 +17,7 @@ import (
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
 
+// TargetPath is a string type alias.
 type TargetPath string
 
 // Target uniquely identifies a subset of App Gateway configuration, which AGIC will manage or be prohibited from managing.
@@ -73,28 +74,28 @@ func (p TargetPath) lower() string {
 	return strings.ToLower(string(p))
 }
 
-func (thisPath TargetPath) contains(otherPath TargetPath) bool {
-	if thisPath == "" || thisPath == "*" || thisPath == "/*" {
+func (p TargetPath) contains(otherPath TargetPath) bool {
+	if p == "" || p == "*" || p == "/*" {
 		return true
 	}
 
 	// For strings that do not end with a * - do exact match
-	if !strings.HasSuffix(thisPath.lower(), "*") {
-		return thisPath.lower() == otherPath.lower()
+	if !strings.HasSuffix(p.lower(), "*") {
+		return p.lower() == otherPath.lower()
 	}
 
 	// "/x/*" contains "/x"
-	if strings.TrimRight(thisPath.lower(), "/*") == strings.TrimRight(otherPath.lower(), "/*") {
+	if strings.TrimRight(p.lower(), "/*") == strings.TrimRight(otherPath.lower(), "/*") {
 		return true
 	}
 
-	if len(thisPath) > len(otherPath) {
+	if len(p) > len(otherPath) {
 		return false
 	}
 
-	thisPathChunks := strings.Split(thisPath.lower(), "/")
+	thisPathChunks := strings.Split(p.lower(), "/")
 	otherPathChunks := strings.Split(otherPath.lower(), "/")
-	for idx, _ := range thisPathChunks {
+	for idx := range thisPathChunks {
 		if thisPathChunks[idx] == "*" {
 			return true
 		}

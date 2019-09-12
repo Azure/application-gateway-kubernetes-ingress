@@ -139,7 +139,7 @@ func GetDefaultURLPathMap() *n.ApplicationGatewayURLPathMap {
 	}
 }
 
-// GetURLPathMap1 creates a new struct for use in unit tests.
+// GetURLPathMap2 creates a new struct for use in unit tests.
 func GetURLPathMap2() *n.ApplicationGatewayURLPathMap {
 	return &n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr(URLPathMapName2),
@@ -172,7 +172,7 @@ func GetURLPathMap2() *n.ApplicationGatewayURLPathMap {
 	}
 }
 
-// GetPathRulePathBased1 creates a new struct for use in unit tests.
+// GetPathRulePathBased2 creates a new struct for use in unit tests.
 func GetPathRulePathBased2() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
 		Name: to.StringPtr(PathRuleName),

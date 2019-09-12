@@ -169,15 +169,15 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 
 func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayHTTPListener {
 	listeners, ports := c.getListeners(cbCtx)
-	portsById := make(map[string]n.ApplicationGatewayFrontendPort)
+	portsByID := make(map[string]n.ApplicationGatewayFrontendPort)
 	for _, port := range *ports {
-		portsById[*port.ID] = port
+		portsByID[*port.ID] = port
 	}
 
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
-		port := portsById[*listener.FrontendPort.ID]
+		port := portsByID[*listener.FrontendPort.ID]
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
 			FrontendPort: Port(*port.Port),
