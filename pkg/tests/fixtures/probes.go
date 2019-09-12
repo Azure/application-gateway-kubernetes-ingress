@@ -16,8 +16,13 @@ import (
 )
 
 const (
-	ProbeName1 = "probe-name-YnllLmNvbQ-L2Zvbw"                      // fixtures.Host  fixtures.PathFoo
-	ProbeName2 = "probe-name-YnllLmNvbQ-L2Jhcg"                      // fixtures.Host  fixtures.PathBar
+	// ProbeName1 is a string constant.
+	ProbeName1 = "probe-name-YnllLmNvbQ-L2Zvbw" // fixtures.Host  fixtures.PathFoo
+
+	// ProbeName2 is a string constant.
+	ProbeName2 = "probe-name-YnllLmNvbQ-L2Jhcg" // fixtures.Host  fixtures.PathBar
+
+	// ProbeName3 is a string constant.
 	ProbeName3 = "probe-name-LS1zb21lLW90aGVyLWhvc3RuYW1lLS0-L2Zvbw" // fixtures.OtherHost  fixtures.PathFoo
 )
 

@@ -10,7 +10,9 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 )
 
+// Logger is an abstraction over a logging facility.
 type Logger interface {
+	// Info is the a function allowing us to log messages.
 	Info(args ...interface{})
 }
 

@@ -60,6 +60,7 @@ func (s *SecretsStore) delete(secretKey string) {
 	s.Cache.Delete(secretKey)
 }
 
+// ConvertSecret converts a secret to a PKCS12.
 func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error {
 	s.conversionSync.Lock()
 	defer s.conversionSync.Unlock()

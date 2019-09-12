@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
+// GetAppGateway creates an ApplicationGateway struct.
 func GetAppGateway() n.ApplicationGateway {
 	// The order of the lists below is important as we reference these by index in unit tests.
 	return n.ApplicationGateway{

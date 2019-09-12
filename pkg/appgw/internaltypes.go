@@ -148,7 +148,10 @@ func generatePathRuleName(namespace, ingress, suffix string) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
 }
 
+// DefaultBackendHTTPSettingsName is the name to be assigned to App Gateway's default HTTP settings resource.
 var DefaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)
+
+// DefaultBackendAddressPoolName is the name to be assigned to App Gateway's default backend pool resource.
 var DefaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
 
 func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {

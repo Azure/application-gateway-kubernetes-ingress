@@ -23,7 +23,7 @@ func (c *appGwConfigBuilder) getFrontendPortsFromIngress(ingress *v1beta1.Ingres
 		}
 
 		ruleFrontendPorts, _ := c.processIngressRule(rule, ingress, env)
-		for port, _ := range ruleFrontendPorts {
+		for port := range ruleFrontendPorts {
 			frontendPorts[port] = nil
 		}
 	}

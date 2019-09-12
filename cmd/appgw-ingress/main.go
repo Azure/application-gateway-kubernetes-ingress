@@ -48,8 +48,8 @@ import (
 const (
 	verbosityFlag     = "verbosity"
 	maxAuthRetryCount = 10
-	tenSeconds        = 10 * time.Second
-	thirtySeconds     = 30 * time.Second
+	retryPause        = 10 * time.Second
+	resyncPause       = 30 * time.Second
 )
 
 var (
@@ -57,7 +57,7 @@ var (
 	inCluster      = flags.Bool("in-cluster", true, "If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
 	apiServerHost  = flags.String("apiserver-host", "", "The address of the Kubernetes API Server. Optional if running in cluster; if omitted, local discovery is attempted.")
 	kubeConfigFile = flags.String("kubeconfig", "", "Path to kubeconfig file with authorization and master location information.")
-	resyncPeriod   = flags.Duration("sync-period", thirtySeconds, "Interval at which to re-list and confirm cloud resources.")
+	resyncPeriod   = flags.Duration("sync-period", resyncPause, "Interval at which to re-list and confirm cloud resources.")
 	versionInfo    = flags.Bool("version", false, "Print version")
 	verbosity      = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
 )
@@ -210,8 +210,8 @@ func getAuthorizerWithRetry(env environment.EnvVariables, maxAuthRetryCount int)
 			return nil, errors.New("failed obtaining auth token")
 		}
 		retryCount++
-		glog.Errorf("Failed fetching authorization token for ARM. Will retry in %v. Error: %s", tenSeconds, err)
-		time.Sleep(tenSeconds)
+		glog.Errorf("Failed fetching authorization token for ARM. Will retry in %v. Error: %s", retryPause, err)
+		time.Sleep(retryPause)
 	}
 }
 
@@ -241,8 +241,8 @@ func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGat
 			return errors.New("failed arm auth")
 		}
 		retryCount++
-		glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, tenSeconds, err)
-		time.Sleep(tenSeconds)
+		glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, retryPause, err)
+		time.Sleep(retryPause)
 	}
 }
 

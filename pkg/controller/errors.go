@@ -8,6 +8,9 @@ package controller
 import "errors"
 
 var (
-	ErrFetchingAppGatewayConfig  = errors.New("unable to get specified AppGateway")
+	// ErrFetchingAppGatewayConfig is an error.
+	ErrFetchingAppGatewayConfig = errors.New("unable to get specified AppGateway")
+
+	// ErrDeployingAppGatewayConfig is an error.
 	ErrDeployingAppGatewayConfig = errors.New("unable to deploy App Gateway config")
 )

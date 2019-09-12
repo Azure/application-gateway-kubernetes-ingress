@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// DefaultBackendPool is a string constant.
+	// DefaultBackendPoolName is a string constant.
 	DefaultBackendPoolName = "defaultaddresspool"
 
 	// BackendAddressPoolName1 is a string constant.

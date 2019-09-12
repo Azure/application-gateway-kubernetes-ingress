@@ -7,9 +7,11 @@ package health
 
 import "net/http"
 
+// Probe is a type alias for a function.
 type Probe func() bool
 
-type HealthProbes interface {
+// Probes is the interface for liveness and readiness probes
+type Probes interface {
 	Liveness() bool
 	Readiness() bool
 }
@@ -24,7 +26,7 @@ func makeHandler(router *http.ServeMux, url string, probe Probe) {
 }
 
 // NewHealthMux makes a new *http.ServeMux
-func NewHealthMux(healthProbes HealthProbes) *http.ServeMux {
+func NewHealthMux(healthProbes Probes) *http.ServeMux {
 	router := http.NewServeMux()
 	var handlers = map[string]Probe{
 		"/health/ready": healthProbes.Readiness,
