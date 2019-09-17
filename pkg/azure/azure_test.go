@@ -45,6 +45,10 @@ var _ = Describe("Azure", func() {
 				subID := SubscriptionID("xxxx")
 				resGp := ResourceGroup("MC_resgp_resName_location")
 				Expect(ConvertToClusterResourceGroup(subID, resGp, nil)).To(Equal("/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ContainerService/managedClusters/resName"))
+
+				subID = SubscriptionID("xxxx")
+				resGp = ResourceGroup("mc_resgp_resName_location")
+				Expect(ConvertToClusterResourceGroup(subID, resGp, nil)).To(Equal("/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ContainerService/managedClusters/resName"))
 			})
 		})
 	})
