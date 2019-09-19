@@ -15,8 +15,8 @@ kubernetes:
     # Accepts one or many comma-separated values
     watchNamespace:
 
-    # Port for AGIC's HTTP health probe
-    healthProbeServicePort: 8123
+    # Port for AGIC's HTTP API endpoint
+    httpServicePort: 8123
 
 
 ################################################################################
