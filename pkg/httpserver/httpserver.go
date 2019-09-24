@@ -12,6 +12,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
 )
 
 // HTTPServer serving probes and metrics
@@ -35,11 +38,14 @@ func NewHealthMux(handlers map[string]http.Handler) *http.ServeMux {
 }
 
 // NewHTTPServer creates a new api server
-func NewHTTPServer(handlers map[string]http.Handler, apiPort string) HTTPServer {
+func NewHTTPServer(controller *controller.AppGwIngressController, apiPort string) HTTPServer {
 	return &httpServer{
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%s", apiPort),
-			Handler: NewHealthMux(handlers),
+			Handler: NewHealthMux(map[string]http.Handler{
+				"/health/ready": health.ReadinessHandler(controller),
+				"/health/alive": health.LivenessHandler(controller),
+			}),
 		},
 	}
 }
