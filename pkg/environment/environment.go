@@ -6,10 +6,9 @@
 package environment
 
 import (
+	"errors"
 	"os"
 	"regexp"
-
-	"github.com/pkg/errors"
 
 	"github.com/golang/glog"
 )

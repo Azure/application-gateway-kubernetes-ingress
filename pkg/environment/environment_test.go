@@ -82,7 +82,7 @@ var _ = Describe("Environment", func() {
 					EnableIstioIntegration:     true,
 					EnableSaveConfigToFile:     false,
 					EnablePanicOnPutError:      true,
-					HTTPServicePort:     "8123",
+					HTTPServicePort:            "8123",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))
