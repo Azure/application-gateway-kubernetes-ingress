@@ -34,7 +34,7 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, envVariables environment.EnvVariables) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:     appGwClient,
 		appGwIdentifier: appGwIdentifier,
