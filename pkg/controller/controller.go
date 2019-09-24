@@ -6,8 +6,6 @@
 package controller
 
 import (
-	"net/http"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -15,8 +13,6 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/worker"
 )
@@ -34,8 +30,6 @@ type AppGwIngressController struct {
 
 	recorder record.EventRecorder
 
-	httpServer httpserver.HTTPServer
-
 	stopChannel chan struct{}
 }
 
@@ -51,13 +45,6 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		stopChannel:     make(chan struct{}),
 	}
 
-	controller.httpServer = httpserver.NewHTTPServer(
-		map[string]http.Handler{
-			"/health/ready": health.ReadinessHandler(controller),
-			"/health/alive": health.LivenessHandler(controller),
-		},
-		envVariables.HTTPServicePort)
-
 	controller.worker = &worker.Worker{
 		EventProcessor: controller,
 	}
@@ -67,8 +54,6 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
 func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) error {
-	c.httpServer.Start()
-
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
 	if err := c.k8sContext.Run(c.stopChannel, false, envVariables); err != nil {
@@ -83,7 +68,6 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 
 // Stop function terminates the k8scontext and signal the stopchannel
 func (c *AppGwIngressController) Stop() {
-	c.httpServer.Stop()
 	close(c.stopChannel)
 }
 

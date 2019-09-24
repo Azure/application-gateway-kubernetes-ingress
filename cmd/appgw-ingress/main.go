@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -38,6 +39,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -128,11 +131,20 @@ func main() {
 		glog.Fatal("Could not start AGIC: ", err)
 	}
 
+	httpServer := httpserver.NewHTTPServer(
+		map[string]http.Handler{
+			"/health/ready": health.ReadinessHandler(appGwIngressController),
+			"/health/alive": health.LivenessHandler(appGwIngressController),
+		},
+		env.HTTPServicePort)
+	httpServer.Start()
+
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
 	appGwIngressController.Stop()
+	httpServer.Stop()
 	glog.Info("Goodbye!")
 }
 
