@@ -10,5 +10,6 @@ import (
 )
 
 var (
+	// ErrMissingResourceGroup is an error message.
 	ErrMissingResourceGroup = errors.New("unable to locate AKS resource group (AZUR001)")
 )
