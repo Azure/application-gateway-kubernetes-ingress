@@ -10,7 +10,6 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"testing"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
@@ -231,7 +230,7 @@ func TestParseBoolInvalid(t *testing.T) {
 	value := "nope"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseBool(&ingress, key)
-	if !errors.IsInvalidContent(err) {
+	if !IsInvalidContent(err) {
 		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
 	}
 }
@@ -240,8 +239,8 @@ func TestParseBoolMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseBool(&ingress, key)
-	if !errors.IsMissingAnnotations(err) || parsedVal {
-		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
+	if !IsMissingAnnotations(err) || parsedVal {
+		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
 	}
 }
 
@@ -260,7 +259,7 @@ func TestParseInt32Invalid(t *testing.T) {
 	value := "20asd"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
-	if !errors.IsInvalidContent(err) {
+	if !IsInvalidContent(err) {
 		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
 	}
 }
@@ -269,8 +268,8 @@ func TestParseInt32MissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseInt32(&ingress, key)
-	if !errors.IsMissingAnnotations(err) || parsedVal != 0 {
-		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
+	if !IsMissingAnnotations(err) || parsedVal != 0 {
+		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
 	}
 }
 
@@ -288,7 +287,7 @@ func TestParseStringMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseString(&ingress, key)
-	if !errors.IsMissingAnnotations(err) {
-		t.Error(fmt.Sprintf(Error, errors.ErrMissingAnnotations, parsedVal, err))
+	if !IsMissingAnnotations(err) {
+		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
 	}
 }
