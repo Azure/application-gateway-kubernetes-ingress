@@ -9,8 +9,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -40,7 +38,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -131,21 +129,17 @@ func main() {
 		glog.Fatal("Could not start AGIC: ", err)
 	}
 
-	// Start the Health Probe Server (responding to Kubernetes health probes)
-	healthServer := &http.Server{
-		Handler: health.NewHealthMux(appGwIngressController),
-		Addr:    fmt.Sprintf(":%s", env.HealthProbeServicePort),
-	}
-	go func() {
-		glog.Infof("Starting Health Probe Server on %s", healthServer.Addr)
-		if err := healthServer.ListenAndServe(); err != nil {
-			glog.Fatal("Failed starting Health Probe Server", err)
-		}
-	}()
+	httpServer := httpserver.NewHTTPServer(
+		appGwIngressController,
+		env.HTTPServicePort)
+	httpServer.Start()
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
+
+	appGwIngressController.Stop()
+	httpServer.Stop()
 	glog.Info("Goodbye!")
 }
 

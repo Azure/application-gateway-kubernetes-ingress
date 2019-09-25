@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
 package environment
 
 import (
@@ -77,7 +82,7 @@ var _ = Describe("Environment", func() {
 					EnableIstioIntegration:     true,
 					EnableSaveConfigToFile:     false,
 					EnablePanicOnPutError:      true,
-					HealthProbeServicePort:     "8123",
+					HTTPServicePort:            "8123",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))

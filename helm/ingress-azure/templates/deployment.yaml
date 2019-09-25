@@ -33,13 +33,13 @@ spec:
         readinessProbe:
           httpGet:
             path: /health/ready
-            port: {{ .Values.kubernetes.healthProbeServicePort }}
+            port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health/alive
-            port: {{ .Values.kubernetes.healthProbeServicePort }}
+            port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
