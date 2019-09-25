@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-
-	"github.com/pkg/errors"
 )
 
 // SubscriptionID is the subscription of the resource in the resourceID
@@ -43,7 +41,8 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 	split := strings.Split(string(resourceGroup), "_")
 	if len(split) != 4 || strings.ToUpper(split[0]) != "MC" {
 		logLine := fmt.Sprintf("infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup))
-		return "", errors.New(logLine)
+		glog.Error(logLine)
+		return "", ErrMissingResourceGroup
 	}
 
 	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s", subscriptionID, split[1], split[2]), nil
