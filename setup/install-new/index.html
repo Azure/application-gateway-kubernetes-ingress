@@ -75,11 +75,13 @@
     
         <ul>
         
-            <li><a class="toctree-l4" href="#table-of-contents">Table of Contents</a></li>
+            <li><a class="toctree-l4" href="#required-command-line-tools">Required Command Line Tools</a></li>
         
-            <li><a class="toctree-l4" href="#deploying-the-infrastructure-on-azure">Deploying the infrastructure on Azure</a></li>
+            <li><a class="toctree-l4" href="#create-an-identity">Create an Identity</a></li>
         
-            <li><a class="toctree-l4" href="#setting-up-application-gateway-ingress-controller-on-aks">Setting up Application Gateway Ingress Controller on AKS</a></li>
+            <li><a class="toctree-l4" href="#deploy-components">Deploy Components</a></li>
+        
+            <li><a class="toctree-l4" href="#set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</a></li>
         
         </ul>
     
@@ -205,57 +207,57 @@
             <div class="section">
               
                 <h1 id="greenfield-deployment">Greenfield Deployment</h1>
-<h2 id="table-of-contents">Table of Contents</h2>
-<ul>
-<li><a href="#deploying-the-infrastructure-on-azure">Deploying the infrastructure on Azure</a></li>
-<li><a href="#setting-up-application-gateway-ingress-controller-on-aks">Setting up Application Gateway Ingress Controller on AKS</a></li>
-</ul>
-<h2 id="deploying-the-infrastructure-on-azure">Deploying the infrastructure on Azure</h2>
-<p>To create the pre-requisite Azure resources, you can use the following template. It creates:</p>
-<ol>
-<li>Azure Virtual Network with 2 subnets.</li>
-<li>Azure Application Gateway v2.</li>
-<li>Azure Kubernetes Service cluster with required permission to deploy nodes in the Virtual Network. You have an option to deploy RBAC enabled AKS cluster</li>
-<li>User Assigned Identity to initialize the aad-pod-identity service and ingress controller.</li>
-<li>Set required RBACs.</li>
-</ol>
-<h3 id="prerequisites">Prerequisites</h3>
-<p>The steps below require the following software to be installed on your workstation:</p>
+<p>The instructions below assume Application Gateway Ingress Controller (AGIC) will be
+installed in an environment with no pre-existing components.</p>
+<h3 id="required-command-line-tools">Required Command Line Tools</h3>
+<p>We recommend the use of <a href="https://shell.azure.com/">Azure Cloud Shell</a> for all command line operations below. Launch your shell from shell.azure.com or by clicking the link:</p>
+<p><a href="https://shell.azure.com"><img alt="Embed launch" src="https://shell.azure.com/images/launchcloudshell.png" title="Launch Azure Cloud Shell" /></a></p>
+<p>Alternatively, launch Cloud Shell from Azure portal using the following icon:</p>
+<p><img alt="Portal launch" src="../../portal-launch-icon.png" /></p>
+<p>Your <a href="https://shell.azure.com/">Azure Cloud Shell</a> already has all necessary tools. Should you
+choose to use another environment, please ensure the following command line tools are installed:</p>
 <ol>
 <li><code>az</code> - Azure CLI: <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest">installation instructions</a></li>
 <li><code>kubectl</code> - Kubernetes command-line tool: <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl">installation instructions</a></li>
-<li><code>helm</code> - tool for managing pre-configured Kubernetes resources: <a href="https://github.com/helm/helm/releases/latest">installation instructions</a></li>
+<li><code>helm</code> - Kubernetes package manager: <a href="https://github.com/helm/helm/releases/latest">installation instructions</a></li>
 </ol>
-<h3 id="steps">Steps</h3>
+<h3 id="create-an-identity">Create an Identity</h3>
+<p>Follow the steps below to create an Azure Active Directory (AAD) <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object">service principal object</a>. Please record the <code>appId</code>, <code>password</code>, and <code>objectId</code> values - these will be used in the following steps.</p>
 <ol>
 <li>
-<p>Create an Azure Active Directory (Azure AD) <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object">service principal</a> object. This object will be assigned to the AKS cluster in the template. As a result of executing the commands below you will have an <code>appId</code>, <code>password</code>, and <code>objectId</code> values. Execute the following commands:</p>
-<ol>
-<li><code>az ad sp create-for-rbac --skip-assignment</code> - creates an AD service principal object. Record and securely store the values for the <code>appId</code> and <code>password</code> keys from the JSON output of this command. (<a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/overview">Read more about RBAC</a>)</li>
-<li><code>az ad sp show --id &lt;appId&gt; --query "objectId"</code> - retrieves the <code>objectId</code> of the newly created service principal. Replace <code>&lt;appId&gt;</code> with the value for the <code>appId</code> key from the JSON output of the previous command. Record the <code>objectId</code> value returned.</li>
-</ol>
+<p>Create AD service principal (<a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/overview">Read more about RBAC</a>):
+    <pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --skip-assignment</code></pre>
+    note: the <code>appId</code> and <code>password</code> values from the JSON output will be used in the following steps</p>
 </li>
 <li>
-<p>After creating the service principal in the step above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password and objectId in the parameters.
-    Note: For deploying an <em>RBAC</em> enabled cluster, set <code>aksEnabledRBAC</code> parameter to <code>true</code>.</p>
+<p>Use the <code>appId</code> from the previous command's output to get the <code>objectId</code> of the newl service principal:
+    <pre class="highlight"><code class="language-bash">az ad sp show --id &lt;appId&gt; --query "objectId"</code></pre>
+    note: the output of this command is <code>objectId</code>, which will be used in the ARM template below</p>
+</li>
+</ol>
+<h3 id="deploy-components">Deploy Components</h3>
+<p>Click on the <strong>Deploy to Azure</strong> icon below to begin the infrastructure deployment using an <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates">ARM template</a>. This step will add the following components to your subscription:</p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes">Azure Kubernetes Service</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview">Application Gateway</a> v2</li>
+<li><a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">Virtual Network</a> with 2 <a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">subnets</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address">Public IP Address</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview">Managed Identity</a>, which will be used by <a href="https://github.com/Azure/aad-pod-identity/blob/master/README.md">AAD Pod Identity</a></li>
+</ul>
+<h4 id="important">Important</h4>
+<p>Please use the <code>appId</code>, <code>objectId</code>, and <code>password</code> values from the <code>az</code> commands above and
+paste them in the corresponding ARM template fields:
+  - paste the <code>appId</code> vaule in the <code>Aks Service Principal App Id</code> template field
+  - paste the <code>password</code> value in the <code>Aks Service Principal Client Secret</code> field
+  - paste the <code>objectId</code> value in the <code>Aks Service Principal Object Id</code> field</p>
+<p>Note: To deploy an <strong>RBAC</strong> enabled cluster, set the <code>aksEnabledRBAC</code> field to <code>true</code></p>
 <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
+<img src="http://azuredeploy.net/deploybutton.png"/>
 </a></p>
-<p>The templated deployment will create:
-  - <a href="https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview">Managed Identity</a>
-  - <a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">Virtual Network</a>
-  - <a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address">Public IP Address</a>
-  - <a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview">Application Gateway</a>
-  - <a href="https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes">Azure Kubernetes Service</a></p>
-<p>After the deployment completes, you will find the parameters needed for the steps below in the deployment outputs window. (Navigate to the deployment's output by following this path in the <a href="https://portal.azure.com/">Azure portal</a>: <code>Home 🠆 *resource group* 🠆 Deployments 🠆 *new deployment* 🠆 Outputs</code>)</p>
-<p>Example:
-<img alt="Deployment Output" src="../../images/deployment-output.png" /></p>
-</li>
-</ol>
-<h2 id="setting-up-application-gateway-ingress-controller-on-aks">Setting up Application Gateway Ingress Controller on AKS</h2>
+<p>Navigate to the deployment output and record the parameters:
+<a href="https://portal.azure.com/">Azure portal</a>: <code>Home -&gt; *resource group* -&gt; Deployments -&gt; *new deployment* -&gt; Outputs</code>)</p>
+<p>Example: <img alt="Deployment Output" src="../../images/deployment-output.png" /></p>
+<h2 id="set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</h2>
 <h3 id="overview">Overview</h3>
 <p>With the instructions in the previous section we created and configured a new Azure Kubernetes Service (AKS) cluster. We are now ready to deploy to our new Kubernetes infrastructure. The instructions below will guide us through the proccess of installing the following 2 components on our new AKS:</p>
 <ol>
@@ -268,7 +270,9 @@
 <p>Steps:</p>
 <ol>
 <li>
-<p>To configure kubectl to connect to the deployed Azure Kubernetes Cluster, follow these <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster">instructions</a>.</p>
+<p>Configure <code>kubectl</code> with access to your newly deployed AKS:
+    <pre class="highlight"><code class="language-bash">az aks get-credentials --resource-group &lt;your-new-resource-group&gt; --name &lt;name-of-new-AKS-cluster&gt;</code></pre>
+    <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster">More on setting up kubectl</a>.</p>
 </li>
 <li>
 <p>Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> for more information.</p>
