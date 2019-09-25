@@ -11,8 +11,6 @@ import (
 
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
 )
 
 const (
@@ -86,7 +84,7 @@ func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
 	if ok {
 		return val == ApplicationGatewayIngressClass, nil
 	}
-	return false, errors.ErrMissingAnnotations
+	return false, ErrMissingAnnotations
 }
 
 // IsSslRedirect for HTTP end points.
@@ -135,7 +133,7 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 		return protocolEnum, nil
 	}
 
-	return HTTP, errors.NewInvalidAnnotationContent(BackendProtocolKey, protocol)
+	return HTTP, NewInvalidAnnotationContent(BackendProtocolKey, protocol)
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
@@ -143,16 +141,16 @@ func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
 		if boolVal, err := strconv.ParseBool(val); err == nil {
 			return boolVal, nil
 		}
-		return false, errors.NewInvalidAnnotationContent(name, val)
+		return false, NewInvalidAnnotationContent(name, val)
 	}
-	return false, errors.ErrMissingAnnotations
+	return false, ErrMissingAnnotations
 }
 
 func parseString(ing *v1beta1.Ingress, name string) (string, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		return val, nil
 	}
-	return "", errors.ErrMissingAnnotations
+	return "", ErrMissingAnnotations
 }
 
 func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
@@ -160,8 +158,8 @@ func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
 		if intVal, err := strconv.Atoi(val); err == nil {
 			return int32(intVal), nil
 		}
-		return 0, errors.NewInvalidAnnotationContent(name, val)
+		return 0, NewInvalidAnnotationContent(name, val)
 	}
 
-	return 0, errors.ErrMissingAnnotations
+	return 0, ErrMissingAnnotations
 }
