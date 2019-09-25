@@ -80,10 +80,10 @@ With the instructions in the previous section we created and configured a new Az
 Steps:
 
 1. Configure `kubectl` with access to your newly deployed AKS:
-```bash
-az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
-```
-[More on setting up kubectl](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
+    ```bash
+    az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
+    ```
+    [More on setting up kubectl](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
 1. Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.
 
