@@ -5,19 +5,19 @@
         "aksServicePrincipalAppId": {
             "type": "string",
             "metadata": {
-                "description": "Application ID/Client ID  of the service principal. Used by AKS to manage AKS related resources on Azure like vms, subnets."
+                "description": "appId of the service principal. Used by AKS to manage AKS related resources on Azure like vms, subnets."
             }
         },
         "aksServicePrincipalClientSecret": {
             "type": "securestring",
             "metadata": {
-                "description": "Secret of the service principal. Used by AKS to manage Azure."
+                "description": "password for the service principal. Used by AKS to manage Azure."
             }
         },
         "aksServicePrincipalObjectId": {
             "type": "string",
             "metadata": {
-                "description": "Object ID of the service principal."
+                "description": "objectId of the service principal."
             }
         },
         "virtualNetworkAddressPrefix": {

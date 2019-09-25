@@ -1,57 +1,71 @@
 # Greenfield Deployment
 
-## Table of Contents
+The instructions below assume Application Gateway Ingress Controller (AGIC) will be
+installed in an environment with no pre-existing components.
 
-- [Deploying the infrastructure on Azure](#deploying-the-infrastructure-on-azure)
-- [Setting up Application Gateway Ingress Controller on AKS](#setting-up-application-gateway-ingress-controller-on-aks)
+### Required Command Line Tools
 
-## Deploying the infrastructure on Azure
+We recommend the use of [Azure Cloud Shell](https://shell.azure.com/) for all command line operations below. Launch your shell from shell.azure.com or by clicking the link:
 
-To create the pre-requisite Azure resources, you can use the following template. It creates:
+[![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
-1. Azure Virtual Network with 2 subnets.
-1. Azure Application Gateway v2.
-1. Azure Kubernetes Service cluster with required permission to deploy nodes in the Virtual Network. You have an option to deploy RBAC enabled AKS cluster
-1. User Assigned Identity to initialize the aad-pod-identity service and ingress controller.
-1. Set required RBACs.
+Alternatively, launch Cloud Shell from Azure portal using the following icon:
 
-### Prerequisites
+![Portal launch](../portal-launch-icon.png)
 
-The steps below require the following software to be installed on your workstation:
+Your [Azure Cloud Shell](https://shell.azure.com/) already has all necessary tools. Should you
+choose to use another environment, please ensure the following command line tools are installed:
 
 1. `az` - Azure CLI: [installation instructions](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 1. `kubectl` - Kubernetes command-line tool: [installation instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl)
-1. `helm` - tool for managing pre-configured Kubernetes resources: [installation instructions](https://github.com/helm/helm/releases/latest)
+1. `helm` - Kubernetes package manager: [installation instructions](https://github.com/helm/helm/releases/latest)
 
-### Steps
 
-1. Create an Azure Active Directory (Azure AD) [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) object. This object will be assigned to the AKS cluster in the template. As a result of executing the commands below you will have an `appId`, `password`, and `objectId` values. Execute the following commands:
-    1. `az ad sp create-for-rbac --skip-assignment` - creates an AD service principal object. Record and securely store the values for the `appId` and `password` keys from the JSON output of this command. ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview))
-    1. `az ad sp show --id <appId> --query "objectId"` - retrieves the `objectId` of the newly created service principal. Replace `<appId>` with the value for the `appId` key from the JSON output of the previous command. Record the `objectId` value returned.
+### Create an Identity
 
-1. After creating the service principal in the step above, click to create a custom template deployment. Provide the appId for servicePrincipalClientId, password and objectId in the parameters.
-    Note: For deploying an *RBAC* enabled cluster, set `aksEnabledRBAC` parameter to `true`.
+Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-        <img src="http://azuredeploy.net/deploybutton.png"/>
-    </a>
-    <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-        <img src="http://armviz.io/visualizebutton.png"/>
-    </a>
+1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)):
+    ```bash
+    az ad sp create-for-rbac --skip-assignment
+    ```
+    note: the `appId` and `password` values from the JSON output will be used in the following steps
 
-    The templated deployment will create:
-      - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
-      - [Virtual Network](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview)
-      - [Public IP Address](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address)
-      - [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview)
-      - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
-    After the deployment completes, you will find the parameters needed for the steps below in the deployment outputs window. (Navigate to the deployment's output by following this path in the [Azure portal](https://portal.azure.com/): `Home 🠆 *resource group* 🠆 Deployments 🠆 *new deployment* 🠆 Outputs`)
+2. Use the `appId` from the previous command's output to get the `objectId` of the newl service principal:
+    ```bash
+    az ad sp show --id <appId> --query "objectId"
+    ```
+    note: the output of this command is `objectId`, which will be used in the ARM template below
 
-    Example:
-    ![Deployment Output](../images/deployment-output.png)
+### Deploy Components
+Click on the **Deploy to Azure** icon below to begin the infrastructure deployment using an [ARM template](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates). This step will add the following components to your subscription:
 
-## Setting up Application Gateway Ingress Controller on AKS
+- [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
+- [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview) v2
+- [Virtual Network](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview) with 2 [subnets](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview)
+- [Public IP Address](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address)
+- [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), which will be used by [AAD Pod Identity](https://github.com/Azure/aad-pod-identity/blob/master/README.md)
+
+#### Important
+Please use the `appId`, `objectId`, and `password` values from the `az` commands above and
+paste them in the corresponding ARM template fields:
+  - paste the `appId` vaule in the `Aks Service Principal App Id` template field
+  - paste the `password` value in the `Aks Service Principal Client Secret` field
+  - paste the `objectId` value in the `Aks Service Principal Object Id` field
+
+Note: To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+<img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
+Navigate to the deployment output and record the parameters:
+[Azure portal](https://portal.azure.com/): `Home -> *resource group* -> Deployments -> *new deployment* -> Outputs`)
+
+Example: ![Deployment Output](../images/deployment-output.png)
+
+## Set up Application Gateway Ingress Controller
 
 ### Overview
 
@@ -65,7 +79,11 @@ With the instructions in the previous section we created and configured a new Az
 
 Steps:
 
-1. To configure kubectl to connect to the deployed Azure Kubernetes Cluster, follow these [instructions](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
+1. Configure `kubectl` with access to your newly deployed AKS:
+    ```bash
+    az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
+    ```
+    [More on setting up kubectl](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
 1. Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.
 
