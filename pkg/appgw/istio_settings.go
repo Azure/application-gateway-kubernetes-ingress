@@ -133,7 +133,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		}
 	}
 	if len(unresolvedDestinationID) > 0 {
-		return nil, nil, nil, errors.New("unable to resolve backend port for some services")
+		return nil, nil, nil, errors.New("unable to resolve backend port for some services (APPG001)")
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -150,7 +150,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 				destinationID.serviceKey(), backendServicePort)
 			glog.Warning(logLine)
 			//TODO(rhea): add error event recorder
-			return nil, nil, nil, errors.New("more than one service-backend port binding is not allowed")
+			return nil, nil, nil, ErrIstioMultipleServiceBackendPortBinding
 		}
 
 		// At this point there will be only one pair
