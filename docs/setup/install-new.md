@@ -22,29 +22,26 @@ environment, please ensure the following command line tools are installed:
 1. `kubectl` - Kubernetes command-line tool: [installation instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl)
 1. `helm` - tool for managing pre-configured Kubernetes resources: [installation instructions](https://github.com/helm/helm/releases/latest)
 
-### Identity
 
-1. Create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object).
+### Create an Identity
 
-Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps. 
+Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
-Execute the following commands:
-
-  1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)):
-```bash
-az ad sp create-for-rbac --skip-assignment
-```
-note: the `appId` and `password` values from the JSON output will be used in the following steps
+1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)):
+    ```bash
+    az ad sp create-for-rbac --skip-assignment
+    ```
+    note: the `appId` and `password` values from the JSON output will be used in the following steps
 
 
-1. Use the `appId` from the previous command's output to get the `objectId` of the newl service principal:
-```bash
-az ad sp show --id <appId> --query "objectId"
-```
-note: the output of this command is `objectId`, which will be used in the ARM template below
+2. Use the `appId` from the previous command's output to get the `objectId` of the newl service principal:
+    ```bash
+    az ad sp show --id <appId> --query "objectId"
+    ```
+    note: the output of this command is `objectId`, which will be used in the ARM template below
 
-
-1. The following step will deploy Azure infrastructure using an [ARM template](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates). This step will add the following components to your subscription:
+### Deploy Components
+Click on the **Deploy to Azure** icon below to begin the infrastructure deployment using an [ARM template](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates). This step will add the following components to your subscription:
 
 - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 - [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview) v2
@@ -54,25 +51,21 @@ note: the output of this command is `objectId`, which will be used in the ARM te
 
 #### Important
 Please use the `appId`, `objectId`, and `password` values from the `az` commands above in the ARM template:
-  - paste `appId` vaule in the `servicePrincipalClientId` template field
-  - paste the `objectId` value in the `aksServicePrincipalObjectId` field
-  - paste the `password` value in the `aksServicePrincipalClientSecret` field
+  - paste the `appId` vaule in the `Aks Service Principal App Id` template field
+  - paste the `password` value in the `Aks Service Principal Client Secret` field
+  - paste the `objectId` value in the `Aks Service Principal Object Id` field
+
 
 Note: To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`
 
-ARM Template:
-    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-        <img src="http://azuredeploy.net/deploybutton.png"/>
-    </a>
-    <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-        <img src="http://armviz.io/visualizebutton.png"/>
-    </a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
+<img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
 
 Navigate to the deployment output and record the parameters:
 [Azure portal](https://portal.azure.com/): `Home -> *resource group* -> Deployments -> *new deployment* -> Outputs`)
 
-    Example:
-    ![Deployment Output](../images/deployment-output.png)
+Example: ![Deployment Output](../images/deployment-output.png)
 
 ## Setting up Application Gateway Ingress Controller on AKS
 
