@@ -5,8 +5,7 @@ installed in an environment with no pre-existing components.
 
 ### Required Command Line Tools
 
-We recommend the use of Cloud Shell for all command line operations below.
-Launch your personal Cloud Shell from shell.azure.com or by clicking the link:
+We recommend the use of [Azure Cloud Shell](https://shell.azure.com/) for all command line operations below. Launch your shell from shell.azure.com or by clicking the link:
 
 [![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
@@ -14,13 +13,12 @@ Alternatively, launch Cloud Shell from Azure portal using the following icon:
 
 ![Portal launch](../portal-launch-icon.png)
 
-
-Your [Azure Cloud Shell](https://shell.azure.com/) already has all necessary tools. Should you decide to use another
-environment, please ensure the following command line tools are installed:
+Your [Azure Cloud Shell](https://shell.azure.com/) already has all necessary tools. Should you
+choose to use another environment, please ensure the following command line tools are installed:
 
 1. `az` - Azure CLI: [installation instructions](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 1. `kubectl` - Kubernetes command-line tool: [installation instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl)
-1. `helm` - tool for managing pre-configured Kubernetes resources: [installation instructions](https://github.com/helm/helm/releases/latest)
+1. `helm` - Kubernetes package manager: [installation instructions](https://github.com/helm/helm/releases/latest)
 
 
 ### Create an Identity
@@ -50,11 +48,11 @@ Click on the **Deploy to Azure** icon below to begin the infrastructure deployme
 - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), which will be used by [AAD Pod Identity](https://github.com/Azure/aad-pod-identity/blob/master/README.md)
 
 #### Important
-Please use the `appId`, `objectId`, and `password` values from the `az` commands above in the ARM template:
+Please use the `appId`, `objectId`, and `password` values from the `az` commands above and
+paste them in the corresponding ARM template fields:
   - paste the `appId` vaule in the `Aks Service Principal App Id` template field
   - paste the `password` value in the `Aks Service Principal Client Secret` field
   - paste the `objectId` value in the `Aks Service Principal Object Id` field
-
 
 Note: To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`
 
@@ -67,7 +65,7 @@ Navigate to the deployment output and record the parameters:
 
 Example: ![Deployment Output](../images/deployment-output.png)
 
-## Setting up Application Gateway Ingress Controller on AKS
+## Set up Application Gateway Ingress Controller
 
 ### Overview
 
@@ -81,7 +79,11 @@ With the instructions in the previous section we created and configured a new Az
 
 Steps:
 
-1. To configure kubectl to connect to the deployed Azure Kubernetes Cluster, follow these [instructions](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
+1. Configure `kubectl` with access to your newly deployed AKS:
+```bash
+az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
+```
+[More on setting up kubectl](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
 1. Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.
 
