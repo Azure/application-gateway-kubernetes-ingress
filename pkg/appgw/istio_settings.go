@@ -133,7 +133,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		}
 	}
 	if len(unresolvedDestinationID) > 0 {
-		return nil, nil, nil, errors.New("unable to resolve backend port for some services (APPG001)")
+		return nil, nil, nil, ErrIstioResolvePortsForServices
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
