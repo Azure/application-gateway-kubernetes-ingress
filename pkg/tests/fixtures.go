@@ -56,6 +56,30 @@ func GetIngress() (*v1beta1.Ingress, error) {
 	return getIngress("ingress.yaml")
 }
 
+// GetIngress creates an Ingress test fixture.
+func GetVerySimpleIngress() (*v1beta1.Ingress, error) {
+	ingr := []byte(`
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: websocket-ingress
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  backend:
+    serviceName: websocket-service
+    servicePort: 80
+---
+    `)
+	obj, _, err := scheme.Codecs.UniversalDeserializer().Decode(ingr, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.Ingress), nil
+}
+
 // GetIngressComplex creates an Ingress test fixture with multiple backends and path rules.
 func GetIngressComplex() (*v1beta1.Ingress, error) {
 	return getIngress("ingress-complex.yaml")

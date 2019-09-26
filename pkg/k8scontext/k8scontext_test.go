@@ -411,4 +411,15 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 		})
 	})
+
+	ginkgo.Context("Filtering Ingress Resources", func() {
+		ginkgo.It("keep ingress, which does not have rules, but has a default backend", func() {
+			ingr, _ := tests.GetVerySimpleIngress()
+			ingrList := []*v1beta1.Ingress{
+				ingr,
+			}
+			finalList := filterAndSort(ingrList)
+			Expect(finalList).To(ContainElement(ingr))
+		})
+	})
 })
