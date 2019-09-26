@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"os"
 	"os/signal"
@@ -152,7 +151,7 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 	}
 	if len(nonExistent) > 0 {
 		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
-		return errors.New("namespace does not exist")
+		return ErrNoSuchNamespace
 	}
 	return nil
 }
@@ -201,7 +200,7 @@ func getAuthorizerWithRetry(env environment.EnvVariables, maxAuthRetryCount int)
 
 		if retryCount >= maxAuthRetryCount {
 			glog.Errorf("Tried %d times to get ARM authorization token; Error: %s", retryCount, err)
-			return nil, errors.New("failed obtaining auth token")
+			return nil, ErrFailedGetToken
 		}
 		retryCount++
 		glog.Errorf("Failed fetching authorization token for ARM. Will retry in %v. Error: %s", retryPause, err)
@@ -232,7 +231,7 @@ func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGat
 
 		if retryCount >= maxAuthRetryCount {
 			glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
-			return errors.New("failed arm auth")
+			return ErrGetArmAuth
 		}
 		retryCount++
 		glog.Errorf("Failed fetching config for App Gateway instance %s. Will retry in %v. Error: %s", env.AppGwName, retryPause, err)

@@ -12,7 +12,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/errors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
@@ -56,7 +55,7 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, err := annotations.UsePrivateIP(ingress)
-		if err != nil && errors.IsInvalidContent(err) {
+		if err != nil && annotations.IsInvalidContent(err) {
 			glog.Errorf("Ingress %s/%s has invalid value for annotation %s", ingress.Namespace, ingress.Name, annotations.UsePrivateIPKey)
 		}
 
