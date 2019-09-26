@@ -14,7 +14,7 @@ Application Gateway Ingress Controller (AGIC) continuously monitors the folowing
 
 The following must be in place for AGIC to function as expected:
   1. AKS must have one or more healthy **pods**.
-     Verify this from [Cloud Shell](https://shell.azure.cm/) with `kubectl get pods -o wide --show-labels`
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get pods -o wide --show-labels`
      If you have a Pod with an `apsnetapp`, your output may look like this:
      ```bash
      delyan@Azure:~$ kubectl get pods -o wide --show-labels
@@ -24,7 +24,7 @@ The following must be in place for AGIC to function as expected:
      ```
 
   2. One or more **services**, referencing the pods above via matching `selector` labels.
-     Verify this from [Cloud Shell](https://shell.azure.cm/) with `kubectl get services -o wide`
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get services -o wide`
      ```bash
      delyan@Azure:~$ kubectl get services -o wide --show-labels
 
@@ -33,7 +33,7 @@ The following must be in place for AGIC to function as expected:
      ```
 
   3. **Ingress**, annotated with `kubernetes.io/ingress.class: azure/application-gateway`, referencing the service above
-     Verify this from [Cloud Shell](https://shell.azure.cm/) with `kubectl get ingress -o wide --show-labels`
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get ingress -o wide --show-labels`
      ```bash
      delyan@Azure:~$ kubectl get ingress -o wide --show-labels
 
