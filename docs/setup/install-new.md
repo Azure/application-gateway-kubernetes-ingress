@@ -71,9 +71,7 @@ With the instructions in the previous section we created and configured a new AK
 an App Gateway. We are now ready to deploy an sample app and an ingress controller to our new
 Kubernetes infrastructure.
 
-### Prerequisites
-
-#### Setup Kubernetes Credentials
+### Setup Kubernetes Credentials
 For the following steps we need setup [kubectl](https://kubectl.docs.kubernetes.io/) command,
 which we will use to connect to our new Kubernetes cluster. [Cloud Shell](https://shell.azure.com/) has `kubectl` already installed. We will use `az` CLI to obtain credentials for Kubernetes.
 
@@ -82,21 +80,17 @@ Get credentials for your newly deployed AKS ([read more](https://docs.microsoft.
     az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
     ```
 
-#### Install AAD Pod Identity
- Azure Active Directory Pod Identity provides token-based access to
- [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
- 
- AAD Pod Identity will add the following components to your Kubernetes cluster:
+### Install AAD Pod Identity
+  Azure Active Directory Pod Identity provides token-based access to
+  [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
+
+  [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
    1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
    1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
    1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
 
 
-### Install App Gateway Ingress Controller
-Ingress Controller will monitor ingress-related events and will keep Azure Application Gateway
-in sync with the changes within the AKS cluster.
-
-1. Add [aad-pod-identity](https://github.com/Azure/aad-pod-identity) service to your cluster:
+  To install AAD Pod Identity to your cluster:
 
     - *RBAC enabled* AKS cluster
 
