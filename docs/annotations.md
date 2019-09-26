@@ -2,9 +2,11 @@
 
 ## Introductions
 
-Kubernetes Ingress specification allows for annotations. We use annotations to expose Application Gateway specific features that can't be exposed using the ingress specification. It is important to note that annotations defined on an ingress resource are applied to all HTTP setting, backend pools and listeners defined within a given ingress resource.
+The Kubernetes Ingress resource can be annotated with arbitrary key/value pairs. AGIC relies on annotations to program Application Gateway features, which are not configurable via the Ingress YAML. Ingress annotations are applied to all HTTP setting, backend pools and listeners derived from an ingress resource.
 
 ## List of supported annotations
+
+For an Ingress resource to be observed by AGIC it **must be annotated** with `kubernetes.io/ingress.class: azure/application-gateway`. Only then AGIC will work with the Ingress resource in question.
 
 | Annotation Key | Value Type | Default Value |
 | -- | -- | -- |
