@@ -67,31 +67,30 @@ Example: ![Deployment Output](../images/deployment-output.png)
 
 ## Set up Application Gateway Ingress Controller
 
-### Overview
+With the instructions in the previous section we created and configured a new AKS cluster and
+an App Gateway. We are now ready to deploy an sample app and an ingress controller to our new
+Kubernetes infrastructure.
 
-With the instructions in the previous section we created and configured a new Azure Kubernetes Service (AKS) cluster. We are now ready to deploy to our new Kubernetes infrastructure. The instructions below will guide us through the proccess of installing the following 2 components on our new AKS:
+### Setup Kubernetes Credentials
+For the following steps we need setup [kubectl](https://kubectl.docs.kubernetes.io/) command,
+which we will use to connect to our new Kubernetes cluster. [Cloud Shell](https://shell.azure.com/) has `kubectl` already installed. We will use `az` CLI to obtain credentials for Kubernetes.
 
-1. **Azure Active Directory Pod Identity** - Provides token-based access to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview) via user-assigned identity. Adding this system will result in the installation of the following within your AKS cluster:
-   1. Custom Kubernetes resource definitions: `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
-   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
-   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
-1. **Application Gateway Ingress Controller** - This is the controller which monitors ingress-related events and actively keeps your Azure Application Gateway installation in sync with the changes within the AKS cluster.
-
-Steps:
-
-1. Configure `kubectl` with access to your newly deployed AKS:
+Get credentials for your newly deployed AKS ([read more](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster)):
     ```bash
     az aks get-credentials --resource-group <your-new-resource-group> --name <name-of-new-AKS-cluster>
     ```
-    [More on setting up kubectl](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster).
 
-1. Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer [aad-pod-identity](https://github.com/Azure/aad-pod-identity) for more information.
+### Install AAD Pod Identity
+  Azure Active Directory Pod Identity provides token-based access to
+  [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
-    - *RBAC disabled* AKS cluster
+  [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
+   1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
+   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
+   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
 
-    ```bash
-    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
-    ```
+
+  To install AAD Pod Identity to your cluster:
 
     - *RBAC enabled* AKS cluster
 
@@ -99,15 +98,17 @@ Steps:
     kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
     ```
 
-1. Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
-
     - *RBAC disabled* AKS cluster
 
     ```bash
-    helm init
-    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-    helm repo update
+    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
     ```
+
+### Install Helm
+[Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
+Kubernetes. We will leverage it to install the `application-gateway-kubernetes-ingress` package:
+
+1. Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
 
     - *RBAC enabled* AKS cluster
 
@@ -115,68 +116,102 @@ Steps:
     kubectl create serviceaccount --namespace kube-system tiller-sa
     kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
     helm init --tiller-namespace kube-system --service-account tiller-sa
+    ```
+
+    - *RBAC disabled* AKS cluster
+
+    ```bash
+    helm init
+    ```
+
+1. Add the AGIC Helm repository:
+    ```bash
     helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
     helm repo update
     ```
 
-1. Edit [helm-config.yaml](../examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`
+### Install Ingress Controller
 
-    ```yaml
-    # This file contains the essential configs for the ingress controller helm chart
-
-    # Verbosity level of the App Gateway Ingress Controller
-    verbosityLevel: 3
-
-    ################################################################################
-    # Specify which application gateway the ingress controller will manage
-    #
-    appgw:
-        subscriptionId: <subscription-id>
-        resourceGroup: <resourcegroup-name>
-        name: <applicationgateway-name>
-
-    ################################################################################
-    # Specify which kubernetes namespace the ingress controller will watch
-    # Default value is "default"
-    # Leaving this variable out or setting it to blank or empty string would
-    # result in Ingress Controller observing all acessible namespaces.
-    #
-    # kubernetes:
-    #   watchNamespace: <namespace>
-
-    ################################################################################
-    # Specify the authentication with Azure Resource Manager
-    #
-    # Two authentication methods are available:
-    # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
-    armAuth:
-        type: aadPodIdentity
-        identityResourceID: <identity-resource-id>
-        identityClientID:  <identity-client-id>
-
-    ################################################################################
-    # Specify if the cluster is RBAC enabled or not
-    rbac:
-        enabled: false # true/false
-
-    ################################################################################
-    # Specify aks cluster related information. THIS IS BEING DEPRECATED.
-    aksClusterConfiguration:
-        apiServerAddress: <aks-api-server-address>
-    ```
-
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:
-
+1. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
     ```bash
-    az identity show -g <resourcegroup> -n <identity-name>
+    wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
     ```
 
-    Where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
+1. Edit [helm-config.yaml](../examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`.
+    ```bash
+    nano helm-config.yaml
+    ```
 
-    Then execute the following to the install the Application Gateway ingress controller package.
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: `az identity show -g <resourcegroup> -n <identity-name>`, where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
+
+1. Install the Application Gateway ingress controller package:
 
     ```bash
     helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
     ```
 
-Jump next to **[tutorials](../tutorial.md)** to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
+### Install a Sample App
+Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
+via [Azure Cloud Shell](https://shell.azure.com/):
+
+ ```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aspnetapp
+  labels:
+    app: aspnetapp
+spec:
+  containers:
+  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+    name: aspnetapp-image
+    ports:
+    - containerPort: 80
+      protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: aspnetapp
+spec:
+  selector:
+    app: aspnetapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: aspnetapp
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  backend:
+    serviceName: aspnetapp
+    servicePort: 80
+EOF
+```
+
+Alternatively you can:
+
+1. Download the YAML file above:
+```bash
+curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
+```
+
+2. Apply the YAML file:
+```bash
+kubectl apply -f apsnetapp.yaml
+```
+
+
+## Other Examples
+The **[tutorials](../tutorial.md)** document contains more examples on how toexpose an AKS
+service via HTTP or HTTPS, to the Internet with App Gateway.

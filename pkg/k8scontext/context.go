@@ -258,9 +258,21 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
-		if hasHTTPRule(ingress) && IsIngressApplicationGateway(ingress) {
-			ingressList = append(ingressList, ingress)
+		ingressList = append(ingressList, ingress)
+	}
+	return filterAndSort(ingressList)
+}
+
+func filterAndSort(ingList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	var ingressList []*v1beta1.Ingress
+	for _, ingress := range ingList {
+		if !IsIngressApplicationGateway(ingress) {
+			continue
 		}
+		if len(ingress.Spec.Rules) > 0 && !hasHTTPRule(ingress) {
+			continue
+		}
+		ingressList = append(ingressList, ingress)
 	}
 	// Sorting the return list ensures that the iterations over this list and
 	// subsequently created structs have deterministic order. This increases
