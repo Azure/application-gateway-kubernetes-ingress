@@ -1,14 +1,66 @@
 # Troubleshooting
 
-Application Gateway Ingress Controller (AGIC) continuously monitors the folowing Kubernetes resources:
-  - [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) or [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/#what-is-a-pod)
-  - [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
-  - [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+[Azure Cloud Shell](https://shell.azure.com/) is the most convenient way to troubleshoot any problems with your AKS
+and AGIC installation. Launch your shell from [shell.azure.com](https://shell.azure.com/) or by clicking the link:
 
-The following must be in place for AGIC to configure App Gateway with IPs of Kubernetes pods:
-  1. One or more healthy pods
-  2. One or more services, referencing the pods above via matching `selector` labels
-  3. Ingress, annotated with `kubernetes.io/ingress.class: azure/application-gateway`, referencing the service above
+[![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
+
+
+### Inspect Kubernetes Installation
+
+#### Pods, Services, Ingress
+Application Gateway Ingress Controller (AGIC) continuously monitors the folowing Kubernetes resources: [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment) or [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/#what-is-a-pod), [Service](https://kubernetes.io/docs/concepts/services-networking/service/), [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+
+
+The following must be in place for AGIC to function as expected:
+  1. AKS must have one or more healthy **pods**.
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get pods -o wide --show-labels`
+     If you have a Pod with an `apsnetapp`, your output may look like this:
+     ```bash
+     delyan@Azure:~$ kubectl get pods -o wide --show-labels
+
+     NAME                   READY   STATUS    RESTARTS   AGE   IP          NODE                       NOMINATED NODE   READINESS GATES   LABELS
+     aspnetapp              1/1     Running   0          17h   10.0.0.6    aks-agentpool-35064155-1   <none>           <none>            app=aspnetapp
+     ```
+
+  2. One or more **services**, referencing the pods above via matching `selector` labels.
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get services -o wide`
+     ```bash
+     delyan@Azure:~$ kubectl get services -o wide --show-labels
+
+     NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR        LABELS
+     aspnetapp           ClusterIP   10.2.63.254    <none>        80/TCP    17h   app=aspnetapp   <none>     
+     ```
+
+  3. **Ingress**, annotated with `kubernetes.io/ingress.class: azure/application-gateway`, referencing the service above
+     Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get ingress -o wide --show-labels`
+     ```bash
+     delyan@Azure:~$ kubectl get ingress -o wide --show-labels
+
+     NAME        HOSTS   ADDRESS   PORTS   AGE   LABELS
+     aspnetapp   *                 80      17h   <none>
+     ```
+
+  4. View annotations of the ingress above: `kubectl get ingress aspnetapp -o yaml` (substitute `aspnetapp` with the name of your ingress)
+     ```bash
+     delyan@Azure:~$ kubectl get ingress aspnetapp -o yaml
+
+     apiVersion: extensions/v1beta1
+     kind: Ingress
+     metadata:
+       annotations:
+         kubernetes.io/ingress.class: azure/application-gateway
+       name: aspnetapp
+     spec:
+       backend:
+         serviceName: aspnetapp
+         servicePort: 80
+     ```
+
+     The ingress resource must be annotated with `kubernetes.io/ingress.class: azure/application-gateway`.
+ 
+
+#### Verify Observed Nampespace
 
 * Get the existing namespaces in Kubernetes cluster. What namespace is your app
 running in? Is AGIC watching that namespace? Refer to the
