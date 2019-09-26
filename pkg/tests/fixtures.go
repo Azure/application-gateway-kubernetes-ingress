@@ -56,7 +56,7 @@ func GetIngress() (*v1beta1.Ingress, error) {
 	return getIngress("ingress.yaml")
 }
 
-// GetIngress creates an Ingress test fixture.
+// GetVerySimpleIngress creates one very simple Ingress test fixture with no rules.
 func GetVerySimpleIngress() (*v1beta1.Ingress, error) {
 	ingr := []byte(`
 ---
@@ -66,7 +66,6 @@ metadata:
   name: websocket-ingress
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   backend:
     serviceName: websocket-service
