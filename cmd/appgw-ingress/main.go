@@ -122,7 +122,10 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
+	// get agic pod
+	agicPod := k8sContext.GetAGICPod(env)
+
+	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
 		glog.Fatal("Could not start AGIC: ", err)
