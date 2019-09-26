@@ -16,6 +16,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -157,4 +158,23 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
 		})
 	})
+
+	Context("test generateHealthProbe()", func() {
+		cb := newConfigBuilderFixture(nil)
+		be := backendIdentifier{
+			serviceIdentifier: serviceIdentifier{
+				Namespace: "default",
+				Name:      "blah",
+			},
+			Ingress: fixtures.GetIngress(),
+			Rule:    nil,
+			Path:    nil,
+			Backend: &v1beta1.IngressBackend{},
+		}
+		pb := cb.generateHealthProbe(be)
+		It("should return nil and not crash", func() {
+			Expect(pb).To(BeNil())
+		})
+	})
+
 })
