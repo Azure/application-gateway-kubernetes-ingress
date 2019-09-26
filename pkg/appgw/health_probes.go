@@ -78,7 +78,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n.ApplicationGatewayProbe {
 	// TODO(draychev): remove GetService
 	service := c.k8sContext.GetService(backendID.serviceKey())
-	if service == nil {
+	if service == nil || backendID.Path == nil {
 		return nil
 	}
 	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
