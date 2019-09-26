@@ -93,7 +93,7 @@ func GetEnv() EnvVariables {
 // ValidateEnv validates environment variables.
 func ValidateEnv(env EnvVariables) error {
 	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required")
+		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required (ENVT001)")
 	}
 
 	if env.WatchNamespace == "" {

@@ -11,9 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package errors
+package annotations
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestIsMissingAnnotations(t *testing.T) {
 	if !IsMissingAnnotations(ErrMissingAnnotations) {

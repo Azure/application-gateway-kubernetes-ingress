@@ -3,14 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package controller
+package azure
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
-	// ErrFetchingAppGatewayConfig is an error.
-	ErrFetchingAppGatewayConfig = errors.New("unable to get specified AppGateway (CTRL001)")
-
-	// ErrDeployingAppGatewayConfig is an error.
-	ErrDeployingAppGatewayConfig = errors.New("unable to deploy App Gateway config (CTRL002)")
+	// ErrMissingResourceGroup is an error message.
+	ErrMissingResourceGroup = errors.New("unable to locate AKS resource group (AZUR001)")
 )
