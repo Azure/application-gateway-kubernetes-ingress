@@ -6,10 +6,15 @@ and AGIC installation. Launch your shell from [shell.azure.com](https://shell.az
 [![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
 
-### The Simplest App
+### Test with a simple Kubernetes app
 
-To verify that the App Gateway + AKS + AGIC installation is setup correctly, you could deploy
-the simplest possible app.
+The steps below assume:
+  - You have an AKS cluster, with Advanced Networking enabled
+  - AGIC has been installed on the AKS cluster
+  - You already hav an App Gateway on a VNET shared with your AKS cluster
+
+To verify that the App Gateway + AKS + AGIC installation is setup correctly, deploy
+the simplest possible app:
 
 ```bash
 cat <<EOF | kubectl apply -f -
@@ -57,7 +62,7 @@ spec:
 EOF
 ```
 
-To install the sample Kubernetes app defined above - copy and paste all lines at once from the
+Copy and paste all lines at once from the
 script above into a [Azure Cloud Shell](https://shell.azure.com/). Please ensure the entire
 command is copied - starting with `cat` and including the last `EOF`.
 
