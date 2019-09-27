@@ -193,9 +193,13 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
 spec:
-  backend:
-    serviceName: aspnetapp
-    servicePort: 80
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: aspnetapp
+          servicePort: 80
 EOF
 ```
 
