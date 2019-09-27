@@ -49,6 +49,12 @@ const (
 
 	// HTTPServicePortVarName is an environment variable name.
 	HTTPServicePortVarName = "HTTP_SERVICE_PORT"
+
+	// AGICPodNameVarName is an environment variable name.
+	AGICPodNameVarName = "AGIC_POD_NAME"
+
+	// AGICPodNamespaceVarName is an environment variable name.
+	AGICPodNamespaceVarName = "AGIC_POD_NAMESPACE"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -60,6 +66,8 @@ type EnvVariables struct {
 	WatchNamespace             string
 	UsePrivateIP               string
 	VerbosityLevel             string
+	AGICPodName                string
+	AGICPodNamespace           string
 	EnableBrownfieldDeployment bool
 	EnableIstioIntegration     bool
 	EnableSaveConfigToFile     bool
@@ -80,6 +88,8 @@ func GetEnv() EnvVariables {
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
 		VerbosityLevel:             os.Getenv(VerbosityLevelVarName),
+		AGICPodName:                os.Getenv(AGICPodNameVarName),
+		AGICPodNamespace:           os.Getenv(AGICPodNamespaceVarName),
 		EnableBrownfieldDeployment: GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
 		EnableIstioIntegration:     GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
 		EnableSaveConfigToFile:     GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",

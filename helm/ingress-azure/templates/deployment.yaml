@@ -42,9 +42,17 @@ spec:
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
-        {{- if eq .Values.armAuth.type "servicePrincipal"}}
         env:
-          - name: AZURE_AUTH_LOCATION
+        - name: AGIC_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: AGIC_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        {{- if eq .Values.armAuth.type "servicePrincipal"}}
+        - name: AZURE_AUTH_LOCATION
             value: /etc/Azure/Networking-AppGW/auth/armAuth.json
         {{- end}}
         envFrom:

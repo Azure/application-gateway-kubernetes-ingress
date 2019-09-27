@@ -8,15 +8,16 @@ The Kubernetes Ingress resource can be annotated with arbitrary key/value pairs.
 
 For an Ingress resource to be observed by AGIC it **must be annotated** with `kubernetes.io/ingress.class: azure/application-gateway`. Only then AGIC will work with the Ingress resource in question.
 
-| Annotation Key | Value Type | Default Value |
-| -- | -- | -- |
-| [appgw.ingress.kubernetes.io/backend-path-prefix](#backend-path-prefix) | `string` | `nil` |
-| [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` |  |
-| [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` |
-| [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` |
-| [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` |
-| [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` |
-| [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` |
+| Annotation Key | Value Type | Default Value | Allowed Values
+| -- | -- | -- | -- |
+| [appgw.ingress.kubernetes.io/backend-path-prefix](#backend-path-prefix) | `string` | `nil` | |
+| [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
+| [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` | |
+| [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
 
 ## Backend Path Prefix
 
@@ -219,4 +220,37 @@ spec:
         backend:
           serviceName: go-server-service
           servicePort: 80
+```
+
+## Backend Protocol
+
+This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: `http`, `https`
+
+> **Note**
+1) While self-signed certificates are supported on Application Gateway, currently, AGIC only support `https` when Pods are using certificate signed by a well-known CA.
+2) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/backend-protocol: "https"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 443
 ```
