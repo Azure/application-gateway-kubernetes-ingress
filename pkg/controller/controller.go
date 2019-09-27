@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/worker"
 )
 
@@ -31,13 +32,14 @@ type AppGwIngressController struct {
 
 	recorder record.EventRecorder
 
-	agicPod *v1.Pod
+	agicPod     *v1.Pod
+	metricStore metricstore.MetricStore
 
 	stopChannel chan struct{}
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, agicPod *v1.Pod) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:     appGwClient,
 		appGwIdentifier: appGwIdentifier,
@@ -47,6 +49,7 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		ipAddressMap:    map[string]k8scontext.IPAddress{},
 		stopChannel:     make(chan struct{}),
 		agicPod:         agicPod,
+		metricStore:     metricStore,
 	}
 
 	controller.worker = &worker.Worker{
@@ -58,6 +61,8 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
 func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) error {
+	c.metricStore.Start()
+
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
 	if err := c.k8sContext.Run(c.stopChannel, false, envVariables); err != nil {
@@ -72,6 +77,7 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 
 // Stop function terminates the k8scontext and signal the stopchannel
 func (c *AppGwIngressController) Stop() {
+	c.metricStore.Stop()
 	close(c.stopChannel)
 }
 
