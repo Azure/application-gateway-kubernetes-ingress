@@ -429,7 +429,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Application Gateway config creation with the SIMPLEST possible K8s YAML", func() {
-		ingr := &v1beta1.Ingress{
+		ingressNoRules := &v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				Backend: &v1beta1.IngressBackend{
 					ServiceName: tests.ServiceName,
@@ -450,7 +450,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:  []*v1beta1.Ingress{ingr},
+			IngressList: []*v1beta1.Ingress{
+				ingress,
+				ingressNoRules,
+			},
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
 		}
