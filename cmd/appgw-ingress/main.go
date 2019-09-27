@@ -105,6 +105,7 @@ func main() {
 	recorder := getEventRecorder(kubeClient)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
+	agicPod := k8sContext.GetAGICPod(env)
 
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
@@ -122,7 +123,7 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder)
+	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
 		glog.Fatal("Could not start AGIC: ", err)
