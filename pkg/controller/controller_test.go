@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 )
 
 var _ = Describe("test NewAppGwIngressController", func() {
@@ -24,7 +25,7 @@ var _ = Describe("test NewAppGwIngressController", func() {
 		appGwIdentifier := appgw.Identifier{}
 		k8sContext := &k8scontext.Context{}
 		recorder := record.NewFakeRecorder(0)
-		controller := NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, nil)
+		controller := NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, metricstore.NewFakeMetricStore(), nil)
 		It("should have created the AppGwIngressController struct", func() {
 			Expect(controller.appGwClient.Client.SkipResourceProviderRegistration).To(BeFalse())
 			err := controller.Start(environment.GetEnv())
