@@ -39,6 +39,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -106,6 +107,7 @@ func main() {
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 	agicPod := k8sContext.GetAGICPod(env)
+	metricStore := metricstore.NewMetricStore(env)
 
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
@@ -123,7 +125,7 @@ func main() {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
 		glog.Fatal("Could not start AGIC: ", err)
