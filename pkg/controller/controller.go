@@ -9,6 +9,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -30,11 +31,13 @@ type AppGwIngressController struct {
 
 	recorder record.EventRecorder
 
+	agicPod *v1.Pod
+
 	stopChannel chan struct{}
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder) *AppGwIngressController {
+func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, agicPod *v1.Pod) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		appGwClient:     appGwClient,
 		appGwIdentifier: appGwIdentifier,
@@ -43,6 +46,7 @@ func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIde
 		configCache:     to.ByteSlicePtr([]byte{}),
 		ipAddressMap:    map[string]k8scontext.IPAddress{},
 		stopChannel:     make(chan struct{}),
+		agicPod:         agicPod,
 	}
 
 	controller.worker = &worker.Worker{
