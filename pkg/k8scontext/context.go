@@ -303,7 +303,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(3).Infof("unable to get service from store, error occurred %s", err.Error())
+		glog.V(3).Infof("unable to get service from store, error occurred %s", err)
 		return nil
 	}
 
@@ -421,7 +421,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address I
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
 	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
-		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err.Error())
+		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err)
 		glog.Error(errorLine)
 		return ErrorUnableToUpdateIngress
 	}
