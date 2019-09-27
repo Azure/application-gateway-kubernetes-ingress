@@ -1,0 +1,36 @@
+// -------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// --------------------------------------------------------------------------------------------
+
+package metricstore
+
+import (
+	"net/http"
+	"time"
+)
+
+// NewFakeMetricStore return a fake metric store
+func NewFakeMetricStore() MetricStore {
+	return &fakeMetricStore{}
+}
+
+type fakeMetricStore struct{}
+
+type fakeMetricHandler struct {
+	metric string
+}
+
+func (m *fakeMetricHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(m.metric))
+}
+
+func (ms *fakeMetricStore) Start() {}
+
+func (ms *fakeMetricStore) Stop() {}
+
+func (ms *fakeMetricStore) Handler() http.Handler {
+	return &fakeMetricHandler{metric: "OK"}
+}
+
+func (ms *fakeMetricStore) SetUpdateLatencySec(dur time.Duration) {}
