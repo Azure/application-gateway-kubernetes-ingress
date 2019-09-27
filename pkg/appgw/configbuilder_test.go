@@ -478,7 +478,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --    "properties": {
 --        "backendAddressPools": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",    
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
 --                "name": "defaultaddresspool",
 --                "properties": {
 --                    "backendAddresses": []
@@ -490,6 +490,18 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80---name--",
 --                "name": "bp---namespace-----service-name---80-80---name--",
+--                "properties": {
+--                    "port": 80,
+--                    "probe": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+--                    },
+--                    "protocol": "Http"
+--                }
+--            },
+--            {
+--                "etag": "*",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
+--                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
 --                "properties": {
 --                    "port": 80,
 --                    "probe": {
@@ -596,10 +608,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
 --                    },
 --                    "backendHttpSettings": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80---name--"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"        
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
 --                    },
 --                    "ruleType": "Basic"
 --                }
