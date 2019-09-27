@@ -75,6 +75,8 @@
         
             <li><a class="toctree-l4" href="#prerequisites">Prerequisites</a></li>
         
+            <li><a class="toctree-l4" href="#install-helm">Install Helm</a></li>
+        
             <li><a class="toctree-l4" href="#azure-resource-manager-authentication">Azure Resource Manager Authentication</a></li>
         
             <li><a class="toctree-l4" href="#set-up-aad-pod-identity">Set up AAD Pod Identity</a></li>
@@ -213,9 +215,9 @@
             <div class="section">
               
                 <h1 id="brownfield-deployment">Brownfield Deployment</h1>
-<p>The App Gateway Ingress (AGIC) controller runs as a separate pod within your Kubernetes cluster. AGIC monitors the
-<a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> resources and composes App Gateway
-configuration based on these. AGIC applies App Gateway config via the Azure Resource Manager (ARM).</p>
+<p>The App Gateway Ingress Controller (AGIC) is a pod within your Kubernetes cluster.
+AGIC monitors the Kubernetes <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a>
+resources, and creates and applies App Gateway config based on these.</p>
 <h3 id="outline">Outline:</h3>
 <ul>
 <li><a href="#prerequisites">Prerequisites</a></li>
@@ -230,15 +232,41 @@ shared between one or more AKS clusters and/or other Azure components.</li>
 </ul>
 <h3 id="prerequisites">Prerequisites</h3>
 <p>This documents assumes you already have the following tools and infrastructure installed:
-- <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> installed on your local machine
 - <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">AKS</a> with <a href="https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni">Advanced Networking</a> enabled
 - <a href="https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant">App Gateway v2</a> in the same virtual network as AKS
-- <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster</p>
+- <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster
+- <a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</p>
 <p>Please <strong>backup your App Gateway's configuration</strong> before installing AGIC:
   1. using <a href="https://portal.azure.com/">Azure Portal</a> navigate to your <code>App Gateway</code> instance
   2. from <code>Export template</code> click <code>Download</code></p>
 <p>The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App
 Gateway should that become necessary</p>
+<h3 id="install-helm">Install Helm</h3>
+<p><a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> is a package manager for
+Kubernetes. We will leverage it to install the <code>application-gateway-kubernetes-ingress</code> package.
+Use <a href="https://shell.azure.com/">Cloud Shell</a> to install Helm:</p>
+<ol>
+<li>
+<p>Install <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> and run the following to add <code>application-gateway-kubernetes-ingress</code> helm package:</p>
+<ul>
+<li><em>RBAC enabled</em> AKS cluster</li>
+</ul>
+<pre class="highlight"><code class="language-bash">kubectl create serviceaccount --namespace kube-system tiller-sa
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
+helm init --tiller-namespace kube-system --service-account tiller-sa</code></pre>
+
+<ul>
+<li><em>RBAC disabled</em> AKS cluster</li>
+</ul>
+<pre class="highlight"><code class="language-bash">helm init</code></pre>
+
+</li>
+<li>
+<p>Add the AGIC Helm repository:
+    <pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update</code></pre></p>
+</li>
+</ol>
 <h3 id="azure-resource-manager-authentication">Azure Resource Manager Authentication</h3>
 <p>AGIC communicates with the Kubernetes API server and the Azure Resource Manager. It requires an identity to access
 these APIs.</p>
@@ -248,7 +276,8 @@ AKS. It binds Azure Active Directory identities to your Kubernetes pods. Identit
 Kubernetes pod to be able to communicate with other Azure components. In the particular case here we need authorization
 for the AGIC pod to make HTTP requests to <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a>.</p>
 <p>Follow the <a href="https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra">AAD Pod Identity installation instructions</a> to add this component to your AKS.</p>
-<p>Next we need to create an Azure identity and give it permissions ARM</p>
+<p>Next we need to create an Azure identity and give it permissions ARM.
+Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the following commands and create an identity:</p>
 <ol>
 <li>
 <p>Create an Azure identity <strong>in the same resource group as the AKS nodes</strong>. Picking the correct resource group is
@@ -299,6 +328,7 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
     secretJSON: &lt;Base64-Encoded-Credentials&gt;</code></pre></li>
 </ol>
 <h2 id="install-ingress-controller-as-a-helm-chart">Install Ingress Controller as a Helm Chart</h2>
+<p>In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use <a href="https://shell.azure.com/">Cloud Shell</a> to install the AGIC Helm package:</p>
 <ol>
 <li>
 <p>Add the <code>application-gateway-kubernetes-ingress</code> helm repo and perform a helm update</p>
@@ -307,64 +337,13 @@ helm repo update</code></pre>
 
 </li>
 <li>
-<p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code></p>
-<pre class="highlight"><code class="language-yaml"># This file contains the essential configs for the ingress controller helm chart
-
-# Verbosity level of the App Gateway Ingress Controller
-verbosityLevel: 3
-
-################################################################################
-# Specify which application gateway the ingress controller will manage
-#
-appgw:
-    subscriptionId: &lt;subscription-id&gt;
-    resourceGroup: &lt;resourcegroup-name&gt;
-    name: &lt;applicationgateway-name&gt;
-
-    # Setting appgw.shared to "true" will create an AzureIngressProhibitedTarget CRD.
-    # This prohibits AGIC from applying config for any host/path.
-    # Use "kubectl get AzureIngressProhibitedTargets" to view and change this.
-    shared: false
-
-################################################################################
-# Specify which kubernetes namespace the ingress controller will watch
-# Default value is "default"
-# Leaving this variable out or setting it to blank or empty string would
-# result in Ingress Controller observing all acessible namespaces.
-#
-# kubernetes:
-#   watchNamespace: &lt;namespace&gt;
-
-################################################################################
-# Specify the authentication with Azure Resource Manager
-#
-# Two authentication methods are available:
-# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
-armAuth:
-    type: aadPodIdentity
-    identityResourceID: &lt;identity-resource-id&gt;
-    identityClientID:  &lt;identity-client-id&gt;
-
-# - Option 2: Service Principal Credentials
-# armAuth:
-#     type: servicePrincipal
-#     secretJSON: &lt;&lt;Generate this value with: "az ad sp create-for-rbac --subscription &lt;subscription-uuid&gt; --sdk-auth | base64 -w0"&gt;&gt;
-
-################################################################################
-# Specify if the cluster is RBAC enabled or not
-rbac:
-    enabled: false # true/false
-
-################################################################################
-# Specify aks cluster related information. THIS IS BEING DEPRECATED.
-aksClusterConfiguration:
-    apiServerAddress: &lt;aks-api-server-address&gt;</code></pre>
-
-<p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you
-setup in the previous section. Run the following command to obtain these values:</p>
-<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
-
-<p>Where <code>&lt;resourcegroup&gt;</code> is the resource group in which AKS cluster is running (this would have the prefix <code>MC_</code>).</p>
+<p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will configure AGIC:
+    <pre class="highlight"><code class="language-bash">wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml</code></pre></p>
+</li>
+<li>
+<p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code>.
+    <pre class="highlight"><code class="language-bash">nano helm-config.yaml</code></pre></p>
+<p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: <code>az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code>, where <code>&lt;resourcegroup&gt;</code> is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.</p>
 </li>
 <li>
 <p>Install Helm chart <code>application-gateway-kubernetes-ingress</code> with the <code>helm-config.yaml</code> configuration from the previous step</p>

@@ -83,6 +83,8 @@
         
             <li><a class="toctree-l4" href="#set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</a></li>
         
+            <li><a class="toctree-l4" href="#other-examples">Other Examples</a></li>
+        
         </ul>
     
 
@@ -258,108 +260,135 @@ paste them in the corresponding ARM template fields:
 <a href="https://portal.azure.com/">Azure portal</a>: <code>Home -&gt; *resource group* -&gt; Deployments -&gt; *new deployment* -&gt; Outputs</code>)</p>
 <p>Example: <img alt="Deployment Output" src="../../images/deployment-output.png" /></p>
 <h2 id="set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</h2>
-<h3 id="overview">Overview</h3>
-<p>With the instructions in the previous section we created and configured a new Azure Kubernetes Service (AKS) cluster. We are now ready to deploy to our new Kubernetes infrastructure. The instructions below will guide us through the proccess of installing the following 2 components on our new AKS:</p>
-<ol>
-<li><strong>Azure Active Directory Pod Identity</strong> - Provides token-based access to the <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a> via user-assigned identity. Adding this system will result in the installation of the following within your AKS cluster:</li>
-<li>Custom Kubernetes resource definitions: <code>AzureIdentity</code>, <code>AzureAssignedIdentity</code>, <code>AzureIdentityBinding</code></li>
-<li><a href="https://github.com/Azure/aad-pod-identity#managed-identity-controllermic">Managed Identity Controller (MIC)</a> component</li>
-<li><a href="https://github.com/Azure/aad-pod-identity#node-managed-identitynmi">Node Managed Identity (NMI)</a> component</li>
-<li><strong>Application Gateway Ingress Controller</strong> - This is the controller which monitors ingress-related events and actively keeps your Azure Application Gateway installation in sync with the changes within the AKS cluster.</li>
-</ol>
-<p>Steps:</p>
-<ol>
-<li>
-<p>Configure <code>kubectl</code> with access to your newly deployed AKS:
-    <pre class="highlight"><code class="language-bash">az aks get-credentials --resource-group &lt;your-new-resource-group&gt; --name &lt;name-of-new-AKS-cluster&gt;</code></pre>
-    <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster">More on setting up kubectl</a>.</p>
-</li>
-<li>
-<p>Add aad pod identity service to the cluster using the following command. This service will be used by the ingress controller. You can refer <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> for more information.</p>
-<ul>
-<li><em>RBAC disabled</em> AKS cluster</li>
-</ul>
-<pre class="highlight"><code class="language-bash">kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml</code></pre>
+<p>With the instructions in the previous section we created and configured a new AKS cluster and
+an App Gateway. We are now ready to deploy an sample app and an ingress controller to our new
+Kubernetes infrastructure.</p>
+<h3 id="setup-kubernetes-credentials">Setup Kubernetes Credentials</h3>
+<p>For the following steps we need setup <a href="https://kubectl.docs.kubernetes.io/">kubectl</a> command,
+which we will use to connect to our new Kubernetes cluster. <a href="https://shell.azure.com/">Cloud Shell</a> has <code>kubectl</code> already installed. We will use <code>az</code> CLI to obtain credentials for Kubernetes.</p>
+<p>Get credentials for your newly deployed AKS (<a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster">read more</a>):
+    <pre class="highlight"><code class="language-bash">az aks get-credentials --resource-group &lt;your-new-resource-group&gt; --name &lt;name-of-new-AKS-cluster&gt;</code></pre></p>
+<h3 id="install-aad-pod-identity">Install AAD Pod Identity</h3>
+<p>Azure Active Directory Pod Identity provides token-based access to
+  <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
+<p><a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> will add the following components to your Kubernetes cluster:
+   1. Kubernetes <a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/">CRDs</a>: <code>AzureIdentity</code>, <code>AzureAssignedIdentity</code>, <code>AzureIdentityBinding</code>
+   1. <a href="https://github.com/Azure/aad-pod-identity#managed-identity-controllermic">Managed Identity Controller (MIC)</a> component
+   1. <a href="https://github.com/Azure/aad-pod-identity#node-managed-identitynmi">Node Managed Identity (NMI)</a> component</p>
+<p>To install AAD Pod Identity to your cluster:</p>
+<pre><code>- *RBAC enabled* AKS cluster
 
-<ul>
-<li><em>RBAC enabled</em> AKS cluster</li>
-</ul>
-<pre class="highlight"><code class="language-bash">kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml</code></pre>
+```bash
+kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+```
 
-</li>
+- *RBAC disabled* AKS cluster
+
+```bash
+kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
+```
+</code></pre>
+<h3 id="install-helm">Install Helm</h3>
+<p><a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> is a package manager for
+Kubernetes. We will leverage it to install the <code>application-gateway-kubernetes-ingress</code> package:</p>
+<ol>
 <li>
 <p>Install <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> and run the following to add <code>application-gateway-kubernetes-ingress</code> helm package:</p>
-<ul>
-<li><em>RBAC disabled</em> AKS cluster</li>
-</ul>
-<pre class="highlight"><code class="language-bash">helm init
-helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></pre>
-
 <ul>
 <li><em>RBAC enabled</em> AKS cluster</li>
 </ul>
 <pre class="highlight"><code class="language-bash">kubectl create serviceaccount --namespace kube-system tiller-sa
 kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-helm init --tiller-namespace kube-system --service-account tiller-sa
-helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></pre>
+helm init --tiller-namespace kube-system --service-account tiller-sa</code></pre>
+
+<ul>
+<li><em>RBAC disabled</em> AKS cluster</li>
+</ul>
+<pre class="highlight"><code class="language-bash">helm init</code></pre>
 
 </li>
 <li>
-<p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code></p>
-<pre class="highlight"><code class="language-yaml"># This file contains the essential configs for the ingress controller helm chart
-
-# Verbosity level of the App Gateway Ingress Controller
-verbosityLevel: 3
-
-################################################################################
-# Specify which application gateway the ingress controller will manage
-#
-appgw:
-    subscriptionId: &lt;subscription-id&gt;
-    resourceGroup: &lt;resourcegroup-name&gt;
-    name: &lt;applicationgateway-name&gt;
-
-################################################################################
-# Specify which kubernetes namespace the ingress controller will watch
-# Default value is "default"
-# Leaving this variable out or setting it to blank or empty string would
-# result in Ingress Controller observing all acessible namespaces.
-#
-# kubernetes:
-#   watchNamespace: &lt;namespace&gt;
-
-################################################################################
-# Specify the authentication with Azure Resource Manager
-#
-# Two authentication methods are available:
-# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
-armAuth:
-    type: aadPodIdentity
-    identityResourceID: &lt;identity-resource-id&gt;
-    identityClientID:  &lt;identity-client-id&gt;
-
-################################################################################
-# Specify if the cluster is RBAC enabled or not
-rbac:
-    enabled: false # true/false
-
-################################################################################
-# Specify aks cluster related information. THIS IS BEING DEPRECATED.
-aksClusterConfiguration:
-    apiServerAddress: &lt;aks-api-server-address&gt;</code></pre>
-
-<p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command:</p>
-<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
-
-<p>Where <code>&lt;resourcegroup&gt;</code> is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.</p>
-<p>Then execute the following to the install the Application Gateway ingress controller package.</p>
+<p>Add the AGIC Helm repository:
+    <pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update</code></pre></p>
+</li>
+</ol>
+<h3 id="install-ingress-controller">Install Ingress Controller</h3>
+<ol>
+<li>
+<p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will configure AGIC:
+    <pre class="highlight"><code class="language-bash">wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml</code></pre></p>
+</li>
+<li>
+<p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code>.
+    <pre class="highlight"><code class="language-bash">nano helm-config.yaml</code></pre></p>
+<p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: <code>az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code>, where <code>&lt;resourcegroup&gt;</code> is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.</p>
+</li>
+<li>
+<p>Install the Application Gateway ingress controller package:</p>
 <pre class="highlight"><code class="language-bash">helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure</code></pre>
 
 </li>
 </ol>
-<p>Jump next to <strong><a href="../../tutorial/">tutorials</a></strong> to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.</p>
+<h3 id="install-a-sample-app">Install a Sample App</h3>
+<p>Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
+via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
+<p>```bash
+cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aspnetapp
+  labels:
+    app: aspnetapp
+spec:
+  containers:
+  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+    name: aspnetapp-image
+    ports:
+    - containerPort: 80
+      protocol: TCP</p>
+<hr />
+<p>apiVersion: v1
+kind: Service
+metadata:
+  name: aspnetapp
+spec:
+  selector:
+    app: aspnetapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80</p>
+<hr />
+<p>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: aspnetapp
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: aspnetapp
+          servicePort: 80
+EOF
+<pre class="highlight"><code>
+Alternatively you can:
+
+1. Download the YAML file above:
+```bash
+curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml</code></pre></p>
+<ol>
+<li>Apply the YAML file:
+<pre class="highlight"><code class="language-bash">kubectl apply -f apsnetapp.yaml</code></pre></li>
+</ol>
+<h2 id="other-examples">Other Examples</h2>
+<p>The <strong><a href="../../tutorial/">tutorials</a></strong> document contains more examples on how toexpose an AKS
+service via HTTP or HTTPS, to the Internet with App Gateway.</p>
               
             </div>
           </div>

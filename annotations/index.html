@@ -103,6 +103,8 @@
         
             <li><a class="toctree-l3" href="#use-private-ip">Use Private IP</a></li>
         
+            <li><a class="toctree-l3" href="#backend-protocol">Backend Protocol</a></li>
+        
         </ul>
     
 
@@ -212,14 +214,16 @@
               
                 <h1 id="annotations">Annotations</h1>
 <h2 id="introductions">Introductions</h2>
-<p>Kubernetes Ingress specification allows for annotations. We use annotations to expose Application Gateway specific features that can't be exposed using the ingress specification. It is important to note that annotations defined on an ingress resource are applied to all HTTP setting, backend pools and listeners defined within a given ingress resource.</p>
+<p>The Kubernetes Ingress resource can be annotated with arbitrary key/value pairs. AGIC relies on annotations to program Application Gateway features, which are not configurable via the Ingress YAML. Ingress annotations are applied to all HTTP setting, backend pools and listeners derived from an ingress resource.</p>
 <h2 id="list-of-supported-annotations">List of supported annotations</h2>
+<p>For an Ingress resource to be observed by AGIC it <strong>must be annotated</strong> with <code>kubernetes.io/ingress.class: azure/application-gateway</code>. Only then AGIC will work with the Ingress resource in question.</p>
 <table>
 <thead>
 <tr>
 <th>Annotation Key</th>
 <th>Value Type</th>
 <th>Default Value</th>
+<th>Allowed Values</th>
 </tr>
 </thead>
 <tbody>
@@ -227,36 +231,49 @@
 <td><a href="#backend-path-prefix">appgw.ingress.kubernetes.io/backend-path-prefix</a></td>
 <td><code>string</code></td>
 <td><code>nil</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#ssl-redirect">appgw.ingress.kubernetes.io/ssl-redirect</a></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#connection-draining">appgw.ingress.kubernetes.io/connection-draining</a></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#connection-draining">appgw.ingress.kubernetes.io/connection-draining-timeout</a></td>
 <td><code>int32</code> (seconds)</td>
 <td><code>30</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#cookie-based-affinity">appgw.ingress.kubernetes.io/cookie-based-affinity</a></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#request-timeout">appgw.ingress.kubernetes.io/request-timeout</a></td>
 <td><code>int32</code> (seconds)</td>
 <td><code>30</code></td>
+<td></td>
 </tr>
 <tr>
 <td><a href="#use-private-ip">appgw.ingress.kubernetes.io/use-private-ip</a></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="#backend-protocol">appgw.ingress.kubernetes.io/backend-protocol</a></td>
+<td><code>string</code></td>
+<td><code>http</code></td>
+<td><code>http</code>, <code>https</code></td>
 </tr>
 </tbody>
 </table>
@@ -414,6 +431,34 @@ spec:
         backend:
           serviceName: go-server-service
           servicePort: 80</code></pre>
+
+<h2 id="backend-protocol">Backend Protocol</h2>
+<p>This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: <code>http</code>, <code>https</code></p>
+<blockquote>
+<p><strong>Note</strong>
+1) While self-signed certificates are supported on Application Gateway, currently, AGIC only support <code>https</code> when Pods are using certificate signed by a well-known CA.
+2) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.</p>
+</blockquote>
+<h3 id="usage_6">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/backend-protocol: "https"</code></pre>
+
+<h3 id="example_6">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 443</code></pre>
               
             </div>
           </div>
