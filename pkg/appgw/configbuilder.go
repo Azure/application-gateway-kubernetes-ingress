@@ -23,6 +23,11 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
+type Clock interface {
+	Now() time.Time
+	After(d time.Duration) <-chan time.Time
+}
+
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
 	PreBuildValidate(cbCtx *ConfigBuilderContext) error
@@ -53,15 +58,17 @@ type appGwConfigBuilder struct {
 	appGw           n.ApplicationGateway
 	recorder        record.EventRecorder
 	mem             memoization
+	clock           Clock
 }
 
 // NewConfigBuilder construct a builder
-func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder) ConfigBuilder {
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder, clock Clock) ConfigBuilder {
 	return &appGwConfigBuilder{
 		k8sContext:      context,
 		appGwIdentifier: *appGwIdentifier,
 		appGw:           *original,
 		recorder:        recorder,
+		clock:           clock,
 	}
 }
 
@@ -203,5 +210,5 @@ func (c *appGwConfigBuilder) addTags() {
 	} else {
 		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
-	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(time.Now().String())
+	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
 }

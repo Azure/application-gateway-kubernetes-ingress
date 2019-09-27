@@ -25,6 +25,11 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
+type realClock struct{}
+
+func (realClock) Now() time.Time                         { return time.Now() }
+func (realClock) After(d time.Duration) <-chan time.Time { return time.After(d) }
+
 // Process is the callback function that will be executed for every event
 // in the EventQueue.
 func (c AppGwIngressController) Process(event events.Event) error {
@@ -99,7 +104,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, &appGw, c.recorder)
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, &appGw, c.recorder, realClock)
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
