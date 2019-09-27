@@ -35,7 +35,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
 	if err != nil {
-		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
+		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		return ErrFetchingAppGatewayConfig
 	}
 
