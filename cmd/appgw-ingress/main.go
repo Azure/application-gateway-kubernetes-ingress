@@ -133,6 +133,7 @@ func main() {
 
 	httpServer := httpserver.NewHTTPServer(
 		appGwIngressController,
+		metricStore,
 		env.HTTPServicePort)
 	httpServer.Start()
 
