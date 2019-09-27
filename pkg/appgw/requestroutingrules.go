@@ -116,10 +116,39 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	return requestRoutingRules, pathMap
 }
 
+func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
+	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
+	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
+	if err != nil {
+		glog.Error("Error fetching Backends and Settings: ", err)
+	}
+	if serviceBackendPair, exists := serviceBackendPairMap[backendID]; exists {
+		poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
+		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
+		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
+		listenerID := defaultFrontendListenerIdentifier()
+		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
+			Etag: to.StringPtr("*"),
+			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
+				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
+				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
+				PathRules:                  &[]n.ApplicationGatewayPathRule{},
+			},
+		}
+	}
+}
+
 func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
 	for ingressIdx := range cbCtx.IngressList {
 		ingress := cbCtx.IngressList[ingressIdx]
+
+		if len(ingress.Spec.Rules) == 0 {
+			c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
+		}
+
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
 			// skip no http rule
