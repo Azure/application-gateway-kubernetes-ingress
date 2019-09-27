@@ -41,7 +41,7 @@ func NewHealthMux(handlers map[string]http.Handler) *http.ServeMux {
 func NewHTTPServer(controller *controller.AppGwIngressController, apiPort string) HTTPServer {
 	return &httpServer{
 		server: &http.Server{
-			Addr:    fmt.Sprintf(":%s", apiPort),
+			Addr: fmt.Sprintf(":%s", apiPort),
 			Handler: NewHealthMux(map[string]http.Handler{
 				"/health/ready": health.ReadinessHandler(controller),
 				"/health/alive": health.LivenessHandler(controller),
