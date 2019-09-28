@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
+// Clock is an interface, which allows you to implement your own Time.
 type Clock interface {
 	Now() time.Time
 	After(d time.Duration) <-chan time.Time
