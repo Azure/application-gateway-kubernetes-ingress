@@ -68,20 +68,20 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate Health Probes, error [%v]", err.Error())
+		glog.Errorf("unable to generate Health Probes, error [%v]", err)
 		return nil, ErrGeneratingProbes
 	}
 
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend http settings, error [%v]", err.Error())
+		glog.Errorf("unable to generate backend http settings, error [%v]", err)
 		return nil, ErrGeneratingBackendSettings
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend address pools, error [%v]", err.Error())
+		glog.Errorf("unable to generate backend address pools, error [%v]", err)
 		return nil, ErrGeneratingPools
 	}
 
@@ -91,14 +91,14 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	// The order of operations matters.
 	err = c.Listeners(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate frontend listeners, error [%v]", err.Error())
+		glog.Errorf("unable to generate frontend listeners, error [%v]", err)
 		return nil, ErrGeneratingListeners
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate request routing rules, error [%v]", err.Error())
+		glog.Errorf("unable to generate request routing rules, error [%v]", err)
 		return nil, ErrGeneratingRoutingRules
 	}
 
@@ -200,6 +200,6 @@ func (c *appGwConfigBuilder) addTags() {
 	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
 		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
 	} else {
-		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err.Error())
+		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
 }

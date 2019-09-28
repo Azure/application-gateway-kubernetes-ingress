@@ -35,7 +35,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
 	if err != nil {
-		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err.Error())
+		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		return ErrFetchingAppGatewayConfig
 	}
 
@@ -153,7 +153,10 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
-	glog.V(1).Infof("Applied App Gateway config in %+v", time.Now().Sub(deploymentStart).String())
+	duration := time.Now().Sub(deploymentStart)
+	glog.V(1).Infof("Applied App Gateway config in %+v", duration.String())
+
+	c.metricStore.SetUpdateLatencySec(duration)
 
 	if err != nil {
 		// Reset cache
