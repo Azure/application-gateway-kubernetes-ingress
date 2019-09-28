@@ -104,7 +104,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, &appGw, c.recorder, realClock)
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, &appGw, c.recorder, realClock{})
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {

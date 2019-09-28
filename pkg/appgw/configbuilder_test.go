@@ -207,7 +207,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
-		configBuilder := NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
 	})
 
 	AfterEach(func() {
