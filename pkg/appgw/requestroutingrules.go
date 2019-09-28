@@ -146,7 +146,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		ingress := cbCtx.IngressList[ingressIdx]
 
 		if len(ingress.Spec.Rules) == 0 {
-			// c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
+			c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
 		}
 
 		for ruleIdx := range ingress.Spec.Rules {

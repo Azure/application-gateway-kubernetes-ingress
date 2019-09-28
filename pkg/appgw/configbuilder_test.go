@@ -432,7 +432,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		ingressNoRules := &v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				Backend: &v1beta1.IngressBackend{
-					ServiceName: tests.ServiceName,
+					ServiceName: serviceName,
 					ServicePort: intstr.IntOrString{
 						Type:   intstr.Int,
 						IntVal: 80,
@@ -442,16 +442,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-					annotations.SslRedirectKey:  "true",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      serviceName,
+				Namespace: ingressNS,
 			},
 		}
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList: []*v1beta1.Ingress{
-				ingress,
+				// ingress,
 				ingressNoRules,
 			},
 			ServiceList:  serviceList,
@@ -459,6 +458,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		It("Should have created correct App Gateway config JSON blob", func() {
+			// Start the informers. This will sync the cache with the latest ingress.
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(err).ToNot(HaveOccurred())
+
 			appGW, err := configBuilder.Build(cbCtx)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -483,25 +486,31 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "backendAddresses": []
 --                }
+--            },
+--            {
+--                "etag": "*",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80",
+--                "name": "pool-test-ingress-controller-hello-world-80-bp-80",
+--                "properties": {
+--                    "backendAddresses": [
+--                        {
+--                            "ipAddress": "1.1.1.1"
+--                        },
+--                        {
+--                            "ipAddress": "1.1.1.2"
+--                        },
+--                        {
+--                            "ipAddress": "1.1.1.3"
+--                        }
+--                    ]
+--                }
 --            }
 --        ],
 --        "backendHttpSettingsCollection": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80---name--",
---                "name": "bp---namespace-----service-name---80-80---name--",
---                "properties": {
---                    "port": 80,
---                    "probe": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
---                    },
---                    "protocol": "Http"
---                }
---            },
---            {
---                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
---                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80-hello-world",
+--                "name": "bp-test-ingress-controller-hello-world-80-80-hello-world",
 --                "properties": {
 --                    "port": 80,
 --                    "probe": {
@@ -557,8 +566,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "httpListeners": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80",
---                "name": "fl-foo.baz-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80",
+--                "name": "fl-80",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-1--"
@@ -566,7 +575,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
 --                    },
---                    "hostName": "foo.baz",
+--                    "hostName": "",
 --                    "protocol": "Http"
 --                }
 --            }
@@ -601,17 +610,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "requestRoutingRules": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80",
---                "name": "rr-foo.baz-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
+--                "name": "rr-80",
 --                "properties": {
 --                    "backendAddressPool": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
 --                    },
 --                    "backendHttpSettings": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"
 --                    },
 --                    "ruleType": "Basic"
 --                }
