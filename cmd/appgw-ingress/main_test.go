@@ -6,7 +6,10 @@
 package main
 
 import (
+	"errors"
 	"testing"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -96,6 +99,9 @@ var _ = Describe("Test functions used in main.go", func() {
 
 	Context("test waitForAzureAuth", func() {
 		client := azure.NewFakeAzClient()
+		client.GetGatewayFunc = azure.GetGatewayFunc(func() (n.ApplicationGateway, error) {
+			return n.ApplicationGateway{}, errors.New("some error")
+		})
 		It("should try and panic", func() {
 			env := environment.EnvVariables{}
 			err := waitForAzureAuth(env, client, 0)

@@ -7,26 +7,59 @@ package azure
 
 import n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 
-type fakeAzClient struct {
+// GetGatewayFunc is a function type
+type GetGatewayFunc func() (n.ApplicationGateway, error)
+
+// UpdateGatewayFunc is a function type
+type UpdateGatewayFunc func(*n.ApplicationGateway) error
+
+// DeployGatewayFunc is a function type
+type DeployGatewayFunc func(string) error
+
+// GetPublicIPFunc is a function type
+type GetPublicIPFunc func(string) (n.PublicIPAddress, error)
+
+// FakeAzClient is a fake struct for AzClient
+type FakeAzClient struct {
+	GetGatewayFunc
+	UpdateGatewayFunc
+	DeployGatewayFunc
+	GetPublicIPFunc
 }
 
 // NewFakeAzClient returns a fake Azure Client
-func NewFakeAzClient() AzClient {
-	return &fakeAzClient{}
+func NewFakeAzClient() *FakeAzClient {
+	return &FakeAzClient{}
 }
 
-func (az *fakeAzClient) GetGateway() (n.ApplicationGateway, error) {
+// GetGateway runs GetGatewayFunc and return a gateway
+func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
+	if az.GetGatewayFunc != nil {
+		return az.GetGatewayFunc()
+	}
 	return n.ApplicationGateway{}, nil
 }
 
-func (az *fakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
+// UpdateGateway runs UpdateGatewayFunc and return a gateway
+func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
+	if az.UpdateGatewayFunc != nil {
+		return az.UpdateGatewayFunc(appGwObj)
+	}
 	return nil
 }
 
-func (az *fakeAzClient) DeployGateway(subnetID string) (err error) {
+// DeployGateway runs DeployGatewayFunc
+func (az *FakeAzClient) DeployGateway(subnetID string) (err error) {
+	if az.DeployGatewayFunc != nil {
+		return az.DeployGatewayFunc(subnetID)
+	}
 	return nil
 }
 
-func (az *fakeAzClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
+// GetPublicIP runs GetPublicIPFunc
+func (az *FakeAzClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
+	if az.GetPublicIPFunc != nil {
+		return az.GetPublicIPFunc(resourceID)
+	}
 	return n.PublicIPAddress{}, nil
 }
