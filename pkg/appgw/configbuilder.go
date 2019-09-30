@@ -82,7 +82,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
 		glog.Errorf("unable to generate backend address pools, error [%v]", err)
-		return nil, ErrGeneratingPools
+		return nil, ErrCreatingBackendPools
 	}
 
 	// Listener configures the frontend listeners
