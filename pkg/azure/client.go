@@ -10,23 +10,87 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest"
 )
 
-var ctx = context.Background()
+// AzClient is an interface for client to Azure
+type AzClient interface {
+	GetGateway() (n.ApplicationGateway, error)
+	UpdateGateway(*n.ApplicationGateway) error
+	DeployGateway(string) error
 
-// Deploy is a method that deploy the appge and related resources
-func Deploy(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appgwName ResourceName, subnetID string, authorizer autorest.Authorizer) (err error) {
-	group, err := getGroup(subscriptionID, resourceGroupName, authorizer)
+	GetPublicIP(string) (n.PublicIPAddress, error)
+}
+
+type azClient struct {
+	appGwClient       n.ApplicationGatewaysClient
+	publicIPClient    n.PublicIPAddressesClient
+	groupClient       r.GroupsClient
+	deploymentsClient r.DeploymentsClient
+	authorizer        autorest.Authorizer
+
+	subscriptionID    SubscriptionID
+	resourceGroupName ResourceGroup
+	appGwName         ResourceName
+
+	ctx context.Context
+}
+
+// NewAzClient returns an Azure Client
+func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
+	az := &azClient{
+		appGwClient:       n.NewApplicationGatewaysClient(string(subscriptionID)),
+		publicIPClient:    n.NewPublicIPAddressesClient(string(subscriptionID)),
+		groupClient:       r.NewGroupsClient(string(subscriptionID)),
+		deploymentsClient: r.NewDeploymentsClient(string(subscriptionID)),
+		subscriptionID:    subscriptionID,
+		resourceGroupName: resourceGroupName,
+		appGwName:         appGwName,
+
+		ctx:        context.Background(),
+		authorizer: authorizer,
+	}
+
+	az.publicIPClient.Authorizer = az.authorizer
+	az.groupClient.Authorizer = az.authorizer
+	az.publicIPClient.Authorizer = az.authorizer
+
+	return az
+}
+
+func (az *azClient) GetGateway() (n.ApplicationGateway, error) {
+	return az.appGwClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
+}
+
+func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
+	appGwFuture, err := az.appGwClient.CreateOrUpdate(az.ctx, string(az.resourceGroupName), string(az.appGwName), *appGwObj)
+	if err != nil {
+		return
+	}
+
+	// Wait until deployment finshes and save the error message
+	err = appGwFuture.WaitForCompletionRef(az.ctx, az.appGwClient.BaseClient.Client)
+	return
+}
+
+func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
+	_, resourceGroupName, publicIPName := ParseResourceID(resourceID)
+	return az.publicIPClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+}
+
+// DeployGateway is a method that deploy the appgw and related resources
+func (az *azClient) DeployGateway(subnetID string) (err error) {
+	group, err := az.getGroup()
 	if err != nil {
 		return
 	}
 	log.Printf("Created group: %v", *group.Name)
 
-	deploymentName := string(appgwName)
+	deploymentName := string(az.appGwName)
 	log.Printf("Starting deployment: %s", deploymentName)
-	result, err := createDeployment(subscriptionID, resourceGroupName, appgwName, subnetID, authorizer)
+	result, err := az.createDeployment(subnetID)
 	if err != nil {
 		return
 	}
@@ -40,51 +104,45 @@ func Deploy(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appg
 }
 
 // Create a resource group for the deployment.
-func getGroup(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, authorizer autorest.Authorizer) (resources.Group, error) {
-	groupsClient := resources.NewGroupsClient(string(subscriptionID))
-	groupsClient.Authorizer = authorizer
-
-	return groupsClient.Get(ctx, string(resourceGroupName))
+func (az *azClient) getGroup() (r.Group, error) {
+	return az.groupClient.Get(az.ctx, string(az.resourceGroupName))
 }
 
 // Create the deployment
-func createDeployment(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appgwName ResourceName, subnetID string, authorizer autorest.Authorizer) (deployment resources.DeploymentExtended, err error) {
+func (az *azClient) createDeployment(subnetID string) (deployment r.DeploymentExtended, err error) {
 	template := getTemplate()
 	if err != nil {
 		return
 	}
 	params := map[string]interface{}{
 		"applicationGatewayName": map[string]string{
-			"value": string(appgwName),
+			"value": string(az.appGwName),
 		},
 		"applicationGatewaySubnetId": map[string]string{
 			"value": subnetID,
 		},
 	}
 
-	deploymentsClient := resources.NewDeploymentsClient(string(subscriptionID))
-	deploymentsClient.Authorizer = authorizer
-
-	deploymentFuture, err := deploymentsClient.CreateOrUpdate(
-		ctx,
-		string(resourceGroupName),
-		string(appgwName),
-		resources.Deployment{
-			Properties: &resources.DeploymentProperties{
+	deploymentFuture, err := az.deploymentsClient.CreateOrUpdate(
+		az.ctx,
+		string(az.resourceGroupName),
+		string(az.appGwName),
+		r.Deployment{
+			Properties: &r.DeploymentProperties{
 				Template:   template,
 				Parameters: params,
-				Mode:       resources.Incremental,
+				Mode:       r.Incremental,
 			},
 		},
 	)
 	if err != nil {
 		return
 	}
-	err = deploymentFuture.Future.WaitForCompletionRef(ctx, deploymentsClient.BaseClient.Client)
+	err = deploymentFuture.Future.WaitForCompletionRef(az.ctx, az.deploymentsClient.BaseClient.Client)
 	if err != nil {
 		return
 	}
-	return deploymentFuture.Result(deploymentsClient)
+	return deploymentFuture.Result(az.deploymentsClient)
 }
 
 func getTemplate() map[string]interface{} {

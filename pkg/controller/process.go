@@ -6,7 +6,6 @@
 package controller
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -20,7 +19,6 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -30,10 +28,8 @@ import (
 // Process is the callback function that will be executed for every event
 // in the EventQueue.
 func (c AppGwIngressController) Process(event events.Event) error {
-	ctx := context.Background()
-
 	// Get current application gateway config
-	appGw, err := c.appGwClient.Get(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName)
+	appGw, err := c.azClient.GetGateway()
 	if err != nil {
 		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		return ErrFetchingAppGatewayConfig
@@ -135,7 +131,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	deploymentStart := time.Now()
 	// Initiate deployment
-	appGwFuture, err := c.appGwClient.CreateOrUpdate(ctx, c.appGwIdentifier.ResourceGroup, c.appGwIdentifier.AppGwName, *generatedAppGw)
+	err = c.azClient.UpdateGateway(generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
@@ -148,7 +144,6 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		return err
 	}
 	// Wait until deployment finshes and save the error message
-	err = appGwFuture.WaitForCompletionRef(ctx, c.appGwClient.BaseClient.Client)
 	configJSON, _ := dumpSanitizedJSON(&appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
 	glog.V(5).Info(string(configJSON))
 
@@ -208,22 +203,18 @@ func (c AppGwIngressController) updateIPAddressMap(appGw *n.ApplicationGateway) 
 
 		if ipConf.PrivateIPAddress != nil {
 			c.ipAddressMap[*ipConf.ID] = k8scontext.IPAddress(*ipConf.PrivateIPAddress)
-		} else if ipAddress := c.getPublicIPAddress(azure.ParseResourceID(*ipConf.PublicIPAddress.ID)); ipAddress != nil {
+		} else if ipAddress := c.getPublicIPAddress(*ipConf.PublicIPAddress.ID); ipAddress != nil {
 			c.ipAddressMap[*ipConf.ID] = *ipAddress
 		}
 	}
 }
 
 // getPublicIPAddress gets the ip address associated to public ip on Azure
-func (c AppGwIngressController) getPublicIPAddress(subscriptionID azure.SubscriptionID, resourceGroup azure.ResourceGroup, publicIPName azure.ResourceName) *k8scontext.IPAddress {
-	ctx := context.Background()
-	// initialize public ip client using auth used with appgw client
-	publicIPClient := n.NewPublicIPAddressesClient(string(subscriptionID))
-	publicIPClient.Authorizer = c.appGwClient.Authorizer
+func (c AppGwIngressController) getPublicIPAddress(publicIPID string) *k8scontext.IPAddress {
 	// get public ip
-	publicIP, err := publicIPClient.Get(ctx, string(resourceGroup), string(publicIPName), "")
+	publicIP, err := c.azClient.GetPublicIP(publicIPID)
 	if err != nil {
-		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPName, err)
+		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPID, err)
 		return nil
 	}
 

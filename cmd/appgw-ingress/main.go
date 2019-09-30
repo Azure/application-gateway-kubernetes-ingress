@@ -6,7 +6,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 	"os/signal"
@@ -100,17 +99,17 @@ func main() {
 		env.ResourceGroupName = string(resGp)
 	}
 
-	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
+	//var azClient azure.AzClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), )
 	var err error
-	if appGwClient.Authorizer, err = getAuthorizerWithRetry(env, maxAuthRetryCount); err != nil {
+	var authorizer autorest.Authorizer
+	if authorizer, err = getAuthorizerWithRetry(env, maxAuthRetryCount); err != nil {
 		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
 	}
-	if err = waitForAzureAuth(env, appGwClient, maxAuthRetryCount); err != nil {
+
+	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
+	if err = waitForAzureAuth(env, azClient, maxAuthRetryCount); err != nil {
 		if err == ErrAppGatewayNotFound {
-			subscriptionID := azure.SubscriptionID(env.SubscriptionID)
-			resourceGroupName := azure.ResourceGroup(env.ResourceGroupName)
-			appgwName := azure.ResourceName(env.AppGwName)
-			err = azure.Deploy(subscriptionID, resourceGroupName, appgwName, env.AppGwSubnetID, appGwClient.Authorizer)
+			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
 				glog.Fatal("Failed in deploying App gateway", err)
 			}
@@ -136,12 +135,12 @@ func main() {
 	}
 
 	// fatal config validations
-	appGw, _ := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+	appGw, _ := azClient.GetGateway()
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(appGwClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
 		glog.Fatal("Could not start AGIC: ", err)
@@ -228,10 +227,10 @@ func getAuthorizerWithRetry(env environment.EnvVariables, maxAuthRetryCount int)
 	}
 }
 
-func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGatewaysClient, maxAuthRetryCount int) error {
+func waitForAzureAuth(env environment.EnvVariables, azClient azure.AzClient, maxAuthRetryCount int) error {
 	retryCount := 0
 	for {
-		response, err := appGwClient.Get(context.Background(), env.ResourceGroupName, env.AppGwName)
+		response, err := azClient.GetGateway()
 		if err == nil {
 			return nil
 		}

@@ -86,8 +86,6 @@ var _ = Describe("Environment", func() {
 				}
 
 				Expect(GetEnv()).To(Equal(expected))
-				err := ValidateEnv(GetEnv())
-				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
