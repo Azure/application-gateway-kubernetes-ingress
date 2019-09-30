@@ -25,7 +25,7 @@ const (
 	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
 	AppGwSubnetIDVarName = "APPGW_SUBNETID"
 
-	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
+	// ReleaseNameVarName is the name of the RELEASE_NAME
 	ReleaseNameVarName = "RELEASE_NAME"
 
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
