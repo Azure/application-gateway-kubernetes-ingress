@@ -75,10 +75,6 @@ func main() {
 		version.PrintVersionAndExit()
 	}
 
-	if err := environment.ValidateEnv(env); err != nil {
-		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values.", err)
-	}
-
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
 	_ = flag.CommandLine.Parse([]string{})

@@ -6,7 +6,6 @@
 package environment
 
 import (
-	"errors"
 	"os"
 	"regexp"
 
@@ -108,18 +107,6 @@ func GetEnv() EnvVariables {
 	}
 
 	return env
-}
-
-// ValidateEnv validates environment variables.
-func ValidateEnv(env EnvVariables) error {
-	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required (ENVT001)")
-	}
-
-	if env.WatchNamespace == "" {
-		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
-	}
-	return nil
 }
 
 // GetEnvironmentVariable is an augmentation of os.Getenv, providing it with a default value.
