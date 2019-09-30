@@ -6,6 +6,125 @@ and AGIC installation. Launch your shell from [shell.azure.com](https://shell.az
 [![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
 
+### Test with a simple Kubernetes app
+
+The steps below assume:
+  - You have an AKS cluster, with Advanced Networking enabled
+  - AGIC has been installed on the AKS cluster
+  - You already hav an App Gateway on a VNET shared with your AKS cluster
+
+To verify that the App Gateway + AKS + AGIC installation is setup correctly, deploy
+the simplest possible app:
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-agic-app-pod
+  labels:
+    app: test-agic-app
+spec:
+  containers:
+  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+    name: aspnetapp-image
+    ports:
+    - containerPort: 80
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-agic-app-service
+spec:
+  selector:
+    app: test-agic-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-agic-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+    - host: test.agic.contoso.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: test-agic-app-service
+              servicePort: 80
+EOF
+```
+
+Copy and paste all lines at once from the
+script above into a [Azure Cloud Shell](https://shell.azure.com/). Please ensure the entire
+command is copied - starting with `cat` and including the last `EOF`.
+
+![apply](images/tsg--apply-config.png)
+
+After a successful deployment of the app above your AKS cluster will have a new Pod, Service and an Ingress.
+
+Get the list of pods with [Cloud Shell](https://shell.azure.com/): `kubectl get pods -o wide`.
+We expect for a pod named 'test-agic-app-pod' to have been created. It will have an IP address. This address
+must be within the VNET of the App Gateway, which is used with AKS.
+
+![pods](images/tsg--get-pods.png)
+
+Get the list of services: `kubectl get services -o wide`. We expect to see a service named
+'test-agic-app-service'.
+
+![pods](images/tsg--get-services.png)
+
+Get the list of the ingresses: `kubectl get ingress`. We expect an Ingress resource named
+'test-agic-app-ingress' to have been created. The resource will have a host name 'test.agic.contoso.com'.
+
+![pods](images/tsg--get-ingress.png)
+
+One of the pods will be AGIC. `kubectl get pods` will show a list of pods, one of which will begin
+with 'ingress-azure'. Get all logs of that pod with `kubectl logs <name-of-ingress-controller-pod>`
+to verify that we have had a successful deployment. A successful deployment would have added the following
+lines to the log:
+```
+I0927 22:34:51.281437       1 process.go:156] Applied App Gateway config in 20.461335266s
+I0927 22:34:51.281585       1 process.go:165] cache: Updated with latest applied config.
+I0927 22:34:51.282342       1 process.go:171] END AppGateway deployment
+```
+
+Alternatively, from [Cloud Shell](https://shell.azure.com/) we can retrieve only the lines
+indicating successful App Gateway configuration with
+`kubectl logs <ingress-azure-....> | grep 'Applied App Gateway config in'`, where
+`<ingress-azure....>` should be the exact name of the AGIC pod.
+
+App Gateway will have the following configuration applied:
+
+- Listener:
+![listener](images/tsg--listeners.png)
+
+- Routing Rule:
+![routing_rule](images/tsg--rule.png)
+
+- Backend Pool:
+  - There will be one IP address in the backend address pool and it will match the IP address of the Pod we observed earlier with `kubectl get pods -o wide`
+![backend_pool](images/tsg--backendpools.png)
+
+
+Finally we can use the `cURL` command from within [Cloud Shell](https://shell.azure.com/) to
+establish an HTTP connection to the newly deployed app:
+
+1. Use `kubectl get ingress` to get the Public IP address of App Gateway
+2. Use `curl -I -H 'test.agic.contoso.com' <publitc-ip-address-from-previous-command>`
+
+![pods](images/tsg--curl.png)
+
+A result of `HTTP/1.1 200 OK` indicates that the App Gateway + AKS + AGIC system is working as expected.
+
+
 ### Inspect Kubernetes Installation
 
 #### Pods, Services, Ingress
