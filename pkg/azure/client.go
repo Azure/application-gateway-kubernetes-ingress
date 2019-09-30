@@ -53,6 +53,7 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		authorizer: authorizer,
 	}
 
+	az.appGwClient.Authorizer = az.authorizer
 	az.publicIPClient.Authorizer = az.authorizer
 	az.groupClient.Authorizer = az.authorizer
 	az.publicIPClient.Authorizer = az.authorizer
