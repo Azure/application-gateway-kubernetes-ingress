@@ -18,4 +18,7 @@ var (
 
 	// ErrGetArmAuth is an error message.
 	ErrGetArmAuth = errors.New("failed arm auth (MAIN003)")
+
+	// ErrAppGatewayNotFound is an error message.
+	ErrAppGatewayNotFound = errors.New("not found (MAIN004)")
 )

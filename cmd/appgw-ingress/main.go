@@ -33,6 +33,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
@@ -84,21 +85,6 @@ func main() {
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
-	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
-	var err error
-	if appGwClient.Authorizer, err = getAuthorizerWithRetry(env, maxAuthRetryCount); err != nil {
-		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
-	}
-	if err = waitForAzureAuth(env, appGwClient, maxAuthRetryCount); err != nil {
-		glog.Fatal("Failed authenticating with Azure Resource Manager")
-	}
-
-	appGwIdentifier := appgw.Identifier{
-		SubscriptionID: env.SubscriptionID,
-		ResourceGroup:  env.ResourceGroupName,
-		AppGwName:      env.AppGwName,
-	}
-
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
@@ -108,6 +94,36 @@ func main() {
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
 	agicPod := k8sContext.GetAGICPod(env)
 	metricStore := metricstore.NewMetricStore(env)
+
+	if subID, resGp, err := k8sContext.GetInfrastructureResourceGroupID(); err == nil {
+		env.SubscriptionID = string(subID)
+		env.ResourceGroupName = string(resGp)
+	}
+
+	appGwClient := n.NewApplicationGatewaysClient(env.SubscriptionID)
+	var err error
+	if appGwClient.Authorizer, err = getAuthorizerWithRetry(env, maxAuthRetryCount); err != nil {
+		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
+	}
+	if err = waitForAzureAuth(env, appGwClient, maxAuthRetryCount); err != nil {
+		if err == ErrAppGatewayNotFound {
+			subscriptionID := azure.SubscriptionID(env.SubscriptionID)
+			resourceGroupName := azure.ResourceGroup(env.ResourceGroupName)
+			appgwName := azure.ResourceName(env.AppGwName)
+			err = azure.Deploy(subscriptionID, resourceGroupName, appgwName, env.AppGwSubnetID, appGwClient.Authorizer)
+			if err != nil {
+				glog.Fatal("Failed in deploying App gateway", err)
+			}
+		} else {
+			glog.Fatal("Failed authenticating with Azure Resource Manager", err)
+		}
+	}
+
+	appGwIdentifier := appgw.Identifier{
+		SubscriptionID: env.SubscriptionID,
+		ResourceGroup:  env.ResourceGroupName,
+		AppGwName:      env.AppGwName,
+	}
 
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
@@ -226,6 +242,11 @@ func waitForAzureAuth(env environment.EnvVariables, appGwClient n.ApplicationGat
 				" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
 				" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
 				" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+		}
+
+		if response.Response.Response != nil && response.Response.StatusCode == 404 {
+			glog.Error("AppGw not found, deploying.....")
+			return ErrAppGatewayNotFound
 		}
 
 		if response.Response.Response != nil && response.Response.StatusCode != 200 {
