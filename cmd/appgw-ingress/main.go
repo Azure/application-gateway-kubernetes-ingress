@@ -95,6 +95,10 @@ func main() {
 	agicPod := k8sContext.GetAGICPod(env)
 	metricStore := metricstore.NewMetricStore(env)
 
+	if env.AppGwName == "" {
+		env.AppGwName = env.ReleaseName
+	}
+
 	if subID, resGp, err := k8sContext.GetInfrastructureResourceGroupID(); err == nil {
 		env.SubscriptionID = string(subID)
 		env.ResourceGroupName = string(resGp)

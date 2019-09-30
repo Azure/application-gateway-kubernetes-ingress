@@ -26,6 +26,9 @@ const (
 	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
 	AppGwSubnetIDVarName = "APPGW_SUBNETID"
 
+	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
+	ReleaseNameVarName = "RELEASE_NAME"
+
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
 
@@ -66,6 +69,7 @@ type EnvVariables struct {
 	ResourceGroupName          string
 	AppGwName                  string
 	AppGwSubnetID              string
+	ReleaseName                string
 	AuthLocation               string
 	WatchNamespace             string
 	UsePrivateIP               string
@@ -89,6 +93,7 @@ func GetEnv() EnvVariables {
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
 		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
+		ReleaseName:                os.Getenv(ReleaseNameVarName),
 		AuthLocation:               os.Getenv(AuthLocationVarName),
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
