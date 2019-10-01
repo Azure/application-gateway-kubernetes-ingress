@@ -175,7 +175,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(envVariables.AGICPodName, metav1.GetOptions{})
 	if err != nil {
-		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment), error occurred ", err)
+		glog.Error("Error fetching AGIC Pod (is AGIC running in a test environment?): ", err)
 		return nil
 	}
 	return pod
@@ -198,7 +198,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.Error("Error fetching endpoints from store, error occurred ", err)
+		glog.Error("Error fetching endpoints from store: ", err)
 		return nil, err
 	}
 
@@ -303,7 +303,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(3).Infof("unable to get service from store, error occurred %s", err)
+		glog.Error("Error getting service from store: ", err)
 		return nil
 	}
 
@@ -326,7 +326,7 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	}
 
 	if !exist {
-		glog.Error("Error fetching secret from store! Service does not exist:", secretKey)
+		glog.Errorf("Error fetching secret from store! Service %s does not exist!", secretKey)
 		return nil
 	}
 

@@ -108,7 +108,7 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 
 	// if openssl exited with an error or the output is empty, report error
 	if err := cmd.Run(); err != nil || len(cout.Bytes()) == 0 {
-		glog.Errorf("unable to export using openssl, error=[%v], stderr=[%v]", err, cerr.String())
+		glog.Errorf("Error exporting certificate using openssl, error=[%v], stderr=[%v]", err, cerr.String())
 		return ErrorExportingWithOpenSSL
 	}
 

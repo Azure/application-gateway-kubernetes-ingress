@@ -109,10 +109,10 @@ func main() {
 		if err == ErrAppGatewayNotFound {
 			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
-				glog.Fatal("Failed in deploying App gateway", err)
+				glog.Fatal("Error deploying App Gateway: ", err)
 			}
 		} else {
-			glog.Fatal("Failed authenticating with Azure Resource Manager", err)
+			glog.Fatal("Error authenticating with Azure Resource Manager: ", err)
 		}
 	}
 
@@ -199,7 +199,7 @@ func getKubeClientConfig() *rest.Config {
 	if *inCluster {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			glog.Fatal("Error creating client configuration:", err)
+			glog.Fatal("Error creating client configuration: ", err)
 		}
 		return config
 	}
@@ -211,7 +211,7 @@ func getKubeClientConfig() *rest.Config {
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
 	if err != nil {
-		glog.Fatal("error creating client configuration:", err)
+		glog.Fatal("Error creating client configuration: ", err)
 	}
 
 	return config
@@ -224,7 +224,7 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()
 	if err != nil {
-		glog.Error("Could not obtain host name from the operating system", err)
+		glog.Error("Error getting host name from the OS: ", err)
 		hostname = "unknown-hostname"
 	}
 	source := v1.EventSource{

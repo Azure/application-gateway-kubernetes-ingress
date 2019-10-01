@@ -56,7 +56,7 @@ func (s *httpServer) Start() {
 	go func() {
 		glog.Infof("Starting API Server on %s", s.server.Addr)
 		if err := s.server.ListenAndServe(); err != nil {
-			glog.Fatal("Failed to start API server", err)
+			glog.Fatal("Error starting API server: ", err)
 		}
 	}()
 }
@@ -65,6 +65,6 @@ func (s *httpServer) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.server.Shutdown(ctx); err != nil {
-		glog.Error("Unable to shutdown API server gracefully", err)
+		glog.Error("Error shuting down API server: ", err)
 	}
 }

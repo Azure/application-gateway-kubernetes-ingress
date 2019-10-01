@@ -68,20 +68,20 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate Health Probes, error [%v]", err)
+		glog.Error("Error creating Health Probes: ", err)
 		return nil, ErrGeneratingProbes
 	}
 
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend http settings, error [%v]", err)
+		glog.Error("Error creating Backend HTTP Settings: ", err)
 		return nil, ErrGeneratingBackendSettings
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend address pools, error [%v]", err)
+		glog.Error("Error creating Backend Address Pools: ", err)
 		return nil, ErrCreatingBackendPools
 	}
 
@@ -91,14 +91,14 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	// The order of operations matters.
 	err = c.Listeners(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate frontend listeners, error [%v]", err)
+		glog.Error("Error creating Frontend Listeners: ", err)
 		return nil, ErrGeneratingListeners
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate request routing rules, error [%v]", err)
+		glog.Error("Error creating Request Routing Rules: ", err)
 		return nil, ErrGeneratingRoutingRules
 	}
 
@@ -144,7 +144,7 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 	resolvedPorts := make(map[int32]interface{})
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
-		glog.Error("Could not fetch endpoint by service key from cache", err)
+		glog.Errorf("Could not fetch endpoints for service %s key from cache: %s", backendID.serviceKey(), err)
 		return resolvedPorts
 	}
 
@@ -200,6 +200,6 @@ func (c *appGwConfigBuilder) addTags() {
 	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
 		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
 	} else {
-		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
+		glog.Error("Error parsing AKS ID for tag: ", err)
 	}
 }

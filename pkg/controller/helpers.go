@@ -26,14 +26,14 @@ var keysToDeleteForCache = []string{
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
-		glog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
+		glog.Error("Error marshalling App Gateway config for AGIC cache (will clear cache): ", err)
 		c.configCache = nil
 		return
 	}
 	var sanitized []byte
 	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
 		// Ran into an error; Wipe the existing cache
-		glog.Error("Failed stripping ETag key from App Gwy config. Wiping cache.", err)
+		glog.Error("Error stripping ETag key from App Gateway config (will clear cache): ", err)
 		c.configCache = nil
 		return
 	}
@@ -47,7 +47,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	}
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
-		glog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
+		glog.Error("Error marshalling App Gateway config in order to compare w/ cache (will not use cache): ", err)
 		return false
 	}
 	// The JSON stored in the cache and the newly marshaled JSON will have different ETags even if configs are the same.
@@ -55,7 +55,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	var sanitized []byte
 	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
 		// Ran into an error; Don't use cache; Refresh cache w/ new JSON
-		glog.Error("Failed stripping ETag key from App Gwy config. Will not use cache.", err)
+		glog.Error("Error stripping ETag key from App Gwy config (will not use cache): ", err)
 		return false
 	}
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
@@ -136,7 +136,7 @@ func deleteKey(m *map[string]interface{}, keyToDelete string) {
 func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, error) {
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonWithEtag), &m); err != nil {
-		glog.Error("Could not unmarshal config App Gwy JSON to delete Etag.", err)
+		glog.Error("Error unmarshalling App Gateway config in order to delete Etag. Error: ", err)
 		return nil, err
 	}
 	for _, keyToDelete := range keysToDelete {

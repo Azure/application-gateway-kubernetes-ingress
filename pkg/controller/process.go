@@ -94,7 +94,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	// Run fatal validations on the existing config of the Application Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
-		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
+		glog.Error("Validation error on existing App Gateway config. Will retry getting App Gateway until error is resolved: ", err)
 		return err
 	}
 
@@ -103,19 +103,19 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
-		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
+		glog.Error("ConfigBuilder PostBuildValidate returned error: ", err)
 	}
 
 	var generatedAppGw *n.ApplicationGateway
 	// Replace the current appgw config with the generated one
 	if generatedAppGw, err = configBuilder.Build(cbCtx); err != nil {
-		glog.Error("ConfigBuilder Build returned error:", err)
+		glog.Error("ConfigBuilder Build returned error: ", err)
 		return err
 	}
 
 	// Run post validations to report errors in the config generation.
 	if err = configBuilder.PostBuildValidate(cbCtx); err != nil {
-		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
+		glog.Error("ConfigBuilder PostBuildValidate returned error: ", err)
 	}
 
 	if c.configIsSame(&appGw) {
@@ -156,7 +156,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warning("Unable to deploy App Gateway config.", err)
+		glog.Error("Error deploying App Gateway config: ", err)
 		return ErrDeployingAppGatewayConfig
 	}
 
