@@ -82,7 +82,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			},
 			Name: to.StringPtr("fp-80"),
 			Etag: to.StringPtr("*"),
-			ID:   to.StringPtr(resPref + "frontEndPorts/fp-80"),
+			ID:   to.StringPtr(resPref + "frontendPorts/fp-80"),
 		}
 
 		expectedPort443 = n.ApplicationGatewayFrontendPort{
@@ -91,7 +91,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			},
 			Name: to.StringPtr("fp-443"),
 			Etag: to.StringPtr("*"),
-			ID:   to.StringPtr(resPref + "frontEndPorts/fp-443"),
+			ID:   to.StringPtr(resPref + "frontendPorts/fp-443"),
 		}
 
 		expectedListener80 = n.ApplicationGatewayHTTPListener{
@@ -100,7 +100,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ID:   to.StringPtr(resPref + "httpListeners/fl-bye.com-80"),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration: resourceRef(tests.PublicIPID),
-				FrontendPort:            resourceRef(resPref + "frontEndPorts/fp-80"),
+				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                n.ApplicationGatewayProtocol("Http"),
 				HostName:                to.StringPtr(tests.Host),
 			},
@@ -112,7 +112,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ID:   to.StringPtr(resPref + "httpListeners/fl-bye.com-80-privateip"),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration: resourceRef(tests.PrivateIPID),
-				FrontendPort:            resourceRef(resPref + "frontEndPorts/fp-80"),
+				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                n.ApplicationGatewayProtocol("Http"),
 				HostName:                to.StringPtr(tests.Host),
 			},
@@ -124,7 +124,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ID:   to.StringPtr(resPref + "httpListeners/fl-bye.com-443"),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration: resourceRef(tests.PublicIPID),
-				FrontendPort:            resourceRef(resPref + "frontEndPorts/fp-443"),
+				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                n.ApplicationGatewayProtocol("Https"),
 				HostName:                to.StringPtr(tests.Host),
 				SslCertificate:          resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
@@ -137,7 +137,7 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 			ID:   to.StringPtr(resPref + "httpListeners/fl-bye.com-443-privateip"),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration: resourceRef(tests.PrivateIPID),
-				FrontendPort:            resourceRef(resPref + "frontEndPorts/fp-443"),
+				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                n.ApplicationGatewayProtocol("Https"),
 				HostName:                to.StringPtr(tests.Host),
 				SslCertificate:          resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
