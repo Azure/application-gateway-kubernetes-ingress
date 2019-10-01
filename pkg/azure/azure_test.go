@@ -6,9 +6,12 @@
 package azure
 
 import (
+	"errors"
 	"fmt"
 	"testing"
+	"time"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -49,6 +52,33 @@ var _ = Describe("Azure", func() {
 				subID = SubscriptionID("xxxx")
 				resGp = ResourceGroup("mc_resgp_resName_location")
 				Expect(ConvertToClusterResourceGroup(subID, resGp, nil)).To(Equal("/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ContainerService/managedClusters/resName"))
+			})
+		})
+
+		Context("test getAuthorizer", func() {
+			It("should try and get some authorizer", func() {
+				authorizer, err := getAuthorizer("")
+				Ω(authorizer).ToNot(BeNil())
+				Ω(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("test getAuthorizerWithRetry", func() {
+			It("should try and get some authorizer", func() {
+				authorizer, err := GetAuthorizerWithRetry("", 0, time.Duration(10))
+				Ω(authorizer).ToNot(BeNil())
+				Ω(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("test waitForAzureAuth", func() {
+			client := NewFakeAzClient()
+			client.GetGatewayFunc = GetGatewayFunc(func() (n.ApplicationGateway, error) {
+				return n.ApplicationGateway{}, errors.New("some error")
+			})
+			It("should try and panic", func() {
+				err := WaitForAzureAuth(client, 0, time.Duration(10))
+				Ω(err).To(HaveOccurred())
 			})
 		})
 	})
