@@ -6,13 +6,13 @@
 package controller
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
@@ -21,7 +21,7 @@ import (
 
 // AppGwIngressController configures the application gateway based on the ingress rules defined.
 type AppGwIngressController struct {
-	appGwClient     n.ApplicationGatewaysClient
+	azClient        azure.AzClient
 	appGwIdentifier appgw.Identifier
 	ipAddressMap    map[string]k8scontext.IPAddress
 
@@ -39,9 +39,9 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(appGwClient n.ApplicationGatewaysClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
 	controller := &AppGwIngressController{
-		appGwClient:     appGwClient,
+		azClient:        azClient,
 		appGwIdentifier: appGwIdentifier,
 		k8sContext:      k8sContext,
 		recorder:        recorder,
