@@ -8,11 +8,11 @@ package azure
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/golang/glog"
 )
 
 // AzClient is an interface for client to Azure
@@ -25,9 +25,9 @@ type AzClient interface {
 }
 
 type azClient struct {
-	appGwClient       n.ApplicationGatewaysClient
-	publicIPClient    n.PublicIPAddressesClient
-	groupClient       r.GroupsClient
+	appGatewaysClient n.ApplicationGatewaysClient
+	publicIPsClient   n.PublicIPAddressesClient
+	groupsClient      r.GroupsClient
 	deploymentsClient r.DeploymentsClient
 	authorizer        autorest.Authorizer
 
@@ -41,9 +41,9 @@ type azClient struct {
 // NewAzClient returns an Azure Client
 func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
 	az := &azClient{
-		appGwClient:       n.NewApplicationGatewaysClient(string(subscriptionID)),
-		publicIPClient:    n.NewPublicIPAddressesClient(string(subscriptionID)),
-		groupClient:       r.NewGroupsClient(string(subscriptionID)),
+		appGatewaysClient: n.NewApplicationGatewaysClient(string(subscriptionID)),
+		publicIPsClient:   n.NewPublicIPAddressesClient(string(subscriptionID)),
+		groupsClient:      r.NewGroupsClient(string(subscriptionID)),
 		deploymentsClient: r.NewDeploymentsClient(string(subscriptionID)),
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
@@ -53,52 +53,54 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		authorizer: authorizer,
 	}
 
-	az.appGwClient.Authorizer = az.authorizer
-	az.publicIPClient.Authorizer = az.authorizer
-	az.groupClient.Authorizer = az.authorizer
-	az.publicIPClient.Authorizer = az.authorizer
+	az.appGatewaysClient.Authorizer = az.authorizer
+	az.publicIPsClient.Authorizer = az.authorizer
+	az.groupsClient.Authorizer = az.authorizer
+	az.publicIPsClient.Authorizer = az.authorizer
+	az.deploymentsClient.Authorizer = az.authorizer
 
 	return az
 }
 
 func (az *azClient) GetGateway() (n.ApplicationGateway, error) {
-	return az.appGwClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
+	return az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 }
 
 func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
-	appGwFuture, err := az.appGwClient.CreateOrUpdate(az.ctx, string(az.resourceGroupName), string(az.appGwName), *appGwObj)
+	appGwFuture, err := az.appGatewaysClient.CreateOrUpdate(az.ctx, string(az.resourceGroupName), string(az.appGwName), *appGwObj)
 	if err != nil {
 		return
 	}
 
 	// Wait until deployment finshes and save the error message
-	err = appGwFuture.WaitForCompletionRef(az.ctx, az.appGwClient.BaseClient.Client)
+	err = appGwFuture.WaitForCompletionRef(az.ctx, az.appGatewaysClient.BaseClient.Client)
 	return
 }
 
 func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 	_, resourceGroupName, publicIPName := ParseResourceID(resourceID)
-	return az.publicIPClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+	return az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
 func (az *azClient) DeployGateway(subnetID string) (err error) {
+	glog.Infof("Deploying Gateway")
 	group, err := az.getGroup()
 	if err != nil {
 		return
 	}
-	log.Printf("Created group: %v", *group.Name)
+	glog.Infof("Using resource group: %v", *group.Name)
 
 	deploymentName := string(az.appGwName)
-	log.Printf("Starting deployment: %s", deploymentName)
+	glog.Infof("Starting ARM template deployment: %s", deploymentName)
 	result, err := az.createDeployment(subnetID)
 	if err != nil {
 		return
 	}
 	if result.Name != nil {
-		log.Printf("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
+		glog.Infof("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
 	} else {
-		log.Printf("Completed deployment %v (no data returned to SDK)", deploymentName)
+		glog.Infof("Completed deployment %v (no data returned to SDK)", deploymentName)
 	}
 
 	return
@@ -106,7 +108,7 @@ func (az *azClient) DeployGateway(subnetID string) (err error) {
 
 // Create a resource group for the deployment.
 func (az *azClient) getGroup() (r.Group, error) {
-	return az.groupClient.Get(az.ctx, string(az.resourceGroupName))
+	return az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
 }
 
 // Create the deployment
