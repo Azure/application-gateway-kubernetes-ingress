@@ -118,6 +118,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 
 func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
+	if ingress.Spec.Backend == nil {
+		return;
+	}
 	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {

@@ -50,6 +50,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
+				if ingress.Spec.Backend == nil {continue;}
 				path := &rule.HTTP.Paths[pathIdx]
 				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
