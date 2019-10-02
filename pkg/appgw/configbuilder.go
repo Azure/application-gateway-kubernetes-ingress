@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -102,9 +103,29 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, ErrGeneratingRoutingRules
 	}
 
+	c.removeOrphaned()
+
 	c.addTags()
 
 	return &c.appGw, nil
+}
+
+func (c *appGwConfigBuilder) removeOrphaned() {
+	// Remove orphaned HTTP Settings -- not referenced by any Request Routing Rule
+	if c.appGw.BackendHTTPSettingsCollection != nil && c.appGw.RequestRoutingRules != nil {
+		referencedHTTPSettings := make(map[string]interface{})
+		for _, rule := range *c.appGw.RequestRoutingRules {
+			settingName := utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID)
+			referencedHTTPSettings[settingName] = nil
+		}
+		var sett []n.ApplicationGatewayBackendHTTPSettings
+		for _, hs := range *c.appGw.BackendHTTPSettingsCollection {
+			if _, referenced := referencedHTTPSettings[*hs.Name]; referenced {
+				sett = append(sett, hs)
+			}
+		}
+		c.appGw.BackendHTTPSettingsCollection = &sett
+	}
 }
 
 type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
