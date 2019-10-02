@@ -8,10 +8,10 @@ package azure
 import (
 	"time"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 )
 
 // WaitForAzureAuth waits until we can successfully get the gateway
@@ -32,7 +32,7 @@ func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.
 		}
 
 		if response.Response.Response != nil && response.Response.StatusCode == 404 {
-			glog.Error("AppGw not found, deploying.....")
+			glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
 			return ErrAppGatewayNotFound
 		}
 

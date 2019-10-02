@@ -318,7 +318,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "frontendPorts": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
 --                "name": "fp-80",
 --                "properties": {
 --                    "port": 80
@@ -335,7 +335,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "--front-end-ip-id-1--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
 --                    "hostName": "foo.baz",
 --                    "protocol": "Http"
@@ -556,7 +556,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "frontendPorts": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
 --                "name": "fp-80",
 --                "properties": {
 --                    "port": 80
@@ -573,7 +573,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "--front-end-ip-id-1--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
 --                    "hostName": "",
 --                    "protocol": "Http"

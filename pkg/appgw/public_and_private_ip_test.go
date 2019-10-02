@@ -380,7 +380,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "frontendPorts": [
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443",
 --                "name": "fp-443",
 --                "properties": {
 --                    "port": 443
@@ -388,7 +388,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --            },
 --            {
 --                "etag": "*",
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
 --                "name": "fp-80",
 --                "properties": {
 --                    "port": 80
@@ -405,7 +405,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "--front-end-ip-id-1--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-443"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
 --                    },
 --                    "hostName": "",
 --                    "protocol": "Https",
@@ -423,7 +423,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "--front-end-ip-id-2--"
 --                    },
 --                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontEndPorts/fp-80"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
 --                    "hostName": "",
 --                    "protocol": "Http"

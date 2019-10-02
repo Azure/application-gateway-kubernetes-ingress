@@ -92,12 +92,19 @@ func main() {
 		env.AppGwName = env.ReleaseName
 	}
 
-	if subID, resGp, err := k8sContext.GetInfrastructureResourceGroupID(); err == nil {
-		env.SubscriptionID = string(subID)
-		env.ResourceGroupName = string(resGp)
+	if infraSubID, infraResourceGp, err := k8sContext.GetInfrastructureResourceGroupID(); env.SubscriptionID == "" && err != nil {
+		env.SubscriptionID = string(infraSubID)
+		if env.ResourceGroupName == "" {
+			env.ResourceGroupName = string(infraResourceGp)
+		}
 	}
 
-	//var azClient azure.AzClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), )
+	if err := environment.ValidateEnv(env); err != nil {
+		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
+	}
+
+	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
+
 	var err error
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, maxAuthRetryCount, retryPause); err != nil {
@@ -106,7 +113,7 @@ func main() {
 
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
 	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
-		if err == ErrAppGatewayNotFound {
+		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
 				glog.Fatal("Error deploying App Gateway: ", err)
