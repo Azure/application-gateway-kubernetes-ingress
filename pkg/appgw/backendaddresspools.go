@@ -38,7 +38,10 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
 	}
-	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
+	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
+	if err != nil {
+		glog.Error("Error fetching Backends and Settings: ", err)
+	}
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, managedPoolsByName); pool != nil {
 			managedPoolsByName[*pool.Name] = pool

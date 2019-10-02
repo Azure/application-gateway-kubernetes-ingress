@@ -20,9 +20,6 @@ var (
 	// ErrGeneratingBackendSettings is an error.
 	ErrGeneratingBackendSettings = errors.New("unable to generate backend http settings (APPG004)")
 
-	// ErrGeneratingPools is an error.
-	ErrGeneratingPools = errors.New("unable to generate backend address pools (APPG004)")
-
 	// ErrGeneratingListeners is an error.
 	ErrGeneratingListeners = errors.New("unable to generate frontend listeners (APPG005)")
 
@@ -49,4 +46,10 @@ var (
 
 	// ErrIstioMultipleServiceBackendPortBinding is an error.
 	ErrIstioMultipleServiceBackendPortBinding = errors.New("more than one service-backend port binding is not allowed (APPG013)")
+
+	// ErrIstioResolvePortsForServices is an error.
+	ErrIstioResolvePortsForServices = errors.New("unable to resolve backend port for some services (APPG014)")
+
+	// ErrCreatingBackendPools is an error.
+	ErrCreatingBackendPools = errors.New("unable to generate backend address pools (APPG015)")
 )

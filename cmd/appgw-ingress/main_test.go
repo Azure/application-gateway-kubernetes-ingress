@@ -8,8 +8,6 @@ package main
 import (
 	"testing"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
@@ -73,33 +71,6 @@ var _ = Describe("Test functions used in main.go", func() {
 		It("should return empty list of namespaces to watch", func() {
 			actual := getNamespacesToWatch("")
 			Ω(actual).Should(Equal([]string{}))
-		})
-	})
-
-	Context("test getAuthorizer", func() {
-		It("should try and get some authorizer", func() {
-			env := environment.EnvVariables{}
-			authorizer, err := getAuthorizer(env)
-			Ω(authorizer).ToNot(BeNil())
-			Ω(err).ToNot(HaveOccurred())
-		})
-	})
-
-	Context("test getAuthorizerWithRetry", func() {
-		It("should try and get some authorizer", func() {
-			env := environment.EnvVariables{}
-			authorizer, err := getAuthorizerWithRetry(env, 0)
-			Ω(authorizer).ToNot(BeNil())
-			Ω(err).ToNot(HaveOccurred())
-		})
-	})
-
-	Context("test waitForAzureAuth", func() {
-		client := n.ApplicationGatewaysClient{}
-		It("should try and panic", func() {
-			env := environment.EnvVariables{}
-			err := waitForAzureAuth(env, client, 0)
-			Ω(err).To(HaveOccurred())
 		})
 	})
 })

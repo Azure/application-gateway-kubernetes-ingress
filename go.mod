@@ -19,21 +19,18 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
-	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
 	github.com/matm/gocov-html v0.0.0-20160206185555-f6dd0fd0ebc7 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v1.1.0
 	github.com/spf13/pflag v1.0.3
 	go.opencensus.io v0.22.0 // indirect
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8 // indirect
-	golang.org/x/net v0.0.0-20190613194153-d28f0bde5980 // indirect
-	golang.org/x/sys v0.0.0-20190614160838-b47fdc937951 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/api v0.7.0 // indirect
 	google.golang.org/appengine v1.6.1 // indirect

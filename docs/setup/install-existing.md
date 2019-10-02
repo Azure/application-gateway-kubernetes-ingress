@@ -1,8 +1,8 @@
 # Brownfield Deployment
 
-The App Gateway Ingress (AGIC) controller runs as a separate pod within your Kubernetes cluster. AGIC monitors the
-[Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resources and composes App Gateway
-configuration based on these. AGIC applies App Gateway config via the Azure Resource Manager (ARM).
+The App Gateway Ingress Controller (AGIC) is a pod within your Kubernetes cluster.
+AGIC monitors the Kubernetes [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+resources, and creates and applies App Gateway config based on these.
 
 ### Outline:
 - [Prerequisites](#prerequisites)
@@ -15,10 +15,10 @@ shared between one or more AKS clusters and/or other Azure components.
 
 ### Prerequisites
 This documents assumes you already have the following tools and infrastructure installed:
-- [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) installed on your local machine
 - [AKS](https://azure.microsoft.com/en-us/services/kubernetes-service/) with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni) enabled
 - [App Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant) in the same virtual network as AKS
 - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) installed on your AKS cluster
+- [Cloud Shell](https://shell.azure.com/) is the Azure shell environment, which has `az` CLI, `kubectl`, and `helm` installed. These tools are required for the commands below.
 
 Please __backup your App Gateway's configuration__ before installing AGIC:
   1. using [Azure Portal](https://portal.azure.com/) navigate to your `App Gateway` instance
@@ -27,6 +27,32 @@ Please __backup your App Gateway's configuration__ before installing AGIC:
 The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App
 Gateway should that become necessary
 
+### Install Helm
+[Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
+Kubernetes. We will leverage it to install the `application-gateway-kubernetes-ingress` package.
+Use [Cloud Shell](https://shell.azure.com/) to install Helm:
+
+1. Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
+
+    - *RBAC enabled* AKS cluster
+
+    ```bash
+    kubectl create serviceaccount --namespace kube-system tiller-sa
+    kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
+    helm init --tiller-namespace kube-system --service-account tiller-sa
+    ```
+
+    - *RBAC disabled* AKS cluster
+
+    ```bash
+    helm init
+    ```
+
+1. Add the AGIC Helm repository:
+    ```bash
+    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+    helm repo update
+    ```
 
 ### Azure Resource Manager Authentication
 
@@ -42,7 +68,8 @@ for the AGIC pod to make HTTP requests to [ARM](https://docs.microsoft.com/en-us
 
 Follow the [AAD Pod Identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to add this component to your AKS.
 
-Next we need to create an Azure identity and give it permissions ARM
+Next we need to create an Azure identity and give it permissions ARM.
+Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
 
 1. Create an Azure identity **in the same resource group as the AKS nodes**. Picking the correct resource group is
 important. The resource group required in the command below is *not* the one referenced on the AKS portal pane. This is
@@ -100,6 +127,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
    ```
 
 ## Install Ingress Controller as a Helm Chart
+In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm package:
 
 1. Add the `application-gateway-kubernetes-ingress` helm repo and perform a helm update
 
@@ -108,70 +136,17 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
     helm repo update
     ```
 
-1. Edit [helm-config.yaml](../examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`
-
-    ```yaml
-    # This file contains the essential configs for the ingress controller helm chart
-
-    # Verbosity level of the App Gateway Ingress Controller
-    verbosityLevel: 3
-
-    ################################################################################
-    # Specify which application gateway the ingress controller will manage
-    #
-    appgw:
-        subscriptionId: <subscription-id>
-        resourceGroup: <resourcegroup-name>
-        name: <applicationgateway-name>
-
-        # Setting appgw.shared to "true" will create an AzureIngressProhibitedTarget CRD.
-        # This prohibits AGIC from applying config for any host/path.
-        # Use "kubectl get AzureIngressProhibitedTargets" to view and change this.
-        shared: false
-
-    ################################################################################
-    # Specify which kubernetes namespace the ingress controller will watch
-    # Default value is "default"
-    # Leaving this variable out or setting it to blank or empty string would
-    # result in Ingress Controller observing all acessible namespaces.
-    #
-    # kubernetes:
-    #   watchNamespace: <namespace>
-
-    ################################################################################
-    # Specify the authentication with Azure Resource Manager
-    #
-    # Two authentication methods are available:
-    # - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
-    armAuth:
-        type: aadPodIdentity
-        identityResourceID: <identity-resource-id>
-        identityClientID:  <identity-client-id>
-
-    # - Option 2: Service Principal Credentials
-    # armAuth:
-    #     type: servicePrincipal
-    #     secretJSON: <<Generate this value with: "az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0">>
-
-    ################################################################################
-    # Specify if the cluster is RBAC enabled or not
-    rbac:
-        enabled: false # true/false
-
-    ################################################################################
-    # Specify aks cluster related information. THIS IS BEING DEPRECATED.
-    aksClusterConfiguration:
-        apiServerAddress: <aks-api-server-address>
-    ```
-
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you
-    setup in the previous section. Run the following command to obtain these values:
-
+1. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
     ```bash
-    az identity show -g <resourcegroup> -n <identity-name>
+    wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
     ```
 
-    Where `<resourcegroup>` is the resource group in which AKS cluster is running (this would have the prefix `MC_`).
+1. Edit [helm-config.yaml](../examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`.
+    ```bash
+    nano helm-config.yaml
+    ```
+
+    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: `az identity show -g <resourcegroup> -n <identity-name>`, where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
 
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
@@ -200,6 +175,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
 1. Check the log of the newly created pod to verify if it started properly
 
 Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
+
 
 
 ## Multi-cluster / Shared App Gateway

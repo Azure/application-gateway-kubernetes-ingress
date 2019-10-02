@@ -11,9 +11,11 @@ metadata:
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
 data:
-  APPGW_SUBSCRIPTION_ID: {{ required "A valid appgw entry is required!" .Values.appgw.subscriptionId }}
-  APPGW_RESOURCE_GROUP:  {{ required "A valid appgw entry is required!" .Values.appgw.resourceGroup }}
-  APPGW_NAME:            {{ required "A valid appgw entry is required!" .Values.appgw.name }}
+  APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId }}
+  APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup }}
+  APPGW_NAME:            {{ .Values.appgw.name }}
+  APPGW_SUBNETID:        {{ .Values.appgw.subnetId }}
+  RELEASE_NAME:          {{ .Release.Name }}
   APPGW_VERBOSITY_LEVEL: "{{ .Values.verbosityLevel }}"
 {{- if .Values.kubernetes }}
 {{- if .Values.kubernetes.watchNamespace }}

@@ -35,11 +35,11 @@ func (agw Identifier) AddressPoolID(poolName string) string {
 }
 
 func (agw Identifier) frontendIPID(fipName string) string {
-	return agw.gatewayResourceID("frontEndIPConfigurations", fipName)
+	return agw.gatewayResourceID("frontendIPConfigurations", fipName)
 }
 
 func (agw Identifier) frontendPortID(portName string) string {
-	return agw.gatewayResourceID("frontEndPorts", portName)
+	return agw.gatewayResourceID("frontendPorts", portName)
 }
 
 func (agw Identifier) sslCertificateID(certname string) string {

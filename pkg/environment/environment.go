@@ -23,6 +23,12 @@ const (
 	// AppGwNameVarName is the name of the APPGW_NAME
 	AppGwNameVarName = "APPGW_NAME"
 
+	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
+	AppGwSubnetIDVarName = "APPGW_SUBNETID"
+
+	// ReleaseNameVarName is the name of the RELEASE_NAME
+	ReleaseNameVarName = "RELEASE_NAME"
+
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
 
@@ -47,6 +53,9 @@ const (
 	// EnablePanicOnPutErrorVarName is a feature flag.
 	EnablePanicOnPutErrorVarName = "APPGW_ENABLE_PANIC_ON_PUT_ERROR"
 
+	// EnableDeployAppGatewayVarName is a feature flag.
+	EnableDeployAppGatewayVarName = "APPGW_ENABLE_DEPLOY_APPGATEWAY"
+
 	// HTTPServicePortVarName is an environment variable name.
 	HTTPServicePortVarName = "HTTP_SERVICE_PORT"
 
@@ -62,6 +71,8 @@ type EnvVariables struct {
 	SubscriptionID             string
 	ResourceGroupName          string
 	AppGwName                  string
+	AppGwSubnetID              string
+	ReleaseName                string
 	AuthLocation               string
 	WatchNamespace             string
 	UsePrivateIP               string
@@ -72,6 +83,7 @@ type EnvVariables struct {
 	EnableIstioIntegration     bool
 	EnableSaveConfigToFile     bool
 	EnablePanicOnPutError      bool
+	EnableDeployAppGateway     bool
 	HTTPServicePort            string
 }
 
@@ -84,6 +96,8 @@ func GetEnv() EnvVariables {
 		SubscriptionID:             os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
+		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
+		ReleaseName:                os.Getenv(ReleaseNameVarName),
 		AuthLocation:               os.Getenv(AuthLocationVarName),
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
@@ -94,6 +108,7 @@ func GetEnv() EnvVariables {
 		EnableIstioIntegration:     GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
 		EnableSaveConfigToFile:     GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
 		EnablePanicOnPutError:      GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
+		EnableDeployAppGateway:     GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
 		HTTPServicePort:            GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
 	}
 
@@ -102,8 +117,12 @@ func GetEnv() EnvVariables {
 
 // ValidateEnv validates environment variables.
 func ValidateEnv(env EnvVariables) error {
-	if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		return errors.New("environment variables SubscriptionID, ResourceGroupname and AppGwName are required (ENVT001)")
+	if env.EnableDeployAppGateway {
+		if len(env.AppGwSubnetID) == 0 {
+			return errors.New("Missing required Environment variables: Provide APPGW_SUBNETID (ENVT001)")
+		}
+	} else if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
+		return errors.New("Missing required Environment variables: Provide APPGW_SUBSCRIPTION_ID, APPGW_RESOURCE_GROUP and APPGW_NAME (ENVT002)")
 	}
 
 	if env.WatchNamespace == "" {
