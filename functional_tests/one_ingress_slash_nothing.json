@@ -7,6 +7,24 @@
                 "properties": {
                     "backendAddresses": []
                 }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-b-80-bp-80",
+                "name": "pool-test-ingress-controller-hello-world-b-80-bp-80",
+                "properties": {
+                    "backendAddresses": [
+                        {
+                            "ipAddress": "1.1.1.1"
+                        },
+                        {
+                            "ipAddress": "1.1.1.2"
+                        },
+                        {
+                            "ipAddress": "1.1.1.3"
+                        }
+                    ]
+                }
             }
         ],
         "backendHttpSettingsCollection": [
@@ -117,7 +135,7 @@
                 "name": "rr-80",
                 "properties": {
                     "backendAddressPool": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-b-80-bp-80"
                     },
                     "backendHttpSettings": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--"

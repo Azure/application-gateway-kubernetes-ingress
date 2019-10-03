@@ -223,6 +223,52 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	endpointsA := &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceNameA,
+			Namespace: ingressNS,
+		},
+		Subsets: []v1.EndpointSubset{
+			{
+				Addresses: []v1.EndpointAddress{
+					{IP: "1.1.1.1"},
+					{IP: "1.1.1.2"},
+					{IP: "1.1.1.3"},
+				},
+				Ports: []v1.EndpointPort{
+					{
+						Name:     "servicePort",
+						Port:     int32(servicePort),
+						Protocol: v1.ProtocolTCP,
+					},
+				},
+			},
+		},
+	}
+
+	endpointsB := &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceNameB,
+			Namespace: ingressNS,
+		},
+		Subsets: []v1.EndpointSubset{
+			{
+				Addresses: []v1.EndpointAddress{
+					{IP: "1.1.1.1"},
+					{IP: "1.1.1.2"},
+					{IP: "1.1.1.3"},
+				},
+				Ports: []v1.EndpointPort{
+					{
+						Name:     "servicePort",
+						Port:     int32(servicePort),
+						Protocol: v1.ProtocolTCP,
+					},
+				},
+			},
+		},
+	}
+
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
 
 	_ = flag.Lookup("logtostderr").Value.Set("true")
@@ -244,6 +290,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(service)
 		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsA)
+		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsB)
 		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
 
 		crdClient := fake.NewSimpleClientset()

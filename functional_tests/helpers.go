@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	. "github.com/onsi/gomega"
@@ -37,6 +38,10 @@ func check(cbCtx *ConfigBuilderContext, expected_filename string, stopChan chan 
 	Expect(err).ToNot(HaveOccurred())
 
 	actualJSONTxt := string(jsonBlob)
+
+	if os.Getenv("AGIC_FUNCTIONAL_TESTS_REPAIR") == "true" {
+		ioutil.WriteFile(expected_filename, []byte(actualJSONTxt), 0644)
+	}
 
 	expectedBytes, err := ioutil.ReadFile(expected_filename)
 	expectedJSON := strings.Trim(string(expectedBytes), "\n")
