@@ -6,7 +6,6 @@
 package functests
 
 import (
-	"encoding/json"
 	"flag"
 	"testing"
 	"time"
@@ -195,6 +194,12 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	serviceList := []*v1.Service{
+		service,
+		serviceA,
+		serviceB,
+	}
+
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
 	// and allowing the k8s API server to create the `endpoints` resource which we end up consuming.
 	// However since we are using a fake k8s client the resources are dumb which forces us to create the final
@@ -360,141 +365,53 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
-		ginkgo.It("Should have created correct App Gateway config JSON blob for THREE Ingress Resources", func() {
+		ginkgo.It("THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingress,
 					ingressA,
 					ingressB,
 				},
-				ServiceList: []*v1.Service{
-					service,
-					serviceA,
-					serviceB,
-				},
+				ServiceList:  serviceList,
 				EnvVariables: environment.GetFakeEnv(),
 			}
-			// Start the informers. This will sync the cache with the latest ingress.
-			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
-			Expect(err).ToNot(HaveOccurred())
-
-			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
-
-			var into map[string]interface{}
-			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err = json.MarshalIndent(into, "", "    ")
-			Expect(err).ToNot(HaveOccurred())
-
-			actualJSONTxt := string(jsonBlob)
-
-			check(actualJSONTxt, "three_ingresses.json")
+			check(cbCtx, "three_ingresses.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("Should have created correct App Gateway config JSON blob for ONE Ingress Resources with / (nothing) path", func() {
+		ginkgo.It("ONE Ingress Resources with / (nothing) path", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingressSlashNothing,
 				},
-				ServiceList: []*v1.Service{
-					serviceB,
-				},
+				ServiceList:  serviceList,
 				EnvVariables: environment.GetFakeEnv(),
 			}
-			// Start the informers. This will sync the cache with the latest ingress.
-			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
-			Expect(err).ToNot(HaveOccurred())
-
-			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
-
-			var into map[string]interface{}
-			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err = json.MarshalIndent(into, "", "    ")
-			Expect(err).ToNot(HaveOccurred())
-
-			actualJSONTxt := string(jsonBlob)
-
-			check(actualJSONTxt, "one_ingress_slash_nothing.json")
+			check(cbCtx, "one_ingress_slash_nothing.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("Should have created correct App Gateway config JSON blob for ONE Ingress Resources with / (nothing), and /A/ path", func() {
+		ginkgo.It("ONE Ingress Resources with / (nothing), and /A/ path", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingressA,
 					ingressSlashNothing,
 				},
-				ServiceList: []*v1.Service{
-					serviceA,
-					serviceB,
-				},
+				ServiceList:  serviceList,
 				EnvVariables: environment.GetFakeEnv(),
 			}
-			// Start the informers. This will sync the cache with the latest ingress.
-			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
-			Expect(err).ToNot(HaveOccurred())
-
-			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
-
-			var into map[string]interface{}
-			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err = json.MarshalIndent(into, "", "    ")
-			Expect(err).ToNot(HaveOccurred())
-
-			actualJSONTxt := string(jsonBlob)
-
-			check(actualJSONTxt, "one_ingress_slash_slashnothing.json")
+			check(cbCtx, "one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("Should have created correct App Gateway config JSON blob for TWO Ingress Resources, one with / another with /something paths", func() {
+		ginkgo.It("TWO Ingress Resources, one with / another with /something paths", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingressSlashNothing,
 					ingressA,
 				},
-				ServiceList: []*v1.Service{
-					service,
-					serviceA,
-					serviceB,
-				},
+				ServiceList:  serviceList,
 				EnvVariables: environment.GetFakeEnv(),
 			}
-			// Start the informers. This will sync the cache with the latest ingress.
-			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
-			Expect(err).ToNot(HaveOccurred())
-
-			appGW, err := configBuilder.Build(cbCtx)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err := appGW.MarshalJSON()
-			Expect(err).ToNot(HaveOccurred())
-
-			var into map[string]interface{}
-			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonBlob, err = json.MarshalIndent(into, "", "    ")
-			Expect(err).ToNot(HaveOccurred())
-
-			actualJSONTxt := string(jsonBlob)
-
-			check(actualJSONTxt, "two_ingresses_slash_slashsomething.json")
+			check(cbCtx, "two_ingresses_slash_slashsomething.json", stopChannel, ctxt, configBuilder)
 		})
+
 	})
 })

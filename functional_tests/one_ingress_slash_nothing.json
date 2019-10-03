@@ -12,18 +12,6 @@
         "backendHttpSettingsCollection": [
             {
                 "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-a-80-80---name--",
-                "name": "bp-test-ingress-controller-hello-world-a-80-80---name--",
-                "properties": {
-                    "port": 80,
-                    "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
-                    },
-                    "protocol": "Http"
-                }
-            },
-            {
-                "etag": "*",
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--",
                 "name": "bp-test-ingress-controller-hello-world-b-80-80---name--",
                 "properties": {
@@ -128,13 +116,16 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
                 "name": "rr-80",
                 "properties": {
+                    "backendAddressPool": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
+                    },
+                    "backendHttpSettings": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--"
+                    },
                     "httpListener": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"
                     },
-                    "ruleType": "PathBasedRouting",
-                    "urlPathMap": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-80"
-                    }
+                    "ruleType": "Basic"
                 }
             }
         ],
@@ -144,38 +135,7 @@
             "tier": "Standard_v2"
         },
         "sslCertificates": null,
-        "urlPathMaps": [
-            {
-                "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-80",
-                "name": "url-80",
-                "properties": {
-                    "defaultBackendAddressPool": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
-                    },
-                    "defaultBackendHttpSettings": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--"
-                    },
-                    "pathRules": [
-                        {
-                            "etag": "*",
-                            "name": "pr-test-ingress-controller---name---0",
-                            "properties": {
-                                "backendAddressPool": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
-                                },
-                                "backendHttpSettings": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-a-80-80---name--"
-                                },
-                                "paths": [
-                                    "/A/"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
+        "urlPathMaps": null
     },
     "tags": {
         "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
