@@ -236,7 +236,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			err = json.Unmarshal(jsonBlob, &into)
 			Expect(err).ToNot(HaveOccurred())
 
-			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
+			jsonBlob, err = json.MarshalIndent(into, "", "    ")
 			Expect(err).ToNot(HaveOccurred())
 
 			actualJsonTxt := string(jsonBlob)
