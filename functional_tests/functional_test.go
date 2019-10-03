@@ -57,10 +57,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	backendName := "http"
 	backendPort := Port(1356)
 
-	// Endpoints
-	endpoint1 := "1.1.1.1"
-	endpoint2 := "1.1.1.2"
-	endpoint3 := "1.1.1.3"
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -212,9 +208,9 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		Subsets: []v1.EndpointSubset{
 			{
 				Addresses: []v1.EndpointAddress{
-					{IP: endpoint1},
-					{IP: endpoint2},
-					{IP: endpoint3},
+					{IP: "1.1.1.1"},
+					{IP: "1.1.1.2"},
+					{IP: "1.1.1.3"},
 				},
 				Ports: []v1.EndpointPort{
 					{
