@@ -1,3 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-go test -v $(go list ./... | grep 'application-gateway'); echo $?
+set -auexo pipefail
+
+go test -v $(go list ./... | grep 'application-gateway') | tee output.json; echo $?
