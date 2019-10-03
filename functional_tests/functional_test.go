@@ -359,7 +359,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	actualJsonTxt := string(jsonBlob)
 
-	check(actualJsonTxt, "two_ingresses.json")
+	check(actualJsonTxt, "three_ingresses.json")
 		})
 	})
 })
