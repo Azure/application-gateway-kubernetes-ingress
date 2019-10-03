@@ -50,6 +50,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ingressNS := "test-ingress-controller"
 
 	serviceName := "hello-world"
+	serviceName_A := "hello-world-a"
+	serviceName_B := "hello-world-b"
 
 	// Frontend and Backend port.
 	servicePort := Port(80)
@@ -151,7 +153,47 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	serviceList := []*v1.Service{service}
+	service_A := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName_A,
+			Namespace: ingressNS,
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					Name: "servicePort",
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: backendName,
+					},
+					Protocol: v1.ProtocolTCP,
+					Port:     int32(servicePort),
+				},
+			},
+			Selector: map[string]string{"app": "frontend"},
+		},
+	}
+
+	service_B := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName_B,
+			Namespace: ingressNS,
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					Name: "servicePort",
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: backendName,
+					},
+					Protocol: v1.ProtocolTCP,
+					Port:     int32(servicePort),
+				},
+			},
+			Selector: map[string]string{"app": "frontend"},
+		},
+	}
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
 	// and allowing the k8s API server to create the `endpoints` resource which we end up consuming.
@@ -230,7 +272,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 								{
 									Path: "/A/",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
+										ServiceName: serviceName_A,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
 											IntVal: 80,
@@ -263,7 +305,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 								{
 									Path: "/B/",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
+										ServiceName: serviceName_B,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
 											IntVal: 80,
@@ -291,7 +333,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					ingress_A,
 					ingress_B,
 				},
-				ServiceList:  serviceList,
+				ServiceList: []*v1.Service{
+					service,
+					service_A,
+					service_B,
+				},
 				EnvVariables: environment.GetFakeEnv(),
 			}
 	// Start the informers. This will sync the cache with the latest ingress.
