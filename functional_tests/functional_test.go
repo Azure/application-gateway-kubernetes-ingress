@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package functional_tests
+package functests
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -34,11 +34,11 @@ import (
 )
 
 func TestFunctional(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Appgw Suite")
+	RegisterFailHandler(ginkgo.Fail)
+	ginkgo.RunSpecs(t, "Appgw Suite")
 }
 
-var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
+var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	var stopChannel chan struct{}
 	var ctxt *k8scontext.Context
 	var configBuilder ConfigBuilder
@@ -50,8 +50,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ingressNS := "test-ingress-controller"
 
 	serviceName := "hello-world"
-	serviceName_A := "hello-world-a"
-	serviceName_B := "hello-world-b"
+	serviceNameA := "hello-world-a"
+	serviceNameB := "hello-world-b"
 
 	// Frontend and Backend port.
 	servicePort := Port(80)
@@ -153,9 +153,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	service_A := &v1.Service{
+	serviceA := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName_A,
+			Name:      serviceNameA,
 			Namespace: ingressNS,
 		},
 		Spec: v1.ServiceSpec{
@@ -174,9 +174,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	service_B := &v1.Service{
+	serviceB := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName_B,
+			Name:      serviceNameB,
 			Namespace: ingressNS,
 		},
 		Spec: v1.ServiceSpec{
@@ -233,7 +233,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		AppGwName:      tests.AppGwName,
 	}
 
-	BeforeEach(func() {
+	ginkgo.BeforeEach(func() {
 		stopChannel = make(chan struct{})
 
 		// Create the mock K8s client.
@@ -256,26 +256,27 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))
 	})
 
-	AfterEach(func() {
+	ginkgo.AfterEach(func() {
 		close(stopChannel)
 	})
 
-	Context("Tests Application Gateway config creation", func() {
-	ingress_A := &v1beta1.Ingress{
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
-				{
-					// This one has no host
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								{
-									Path: "/A/",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName_A,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
+	ginkgo.Context("Tests Application Gateway config creation", func() {
+		ingressA := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/A/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
 										},
 									},
 								},
@@ -284,31 +285,31 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: ingressNS,
+				Name:      tests.Name,
 			},
-			Namespace: ingressNS,
-			Name:      tests.Name,
-		},
-	}
+		}
 
-	ingress_B := &v1beta1.Ingress{
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
-				{
-					// This one has no host
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
-								{
-									Path: "/B/",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName_B,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
+		ingressB := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/B/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameB,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
 										},
 									},
 								},
@@ -317,49 +318,117 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: ingressNS,
+				Name:      tests.Name,
 			},
-			Namespace: ingressNS,
-			Name:      tests.Name,
-		},
-	}
-		It("Should have created correct App Gateway config JSON blob", func() {
+		}
+
+		ingressSlashNothing := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameB,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: ingressNS,
+				Name:      tests.Name,
+			},
+		}
+
+		ginkgo.It("Should have created correct App Gateway config JSON blob for THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
-				IngressList:  []*v1beta1.Ingress{
+				IngressList: []*v1beta1.Ingress{
 					ingress,
-					ingress_A,
-					ingress_B,
+					ingressA,
+					ingressB,
 				},
 				ServiceList: []*v1.Service{
 					service,
-					service_A,
-					service_B,
+					serviceA,
+					serviceB,
 				},
 				EnvVariables: environment.GetFakeEnv(),
 			}
-	// Start the informers. This will sync the cache with the latest ingress.
-	err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
-	Expect(err).ToNot(HaveOccurred())
+			// Start the informers. This will sync the cache with the latest ingress.
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(err).ToNot(HaveOccurred())
 
-	appGW, err := configBuilder.Build(cbCtx)
-	Expect(err).ToNot(HaveOccurred())
+			appGW, err := configBuilder.Build(cbCtx)
+			Expect(err).ToNot(HaveOccurred())
 
-	jsonBlob, err := appGW.MarshalJSON()
-	Expect(err).ToNot(HaveOccurred())
+			jsonBlob, err := appGW.MarshalJSON()
+			Expect(err).ToNot(HaveOccurred())
 
-	var into map[string]interface{}
-	err = json.Unmarshal(jsonBlob, &into)
-	Expect(err).ToNot(HaveOccurred())
+			var into map[string]interface{}
+			err = json.Unmarshal(jsonBlob, &into)
+			Expect(err).ToNot(HaveOccurred())
 
-	jsonBlob, err = json.MarshalIndent(into, "", "    ")
-	Expect(err).ToNot(HaveOccurred())
+			jsonBlob, err = json.MarshalIndent(into, "", "    ")
+			Expect(err).ToNot(HaveOccurred())
 
-	actualJsonTxt := string(jsonBlob)
+			actualJSONTxt := string(jsonBlob)
 
-	check(actualJsonTxt, "three_ingresses.json")
+			check(actualJSONTxt, "three_ingresses.json")
+		})
+
+		ginkgo.It("Should have created correct App Gateway config JSON blob for TWO Ingress Resources, one with / another with /something paths", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressSlashNothing,
+					ingressA,
+				},
+				ServiceList: []*v1.Service{
+					service,
+					serviceA,
+					serviceB,
+				},
+				EnvVariables: environment.GetFakeEnv(),
+			}
+			// Start the informers. This will sync the cache with the latest ingress.
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(err).ToNot(HaveOccurred())
+
+			appGW, err := configBuilder.Build(cbCtx)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err := appGW.MarshalJSON()
+			Expect(err).ToNot(HaveOccurred())
+
+			var into map[string]interface{}
+			err = json.Unmarshal(jsonBlob, &into)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err = json.MarshalIndent(into, "", "    ")
+			Expect(err).ToNot(HaveOccurred())
+
+			actualJSONTxt := string(jsonBlob)
+
+			check(actualJSONTxt, "two_ingresses_slash_slashsomething.json")
 		})
 	})
 })
