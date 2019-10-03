@@ -7,21 +7,26 @@ package functional_tests
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	. "github.com/onsi/gomega"
 )
 
-func check(jsonTxt string, expected string) {
-	linesAct := strings.Split(jsonTxt, "\n")
-	linesExp := strings.Split(expected, "\n")
+func check(jsonTxt string, expected_filename string) {
+	expectedBytes, err := ioutil.ReadFile(expected_filename)
+	expectedJSON := strings.Trim(string(expectedBytes), "\n")
+	Expect(err).ToNot(HaveOccurred())
 
-	Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\nActual:", jsonTxt, "\nExpected:", expected)
+	linesAct := strings.Split(jsonTxt, "\n")
+	linesExp := strings.Split(expectedJSON, "\n")
+
+	Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\nActual:", jsonTxt, "\nExpectedJSON:", expectedJSON)
 
 	for idx, line := range linesAct {
 		curatedLineAct := strings.Trim(line, " ")
 		curatedLineExp := strings.Trim(linesExp[idx], " ")
-		Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
+		Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expectedJSON:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
 	}
 
 }
