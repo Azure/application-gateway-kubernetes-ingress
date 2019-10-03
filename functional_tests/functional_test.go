@@ -428,6 +428,40 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(actualJSONTxt, "one_ingress_slash_nothing.json")
 		})
 
+		ginkgo.It("Should have created correct App Gateway config JSON blob for ONE Ingress Resources with / (nothing), and /A/ path", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressA,
+					ingressSlashNothing,
+				},
+				ServiceList: []*v1.Service{
+					serviceA,
+					serviceB,
+				},
+				EnvVariables: environment.GetFakeEnv(),
+			}
+			// Start the informers. This will sync the cache with the latest ingress.
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(err).ToNot(HaveOccurred())
+
+			appGW, err := configBuilder.Build(cbCtx)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err := appGW.MarshalJSON()
+			Expect(err).ToNot(HaveOccurred())
+
+			var into map[string]interface{}
+			err = json.Unmarshal(jsonBlob, &into)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err = json.MarshalIndent(into, "", "    ")
+			Expect(err).ToNot(HaveOccurred())
+
+			actualJSONTxt := string(jsonBlob)
+
+			check(actualJSONTxt, "one_ingress_slash_slashnothing.json")
+		})
+
 		ginkgo.It("Should have created correct App Gateway config JSON blob for TWO Ingress Resources, one with / another with /something paths", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
