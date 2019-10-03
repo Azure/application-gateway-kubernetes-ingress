@@ -23,8 +23,14 @@ const (
 	// AppGwNameVarName is the name of the APPGW_NAME
 	AppGwNameVarName = "APPGW_NAME"
 
-	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
+	// AppGwSubnetIDVarName is the name of the APPGW_SUBNETID
 	AppGwSubnetIDVarName = "APPGW_SUBNETID"
+
+	// AppGwVnetIDVarName is the name of the APPGW_VNETID
+	AppGwVnetIDVarName = "APPGW_VNETID"
+
+	// AppGwSubnetPrefixVarName is the name of the APPGW_SUBNETPREFIX
+	AppGwSubnetPrefixVarName = "APPGW_SUBNETPREFIX"
 
 	// ReleaseNameVarName is the name of the RELEASE_NAME
 	ReleaseNameVarName = "RELEASE_NAME"
@@ -72,6 +78,8 @@ type EnvVariables struct {
 	ResourceGroupName          string
 	AppGwName                  string
 	AppGwSubnetID              string
+	AppGwVnetID                string
+	AppGwSubnetPrefix          string
 	ReleaseName                string
 	AuthLocation               string
 	WatchNamespace             string
@@ -97,6 +105,8 @@ func GetEnv() EnvVariables {
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
 		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
+		AppGwVnetID:                os.Getenv(AppGwVnetIDVarName),
+		AppGwSubnetPrefix:          os.Getenv(AppGwSubnetPrefixVarName),
 		ReleaseName:                os.Getenv(ReleaseNameVarName),
 		AuthLocation:               os.Getenv(AuthLocationVarName),
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
@@ -118,8 +128,8 @@ func GetEnv() EnvVariables {
 // ValidateEnv validates environment variables.
 func ValidateEnv(env EnvVariables) error {
 	if env.EnableDeployAppGateway {
-		if len(env.AppGwSubnetID) == 0 {
-			return errors.New("Missing required Environment variables: Provide APPGW_SUBNETID (ENVT001)")
+		if (len(env.AppGwVnetID) == 0 || len(env.AppGwSubnetPrefix) == 0) && len(env.AppGwSubnetID) == 0 {
+			return errors.New("Missing required Environment variables: Either provide APPGW_VNETID and APPGW_SUBNETPREFIX or provide APPGW_SUBNETID (ENVT001)")
 		}
 	} else if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
 		return errors.New("Missing required Environment variables: Provide APPGW_SUBSCRIPTION_ID, APPGW_RESOURCE_GROUP and APPGW_NAME (ENVT002)")
