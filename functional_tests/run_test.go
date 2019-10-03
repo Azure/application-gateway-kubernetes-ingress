@@ -6,6 +6,7 @@
 package functional_tests
 
 import (
+	"encoding/json"
 	"flag"
 	"testing"
 	"time"
@@ -293,7 +294,26 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				ServiceList:  serviceList,
 				EnvVariables: environment.GetFakeEnv(),
 			}
-			two_ingresses(ctxt, stopChannel, cbCtx, configBuilder)
+	// Start the informers. This will sync the cache with the latest ingress.
+	err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+	Expect(err).ToNot(HaveOccurred())
+
+	appGW, err := configBuilder.Build(cbCtx)
+	Expect(err).ToNot(HaveOccurred())
+
+	jsonBlob, err := appGW.MarshalJSON()
+	Expect(err).ToNot(HaveOccurred())
+
+	var into map[string]interface{}
+	err = json.Unmarshal(jsonBlob, &into)
+	Expect(err).ToNot(HaveOccurred())
+
+	jsonBlob, err = json.MarshalIndent(into, "", "    ")
+	Expect(err).ToNot(HaveOccurred())
+
+	actualJsonTxt := string(jsonBlob)
+
+	check(actualJsonTxt, "two_ingresses.json")
 		})
 	})
 })
