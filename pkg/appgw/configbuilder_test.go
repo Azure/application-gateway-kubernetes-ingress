@@ -202,7 +202,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
 
 		appGwy := &n.ApplicationGateway{
-			ApplicationGatewayPropertiesFormat: newAppGwyConfigFixture(),
+			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
 		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))

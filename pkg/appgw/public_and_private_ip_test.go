@@ -269,7 +269,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
 	appGwy := &n.ApplicationGateway{
-		ApplicationGatewayPropertiesFormat: newAppGwyConfigFixture(),
+		ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 	}
 
 	// Initialize the `ConfigBuilder`

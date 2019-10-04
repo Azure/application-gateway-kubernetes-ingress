@@ -1,5 +1,4 @@
-{{- if required "A valid armAuth entry is required!" .Values.armAuth }}
-{{- end}}
+{{- if .Values.armAuth -}}
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
 
 # Please see https://github.com/Azure/aad-pod-identity for more information
@@ -16,4 +15,5 @@ spec:
   ResourceID: {{ required "armAuth.identityResourceID is required if using AAD-Pod-Identity" .Values.armAuth.identityResourceID }}
   ClientID: {{ required "armAuth.identityClientID is required if using AAD-Pod-Identity" .Values.armAuth.identityClientID }}
 
+{{- end}}
 {{- end}}
