@@ -40,7 +40,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         env:
-        - name: AZURE_LOCATION
+        - name: AZURE_CONTEXT_LOCATION
           value: /etc/appgw/azure.json
         - name: AGIC_POD_NAME
           valueFrom:
