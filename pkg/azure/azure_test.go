@@ -58,7 +58,7 @@ var _ = Describe("Azure", func() {
 
 		Context("test getAuthorizer", func() {
 			It("should try and get some authorizer", func() {
-				authorizer, err := getAuthorizer("")
+				authorizer, err := getAuthorizer("", false, nil)
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
 			})
@@ -66,7 +66,7 @@ var _ = Describe("Azure", func() {
 
 		Context("test getAuthorizerWithRetry", func() {
 			It("should try and get some authorizer", func() {
-				authorizer, err := GetAuthorizerWithRetry("", 0, time.Duration(10))
+				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
 			})

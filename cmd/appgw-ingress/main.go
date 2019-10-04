@@ -113,7 +113,7 @@ func main() {
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, maxAuthRetryCount, retryPause); err != nil {
+	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
 		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
 	}
 

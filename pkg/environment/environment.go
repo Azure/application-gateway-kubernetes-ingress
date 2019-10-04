@@ -67,6 +67,9 @@ const (
 
 	// AGICPodNamespaceVarName is an environment variable name.
 	AGICPodNamespaceVarName = "AGIC_POD_NAMESPACE"
+
+	// UseManagedIdentityForPodVarName is an environment variable name.
+	UseManagedIdentityForPodVarName = "USE_MANAGED_IDENTITY_FOR_POD"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -88,6 +91,7 @@ type EnvVariables struct {
 	EnableSaveConfigToFile     bool
 	EnablePanicOnPutError      bool
 	EnableDeployAppGateway     bool
+	UseManagedIdentityForPod   bool
 	HTTPServicePort            string
 }
 
@@ -114,6 +118,7 @@ func GetEnv() EnvVariables {
 		EnableSaveConfigToFile:     GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
 		EnablePanicOnPutError:      GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
 		EnableDeployAppGateway:     GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
+		UseManagedIdentityForPod:   GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
 		HTTPServicePort:            GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
 	}
 
