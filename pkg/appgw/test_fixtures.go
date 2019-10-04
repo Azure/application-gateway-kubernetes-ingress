@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
+// NewAppGwyConfigFixture creates a new struct for testing.
 func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
 		{
