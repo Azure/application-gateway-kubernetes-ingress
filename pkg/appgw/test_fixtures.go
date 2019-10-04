@@ -19,7 +19,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
-func newAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
+// NewAppGwyConfigFixture creates a new struct for testing.
+func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
 		{
 			// Public IP
@@ -89,7 +90,7 @@ func keyFunc(obj interface{}) (string, error) {
 }
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
-	appGwConfig := newAppGwyConfigFixture()
+	appGwConfig := NewAppGwyConfigFixture()
 	cb := appGwConfigBuilder{
 		appGwIdentifier: Identifier{
 			SubscriptionID: tests.Subscription,
