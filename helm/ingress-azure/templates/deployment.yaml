@@ -1,6 +1,3 @@
-{{- if required "A valid armAuth entry is required!" .Values.armAuth }}
-{{- end}}
-
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
@@ -43,6 +40,8 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         env:
+        - name: AZURE_LOCATION
+          value: /etc/appgw/azure.json
         - name: AGIC_POD_NAME
           valueFrom:
             fieldRef:
@@ -58,17 +57,23 @@ spec:
         envFrom:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
-        {{- if eq .Values.armAuth.type "servicePrincipal"}}
         volumeMounts:
-          - name: networking-appgw-k8s-azure-service-principal-mount
-            mountPath: /etc/Azure/Networking-AppGW/auth
-            readOnly: true
-        {{- end}}
-      {{- if eq .Values.armAuth.type "servicePrincipal"}}
-      volumes:
+        - mountPath: /etc/appgw/azure.json
+          name: azure
+        {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: networking-appgw-k8s-azure-service-principal-mount
-          secret:
-            secretName: networking-appgw-k8s-azure-service-principal
+          mountPath: /etc/Azure/Networking-AppGW/auth
+          readOnly: true
+        {{- end}}
+      volumes:
+      - name: azure
+        hostPath:
+          path: /etc/kubernetes/azure.json
+          type: File
+      {{- if eq .Values.armAuth.type "servicePrincipal"}}
+      - name: networking-appgw-k8s-azure-service-principal-mount
+        secret:
+          secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
