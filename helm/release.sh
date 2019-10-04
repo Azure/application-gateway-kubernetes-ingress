@@ -22,13 +22,13 @@ REGISTRY=""
 if [ "$ENV" = "prod" ]; then
   REGISTRY=$OFFICIAL_REGISTRY  
 elif [ "$ENV" = "staging" ]; then
-  REGISTRY=$OFFICIAL_REGISTRY
+  REGISTRY=$STAGING_REGISTRY
 else
   echo " - exiting bad/unknown environment provided: " $ENV
   exit 1
 fi
 
-echo " - deployment will use production registry: " $REGISTRY
+echo " - deployment will use registry: " $REGISTRY
 
 echo " - update helm templates"
 cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ingress-azure/Chart.yaml
