@@ -36,3 +36,6 @@ data:
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}
 {{- end }}
+{{- if .Values.appgw.create }}
+  APPGW_ENABLE_DEPLOY_APPGATEWAY: "{{ .Values.appgw.create }}"
+{{- end }}
