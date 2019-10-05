@@ -102,6 +102,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			TLS: []v1beta1.IngressTLS{
 				{
 					Hosts: []string{
+						"foo.baz",
 						"www.contoso.com",
 						"ftp.contoso.com",
 						tests.Host,
@@ -119,6 +120,42 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			Annotations: map[string]string{
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				annotations.SslRedirectKey:  "true",
+			},
+			Namespace: ingressNS,
+			Name:      tests.Name,
+		},
+	}
+
+	ingressSecret := tests.NewSecretTestFixture()
+
+	// Create an Ingress resource for the same domain but no TLS
+	ingressFooBazNoTLS := &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				{
+					Host: "foo.baz",
+					IngressRuleValue: v1beta1.IngressRuleValue{
+						HTTP: &v1beta1.HTTPIngressRuleValue{
+							Paths: []v1beta1.HTTPIngressPath{
+								{
+									Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
+									Backend: v1beta1.IngressBackend{
+										ServiceName: serviceName,
+										ServicePort: intstr.IntOrString{
+											Type:   intstr.Int,
+											IntVal: 80,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 			Namespace: ingressNS,
 			Name:      tests.Name,
@@ -288,10 +325,13 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, _ = k8sClient.CoreV1().Nodes().Create(node)
 		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
 		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(service)
+		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(serviceA)
+		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(serviceB)
 		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
 		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsA)
 		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsB)
 		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+		_, _ = k8sClient.CoreV1().Secrets(ingressNS).Create(ingressSecret)
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
@@ -462,6 +502,18 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "two_ingresses_slash_slashsomething.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("TWO Ingress Resources for the same domain: one with TLS, another without", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingress,
+					ingressFooBazNoTLS,
+				},
+				ServiceList:  serviceList,
+				EnvVariables: environment.GetFakeEnv(),
+			}
+			check(cbCtx, "two_ingresses_same_domain_tls_notls.json", stopChannel, ctxt, configBuilder)
 		})
 
 	})
