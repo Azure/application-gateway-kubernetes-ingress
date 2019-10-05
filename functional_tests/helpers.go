@@ -27,7 +27,7 @@ func check(cbCtx *appgw.ConfigBuilderContext, expectedFilename string, stopChan 
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 	if appGW.SslCertificates != nil {
-		for idx, _ := range *appGW.SslCertificates {
+		for idx := range *appGW.SslCertificates {
 			if (*appGW.SslCertificates)[idx].Data != nil {
 				*(*appGW.SslCertificates)[idx].Data = "xx"
 			}

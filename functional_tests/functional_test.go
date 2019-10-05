@@ -139,7 +139,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 								{
 									Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
 									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
+										ServiceName: serviceNameB,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
 											IntVal: 80,
