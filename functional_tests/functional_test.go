@@ -30,6 +30,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 
 	. "github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 func TestFunctional(t *testing.T) {
@@ -46,8 +47,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	version.GitCommit = "b"
 	version.BuildDate = "c"
 
-	ingressNS := "test-ingress-controller"
-
 	serviceName := "hello-world"
 	serviceNameA := "hello-world-a"
 	serviceNameB := "hello-world-b"
@@ -61,7 +60,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	// We will create all our resources under this namespace.
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ingressNS,
+			Name: tests.Namespace,
 		},
 	}
 
@@ -121,7 +120,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				annotations.SslRedirectKey:  "true",
 			},
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 			Name:      tests.Name,
 		},
 	}
@@ -157,7 +156,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			Annotations: map[string]string{
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 			Name:      tests.Name,
 		},
 	}
@@ -166,7 +165,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			Ports: []v1.ServicePort{
@@ -187,7 +186,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceA := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceNameA,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			Ports: []v1.ServicePort{
@@ -208,7 +207,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceB := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceNameB,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			Ports: []v1.ServicePort{
@@ -239,7 +238,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	endpoints := &v1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Subsets: []v1.EndpointSubset{
 			{
@@ -262,7 +261,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	endpointsA := &v1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceNameA,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Subsets: []v1.EndpointSubset{
 			{
@@ -285,7 +284,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	endpointsB := &v1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceNameB,
-			Namespace: ingressNS,
+			Namespace: tests.Namespace,
 		},
 		Subsets: []v1.EndpointSubset{
 			{
@@ -305,7 +304,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
+	pod := tests.NewPodFixture(serviceName, tests.Namespace, backendName, int32(backendPort))
 
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", "3")
@@ -323,19 +322,23 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		k8sClient := testclient.NewSimpleClientset()
 		_, _ = k8sClient.CoreV1().Namespaces().Create(ns)
 		_, _ = k8sClient.CoreV1().Nodes().Create(node)
-		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(service)
-		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(serviceA)
-		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(serviceB)
-		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsA)
-		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpointsB)
-		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
-		_, _ = k8sClient.CoreV1().Secrets(ingressNS).Create(ingressSecret)
+		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingress)
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(service)
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(serviceA)
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(serviceB)
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpoints)
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpointsA)
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpointsB)
+		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(pod)
+		_, _ = k8sClient.CoreV1().Secrets(tests.Namespace).Create(ingressSecret)
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second)
+
+		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)
+		err := ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
+		pfx := ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
 
 		appGwy := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
@@ -377,7 +380,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
-				Namespace: ingressNS,
+				Namespace: tests.Namespace,
 				Name:      tests.Name,
 			},
 		}
@@ -410,7 +413,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
-				Namespace: ingressNS,
+				Namespace: tests.Namespace,
 				Name:      tests.Name,
 			},
 		}
@@ -443,7 +446,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
-				Namespace: ingressNS,
+				Namespace: tests.Namespace,
 				Name:      tests.Name,
 			},
 		}
