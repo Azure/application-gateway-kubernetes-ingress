@@ -337,8 +337,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second)
 
 		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)
-		err := ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
-		pfx := ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
+		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
+		_ = ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
 
 		appGwy := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
