@@ -92,6 +92,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			if rule.RedirectConfiguration == nil {
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
+			} else {
+				rule.BackendAddressPool = nil
+				rule.BackendHTTPSettings = nil
 			}
 		} else {
 			// Path-based Rule
