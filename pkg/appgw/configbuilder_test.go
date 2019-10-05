@@ -19,7 +19,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
+	"github.com/Azure/go-autorest/autorest/to"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 
@@ -217,6 +217,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			IngressList:  []*v1beta1.Ingress{ingress},
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		It("Should have created correct App Gateway config JSON blob", func() {
@@ -455,6 +457,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ServiceList:  serviceList,
 			EnvVariables: environment.GetFakeEnv(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		It("Should have created correct App Gateway config JSON blob", func() {

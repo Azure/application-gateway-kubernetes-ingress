@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
+	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -47,6 +48,8 @@ var _ = Describe("prune function tests", func() {
 			ServiceList: []*v1.Service{
 				tests.NewServiceFixture(),
 			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		appGw := fixtures.GetAppGateway()
 
@@ -110,6 +113,8 @@ var _ = Describe("prune function tests", func() {
 			ServiceList: []*v1.Service{
 				tests.NewServiceFixture(),
 			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		appGw := fixtures.GetAppGateway()
 		It("removes the invalid ingresses", func() {

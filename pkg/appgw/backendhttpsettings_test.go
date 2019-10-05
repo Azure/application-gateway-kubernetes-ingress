@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -45,6 +46,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{ingress},
 				ServiceList: []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			// Action

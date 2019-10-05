@@ -52,6 +52,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		cbCtx := &ConfigBuilderContext{
 			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 
@@ -74,6 +76,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		cbCtx := &ConfigBuilderContext{
 			IngressList: cb.k8sContext.ListHTTPIngresses(),
 			ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 		actualPool := cb.newPool("pool-name", subset)
@@ -108,6 +112,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		cbCtx := &ConfigBuilderContext{
 			ServiceList: serviceList,
 			IngressList: cb.k8sContext.ListHTTPIngresses(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 
@@ -196,6 +202,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			cbCtx := &ConfigBuilderContext{
 				IngressList: cb.k8sContext.ListHTTPIngresses(),
 				ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			actual := cb.getIstioPathMaps(cbCtx)
 			expected := map[listenerIdentifier]*n.ApplicationGatewayURLPathMap{
@@ -232,6 +240,8 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			cbCtx := &ConfigBuilderContext{
 				IngressList: cb.k8sContext.ListHTTPIngresses(),
 				ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			expectedSettingsList := []n.ApplicationGatewayBackendHTTPSettings{}
 			expectedSettinsgPerDestination := map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings{}

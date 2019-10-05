@@ -327,9 +327,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:  ingressList,
-			ServiceList:  serviceList,
-			EnvVariables: environment.GetFakeEnv(),
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			EnvVariables:          environment.GetFakeEnv(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		appGW, err := configBuilder.Build(cbCtx)

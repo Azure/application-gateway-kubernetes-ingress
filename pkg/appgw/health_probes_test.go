@@ -40,6 +40,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		// !! Action !!
@@ -122,6 +124,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		// !! Action !!
@@ -143,6 +147,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		cbCtx := &ConfigBuilderContext{
 			IngressList: ingressList,
 			ServiceList: serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		// !! Action !!

@@ -49,6 +49,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ingressList := []*v1beta1.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList: ingressList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 		expectedRedirect := n.ApplicationGatewayRedirectConfiguration{
@@ -99,6 +101,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ingressList := []*v1beta1.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList: ingressList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
@@ -125,6 +129,8 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ingressList := []*v1beta1.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList: ingressList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 

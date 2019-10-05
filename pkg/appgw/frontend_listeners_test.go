@@ -151,6 +151,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
 			IngressList: []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
@@ -175,6 +177,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 					tests.NewIngressFixture(),
 				},
 				EnvVariables: envVariables,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			listener, port, err := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"))
@@ -197,6 +201,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 					tests.NewIngressFixture(),
 				},
 				EnvVariables: envVariables,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			cbCtx.EnvVariables.UsePrivateIP = "true"
 
@@ -237,6 +243,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 					tests.NewIngressFixture(),
 				},
 				EnvVariables: envVariables,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			listeners, ports := cb.getListeners(cbCtx)
@@ -262,6 +270,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 					tests.NewIngressFixture(),
 				},
 				EnvVariables: envVariablesCopy,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			cbCtx.IngressList[0].Annotations[annotations.UsePrivateIPKey] = "true"
@@ -287,6 +297,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 					tests.NewIngressFixture(),
 				},
 				EnvVariables: envVariables,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			// Add a bunch of Ingress Resources
@@ -323,6 +335,8 @@ var _ = Describe("Process ingress rules and parse frontend listener configs", fu
 		cbCtx := &ConfigBuilderContext{
 			IngressList:  ingressList,
 			EnvVariables: envVariables,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		certs := newCertsFixture()
