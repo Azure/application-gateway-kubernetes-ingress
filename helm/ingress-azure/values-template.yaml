@@ -4,7 +4,7 @@ replicaCount: 1
 verbosityLevel: 3
 
 image:
-  repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
+  repository: XXREGISTRYXX
   tag: XXVERSIONXX
   pullPolicy: Always
 

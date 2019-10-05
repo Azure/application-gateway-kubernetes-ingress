@@ -52,12 +52,12 @@ func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.
 }
 
 // GetAuthorizerWithRetry return azure.Authorizer
-func GetAuthorizerWithRetry(authLocation string, maxAuthRetryCount int, retryPause time.Duration) (autorest.Authorizer, error) {
+func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, azContext *AzContext, maxAuthRetryCount int, retryPause time.Duration) (autorest.Authorizer, error) {
 	var err error
 	retryCount := 0
 	for {
 		// Fetch a new token
-		if authorizer, err := getAuthorizer(authLocation); err == nil && authorizer != nil {
+		if authorizer, err := getAuthorizer(authLocation, useManagedidentity, azContext); err == nil && authorizer != nil {
 			return authorizer, nil
 		}
 
@@ -71,13 +71,22 @@ func GetAuthorizerWithRetry(authLocation string, maxAuthRetryCount int, retryPau
 	}
 }
 
-func getAuthorizer(authLocation string) (autorest.Authorizer, error) {
-	if authLocation == "" {
-		// requires aad-pod-identity to be deployed in the AKS cluster
-		// see https://github.com/Azure/aad-pod-identity for more information
-		glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
-		return auth.NewAuthorizerFromEnvironment()
+func getAuthorizer(authLocation string, useManagedidentity bool, azContext *AzContext) (autorest.Authorizer, error) {
+	// Authorizer logic:
+	// 1. If User provided authLocation, then use the file.
+	// 2. If User provided a managed identity in ex: helm config, then use Environment
+	// 3. If User provided nothing and AzContext has value, then use AzContext
+	// 4. Fall back to environment
+	if authLocation != "" {
+		glog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
+		return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	}
-	glog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
-	return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	if !useManagedidentity && azContext != nil {
+		glog.V(1).Info("Creating authorizer using Cluster Service Principal.")
+		credAuthorizer := auth.NewClientCredentialsConfig(azContext.ClientID, azContext.ClientSecret, azContext.TenantID)
+		return credAuthorizer.Authorizer()
+	}
+
+	glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
+	return auth.NewAuthorizerFromEnvironment()
 }
