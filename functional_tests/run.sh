@@ -2,4 +2,4 @@
 
 set -auexo pipefail
 
-go test -v $(go list ./... | grep 'application-gateway') | tee output.json; echo $?
+go test -v $(go list ./... | grep 'application-gateway'); echo $?
