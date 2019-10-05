@@ -83,7 +83,7 @@
                 "properties": {
                     "port": 80,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-a-80---name--"
                     },
                     "protocol": "Http"
                 }
@@ -95,7 +95,7 @@
                 "properties": {
                     "port": 80,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-b-80---name--"
                     },
                     "protocol": "Http"
                 }
@@ -208,6 +208,30 @@
                     "host": "foo.baz",
                     "interval": 30,
                     "path": "/",
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-a-80---name--",
+                "name": "pb-test-ingress-controller-hello-world-a-80---name--",
+                "properties": {
+                    "host": "localhost",
+                    "interval": 30,
+                    "path": "/A/",
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-b-80---name--",
+                "name": "pb-test-ingress-controller-hello-world-b-80---name--",
+                "properties": {
+                    "host": "localhost",
+                    "interval": 30,
+                    "path": "/B/",
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3

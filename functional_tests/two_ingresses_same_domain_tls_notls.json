@@ -10,8 +10,8 @@
             },
             {
                 "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-b-80-bp-80",
-                "name": "pool-test-ingress-controller-hello-world-b-80-bp-80",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80",
+                "name": "pool-test-ingress-controller-hello-world-80-bp-80",
                 "properties": {
                     "backendAddresses": [
                         {
@@ -30,12 +30,12 @@
         "backendHttpSettingsCollection": [
             {
                 "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--",
-                "name": "bp-test-ingress-controller-hello-world-b-80-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
+                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
                 "properties": {
                     "port": 80,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-b-80---name--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--"
                     },
                     "protocol": "Http"
                 }
@@ -87,8 +87,8 @@
         "httpListeners": [
             {
                 "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80",
-                "name": "fl-80",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80",
+                "name": "fl-foo.baz-80",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-1--"
@@ -96,7 +96,7 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
-                    "hostName": "",
+                    "hostName": "foo.baz",
                     "protocol": "Http"
                 }
             }
@@ -127,12 +127,12 @@
                 }
             },
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-b-80---name--",
-                "name": "pb-test-ingress-controller-hello-world-b-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--",
+                "name": "pb-test-ingress-controller-hello-world-80---name--",
                 "properties": {
-                    "host": "localhost",
+                    "host": "foo.baz",
                     "interval": 30,
-                    "path": "/",
+                    "path": "/.well-known/acme-challenge/blahBlahBBLLAAHH",
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -143,19 +143,16 @@
         "requestRoutingRules": [
             {
                 "etag": "*",
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
-                "name": "rr-80",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80",
+                "name": "rr-foo.baz-80",
                 "properties": {
-                    "backendAddressPool": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-b-80-bp-80"
-                    },
-                    "backendHttpSettings": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-b-80-80---name--"
-                    },
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
                     },
-                    "ruleType": "Basic"
+                    "ruleType": "PathBasedRouting",
+                    "urlPathMap": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-foo.baz-80"
+                    }
                 }
             }
         ],
@@ -165,7 +162,38 @@
             "tier": "Standard_v2"
         },
         "sslCertificates": null,
-        "urlPathMaps": null
+        "urlPathMaps": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-foo.baz-80",
+                "name": "url-foo.baz-80",
+                "properties": {
+                    "defaultBackendAddressPool": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
+                    },
+                    "defaultBackendHttpSettings": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
+                    },
+                    "pathRules": [
+                        {
+                            "etag": "*",
+                            "name": "pr-test-ingress-controller---name---0",
+                            "properties": {
+                                "backendAddressPool": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
+                                },
+                                "backendHttpSettings": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
+                                },
+                                "paths": [
+                                    "/.well-known/acme-challenge/blahBlahBBLLAAHH"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
     },
     "tags": {
         "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
