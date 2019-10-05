@@ -38,8 +38,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: ingressList,
-			ServiceList: serviceList,
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -122,8 +122,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: ingressList,
-			ServiceList: serviceList,
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -145,8 +145,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		_ = cb.k8sContext.Caches.Pods.Add(pod)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: ingressList,
-			ServiceList: serviceList,
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}

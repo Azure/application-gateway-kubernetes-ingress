@@ -17,7 +17,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
+	"github.com/Azure/go-autorest/autorest/to"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 
@@ -56,7 +56,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	servicePort := Port(80)
 	backendName := "http"
 	backendPort := Port(1356)
-
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -416,8 +415,10 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					ingressA,
 					ingressB,
 				},
-				ServiceList:  serviceList,
-				EnvVariables: environment.GetFakeEnv(),
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "three_ingresses.json", stopChannel, ctxt, configBuilder)
 		})
@@ -427,8 +428,10 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				IngressList: []*v1beta1.Ingress{
 					ingressSlashNothing,
 				},
-				ServiceList:  serviceList,
-				EnvVariables: environment.GetFakeEnv(),
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "one_ingress_slash_nothing.json", stopChannel, ctxt, configBuilder)
 		})
@@ -439,8 +442,10 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					ingressA,
 					ingressSlashNothing,
 				},
-				ServiceList:  serviceList,
-				EnvVariables: environment.GetFakeEnv(),
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
 		})
@@ -451,8 +456,10 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					ingressSlashNothing,
 					ingressA,
 				},
-				ServiceList:  serviceList,
-				EnvVariables: environment.GetFakeEnv(),
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "two_ingresses_slash_slashsomething.json", stopChannel, ctxt, configBuilder)
 		})

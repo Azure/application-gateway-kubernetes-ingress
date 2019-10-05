@@ -13,6 +13,7 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -21,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
-	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
@@ -282,8 +282,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				ingressPrivateIP,
 				ingressPublicIP,
 			},
-			ServiceList:  serviceList,
-			EnvVariables: environment.GetFakeEnv(),
+			ServiceList:           serviceList,
+			EnvVariables:          environment.GetFakeEnv(),
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
