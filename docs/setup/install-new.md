@@ -92,17 +92,17 @@ Get credentials for your newly deployed AKS ([read more](https://docs.microsoft.
 
   To install AAD Pod Identity to your cluster:
 
-    - *RBAC enabled* AKS cluster
+   - *RBAC enabled* AKS cluster
 
-    ```bash
-    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
-    ```
+  ```bash
+  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+  ```
 
-    - *RBAC disabled* AKS cluster
+   - *RBAC disabled* AKS cluster
 
-    ```bash
-    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
-    ```
+  ```bash
+  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
+  ```
 
 ### Install Helm
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
@@ -174,8 +174,9 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via [Azure Cloud Shell](https://shell.azure.com/):
 
- ```bash
-cat <<EOF | kubectl apply -f -
+Save the below yaml as `aspnetapp.yaml` and run `kubectl apply -f aspnetapp.yaml`
+
+ ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -220,7 +221,6 @@ spec:
         backend:
           serviceName: aspnetapp
           servicePort: 80
-EOF
 ```
 
 Alternatively you can:
