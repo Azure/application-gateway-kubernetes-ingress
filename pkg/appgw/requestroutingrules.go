@@ -92,6 +92,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			if rule.RedirectConfiguration == nil {
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
+			} else {
+				rule.BackendAddressPool = nil
+				rule.BackendHTTPSettings = nil
 			}
 		} else {
 			// Path-based Rule
@@ -171,7 +174,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				}
 
 				pathMap := c.getPathMap(cbCtx, listenerID, listenerAzConfig, ingress, rule)
-				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap)
+				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap, cbCtx)
 			}
 		}
 	}
@@ -335,11 +338,11 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 	return &pathRules
 }
 
-func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayURLPathMap, pathMapToMerge *n.ApplicationGatewayURLPathMap) *n.ApplicationGatewayURLPathMap {
-	if pathMapToMerge.DefaultBackendAddressPool != nil {
+func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayURLPathMap, pathMapToMerge *n.ApplicationGatewayURLPathMap, cbCtx *ConfigBuilderContext) *n.ApplicationGatewayURLPathMap {
+	if pathMapToMerge.DefaultBackendAddressPool != nil && *pathMapToMerge.DefaultBackendAddressPool.ID != *cbCtx.DefaultAddressPoolID {
 		existingPathMap.DefaultBackendAddressPool = pathMapToMerge.DefaultBackendAddressPool
 	}
-	if pathMapToMerge.DefaultBackendHTTPSettings != nil {
+	if pathMapToMerge.DefaultBackendHTTPSettings != nil && *pathMapToMerge.DefaultBackendHTTPSettings.ID != *cbCtx.DefaultHTTPSettingsID {
 		existingPathMap.DefaultBackendHTTPSettings = pathMapToMerge.DefaultBackendHTTPSettings
 	}
 	if pathMapToMerge.DefaultRedirectConfiguration != nil {

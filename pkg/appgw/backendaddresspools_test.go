@@ -50,8 +50,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			tests.NewServiceFixture(),
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.ListHTTPIngresses(),
-			ServiceList: serviceList,
+			IngressList:           cb.k8sContext.ListHTTPIngresses(),
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 
@@ -72,8 +74,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
 		cbCtx := &ConfigBuilderContext{
-			IngressList: cb.k8sContext.ListHTTPIngresses(),
-			ServiceList: serviceList,
+			IngressList:           cb.k8sContext.ListHTTPIngresses(),
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 		actualPool := cb.newPool("pool-name", subset)
@@ -106,8 +110,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
 		cbCtx := &ConfigBuilderContext{
-			ServiceList: serviceList,
-			IngressList: cb.k8sContext.ListHTTPIngresses(),
+			ServiceList:           serviceList,
+			IngressList:           cb.k8sContext.ListHTTPIngresses(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		_ = cb.BackendAddressPools(cbCtx)
 
@@ -194,8 +200,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 
 		It("Should get path maps from istio", func() {
 			cbCtx := &ConfigBuilderContext{
-				IngressList: cb.k8sContext.ListHTTPIngresses(),
-				ServiceList: serviceList,
+				IngressList:           cb.k8sContext.ListHTTPIngresses(),
+				ServiceList:           serviceList,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			actual := cb.getIstioPathMaps(cbCtx)
 			expected := map[listenerIdentifier]*n.ApplicationGatewayURLPathMap{
@@ -230,8 +238,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 
 		It("Should get destinations from istio", func() {
 			cbCtx := &ConfigBuilderContext{
-				IngressList: cb.k8sContext.ListHTTPIngresses(),
-				ServiceList: serviceList,
+				IngressList:           cb.k8sContext.ListHTTPIngresses(),
+				ServiceList:           serviceList,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			expectedSettingsList := []n.ApplicationGatewayBackendHTTPSettings{}
 			expectedSettinsgPerDestination := map[istioDestinationIdentifier]*n.ApplicationGatewayBackendHTTPSettings{}
