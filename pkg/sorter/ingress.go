@@ -6,18 +6,20 @@
 package sorter
 
 import (
+	"fmt"
+
 	"k8s.io/api/extensions/v1beta1"
 )
 
-// ByIngressUID is a facility to sort slices of Kubernetes Ingress by their UID
-type ByIngressUID []*v1beta1.Ingress
+// ByIngressName is a facility to sort slices of Kubernetes Ingress by their UID
+type ByIngressName []*v1beta1.Ingress
 
-func (a ByIngressUID) Len() int      { return len(a) }
-func (a ByIngressUID) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByIngressUID) Less(i, j int) bool {
-	return getIngressUID(a[i]) < getIngressUID(a[j])
+func (a ByIngressName) Len() int      { return len(a) }
+func (a ByIngressName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByIngressName) Less(i, j int) bool {
+	return getIngressName(a[i]) < getIngressName(a[j])
 }
 
-func getIngressUID(ingress *v1beta1.Ingress) string {
-	return string(ingress.UID)
+func getIngressName(ingress *v1beta1.Ingress) string {
+	return fmt.Sprintf("%s/%s", ingress.Namespace, ingress.Name)
 }
