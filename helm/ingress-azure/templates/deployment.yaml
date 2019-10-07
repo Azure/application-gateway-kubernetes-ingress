@@ -18,7 +18,7 @@ spec:
       labels:
         app: {{ template "application-gateway-kubernetes-ingress.name" . }}
         release: {{ .Release.Name }}
-        {{- if eq .Values.armAuth }}
+        {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "aadPodIdentity"}}
         aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
         {{- end }}
@@ -52,7 +52,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        {{- if eq .Values.armAuth }}
+        {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: AZURE_AUTH_LOCATION
             value: /etc/Azure/Networking-AppGW/auth/armAuth.json
@@ -64,7 +64,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/appgw/azure.json
           name: azure
-        {{- if eq .Values.armAuth }}
+        {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: networking-appgw-k8s-azure-service-principal-mount
           mountPath: /etc/Azure/Networking-AppGW/auth
@@ -76,7 +76,7 @@ spec:
         hostPath:
           path: /etc/kubernetes/azure.json
           type: File
-      {{- if eq .Values.armAuth }}
+      {{- if .Values.armAuth }}
       {{- if eq .Values.armAuth.type "servicePrincipal"}}
       - name: networking-appgw-k8s-azure-service-principal-mount
         secret:

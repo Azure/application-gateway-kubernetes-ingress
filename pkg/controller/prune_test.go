@@ -7,6 +7,7 @@ package controller
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -47,6 +48,8 @@ var _ = Describe("prune function tests", func() {
 			ServiceList: []*v1.Service{
 				tests.NewServiceFixture(),
 			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		appGw := fixtures.GetAppGateway()
 
@@ -110,6 +113,8 @@ var _ = Describe("prune function tests", func() {
 			ServiceList: []*v1.Service{
 				tests.NewServiceFixture(),
 			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		appGw := fixtures.GetAppGateway()
 		It("removes the invalid ingresses", func() {
