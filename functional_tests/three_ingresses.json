@@ -260,8 +260,12 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-80",
                 "name": "url-80",
                 "properties": {
-                    "defaultBackendAddressPool": {},
-                    "defaultBackendHttpSettings": {},
+                    "defaultBackendAddressPool": {
+                        "id": "xx"
+                    },
+                    "defaultBackendHttpSettings": {
+                        "id": "yy"
+                    },
                     "pathRules": [
                         {
                             "etag": "*",

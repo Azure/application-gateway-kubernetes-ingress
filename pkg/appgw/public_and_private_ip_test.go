@@ -13,6 +13,7 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -281,8 +282,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				ingressPrivateIP,
 				ingressPublicIP,
 			},
-			ServiceList:  serviceList,
-			EnvVariables: environment.GetFakeEnv(),
+			ServiceList:           serviceList,
+			EnvVariables:          environment.GetFakeEnv(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		It("Should have created correct App Gateway config JSON blob", func() {
@@ -311,7 +314,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --    "properties": {
 --        "backendAddressPools": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",    
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
 --                "name": "defaultaddresspool",
 --                "properties": {
 --                    "backendAddresses": []
@@ -487,7 +490,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80-internal-ingress-resource"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80-privateip"      
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80-privateip"
 --                    },
 --                    "ruleType": "Basic"
 --                }

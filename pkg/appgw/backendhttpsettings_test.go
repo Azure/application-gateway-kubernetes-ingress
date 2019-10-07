@@ -8,6 +8,7 @@ package appgw
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -43,8 +44,10 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			Expect(annotations.BackendProtocol(ingress)).To(Equal(protocolEnum))
 
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{ingress},
-				ServiceList: []*v1.Service{service},
+				IngressList:           []*v1beta1.Ingress{ingress},
+				ServiceList:           []*v1.Service{service},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			// Action
