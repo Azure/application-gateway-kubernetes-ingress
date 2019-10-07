@@ -11,13 +11,13 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"github.com/Azure/go-autorest/autorest/to"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
 
@@ -513,8 +513,10 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					ingress,
 					ingressFooBazNoTLS,
 				},
-				ServiceList:  serviceList,
-				EnvVariables: environment.GetFakeEnv(),
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "two_ingresses_same_domain_tls_notls.json", stopChannel, ctxt, configBuilder)
 		})
