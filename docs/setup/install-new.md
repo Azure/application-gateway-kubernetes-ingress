@@ -175,7 +175,7 @@ Now that we have App Gateway, AKS, and AGIC installed we can install a sample ap
 via [Azure Cloud Shell](https://shell.azure.com/):
 
  ```yaml
- cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
