@@ -48,10 +48,18 @@ func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error
 	return nil
 }
 
-// DeployGateway runs DeployGatewayFunc
-func (az *FakeAzClient) DeployGateway(subnetID string) (err error) {
+// DeployGatewayWithSubnet runs DeployGatewayFunc
+func (az *FakeAzClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 	if az.DeployGatewayFunc != nil {
 		return az.DeployGatewayFunc(subnetID)
+	}
+	return nil
+}
+
+// DeployGatewayWithVnet runs DeployGatewayFunc
+func (az *FakeAzClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetPrefix string) (err error) {
+	if az.DeployGatewayFunc != nil {
+		return az.DeployGatewayFunc(subnetPrefix)
 	}
 	return nil
 }

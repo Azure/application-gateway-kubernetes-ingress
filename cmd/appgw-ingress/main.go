@@ -125,7 +125,15 @@ func main() {
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
 	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
-			err = azClient.DeployGateway(env.AppGwSubnetID)
+			if env.AppGwSubnetID != "" {
+				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
+			} else if env.AppGwVnetID != "" {
+				_, vnetResourceGroup, vnetName := azure.ParseResourceID(env.AppGwVnetID)
+				err = azClient.DeployGatewayWithVnet(vnetResourceGroup, vnetName, env.AppGwSubnetPrefix)
+			} else if azContext != nil {
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), env.AppGwSubnetPrefix)
+			}
+
 			if err != nil {
 				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
 				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
