@@ -7,6 +7,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"sort"
@@ -35,6 +36,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
@@ -107,14 +109,22 @@ func main() {
 	}
 
 	if err := environment.ValidateEnv(env); err != nil {
-		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
+		errorLine := fmt.Sprint("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		}
+		glog.Fatal(errorLine)
 	}
 
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
-		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
+		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		}
+		glog.Fatal(errorLine)
 	}
 
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
@@ -122,10 +132,18 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
-				glog.Fatal("Failed in deploying App gateway", err)
+				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
+				if agicPod != nil {
+					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
+				}
+				glog.Fatal(errorLine)
 			}
 		} else {
-			glog.Fatal("Failed authenticating with Azure Resource Manager: ", err)
+			errorLine := fmt.Sprint("Failed authenticating with Azure Resource Manager: ", err)
+			if agicPod != nil {
+				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+			}
+			glog.Fatal(errorLine)
 		}
 	}
 
