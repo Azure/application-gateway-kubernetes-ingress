@@ -30,6 +30,7 @@ import (
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -38,7 +39,7 @@ const providerPrefix = "azure://"
 const workBuffer = 1024
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
 	var options []informers.SharedInformerOption
 	var crdOptions []externalversions.SharedInformerOption
 	for _, namespace := range namespaces {
@@ -84,6 +85,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		CertificateSecretStore: NewSecretStore(),
 		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
+
+		metricStore: metricStore,
 	}
 
 	h := handlers{context}

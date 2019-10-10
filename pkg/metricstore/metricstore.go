@@ -60,9 +60,33 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 		constLabels: constLabels,
 		updateLatency: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace:   PrometheusNamespace,
+			ConstLabels: constLabels,
 			Name:        "update_latency_seconds",
 			Help:        "The time spent in updating Application Gateway",
+		}),
+		k8sAPIEventCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace:   PrometheusNamespace,
 			ConstLabels: constLabels,
+			Name:        "k8s_api_event_counter",
+			Help:        "This counter represents the number of events received from k8s API Server",
+		}),
+		armAPICallCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace:   PrometheusNamespace,
+			ConstLabels: constLabels,
+			Name:        "arm_api_call_counter",
+			Help:        "This counter represents the number of API calls to ARM",
+		}),
+		armAPIUpdateCallFailureCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace:   PrometheusNamespace,
+			ConstLabels: constLabels,
+			Name:        "arm_api_update_call_failure_counter",
+			Help:        "This counter represents the number of update API calls that failed to update Application Gateway",
+		}),
+		armAPIUpdateCallSuccessCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace:   PrometheusNamespace,
+			ConstLabels: constLabels,
+			Name:        "arm_api_update_call_success_counter",
+			Help:        "This counter represents the number of update API calls that successfully updated Application Gateway",
 		}),
 		registry: prometheus.NewRegistry(),
 	}
@@ -83,6 +107,11 @@ func (ms *AGICMetricStore) SetUpdateLatencySec(duration time.Duration) {
 	ms.updateLatency.Set(duration.Seconds())
 }
 
+// IncK8sAPIEventCounter increases the counter after recieving a k8s Event
+func (ms *AGICMetricStore) IncK8sAPIEventCounter() {
+	ms.k8sAPIEventCounter.Inc()
+}
+
 // IncArmAPIUpdateCallFailureCounter increases the counter for failure on ARM
 func (ms *AGICMetricStore) IncArmAPIUpdateCallFailureCounter() {
 	ms.armAPIUpdateCallFailureCounter.Inc()
@@ -98,11 +127,6 @@ func (ms *AGICMetricStore) IncArmAPIUpdateCallSuccessCounter() {
 // IncArmAPICallCounter increases the counter for success on ARM
 func (ms *AGICMetricStore) IncArmAPICallCounter() {
 	ms.armAPICallCounter.Inc()
-}
-
-// IncK8sAPIEventCounter increases the counter after recieving a k8s Event
-func (ms *AGICMetricStore) IncK8sAPIEventCounter() {
-	ms.k8sAPIEventCounter.Inc()
 }
 
 // Handler return the registry
