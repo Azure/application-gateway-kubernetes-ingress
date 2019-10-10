@@ -29,6 +29,7 @@ import (
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -438,7 +439,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		// Create a `k8scontext` to start listiening to ingress resources.
 
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
