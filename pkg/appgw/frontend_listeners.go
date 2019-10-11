@@ -178,7 +178,6 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
 		port := portsByID[*listener.FrontendPort.ID]
-		if port.ApplicationGatewayFrontendPortPropertiesFormat == nil {continue;}
 		listenerID := listenerIdentifier{
 			HostName:     *listener.HostName,
 			FrontendPort: Port(*port.Port),
