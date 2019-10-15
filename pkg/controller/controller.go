@@ -93,9 +93,3 @@ func (c *AppGwIngressController) Readiness() bool {
 	// When the channel is CLOSED we have synced cache and are READY!
 	return !isOpen
 }
-
-func (c *AppGwIngressController) logToAGICEvents(eventtype, reason, message string) {
-	if c.agicPod != nil {
-		c.recorder.Eventf(c.agicPod, eventtype, reason, message)
-	}
-}

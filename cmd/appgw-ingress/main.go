@@ -110,9 +110,7 @@ func main() {
 
 	if err := environment.ValidateEnv(env); err != nil {
 		errorLine := fmt.Sprint("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
-		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
-		}
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		glog.Fatal(errorLine)
 	}
 
@@ -121,9 +119,7 @@ func main() {
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
-		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
-		}
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 		glog.Fatal(errorLine)
 	}
 
@@ -133,16 +129,12 @@ func main() {
 			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
 				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
-				if agicPod != nil {
-					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
-				}
+				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
 				glog.Fatal(errorLine)
 			}
 		} else {
 			errorLine := fmt.Sprint("Failed authenticating with Azure Resource Manager: ", err)
-			if agicPod != nil {
-				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
-			}
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 			glog.Fatal(errorLine)
 		}
 	}
@@ -172,7 +164,9 @@ func main() {
 	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
-		glog.Fatal("Could not start AGIC: ", err)
+		errorLine := fmt.Sprint("Could not start AGIC: ", err)
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		glog.Fatal(errorLine)
 	}
 
 	httpServer := httpserver.NewHTTPServer(
@@ -250,7 +244,7 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.V(3).Infof)
+	eventBroadcaster.StartLogging(glog.V(5).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()
