@@ -1,0 +1,308 @@
+{
+    "properties": {
+        "backendAddressPools": [
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
+                "name": "defaultaddresspool",
+                "properties": {
+                    "backendAddresses": []
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-80-bp-80",
+                "name": "pool---namespace---hello-world-80-bp-80",
+                "properties": {
+                    "backendAddresses": [
+                        {
+                            "ipAddress": "1.1.1.1"
+                        },
+                        {
+                            "ipAddress": "1.1.1.2"
+                        },
+                        {
+                            "ipAddress": "1.1.1.3"
+                        }
+                    ]
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80",
+                "name": "pool---namespace---hello-world-b-80-bp-80",
+                "properties": {
+                    "backendAddresses": [
+                        {
+                            "ipAddress": "1.1.1.1"
+                        },
+                        {
+                            "ipAddress": "1.1.1.2"
+                        },
+                        {
+                            "ipAddress": "1.1.1.3"
+                        }
+                    ]
+                }
+            }
+        ],
+        "backendHttpSettingsCollection": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-80-80---name--",
+                "name": "bp---namespace---hello-world-80-80---name--",
+                "properties": {
+                    "port": 80,
+                    "probe": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-80---name--"
+                    },
+                    "protocol": "Http"
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--",
+                "name": "bp---namespace---hello-world-b-80-80---name--",
+                "properties": {
+                    "port": 80,
+                    "probe": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--"
+                    },
+                    "protocol": "Http"
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
+                "name": "defaulthttpsetting",
+                "properties": {
+                    "port": 80,
+                    "probe": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+                    },
+                    "protocol": "Http"
+                }
+            }
+        ],
+        "frontendIPConfigurations": [
+            {
+                "etag": "xx2",
+                "id": "--front-end-ip-id-1--",
+                "name": "xx3",
+                "properties": {
+                    "publicIPAddress": {
+                        "id": "xyz"
+                    }
+                },
+                "type": "xx1"
+            },
+            {
+                "etag": "yy2",
+                "id": "--front-end-ip-id-2--",
+                "name": "yy3",
+                "properties": {
+                    "privateIPAddress": "abc"
+                },
+                "type": "yy1"
+            }
+        ],
+        "frontendPorts": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443",
+                "name": "fp-443",
+                "properties": {
+                    "port": 443
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
+                "name": "fp-80",
+                "properties": {
+                    "port": 80
+                }
+            }
+        ],
+        "httpListeners": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443",
+                "name": "fl-foo.baz-443",
+                "properties": {
+                    "frontendIPConfiguration": {
+                        "id": "--front-end-ip-id-1--"
+                    },
+                    "frontendPort": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
+                    },
+                    "hostName": "foo.baz",
+                    "protocol": "Https",
+                    "sslCertificate": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
+                    }
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80",
+                "name": "fl-foo.baz-80",
+                "properties": {
+                    "frontendIPConfiguration": {
+                        "id": "--front-end-ip-id-1--"
+                    },
+                    "frontendPort": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
+                    },
+                    "hostName": "foo.baz",
+                    "protocol": "Http"
+                }
+            }
+        ],
+        "probes": [
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
+                "name": "defaultprobe-Http",
+                "properties": {
+                    "host": "localhost",
+                    "interval": 30,
+                    "path": "/",
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
+                "name": "defaultprobe-Https",
+                "properties": {
+                    "host": "localhost",
+                    "interval": 30,
+                    "path": "/",
+                    "protocol": "Https",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-80---name--",
+                "name": "pb---namespace---hello-world-80---name--",
+                "properties": {
+                    "host": "foo.baz",
+                    "interval": 30,
+                    "path": "/",
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--",
+                "name": "pb---namespace---hello-world-b-80---name--",
+                "properties": {
+                    "host": "foo.baz",
+                    "interval": 30,
+                    "path": "/.well-known/acme-challenge/blahBlahBBLLAAHH",
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            }
+        ],
+        "redirectConfigurations": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-foo.baz-443",
+                "name": "sslr-fl-foo.baz-443",
+                "properties": {
+                    "includePath": true,
+                    "includeQueryString": true,
+                    "redirectType": "Permanent",
+                    "targetListener": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443"
+                    }
+                }
+            }
+        ],
+        "requestRoutingRules": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-443",
+                "name": "rr-foo.baz-443",
+                "properties": {
+                    "backendAddressPool": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-80-bp-80"
+                    },
+                    "backendHttpSettings": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-80-80---name--"
+                    },
+                    "httpListener": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443"
+                    },
+                    "ruleType": "Basic"
+                }
+            },
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-foo.baz-80",
+                "name": "rr-foo.baz-80",
+                "properties": {
+                    "httpListener": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"
+                    },
+                    "ruleType": "PathBasedRouting",
+                    "urlPathMap": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-foo.baz-80"
+                    }
+                }
+            }
+        ],
+        "sku": {
+            "capacity": 3,
+            "name": "Standard_v2",
+            "tier": "Standard_v2"
+        },
+        "sslCertificates": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
+                "name": "--namespace-----the-name-of-the-secret--",
+                "properties": {
+                    "data": "xx",
+                    "password": "msazure"
+                }
+            }
+        ],
+        "urlPathMaps": [
+            {
+                "etag": "*",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-foo.baz-80",
+                "name": "url-foo.baz-80",
+                "properties": {
+                    "defaultRedirectConfiguration": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-foo.baz-443"
+                    },
+                    "pathRules": [
+                        {
+                            "etag": "*",
+                            "name": "pr---namespace-----name---0",
+                            "properties": {
+                                "backendAddressPool": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
+                                },
+                                "backendHttpSettings": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--"
+                                },
+                                "paths": [
+                                    "/.well-known/acme-challenge/blahBlahBBLLAAHH"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "tags": {
+        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
+        "managed-by-k8s-ingress": "a/b/c"
+    }
+}

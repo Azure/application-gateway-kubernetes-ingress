@@ -92,6 +92,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			if rule.RedirectConfiguration == nil {
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
+			} else {
+				rule.BackendAddressPool = nil
+				rule.BackendHTTPSettings = nil
 			}
 		} else {
 			// Path-based Rule
@@ -118,6 +121,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 
 func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
+	if ingress.Spec.Backend == nil {
+		return
+	}
 	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
@@ -171,7 +177,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				}
 
 				pathMap := c.getPathMap(cbCtx, listenerID, listenerAzConfig, ingress, rule)
-				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap)
+				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap, cbCtx)
 			}
 		}
 	}
@@ -335,11 +341,11 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 	return &pathRules
 }
 
-func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayURLPathMap, pathMapToMerge *n.ApplicationGatewayURLPathMap) *n.ApplicationGatewayURLPathMap {
-	if pathMapToMerge.DefaultBackendAddressPool != nil {
+func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayURLPathMap, pathMapToMerge *n.ApplicationGatewayURLPathMap, cbCtx *ConfigBuilderContext) *n.ApplicationGatewayURLPathMap {
+	if pathMapToMerge.DefaultBackendAddressPool != nil && *pathMapToMerge.DefaultBackendAddressPool.ID != *cbCtx.DefaultAddressPoolID {
 		existingPathMap.DefaultBackendAddressPool = pathMapToMerge.DefaultBackendAddressPool
 	}
-	if pathMapToMerge.DefaultBackendHTTPSettings != nil {
+	if pathMapToMerge.DefaultBackendHTTPSettings != nil && *pathMapToMerge.DefaultBackendHTTPSettings.ID != *cbCtx.DefaultHTTPSettingsID {
 		existingPathMap.DefaultBackendHTTPSettings = pathMapToMerge.DefaultBackendHTTPSettings
 	}
 	if pathMapToMerge.DefaultRedirectConfiguration != nil {

@@ -1,11 +1,13 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -47,7 +49,9 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
+			IngressList:           []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		listenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 
@@ -96,7 +100,9 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
+			IngressList:           []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 		It("should have setup tests with some TLS certs", func() {
 			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
@@ -121,7 +127,9 @@ var _ = Describe("Process ingress rules, listeners, and ports", func() {
 		ingress := tests.NewIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
+			IngressList:           []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		// !! Action !!

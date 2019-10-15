@@ -92,17 +92,17 @@ Get credentials for your newly deployed AKS ([read more](https://docs.microsoft.
 
   To install AAD Pod Identity to your cluster:
 
-    - *RBAC enabled* AKS cluster
+   - *RBAC enabled* AKS cluster
 
-    ```bash
-    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
-    ```
+  ```bash
+  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+  ```
 
-    - *RBAC disabled* AKS cluster
+   - *RBAC disabled* AKS cluster
 
-    ```bash
-    kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
-    ```
+  ```bash
+  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
+  ```
 
 ### Install Helm
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
@@ -130,19 +130,39 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
     helm repo update
     ```
 
-### Install Ingress Controller
+### Install Ingress Controller Helm Chart
 
-1. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
+1. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will be used to configure AGIC:
     ```bash
     wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
     ```
 
-1. Edit [helm-config.yaml](../examples/sample-helm-config.yaml) and fill in the values for `appgw` and `armAuth`.
+1. Edit the newly downloaded [helm-config.yaml](../examples/sample-helm-config.yaml) and fill out the sections `appgw` and `armAuth`.
     ```bash
     nano helm-config.yaml
     ```
 
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: `az identity show -g <resourcegroup> -n <identity-name>`, where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
+   Values:
+     - `verbosityLevel`: Sets the verbosity level of the AGIC logging infrastructure. See [Logging Levels](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/463a87213bbc3106af6fce0f4023477216d2ad78/docs/troubleshooting.md#logging-levels) for possible values.
+     - `appgw.subscriptionId`: The Azure Subscription ID in which App Gateway resides. Example: `a123b234-a3b4-557d-b2df-a0bc12de1234`
+     - `appgw.resourceGroup`: Name of the Azure Resource Group in which App Gateway was created. Example: `app-gw-resource-group`
+     - `appgw.name`: Name of the Application Gateway. Example: `applicationgatewayd0f0`
+     - `appgw.shared`: This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
+     - `kubernetes.watchNamespace`: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
+    - `armAuth.type`: could be `aadPodIdentity` or `servicePrincipal`
+    - `armAuth.identityResourceID`: Resource ID of the Azure Managed Identity
+    - `armAuth.identityClientId`: The Client ID of the Identity. See below for more information on Identity
+    - `armAuth.secretJSON`: Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) 
+
+
+   Note on Identity: The `identityResourceID` and `identityClientID` are values that were created
+   during the [Create an Identity](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity)
+   steps, and could be obtained again using the following command:
+   ```bash
+   az identity show -g <resource-group> -n <identity-name>
+   ```
+   `<resource-group>` in the command above is the resource group of your App Gateway. `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
+
 
 1. Install the Application Gateway ingress controller package:
 
@@ -154,7 +174,7 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via [Azure Cloud Shell](https://shell.azure.com/):
 
- ```bash
+ ```yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod

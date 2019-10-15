@@ -4,6 +4,8 @@ set -eauo pipefail
 
 TAG=${1:-$(git describe --abbrev=0 --tags)}
 
+OFFICIAL_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress"
+STAGING_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress-staging"
 HELM_GIT_REPO_URL="https://azure.github.io/application-gateway-kubernetes-ingress/helm"
 HELM_REPO_URL=${2:-$HELM_GIT_REPO_URL}
 
@@ -15,9 +17,22 @@ if [ -f $TGZ_FILE ]; then
   exit 0
 fi
 
+ENV=${3:-""}
+REGISTRY=""
+if [ "$ENV" = "prod" ]; then
+  REGISTRY=$OFFICIAL_REGISTRY  
+elif [ "$ENV" = "staging" ]; then
+  REGISTRY=$STAGING_REGISTRY
+else
+  echo " - exiting bad/unknown environment provided: " $ENV
+  exit 1
+fi
+
+echo " - deployment will use registry: " $REGISTRY
+
 echo " - update helm templates"
 cat ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ingress-azure/Chart.yaml
-cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ingress-azure/values.yaml
+cat ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$TAG/g" | sed "s#XXREGISTRYXX#$REGISTRY#g" > ingress-azure/values.yaml
 
 echo " - running helm package"
 helm package ingress-azure --version "$TAG"

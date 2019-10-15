@@ -1,5 +1,4 @@
-{{- if required "A valid armAuth entry is required!" .Values.armAuth }}
-{{- end}}
+{{- if .Values.armAuth -}}
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
 
 # Please see https://github.com/Azure/aad-pod-identity for more inromation
@@ -11,4 +10,5 @@ spec:
   AzureIdentity: {{ template "application-gateway-kubernetes-ingress.azureidentity" . }}
   Selector: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
 
+{{- end}}
 {{- end}}

@@ -88,15 +88,22 @@ func main() {
 	agicPod := k8sContext.GetAGICPod(env)
 	metricStore := metricstore.NewMetricStore(env)
 
+	// get the details from Azure Context
+	azContext, err := azure.NewAzContext(env.AzContextLocation)
+	if err != nil {
+		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
+	}
+
+	// adjust env variable
 	if env.AppGwName == "" {
 		env.AppGwName = env.ReleaseName
 	}
 
-	if infraSubID, infraResourceGp, err := k8sContext.GetInfrastructureResourceGroupID(); env.SubscriptionID == "" && err != nil {
-		env.SubscriptionID = string(infraSubID)
-		if env.ResourceGroupName == "" {
-			env.ResourceGroupName = string(infraResourceGp)
-		}
+	if azContext != nil && env.SubscriptionID == "" {
+		env.SubscriptionID = string(azContext.SubscriptionID)
+	}
+	if azContext != nil && env.ResourceGroupName == "" {
+		env.ResourceGroupName = string(azContext.ResourceGroup)
 	}
 
 	if err := environment.ValidateEnv(env); err != nil {
@@ -105,9 +112,8 @@ func main() {
 
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
-	var err error
 	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, maxAuthRetryCount, retryPause); err != nil {
+	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
 		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
 	}
 

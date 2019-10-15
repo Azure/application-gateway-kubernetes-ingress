@@ -6,6 +6,7 @@
 package azure
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -57,7 +58,7 @@ var _ = Describe("Azure", func() {
 
 		Context("test getAuthorizer", func() {
 			It("should try and get some authorizer", func() {
-				authorizer, err := getAuthorizer("")
+				authorizer, err := getAuthorizer("", false, nil)
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
 			})
@@ -65,7 +66,7 @@ var _ = Describe("Azure", func() {
 
 		Context("test getAuthorizerWithRetry", func() {
 			It("should try and get some authorizer", func() {
-				authorizer, err := GetAuthorizerWithRetry("", 0, time.Duration(10))
+				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
 			})
@@ -79,6 +80,51 @@ var _ = Describe("Azure", func() {
 			It("should try and panic", func() {
 				err := WaitForAzureAuth(client, 0, time.Duration(10))
 				Ω(err).To(HaveOccurred())
+			})
+		})
+
+		Context("test AzContext struct", func() {
+			contextFile := `{
+				"cloud": "xxxx",
+				"tenantId": "t",
+				"subscriptionId": "s",
+				"aadClientId": "c",
+				"aadClientSecret": "cs",
+				"resourceGroup": "r",
+				"location": "l",
+				"vmType": "xxxx",
+				"subnetName": "xxxx",
+				"securityGroupName": "xxxx",
+				"vnetName": "xxxx",
+				"vnetResourceGroup": "xxxx",
+				"routeTableName": "xxxx",
+				"primaryAvailabilitySetName": "xxxx",
+				"primaryScaleSetName": "xxxx",
+				"cloudProviderBackoff": "xxxx",
+				"cloudProviderBackoffRetries": "xxxx",
+				"cloudProviderBackoffExponent": "xxxx",
+				"cloudProviderBackoffDuration": "xxxx",
+				"cloudProviderBackoffJitter": "xxxx",
+				"cloudProviderRatelimit": "xxxx",
+				"cloudProviderRateLimitQPS": "xxxx",
+				"cloudProviderRateLimitBucket": "xxxx",
+				"useManagedIdentityExtension": "xxxx",
+				"userAssignedIdentityID": "xxxx",
+				"useInstanceMetadata": true,
+				"loadBalancerSku": "xxxx",
+				"excludeMasterFromStandardLB": "xxxx",
+				"providerVaultName": "xxxx",
+				"maximumLoadBalancerRuleCount": "xxxx",
+				"providerKeyName": "xxxx",
+				"providerKeyVersion": "xxxx"
+			}`
+
+			It("should deserialize correctly", func() {
+				var context AzContext
+				err := json.Unmarshal([]byte(contextFile), &context)
+				Ω(err).ToNot(HaveOccurred())
+				Ω(context.TenantID).To(Equal("t"))
+				Ω(context.Region).To(Equal("l"))
 			})
 		})
 	})

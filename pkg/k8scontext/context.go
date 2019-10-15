@@ -277,7 +277,7 @@ func filterAndSort(ingList []*v1beta1.Ingress) []*v1beta1.Ingress {
 	// Sorting the return list ensures that the iterations over this list and
 	// subsequently created structs have deterministic order. This increases
 	// cache hits, and lowers the load on ARM.
-	sort.Sort(sorter.ByIngressUID(ingressList))
+	sort.Sort(sorter.ByIngressName(ingressList))
 	return ingressList
 }
 

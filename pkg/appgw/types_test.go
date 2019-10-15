@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
@@ -25,6 +26,8 @@ var _ = Describe("Test ConfigBuilderContext", func() {
 					&ingress1,
 					&ingress2,
 				},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
 			Expect(cbCtx.InIngressList(&ingress1)).To(BeTrue())
