@@ -127,6 +127,12 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if probe.Path != nil {
 		probe.Path = to.StringPtr(strings.TrimRight(*probe.Path, "*"))
 	}
+
+	// For V1 gateway, port property is not supported
+	if c.appGw.Sku.Tier == n.ApplicationGatewayTierStandard || c.appGw.Sku.Tier == n.ApplicationGatewayTierWAF {
+		probe.Port = nil
+	}
+
 	return &probe
 }
 
