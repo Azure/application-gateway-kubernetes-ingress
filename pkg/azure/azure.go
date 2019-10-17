@@ -41,7 +41,7 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 	split := strings.Split(string(resourceGroup), "_")
 	if len(split) != 4 || strings.ToUpper(split[0]) != "MC" {
 		logLine := fmt.Sprintf("infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup))
-		glog.Error(logLine)
+		glog.Warning(logLine)
 		return "", ErrMissingResourceGroup
 	}
 
