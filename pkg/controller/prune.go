@@ -64,7 +64,9 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
-			c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
+			if c.agicPod != nil {
+				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
+			}
 		} else {
 			prunedIngresses = append(prunedIngresses, ingress)
 		}
@@ -83,7 +85,9 @@ func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGatew
 			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret. Please add a TLS secret or remove ssl-redirect annotation", ingress.Namespace, ingress.Name)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
-			c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
+			if c.agicPod != nil {
+				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
+			}
 		} else {
 			prunedIngresses = append(prunedIngresses, ingress)
 		}

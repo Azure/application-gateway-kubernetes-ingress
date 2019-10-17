@@ -117,7 +117,9 @@ func main() {
 
 	if err := environment.ValidateEnv(env); err != nil {
 		errorLine := fmt.Sprint("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
-		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		}
 		glog.Fatal(errorLine)
 	}
 
@@ -126,7 +128,9 @@ func main() {
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
-		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		}
 		glog.Fatal(errorLine)
 	}
 
@@ -141,12 +145,16 @@ func main() {
 
 			if err != nil {
 				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
-				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
+				if agicPod != nil {
+					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
+				}
 				glog.Fatal(errorLine)
 			}
 		} else {
 			errorLine := fmt.Sprint("Failed authenticating with Azure Resource Manager: ", err)
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+			if agicPod != nil {
+				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+			}
 			glog.Fatal(errorLine)
 		}
 	}
@@ -177,7 +185,9 @@ func main() {
 
 	if err := appGwIngressController.Start(env); err != nil {
 		errorLine := fmt.Sprint("Could not start AGIC: ", err)
-		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		}
 		glog.Fatal(errorLine)
 	}
 
