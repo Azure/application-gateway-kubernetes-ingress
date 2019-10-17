@@ -7,6 +7,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"sort"
@@ -35,6 +36,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
@@ -51,7 +53,6 @@ const (
 var (
 	flags          = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
 	inCluster      = flags.Bool("in-cluster", true, "If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
-	apiServerHost  = flags.String("apiserver-host", "", "The address of the Kubernetes API Server. Optional if running in cluster; if omitted, local discovery is attempted.")
 	kubeConfigFile = flags.String("kubeconfig", "", "Path to kubeconfig file with authorization and master location information.")
 	resyncPeriod   = flags.Duration("sync-period", resyncPause, "Interval at which to re-list and confirm cloud resources.")
 	versionInfo    = flags.Bool("version", false, "Print version")
@@ -107,14 +108,18 @@ func main() {
 	}
 
 	if err := environment.ValidateEnv(env); err != nil {
-		glog.Fatal("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
+		errorLine := fmt.Sprint("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		glog.Fatal(errorLine)
 	}
 
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
-		glog.Fatal("Failed obtaining authentication token for Azure Resource Manager")
+		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		glog.Fatal(errorLine)
 	}
 
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
@@ -122,10 +127,14 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			err = azClient.DeployGateway(env.AppGwSubnetID)
 			if err != nil {
-				glog.Fatal("Failed in deploying App gateway", err)
+				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
+				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
+				glog.Fatal(errorLine)
 			}
 		} else {
-			glog.Fatal("Failed authenticating with Azure Resource Manager: ", err)
+			errorLine := fmt.Sprint("Failed authenticating with Azure Resource Manager: ", err)
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+			glog.Fatal(errorLine)
 		}
 	}
 
@@ -154,7 +163,9 @@ func main() {
 	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
 
 	if err := appGwIngressController.Start(env); err != nil {
-		glog.Fatal("Could not start AGIC: ", err)
+		errorLine := fmt.Sprint("Could not start AGIC: ", err)
+		recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+		glog.Fatal(errorLine)
 	}
 
 	httpServer := httpserver.NewHTTPServer(
@@ -217,10 +228,6 @@ func getKubeClientConfig() *rest.Config {
 		return config
 	}
 
-	if *apiServerHost == "" {
-		glog.Fatal("when not running in a cluster you must specify --apiserver-host")
-	}
-
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
 	if err != nil {
@@ -232,7 +239,7 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.V(3).Infof)
+	eventBroadcaster.StartLogging(glog.V(5).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()

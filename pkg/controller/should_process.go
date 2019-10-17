@@ -31,6 +31,12 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 			// Ignore kube-system namespace events
 			return false, nil
 		}
+
+		if endpoints.Namespace == "default" && endpoints.Name == "aad-pod-identity-mic" {
+			// Ignore AAD Pod Identity
+			return false, nil
+		}
+
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
 		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), to.StringPtr(reason)

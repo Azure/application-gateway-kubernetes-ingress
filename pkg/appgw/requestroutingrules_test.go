@@ -46,8 +46,10 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased2)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingressPathBased1, ingressPathBased2},
-			ServiceList: []*v1.Service{service},
+			IngressList:           []*v1beta1.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
@@ -122,8 +124,10 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressBasic)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingressPathBased, ingressBasic},
-			ServiceList: []*v1.Service{service},
+			IngressList:           []*v1beta1.Ingress{ingressPathBased, ingressBasic},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
@@ -244,8 +248,10 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
-			ServiceList: []*v1.Service{service},
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
@@ -289,8 +295,10 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
-			ServiceList: []*v1.Service{service},
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
 		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)

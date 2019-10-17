@@ -26,6 +26,14 @@ func check(cbCtx *appgw.ConfigBuilderContext, expectedFilename string, stopChan 
 	appGW, err := configBuilder.Build(cbCtx)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
+	if appGW.SslCertificates != nil {
+		for idx := range *appGW.SslCertificates {
+			if (*appGW.SslCertificates)[idx].Data != nil {
+				*(*appGW.SslCertificates)[idx].Data = "xx"
+			}
+		}
+	}
+
 	jsonBlob, err := appGW.MarshalJSON()
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
