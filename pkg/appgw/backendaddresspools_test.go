@@ -29,6 +29,10 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			{Hostname: "xyz"},
 			{IP: "2.2.2.2"},
 		},
+		NotReadyAddresses: []v1.EndpointAddress{
+			{Hostname: "pqr"},
+			{IP: "3.3.3.3"},
+		},
 	}
 
 	serviceList := []*v1.Service{
@@ -82,21 +86,23 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		_ = cb.BackendAddressPools(cbCtx)
 		actualPool := cb.newPool("pool-name", subset)
 		It("should contain unique addresses only", func() {
-			Expect(len(*actualPool.BackendAddresses)).To(Equal(4))
+			Expect(len(*actualPool.BackendAddresses)).To(Equal(6))
 		})
 	})
 
 	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
 		actual := getAddressesForSubset(subset)
 		It("should contain correct number of ApplicationGatewayBackendAddress", func() {
-			Expect(len(*actual)).To(Equal(4))
+			Expect(len(*actual)).To(Equal(6))
 		})
 		It("should contain correct set of ordered ApplicationGatewayBackendAddress", func() {
 			// The order here is deliberate -- ensure this is properly sorted
 			expected := []n.ApplicationGatewayBackendAddress{
 				{IPAddress: to.StringPtr("1.1.1.1")},
 				{IPAddress: to.StringPtr("2.2.2.2")},
+				{IPAddress: to.StringPtr("3.3.3.3")},
 				{Fqdn: to.StringPtr("abc")},
+				{Fqdn: to.StringPtr("pqr")},
 				{Fqdn: to.StringPtr("xyz")},
 			}
 			Expect(*actual).To(Equal(expected))
