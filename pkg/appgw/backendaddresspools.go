@@ -162,6 +162,17 @@ func getAddressesForSubset(subset v1.EndpointSubset) *[]n.ApplicationGatewayBack
 		}
 	}
 
+	for _, address := range subset.NotReadyAddresses {
+		// prefer IP address
+		if len(address.IP) != 0 {
+			// address specified by ip
+			ips[address.IP] = nil
+		} else if len(address.Hostname) != 0 {
+			// address specified by hostname
+			fqdns[address.Hostname] = nil
+		}
+	}
+
 	for ip := range ips {
 		addrSet[n.ApplicationGatewayBackendAddress{IPAddress: to.StringPtr(ip)}] = nil
 	}
