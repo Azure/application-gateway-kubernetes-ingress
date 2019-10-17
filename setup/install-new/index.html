@@ -19,7 +19,7 @@
   <script>
     // Current page data
     var mkdocs_page_name = "Greenfield Deployment";
-    var mkdocs_page_input_path = "setup\\install-new.md";
+    var mkdocs_page_input_path = "setup/install-new.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -222,52 +222,84 @@ choose to use another environment, please ensure the following command line tool
 <li><code>az</code> - Azure CLI: <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest">installation instructions</a></li>
 <li><code>kubectl</code> - Kubernetes command-line tool: <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl">installation instructions</a></li>
 <li><code>helm</code> - Kubernetes package manager: <a href="https://github.com/helm/helm/releases/latest">installation instructions</a></li>
+<li><code>jq</code> - command-line JSON processor: <a href="https://stedolan.github.io/jq/download/">installation instructions</a></li>
 </ol>
 <h3 id="create-an-identity">Create an Identity</h3>
 <p>Follow the steps below to create an Azure Active Directory (AAD) <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object">service principal object</a>. Please record the <code>appId</code>, <code>password</code>, and <code>objectId</code> values - these will be used in the following steps.</p>
 <ol>
 <li>
 <p>Create AD service principal (<a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/overview">Read more about RBAC</a>):
-    <pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --skip-assignment</code></pre>
+    <pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --skip-assignment -o json &gt; auth.json
+appId=$(jq -r ".appId" auth.json)
+password=$(jq -r ".password" auth.json)</code></pre>
     note: the <code>appId</code> and <code>password</code> values from the JSON output will be used in the following steps</p>
 </li>
 <li>
-<p>Use the <code>appId</code> from the previous command's output to get the <code>objectId</code> of the newl service principal:
-    <pre class="highlight"><code class="language-bash">az ad sp show --id &lt;appId&gt; --query "objectId"</code></pre>
+<p>Use the <code>appId</code> from the previous command's output to get the <code>objectId</code> of the new service principal:
+    <pre class="highlight"><code class="language-bash">objectId=$(az ad sp show --id $appId --query "objectId" -o tsv)</code></pre>
     note: the output of this command is <code>objectId</code>, which will be used in the ARM template below</p>
+</li>
+<li>
+<p>Create the parameter file that will be used in the ARM template deployment later.
+    <pre class="highlight"><code class="language-bash">cat &lt;&lt;EOF &gt; parameters.json
+{
+  "aksServicePrincipalAppId": { "value": "$appId" },
+  "aksServicePrincipalClientSecret": { "value": "$password" },
+  "aksServicePrincipalObjectId": { "value": "$objectId" },
+  "aksEnableRBAC": { "value": false }
+}
+EOF</code></pre>
+    Note: To deploy an <strong>RBAC</strong> enabled cluster, set the <code>aksEnabledRBAC</code> field to <code>true</code></p>
 </li>
 </ol>
 <h3 id="deploy-components">Deploy Components</h3>
-<p>Click on the <strong>Deploy to Azure</strong> icon below to begin the infrastructure deployment using an <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates">ARM template</a>. This step will add the following components to your subscription:</p>
+<p>This step will add the following components to your subscription:</p>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes">Azure Kubernetes Service</a></li>
 <li><a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview">Application Gateway</a> v2</li>
 <li><a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">Virtual Network</a> with 2 <a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">subnets</a></li>
 <li><a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address">Public IP Address</a></li>
-<li><a href="https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview">Managed Identity</a>, which will be used by <a href="https://github.com/Azure/aad-pod-identity/blob/master/README.md">AAD Pod Identity</a></li>
+<li>
+<p><a href="https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview">Managed Identity</a>, which will be used by <a href="https://github.com/Azure/aad-pod-identity/blob/master/README.md">AAD Pod Identity</a></p>
+</li>
+<li>
+<p>Download the ARM template and modify the template as needed.
+    <pre class="highlight"><code class="language-bash">wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploy.json -O template.json</code></pre></p>
+</li>
+<li>
+<p>Deploy the ARM template using <code>az cli</code>. This may take up to 5 minutes.
+    <pre class="highlight"><code class="language-bash">resourceGroupName="MyResourceGroup"
+location="westus2"
+deploymentName="ingress-appgw"
+
+# create a resource group
+az group create -n $resourceGroupName -l $location
+
+# modify the template as needed
+az group deployment create \
+        -g $resourceGroupName \
+        -n $deploymentName \
+        --template-file template.json \
+        --parameters parameters.json</code></pre></p>
+</li>
+<li>
+<p>Once the deployment finished, download the deployment output into a file named <code>deployment-outputs.json</code>.
+    <pre class="highlight"><code class="language-bash">az group deployment show -g $resourceGroupName -n $deploymentName --query "properties.outputs" -o json &gt; deployment-outputs.json</code></pre></p>
+</li>
 </ul>
-<h4 id="important">Important</h4>
-<p>Please use the <code>appId</code>, <code>objectId</code>, and <code>password</code> values from the <code>az</code> commands above and
-paste them in the corresponding ARM template fields:
-  - paste the <code>appId</code> vaule in the <code>Aks Service Principal App Id</code> template field
-  - paste the <code>password</code> value in the <code>Aks Service Principal Client Secret</code> field
-  - paste the <code>objectId</code> value in the <code>Aks Service Principal Object Id</code> field</p>
-<p>Note: To deploy an <strong>RBAC</strong> enabled cluster, set the <code>aksEnabledRBAC</code> field to <code>true</code></p>
-<p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fapplication-gateway-kubernetes-ingress%2Fmaster%2Fdeploy%2Fazuredeploy.json" target="_blank">
-<img src="http://azuredeploy.net/deploybutton.png"/>
-</a></p>
-<p>Navigate to the deployment output and record the parameters:
-<a href="https://portal.azure.com/">Azure portal</a>: <code>Home -&gt; *resource group* -&gt; Deployments -&gt; *new deployment* -&gt; Outputs</code>)</p>
-<p>Example: <img alt="Deployment Output" src="../../images/deployment-output.png" /></p>
 <h2 id="set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</h2>
 <p>With the instructions in the previous section we created and configured a new AKS cluster and
-an App Gateway. We are now ready to deploy an sample app and an ingress controller to our new
+an App Gateway. We are now ready to deploy a sample app and an ingress controller to our new
 Kubernetes infrastructure.</p>
 <h3 id="setup-kubernetes-credentials">Setup Kubernetes Credentials</h3>
 <p>For the following steps we need setup <a href="https://kubectl.docs.kubernetes.io/">kubectl</a> command,
 which we will use to connect to our new Kubernetes cluster. <a href="https://shell.azure.com/">Cloud Shell</a> has <code>kubectl</code> already installed. We will use <code>az</code> CLI to obtain credentials for Kubernetes.</p>
 <p>Get credentials for your newly deployed AKS (<a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster">read more</a>):
-    <pre class="highlight"><code class="language-bash">az aks get-credentials --resource-group &lt;your-new-resource-group&gt; --name &lt;name-of-new-AKS-cluster&gt;</code></pre></p>
+<pre class="highlight"><code class="language-bash"># use the deployment-outputs.json created after deployment to get the cluster name and resource group name
+aksClusterName=$(jq -r ".aksClusterName.value" deployment-outputs.json)
+resourceGroupName=$(jq -r ".resourceGroupName.value" deployment-outputs.json)
+
+az aks get-credentials --resource-group $resourceGroupName --name $aksClusterName</code></pre></p>
 <h3 id="install-aad-pod-identity">Install AAD Pod Identity</h3>
 <p>Azure Active Directory Pod Identity provides token-based access to
   <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
@@ -313,13 +345,26 @@ helm repo update</code></pre></p>
 </ol>
 <h3 id="install-ingress-controller-helm-chart">Install Ingress Controller Helm Chart</h3>
 <ol>
+<li>Use the <code>deployment-outputs.json</code> file created above and create the following variables.
+    <pre class="highlight"><code class="language-bash">applicationGatewayName=$(jq -r ".applicationGatewayName.value" deployment-outputs.json)
+resourceGroupName=$(jq -r ".resourceGroupName.value" deployment-outputs.json)
+subscriptionId=$(jq -r ".subscriptionId.value" deployment-outputs.json)
+identityClientId=$(jq -r ".identityClientId.value" deployment-outputs.json)
+identityResourceId=$(jq -r ".identityResourceId.value" deployment-outputs.json)</code></pre></li>
 <li>
-<p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will be used to configure AGIC:
+<p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will configure AGIC:
     <pre class="highlight"><code class="language-bash">wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml</code></pre></p>
 </li>
 <li>
 <p>Edit the newly downloaded <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill out the sections <code>appgw</code> and <code>armAuth</code>.
-    <pre class="highlight"><code class="language-bash">nano helm-config.yaml</code></pre></p>
+    <pre class="highlight"><code class="language-bash">sed -i "s|&lt;subscriptionId&gt;|${subscriptionId}|g" helm-config.yaml
+sed -i "s|&lt;resourceGroupName&gt;|${resourceGroupName}|g" helm-config.yaml
+sed -i "s|&lt;applicationGatewayName&gt;|${applicationGatewayName}|g" helm-config.yaml
+sed -i "s|&lt;identityResourceId&gt;|${identityResourceId}|g" helm-config.yaml
+sed -i "s|&lt;identityClientId&gt;|${identityClientId}|g" helm-config.yaml
+
+# You can further modify the helm config to enable/disable features
+nano helm-config.yaml</code></pre></p>
 </li>
 </ol>
 <p>Values:
@@ -348,8 +393,7 @@ helm repo update</code></pre></p>
 <h3 id="install-a-sample-app">Install a Sample App</h3>
 <p>Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
-<p>```yaml
-cat &lt;&lt;EOF | kubectl apply -f -
+<pre class="highlight"><code class="language-yaml">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -362,9 +406,11 @@ spec:
     name: aspnetapp-image
     ports:
     - containerPort: 80
-      protocol: TCP</p>
-<hr />
-<p>apiVersion: v1
+      protocol: TCP
+
+---
+
+apiVersion: v1
 kind: Service
 metadata:
   name: aspnetapp
@@ -374,9 +420,11 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 80</p>
-<hr />
-<p>apiVersion: extensions/v1beta1
+    targetPort: 80
+
+---
+
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: aspnetapp
@@ -390,16 +438,18 @@ spec:
         backend:
           serviceName: aspnetapp
           servicePort: 80
-EOF
-<pre class="highlight"><code>
-Alternatively you can:
+EOF</code></pre>
 
-1. Download the YAML file above:
-```bash
-curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml</code></pre></p>
+<p>Alternatively you can:</p>
 <ol>
-<li>Apply the YAML file:
-<pre class="highlight"><code class="language-bash">kubectl apply -f apsnetapp.yaml</code></pre></li>
+<li>
+<p>Download the YAML file above:
+<pre class="highlight"><code class="language-bash">curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml</code></pre></p>
+</li>
+<li>
+<p>Apply the YAML file:
+<pre class="highlight"><code class="language-bash">kubectl apply -f apsnetapp.yaml</code></pre></p>
+</li>
 </ol>
 <h2 id="other-examples">Other Examples</h2>
 <p>The <strong><a href="../../tutorial/">tutorials</a></strong> document contains more examples on how toexpose an AKS
