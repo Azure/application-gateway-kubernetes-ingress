@@ -55,6 +55,7 @@ The best way to report an issue is to create a Github Issue for the project. Ple
 - Ingress resource definition that might causing the problem.
 - The Helm configuration used to install the ingress controller.
 
+
 ## Contributing
 
 This is a Golang project. You can find the build instructions of the project in the [Developer Guide](docs/developers/build.md).
