@@ -32,7 +32,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	appGw, err := c.azClient.GetGateway()
 	c.metricStore.IncArmAPICallCounter()
 	if err != nil {
-		glog.Errorf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
+		errorLine := fmt.Sprintf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
+		glog.Errorf(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, errorLine)
 		return ErrFetchingAppGatewayConfig
 	}
 
@@ -81,6 +83,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
 	if len(cbCtx.IngressList) == 0 && !cbCtx.EnvVariables.EnableIstioIntegration {
 		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonNoValidIngress, errorLine)
 		glog.Error(errorLine)
 		return nil
 	}
@@ -95,7 +98,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	// Run fatal validations on the existing config of the Application Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
-		glog.Error("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
+		errorLine := fmt.Sprint("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
+		glog.Error(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
 		return err
 	}
 
@@ -104,19 +109,25 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
-		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
+		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
+		glog.Error(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 	}
 
 	var generatedAppGw *n.ApplicationGateway
 	// Replace the current appgw config with the generated one
 	if generatedAppGw, err = configBuilder.Build(cbCtx); err != nil {
-		glog.Error("ConfigBuilder Build returned error:", err)
+		errorLine := fmt.Sprint("ConfigBuilder Build returned error:", err)
+		glog.Error(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		return err
 	}
 
 	// Run post validations to report errors in the config generation.
 	if err = configBuilder.PostBuildValidate(cbCtx); err != nil {
-		glog.Error("ConfigBuilder PostBuildValidate returned error:", err)
+		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
+		glog.Error(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 	}
 
 	if c.configIsSame(&appGw) {
@@ -141,8 +152,10 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		if cbCtx.EnvVariables.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
 		}
-		glogIt("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
-		c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		errorLine := fmt.Sprintf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
+		glogIt(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+    c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
 	// Wait until deployment finshes and save the error message
@@ -158,8 +171,10 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		glog.Warning("Unable to deploy App Gateway config.", err)
-		c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		errorLine := fmt.Sprint("Unable to deploy App Gateway config.", err)
+		glog.Warning(errorLine)
+		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+    c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return ErrDeployingAppGatewayConfig
 	}
 
