@@ -35,4 +35,25 @@ const (
 
 	// ReasonInvalidAnnotation is a reason for an event to be emitted.
 	ReasonInvalidAnnotation = "InvalidAnnotation"
+
+	// ReasonUnableToFetchAppGw is a reason for an event to be emitted.
+	ReasonUnableToFetchAppGw = "UnableToFetchAppGw"
+
+	// ReasonNoValidIngress is a reason for an event to be emitted.
+	ReasonNoValidIngress = "NoValidIngress"
+
+	// ReasonInvalidAppGwConfig is a reason for an event to be emitted.
+	ReasonInvalidAppGwConfig = "InvalidAppGwConfig"
+
+	// ReasonFailedApplyingAppGwConfig is a reason for an event to be emitted.
+	ReasonFailedApplyingAppGwConfig = "FailedApplyingAppGwConfig"
+
+	// ReasonFailedDeployingAppGw is a reason for an event to be emitted.
+	ReasonFailedDeployingAppGw = "FailedDeployingAppGw"
+
+	// ReasonValidatonError is a reason for an event to be emitted.
+	ReasonValidatonError = "FailedValidatonError"
+
+	// ReasonARMAuthFailure is a reason for an event to be emitted.
+	ReasonARMAuthFailure = "ARMAuthFailure"
 )
