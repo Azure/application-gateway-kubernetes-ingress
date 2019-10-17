@@ -218,7 +218,7 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via [Azure Cloud Shell](https://shell.azure.com/):
 
- ```yaml
+```yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
