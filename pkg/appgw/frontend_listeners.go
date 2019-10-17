@@ -91,6 +91,13 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
 	}
 
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPorts()
+		brownfield.LogPorts(existingBlacklisted, existingNonBlacklisted, ports)
+		ports = brownfield.MergePorts(existingBlacklisted, ports)
+	}
+
 	sort.Sort(sorter.ByListenerName(listeners))
 	sort.Sort(sorter.ByFrontendPortName(ports))
 

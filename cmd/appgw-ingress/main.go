@@ -51,7 +51,6 @@ const (
 var (
 	flags          = pflag.NewFlagSet(`appgw-ingress`, pflag.ExitOnError)
 	inCluster      = flags.Bool("in-cluster", true, "If running in a Kubernetes cluster, use the pod secrets for creating a Kubernetes client. Optional.")
-	apiServerHost  = flags.String("apiserver-host", "", "The address of the Kubernetes API Server. Optional if running in cluster; if omitted, local discovery is attempted.")
 	kubeConfigFile = flags.String("kubeconfig", "", "Path to kubeconfig file with authorization and master location information.")
 	resyncPeriod   = flags.Duration("sync-period", resyncPause, "Interval at which to re-list and confirm cloud resources.")
 	versionInfo    = flags.Bool("version", false, "Print version")
@@ -216,10 +215,6 @@ func getKubeClientConfig() *rest.Config {
 			glog.Fatal("Error creating client configuration:", err)
 		}
 		return config
-	}
-
-	if *apiServerHost == "" {
-		glog.Fatal("when not running in a cluster you must specify --apiserver-host")
 	}
 
 	// use the current context in kubeconfig
