@@ -99,12 +99,14 @@ func main() {
 	if env.AppGwName == "" {
 		env.AppGwName = env.ReleaseName
 	}
-
 	if azContext != nil && env.SubscriptionID == "" {
 		env.SubscriptionID = string(azContext.SubscriptionID)
 	}
 	if azContext != nil && env.ResourceGroupName == "" {
 		env.ResourceGroupName = string(azContext.ResourceGroup)
+	}
+	if env.AppGwSubnetName == "" {
+		env.AppGwSubnetName = env.AppGwName + "-subnet"
 	}
 
 	if err := environment.ValidateEnv(env); err != nil {
@@ -127,11 +129,8 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
-			} else if env.AppGwVnetID != "" {
-				_, vnetResourceGroup, vnetName := azure.ParseResourceID(env.AppGwVnetID)
-				err = azClient.DeployGatewayWithVnet(vnetResourceGroup, vnetName, env.AppGwSubnetPrefix)
 			} else if azContext != nil {
-				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), env.AppGwSubnetPrefix)
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
 			}
 
 			if err != nil {

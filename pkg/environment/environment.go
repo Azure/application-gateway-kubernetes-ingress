@@ -26,14 +26,14 @@ const (
 	// AppGwNameVarName is the name of the APPGW_NAME
 	AppGwNameVarName = "APPGW_NAME"
 
+	// AppGwSubnetPrefixVarName is the name of the APPGW_SUBNETPREFIX
+	AppGwSubnetPrefixVarName = "APPGW_SUBNETPREFIX"
+
 	// AppGwSubnetIDVarName is the name of the APPGW_SUBNETID
 	AppGwSubnetIDVarName = "APPGW_SUBNETID"
 
-	// AppGwVnetIDVarName is the name of the APPGW_VNETID
-	AppGwVnetIDVarName = "APPGW_VNETID"
-
-	// AppGwSubnetPrefixVarName is the name of the APPGW_SUBNETPREFIX
-	AppGwSubnetPrefixVarName = "APPGW_SUBNETPREFIX"
+	// AppGwSubnetNameVarName is the name of the APPGW_SUBNETNAME
+	AppGwSubnetNameVarName = "APPGW_SUBNETNAME"
 
 	// ReleaseNameVarName is the name of the RELEASE_NAME
 	ReleaseNameVarName = "RELEASE_NAME"
@@ -84,9 +84,9 @@ type EnvVariables struct {
 	SubscriptionID             string
 	ResourceGroupName          string
 	AppGwName                  string
-	AppGwSubnetID              string
-	AppGwVnetID                string
 	AppGwSubnetPrefix          string
+	AppGwSubnetID              string
+	AppGwSubnetName            string
 	ReleaseName                string
 	AuthLocation               string
 	WatchNamespace             string
@@ -113,9 +113,9 @@ func GetEnv() EnvVariables {
 		SubscriptionID:             os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
-		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
-		AppGwVnetID:                os.Getenv(AppGwVnetIDVarName),
 		AppGwSubnetPrefix:          os.Getenv(AppGwSubnetPrefixVarName),
+		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
+		AppGwSubnetName:            os.Getenv(AppGwSubnetNameVarName),
 		ReleaseName:                os.Getenv(ReleaseNameVarName),
 		AuthLocation:               os.Getenv(AuthLocationVarName),
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
@@ -137,11 +137,12 @@ func GetEnv() EnvVariables {
 
 // ValidateEnv validates environment variables.
 func ValidateEnv(env EnvVariables) error {
-	if env.EnableDeployAppGateway && len(env.AppGwSubnetID) == 0 && len(env.AppGwSubnetPrefix) == 0 {
+	if len(env.AppGwName) == 0 {
+		return errors.New("Missing required Environment variables: Provide atleast provide APPGW_NAME. You can also provided APPGW_SUBSCRIPTION_ID and APPGW_RESOURCE_GROUP (ENVT001)")
+	}
+	if env.EnableDeployAppGateway && len(env.AppGwSubnetID) == 0 && len(env.AppGwSubnetPrefix) == 0 && len(env.AppGwSubnetName) == 0 {
 		// when create is true, then either we should have env.AppGwSubnetID or env.AppGwSubnetPrefix
-		return errors.New("Missing required Environment variables: Please provide APPGW_SUBNETID or APPGW_SUBNETPREFIX used to create the App Gateway (ENVT001)")
-	} else if len(env.SubscriptionID) == 0 || len(env.ResourceGroupName) == 0 || len(env.AppGwName) == 0 {
-		return errors.New("Missing required Environment variables: Provide APPGW_SUBSCRIPTION_ID, APPGW_RESOURCE_GROUP and APPGW_NAME (ENVT002)")
+		return errors.New("Missing required Environment variables: Please provide APPGW_SUBNETNAME or APPGW_SUBNETID of an existing subnet. If you want AGIC to optionally create a new subnet, then also provide APPGW_SUBNETPREFIX (ENVT002)")
 	}
 
 	if env.WatchNamespace == "" {

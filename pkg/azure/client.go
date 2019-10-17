@@ -23,7 +23,7 @@ import (
 type AzClient interface {
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
-	DeployGatewayWithVnet(ResourceGroup, ResourceName, string) error
+	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
 	DeployGatewayWithSubnet(string) error
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
@@ -105,7 +105,7 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
-func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetPrefix string) (err error) {
+func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string) (err error) {
 	vnet, err := az.getVnet(resourceGroupName, vnetName)
 	if err != nil {
 		return
@@ -114,7 +114,6 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 	glog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
 	subnet, err := az.findSubnet(vnet, subnetPrefix)
 	if err != nil {
-		subnetName := string(az.appGwName) + "-subnet"
 		glog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
@@ -171,14 +170,14 @@ func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetPrefix string) (subn
 	return
 }
 
-func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName string, subnetPrefix string) (subnet n.Subnet, err error) {
+func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName, subnetPrefix string) (subnet n.Subnet, err error) {
 	_, resourceGroup, vnetName := ParseResourceID(*vnet.ID)
 	subnet = n.Subnet{
 		SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
 			AddressPrefix: &subnetPrefix,
 		},
 	}
-	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), subnetName, subnet)
+	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
 	if err != nil {
 		return
 	}
@@ -189,7 +188,7 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName string, subne
 		return
 	}
 
-	return az.subnetsClient.Get(az.ctx, string(resourceGroup), string(vnetName), subnetName, "")
+	return az.subnetsClient.Get(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), "")
 }
 
 // Create the deployment

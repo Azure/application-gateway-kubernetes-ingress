@@ -57,7 +57,7 @@ func (az *FakeAzClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 }
 
 // DeployGatewayWithVnet runs DeployGatewayFunc
-func (az *FakeAzClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetPrefix string) (err error) {
+func (az *FakeAzClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string) (err error) {
 	if az.DeployGatewayFunc != nil {
 		return az.DeployGatewayFunc(subnetPrefix)
 	}

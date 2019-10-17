@@ -1,6 +1,14 @@
 {{- if required "A valid appgw entry is required!" .Values.appgw }}
 {{- end }}
 
+{{- if required "please provide a value for appgw.name in the helm config." .Values.appgw.name }}
+{{- end}}}
+
+{{- if .Values.appgw.create }}
+  {{- if required "Please provide appgw.subnetName or appgw.subnetId of an existing subnet. If you want AGIC to optionally create a new subnet, then also provide appgw.subnetPrefix." .Values.appgw.name }}
+  {{- end}}}
+{{- end -}}}}}
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,9 +22,9 @@ data:
   APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId }}
   APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup }}
   APPGW_NAME:            {{ .Values.appgw.name }}
-  APPGW_SUBNETID:        {{ .Values.appgw.subnetId }}
-  APPGW_VNETID:          {{ .Values.appgw.vnetId }}
   APPGW_SUBNETPREFIX:    {{ .Values.appgw.subnetPrefix }}
+  APPGW_SUBNETID:        {{ .Values.appgw.subnetId }}
+  APPGW_SUBNETNAME:      {{ .Values.appgw.subnetName }}
   RELEASE_NAME:          {{ .Release.Name }}
   APPGW_VERBOSITY_LEVEL: "{{ .Values.verbosityLevel }}"
 {{- if .Values.kubernetes }}
