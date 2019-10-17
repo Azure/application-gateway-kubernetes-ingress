@@ -7,6 +7,7 @@ package functests
 
 import (
 	"flag"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"testing"
 	"time"
 
@@ -345,7 +346,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
-		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))
+		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
 	})
 
 	ginkgo.AfterEach(func() {
