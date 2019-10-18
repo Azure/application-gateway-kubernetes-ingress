@@ -1,13 +1,21 @@
 {{- if required "A valid appgw entry is required!" .Values.appgw }}
 {{- end }}
 
-{{- if required "please provide a value for appgw.name in the helm config." .Values.appgw.name }}
-{{- end}}}
+{{- if not .Values.appgw.applicationGatewayID }}
+  {{- if not .Values.appgw.name }}
+    {{- if required "Please either provide appgw.applicationGatewayID or appgw.name" .Values.appgw.applicationGatewayID }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 
-{{- if .Values.appgw.create }}
-  {{- if required "Please provide appgw.subnetName or appgw.subnetId of an existing subnet. If you want AGIC to optionally create a new subnet, then also provide appgw.subnetPrefix." .Values.appgw.name }}
-  {{- end}}}
-{{- end -}}}}}
+{{- if .Values.appgw.name }}
+  {{- if not .Values.appgw.subnetPrefix }}
+  {{- if not .Values.appgw.subnetID }}
+    {{- if required "Please provide appgw.subnetPrefix or appgw.subnetID of an existing subnet" .Values.appgw.subnetPrefix }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
 
 apiVersion: v1
 kind: ConfigMap
@@ -19,33 +27,41 @@ metadata:
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
 data:
-  APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId }}
-  APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup }}
-  APPGW_NAME:            {{ .Values.appgw.name }}
-  APPGW_SUBNETPREFIX:    {{ .Values.appgw.subnetPrefix }}
-  APPGW_SUBNETID:        {{ .Values.appgw.subnetId }}
-  APPGW_SUBNETNAME:      {{ .Values.appgw.subnetName }}
-  RELEASE_NAME:          {{ .Release.Name }}
-  APPGW_VERBOSITY_LEVEL: "{{ .Values.verbosityLevel }}"
-{{- if .Values.kubernetes }}
+  APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel | quote }}
+  HTTP_SERVICE_PORT:     {{ .Values.kubernetes.httpServicePort | quote }}
+  USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}
+
+{{- if .Values.appgw.applicationGatewayID }}
+  APPGW_RESOURCE_ID: {{ .Values.appgw.applicationGatewayID | quote }}
+{{- else }}
+  APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId | quote }}
+  APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup | quote }}
+  APPGW_NAME:            {{ .Values.appgw.name | quote }}
+  APPGW_ENABLE_DEPLOY:   "true"
+
+  {{- if .Values.appgw.subnetID }}
+  APPGW_SUBNET_ID: {{ .Values.appgw.subnetID | quote }}
+  {{- else }}
+  {{- if .Values.appgw.subnetName }}
+  APPGW_SUBNET_NAME: {{ .Values.appgw.subnetName | quote }}
+  {{- else }}
+  APPGW_SUBNET_NAME: "{{ .Values.appgw.name }}-subnet"
+  {{- end }}
+  APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }} 
+  {{- end }}
+
+{{- end }}
+
+{{- if .Values.appgw.shared }}
+  APPGW_ENABLE_SHARED_APPGW: {{ .Values.appgw.shared | quote }}
+{{- end }}
+
 {{- if .Values.kubernetes.watchNamespace }}
   KUBERNETES_WATCHNAMESPACE: "{{ .Values.kubernetes.watchNamespace }}"
 {{- end }}
-{{- if .Values.kubernetes.httpServicePort }}
-  HTTP_SERVICE_PORT: "{{ .Values.kubernetes.httpServicePort }}"
-{{- end }}
-{{- end }}
-  USE_PRIVATE_IP: "{{ .Values.appgw.usePrivateIP }}"
-{{- if .Values.appgw }}
-{{- if .Values.appgw.shared }}
-  APPGW_ENABLE_SHARED_APPGW: "{{ .Values.appgw.shared }}"
-{{- end }}
-{{- end }}
+
 {{- if .Values.armAuth -}}
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}
-{{- end }}
-{{- if .Values.appgw.create }}
-  APPGW_ENABLE_DEPLOY_APPGATEWAY: "{{ .Values.appgw.create }}"
 {{- end }}

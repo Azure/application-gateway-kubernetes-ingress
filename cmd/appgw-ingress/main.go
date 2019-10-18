@@ -96,8 +96,11 @@ func main() {
 	}
 
 	// adjust env variable
-	if env.AppGwName == "" {
-		env.AppGwName = env.ReleaseName
+	if env.AppGwResourceID != "" {
+		subscriptionID, resourceGroupName, applicationGatewayName := azure.ParseResourceID(env.AppGwResourceID)
+		env.SubscriptionID = string(subscriptionID)
+		env.ResourceGroupName = string(resourceGroupName)
+		env.AppGwName = string(applicationGatewayName)
 	}
 	if azContext != nil && env.SubscriptionID == "" {
 		env.SubscriptionID = string(azContext.SubscriptionID)

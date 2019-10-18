@@ -26,17 +26,17 @@ const (
 	// AppGwNameVarName is the name of the APPGW_NAME
 	AppGwNameVarName = "APPGW_NAME"
 
-	// AppGwSubnetPrefixVarName is the name of the APPGW_SUBNETPREFIX
-	AppGwSubnetPrefixVarName = "APPGW_SUBNETPREFIX"
+	// AppGwSubnetNameVarName is the name of the APPGW_SUBNET_NAME
+	AppGwSubnetNameVarName = "APPGW_SUBNET_NAME"
 
-	// AppGwSubnetIDVarName is the name of the APPGW_SUBNETID
-	AppGwSubnetIDVarName = "APPGW_SUBNETID"
+	// AppGwSubnetPrefixVarName is the name of the APPGW_SUBNET_PREFIX
+	AppGwSubnetPrefixVarName = "APPGW_SUBNET_PREFIX"
 
-	// AppGwSubnetNameVarName is the name of the APPGW_SUBNETNAME
-	AppGwSubnetNameVarName = "APPGW_SUBNETNAME"
+	// AppGwResourceIDVarName is the name of the APPGW_RESOURCE_ID
+	AppGwResourceIDVarName = "APPGW_RESOURCE_ID"
 
-	// ReleaseNameVarName is the name of the RELEASE_NAME
-	ReleaseNameVarName = "RELEASE_NAME"
+	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
+	AppGwSubnetIDVarName = "APPGW_SUBNET_ID"
 
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
@@ -63,7 +63,7 @@ const (
 	EnablePanicOnPutErrorVarName = "APPGW_ENABLE_PANIC_ON_PUT_ERROR"
 
 	// EnableDeployAppGatewayVarName is a feature flag.
-	EnableDeployAppGatewayVarName = "APPGW_ENABLE_DEPLOY_APPGATEWAY"
+	EnableDeployAppGatewayVarName = "APPGW_ENABLE_DEPLOY"
 
 	// HTTPServicePortVarName is an environment variable name.
 	HTTPServicePortVarName = "HTTP_SERVICE_PORT"
@@ -84,10 +84,10 @@ type EnvVariables struct {
 	SubscriptionID             string
 	ResourceGroupName          string
 	AppGwName                  string
-	AppGwSubnetPrefix          string
-	AppGwSubnetID              string
 	AppGwSubnetName            string
-	ReleaseName                string
+	AppGwSubnetPrefix          string
+	AppGwResourceID            string
+	AppGwSubnetID              string
 	AuthLocation               string
 	WatchNamespace             string
 	UsePrivateIP               string
@@ -113,10 +113,10 @@ func GetEnv() EnvVariables {
 		SubscriptionID:             os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
-		AppGwSubnetPrefix:          os.Getenv(AppGwSubnetPrefixVarName),
-		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
 		AppGwSubnetName:            os.Getenv(AppGwSubnetNameVarName),
-		ReleaseName:                os.Getenv(ReleaseNameVarName),
+		AppGwSubnetPrefix:          os.Getenv(AppGwSubnetPrefixVarName),
+		AppGwResourceID:            os.Getenv(AppGwResourceIDVarName),
+		AppGwSubnetID:              os.Getenv(AppGwSubnetIDVarName),
 		AuthLocation:               os.Getenv(AuthLocationVarName),
 		WatchNamespace:             os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:               os.Getenv(UsePrivateIPVarName),
@@ -140,7 +140,7 @@ func ValidateEnv(env EnvVariables) error {
 	if len(env.AppGwName) == 0 {
 		return errors.New("Missing required Environment variables: Provide atleast provide APPGW_NAME. You can also provided APPGW_SUBSCRIPTION_ID and APPGW_RESOURCE_GROUP (ENVT001)")
 	}
-	if env.EnableDeployAppGateway && len(env.AppGwSubnetID) == 0 && len(env.AppGwSubnetPrefix) == 0 && len(env.AppGwSubnetName) == 0 {
+	if env.EnableDeployAppGateway && (len(env.AppGwResourceID) == 0 && len(env.AppGwSubnetPrefix) == 0 && len(env.AppGwSubnetName) == 0) {
 		// when create is true, then either we should have env.AppGwSubnetID or env.AppGwSubnetPrefix
 		return errors.New("Missing required Environment variables: Please provide APPGW_SUBNETNAME or APPGW_SUBNETID of an existing subnet. If you want AGIC to optionally create a new subnet, then also provide APPGW_SUBNETPREFIX (ENVT002)")
 	}
