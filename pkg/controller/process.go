@@ -81,12 +81,6 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	}
 
 	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
-	if len(cbCtx.IngressList) == 0 && !cbCtx.EnvVariables.EnableIstioIntegration {
-		errorLine := "no Ingress in the pruned Ingress list. Please check Ingress events to get more information"
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonNoValidIngress, errorLine)
-		glog.Error(errorLine)
-		return nil
-	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		var gatewaysInfo []string
