@@ -93,6 +93,8 @@ func main() {
 	azContext, err := azure.NewAzContext(env.AzContextLocation)
 	if err != nil {
 		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
+	} else if azContext.VNetResourceGroup == "" {
+		azContext.VNetResourceGroup = azContext.ResourceGroup
 	}
 
 	// adjust env variable
