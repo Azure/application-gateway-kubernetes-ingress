@@ -168,8 +168,19 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 		return nil
 	}
 
+	var podContainers []v1.Container
+
+	// let's assume that the pods with the same label can have different health probes across multiple namespaces,
+	// then, get only the containers of a pod from the same namespace as the ingress
+	for k, pod := range podList {
+		if pod.Namespace == backendID.Ingress.Namespace {
+			podContainers = podList[k].Spec.Containers
+			break
+		}
+	}
+
 	// use the target port to figure out the container and use it's readiness/liveness probe
-	for _, container := range podList[0].Spec.Containers {
+	for _, container := range podContainers {
 		for _, port := range container.Ports {
 			if _, ok := allPorts[port.ContainerPort]; !ok {
 				continue
