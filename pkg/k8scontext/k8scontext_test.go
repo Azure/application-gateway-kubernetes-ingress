@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -91,7 +92,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
-		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})

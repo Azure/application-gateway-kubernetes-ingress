@@ -14,6 +14,8 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 )
 
 var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
@@ -21,7 +23,7 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 
 	ginkgo.Context("Test secrets handlers", func() {
 		h := handlers{
-			context: NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second),
+			context: NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore()),
 		}
 
 		ginkgo.It("add, delete, update secrets from cache", func() {

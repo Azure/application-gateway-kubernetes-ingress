@@ -34,3 +34,11 @@ func (ms *fakeMetricStore) Handler() http.Handler {
 }
 
 func (ms *fakeMetricStore) SetUpdateLatencySec(dur time.Duration) {}
+
+func (ms *fakeMetricStore) IncArmAPIUpdateCallFailureCounter() {}
+
+func (ms *fakeMetricStore) IncArmAPIUpdateCallSuccessCounter() {}
+
+func (ms *fakeMetricStore) IncArmAPICallCounter() {}
+
+func (ms *fakeMetricStore) IncK8sAPIEventCounter() {}

@@ -8,6 +8,7 @@ package azure
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
@@ -22,17 +23,20 @@ import (
 type AzClient interface {
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
-	DeployGateway(string) error
+	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
+	DeployGatewayWithSubnet(string) error
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
 }
 
 type azClient struct {
-	appGatewaysClient n.ApplicationGatewaysClient
-	publicIPsClient   n.PublicIPAddressesClient
-	groupsClient      r.GroupsClient
-	deploymentsClient r.DeploymentsClient
-	authorizer        autorest.Authorizer
+	appGatewaysClient     n.ApplicationGatewaysClient
+	publicIPsClient       n.PublicIPAddressesClient
+	virtualNetworksClient n.VirtualNetworksClient
+	subnetsClient         n.SubnetsClient
+	groupsClient          r.GroupsClient
+	deploymentsClient     r.DeploymentsClient
+	authorizer            autorest.Authorizer
 
 	subscriptionID    SubscriptionID
 	resourceGroupName ResourceGroup
@@ -45,13 +49,15 @@ type azClient struct {
 func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient: n.NewApplicationGatewaysClient(string(subscriptionID)),
-		publicIPsClient:   n.NewPublicIPAddressesClient(string(subscriptionID)),
-		groupsClient:      r.NewGroupsClient(string(subscriptionID)),
-		deploymentsClient: r.NewDeploymentsClient(string(subscriptionID)),
-		subscriptionID:    subscriptionID,
-		resourceGroupName: resourceGroupName,
-		appGwName:         appGwName,
+		appGatewaysClient:     n.NewApplicationGatewaysClient(string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClient(string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClient(string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClient(string(subscriptionID)),
+		groupsClient:          r.NewGroupsClient(string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClient(string(subscriptionID)),
+		subscriptionID:        subscriptionID,
+		resourceGroupName:     resourceGroupName,
+		appGwName:             appGwName,
 
 		ctx:        context.Background(),
 		authorizer: authorizer,
@@ -62,7 +68,10 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 
 	az.publicIPsClient.AddToUserAgent(userAgent)
 	az.publicIPsClient.Authorizer = az.authorizer
-
+	az.virtualNetworksClient.AddToUserAgent(userAgent)
+	az.virtualNetworksClient.Authorizer = az.authorizer
+	az.subnetsClient.AddToUserAgent(userAgent)
+	az.subnetsClient.Authorizer = az.authorizer
 	az.groupsClient.AddToUserAgent(userAgent)
 	az.groupsClient.Authorizer = az.authorizer
 
@@ -96,8 +105,31 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
-func (az *azClient) DeployGateway(subnetID string) (err error) {
+func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string) (err error) {
+	vnet, err := az.getVnet(resourceGroupName, vnetName)
+	if err != nil {
+		return
+	}
+
+	glog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
+	subnet, err := az.findSubnet(vnet, subnetPrefix)
+	if err != nil {
+		glog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
+		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
+		if err != nil {
+			return
+		}
+	}
+
+	err = az.DeployGatewayWithSubnet(*subnet.ID)
+	return
+}
+
+// DeployGateway is a method that deploy the appgw and related resources
+func (az *azClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 	glog.Infof("Deploying Gateway")
+
+	// Check if group exists
 	group, err := az.getGroup()
 	if err != nil {
 		return
@@ -122,6 +154,41 @@ func (az *azClient) DeployGateway(subnetID string) (err error) {
 // Create a resource group for the deployment.
 func (az *azClient) getGroup() (r.Group, error) {
 	return az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
+}
+
+func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceName) (n.VirtualNetwork, error) {
+	return az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
+}
+
+func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetPrefix string) (subnet n.Subnet, err error) {
+	for _, subnet := range *vnet.Subnets {
+		if *subnet.AddressPrefix == subnetPrefix {
+			return subnet, nil
+		}
+	}
+	err = errors.New("Unable to find subnet")
+	return
+}
+
+func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName, subnetPrefix string) (subnet n.Subnet, err error) {
+	_, resourceGroup, vnetName := ParseResourceID(*vnet.ID)
+	subnet = n.Subnet{
+		SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
+			AddressPrefix: &subnetPrefix,
+		},
+	}
+	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
+	if err != nil {
+		return
+	}
+
+	// Wait until deployment finshes and save the error message
+	err = subnetFuture.WaitForCompletionRef(az.ctx, az.subnetsClient.BaseClient.Client)
+	if err != nil {
+		return
+	}
+
+	return az.subnetsClient.Get(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), "")
 }
 
 // Create the deployment

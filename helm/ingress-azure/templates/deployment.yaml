@@ -55,7 +55,7 @@ spec:
         {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: AZURE_AUTH_LOCATION
-            value: /etc/Azure/Networking-AppGW/auth/armAuth.json
+          value: /etc/Azure/Networking-AppGW/auth/armAuth.json
         {{- end}}
         {{- end}}
         envFrom:
