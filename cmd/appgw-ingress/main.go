@@ -85,26 +85,34 @@ func main() {
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	recorder := getEventRecorder(kubeClient)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
-	agicPod := k8sContext.GetAGICPod(env)
 	metricStore := metricstore.NewMetricStore(env)
+	metricStore.Start()
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
+	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
 	azContext, err := azure.NewAzContext(env.AzContextLocation)
 	if err != nil {
 		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
+	} else if azContext.VNetResourceGroup == "" {
+		azContext.VNetResourceGroup = azContext.ResourceGroup
 	}
 
 	// adjust env variable
-	if env.AppGwName == "" {
-		env.AppGwName = env.ReleaseName
+	if env.AppGwResourceID != "" {
+		subscriptionID, resourceGroupName, applicationGatewayName := azure.ParseResourceID(env.AppGwResourceID)
+		env.SubscriptionID = string(subscriptionID)
+		env.ResourceGroupName = string(resourceGroupName)
+		env.AppGwName = string(applicationGatewayName)
 	}
-
 	if azContext != nil && env.SubscriptionID == "" {
 		env.SubscriptionID = string(azContext.SubscriptionID)
 	}
 	if azContext != nil && env.ResourceGroupName == "" {
 		env.ResourceGroupName = string(azContext.ResourceGroup)
+	}
+	if env.AppGwSubnetName == "" {
+		env.AppGwSubnetName = env.AppGwName + "-subnet"
 	}
 
 	if err := environment.ValidateEnv(env); err != nil {
@@ -125,7 +133,12 @@ func main() {
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
 	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
-			err = azClient.DeployGateway(env.AppGwSubnetID)
+			if env.AppGwSubnetID != "" {
+				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
+			} else if azContext != nil {
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
+			}
+
 			if err != nil {
 				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
 				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)

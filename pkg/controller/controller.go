@@ -61,8 +61,6 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 // Start function runs the k8scontext and continues to listen to the
 // event channel and enqueue events before stopChannel is closed
 func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) error {
-	c.metricStore.Start()
-
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
 	if err := c.k8sContext.Run(c.stopChannel, false, envVariables); err != nil {

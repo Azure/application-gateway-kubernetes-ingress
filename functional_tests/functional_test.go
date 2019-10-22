@@ -30,6 +30,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 
 	. "github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -334,7 +335,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)
 		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
