@@ -4,15 +4,9 @@ set -aueo pipefail
 
 source .env
 
-# colors
-COLOR_RESET='\e[0m'
-COLOR_BLUE='\e[44;97m'
-COLOR_RED='\e[101;97m'
-COLOR_GREEN='\e[42;97m'
-
 GOBIN=$(pwd)/bin
 
-echo -e "$COLOR_RED Cleanup: $COLOR_RESET delete $GOBIN"
+echo -e "Cleanup: delete $GOBIN"
 rm -rf "$GOBIN"
 
 ORG_PATH="github.com/Azure"
@@ -25,14 +19,14 @@ VERSION=$(git describe --abbrev=0 --tags)
 BUILD_DATE=$(date +%Y-%m-%d-%H:%MT%z)
 GIT_HASH=$(git rev-parse --short HEAD)
 
-echo -e "$COLOR_BLUE Compiling ... $COLOR_RESET"
-GOOS=linux go install -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -v ./cmd/appgw-ingress
+echo -e "Compiling..."
+go install -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -v ./cmd/appgw-ingress
 RESULT=$?
 if [ "$RESULT" -eq "0" ]; then
     chmod -R 777 bin
-    echo -e "$COLOR_GREEN Build SUCCEEDED $COLOR_RESET"
+    echo -e "Build SUCCEEDED"
 else
-    echo -e "$COLOR_RED Build FAILED $COLOR_RESET"
+    echo -e "Build FAILED"
     exit 1
 fi
 
@@ -46,5 +40,4 @@ export APPGW_ENABLE_SAVE_CONFIG_TO_FILE="true"
 ./bin/appgw-ingress \
     --in-cluster=false \
     --kubeconfig="$KUBE_CONFIG_FILE" \
-    --apiserver-host="$AKS_API_SERVER" \
-    --verbosity=5
+    --verbosity=9

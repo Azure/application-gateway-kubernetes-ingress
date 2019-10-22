@@ -85,9 +85,10 @@ func main() {
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	recorder := getEventRecorder(kubeClient)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod)
-	agicPod := k8sContext.GetAGICPod(env)
 	metricStore := metricstore.NewMetricStore(env)
+	metricStore.Start()
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
+	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
 	azContext, err := azure.NewAzContext(env.AzContextLocation)
