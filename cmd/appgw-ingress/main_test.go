@@ -23,17 +23,16 @@ var _ = Describe("Test functions used in main.go", func() {
 	Context("test namespace env var parser", func() {
 		It("should parse comma separated namespaces from env var", func() {
 			actual := getNamespacesToWatch("")
-			expected := []string{}
-			Expect(actual).To(Equal(expected))
+			Expect(actual).To(BeNil())
 		})
 		It("should parse comma separated namespaces from env var", func() {
 			actual := getNamespacesToWatch("singleNamespace")
-			expected := []string{"singleNamespace"}
+			expected := &map[string]interface{}{"singleNamespace": nil}
 			Expect(actual).To(Equal(expected))
 		})
 		It("should parse comma separated namespaces from env var", func() {
 			actual := getNamespacesToWatch("two,one")
-			expected := []string{"one", "two"}
+			expected := &map[string]interface{}{"one": nil, "two": nil}
 			Expect(actual).To(Equal(expected))
 		})
 	})
@@ -62,15 +61,15 @@ var _ = Describe("Test functions used in main.go", func() {
 	Context("test getNamespacesToWatch", func() {
 		It("should return a single namespace to watch", func() {
 			actual := getNamespacesToWatch("some-env-var")
-			Ω(actual).Should(Equal([]string{"some-env-var"}))
+			Ω(actual).Should(Equal(&map[string]interface{}{"some-env-var": nil}))
 		})
 		It("should return a list of namespaces to watch", func() {
 			actual := getNamespacesToWatch("a,b,c")
-			Ω(actual).Should(Equal([]string{"a", "b", "c"}))
+			Ω(actual).Should(Equal(&map[string]interface{}{"a": nil, "b": nil, "c": nil}))
 		})
 		It("should return empty list of namespaces to watch", func() {
 			actual := getNamespacesToWatch("")
-			Ω(actual).Should(Equal([]string{}))
+			Ω(actual).To(BeNil())
 		})
 	})
 })

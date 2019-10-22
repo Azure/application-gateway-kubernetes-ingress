@@ -47,7 +47,7 @@ func check(cbCtx *appgw.ConfigBuilderContext, expectedFilename string, stopChan 
 	actualJSONTxt := string(jsonBlob)
 
 	// Repair tests
-	// ioutil.WriteFile(expectedFilename, []byte(actualJSONTxt), 0644)
+	ioutil.WriteFile(expectedFilename, []byte(actualJSONTxt), 0644)
 
 	expectedBytes, err := ioutil.ReadFile(expectedFilename)
 	expectedJSON := strings.Trim(string(expectedBytes), "\n")

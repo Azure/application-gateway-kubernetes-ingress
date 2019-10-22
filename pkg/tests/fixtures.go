@@ -24,6 +24,7 @@ import (
 // constant values to be used for testing
 const (
 	Namespace               = "--namespace--"
+	OtherNamespace          = "--other-namespace--"
 	Name                    = "--name--"
 	Host                    = "bye.com"
 	OtherHost               = "--some-other-hostname--"
@@ -301,6 +302,7 @@ func NewPodFixture(serviceName string, ingressNamespace string, containerName st
 						},
 					},
 					ReadinessProbe: NewProbeFixture(containerName),
+					LivenessProbe:  NewProbeFixture(containerName),
 				},
 			},
 		},
