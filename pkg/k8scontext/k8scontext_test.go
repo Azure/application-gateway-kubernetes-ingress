@@ -245,7 +245,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 					},
 				},
 			}
-			filteredPodList := ctxt.ListPodsByServiceSelector(service.Spec.Selector)
+			filteredPodList := ctxt.ListPodsByServiceSelector(service)
 			Expect(len(filteredPodList)).To(Equal(1), "Expected to have filtered one pod with matching label: %d pods", len(podList.Items))
 
 			// Search with a different filter
@@ -259,7 +259,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 					},
 				},
 			}
-			filteredPodList = ctxt.ListPodsByServiceSelector(service.Spec.Selector)
+			filteredPodList = ctxt.ListPodsByServiceSelector(service)
 			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
 		})
 	})
