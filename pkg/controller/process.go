@@ -30,6 +30,7 @@ import (
 func (c AppGwIngressController) Process(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
+	c.metricStore.IncArmAPICallCounter()
 	if err != nil {
 		errorLine := fmt.Sprintf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		glog.Errorf(errorLine)
@@ -148,6 +149,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		errorLine := fmt.Sprintf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		glogIt(errorLine)
 		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+    c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
 	// Wait until deployment finshes and save the error message
@@ -166,6 +168,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		errorLine := fmt.Sprint("Unable to deploy App Gateway config.", err)
 		glog.Warning(errorLine)
 		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+    c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return ErrDeployingAppGatewayConfig
 	}
 
@@ -174,6 +177,8 @@ func (c AppGwIngressController) Process(event events.Event) error {
 
 	// update ingresses with appgw gateway ip address
 	c.updateIngressStatus(generatedAppGw, cbCtx, event)
+
+	c.metricStore.IncArmAPIUpdateCallSuccessCounter()
 
 	return nil
 }

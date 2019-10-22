@@ -28,6 +28,7 @@ import (
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -224,7 +225,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
-	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second)
+	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 	secret := tests.NewSecretTestFixture()
 

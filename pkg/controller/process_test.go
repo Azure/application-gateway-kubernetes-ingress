@@ -24,6 +24,7 @@ import (
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
@@ -53,7 +54,7 @@ var _ = Describe("process function tests", func() {
 		ingress = tests.NewIngressFixture()
 
 		// Create a `k8scontext` to start listening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second)
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", tests.Name, err)

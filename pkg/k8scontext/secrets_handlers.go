@@ -26,6 +26,7 @@ func (h handlers) secretAdd(obj interface{}) {
 				Type:  events.Create,
 				Value: obj,
 			}
+			h.context.metricStore.IncK8sAPIEventCounter()
 		}
 	}
 }
@@ -43,6 +44,7 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 				Type:  events.Update,
 				Value: newObj,
 			}
+			h.context.metricStore.IncK8sAPIEventCounter()
 		}
 	}
 }
@@ -68,5 +70,6 @@ func (h handlers) secretDelete(obj interface{}) {
 			Type:  events.Delete,
 			Value: obj,
 		}
+		h.context.metricStore.IncK8sAPIEventCounter()
 	}
 }
