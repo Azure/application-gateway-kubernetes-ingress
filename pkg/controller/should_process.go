@@ -14,8 +14,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-// ShouldProcess determines whether to process an event.
-func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
+// ShouldMutateAppGateway determines whether to process an event.
+func (c AppGwIngressController) ShouldMutateAppGateway(event events.Event) (bool, *string) {
 	if pod, ok := event.Value.(*v1.Pod); ok {
 		if pod.Namespace == "kube-system" {
 			// Ignore kube-system namespace events

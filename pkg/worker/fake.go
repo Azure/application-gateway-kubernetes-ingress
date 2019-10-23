@@ -19,7 +19,7 @@ func (fp FakeProcessor) MutateAppGateway(event events.Event) error {
 	return fp.processFunc(event)
 }
 
-// ShouldProcess will return true
+// ShouldMutateAppGateway will return true
 func (fp FakeProcessor) ShouldProcess(event events.Event) (bool, *string) {
 	return true, nil
 }

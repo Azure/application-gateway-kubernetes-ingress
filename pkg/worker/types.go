@@ -13,7 +13,7 @@ import (
 type EventProcessor interface {
 	MutateAppGateway(events.Event) error
 	MutateAKS(events.Event) error
-	ShouldProcess(events.Event) (bool, *string)
+	ShouldMutateAppGateway(events.Event) (bool, *string)
 }
 
 // Worker listens on the eventChannel and runs the EventProcessor.MutateAppGateway

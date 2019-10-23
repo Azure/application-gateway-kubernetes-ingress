@@ -34,7 +34,11 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 	for {
 		select {
 		case event := <-work:
-			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
+			if err := w.MutateAKS(event); err != nil {
+
+			}
+
+			if shouldProcess, reason := w.ShouldMutateAppGateway(event); !shouldProcess {
 				if reason != nil {
 					// This log statement could potentially generate a large amount of log lines and most could be
 					// innocuous - for instance: "endpoint default/aad-pod-identity-mic is not used by any Ingress"

@@ -29,7 +29,7 @@ type realClock struct{}
 
 func (realClock) Now() time.Time                         { return time.Now() }
 
-// in the EventQueue.
+// MutateAppGateway applies App Gateway config.
 func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
