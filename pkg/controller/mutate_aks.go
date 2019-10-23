@@ -7,6 +7,7 @@ package controller
 
 import "github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 
+// MutateAKS applies changes to Kubernetes resources.
 func (c AppGwIngressController) MutateAKS(event events.Event) error {
 	return nil
 }
