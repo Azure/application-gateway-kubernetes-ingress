@@ -215,6 +215,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 			podObj1 := tests.NewPodTestFixture(ingressNS, "pod2")
 			pod1 := &podObj1
+			pod1.Namespace = "test-ingress-controller"
 			pod1.Labels = map[string]string{
 				"app":   "pod2",
 				"extra": "random",
@@ -239,6 +240,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			service := v1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "service",
+					Namespace: "test-ingress-controller",
 				},
 				Spec: v1.ServiceSpec{
 					Selector: map[string]string{
@@ -246,7 +248,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 					},
 				},
 			}
-			filteredPodList := ctxt.ListPodsByServiceSelector(service.Spec.Selector)
+			filteredPodList := ctxt.ListPodsByServiceSelector(&service)
 			Expect(len(filteredPodList)).To(Equal(1), "Expected to have filtered one pod with matching label: %d pods", len(podList.Items))
 
 			// Search with a different filter
@@ -260,8 +262,23 @@ var _ = ginkgo.Describe("K8scontext", func() {
 					},
 				},
 			}
-			filteredPodList = ctxt.ListPodsByServiceSelector(service.Spec.Selector)
+			filteredPodList = ctxt.ListPodsByServiceSelector(&service)
 			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label: %d pods", len(podList.Items))
+
+			// Filter with a same pod label but different namespace
+			service = v1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "service",
+					Namespace: "different-namespace",
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "pod2",
+					},
+				},
+			}
+			filteredPodList = ctxt.ListPodsByServiceSelector(&service)
+			Expect(len(filteredPodList)).To(Equal(0), "Expected to find 0 pods with matching label but found: %d pods", len(filteredPodList))
 		})
 	})
 

@@ -162,7 +162,7 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 		}
 	}
 
-	podList := c.k8sContext.ListPodsByServiceSelector(service.Spec.Selector)
+	podList := c.k8sContext.ListPodsByServiceSelector(service)
 
 	if len(podList) == 0 {
 		return nil

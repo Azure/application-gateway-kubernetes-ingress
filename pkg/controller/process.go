@@ -149,7 +149,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		errorLine := fmt.Sprintf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		glogIt(errorLine)
 		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
-    c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
 	// Wait until deployment finshes and save the error message
@@ -168,7 +168,7 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		errorLine := fmt.Sprint("Unable to deploy App Gateway config.", err)
 		glog.Warning(errorLine)
 		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
-    c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return ErrDeployingAppGatewayConfig
 	}
 
