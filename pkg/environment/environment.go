@@ -6,7 +6,6 @@
 package environment
 
 import (
-	"errors"
 	"os"
 	"regexp"
 
@@ -137,20 +136,26 @@ func GetEnv() EnvVariables {
 
 // ValidateEnv validates environment variables.
 func ValidateEnv(env EnvVariables) error {
-	if len(env.AppGwName) == 0 {
-		return errors.New("Missing required Environment variables: Provide atleast provide APPGW_NAME. You can also provided APPGW_SUBSCRIPTION_ID and APPGW_RESOURCE_GROUP (ENVT001)")
-	}
 	if env.EnableDeployAppGateway {
-		if len(env.AppGwName) == 0 {
-			return errors.New("Missing required Environment variables: AGIC requires APPGW_NAME env variable (appgw.name in helm config) to deploy Application Gateway (ENVT002)")
+		// we should not allow applicationGatewayID in create case
+		if len(env.AppGwResourceID) != 0 {
+			return ErrorNotAllowedApplicationgatewayID
 		}
 
-		if len(env.AppGwSubnetID) == 0 || len(env.AppGwSubnetPrefix) == 0 {
+		// if deploy is true, we need applicationGatewayName
+		if len(env.AppGwName) == 0 {
+			return ErrorMissingApplicationgatewayName
+		}
+
+		// we need one of subnetID and subnetPrefix. We generate a subnetName if it is not provided.
+		if len(env.AppGwSubnetID) == 0 && len(env.AppGwSubnetPrefix) == 0 {
 			// when create is true, then either we should have env.AppGwSubnetID or env.AppGwSubnetPrefix
-			return errors.New("Missing required Environment variables: " +
-				"AGIC requires APPGW_SUBNET_PREFIX (appgw.subnetPrefix in helm config) or APPGW_SUBNET_ID (appgw.subnetID in helm config) of an existing subnet." +
-				"If subnetPrefix is specified, AGIC will look up a subnet with matching address prefix in the AKS cluster vnet." +
-				"If a subnet is not found, then a new subnet will be created. This will be used to deploy the Application Gateway (ENVT002)")
+			return ErrorMissingSubnetInfo
+		}
+	} else {
+		// if deploy is false, we need one of appgw name or resource id
+		if len(env.AppGwName) == 0 && len(env.AppGwResourceID) == 0 {
+			return ErrorMissingApplicationGatewayNameOrApplicationGatewayID
 		}
 	}
 
