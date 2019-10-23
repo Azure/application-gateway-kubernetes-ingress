@@ -19,8 +19,13 @@ func (fp FakeProcessor) MutateAppGateway(event events.Event) error {
 	return fp.processFunc(event)
 }
 
+// MutateAKS will call the callback provided
+func (fp FakeProcessor) MutateAKS(event events.Event) error {
+	return fp.processFunc(event)
+}
+
 // ShouldMutateAppGateway will return true
-func (fp FakeProcessor) ShouldProcess(event events.Event) (bool, *string) {
+func (fp FakeProcessor) ShouldMutateAppGateway(event events.Event) (bool, *string) {
 	return true, nil
 }
 
