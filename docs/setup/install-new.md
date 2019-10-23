@@ -26,22 +26,22 @@ choose to use another environment, please ensure the following command line tool
 
 Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
-1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)):
+1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)). Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
     ```bash
     az ad sp create-for-rbac --skip-assignment -o json > auth.json
     appId=$(jq -r ".appId" auth.json)
     password=$(jq -r ".password" auth.json)
     ```
-    note: the `appId` and `password` values from the JSON output will be used in the following steps
+        These commands will create `appId` and `password` bash variables, which will be used in the steps below. You can view the value of these with `echo $appId` and `echo $password`.
 
 
-1. Use the `appId` from the previous command's output to get the `objectId` of the new service principal:
+1. Execute the next command in [Cloud Shell](https://shell.azure.com/) to create the `objectId` bash variable, which is the new Service Princpial:
     ```bash
     objectId=$(az ad sp show --id $appId --query "objectId" -o tsv)
     ```
-    note: the output of this command is `objectId`, which will be used in the ARM template below
+    The `objectId` bash variable will be used in the ARM template below. View the value with `echo $objectId`.
 
-1. Create the parameter file that will be used in the ARM template deployment later.
+1. Paste the entire command below (it is a single command on multiple lines) in [Cloud Shell](https://shell.azure.com/) to create the parameters.json file. It will be used in the ARM template deployment.
     ```bash
     cat <<EOF > parameters.json
     {
@@ -52,10 +52,10 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
     }
     EOF
     ```
-    Note: To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`
+    To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`. View the contents of the newly created file with `cat parameters.json`. It will contain the values of the `appId`, `password`, and `objectId` bash variables from the previous steps.
 
 ### Deploy Components
-This step will add the following components to your subscription:
+The next few steps will add the following list of components to your Azure subscription:
 
 - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 - [Application Gateway](https://docs.microsoft.com/en-us/azure/application-gateway/overview) v2
@@ -63,31 +63,61 @@ This step will add the following components to your subscription:
 - [Public IP Address](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address)
 - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), which will be used by [AAD Pod Identity](https://github.com/Azure/aad-pod-identity/blob/master/README.md)
 
-1. Download the ARM template and modify the template as needed.
+1. Download the ARM template into template.json file. Paste the following in your [shell](https://shell.azure.com/):
     ```bash
     wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploy.json -O template.json
     ```
 
-1. Deploy the ARM template using `az cli`. This may take up to 5 minutes.
+1. Deploy the ARM template via [Azure Cloud Shell](https://shell.azure.com/) and the `az` tool. Modify the name of the resource group and region/location, then paste each of the following lines into your [shell](https://shell.azure.com/):
     ```bash
     resourceGroupName="MyResourceGroup"
+
     location="westus2"
+
     deploymentName="ingress-appgw"
 
-    # create a resource group
     az group create -n $resourceGroupName -l $location
 
-    # modify the template as needed
-    az group deployment create \
-            -g $resourceGroupName \
-            -n $deploymentName \
-            --template-file template.json \
-            --parameters parameters.json
+    az group deployment create -g $resourceGroupName -n $deploymentName --template-file template.json --parameters parameters.json
     ```
+    Note: The last command may take a few minutes to complete.
 
 1. Once the deployment finished, download the deployment output into a file named `deployment-outputs.json`.
     ```bash
     az group deployment show -g $resourceGroupName -n $deploymentName --query "properties.outputs" -o json > deployment-outputs.json
+    ```
+    View the content of the newly created file with: `cat deployment-outputs.json`. The file will have the following shape (example):
+    ```json
+    {
+      "aksApiServerAddress": {
+        "type": "String",
+        "value": "aks-abcd41e9.hcp.westus2.azmk8s.io"
+      },
+      "aksClusterName": {
+        "type": "String",
+        "value": "aksabcd"
+      },
+      "applicationGatewayName": {
+        "type": "String",
+        "value": "applicationgatewayabcd"
+      },
+      "identityClientId": {
+        "type": "String",
+        "value": "7b1a3378-8abe-ab58-cca9-a8ef624db293"
+      },
+      "identityResourceId": {
+        "type": "String",
+        "value": "/subscriptions/a6466a81-bf0d-147e-2acb-a0ba50f6456e/resourceGroups/MyResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/appgwContrIdentityabcd"
+      },
+      "resourceGroupName": {
+        "type": "String",
+        "value": "MyResourceGroup"
+      },
+      "subscriptionId": {
+        "type": "String",
+        "value": "a6466a81-bf0d-147e-2acb-a0ba50f6456e"
+      }
+    }
     ```
 
 ## Set up Application Gateway Ingress Controller
