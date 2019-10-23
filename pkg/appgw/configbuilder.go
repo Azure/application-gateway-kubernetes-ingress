@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -21,6 +22,12 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
+
+// Clock is an interface, which allows you to implement your own Time.
+type Clock interface {
+	Now() time.Time
+
+}
 
 // ConfigBuilder is a builder for application gateway configuration
 type ConfigBuilder interface {
@@ -52,15 +59,17 @@ type appGwConfigBuilder struct {
 	appGw           n.ApplicationGateway
 	recorder        record.EventRecorder
 	mem             memoization
+	clock           Clock
 }
 
 // NewConfigBuilder construct a builder
-func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder) ConfigBuilder {
+func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, original *n.ApplicationGateway, recorder record.EventRecorder, clock Clock) ConfigBuilder {
 	return &appGwConfigBuilder{
 		k8sContext:      context,
 		appGwIdentifier: *appGwIdentifier,
 		appGw:           *original,
 		recorder:        recorder,
+		clock:           clock,
 	}
 }
 
@@ -202,4 +211,5 @@ func (c *appGwConfigBuilder) addTags() {
 	} else {
 		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
+	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
 }

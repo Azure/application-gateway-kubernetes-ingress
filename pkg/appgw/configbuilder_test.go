@@ -30,6 +30,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -206,7 +207,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
-		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100))
+		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
 	})
 
 	AfterEach(func() {
@@ -413,6 +414,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --    },
 --    "tags": {
 --        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
+--        "last-updated-by-k8s-ingress": "2009-11-17 20:34:58.651387237 +0000 UTC",
 --        "managed-by-k8s-ingress": "a/b/c"
 --    }
 --}`
@@ -641,6 +643,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --    },
 --    "tags": {
 --        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
+--        "last-updated-by-k8s-ingress": "2009-11-17 20:34:58.651387237 +0000 UTC",
 --        "managed-by-k8s-ingress": "a/b/c"
 --    }
 --}`

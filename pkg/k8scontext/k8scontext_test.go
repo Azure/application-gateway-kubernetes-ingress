@@ -239,7 +239,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// Search Pod list with a subset matching filter
 			service := v1.Service{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "service",
+					Name:      "service",
 					Namespace: "test-ingress-controller",
 				},
 				Spec: v1.ServiceSpec{
@@ -268,7 +268,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// Filter with a same pod label but different namespace
 			service = v1.Service{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "service",
+					Name:      "service",
 					Namespace: "different-namespace",
 				},
 				Spec: v1.ServiceSpec{

@@ -31,6 +31,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
@@ -379,10 +380,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Check tags
-		Expect(len(appGW.Tags)).To(Equal(2))
+		Expect(len(appGW.Tags)).To(Equal(3))
 		expected := map[string]*string{
-			tags.ManagedByK8sIngress:    to.StringPtr("a/b/c"),
-			tags.IngressForAKSClusterID: to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
+			tags.ManagedByK8sIngress:     to.StringPtr("a/b/c"),
+			tags.IngressForAKSClusterID:  to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
+			tags.LastUpdatedByK8sIngress: to.StringPtr("2009-11-17 20:34:58.651387237 +0000 UTC"),
 		}
 		Expect(appGW.Tags).To(Equal(expected))
 	}
@@ -446,7 +448,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		appGw := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
-		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGw, record.NewFakeRecorder(100))
+		configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGw, record.NewFakeRecorder(100), mocks.Clock{})
 
 		_, ok := configBuilder.(*appGwConfigBuilder)
 		Expect(ok).Should(BeTrue(), "Unable to get the more specific configBuilder implementation")
