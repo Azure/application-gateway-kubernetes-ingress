@@ -15,18 +15,15 @@ import (
 
 const sleepOnErrorSeconds = 5
 
-func drainChan(ch chan events.Event, defaultEvent events.Event) (events.Event, []events.Event) {
+func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	lastEvent := defaultEvent
-	var allEvents []events.Event
 	glog.V(9).Infof("Draining %d events from work channel", len(ch))
 	for {
 		select {
 		case event := <-ch:
-			allEvents = append(allEvents, event)
 			lastEvent = event
 		default:
-			allEvents = append(allEvents, lastEvent)
-			return lastEvent, allEvents
+			return lastEvent
 		}
 	}
 }
@@ -46,9 +43,9 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				continue
 			}
 
-			_, allEvents := drainChan(work, event)
+			_ = drainChan(work, event)
 
-			if err := w.MutateAKS(allEvents); err != nil {
+			if err := w.MutateAKS(); err != nil {
 				glog.Error("Error mutating AKS from k8s event. ", err)
 			}
 

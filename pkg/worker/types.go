@@ -12,7 +12,7 @@ import (
 // EventProcessor provides a mechanism to act on events in the internal queue.
 type EventProcessor interface {
 	MutateAppGateway() error
-	MutateAKS([]events.Event) error
+	MutateAKS() error
 	ShouldProcess(events.Event) (bool, *string)
 }
 

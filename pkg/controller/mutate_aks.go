@@ -22,50 +22,46 @@ type ipResource string
 type ipAddress string
 
 // MutateAKS applies changes to Kubernetes resources.
-func (c AppGwIngressController) MutateAKS(events []events.Event) error {
+func (c AppGwIngressController) MutateAKS() error {
 	appGw, cbCtx, err := c.getAppGw()
 	if err != nil {
 		return err
 	}
-	for _, event := range events {
-		if ingress, ok := event.Value.(*v1beta1.Ingress); ok {
-			// update ingresses with appgw gateway ipAddress address
-			c.updateIngressStatus(appGw, cbCtx, ingress)
 
-		}
+	// update all ingresses with IP address obtained from existing App Gateway configuration
+	for _, ingress := range cbCtx.IngressList {
+		c.updateIngressStatus(appGw, cbCtx, ingress)
 	}
 	return nil
 }
 
 func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress) {
-	// check if this ingress is for AGIC or not, it might have been updated
-	if !k8scontext.IsIngressApplicationGateway(ingress) || !cbCtx.InIngressList(ingress) {
-		if err := c.k8sContext.UpdateIngressStatus(*ingress, ""); err != nil {
-			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
-		}
-		return
-	}
-
 	ips := getIPs(appGw, c.azClient)
 
 	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
-	if ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP); ipConf != nil {
-		if ipAddress, ok := ips[ipResource(*ipConf.ID)]; ok {
-			for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-				if lbi.IP == string(ipAddress) {
-					glog.V(5).Infof("[mutate_aks] IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-					return
-				}
-			}
 
-			if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(ipAddress)); err != nil {
-				c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
-			} else {
-				glog.V(5).Infof("[mutate_aks] Updated Ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, ipAddress)
+	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP)
+	if ipConf == nil {
+		return
+	}
+
+	if newIP, found := ips[ipResource(*ipConf.ID)]; !found {
+		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+			existingIP := lbi.IP
+			if existingIP == string(newIP) {
+				glog.V(5).Infof("[mutate_aks] IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+				return
 			}
 		}
+
+		if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(newIP)); err != nil {
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
+			glog.Errorf("[mutate_aks] Error updating ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, newIP)
+			return
+		}
+		glog.V(5).Infof("[mutate_aks] Updated Ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, newIP)
 	}
 }
 

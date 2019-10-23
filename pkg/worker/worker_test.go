@@ -35,7 +35,7 @@ var _ = Describe("Worker Test", func() {
 				backChannel <- struct{}{}
 				return nil
 			}
-			mutateAKS := func([]events.Event) error {
+			mutateAKS := func() error {
 				backChannel <- struct{}{}
 				return nil
 			}
@@ -82,9 +82,8 @@ var _ = Describe("Worker Test", func() {
 			}
 			Expect(counter).To(Equal(int64(len(work))))
 			def := events.Event{}
-			lastEvent, allEvents := drainChan(work, def)
+			lastEvent := drainChan(work, def)
 			Expect(len(work)).To(Equal(0))
-			Expect(len(allEvents)).To(Equal(1))
 			Expect(lastEvent).To(Equal(events.Event{}))
 		})
 	})
@@ -96,8 +95,7 @@ var _ = Describe("Worker Test", func() {
 			// Keep the channel empty
 			work := make(chan events.Event, buffSize)
 			def := events.Event{}
-			lastEvent, allEvents := drainChan(work, def)
-			Expect(len(allEvents)).To(Equal(1))
+			lastEvent := drainChan(work, def)
 			Expect(lastEvent).To(Equal(def))
 		})
 	})
