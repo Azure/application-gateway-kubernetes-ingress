@@ -25,8 +25,7 @@ type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
 
-// MutateAppGateway applies App Gateway config.
-func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
+func (c AppGwIngressController) getAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
 	c.metricStore.IncArmAPICallCounter()
@@ -36,13 +35,8 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, errorLine)
 		}
-		return ErrFetchingAppGatewayConfig
+		return nil, nil, ErrFetchingAppGatewayConfig
 	}
-
-	c.updateIPAddressMap(&appGw)
-
-	existingConfigJSON, _ := dumpSanitizedJSON(&appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
-	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	cbCtx := &appgw.ConfigBuilderContext{
 		ServiceList:  c.k8sContext.ListServices(),
@@ -52,6 +46,19 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
 		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 	}
+
+	return &appGw, cbCtx, nil
+}
+
+// MutateAppGateway applies App Gateway config.
+func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
+	appGw, cbCtx, err := c.getAppGw()
+	if err != nil {
+		return err
+	}
+
+	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
+	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
@@ -81,7 +88,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 		}
 	}
 
-	cbCtx.IngressList = c.PruneIngress(&appGw, cbCtx)
+	cbCtx.IngressList = c.PruneIngress(appGw, cbCtx)
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		var gatewaysInfo []string
@@ -102,7 +109,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 	}
 
 	// Create a configbuilder based on current appgw config
-	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, &appGw, c.recorder, realClock{})
+	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw, c.recorder, realClock{})
 
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
@@ -133,10 +140,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 		}
 	}
 
-	if c.configIsSame(&appGw) {
-		// update ingresses with appgw gateway ip address
-		c.updateIngressStatus(generatedAppGw, cbCtx, event)
-
+	if c.configIsSame(appGw) {
 		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
@@ -150,7 +154,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := dumpSanitizedJSON(&appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
+		configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
 		glogIt := glog.Errorf
 		if cbCtx.EnvVariables.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
@@ -164,7 +168,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 		return err
 	}
 	// Wait until deployment finshes and save the error message
-	configJSON, _ := dumpSanitizedJSON(&appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
+	configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
 	glog.V(5).Info(string(configJSON))
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
@@ -186,10 +190,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 	}
 
 	glog.V(3).Info("cache: Updated with latest applied config.")
-	c.updateCache(&appGw)
-
-	// update ingresses with appgw gateway ip address
-	c.updateIngressStatus(generatedAppGw, cbCtx, event)
+	c.updateCache(appGw)
 
 	c.metricStore.IncArmAPIUpdateCallSuccessCounter()
 
