@@ -12,7 +12,7 @@ import (
 
 // appgw_suite_test.go launches these Ginkgo tests
 
-var _ = Describe("Process ingress rules, listeners, and ports", func() {
+var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() {
 	port80 := Port(80)
 	port443 := Port(443)
 
