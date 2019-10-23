@@ -41,6 +41,7 @@ type azClient struct {
 	subscriptionID    SubscriptionID
 	resourceGroupName ResourceGroup
 	appGwName         ResourceName
+	memoizedIPs       map[string]n.PublicIPAddress
 
 	ctx context.Context
 }
@@ -100,6 +101,10 @@ func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
 }
 
 func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
+	if ip, ok := az.memoizedIPs[resourceID]; ok {
+		return ip, nil
+	}
+
 	_, resourceGroupName, publicIPName := ParseResourceID(resourceID)
 	return az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
 }
