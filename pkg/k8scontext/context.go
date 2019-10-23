@@ -214,9 +214,9 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 }
 
 // ListPodsByServiceSelector returns pods that are associated with a specific service.
-func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Pod {
+func (c *Context) ListPodsByServiceSelector(service *v1.Service) []*v1.Pod {
 	selectorSet := mapset.NewSet()
-	for k, v := range selector {
+	for k, v := range service.Spec.Selector {
 		selectorSet.Add(k + ":" + v)
 	}
 
@@ -228,7 +228,7 @@ func (c *Context) ListPodsByServiceSelector(selector map[string]string) []*v1.Po
 			podLabelSet.Add(k + ":" + v)
 		}
 
-		if selectorSet.IsSubset(podLabelSet) {
+		if selectorSet.IsSubset(podLabelSet) && pod.Namespace == service.Namespace {
 			podList = append(podList, pod)
 		}
 	}
