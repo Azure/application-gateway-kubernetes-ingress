@@ -51,7 +51,7 @@ func (c AppGwIngressController) getAppGw() (*n.ApplicationGateway, *appgw.Config
 }
 
 // MutateAppGateway applies App Gateway config.
-func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
+func (c AppGwIngressController) MutateAppGateway() error {
 	appGw, cbCtx, err := c.getAppGw()
 	if err != nil {
 		return err

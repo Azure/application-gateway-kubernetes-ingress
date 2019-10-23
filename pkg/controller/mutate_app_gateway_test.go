@@ -86,7 +86,7 @@ var _ = Describe("process function tests", func() {
 		close(stopChannel)
 	})
 	Context("test updateIngressStatus", func() {
-		It("ensure that updateIngressStatus adds ip to ingress", func() {
+		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
 			controller.updateIngressStatus(&appGw, cbCtx, ingress)
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
@@ -96,7 +96,7 @@ var _ = Describe("process function tests", func() {
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 		})
 
-		It("ensure that updateIngressStatus removes ip to ingress not for AGIC", func() {
+		It("ensure that updateIngressStatus removes ipAddress to ingress not for AGIC", func() {
 			ingress.Annotations[annotations.IngressClassKey] = "otheric"
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			err := controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
@@ -107,7 +107,7 @@ var _ = Describe("process function tests", func() {
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
 		})
 
-		It("ensure that updateIngressStatus adds private ip when annotation is present", func() {
+		It("ensure that updateIngressStatus adds private ipAddress when annotation is present", func() {
 			ingress.Annotations[annotations.UsePrivateIPKey] = "true"
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())

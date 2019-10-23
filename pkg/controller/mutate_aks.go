@@ -6,7 +6,6 @@
 package controller
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -14,24 +13,26 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
 type ipResource string
-type ip string
+type ipAddress string
 
 // MutateAKS applies changes to Kubernetes resources.
-func (c AppGwIngressController) MutateAKS(event events.Event) error {
+func (c AppGwIngressController) MutateAKS(events []events.Event) error {
 	appGw, cbCtx, err := c.getAppGw()
 	if err != nil {
 		return err
 	}
+	for _, event := range events {
+		if ingress, ok := event.Value.(*v1beta1.Ingress); ok {
+			// update ingresses with appgw gateway ipAddress address
+			c.updateIngressStatus(appGw, cbCtx, ingress)
 
-	if ingress, ok := event.Value.(*v1beta1.Ingress); ok {
-		// update ingresses with appgw gateway ip address
-		c.updateIngressStatus(appGw, cbCtx, ingress)
-
+		}
 	}
 	return nil
 }
@@ -47,7 +48,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 
 	ips := getIPs(appGw, c.azClient)
 
-	// determine what ip to attach
+	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
 	if ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP); ipConf != nil {
@@ -66,8 +67,8 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 	}
 }
 
-func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ip {
-	ips := make(map[ipResource]ip)
+func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ipAddress {
+	ips := make(map[ipResource]ipAddress)
 	for _, ipConf := range *appGw.FrontendIPConfigurations {
 		ipID := ipResource(*ipConf.ID)
 		if _, ok := ips[ipID]; ok {
@@ -75,7 +76,7 @@ func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource
 		}
 
 		if ipConf.PrivateIPAddress != nil {
-			ips[ipID] = ip(*ipConf.PrivateIPAddress)
+			ips[ipID] = ipAddress(*ipConf.PrivateIPAddress)
 		} else if ipAddress := getPublicIPAddress(*ipConf.PublicIPAddress.ID, azClient); ipAddress != nil {
 			ips[ipID] = *ipAddress
 		}
@@ -83,15 +84,15 @@ func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource
 	return ips
 }
 
-// getPublicIPAddress gets the ip address associated to public ip on Azure
-func getPublicIPAddress(publicIPID string, azClient azure.AzClient) *ip {
-	// get public ip
+// getPublicIPAddress gets the ipAddress address associated to public ipAddress on Azure
+func getPublicIPAddress(publicIPID string, azClient azure.AzClient) *ipAddress {
+	// get public ipAddress
 	publicIP, err := azClient.GetPublicIP(publicIPID)
 	if err != nil {
 		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPID, err)
 		return nil
 	}
 
-	ipAddress := ip(*publicIP.IPAddress)
+	ipAddress := ipAddress(*publicIP.IPAddress)
 	return &ipAddress
 }
