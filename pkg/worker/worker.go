@@ -34,10 +34,6 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 	for {
 		select {
 		case event := <-work:
-			if err := w.MutateAKS(event); err != nil {
-
-			}
-
 			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
 				if reason != nil {
 					// This log statement could potentially generate a large amount of log lines and most could be
@@ -45,6 +41,10 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 					glog.V(9).Infof("Skipping event. Reason: %s", *reason)
 				}
 				continue
+			}
+
+			if err := w.MutateAKS(event); err != nil {
+
 			}
 
 			lastEvent := drainChan(work, event)
