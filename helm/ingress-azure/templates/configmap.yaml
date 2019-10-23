@@ -3,17 +3,8 @@
 
 {{- if not .Values.appgw.applicationGatewayID }}
   {{- if not .Values.appgw.name }}
-    {{- if required "Please either provide appgw.applicationGatewayID or appgw.name" .Values.appgw.applicationGatewayID }}
+    {{- if required "Please either provide appgw.applicationGatewayID or appgw.name. If application gateway doesn't exist already and you want AGIC to create a new one, specify appgw.name with appgw.subnetPrefix (ex: 10.1.0.0/16). AGIC requires these to create a new applicaiton gateway." .Values.appgw.applicationGatewayID }}
     {{- end }}
-  {{- end }}
-{{- end }}
-
-{{- if .Values.appgw.name }}
-  {{- if not .Values.appgw.subnetPrefix }}
-  {{- if not .Values.appgw.subnetID }}
-    {{- if required "Please provide appgw.subnetPrefix or appgw.subnetID of an existing subnet" .Values.appgw.subnetPrefix }}
-    {{- end }}
-  {{- end }}
   {{- end }}
 {{- end }}
 
@@ -37,17 +28,26 @@ data:
   APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId | quote }}
   APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup | quote }}
   APPGW_NAME:            {{ .Values.appgw.name | quote }}
+
+  {{- if or .Values.appgw.subnetID .Values.appgw.subnetName .Values.appgw.subnetPrefix }}
+  #if subnet is provided, we treat it as a create case
   APPGW_ENABLE_DEPLOY:   "true"
+  {{- end }}
 
   {{- if .Values.appgw.subnetID }}
   APPGW_SUBNET_ID: {{ .Values.appgw.subnetID | quote }}
   {{- else }}
+
+  {{- if .Values.appgw.subnetPrefix }}
+  APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }} 
+  {{- end }}
+  
   {{- if .Values.appgw.subnetName }}
   APPGW_SUBNET_NAME: {{ .Values.appgw.subnetName | quote }}
   {{- else }}
   APPGW_SUBNET_NAME: "{{ .Values.appgw.name }}-subnet"
   {{- end }}
-  APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }} 
+
   {{- end }}
 
 {{- end }}
