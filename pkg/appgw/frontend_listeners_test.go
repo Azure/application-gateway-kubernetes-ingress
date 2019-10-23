@@ -22,7 +22,7 @@ import (
 
 // appgw_suite_test.go launches these Ginkgo tests
 
-var _ = Describe("Process ingress rules and parse frontend listener configs", func() {
+var _ = Describe("MutateAppGateway ingress rules and parse frontend listener configs", func() {
 
 	var envVariables environment.EnvVariables
 	var listenerID80 listenerIdentifier
