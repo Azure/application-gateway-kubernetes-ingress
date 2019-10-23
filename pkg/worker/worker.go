@@ -45,7 +45,7 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 
 			lastEvent := drainChan(work, event)
 
-			if err := w.Process(lastEvent); err != nil {
+			if err := w.MutateAppGateway(lastEvent); err != nil {
 				glog.Error("Processing event failed:", err)
 				time.Sleep(sleepOnErrorSeconds * time.Second)
 			}

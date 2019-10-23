@@ -28,11 +28,9 @@ import (
 type realClock struct{}
 
 func (realClock) Now() time.Time                         { return time.Now() }
-func (realClock) After(d time.Duration) <-chan time.Time { return time.After(d) }
 
-// Process is the callback function that will be executed for every event
 // in the EventQueue.
-func (c AppGwIngressController) Process(event events.Event) error {
+func (c AppGwIngressController) MutateAppGateway(event events.Event) error {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
 	c.metricStore.IncArmAPICallCounter()

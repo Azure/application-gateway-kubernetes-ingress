@@ -101,7 +101,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	sort.Sort(sorter.ByListenerName(listeners))
 	sort.Sort(sorter.ByFrontendPortName(ports))
 
-	// Since getListeners() would be called multiple times within the life cycle of a Process(Event)
+	// Since getListeners() would be called multiple times within the life cycle of a MutateAppGateway(Event)
 	// we cache the results of this function in what would be final place to store the Listeners.
 	c.mem.listeners = &listeners
 	c.mem.ports = &ports

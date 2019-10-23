@@ -11,11 +11,11 @@ import (
 
 // EventProcessor provides a mechanism to act on events in the internal queue.
 type EventProcessor interface {
-	Process(events.Event) error
+	MutateAppGateway(events.Event) error
 	ShouldProcess(events.Event) (bool, *string)
 }
 
-// Worker listens on the eventChannel and runs the EventProcessor.Process
+// Worker listens on the eventChannel and runs the EventProcessor.MutateAppGateway
 // for each event.
 type Worker struct {
 	EventProcessor

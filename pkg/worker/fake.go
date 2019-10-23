@@ -14,8 +14,8 @@ type FakeProcessor struct {
 	processFunc func(events.Event) error
 }
 
-// Process will call the callback provided
-func (fp FakeProcessor) Process(event events.Event) error {
+// MutateAppGateway will call the callback provided
+func (fp FakeProcessor) MutateAppGateway(event events.Event) error {
 	return fp.processFunc(event)
 }
 
