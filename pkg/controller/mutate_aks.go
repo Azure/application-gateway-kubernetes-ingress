@@ -55,13 +55,15 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 		if ipAddress, ok := ips[ipResource(*ipConf.ID)]; ok {
 			for _, lbi := range ingress.Status.LoadBalancer.Ingress {
 				if lbi.IP == string(ipAddress) {
-					glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+					glog.V(5).Infof("[mutate_aks] IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
 					return
 				}
 			}
 
 			if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(ipAddress)); err != nil {
 				c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
+			} else {
+				glog.V(5).Infof("[mutate_aks] Updated Ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, ipAddress)
 			}
 		}
 	}
@@ -81,6 +83,7 @@ func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource
 			ips[ipID] = *ipAddress
 		}
 	}
+	glog.V(5).Infof("[mutate_aks] Found IPs: %+v", ips)
 	return ips
 }
 
@@ -89,7 +92,7 @@ func getPublicIPAddress(publicIPID string, azClient azure.AzClient) *ipAddress {
 	// get public ipAddress
 	publicIP, err := azClient.GetPublicIP(publicIPID)
 	if err != nil {
-		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPID, err)
+		glog.Errorf("[mutate_aks] Unable to get Public IP Address %s. Error %s", publicIPID, err)
 		return nil
 	}
 

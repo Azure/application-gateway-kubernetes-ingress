@@ -31,10 +31,15 @@ var _ = Describe("Worker Test", func() {
 	Context("Check that worker executes the process", func() {
 		It("Should be able to run process func", func() {
 			backChannel := make(chan struct{})
-			eventProcessor := NewFakeProcessor(func(events.Event) error {
+			mutateAppGw := func() error {
 				backChannel <- struct{}{}
 				return nil
-			})
+			}
+			mutateAKS := func([]events.Event) error {
+				backChannel <- struct{}{}
+				return nil
+			}
+			eventProcessor := NewFakeProcessor(mutateAppGw, mutateAKS)
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}
@@ -77,8 +82,9 @@ var _ = Describe("Worker Test", func() {
 			}
 			Expect(counter).To(Equal(int64(len(work))))
 			def := events.Event{}
-			lastEvent := drainChan(work, def)
+			lastEvent, allEvents := drainChan(work, def)
 			Expect(len(work)).To(Equal(0))
+			Expect(len(allEvents)).To(Equal(1))
 			Expect(lastEvent).To(Equal(events.Event{}))
 		})
 	})
@@ -90,7 +96,8 @@ var _ = Describe("Worker Test", func() {
 			// Keep the channel empty
 			work := make(chan events.Event, buffSize)
 			def := events.Event{}
-			lastEvent := drainChan(work, def)
+			lastEvent, allEvents := drainChan(work, def)
+			Expect(len(allEvents)).To(Equal(1))
 			Expect(lastEvent).To(Equal(def))
 		})
 	})
