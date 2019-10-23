@@ -59,6 +59,7 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		subscriptionID:        subscriptionID,
 		resourceGroupName:     resourceGroupName,
 		appGwName:             appGwName,
+		memoizedIPs:           make(map[string]n.PublicIPAddress),
 
 		ctx:        context.Background(),
 		authorizer: authorizer,
@@ -106,7 +107,9 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 	}
 
 	_, resourceGroupName, publicIPName := ParseResourceID(resourceID)
-	return az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+	ip := az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+	az.memoizedIPs[resourceID] = ip
+	return ip
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
