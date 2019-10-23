@@ -16,7 +16,7 @@ type EventProcessor interface {
 	ShouldMutateAppGateway(events.Event) (bool, *string)
 }
 
-// Worker listens on the eventChannel and runs the EventProcessor.MutateAppGateway
+// Worker listens to the eventChannel and runs the EventProcessor.MutateAppGateway and MutateAKS
 // for each event.
 type Worker struct {
 	EventProcessor
