@@ -67,32 +67,32 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	}
 
 	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to App Gateway client: %s", userAgent)
+		glog.Error("Error adding User Agent to App Gateway client: ", userAgent)
 	}
 	az.appGatewaysClient.Authorizer = az.authorizer
 
 	if err := az.publicIPsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Public IP client: %s", userAgent)
+		glog.Error("Error adding User Agent to Public IP client: ", userAgent)
 	}
 	az.publicIPsClient.Authorizer = az.authorizer
 
 	if err := az.virtualNetworksClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Virtual Networks client: %s", userAgent)
+		glog.Error("Error adding User Agent to Virtual Networks client: ", userAgent)
 	}
 	az.virtualNetworksClient.Authorizer = az.authorizer
 
 	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Subnets client: %s", userAgent)
+		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
 	}
 	az.subnetsClient.Authorizer = az.authorizer
 
 	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Groups client: %s", userAgent)
+		glog.Error("Error adding User Agent to Groups client: ", userAgent)
 	}
 	az.groupsClient.Authorizer = az.authorizer
 
 	if err := az.deploymentsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Deployments client: %s", userAgent)
+		glog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
 	az.deploymentsClient.Authorizer = az.authorizer
 
