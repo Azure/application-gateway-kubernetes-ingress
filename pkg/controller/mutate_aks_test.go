@@ -43,6 +43,7 @@ var _ = Describe("process function tests", func() {
 	}
 	publicIP := k8scontext.IPAddress("xxxx")
 	privateIP := k8scontext.IPAddress("xxxx")
+
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
 
@@ -82,9 +83,11 @@ var _ = Describe("process function tests", func() {
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 	})
+
 	AfterEach(func() {
 		close(stopChannel)
 	})
+
 	Context("test updateIngressStatus", func() {
 		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
 			controller.updateIngressStatus(&appGw, cbCtx, ingress)
