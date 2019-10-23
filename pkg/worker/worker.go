@@ -38,7 +38,7 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 
 			}
 
-			if shouldProcess, reason := w.ShouldMutateAppGateway(event); !shouldProcess {
+			if shouldProcess, reason := w.ShouldProcess(event); !shouldProcess {
 				if reason != nil {
 					// This log statement could potentially generate a large amount of log lines and most could be
 					// innocuous - for instance: "endpoint default/aad-pod-identity-mic is not used by any Ingress"
