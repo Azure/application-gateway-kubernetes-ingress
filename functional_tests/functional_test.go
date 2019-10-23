@@ -7,7 +7,6 @@ package functests
 
 import (
 	"flag"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"testing"
 	"time"
 
@@ -23,16 +22,16 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	. "github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
-
-	. "github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 func TestFunctional(t *testing.T) {
