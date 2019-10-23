@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -44,7 +45,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 		return
 	}
 
-	ips := c.getIPs(appGw)
+	ips := getIPs(appGw, c.azClient)
 
 	// determine what ip to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
@@ -65,7 +66,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 	}
 }
 
-func (c AppGwIngressController) getIPs(appGw *n.ApplicationGateway) map[ipResource]ip {
+func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ip {
 	ips := make(map[ipResource]ip)
 	for _, ipConf := range *appGw.FrontendIPConfigurations {
 		ipID := ipResource(*ipConf.ID)
@@ -75,7 +76,7 @@ func (c AppGwIngressController) getIPs(appGw *n.ApplicationGateway) map[ipResour
 
 		if ipConf.PrivateIPAddress != nil {
 			ips[ipID] = ip(*ipConf.PrivateIPAddress)
-		} else if ipAddress := c.getPublicIPAddress(*ipConf.PublicIPAddress.ID); ipAddress != nil {
+		} else if ipAddress := getPublicIPAddress(*ipConf.PublicIPAddress.ID, azClient); ipAddress != nil {
 			ips[ipID] = *ipAddress
 		}
 	}
@@ -83,9 +84,9 @@ func (c AppGwIngressController) getIPs(appGw *n.ApplicationGateway) map[ipResour
 }
 
 // getPublicIPAddress gets the ip address associated to public ip on Azure
-func (c AppGwIngressController) getPublicIPAddress(publicIPID string) *ip {
+func getPublicIPAddress(publicIPID string, azClient azure.AzClient) *ip {
 	// get public ip
-	publicIP, err := c.azClient.GetPublicIP(publicIPID)
+	publicIP, err := azClient.GetPublicIP(publicIPID)
 	if err != nil {
 		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPID, err)
 		return nil

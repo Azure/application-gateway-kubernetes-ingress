@@ -22,7 +22,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -88,10 +87,7 @@ var _ = Describe("process function tests", func() {
 	})
 	Context("test updateIngressStatus", func() {
 		It("ensure that updateIngressStatus adds ip to ingress", func() {
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
+			controller.updateIngressStatus(&appGw, cbCtx, ingress)
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
@@ -103,11 +99,9 @@ var _ = Describe("process function tests", func() {
 		It("ensure that updateIngressStatus removes ip to ingress not for AGIC", func() {
 			ingress.Annotations[annotations.IngressClassKey] = "otheric"
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
-			controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
+			err := controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
+			Expect(err).ToNot(HaveOccurred())
+			controller.updateIngressStatus(&appGw, cbCtx, ingress)
 			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(annotations.IsApplicationGatewayIngress(updatedIngress)).To(BeFalse())
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
@@ -118,10 +112,7 @@ var _ = Describe("process function tests", func() {
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())
 
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
+			controller.updateIngressStatus(&appGw, cbCtx, ingress)
 
 			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
