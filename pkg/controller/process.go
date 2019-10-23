@@ -39,7 +39,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err != nil {
 		errorLine := fmt.Sprintf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		glog.Errorf(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, errorLine)
+		}
 		return ErrFetchingAppGatewayConfig
 	}
 
@@ -99,7 +101,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
 		errorLine := fmt.Sprint("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
 		glog.Error(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
+		}
 		return err
 	}
 
@@ -110,7 +114,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
 		glog.Error(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		}
 	}
 
 	var generatedAppGw *n.ApplicationGateway
@@ -118,7 +124,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if generatedAppGw, err = configBuilder.Build(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder Build returned error:", err)
 		glog.Error(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		}
 		return err
 	}
 
@@ -126,7 +134,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 	if err = configBuilder.PostBuildValidate(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
 		glog.Error(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+		}
 	}
 
 	if c.configIsSame(&appGw) {
@@ -153,7 +163,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		}
 		errorLine := fmt.Sprintf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
 		glogIt(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+		}
 		c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
@@ -172,7 +184,9 @@ func (c AppGwIngressController) Process(event events.Event) error {
 		c.configCache = nil
 		errorLine := fmt.Sprint("Unable to deploy App Gateway config.", err)
 		glog.Warning(errorLine)
-		c.recorder.Eventf(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
+		}
 		c.metricStore.IncArmAPIUpdateCallFailureCounter()
 		return ErrDeployingAppGatewayConfig
 	}

@@ -89,5 +89,73 @@ var _ = Describe("Environment", func() {
 			})
 		})
 
+		Context("Test ValidateEnv when APPGW_ENABLE_DEPLOY is FALSE", func() {
+			It("should throw error when neither applicationGatewayName or applicationGatewayID is passed when APPGW_ENABLE_DEPLOY is FALSE", func() {
+				env := EnvVariables{
+					EnableDeployAppGateway: false,
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorMissingApplicationGatewayNameOrApplicationGatewayID))
+			})
+
+			It("should allow passing applicationGatewayID when APPGW_ENABLE_DEPLOY is FALSE", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+
+			It("should allow passing applicationGatewayName when APPGW_ENABLE_DEPLOY is FALSE", func() {
+				env := EnvVariables{
+					AppGwName:              "name",
+					EnableDeployAppGateway: false,
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+		})
+
+		Context("Test ValidateEnv when APPGW_ENABLE_DEPLOY is TRUE", func() {
+			It("should throw error when applicationGatewayName is missing when APPGW_ENABLE_DEPLOY is TRUE", func() {
+				env := EnvVariables{
+					EnableDeployAppGateway: true,
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorMissingApplicationgatewayName))
+			})
+
+			It("should throw error when applicationGatewayID is provided when APPGW_ENABLE_DEPLOY is TRUE", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: true,
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorNotAllowedApplicationgatewayID))
+			})
+
+			It("should throw error when subnet info is missing when APPGW_ENABLE_DEPLOY is TRUE", func() {
+				env := EnvVariables{
+					AppGwName:              "name",
+					EnableDeployAppGateway: true,
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorMissingSubnetInfo))
+			})
+
+			It("should allow passing applicationGatewayName when APPGW_ENABLE_DEPLOY is TRUE", func() {
+				env := EnvVariables{
+					AppGwName:              "name",
+					AppGwSubnetPrefix:      "prefix",
+					EnableDeployAppGateway: true,
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+
+			It("should allow passing applicationGatewayName when APPGW_ENABLE_DEPLOY is TRUE", func() {
+				env := EnvVariables{
+					AppGwName:              "name",
+					AppGwSubnetID:          "id",
+					EnableDeployAppGateway: true,
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+		})
+
 	})
 })
