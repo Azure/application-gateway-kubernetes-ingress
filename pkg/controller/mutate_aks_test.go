@@ -43,6 +43,7 @@ var _ = Describe("process function tests", func() {
 	}
 	publicIP := k8scontext.IPAddress("xxxx")
 	privateIP := k8scontext.IPAddress("xxxx")
+	var ips map[ipResource]ipAddress
 
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
@@ -82,6 +83,8 @@ var _ = Describe("process function tests", func() {
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
+
+		ips = make(map[ipResource]ipAddress)
 	})
 
 	AfterEach(func() {
@@ -90,7 +93,7 @@ var _ = Describe("process function tests", func() {
 
 	Context("test updateIngressStatus", func() {
 		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
-			controller.updateIngressStatus(&appGw, cbCtx, ingress)
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
@@ -104,7 +107,7 @@ var _ = Describe("process function tests", func() {
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			err := controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
 			Expect(err).ToNot(HaveOccurred())
-			controller.updateIngressStatus(&appGw, cbCtx, ingress)
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(annotations.IsApplicationGatewayIngress(updatedIngress)).To(BeFalse())
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
@@ -115,7 +118,7 @@ var _ = Describe("process function tests", func() {
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())
 
-			controller.updateIngressStatus(&appGw, cbCtx, ingress)
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 
 			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{

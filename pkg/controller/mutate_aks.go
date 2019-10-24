@@ -28,16 +28,17 @@ func (c AppGwIngressController) MutateAKS() error {
 		return err
 	}
 
+	ips := getIPsFromAppGateway(appGw, c.azClient)
+
 	// update all relevant ingresses with IP address obtained from existing App Gateway configuration
 	cbCtx.IngressList = c.PruneIngress(appGw, cbCtx)
 	for _, ingress := range cbCtx.IngressList {
-		c.updateIngressStatus(appGw, cbCtx, ingress)
+		c.updateIngressStatus(appGw, cbCtx, ingress, ips)
 	}
 	return nil
 }
 
-func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress) {
-	ips := getIPs(appGw, c.azClient)
+func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress, ips map[ipResource]ipAddress) {
 
 	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
@@ -45,18 +46,12 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 
 	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP)
 	if ipConf == nil {
+		glog.V(9).Info("[mutate_aks] No IP config for App Gwy: ", appGw.Name)
 		return
 	}
 
-	if newIP, found := ips[ipResource(*ipConf.ID)]; !found {
-		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-			existingIP := lbi.IP
-			if existingIP == string(newIP) {
-				glog.V(5).Infof("[mutate_aks] IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-				return
-			}
-		}
-
+	glog.V(5).Infof("[mutate_aks] Resolving IP forID %s", *ipConf.ID)
+	if newIP, found := ips[ipResource(*ipConf.ID)]; found {
 		if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(newIP)); err != nil {
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
 			glog.Errorf("[mutate_aks] Error updating ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, newIP)
@@ -66,7 +61,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 	}
 }
 
-func getIPs(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ipAddress {
+func getIPsFromAppGateway(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ipAddress {
 	ips := make(map[ipResource]ipAddress)
 	for _, ipConf := range *appGw.FrontendIPConfigurations {
 		ipID := ipResource(*ipConf.ID)
