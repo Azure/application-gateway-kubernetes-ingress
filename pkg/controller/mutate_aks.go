@@ -28,7 +28,8 @@ func (c AppGwIngressController) MutateAKS() error {
 		return err
 	}
 
-	// update all ingresses with IP address obtained from existing App Gateway configuration
+	// update all relevant ingresses with IP address obtained from existing App Gateway configuration
+	cbCtx.IngressList = c.PruneIngress(appGw, cbCtx)
 	for _, ingress := range cbCtx.IngressList {
 		c.updateIngressStatus(appGw, cbCtx, ingress)
 	}
