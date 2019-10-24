@@ -50,7 +50,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 		return
 	}
 
-	glog.V(5).Infof("[mutate_aks] Resolving IP forID %s", *ipConf.ID)
+	glog.V(5).Infof("[mutate_aks] Resolving IP for ID (%s)", *ipConf.ID)
 	if newIP, found := ips[ipResource(*ipConf.ID)]; found {
 		if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(newIP)); err != nil {
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
