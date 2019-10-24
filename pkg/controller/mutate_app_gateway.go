@@ -159,7 +159,7 @@ func (c AppGwIngressController) MutateAppGateway() error {
 		if cbCtx.EnvVariables.EnablePanicOnPutError {
 			glogIt = glog.Fatalf
 		}
-		errorLine := fmt.Sprintf("Failed applying App Gwy configuration: %s -- %s", err, string(configJSON))
+		errorLine := fmt.Sprintf("Failed applying App Gwy configuration:\n%s\n\nerror: %s", string(configJSON), err)
 		glogIt(errorLine)
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
