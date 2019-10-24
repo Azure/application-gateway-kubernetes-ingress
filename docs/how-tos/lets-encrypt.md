@@ -66,22 +66,28 @@ Follow the steps below to install [cert-manager](https://docs.cert-manager.io) o
     name: letsencrypt-staging
     spec:
     acme:
-        # You must replace this email address with your own.
+        # You MUST replace this email address with your own.
         # Let's Encrypt will use this to contact you about expiring
         # certificates, and issues related to your account.
         email: <YOUR.EMAIL@ADDRESS>
+
         # ACME server URL for Let’s Encrypt’s staging environment.
         # The staging environment will not issue trusted certificates but is
         # used to ensure that the verification process is working properly
         # before moving to production
         server: https://acme-staging-v02.api.letsencrypt.org/directory
+
         privateKeySecretRef:
         # Secret resource used to store the account's private key.
         name: example-issuer-account-key
+
         # Enable the HTTP-01 challenge provider
         # you prove ownership of a domain by ensuring that a particular
         # file is present at the domain
-        http01: {}
+        solvers:
+        - http01:
+            ingress:
+                class: azure/application-gateway
     EOF
     ```
 
