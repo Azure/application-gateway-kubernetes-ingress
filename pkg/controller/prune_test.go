@@ -53,14 +53,14 @@ var _ = Describe("prune function tests", func() {
 		}
 		appGw := fixtures.GetAppGateway()
 
-		It("removes the ingress using private ip and keeps others", func() {
+		It("removes the ingress using private ipAddress and keeps others", func() {
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoPrivateIP(controller, &appGw, cbCtx, cbCtx.IngressList)
 			Expect(len(prunedIngresses)).To(Equal(1))
 			Expect(prunedIngresses[0].Annotations[annotations.UsePrivateIPKey]).To(Equal(""))
 		})
 
-		It("keeps the ingress using private ip when public ip is present", func() {
+		It("keeps the ingress using private ipAddress when public ipAddress is present", func() {
 			appGw.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
 				fixtures.GetPublicIPConfiguration(),
 				fixtures.GetPrivateIPConfiguration(),

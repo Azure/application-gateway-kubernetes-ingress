@@ -408,17 +408,25 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status
-func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, address IPAddress) error {
+func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPAddress) error {
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
 	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name)
 	}
 
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
+		}
+	}
+
 	loadBalancerIngresses := []v1.LoadBalancerIngress{}
-	if address != "" {
+	if newIP != "" {
 		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-			IP: string(address),
+			IP: string(newIP),
 		})
 	}
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses

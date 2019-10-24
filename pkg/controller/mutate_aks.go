@@ -13,64 +13,81 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
 
+type ipResource string
+type ipAddress string
+
 // MutateAKS applies changes to Kubernetes resources.
-func (c AppGwIngressController) MutateAKS(event events.Event) error {
+func (c AppGwIngressController) MutateAKS() error {
+	appGw, cbCtx, err := c.getAppGw()
+	if err != nil {
+		return err
+	}
+
+	ips := getIPsFromAppGateway(appGw, c.azClient)
+
+	// update all relevant ingresses with IP address obtained from existing App Gateway configuration
+	cbCtx.IngressList = c.PruneIngress(appGw, cbCtx)
+	for _, ingress := range cbCtx.IngressList {
+		c.updateIngressStatus(appGw, cbCtx, ingress, ips)
+	}
 	return nil
 }
 
-func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, event events.Event) {
-	ingress, ok := event.Value.(*v1beta1.Ingress)
-	if !ok {
-		return
-	}
+func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress, ips map[ipResource]ipAddress) {
 
-	// check if this ingress is for AGIC or not, it might have been updated
-	if !k8scontext.IsIngressApplicationGateway(ingress) || !cbCtx.InIngressList(ingress) {
-		if err := c.k8sContext.UpdateIngressStatus(*ingress, ""); err != nil {
-			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
-		}
-		return
-	}
-
-	// determine what ip to attach
+	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
-	if ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP); ipConf != nil {
-		if ipAddress, ok := c.ipAddressMap[*ipConf.ID]; ok {
-			if err := c.k8sContext.UpdateIngressStatus(*ingress, ipAddress); err != nil {
-				c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
-			}
+
+	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP)
+	if ipConf == nil {
+		glog.V(9).Info("[mutate_aks] No IP config for App Gwy: ", appGw.Name)
+		return
+	}
+
+	glog.V(5).Infof("[mutate_aks] Resolving IP for ID (%s)", *ipConf.ID)
+	if newIP, found := ips[ipResource(*ipConf.ID)]; found {
+		if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(newIP)); err != nil {
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToUpdateIngressStatus, err.Error())
+			glog.Errorf("[mutate_aks] Error updating ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, newIP)
+			return
 		}
+		glog.V(5).Infof("[mutate_aks] Updated Ingress %s/%s IP to %+v", ingress.Namespace, ingress.Name, newIP)
 	}
 }
 
-func (c AppGwIngressController) updateIPAddressMap(appGw *n.ApplicationGateway) {
+func getIPsFromAppGateway(appGw *n.ApplicationGateway, azClient azure.AzClient) map[ipResource]ipAddress {
+	ips := make(map[ipResource]ipAddress)
 	for _, ipConf := range *appGw.FrontendIPConfigurations {
-		if _, ok := c.ipAddressMap[*ipConf.ID]; ok {
-			return
+		ipID := ipResource(*ipConf.ID)
+		if _, ok := ips[ipID]; ok {
+			continue
 		}
 
 		if ipConf.PrivateIPAddress != nil {
-			c.ipAddressMap[*ipConf.ID] = k8scontext.IPAddress(*ipConf.PrivateIPAddress)
-		} else if ipAddress := c.getPublicIPAddress(*ipConf.PublicIPAddress.ID); ipAddress != nil {
-			c.ipAddressMap[*ipConf.ID] = *ipAddress
+			ips[ipID] = ipAddress(*ipConf.PrivateIPAddress)
+		} else if ipAddress := getPublicIPAddress(*ipConf.PublicIPAddress.ID, azClient); ipAddress != nil {
+			ips[ipID] = *ipAddress
 		}
 	}
+	glog.V(5).Infof("[mutate_aks] Found IPs: %+v", ips)
+	return ips
 }
 
-// getPublicIPAddress gets the ip address associated to public ip on Azure
-func (c AppGwIngressController) getPublicIPAddress(publicIPID string) *k8scontext.IPAddress {
-	// get public ip
-	publicIP, err := c.azClient.GetPublicIP(publicIPID)
+// getPublicIPAddress gets the ipAddress address associated to public ipAddress on Azure
+func getPublicIPAddress(publicIPID string, azClient azure.AzClient) *ipAddress {
+	// get public ipAddress
+	publicIP, err := azClient.GetPublicIP(publicIPID)
 	if err != nil {
-		glog.Errorf("Unable to get Public IP Address %s. Error %s", publicIPID, err)
+		glog.Errorf("[mutate_aks] Unable to get Public IP Address %s. Error %s", publicIPID, err)
 		return nil
 	}
 
-	ipAddress := k8scontext.IPAddress(*publicIP.IPAddress)
+	ipAddress := ipAddress(*publicIP.IPAddress)
 	return &ipAddress
 }

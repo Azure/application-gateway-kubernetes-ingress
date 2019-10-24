@@ -22,7 +22,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -43,7 +42,9 @@ var _ = Describe("process function tests", func() {
 		},
 	}
 	publicIP := k8scontext.IPAddress("xxxx")
-	privateIP := k8scontext.IPAddress("xxxx")
+	privateIP := k8scontext.IPAddress("yyyy")
+	var ips map[ipResource]ipAddress
+
 	BeforeEach(func() {
 		stopChannel = make(chan struct{})
 
@@ -82,16 +83,17 @@ var _ = Describe("process function tests", func() {
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
+
+		ips = map[ipResource]ipAddress{"PublicIP": "xxxx", "PrivateIP": "yyyy"}
 	})
+
 	AfterEach(func() {
 		close(stopChannel)
 	})
+
 	Context("test updateIngressStatus", func() {
-		It("ensure that updateIngressStatus adds ip to ingress", func() {
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
+		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
@@ -100,28 +102,12 @@ var _ = Describe("process function tests", func() {
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
 		})
 
-		It("ensure that updateIngressStatus removes ip to ingress not for AGIC", func() {
-			ingress.Annotations[annotations.IngressClassKey] = "otheric"
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
-			controller.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress(publicIP))
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
-			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
-			Expect(annotations.IsApplicationGatewayIngress(updatedIngress)).To(BeFalse())
-			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
-		})
-
-		It("ensure that updateIngressStatus adds private ip when annotation is present", func() {
+		It("ensure that updateIngressStatus adds private ipAddress when annotation is present", func() {
 			ingress.Annotations[annotations.UsePrivateIPKey] = "true"
 			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())
 
-			controller.updateIngressStatus(&appGw, cbCtx, events.Event{
-				Type:  events.Update,
-				Value: ingress,
-			})
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 
 			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{

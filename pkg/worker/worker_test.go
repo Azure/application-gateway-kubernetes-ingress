@@ -31,10 +31,15 @@ var _ = Describe("Worker Test", func() {
 	Context("Check that worker executes the process", func() {
 		It("Should be able to run process func", func() {
 			backChannel := make(chan struct{})
-			eventProcessor := NewFakeProcessor(func(events.Event) error {
+			mutateAppGw := func() error {
 				backChannel <- struct{}{}
 				return nil
-			})
+			}
+			mutateAKS := func() error {
+				backChannel <- struct{}{}
+				return nil
+			}
+			eventProcessor := NewFakeProcessor(mutateAppGw, mutateAKS)
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}

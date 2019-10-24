@@ -16,14 +16,14 @@ import (
 const sleepOnErrorSeconds = 5
 
 func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
-	final := defaultEvent
+	lastEvent := defaultEvent
 	glog.V(9).Infof("Draining %d events from work channel", len(ch))
 	for {
 		select {
 		case event := <-ch:
-			final = event
+			lastEvent = event
 		default:
-			return final
+			return lastEvent
 		}
 	}
 }
@@ -43,14 +43,14 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				continue
 			}
 
-			if err := w.MutateAKS(event); err != nil {
+			_ = drainChan(work, event)
 
+			if err := w.MutateAKS(); err != nil {
+				glog.Error("Error mutating AKS from k8s event. ", err)
 			}
 
-			lastEvent := drainChan(work, event)
-
-			if err := w.MutateAppGateway(lastEvent); err != nil {
-				glog.Error("Processing event failed:", err)
+			if err := w.MutateAppGateway(); err != nil {
+				glog.Error("Error mutating App Gateway config from k8s event. ", err)
 				time.Sleep(sleepOnErrorSeconds * time.Second)
 			}
 

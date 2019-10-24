@@ -41,6 +41,7 @@ type azClient struct {
 	subscriptionID    SubscriptionID
 	resourceGroupName ResourceGroup
 	appGwName         ResourceName
+	memoizedIPs       map[string]n.PublicIPAddress
 
 	ctx context.Context
 }
@@ -55,30 +56,44 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		subnetsClient:         n.NewSubnetsClient(string(subscriptionID)),
 		groupsClient:          r.NewGroupsClient(string(subscriptionID)),
 		deploymentsClient:     r.NewDeploymentsClient(string(subscriptionID)),
-		subscriptionID:        subscriptionID,
-		resourceGroupName:     resourceGroupName,
-		appGwName:             appGwName,
+
+		subscriptionID:    subscriptionID,
+		resourceGroupName: resourceGroupName,
+		appGwName:         appGwName,
+		memoizedIPs:       make(map[string]n.PublicIPAddress),
 
 		ctx:        context.Background(),
 		authorizer: authorizer,
 	}
 
-	az.appGatewaysClient.AddToUserAgent(userAgent)
+	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to App Gateway client: ", userAgent)
+	}
 	az.appGatewaysClient.Authorizer = az.authorizer
 
-	az.publicIPsClient.AddToUserAgent(userAgent)
+	if err := az.publicIPsClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Public IP client: ", userAgent)
+	}
 	az.publicIPsClient.Authorizer = az.authorizer
-	az.virtualNetworksClient.AddToUserAgent(userAgent)
+
+	if err := az.virtualNetworksClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Virtual Networks client: ", userAgent)
+	}
 	az.virtualNetworksClient.Authorizer = az.authorizer
-	az.subnetsClient.AddToUserAgent(userAgent)
+
+	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
+	}
 	az.subnetsClient.Authorizer = az.authorizer
-	az.groupsClient.AddToUserAgent(userAgent)
+
+	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Groups client: ", userAgent)
+	}
 	az.groupsClient.Authorizer = az.authorizer
 
-	az.publicIPsClient.AddToUserAgent(userAgent)
-	az.publicIPsClient.Authorizer = az.authorizer
-
-	az.deploymentsClient.AddToUserAgent(userAgent)
+	if err := az.deploymentsClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Deployments client: ", userAgent)
+	}
 	az.deploymentsClient.Authorizer = az.authorizer
 
 	return az
@@ -100,8 +115,18 @@ func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
 }
 
 func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
+	if ip, ok := az.memoizedIPs[resourceID]; ok {
+		return ip, nil
+	}
+
 	_, resourceGroupName, publicIPName := ParseResourceID(resourceID)
-	return az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+
+	ip, err := az.publicIPsClient.Get(az.ctx, string(resourceGroupName), string(publicIPName), "")
+	if err != nil {
+		return n.PublicIPAddress{}, err
+	}
+	az.memoizedIPs[resourceID] = ip
+	return ip, nil
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
