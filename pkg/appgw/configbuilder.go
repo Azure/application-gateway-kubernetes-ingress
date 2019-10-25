@@ -26,7 +26,6 @@ import (
 // Clock is an interface, which allows you to implement your own Time.
 type Clock interface {
 	Now() time.Time
-
 }
 
 // ConfigBuilder is a builder for application gateway configuration
