@@ -27,7 +27,7 @@ func (er ExistingResources) GetBlacklistedPorts() ([]n.ApplicationGatewayFronten
 	for _, port := range er.Ports {
 		portJSON, _ := port.MarshalJSON()
 		// Is the port associated with a blacklisted listener?
-		if _, exists := blacklistedPortSet[portName(*port.Name)]; exists {
+		if _, isBlacklisted := blacklistedPortSet[portName(*port.Name)]; isBlacklisted {
 			glog.V(5).Infof("[brownfield] Port %s is blacklisted: %s", portName(*port.Name), portJSON)
 			blacklistedPorts = append(blacklistedPorts, port)
 			continue

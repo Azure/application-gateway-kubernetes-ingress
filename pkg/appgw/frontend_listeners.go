@@ -28,27 +28,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	var ports []n.ApplicationGatewayFrontendPort
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
-		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
-			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol)
-			if err != nil {
-				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
-				continue
-			}
-			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
-				glog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
-				continue
-			}
-
-			if !listenerID.UsePrivateIP {
-				publIPPorts[*port.Name] = *listener.Name
-			}
-
-			listeners = append(listeners, *listener)
-			if _, exists := portSet[*port.Name]; !exists {
-				portSet[*port.Name] = nil
-				ports = append(ports, *port)
-			}
-		}
+		listeners, ports, portSet, publIPPorts = c.getIstioListenersPorts(cbCtx)
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
