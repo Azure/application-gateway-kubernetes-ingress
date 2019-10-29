@@ -12,7 +12,7 @@ import (
 
 func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, map[Port]n.ApplicationGatewayFrontendPort, map[string]string) {
 	publIPPorts := make(map[string]string)
-	portsByNumber := make(map[Port]n.ApplicationGatewayFrontendPort)
+	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
