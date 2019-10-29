@@ -46,12 +46,17 @@ func MergeListeners(listenerBuckets ...[]n.ApplicationGatewayHTTPListener) []n.A
 	for _, bucket := range listenerBuckets {
 		for _, listener := range bucket {
 			listenerConfig := uniqueListenerConfig{
-				HostName:                *listener.HostName,
-				Protocol:                listener.Protocol,
-				FrontendIPConfiguration: *listener.FrontendIPConfiguration.ID,
-				FrontendPortID:          *listener.FrontendPort.ID,
+				Protocol: listener.Protocol,
 			}
-
+			if listener.HostName != nil {
+				listenerConfig.HostName = *listener.HostName
+			}
+			if listener.FrontendIPConfiguration != nil && listener.FrontendIPConfiguration.ID != nil {
+				listenerConfig.FrontendIPConfiguration = *listener.FrontendIPConfiguration.ID
+			}
+			if listener.FrontendPort != nil && listener.FrontendPort.ID != nil {
+				listenerConfig.FrontendPortID = *listener.FrontendPort.ID
+			}
 			if _, exists := uniq[listenerConfig]; !exists {
 				uniq[listenerConfig] = listener
 			}

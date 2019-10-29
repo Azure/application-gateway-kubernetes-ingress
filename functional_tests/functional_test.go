@@ -32,6 +32,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
 func TestFunctional(t *testing.T) {
@@ -520,6 +521,24 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "two_ingresses_same_domain_tls_notls.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Preexisting port w/ same port number", func() {
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yyxx"),
+				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
+					Port(80): fixtures.GetDefaultPort(),
+					Port(8989): fixtures.GetPort(8989),
+				},
+			}
+			check(cbCtx, "duplicate_ports.json", stopChannel, ctxt, configBuilder)
 		})
 
 	})

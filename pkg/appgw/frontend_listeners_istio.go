@@ -10,15 +10,14 @@ import (
 	"github.com/golang/glog"
 )
 
-func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, []n.ApplicationGatewayFrontendPort, map[string]interface{}, map[string]string) {
+func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, map[Port]n.ApplicationGatewayFrontendPort, map[string]string) {
 	publIPPorts := make(map[string]string)
-	portSet := make(map[string]interface{})
+	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
-	var ports []n.ApplicationGatewayFrontendPort
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
-			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol)
+			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol, portsByNumber)
 			if err != nil {
 				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
@@ -33,11 +32,10 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 			}
 
 			listeners = append(listeners, *listener)
-			if _, exists := portSet[*port.Name]; !exists {
-				portSet[*port.Name] = nil
-				ports = append(ports, *port)
+			if _, exists := portsByNumber[Port(*port.Port)]; !exists {
+				portsByNumber[Port(*port.Port)] = *port
 			}
 		}
 	}
-	return listeners, ports, portSet, publIPPorts
+	return listeners, portsByNumber, publIPPorts
 }

@@ -45,6 +45,12 @@ func (c AppGwIngressController) getAppGw() (*n.ApplicationGateway, *appgw.Config
 
 		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
 		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
+
+		ExistingPortsByNumber: make(map[appgw.Port]n.ApplicationGatewayFrontendPort),
+	}
+
+	for _, port := range *appGw.FrontendPorts {
+		cbCtx.ExistingPortsByNumber[appgw.Port(*port.Port)] = port
 	}
 
 	return &appGw, cbCtx, nil
