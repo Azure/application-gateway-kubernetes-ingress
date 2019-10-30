@@ -30,8 +30,6 @@ appgw:
   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
   resourceGroup: myResourceGroup
   name: myApplicationGateway
-  #subnetPrefix: 10.1.0.0/16
-  subnetID: sup
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
