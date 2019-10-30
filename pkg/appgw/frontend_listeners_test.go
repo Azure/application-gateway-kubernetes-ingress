@@ -181,7 +181,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			listener, port, err := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"))
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, port, err := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"), ports)
 			Expect(err).ToNot(HaveOccurred())
 			expectedListener80.ApplicationGatewayHTTPListenerPropertiesFormat.Protocol = n.ApplicationGatewayProtocol("Https")
 
@@ -216,7 +217,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				listenerID := listenerIdentifier{80, "bye.com", true}
 				listenerAzConfig, exists := listenerConfigs[listenerID]
 				Expect(exists).To(BeTrue())
-				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol)
+				ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol, ports)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
 				Expect(*port).To(Equal(expectedPort80))
@@ -226,7 +228,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				listenerID := listenerIdentifier{443, "bye.com", true}
 				listenerAzConfig, exists := listenerConfigs[listenerID]
 				Expect(exists).To(BeTrue())
-				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol)
+				ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+				listener, port, err := cb.newListener(cbCtx, listenerID, listenerAzConfig.Protocol, ports)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*listener.FrontendIPConfiguration.ID).To(Equal(tests.PrivateIPID))
 				Expect(*port).To(Equal(expectedPort443))
@@ -250,8 +253,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			listeners, ports := cb.getListeners(cbCtx)
 			Expect(len(*listeners)).To(Equal(2))
 			Expect(len(*ports)).To(Equal(2))
-
-			listener, port, err := cb.newListener(cbCtx, listenerID80Priv, n.ApplicationGatewayProtocol("Http"))
+			portsByNumber := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, port, err := cb.newListener(cbCtx, listenerID80Priv, n.ApplicationGatewayProtocol("Http"), portsByNumber)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*listener).To(Equal(expectedListener80Priv))
 			Expect(*port).To(Equal(expectedPort80))
@@ -350,23 +353,27 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 		}
 
 		It("should create listener with RequireServerNameIndication when (https, hostname) listener", func() {
-			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"))
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"), ports)
 			Expect(*listener.RequireServerNameIndication).To(BeTrue())
 		})
 
 		It("should not create listener with RequireServerNameIndication when (https, no hostname) listener", func() {
-			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Https"))
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Https"), ports)
 			Expect(len(*listener.HostName)).To(Equal(0))
 			Expect(listener.RequireServerNameIndication).To(BeNil())
 		})
 
 		It("should not create listener with RequireServerNameIndication when (http, hostname) listener", func() {
-			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Http"))
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Http"), ports)
 			Expect(listener.RequireServerNameIndication).To(BeNil())
 		})
 
 		It("should not create listener with RequireServerNameIndication when (http, no hostname) listener", func() {
-			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Http"))
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Http"), ports)
 			Expect(len(*listener.HostName)).To(Equal(0))
 			Expect(listener.RequireServerNameIndication).To(BeNil())
 		})

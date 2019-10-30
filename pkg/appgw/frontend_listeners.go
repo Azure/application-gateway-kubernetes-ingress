@@ -23,16 +23,19 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	}
 
 	publIPPorts := make(map[string]string)
-	portSet := make(map[string]interface{})
+	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
-	var ports []n.ApplicationGatewayFrontendPort
+
+	if portsByNumber == nil {
+		portsByNumber = make(map[Port]n.ApplicationGatewayFrontendPort)
+	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
-		listeners, ports, portSet, publIPPorts = c.getIstioListenersPorts(cbCtx)
+		listeners, portsByNumber, publIPPorts = c.getIstioListenersPorts(cbCtx)
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
-		listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol)
+		listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol, portsByNumber)
 		if err != nil {
 			glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
@@ -47,15 +50,16 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			publIPPorts[*port.Name] = *listener.Name
 		}
 
+		// newlistener created a new port; Add it to the set
+		if _, exists := portsByNumber[Port(*port.Port)]; !exists {
+			portsByNumber[Port(*port.Port)] = *port
+		}
+
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
 		listeners = append(listeners, *listener)
-		if _, exists := portSet[*port.Name]; !exists {
-			portSet[*port.Name] = nil
-			ports = append(ports, *port)
-		}
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
@@ -71,11 +75,19 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
 	}
 
-	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPorts()
-		brownfield.LogPorts(existingBlacklisted, existingNonBlacklisted, ports)
-		ports = brownfield.MergePorts(existingBlacklisted, ports)
+	portIDs := make(map[string]interface{})
+	// Cleanup unused ports
+	for _, listener := range listeners {
+		if listener.FrontendPort != nil && listener.FrontendPort.ID != nil {
+			portIDs[*listener.FrontendPort.ID] = nil
+		}
+	}
+
+	var ports []n.ApplicationGatewayFrontendPort
+	for _, port := range portsByNumber {
+		if _, exists := portIDs[*port.ID]; exists {
+			ports = append(ports, port)
+		}
 	}
 
 	sort.Sort(sorter.ByListenerName(listeners))
@@ -116,17 +128,21 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 	return allListeners
 }
 
-func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {
+func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, portsByNumber map[Port]n.ApplicationGatewayFrontendPort) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {
 	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
-
-	portName := generateFrontendPortName(listenerID.FrontendPort)
-	frontendPort := n.ApplicationGatewayFrontendPort{
-		Etag: to.StringPtr("*"),
-		Name: &portName,
-		ID:   to.StringPtr(c.appGwIdentifier.frontendPortID(portName)),
-		ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
-			Port: to.Int32Ptr(int32(listenerID.FrontendPort)),
-		},
+	portNumber := listenerID.FrontendPort
+	var frontendPort n.ApplicationGatewayFrontendPort
+	var exists bool
+	if frontendPort, exists = portsByNumber[portNumber]; !exists {
+		portName := generateFrontendPortName(listenerID.FrontendPort)
+		frontendPort = n.ApplicationGatewayFrontendPort{
+			Etag: to.StringPtr("*"),
+			Name: &portName,
+			ID:   to.StringPtr(c.appGwIdentifier.frontendPortID(portName)),
+			ApplicationGatewayFrontendPortPropertiesFormat: &n.ApplicationGatewayFrontendPortPropertiesFormat{
+				Port: to.Int32Ptr(int32(portNumber)),
+			},
+		}
 	}
 
 	listenerName := generateListenerName(listenerID)
@@ -164,11 +180,18 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
-		port := portsByID[*listener.FrontendPort.ID]
+		port, portExists := portsByID[*listener.FrontendPort.ID]
+
 		listenerID := listenerIdentifier{
-			HostName:     *listener.HostName,
-			FrontendPort: Port(*port.Port),
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
+		}
+		if listener.HostName != nil {
+			listenerID.HostName = *listener.HostName
+		}
+		if portExists && port.Port != nil {
+			listenerID.FrontendPort = Port(*port.Port)
+		} else {
+			glog.Errorf("Failed to find port '%s' referenced by listener '%s'", *listener.FrontendPort.ID, *listener.Name)
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])
 	}

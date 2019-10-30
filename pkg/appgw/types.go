@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -26,6 +27,8 @@ type ConfigBuilderContext struct {
 
 	DefaultAddressPoolID  *string
 	DefaultHTTPSettingsID *string
+
+	ExistingPortsByNumber map[Port]n.ApplicationGatewayFrontendPort
 }
 
 // InIngressList returns true if an ingress is in the ingress list
