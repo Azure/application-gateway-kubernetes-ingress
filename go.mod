@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.5.0 // indirect
-	github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
+	github.com/Azure/azure-sdk-for-go v34.4.0+incompatible
 	github.com/Azure/go-autorest v12.3.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.9.0
 	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
@@ -12,7 +12,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/axw/gocov v1.0.0 // indirect
 	github.com/deckarep/golang-set v1.7.1
-	github.com/eapache/channels v1.1.0
+	github.com/eapache/channels v1.1.0 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a

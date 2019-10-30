@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
@@ -144,7 +144,7 @@ func newURLPathMap() n.ApplicationGatewayURLPathMap {
 			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
 
 			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
-			ProvisioningState: to.StringPtr("--provisionStateExpected--"),
+			ProvisioningState: "--provisionStateExpected--",
 		},
 	}
 
