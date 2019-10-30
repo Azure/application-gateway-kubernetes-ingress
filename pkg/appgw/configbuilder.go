@@ -213,6 +213,7 @@ func (c *appGwConfigBuilder) addTags() {
 	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
 }
 
+// GetVersion returns a string representing the version of AGIC.
 func GetVersion() string {
 	return fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate)
 }
