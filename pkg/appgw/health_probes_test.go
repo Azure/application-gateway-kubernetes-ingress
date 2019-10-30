@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -61,7 +61,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				PickHostNameFromBackendHTTPSettings: nil,
 				MinServers:                          nil,
 				Match:                               nil,
-				ProvisioningState:                   nil,
+				ProvisioningState:                   "",
 				Port:                                to.Int32Ptr(9090),
 			},
 			Name: to.StringPtr(probeName),
@@ -82,7 +82,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 				PickHostNameFromBackendHTTPSettings: nil,
 				MinServers:                          nil,
 				Match:                               nil,
-				ProvisioningState:                   nil,
+				ProvisioningState:                   "",
 				Port:                                to.Int32Ptr(9090),
 			},
 			Name: to.StringPtr(probeName),
