@@ -18,6 +18,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
+| [appgw.ingress.kubernetes.io/azure-waf-policy-path](#azure-waf-policy-for-path) | `string` |   |   |
 
 ## Backend Path Prefix
 
@@ -253,4 +254,46 @@ spec:
         backend:
           serviceName: go-server-service
           servicePort: 443
+```
+
+## Azure WAF policy for an Ingress host and path
+This annotation allows you to attach an already created WAF policy to the list of hosts and paths within the Kubernetes
+Ingress resource being annotated.
+
+The WAF policy must be created in advance. Example of using [Azure Portal](https://portal.azure.com/) to create a policy:
+![Creating a WAF policy](./images/waf-policy.png)
+
+Once the policy is created, copy the URI of the policy from the address bar of Azure Portal:
+![Creating a WAF policy](./images/waf-policy-1.png)
+
+The URI would have the following format:
+```bash
+/subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
+```
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/azure-waf-policy-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
+```
+
+### Example
+The example below will apply the WAF policy 
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ad-server-ingress
+  namespace: commerce
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/azure-waf-policy-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /ad-server
+        backend:
+          serviceName: adserver
+          servicePort: 80
 ```
