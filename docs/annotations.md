@@ -18,7 +18,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
-| [appgw.ingress.kubernetes.io/azure-waf-policy-path](#azure-waf-policy-for-path) | `string` |   |   |
+| [appgw.ingress.kubernetes.io/waf-policy-for-path](#azure-waf-policy-for-path) | `string` |   |   |
 
 ## Backend Path Prefix
 
@@ -274,7 +274,7 @@ The URI would have the following format:
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/azure-waf-policy-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
+appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
 ```
 
 ### Example
@@ -287,7 +287,7 @@ metadata:
   namespace: commerce
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/azure-waf-policy-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
+    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
 spec:
   rules:
   - http:
