@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,10 +29,10 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/mocks"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
 func TestFunctional(t *testing.T) {
@@ -534,7 +534,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yyxx"),
 				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
-					Port(80): fixtures.GetDefaultPort(),
+					Port(80):   fixtures.GetDefaultPort(),
 					Port(8989): fixtures.GetPort(8989),
 				},
 			}

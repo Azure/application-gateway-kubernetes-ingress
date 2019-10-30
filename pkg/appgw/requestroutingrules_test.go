@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -324,7 +324,7 @@ var _ = Describe("Test routing rules generations", func() {
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 							"/redirectConfigurations/sslr-fl-foo.baz-443")},
-					ProvisioningState: nil,
+					ProvisioningState: "",
 				},
 				Name: to.StringPtr("rr-foo.baz-80"),
 				Etag: to.StringPtr("*"),
@@ -352,7 +352,7 @@ var _ = Describe("Test routing rules generations", func() {
 					URLPathMap:            nil,
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
-					ProvisioningState:     nil,
+					ProvisioningState:     "",
 				},
 				Name: to.StringPtr("rr-foo.baz-443"),
 				Etag: to.StringPtr("*"),

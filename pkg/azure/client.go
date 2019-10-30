@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/golang/glog"
 
@@ -137,8 +137,13 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 	}
 
 	glog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
-	subnet, err := az.findSubnet(vnet, subnetPrefix)
+	subnet, err := az.findSubnet(vnet, subnetName, subnetPrefix)
 	if err != nil {
+		if subnetPrefix == "" {
+			glog.Infof("Unable to find a subnet with subnetName %s. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet %s", subnetName, vnetName)
+			return
+		}
+
 		glog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
@@ -185,13 +190,13 @@ func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceNa
 	return az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
 }
 
-func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetPrefix string) (subnet n.Subnet, err error) {
+func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetName ResourceName, subnetPrefix string) (subnet n.Subnet, err error) {
 	for _, subnet := range *vnet.Subnets {
-		if *subnet.AddressPrefix == subnetPrefix {
+		if string(subnetName) == *subnet.Name && (subnetPrefix == "" || subnetPrefix == *subnet.AddressPrefix) {
 			return subnet, nil
 		}
 	}
-	err = errors.New("Unable to find subnet")
+	err = errors.New("Unable to find subnet with matching subnetName and subnetPrefix")
 	return
 }
 
