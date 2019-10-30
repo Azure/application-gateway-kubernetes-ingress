@@ -164,7 +164,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 							IPAddress: to.StringPtr("10.9.8.7"),
 						},
 					},
-					ProvisioningState: nil,
+					ProvisioningState: "",
 				},
 			}
 			Expect(*actual).To(Equal(expected))
@@ -230,7 +230,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 						DefaultRewriteRuleSet:        nil,
 						DefaultRedirectConfiguration: nil,
 						PathRules:                    &[]n.ApplicationGatewayPathRule{},
-						ProvisioningState:            nil,
+						ProvisioningState:            "",
 					},
 					Name: to.StringPtr("url-80"),
 					Etag: to.StringPtr("*"),

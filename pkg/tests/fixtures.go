@@ -120,7 +120,7 @@ func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddre
 		ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
 			BackendIPConfigurations: nil,
 			BackendAddresses:        &[]n.ApplicationGatewayBackendAddress{},
-			ProvisioningState:       nil,
+			ProvisioningState:       "",
 		},
 	}
 }

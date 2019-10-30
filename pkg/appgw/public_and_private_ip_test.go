@@ -325,7 +325,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "backendHttpSettingsCollection": [
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource",
 --                "name": "bp---namespace-----service-name---443-443-external-ingress-resource",
 --                "properties": {
@@ -337,7 +336,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            },
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80-internal-ingress-resource",
 --                "name": "bp---namespace-----service-name---80-80-internal-ingress-resource",
 --                "properties": {
@@ -362,29 +360,24 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "frontendIPConfigurations": [
 --            {
---                "etag": "xx2",
 --                "id": "--front-end-ip-id-1--",
 --                "name": "xx3",
 --                "properties": {
 --                    "publicIPAddress": {
 --                        "id": "xyz"
 --                    }
---                },
---                "type": "xx1"
+--                }
 --            },
 --            {
---                "etag": "yy2",
 --                "id": "--front-end-ip-id-2--",
 --                "name": "yy3",
 --                "properties": {
 --                    "privateIPAddress": "abc"
---                },
---                "type": "yy1"
+--                }
 --            }
 --        ],
 --        "frontendPorts": [
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443",
 --                "name": "fp-443",
 --                "properties": {
@@ -392,7 +385,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            },
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
 --                "name": "fp-80",
 --                "properties": {
@@ -402,7 +394,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "httpListeners": [
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443",
 --                "name": "fl-443",
 --                "properties": {
@@ -420,7 +411,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            },
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80-privateip",
 --                "name": "fl-80-privateip",
 --                "properties": {
@@ -464,7 +454,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "redirectConfigurations": null,
 --        "requestRoutingRules": [
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-443",
 --                "name": "rr-443",
 --                "properties": {
@@ -481,7 +470,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            },
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
 --                "name": "rr-80",
 --                "properties": {
@@ -505,7 +493,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        },
 --        "sslCertificates": [
 --            {
---                "etag": "*",
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
 --                "name": "--namespace-----the-name-of-the-secret--",
 --                "properties": {

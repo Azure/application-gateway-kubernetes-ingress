@@ -324,7 +324,7 @@ var _ = Describe("Test routing rules generations", func() {
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 							"/redirectConfigurations/sslr-fl-foo.baz-443")},
-					ProvisioningState: nil,
+					ProvisioningState: "",
 				},
 				Name: to.StringPtr("rr-foo.baz-80"),
 				Etag: to.StringPtr("*"),
@@ -352,7 +352,7 @@ var _ = Describe("Test routing rules generations", func() {
 					URLPathMap:            nil,
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
-					ProvisioningState:     nil,
+					ProvisioningState:     "",
 				},
 				Name: to.StringPtr("rr-foo.baz-443"),
 				Etag: to.StringPtr("*"),

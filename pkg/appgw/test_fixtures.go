@@ -144,7 +144,7 @@ func newURLPathMap() n.ApplicationGatewayURLPathMap {
 			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
 
 			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
-			ProvisioningState: to.StringPtr("--provisionStateExpected--"),
+			ProvisioningState: "--provisionStateExpected--",
 		},
 	}
 
