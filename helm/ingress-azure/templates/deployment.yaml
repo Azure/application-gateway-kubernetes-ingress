@@ -25,7 +25,7 @@ spec:
         {{- end }}
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: {{ .Values.kubernetes.httpServicePort }}
+        prometheus.io/port: {{ .Values.kubernetes.httpServicePort | quote}}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
       containers:
