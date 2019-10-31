@@ -8,6 +8,7 @@ package appgw
 import (
 	"sort"
 	"strconv"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -299,6 +300,15 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 				Paths: &[]string{path.Path},
 			},
+		}
+
+		if wafPolicy, err := annotations.WAFPolicy(ingress); err == nil {
+			pathRule.FirewallPolicy = &n.SubResource{ID: to.StringPtr(string(wafPolicy))}
+			var paths string
+			if pathRule.Paths != nil {
+				paths = strings.Join(*pathRule.Paths, ",")
+			}
+			glog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
