@@ -541,5 +541,22 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "duplicate_ports.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("WAF Annotation", func() {
+			annotatedIngress := ingressB
+			annotatedIngress.Annotations[annotations.FirewallPolicy] = "/some/policy/here"
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:  serviceList,
+				EnvVariables: environment.GetFakeEnv(),
+				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
+					Port(80): fixtures.GetDefaultPort(),
+				},
+			}
+			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
+		})
+
 	})
 })
