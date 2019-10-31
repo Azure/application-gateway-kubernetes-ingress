@@ -115,7 +115,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
   blob to be saved to Kubernetes.
 
   ```bash
-  az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
+  az ad sp create-for-rbac --sdk-auth | base64 -w0
   ```
 
   2. Add the base64 encoded JSON blob to the `helm-config.yaml` file. More information on `helm-config.yaml` is in the
@@ -165,7 +165,7 @@ In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use 
          --set appgw.subscriptionId=subscription-uuid \
          --set appgw.shared=false \
          --set armAuth.type=servicePrincipal \
-         --set armAuth.secretJSON=$(az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0) \
+         --set armAuth.secretJSON=$(az ad sp create-for-rbac --sdk-auth | base64 -w0) \
          --set rbac.enabled=true \
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
