@@ -62,7 +62,7 @@ var (
 
 var allowedSkus = map[n.ApplicationGatewayTier]interface{}{
 	n.ApplicationGatewayTierStandardV2: nil,
-	n.ApplicationGatewayTierWAFV2: nil,
+	n.ApplicationGatewayTierWAFV2:      nil,
 }
 
 func main() {
@@ -188,7 +188,7 @@ func main() {
 	}
 
 	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
-		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s", appGw.Sku.Tier, appgw.GetVersion())
+		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s; (v0.10.0 supports App Gwy v1)", appGw.Sku.Tier, appgw.GetVersion())
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.UnsupportedAppGatewaySKUTier, errorLine)
 		}
