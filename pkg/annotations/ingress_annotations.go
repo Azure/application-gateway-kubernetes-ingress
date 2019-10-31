@@ -53,6 +53,11 @@ const (
 	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
 	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
 	ApplicationGatewayIngressClass = "azure/application-gateway"
+
+	// FirewallPolicy is the key part of a key/value Ingress annotation.
+	// The value of this is an ID of a Firewall Policy. The Firewall Policy must be already defined in Azure.
+	// The policy will be attached to all URL paths declared in the annotated Ingress resource.
+	FirewallPolicy = ApplicationGatewayPrefix + "/waf-policy-for-path"
 )
 
 // ProtocolEnum is the type for protocol
@@ -134,6 +139,11 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 	}
 
 	return HTTP, NewInvalidAnnotationContent(BackendProtocolKey, protocol)
+}
+
+// WAFPolicy override path
+func WAFPolicy(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, FirewallPolicy)
 }
 
 func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
