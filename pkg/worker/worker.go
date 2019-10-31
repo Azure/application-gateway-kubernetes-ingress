@@ -14,6 +14,7 @@ import (
 )
 
 const sleepOnErrorSeconds = 5
+const minTimeBetweenUpdates = 1 * time.Second
 
 func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	lastEvent := defaultEvent
@@ -30,6 +31,7 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
 func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
+	lastUpdate := time.Now().Add(-1 * time.Second)
 	glog.V(1).Infoln("Worker started")
 	for {
 		select {
@@ -43,6 +45,13 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				continue
 			}
 
+			since := time.Since(lastUpdate)
+			if since < minTimeBetweenUpdates {
+				sleep := minTimeBetweenUpdates - since
+				glog.V(9).Infof("[worker] It has been %+v since last update; Sleeping for %+v before next update", since, sleep)
+				time.Sleep(sleep)
+			}
+
 			_ = drainChan(work, event)
 
 			if err := w.MutateAKS(); err != nil {
@@ -54,6 +63,7 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				time.Sleep(sleepOnErrorSeconds * time.Second)
 			}
 
+			lastUpdate = time.Now()
 		case <-stopChannel:
 			break
 		}
