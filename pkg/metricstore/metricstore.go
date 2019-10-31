@@ -95,11 +95,19 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 // Start store
 func (ms *AGICMetricStore) Start() {
 	ms.registry.MustRegister(ms.updateLatency)
+	ms.registry.MustRegister(ms.k8sAPIEventCounter)
+	ms.registry.MustRegister(ms.armAPIUpdateCallSuccessCounter)
+	ms.registry.MustRegister(ms.armAPIUpdateCallFailureCounter)
+	ms.registry.MustRegister(ms.armAPICallCounter)
 }
 
 // Stop store
 func (ms *AGICMetricStore) Stop() {
 	ms.registry.Unregister(ms.updateLatency)
+	ms.registry.Unregister(ms.k8sAPIEventCounter)
+	ms.registry.Unregister(ms.armAPIUpdateCallSuccessCounter)
+	ms.registry.Unregister(ms.armAPIUpdateCallFailureCounter)
+	ms.registry.Unregister(ms.armAPICallCounter)
 }
 
 // SetUpdateLatencySec updates latency
