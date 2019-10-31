@@ -39,9 +39,9 @@ data:
   {{- else }}
 
   {{- if .Values.appgw.subnetPrefix }}
-  APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }} 
+  APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }}
   {{- end }}
-  
+
   {{- if .Values.appgw.subnetName }}
   APPGW_SUBNET_NAME: {{ .Values.appgw.subnetName | quote }}
   {{- else }}
@@ -54,6 +54,10 @@ data:
 
 {{- if .Values.appgw.shared }}
   APPGW_ENABLE_SHARED_APPGW: {{ .Values.appgw.shared | quote }}
+{{- end }}
+
+{{- if .Values.appgw.waf_listener }}
+  ATTACH_WAF_POLICY_TO_LISTENER: {{ .Values.appgw.waf_listener | quote }}
 {{- end }}
 
 {{- if .Values.kubernetes.watchNamespace }}
