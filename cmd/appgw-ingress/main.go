@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
@@ -58,6 +59,11 @@ var (
 	versionInfo    = flags.Bool("version", false, "Print version")
 	verbosity      = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
 )
+
+var allowedSkus = map[n.ApplicationGatewayTier]interface{}{
+	n.ApplicationGatewayTierStandardV2: nil,
+	n.ApplicationGatewayTierWAFV2:      nil,
+}
 
 func main() {
 	// Log output is buffered... Calling Flush before exiting guarantees all log output is written.
@@ -179,6 +185,16 @@ func main() {
 	appGw, _ := azClient.GetGateway()
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
 		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
+	}
+
+	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
+		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s; (v0.10.0 supports App Gwy v1)", appGw.Sku.Tier, appgw.GetVersion())
+		if agicPod != nil {
+			recorder.Event(agicPod, v1.EventTypeWarning, events.UnsupportedAppGatewaySKUTier, errorLine)
+		}
+		// Slow down the cycling of the AGIC pod.
+		time.Sleep(5 * time.Second)
+		glog.Fatal(errorLine)
 	}
 
 	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
