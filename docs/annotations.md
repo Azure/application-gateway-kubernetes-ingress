@@ -256,8 +256,8 @@ spec:
           servicePort: 443
 ```
 
-## Azure WAF policy for an Ingress host and path
-This annotation allows you to attach an already created WAF policy to the list of hosts and paths within the Kubernetes
+## Attach firewall policy to a host and path
+This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.
 
 The WAF policy must be created in advance. Example of using [Azure Portal](https://portal.azure.com/) to create a policy:
@@ -271,13 +271,13 @@ The URI would have the following format:
 /subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
 ```
 
-### Usage
+Thisis what the complete annotation line would look like:
 
 ```yaml
 appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
 ```
 
-### Example
+### Ingress Example
 The example below will apply the WAF policy 
 ```yaml
 apiVersion: extensions/v1beta1
@@ -294,6 +294,12 @@ spec:
       paths:
       - path: /ad-server
         backend:
-          serviceName: adserver
+          serviceName: ad-server
+          servicePort: 80
+          
+      - path: /auth
+        backend:
+          serviceName: auth-server
           servicePort: 80
 ```
+Note that the WAF policy will be applied to both `/ad-server` and `/auth` URLs.
