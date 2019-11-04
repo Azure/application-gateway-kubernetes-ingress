@@ -271,13 +271,13 @@ The URI would have the following format:
 /subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
 ```
 
-Thisis what the complete annotation line would look like:
+### Usage
 
 ```yaml
 appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
 ```
 
-### Ingress Example
+### Example
 The example below will apply the WAF policy 
 ```yaml
 apiVersion: extensions/v1beta1
