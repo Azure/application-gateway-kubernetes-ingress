@@ -19,8 +19,10 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
+// Keys that act as cache-busters should be removed from the JSON stored in cache.
 var keysToDeleteForCache = []string{
 	"etag",
+	"tags", // In the Tags of App Gwy we store the timestamp of the most recent update.
 }
 
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {

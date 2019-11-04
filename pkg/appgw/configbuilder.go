@@ -204,11 +204,16 @@ func (c *appGwConfigBuilder) addTags() {
 		c.appGw.Tags = make(map[string]*string)
 	}
 	// Identify the App Gateway as being exclusively managed by a Kubernetes Ingress.
-	c.appGw.Tags[tags.ManagedByK8sIngress] = to.StringPtr(fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate))
+	c.appGw.Tags[tags.ManagedByK8sIngress] = to.StringPtr(GetVersion())
 	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
 		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
 	} else {
 		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
 	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
+}
+
+// GetVersion returns a string representing the version of AGIC.
+func GetVersion() string {
+	return fmt.Sprintf("%s/%s/%s", version.Version, version.GitCommit, version.BuildDate)
 }

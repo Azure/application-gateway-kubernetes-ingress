@@ -72,6 +72,7 @@ type listenerAzConfig struct {
 	Protocol                     n.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
+	FirewallPolicy               string
 }
 
 // formatPropName ensures that the string generated is not longer than 80 characters.

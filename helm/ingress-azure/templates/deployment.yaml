@@ -23,6 +23,9 @@ spec:
         aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
         {{- end }}
         {{- end }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.kubernetes.httpServicePort | quote}}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
       containers:

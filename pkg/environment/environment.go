@@ -75,6 +75,9 @@ const (
 
 	// UseManagedIdentityForPodVarName is an environment variable name.
 	UseManagedIdentityForPodVarName = "USE_MANAGED_IDENTITY_FOR_POD"
+
+	// AttachWAFPolicyToListenerVarName is an environment variable name.
+	AttachWAFPolicyToListenerVarName = "ATTACH_WAF_POLICY_TO_LISTENER"
 )
 
 // EnvVariables is a struct storing values for environment variables.
@@ -100,6 +103,7 @@ type EnvVariables struct {
 	EnableDeployAppGateway     bool
 	UseManagedIdentityForPod   bool
 	HTTPServicePort            string
+	AttachWAFPolicyToListener  bool
 }
 
 var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
@@ -129,6 +133,7 @@ func GetEnv() EnvVariables {
 		EnableDeployAppGateway:     GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
 		UseManagedIdentityForPod:   GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
 		HTTPServicePort:            GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
+		AttachWAFPolicyToListener:  GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
 	}
 
 	return env

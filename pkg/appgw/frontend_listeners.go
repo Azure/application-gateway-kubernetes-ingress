@@ -11,7 +11,9 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
+	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -58,6 +60,9 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		if config.Protocol == n.HTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
+		}
+		if config.FirewallPolicy != "" {
+			listener.FirewallPolicy = &n.SubResource{ID: to.StringPtr(config.FirewallPolicy)}
 		}
 		listeners = append(listeners, *listener)
 	}
@@ -112,16 +117,23 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
+			if cbCtx.EnvVariables.AttachWAFPolicyToListener {
+				attachFirewallPolicy(cbCtx, ingress, &azConfig)
+			}
 			allListeners[listenerID] = azConfig
 		}
 	}
 
 	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
-		allListeners[defaultFrontendListenerIdentifier()] = listenerAzConfig{
+		listenerConfig := listenerAzConfig{
 			// Default protocol
 			Protocol: n.HTTP,
 		}
+		if cbCtx.EnvVariables.AttachWAFPolicyToListener {
+			attachFirewallPolicy(cbCtx, nil, &listenerConfig)
+		}
+		allListeners[defaultFrontendListenerIdentifier()] = listenerConfig
 	}
 
 	c.mem.listenerConfigs = &allListeners
@@ -197,4 +209,20 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	}
 
 	return listenersByID
+}
+
+func attachFirewallPolicy(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, azConfig *listenerAzConfig) {
+	if ingress != nil {
+		if policy, err := annotations.WAFPolicy(ingress); err == nil && policy != "" {
+			azConfig.FirewallPolicy = policy
+		}
+	} else {
+		// See if we have an ingress annotated with a Firewall Policy; Attach it to the listener
+		for _, ingress := range cbCtx.IngressList {
+			if policy, err := annotations.WAFPolicy(ingress); err == nil && policy != "" {
+				azConfig.FirewallPolicy = policy
+				break
+			}
+		}
+	}
 }
