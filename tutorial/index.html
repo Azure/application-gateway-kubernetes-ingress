@@ -232,24 +232,26 @@
 <li>Download <code>guestbook-all-in-one.yaml</code> from <a href="https://raw.githubusercontent.com/kubernetes/examples/master/guestbook/all-in-one/guestbook-all-in-one.yaml">here</a></li>
 <li>Deploy <code>guestbook-all-in-one.yaml</code> into your AKS cluster by running</li>
 </ol>
-<pre class="highlight"><code class="language-bash">kubectl apply -f guestbook-all-in-one.yaml</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f guestbook-all-in-one.yaml
+</pre></div>
 
 <p>Now, the <code>guestbook</code> application has been deployed.</p>
 <h2 id="expose-services-over-http">Expose services over HTTP</h2>
 <p>In order to expose the guestbook application we will using the following ingress resource:</p>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-  - http:
-      paths:
-      - backend:
-          serviceName: frontend
-          servicePort: 80</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
+          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
+          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
 
 <p>This ingress will expose the <code>frontend</code> service of the <code>guestbook-all-in-one</code> deployment
 as a default backend of the Application Gateway.</p>
@@ -257,7 +259,8 @@ as a default backend of the Application Gateway.</p>
 <ol>
 <li>
 <p>Deploy <code>ing-guestbook.yaml</code> by running:</p>
-<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook.yaml</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook.yaml
+</pre></div>
 
 </li>
 <li>
@@ -272,32 +275,35 @@ public address of the Application Gateway.</p>
 <ol>
 <li>
 <p>Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running</p>
-<pre class="highlight"><code class="language-bash">kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;</code></pre>
+<div class="highlight"><pre><span></span>kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;
+</pre></div>
 
 </li>
 <li>
 <p>Define the following ingress. In the ingress, specify the name of the secret in the <code>secretName</code> section.</p>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  tls:
-    - secretName: &lt;guestbook-secret-name&gt;
-  rules:
-  - http:
-      paths:
-      - backend:
-          serviceName: frontend
-          servicePort: 80</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tls</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">secretName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
+  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
+          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
+          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
 
 <p><em>NOTE:</em> Replace <code>&lt;guestbook-secret-name&gt;</code> in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name <code>ing-guestbook-tls.yaml</code>.</p>
 </li>
 <li>
 <p>Deploy ing-guestbook-tls.yaml by running</p>
-<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls.yaml</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls.yaml
+</pre></div>
 
 </li>
 <li>
@@ -312,29 +318,31 @@ By specifying hostname, the guestbook service will only be available on the spec
 <li>
 <p>Define the following ingress.
     In the ingress, specify the name of the secret in the <code>secretName</code> section and replace the hostname in the <code>hosts</code> section accordingly.</p>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  tls:
-    - hosts:
-      - &lt;guestbook.contoso.com&gt;
-      secretName: &lt;guestbook-secret-name&gt;
-  rules:
-  - host: &lt;guestbook.contoso.com&gt;
-    http:
-      paths:
-      - backend:
-          serviceName: frontend
-          servicePort: 80</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tls</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hosts</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
+      <span class="l l-Scalar l-Scalar-Plain">secretName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
+  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
+    <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
+          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
+          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
 
 </li>
 <li>
 <p>Deploy <code>ing-guestbook-tls-sni.yaml</code> by running</p>
-<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls-sni.yaml</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls-sni.yaml
+</pre></div>
 
 </li>
 <li>

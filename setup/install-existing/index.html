@@ -251,20 +251,23 @@ Use <a href="https://shell.azure.com/">Cloud Shell</a> to install Helm:</p>
 <ul>
 <li><em>RBAC enabled</em> AKS cluster</li>
 </ul>
-<pre class="highlight"><code class="language-bash">kubectl create serviceaccount --namespace kube-system tiller-sa
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-helm init --tiller-namespace kube-system --service-account tiller-sa</code></pre>
+<div class="highlight"><pre><span></span>kubectl create serviceaccount --namespace kube-system tiller-sa
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole<span class="o">=</span>cluster-admin --serviceaccount<span class="o">=</span>kube-system:tiller-sa
+helm init --tiller-namespace kube-system --service-account tiller-sa
+</pre></div>
 
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
-<pre class="highlight"><code class="language-bash">helm init</code></pre>
+<div class="highlight"><pre><span></span>helm init
+</pre></div>
 
 </li>
 <li>
 <p>Add the AGIC Helm repository:
-    <pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></pre></p>
+    <div class="highlight"><pre><span></span>helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update
+</pre></div></p>
 </li>
 </ol>
 <h3 id="azure-resource-manager-authentication">Azure Resource Manager Authentication</h3>
@@ -284,31 +287,35 @@ Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the followi
 important. The resource group required in the command below is <em>not</em> the one referenced on the AKS portal pane. This is
 the resource group of the <code>aks-agentpool</code> virtual machines. Typically that resource group starts with <code>MC_</code> and contains
  the name of your AKS. For instance: <code>MC_resourceGroup_aksABCD_westus</code></p>
-<pre class="highlight"><code class="language-bash">az identity create -g &lt;agent-pool-resource-group&gt; -n &lt;identity-name&gt;</code></pre>
+<div class="highlight"><pre><span></span>az identity create -g &lt;agent-pool-resource-group&gt; -n &lt;identity-name&gt;
+</pre></div>
 
 </li>
 <li>
 <p>For the role assignment commands below we need to obtain <code>principalId</code> for the newly created identity:</p>
-<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
+<div class="highlight"><pre><span></span>az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;
+</pre></div>
 
 </li>
 <li>
 <p>Give the identity <code>Contributor</code> access to you App Gateway. For this you need the ID of the App Gateway, which will
 look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Microsoft.Network/applicationGateways/C</code></p>
 <p>Get the list of App Gateway IDs in your subscription with: <code>az network application-gateway list --query '[].id'</code></p>
-<pre class="highlight"><code class="language-bash">az role assignment create \
-    --role Contributor \
-    --assignee &lt;principalId&gt; \
-    --scope &lt;App-Gateway-ID&gt;</code></pre>
+<div class="highlight"><pre><span></span>az role assignment create <span class="se">\</span>
+    --role Contributor <span class="se">\</span>
+    --assignee &lt;principalId&gt; <span class="se">\</span>
+    --scope &lt;App-Gateway-ID&gt;
+</pre></div>
 
 </li>
 <li>
 <p>Give the identity <code>Reader</code> access to the App Gateway resource group. The resource group ID would look like:
 <code>/subscriptions/A/resourceGroups/B</code>. You can get all resource groups with: <code>az group list --query '[].id'</code></p>
-<pre class="highlight"><code class="language-bash">az role assignment create \
-    --role Reader \
-    --assignee &lt;principalId&gt; \
-    --scope &lt;App-Gateway-Resource-Group-ID&gt;</code></pre>
+<div class="highlight"><pre><span></span>az role assignment create <span class="se">\</span>
+    --role Reader <span class="se">\</span>
+    --assignee &lt;principalId&gt; <span class="se">\</span>
+    --scope &lt;App-Gateway-Resource-Group-ID&gt;
+</pre></div>
 
 </li>
 </ol>
@@ -318,52 +325,59 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
 <li>Create an Active Directory Service Principal and encode with base64. The base64 encoding is required for the JSON
   blob to be saved to Kubernetes.</li>
 </ol>
-<pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --subscription &lt;subscription-uuid&gt; --sdk-auth | base64 -w0</code></pre>
+<div class="highlight"><pre><span></span>az ad sp create-for-rbac --sdk-auth <span class="p">|</span> base64 -w0
+</pre></div>
 
 <ol>
 <li>Add the base64 encoded JSON blob to the <code>helm-config.yaml</code> file. More information on <code>helm-config.yaml</code> is in the
   next section.
-   <pre class="highlight"><code class="language-yaml">armAuth:
-    type: servicePrincipal
-    secretJSON: &lt;Base64-Encoded-Credentials&gt;</code></pre></li>
+   <div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">armAuth</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">servicePrincipal</span>
+    <span class="l l-Scalar l-Scalar-Plain">secretJSON</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;Base64-Encoded-Credentials&gt;</span>
+</pre></div></li>
 </ol>
 <h2 id="install-ingress-controller-as-a-helm-chart">Install Ingress Controller as a Helm Chart</h2>
 <p>In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use <a href="https://shell.azure.com/">Cloud Shell</a> to install the AGIC Helm package:</p>
 <ol>
 <li>
 <p>Add the <code>application-gateway-kubernetes-ingress</code> helm repo and perform a helm update</p>
-<pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></pre>
+<div class="highlight"><pre><span></span>helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update
+</pre></div>
 
 </li>
 <li>
 <p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will configure AGIC:
-    <pre class="highlight"><code class="language-bash">wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml</code></pre></p>
+    <div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
+</pre></div></p>
 </li>
 <li>
 <p>Edit <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill in the values for <code>appgw</code> and <code>armAuth</code>.
-    <pre class="highlight"><code class="language-bash">nano helm-config.yaml</code></pre></p>
+    <div class="highlight"><pre><span></span>nano helm-config.yaml
+</pre></div></p>
 <p><strong>NOTE:</strong> The <code>&lt;identity-resource-id&gt;</code> and <code>&lt;identity-client-id&gt;</code> are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: <code>az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code>, where <code>&lt;resourcegroup&gt;</code> is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.</p>
 </li>
 <li>
 <p>Install Helm chart <code>application-gateway-kubernetes-ingress</code> with the <code>helm-config.yaml</code> configuration from the previous step</p>
-<pre class="highlight"><code class="language-bash">helm install -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure</code></pre>
+<div class="highlight"><pre><span></span>helm install -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure
+</pre></div>
 
 <p>Alternatively you can combine the <code>helm-config.yaml</code> and the Helm command in one step:
-<pre class="highlight"><code class="language-bash">helm install ./helm/ingress-azure \
-     --name ingress-azure \
-     --namespace default \
-     --debug \
-     --set appgw.name=applicationgatewayABCD \
-     --set appgw.resourceGroup=your-resource-group \
-     --set appgw.subscriptionId=subscription-uuid \
-     --set appgw.shared=false \
-     --set armAuth.type=servicePrincipal \
-     --set armAuth.secretJSON=$(az ad sp create-for-rbac --subscription &lt;subscription-uuid&gt; --sdk-auth | base64 -w0) \
-     --set rbac.enabled=true \
-     --set verbosityLevel=3 \
-     --set kubernetes.watchNamespace=default \
-     --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io</code></pre></p>
+<div class="highlight"><pre><span></span>helm install ./helm/ingress-azure <span class="se">\</span>
+     --name ingress-azure <span class="se">\</span>
+     --namespace default <span class="se">\</span>
+     --debug <span class="se">\</span>
+     --set appgw.name<span class="o">=</span>applicationgatewayABCD <span class="se">\</span>
+     --set appgw.resourceGroup<span class="o">=</span>your-resource-group <span class="se">\</span>
+     --set appgw.subscriptionId<span class="o">=</span>subscription-uuid <span class="se">\</span>
+     --set appgw.shared<span class="o">=</span><span class="nb">false</span> <span class="se">\</span>
+     --set armAuth.type<span class="o">=</span>servicePrincipal <span class="se">\</span>
+     --set armAuth.secretJSON<span class="o">=</span><span class="k">$(</span>az ad sp create-for-rbac --sdk-auth <span class="p">|</span> base64 -w0<span class="k">)</span> <span class="se">\</span>
+     --set rbac.enabled<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
+     --set <span class="nv">verbosityLevel</span><span class="o">=</span><span class="m">3</span> <span class="se">\</span>
+     --set kubernetes.watchNamespace<span class="o">=</span>default <span class="se">\</span>
+     --set aksClusterConfiguration.apiServerAddress<span class="o">=</span>aks-abcdefg.hcp.westus2.azmk8s.io
+</pre></div></p>
 </li>
 <li>
 <p>Check the log of the newly created pod to verify if it started properly</p>
@@ -388,14 +402,15 @@ defining it in the Kubernetes Ingress, AGIC will delete the <code>prod.contoso.c
 <p>To install AGIC and also serve <code>prod.contoso.com</code> from our VMSS machines, we must constrain AGIC to configuring
 <code>dev.contoso.com</code> only. This is facilitated by instantiating the following
 <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRD</a>:</p>
-<pre class="highlight"><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: prod-contoso-com
-spec:
-  hostname: prod.contoso.com
-EOF</code></pre>
+<div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: prod-contoso-com</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: prod.contoso.com</span>
+<span class="s">EOF</span>
+</pre></div>
 
 <p>The command above creates an <code>AzureIngressProhibitedTarget</code> object. This makes AGIC (version 0.8.0 and later) aware of the existence of
 App Gateway config for <code>prod.contoso.com</code> and explicitly instructs it to avoid changing any configuration
@@ -403,40 +418,46 @@ related to that hostname.</p>
 <h3 id="enable-with-new-agic-installation">Enable with new AGIC installation</h3>
 <p>To limit AGIC (version 0.8.0 and later) to a subset of the App Gateway configuration modify the <code>helm-config.yaml</code> template.
 Under the <code>appgw:</code> section, add <code>shared</code> key and set it to to <code>true</code>.</p>
-<pre class="highlight"><code class="language-yaml">appgw:
-    subscriptionId: &lt;subscriptionId&gt;    # existing field
-    resourceGroup: &lt;resourceGroupName&gt;  # existing field
-    name: &lt;applicationGatewayName&gt;      # existing field
-    shared: true                        # &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">appgw</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">subscriptionId</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;subscriptionId&gt;</span>    <span class="c1"># existing field</span>
+    <span class="l l-Scalar l-Scalar-Plain">resourceGroup</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;resourceGroupName&gt;</span>  <span class="c1"># existing field</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;applicationGatewayName&gt;</span>      <span class="c1"># existing field</span>
+    <span class="l l-Scalar l-Scalar-Plain">shared</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>                        <span class="c1"># &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</span>
+</pre></div>
 
 <p>Apply the Helm changes:
   1. Ensure the <code>AzureIngressProhibitedTarget</code> CRD is installed with:
-      <pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml</code></pre>
+      <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml
+</pre></div>
   2. Update Helm:
-      <pre class="highlight"><code class="language-bash">helm upgrade \
-    --recreate-pods \
-    -f helm-config.yaml \
-    ingress-azure application-gateway-kubernetes-ingress/ingress-azure</code></pre></p>
+      <div class="highlight"><pre><span></span>helm upgrade <span class="se">\</span>
+    --recreate-pods <span class="se">\</span>
+    -f helm-config.yaml <span class="se">\</span>
+    ingress-azure application-gateway-kubernetes-ingress/ingress-azure
+</pre></div></p>
 <p>As a result your AKS will have a new instance of <code>AzureIngressProhibitedTarget</code> called <code>prohibit-all-targets</code>:
-<pre class="highlight"><code class="language-bash">kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml</code></pre></p>
+<div class="highlight"><pre><span></span>kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml
+</pre></div></p>
 <p>The object <code>prohibit-all-targets</code>, as the name implies, prohibits AGIC from changing config for <em>any</em> host and path.
 Helm install with <code>appgw.shared=true</code> will deploy AGIC, but will not make any changes to App Gateway.</p>
 <h3 id="broaden-permissions">Broaden permissions</h3>
 <p>Since Helm with <code>appgw.shared=true</code> and the default <code>prohibit-all-targets</code> blocks AGIC from applying any config.</p>
 <p>Broaden AGIC permissions with:
 1. Create a new <code>AzureIngressProhibitedTarget</code> with your specific setup:
-    <pre class="highlight"><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: your-custom-prohibitions
-spec:
-  hostname: your.own-hostname.com
-EOF</code></pre></p>
+    <div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: your-custom-prohibitions</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: your.own-hostname.com</span>
+<span class="s">EOF</span>
+</pre></div></p>
 <ol>
 <li>
 <p>Only after you have created your own custom prohibition, you can delete the default one, which is too broad:</p>
-<pre class="highlight"><code class="language-bash">kubectl delete AzureIngressProhibitedTarget prohibit-all-targets</code></pre>
+<div class="highlight"><pre><span></span>kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
+</pre></div>
 
 </li>
 </ol>
@@ -453,18 +474,20 @@ changes, AGIC will overwrite or delete them.</p>
 <ol>
 <li>
 <p>Create an <code>AzureIngressProhibitedTarget</code> object:
-    <pre class="highlight"><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: manually-configured-staging-environment
-spec:
-  hostname: staging.contoso.com
-EOF</code></pre></p>
+    <div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: manually-configured-staging-environment</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: staging.contoso.com</span>
+<span class="s">EOF</span>
+</pre></div></p>
 </li>
 <li>
 <p>View the newly created object:
-    <pre class="highlight"><code class="language-bash">kubectl get AzureIngressProhibitedTargets</code></pre></p>
+    <div class="highlight"><pre><span></span>kubectl get AzureIngressProhibitedTargets
+</pre></div></p>
 </li>
 <li>
 <p>Modify App Gateway config via portal - add listeners, routing rules, backends etc. The new object we created

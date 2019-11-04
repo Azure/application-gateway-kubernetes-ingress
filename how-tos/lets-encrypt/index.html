@@ -209,29 +209,29 @@ SSL/TLS termination for your AKS cluster. The setup described here uses the
 <li>create the following CRDs: Certificate, Challenge, ClusterIssuer, Issuer, Order</li>
 <li>install cert-manager chart (from <a href="https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps">docs.cert-manager.io)</a></li>
 </ul>
-<pre class="highlight"><code class="language-bash">#!/bin/bash
+<div class="highlight"><pre><span></span><span class="c1"># Install the CustomResourceDefinition resources separately</span>
+<span class="c1"># Note: --validate=false is required per https://github.com/jetstack/cert-manager/issues/2208#issuecomment-541311021</span>
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml --validate<span class="o">=</span><span class="nb">false</span>
 
-# Install the CustomResourceDefinition resources separately
-kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
-
-# Create the namespace for cert-manager
+<span class="c1"># Create the namespace for cert-manager</span>
 kubectl create namespace cert-manager
 
-# Label the cert-manager namespace to disable resource validation
-kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
+<span class="c1"># Label the cert-manager namespace to disable resource validation</span>
+kubectl label namespace cert-manager cert-manager.io/disable-validation<span class="o">=</span><span class="nb">true</span>
 
-# Add the Jetstack Helm repository
+<span class="c1"># Add the Jetstack Helm repository</span>
 helm repo add jetstack https://charts.jetstack.io
 
-# Update your local Helm chart repository cache
+<span class="c1"># Update your local Helm chart repository cache</span>
 helm repo update
 
-# Install the cert-manager Helm chart
-helm install \
-  --name cert-manager \
-  --namespace cert-manager \
-  --version v0.8.0 \
-  jetstack/cert-manager</code></pre>
+<span class="c1"># Install v0.11 of cert-manager Helm chart</span>
+helm install <span class="se">\</span>
+  --name cert-manager <span class="se">\</span>
+  --namespace cert-manager <span class="se">\</span>
+  --version v0.11.0 <span class="se">\</span>
+  jetstack/cert-manager
+</pre></div>
 
 </li>
 <li>
@@ -246,31 +246,38 @@ to issue certificates using the <code>Lets Encrypt</code> staging environment us
 in browser/client trust stores).</p>
 <p>The default challenge type in the YAML below is <code>http01</code>. Other challenges are documented on <a href="https://letsencrypt.org/docs/challenge-types/">letsencrypt.org - Challenge Types</a></p>
 <p><strong>IMPORTANT:</strong> Update <code>&lt;YOUR.EMAIL@ADDRESS&gt;</code> in the YAML below</p>
-<pre class="highlight"><code class="language-bash">#!/bin/bash
-kubectl apply -f - &lt;&lt;EOF
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: ClusterIssuer
-metadata:
-name: letsencrypt-staging
-spec:
-acme:
-    # You must replace this email address with your own.
-    # Let's Encrypt will use this to contact you about expiring
-    # certificates, and issues related to your account.
-    email: &lt;YOUR.EMAIL@ADDRESS&gt;
-    # ACME server URL for Let’s Encrypt’s staging environment.
-    # The staging environment will not issue trusted certificates but is
-    # used to ensure that the verification process is working properly
-    # before moving to production
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
-    privateKeySecretRef:
-    # Secret resource used to store the account's private key.
-    name: example-issuer-account-key
-    # Enable the HTTP-01 challenge provider
-    # you prove ownership of a domain by ensuring that a particular
-    # file is present at the domain
-    http01: {}
-EOF</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f - <span class="s">&lt;&lt;EOF</span>
+<span class="s">apiVersion: cert-manager.io/v1alpha2</span>
+<span class="s">kind: ClusterIssuer</span>
+<span class="s">metadata:</span>
+<span class="s">  name: letsencrypt-staging</span>
+<span class="s">spec:</span>
+<span class="s">  acme:</span>
+
+<span class="s">    # You must replace this email address with your own.</span>
+<span class="s">    # Let&#39;s Encrypt will use this to contact you about expiring</span>
+<span class="s">    # certificates, and issues related to your account.</span>
+<span class="s">    email: &lt;YOUR.EMAIL@ADDRESS&gt;</span>
+
+<span class="s">    # ACME server URL for Let’s Encrypt’s staging environment.</span>
+<span class="s">    # The staging environment will not issue trusted certificates but is</span>
+<span class="s">    # used to ensure that the verification process is working properly</span>
+<span class="s">    # before moving to production</span>
+<span class="s">    server: https://acme-staging-v02.api.letsencrypt.org/directory</span>
+
+<span class="s">    privateKeySecretRef:</span>
+<span class="s">      # Secret resource used to store the account&#39;s private key.</span>
+<span class="s">      name: letsencrypt-secret</span>
+
+<span class="s">    # Enable the HTTP-01 challenge provider</span>
+<span class="s">    # you prove ownership of a domain by ensuring that a particular</span>
+<span class="s">    # file is present at the domain</span>
+<span class="s">    solvers:</span>
+<span class="s">    - http01:</span>
+<span class="s">        ingress:</span>
+<span class="s">            class: azure/application-gateway</span>
+<span class="s">EOF</span>
+</pre></div>
 
 </li>
 <li>
@@ -278,32 +285,36 @@ EOF</code></pre>
 <p>Create an Ingress resource to Expose the <code>guestbook</code> application using the Application Gateway with the Lets Encrypt Certificate.</p>
 <p>Ensure you Application Gateway has a public Frontend IP configuration with a DNS name (either using the
 default <code>azure.com</code> domain, or provision a <code>Azure DNS Zone</code> service, and assign your own custom domain).
-Note the annotation <code>certmanager.k8s.io/cluster-issuer: letsencrypt-staging</code>, which tells cert-manager to process the
+Note the annotation <code>cert-manager.io/cluster-issuer: letsencrypt-staging</code>, which tells cert-manager to process the
 tagged Ingress resource.</p>
 <p><strong>IMPORTANT:</strong>  Update <code>&lt;PLACEHOLDERS.COM&gt;</code> in the YAML below with your own domain (or the Application Gateway one, for example
 'kh-aks-ingress.westeurope.cloudapp.azure.com')</p>
-<pre class="highlight"><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-name: guestbook-letsencrypt-staging
-annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
-spec:
-tls:
-- hosts:
-    - &lt;PLACEHOLDERS.COM&gt;
-    secretName: guestbook-secret-name
-rules:
-- host: &lt;PLACEHOLDERS.COM&gt;
-    http:
-    paths:
-    - backend:
-        serviceName: frontend
-        servicePort: 80
-EOF</code></pre>
+<div class="highlight"><pre><span></span>kubectl apply -f - <span class="s">&lt;&lt;EOF</span>
+<span class="s">apiVersion: extensions/v1beta1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">name: guestbook-letsencrypt-staging</span>
+<span class="s">annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">    cert-manager.io/cluster-issuer: letsencrypt-staging</span>
+<span class="s">    cert-manager.io/acme-challenge-type: http01</span>
+<span class="s">spec:</span>
+<span class="s">tls:</span>
+<span class="s">- hosts:</span>
+<span class="s">    - &lt;PLACEHOLDERS.COM&gt;</span>
+<span class="s">    secretName: guestbook-secret-name</span>
+<span class="s">rules:</span>
+<span class="s">- host: &lt;PLACEHOLDERS.COM&gt;</span>
+<span class="s">    http:</span>
+<span class="s">    paths:</span>
+<span class="s">    - backend:</span>
+<span class="s">        serviceName: frontend</span>
+<span class="s">        servicePort: 80</span>
+<span class="s">EOF</span>
+</pre></div>
 
+<p>Use <code>kubectl describe clusterissuer letsencrypt-staging</code> to view the state of status of the ACME account registration.
+Use <code>kubectl get secret guestbook-secret-name -o yaml</code> to view the certificate issued.</p>
 <p>After a few seconds, you  can access the <code>guestbook</code> service through the Application Gateway HTTPS url using the automatically issued <strong>staging</strong> <code>Lets Encrypt</code> certificate.
 Your browser may warn you of an invalid cert authority. The staging certificate is issued by <code>CN=Fake LE Intermediate X1</code>. This is an indication that the system worked as expected and you are ready for your production certificate.</p>
 </li>
@@ -311,7 +322,7 @@ Your browser may warn you of an invalid cert authority. The staging certificate 
 <p>Production Certificate
     Once your staging certificate is setup successfully you can switch to a production ACME server:</p>
 <ol>
-<li>Replace the staging annotation on your Ingress resource with: <code>certmanager.k8s.io/cluster-issuer: letsencrypt-prod</code></li>
+<li>Replace the staging annotation on your Ingress resource with: <code>cert-manager.io/cluster-issuer: letsencrypt-prod</code></li>
 <li>Delete the existing staging <code>ClusterIssuer</code> you created in the previous step and create a new one by replacing the ACME server from the ClusterIssuer YAML above with <code>https://acme-v02.api.letsencrypt.org/directory</code></li>
 </ol>
 </li>

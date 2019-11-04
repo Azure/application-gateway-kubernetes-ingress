@@ -203,68 +203,70 @@
                 <h2 id="expose-a-websocket-server">Expose a WebSocket server</h2>
 <p>As outlined in the Application Gateway v2 documentation - it <a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview#websocket-and-http2-traffic">provides native support for the WebSocket and HTTP/2 protocols</a>. Please note, that for both Application Gateway and the Kubernetes Ingress - there is no user-configurable setting to selectively enable or disable WebSocket support.</p>
 <p>The Kubernetes deployment YAML below shows the minimum configuration used to deploy a WebSocket server, which is the same as deploying a regular web server:
-<pre class="highlight"><code class="language-yaml">apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: websocket-server
-spec:
-  selector:
-    matchLabels:
-      app: ws-app
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: ws-app
-    spec:
-      containers:
-        - name: websocket-app
-          imagePullPolicy: Always
-          image: your-container-repo.azurecr.io/websockets-app
-          ports:
-            - containerPort: 8888
-      imagePullSecrets:
-        - name: azure-container-registry-credentials
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-server</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">matchLabels</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ws-app</span>
+  <span class="l l-Scalar l-Scalar-Plain">replicas</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">labels</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ws-app</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">containers</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-app</span>
+          <span class="l l-Scalar l-Scalar-Plain">imagePullPolicy</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Always</span>
+          <span class="l l-Scalar l-Scalar-Plain">image</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">your-container-repo.azurecr.io/websockets-app</span>
+          <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8888</span>
+      <span class="l l-Scalar l-Scalar-Plain">imagePullSecrets</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure-container-registry-credentials</span>
 
----
+<span class="nn">---</span>
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: websocket-app-service
-spec:
-  selector:
-    app: ws-app
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8888
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-app-service</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ws-app</span>
+  <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">protocol</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">TCP</span>
+    <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+    <span class="l l-Scalar l-Scalar-Plain">targetPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8888</span>
 
----
+<span class="nn">---</span>
 
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: websocket-repeater
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: ws.contoso.com
-      http:
-        paths:
-          - backend:
-              serviceName: websocket-app-service
-              servicePort: 80</code></pre></p>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-repeater</span>
+  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ws.contoso.com</span>
+      <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
+              <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-app-service</span>
+              <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div></p>
 <p>Given that all the prerequisites are fulfilled, and you have an App Gateway controlled by a K8s Ingress in your AKS, the deployment above would result in a WebSockets server exposed on port 80 of your App Gateway's public IP and the <code>ws.contoso.com</code> domain.</p>
 <p>The following cURL command would test the WebSocket server deployment:
-<pre class="highlight"><code class="language-sh">curl -i -N -H "Connection: Upgrade" \
-        -H "Upgrade: websocket" \
-        -H "Origin: http://localhost" \
-        -H "Host: ws.contoso.com" \
-        -H "Sec-Websocket-Version: 13" \
-        -H "Sec-WebSocket-Key: 123" \
-        http://1.2.3.4:80/ws</code></pre></p>
+<div class="highlight"><pre><span></span>curl -i -N -H <span class="s2">&quot;Connection: Upgrade&quot;</span> <span class="se">\</span>
+        -H <span class="s2">&quot;Upgrade: websocket&quot;</span> <span class="se">\</span>
+        -H <span class="s2">&quot;Origin: http://localhost&quot;</span> <span class="se">\</span>
+        -H <span class="s2">&quot;Host: ws.contoso.com&quot;</span> <span class="se">\</span>
+        -H <span class="s2">&quot;Sec-Websocket-Version: 13&quot;</span> <span class="se">\</span>
+        -H <span class="s2">&quot;Sec-WebSocket-Key: 123&quot;</span> <span class="se">\</span>
+        http://1.2.3.4:80/ws
+</pre></div></p>
 <h5 id="websocket-health-probes">WebSocket Health Probes</h5>
 <p>If your deployment does not explicitly define health probes, App Gateway would attempt an  HTTP GET on your WebSocket server endpoint.
 Depending on the server implementation (<a href="https://github.com/gorilla/websocket/blob/master/examples/chat/main.go">here is one we love</a>) WebSocket specific headers may be required (<code>Sec-Websocket-Version</code> for instance).

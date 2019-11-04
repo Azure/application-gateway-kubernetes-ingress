@@ -210,33 +210,37 @@ Application Gateway with a <a href="https://docs.microsoft.com/en-us/azure/appli
 <h2 id="assign-to-a-particular-ingress">Assign to a particular ingress</h2>
 <p>To expose a particular ingress over Private IP, use annotation <a href="../../annotations/#use-private-ip"><code>appgw.ingress.kubernetes.io/use-private-ip</code></a> in Ingress.</p>
 <h3 id="usage">Usage</h3>
-<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/use-private-ip: "true"</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">appgw.ingress.kubernetes.io/use-private-ip</span><span class="p p-Indicator">:</span> <span class="s">&quot;true&quot;</span>
+</pre></div>
 
 <p>For App Gateways without a Private IP, Ingresses annotated with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> will be ignored. This will be indicated in the ingress event and AGIC pod log.</p>
 <ul>
 <li>
 <p>Error as indicated in the Ingress Event</p>
-<pre class="highlight"><code class="language-bash">Events:
+<div class="highlight"><pre><span></span>Events:
 Type     Reason       Age               From                                                                     Message
 ----     ------       ----              ----                                                                     -------
-Warning  NoPrivateIP  2m (x17 over 2m)  azure/application-gateway, prod-ingress-azure-5c9b6fcd4-bctcb  Ingress default/hello-world-ingress requires Application Gateway 
-applicationgateway3026 has a private IP address</code></pre>
+Warning  NoPrivateIP  2m <span class="o">(</span>x17 over 2m<span class="o">)</span>  azure/application-gateway, prod-ingress-azure-5c9b6fcd4-bctcb  Ingress default/hello-world-ingress requires Application Gateway 
+applicationgateway3026 has a private IP address
+</pre></div>
 
 </li>
 <li>
 <p>Error as indicated in AGIC Logs</p>
-<pre class="highlight"><code class="language-bash">E0730 18:57:37.914749       1 prune.go:65] Ingress default/hello-world-ingress requires Application Gateway applicationgateway3026 has a private IP address</code></pre>
+<div class="highlight"><pre><span></span>E0730 <span class="m">18</span>:57:37.914749       <span class="m">1</span> prune.go:65<span class="o">]</span> Ingress default/hello-world-ingress requires Application Gateway applicationgateway3026 has a private IP address
+</pre></div>
 
 </li>
 </ul>
 <h2 id="assign-globally">Assign Globally</h2>
 <p>In case, requirement is to restrict all Ingresses to be exposed over Private IP, use <code>appgw.usePrivateIP: true</code> in <code>helm</code> config.</p>
 <h3 id="usage_1">Usage</h3>
-<pre class="highlight"><code class="language-yaml">appgw:
-    subscriptionId: &lt;subscriptionId&gt;
-    resourceGroup: &lt;resourceGroupName&gt;
-    name: &lt;applicationGatewayName&gt;
-    usePrivateIP: true</code></pre>
+<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">appgw</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">subscriptionId</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;subscriptionId&gt;</span>
+    <span class="l l-Scalar l-Scalar-Plain">resourceGroup</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;resourceGroupName&gt;</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;applicationGatewayName&gt;</span>
+    <span class="l l-Scalar l-Scalar-Plain">usePrivateIP</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
 
 <p>This will make the ingress controller filter the ipconfigurations for a Private IP when configuring the frontend listeners on the Application Gateway.
 AGIC will panic and crash if <code>usePrivateIP: true</code> and no Private IP is assigned.</p>

@@ -225,21 +225,23 @@
 <h3 id="obtain-azure-credentials">Obtain Azure Credentials</h3>
 <p>In order to run the Go binary locally and control a remote AKS server, you need Azure credentials. These will be stored in a JSON file in your home directory.</p>
 <p>Follow <a href="https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication">these instructions</a> to create the <code>$HOME/.azure/azureAuth.json</code> file. The file is generated via:</p>
-<pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --subscription &lt;your-azure-subscription-id&gt; --sdk-auth &gt; $HOME/.azure/azureAuth.json</code></pre>
+<div class="highlight"><pre><span></span>az ad sp create-for-rbac --subscription &lt;your-azure-subscription-id&gt; --sdk-auth &gt; <span class="nv">$HOME</span>/.azure/azureAuth.json
+</pre></div>
 
 <p>The file will contain a JSON blob with the following shape:</p>
-<pre class="highlight"><code class="language-json">{
-  "clientId": "...",
-  "clientSecret": "...",
-  "subscriptionId": "&lt;your-azure-resource-group&gt;",
-  "tenantId": "...",
-  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
-  "resourceManagerEndpointUrl": "https://management.azure.com/",
-  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
-  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
-  "galleryEndpointUrl": "https://gallery.azure.com/",
-  "managementEndpointUrl": "https://management.core.windows.net/"
-}</code></pre>
+<div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;clientId&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;clientSecret&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;subscriptionId&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;your-azure-resource-group&gt;&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;tenantId&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;activeDirectoryEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://login.microsoftonline.com&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;resourceManagerEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://management.azure.com/&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;activeDirectoryGraphResourceId&quot;</span><span class="p">:</span> <span class="s2">&quot;https://graph.windows.net/&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;sqlManagementEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://management.core.windows.net:8443/&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;galleryEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://gallery.azure.com/&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;managementEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://management.core.windows.net/&quot;</span>
+<span class="p">}</span>
+</pre></div>
 
 <h3 id="startup-script">Startup Script</h3>
 <p>In the <code>scripts</code> directory you will find <code>start.sh</code>. This script builds and runs the ingress controller on your local machine and connects to a remote AKS cluster. A <code>.env</code> file in the root of the repository is required.</p>
