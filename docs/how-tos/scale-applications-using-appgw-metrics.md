@@ -2,30 +2,37 @@
 
 As incoming traffic increases, it becomes crucial to scale up your applications based on the demand.
 
-In the following tutorial, we explain how you can use Application Gateway's `AvgRequestCountPerHealthyHost` metric to scale up your application. `AvgRequestCountPerHealthyHost` is measure of average reqeust that are sent to backend pool
+In the following tutorial, we explain how you can use Application Gateway's `AvgRequestCountPerHealthyHost` metric to scale up your application. `AvgRequestCountPerHealthyHost` is measure of average request that are sent to a specific backend pool and backend http setting combination.
 
 We are going to use following two components:
 
-1. [Azure K8S Metric Adapter](https://github.com/Azure/azure-k8s-metrics-adapter) - We will using the metric adapter to expose Applicaiton Gateway metrics through the metric server.
-1. [Horizontal Pod Autoscaler](https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler) - We will use HPA to use Applicaiton Gateway metrics and target a deployment.
+1. [`Azure K8S Metric Adapter`](https://github.com/Azure/azure-k8s-metrics-adapter) - We will using the metric adapter to expose Application Gateway metrics through the metric server.
+1. [`Horizontal Pod Autoscaler`](https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler) - We will use HPA to use Application Gateway metrics and target a deployment for scaling.
 
 ## Setting up Azure K8S Metric Adapter
 
-1. First, let's create an Azure AAD service principal which has access to the metrics for Application Gateway
-
+1. We will first create an Azure AAD service principal and assign it `Monitoring Reader` access over Application Gateway's resource group.
     ```bash
     applicationGatewayGroupName="<application-gateway-group-id>"
     applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
     az ad sp create-for-rbac -n "azure-k8s-metric-adapter-sp" --role "Monitoring Reader" --scopes applicationGatewayGroupId
+    ```
+
+1. Now, We will deploy the [`Azure K8S Metric Adapter`](https://github.com/Azure/azure-k8s-metrics-adapter) using the AAD service principal created above.
+
+    ```bash
+    kubectl create namespace custom-metrics
 
     # use values from service principle created above to create secret
     kubectl create secret generic azure-k8s-metrics-adapter -n custom-metrics \
         --from-literal=azure-tenant-id=<tenantid> \
         --from-literal=azure-client-id=<clientid> \
         --from-literal=azure-client-secret=<secret>
+
+    kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml -n custom-metrics
     ```
 
-1. Now create the following k8s resource to tell metric adapter to get metric for application gateway
+1. We will create an `ExternalMetric` resource with name `appgw-request-count-metric`. This will instruct the metric adapter to expose `AvgRequestCountPerHealthyHost` metric for `myApplicationGateway` resource in `myResourceGroup` resource group. You can use the `filter` field to target a specific backend pool and backend http setting in the Application Gateway.
 
     ```yaml
     apiVersion: azure.com/v1alpha2
@@ -35,8 +42,8 @@ We are going to use following two components:
     spec:
       type: azuremonitor
       azure:
-        resourceGroup: <resource-group-name>
-        resourceName: <application-gateway-name>
+        resourceGroup: myResourceGroup # replace with your application gateway's resource group name
+        resourceName: myApplicationGateway # replace with your application gateway's name
         resourceProviderNamespace: Microsoft.Network
         resourceType: applicationGateways
       metric:
@@ -45,10 +52,10 @@ We are going to use following two components:
         filter: BackendSettingsPool eq '<backend-pool-name>~<backend-http-setting-name>' # optional
     ```
 
-You can now test the metric by using:
+You can now make a request to the metric server to see if our new metric is getting exposed:
 ```bash
 kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric"
-# Output
+# Sample Output
 # {
 #   "kind": "ExternalMetricValueList",
 #   "apiVersion": "external.metrics.k8s.io/v1beta1",
@@ -68,12 +75,13 @@ kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appg
 # }
 ```
 
-## Using the metric to scale up deployment
+## Using the new metric to scale up our deployment
 
-Now we will use the `appgw-request-count-metric` to scale up our deployment.
+Once we are able to expose `appgw-request-count-metric` through the metric server, We are ready to use [`Horizontal Pod Autoscaler`](https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler) to scale up our target deployment.
 
-Fill in the `<deployment-name>` and create the following autoscale configuration.
+In following example, we will target a sample deployment `aspnet`. We will scale up Pods when `appgw-request-count-metric` > 200 per Pod upto a max of `10` Pods.
 
+Replace your target deployment name and apply the following auto scale configuration:
 ```yaml
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
@@ -83,7 +91,7 @@ spec:
   scaleTargetRef:
     apiVersion: extensions/v1beta1
     kind: Deployment
-    name: <deployment-name>
+    name: aspnet # replace with your deployment's name
   minReplicas: 1
   maxReplicas: 10
   metrics:
@@ -93,4 +101,7 @@ spec:
       targetAverageValue: 200
 ```
 
-We are targetting `aspnet` deployment and we want to scale it when `targetAverageValue > 200` with an upper ceiling of max replicas being `10`. That is, when the numbers of requests is higher than 200 per Pod, we want to add 1 more pod until we reach 10 pods.
+Test your setup by using a load test tool like apache bench:
+```bash
+ab -n10000 http://<applicaiton-gateway-ip-address>/
+```
