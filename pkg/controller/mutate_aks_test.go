@@ -55,7 +55,7 @@ var _ = Describe("process function tests", func() {
 		ingress = tests.NewIngressFixture()
 
 		// Create a `k8scontext` to start listening to ingress resources.
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, &map[string]interface{}{tests.Namespace: nil}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", tests.Name, err)

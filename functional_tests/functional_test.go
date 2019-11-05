@@ -336,7 +336,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, &map[string]interface{}{tests.Namespace: nil}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)
 		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)

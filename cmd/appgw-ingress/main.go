@@ -92,7 +92,7 @@ func main() {
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	metricStore := metricstore.NewMetricStore(env)
 	metricStore.Start()
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, getStringSetKeys(namespaces), *resyncPeriod, metricStore)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
 	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
@@ -177,7 +177,7 @@ func main() {
 	if namespaces == nil {
 		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
-		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(getStringSetKeys(namespaces), ","))
+		//glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(getStringSetKeys(namespaces), ","))
 	}
 
 	// fatal config validations
@@ -226,7 +226,7 @@ func validateNamespaces(namespaces *map[string]interface{}, kubeClient *kubernet
 		return nil
 	}
 	var nonExistent []string
-	for ns, _ := range *namespaces {
+	for ns := range *namespaces {
 		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
 			nonExistent = append(nonExistent, ns)
 		}
@@ -309,7 +309,7 @@ func getStringSetKeys(set *map[string]interface{}) []string {
 	 if set == nil {
 	 	return keys
 	 }
-	for key, _ := range *set {
+	for key := range *set {
 		keys = append(keys, key)
 	}
 	return keys

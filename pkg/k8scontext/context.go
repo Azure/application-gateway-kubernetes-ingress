@@ -39,18 +39,9 @@ const providerPrefix = "azure://"
 const workBuffer = 1024
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
-	var options []informers.SharedInformerOption
-	var crdOptions []externalversions.SharedInformerOption
-	// TODO(draychev): watch only the namespaces specified when > 1
-	if len(namespaces) == 1 {
-		for _, namespace := range namespaces {
-			options = append(options, informers.WithNamespace(namespace))
-			crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
-		}
-	}
-	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
-	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces *map[string]interface{}, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
+	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
+	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
@@ -90,6 +81,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		CacheSynced:            make(chan interface{}),
 
 		metricStore: metricStore,
+		namespaces:  namespaces,
 	}
 
 	h := handlers{context}
@@ -192,6 +184,11 @@ func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
 	for _, serviceInterface := range c.Caches.Service.List() {
 		service := serviceInterface.(*v1.Service)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[service.Namespace]; !exists {
+				continue
+			}
+		}
 		if hasTCPPort(service) {
 			serviceList = append(serviceList, service)
 		}
@@ -226,6 +223,11 @@ func (c *Context) ListPodsByServiceSelector(service *v1.Service) []*v1.Pod {
 	var podList []*v1.Pod
 	for _, podInterface := range c.Caches.Pods.List() {
 		pod := podInterface.(*v1.Pod)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[pod.Namespace]; !exists {
+				continue
+			}
+		}
 		podLabelSet := mapset.NewSet()
 		for k, v := range pod.Labels {
 			podLabelSet.Add(k + ":" + v)
@@ -264,6 +266,11 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	var ingressList []*v1beta1.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
 		ingress := ingressInterface.(*v1beta1.Ingress)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[ingress.Namespace]; !exists {
+				continue
+			}
+		}
 		ingressList = append(ingressList, ingress)
 	}
 	return filterAndSort(ingressList)
@@ -291,7 +298,13 @@ func filterAndSort(ingList []*v1beta1.Ingress) []*v1beta1.Ingress {
 func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhibitedTarget {
 	var targets []*prohibitedv1.AzureIngressProhibitedTarget
 	for _, obj := range c.Caches.AzureIngressProhibitedTarget.List() {
-		targets = append(targets, obj.(*prohibitedv1.AzureIngressProhibitedTarget))
+		prohibitedTarget := obj.(*prohibitedv1.AzureIngressProhibitedTarget)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[prohibitedTarget.Namespace]; !exists {
+				continue
+			}
+		}
+		targets = append(targets, prohibitedTarget)
 	}
 
 	var prohibitedTargets []string

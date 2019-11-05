@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 
 	ginkgo.Context("Test secrets handlers", func() {
 		h := handlers{
-			context: NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore()),
+			context: NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), &map[string]interface{}{"ns": nil}, 1000*time.Second, metricstore.NewFakeMetricStore()),
 		}
 
 		ginkgo.It("add, delete, update secrets from cache", func() {

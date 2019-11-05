@@ -11,7 +11,13 @@ import "github.com/knative/pkg/apis/istio/v1alpha3"
 func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
 	var gateways []*v1alpha3.Gateway
 	for _, gateway := range c.Caches.IstioGateway.List() {
-		gateways = append(gateways, gateway.(*v1alpha3.Gateway))
+		gway := gateway.(*v1alpha3.Gateway)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[gway.Namespace]; !exists {
+				continue
+			}
+		}
+		gateways = append(gateways, gway)
 	}
 	return gateways
 }
@@ -20,7 +26,13 @@ func (c *Context) ListIstioGateways() []*v1alpha3.Gateway {
 func (c *Context) ListIstioVirtualServices() []*v1alpha3.VirtualService {
 	var virtualServices []*v1alpha3.VirtualService
 	for _, virtualService := range c.Caches.IstioVirtualService.List() {
-		virtualServices = append(virtualServices, virtualService.(*v1alpha3.VirtualService))
+		vsvc := virtualService.(*v1alpha3.VirtualService)
+		if c.namespaces != nil {
+			if _, exists := (*c.namespaces)[vsvc.Namespace]; !exists {
+				continue
+			}
+		}
+		virtualServices = append(virtualServices, vsvc)
 	}
 	return virtualServices
 }

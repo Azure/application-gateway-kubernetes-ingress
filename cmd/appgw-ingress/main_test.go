@@ -54,7 +54,7 @@ var _ = Describe("Test functions used in main.go", func() {
 
 	Context("test validateNamespaces", func() {
 		It("should validate the namespaces", func() {
-			actual := validateNamespaces([]string{}, &kubernetes.Clientset{})
+			actual := validateNamespaces(&map[string]interface{}{}, &kubernetes.Clientset{})
 			Ω(actual).Should(Succeed())
 		})
 	})

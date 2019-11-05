@@ -201,7 +201,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, &map[string]interface{}{ingressNS: nil}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		appGwy := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
