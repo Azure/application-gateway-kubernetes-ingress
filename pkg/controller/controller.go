@@ -34,12 +34,13 @@ type AppGwIngressController struct {
 
 	agicPod     *v1.Pod
 	metricStore metricstore.MetricStore
+	namespaces  *map[string]interface{}
 
 	stopChannel chan struct{}
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, namespaces *map[string]interface{}) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		azClient:        azClient,
 		appGwIdentifier: appGwIdentifier,
@@ -54,6 +55,7 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 
 	controller.worker = &worker.Worker{
 		EventProcessor: controller,
+		Namespaces:     namespaces,
 	}
 	return controller
 }

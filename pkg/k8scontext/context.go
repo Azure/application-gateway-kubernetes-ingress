@@ -42,9 +42,12 @@ const workBuffer = 1024
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
 	var options []informers.SharedInformerOption
 	var crdOptions []externalversions.SharedInformerOption
-	for _, namespace := range namespaces {
-		options = append(options, informers.WithNamespace(namespace))
-		crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
+	// TODO(draychev): watch only the namespaces specified when > 1
+	if len(namespaces) == 1 {
+		for _, namespace := range namespaces {
+			options = append(options, informers.WithNamespace(namespace))
+			crdOptions = append(crdOptions, externalversions.WithNamespace(namespace))
+		}
 	}
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, options...)
 	crdInformerFactory := externalversions.NewSharedInformerFactoryWithOptions(crdClient, resyncPeriod, crdOptions...)

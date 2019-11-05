@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sort"
 	"strconv"
 	"strings"
 	"syscall"
@@ -93,7 +92,7 @@ func main() {
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	metricStore := metricstore.NewMetricStore(env)
 	metricStore.Start()
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, getStringSetKeys(namespaces), *resyncPeriod, metricStore)
 	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
@@ -171,14 +170,14 @@ func main() {
 		AppGwName:      env.AppGwName,
 	}
 
-	// namespace validations
+
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
 		glog.Fatal(err) // side-effect: will panic on non-existent namespace
 	}
-	if len(namespaces) == 0 {
+	if namespaces == nil {
 		glog.Info("Ingress Controller will observe all namespaces.")
 	} else {
-		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(getStringSetKeys(namespaces), ","))
 	}
 
 	// fatal config validations
@@ -197,7 +196,7 @@ func main() {
 		glog.Fatal(errorLine)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, namespaces)
 
 	if err := appGwIngressController.Start(env); err != nil {
 		errorLine := fmt.Sprint("Could not start AGIC: ", err)
@@ -222,9 +221,12 @@ func main() {
 	glog.Info("Goodbye!")
 }
 
-func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) error {
+func validateNamespaces(namespaces *map[string]interface{}, kubeClient *kubernetes.Clientset) error {
+	if namespaces == nil {
+		return nil
+	}
 	var nonExistent []string
-	for _, ns := range namespaces {
+	for ns, _ := range *namespaces {
 		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
 			nonExistent = append(nonExistent, ns)
 		}
@@ -236,26 +238,25 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 	return nil
 }
 
-func getNamespacesToWatch(namespaceEnvVar string) []string {
+func getNamespacesToWatch(namespaceEnvVar string) *map[string]interface{} {
 	// Returning an empty array effectively switches Ingress Controller
 	// in a mode of observing all accessible namespaces.
 	if namespaceEnvVar == "" {
-		return []string{}
+		return nil
 	}
 
 	// Namespaces (DNS-1123 label) can have lower case alphanumeric characters or '-'
 	// Commas are safe to use as a separator
 	if strings.Contains(namespaceEnvVar, ",") {
-		var namespaces []string
+		namespaces := make(map[string]interface{})
 		for _, ns := range strings.Split(namespaceEnvVar, ",") {
 			if len(ns) > 0 {
-				namespaces = append(namespaces, strings.TrimSpace(ns))
+				namespaces[strings.TrimSpace(ns)] = nil
 			}
 		}
-		sort.Strings(namespaces)
-		return namespaces
+		return &namespaces
 	}
-	return []string{namespaceEnvVar}
+	return &map[string]interface{}{namespaceEnvVar:nil}
 }
 
 func getKubeClientConfig() *rest.Config {
@@ -301,4 +302,15 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	}
 	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
+}
+
+func getStringSetKeys(set *map[string]interface{}) []string {
+	var keys []string
+	 if set == nil {
+	 	return keys
+	 }
+	for key, _ := range *set {
+		keys = append(keys, key)
+	}
+	return keys
 }
