@@ -11,7 +11,6 @@ These tutorials help illustrate the usage of [Kubernetes Ingress Resources](http
   - [Without specified hostname](#without-specified-hostname)
   - [With specified hostname](#with-specified-hostname)
 - [Integrate with other services](#integrate-with-other-services)
-- [Automate DNS updates](#automate-dns-updates)
 
 ## Prerequisites
 
@@ -153,46 +152,3 @@ By specifying hostname, the guestbook service will only be available on the spec
 1. Check the log of the ingress controller for deployment status.
 
 Now the `guestbook` application will be available on both HTTP and HTTPS only on the specified host (`<guestbook.contoso.com>` in this example).
-
-
-## Automate DNS updates
-
-When a hostname is specified in the Kubrenetes Ingress resource's rules, it can be used to automaticall create DNS records for the given domain and App Gateway's IP address.
-To achieve this the [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) Kubernetes app is required. ExternalDNS in installable via a [Helm chart](https://github.com/kubernetes-incubator/external-dns). The [following document](https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/azure.md) provides a tutorial on setting up ExternalDNS with an Azure DNS.
-
-Below is a sample Ingress resource, annotated with
-`kubernetes.io/ingress.class: azure/application-gateway`, which configures `aplpha.contoso.com`.
-
-```yaml
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: websocket-ingress
-  namespace: alpha
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: alpha.contoso.com
-      http:
-        paths:
-        - path: /
-          backend:
-            serviceName: contoso-service
-            servicePort: 80
-```
-
-Application Gateway Ingress Controller (AGIC) automatically recognizes the public IP address
-assigned to the Application Gateway it is associated with, and sets this IP (`1.2.3.4`)
-on the Ingress resource as shown below:
-
-```bash
-$ kubectl get ingress -A
-NAMESPACE             NAME                HOSTS                 ADDRESS   PORTS   AGE
-alpha                 alpha-ingress       alpha.contoso.com     1.2.3.4   80      8m55s
-beta                  beta-ingress        beta.contoso.com      1.2.3.4   80      8m54s
-
-```
-
-Once the Ingresses contain both host and adrress, ExternalDNS will provision these to the
-DNS system it has been associated with and authorized for.
