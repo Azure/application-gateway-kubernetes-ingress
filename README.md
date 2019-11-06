@@ -32,9 +32,13 @@ blank-slate infrastructure.
 
 [**Annotations**](docs/annotations.md): The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to these to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
 
-[**How-To**](docs/how-tos/): This document maintains a collection of complex scenarios.
-
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
+
+### How-tos
+* [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
+* [Expose a WebSocket server](docs/how-tos/websockets.md)
+* [Automate DNS updates](docs/how-tos/dns.md)
+* [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
 
 ### Troubleshooting
 
