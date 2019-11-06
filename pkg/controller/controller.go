@@ -39,7 +39,7 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, namespaces []string) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		azClient:        azClient,
 		appGwIdentifier: appGwIdentifier,
@@ -54,12 +54,8 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 
 	controller.worker = &worker.Worker{
 		EventProcessor: controller,
-		Namespaces:     make(map[string]interface{}),
 	}
 
-	for _, ns := range namespaces {
-		controller.worker.Namespaces[ns] = nil
-	}
 	return controller
 }
 

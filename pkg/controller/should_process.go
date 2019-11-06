@@ -22,25 +22,12 @@ var namespacesToIgnore = map[string]interface{}{
 // ShouldProcess determines whether to process an event.
 func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
 	if pod, ok := event.Value.(*v1.Pod); ok {
-		if _, exists := namespacesToIgnore[pod.Namespace]; exists {
-			// Ignore kube-system namespace events
-			return false, nil
-		}
-		// Ignore events for namespaces we don't observe.
-		if _, exists := c.worker.Namespaces[pod.Namespace]; len(c.worker.Namespaces) > 0 && !exists {
-			return false, nil
-		}
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("pod %s/%s is not used by any Ingress", pod.Namespace, pod.Name)
 		return c.k8sContext.IsPodReferencedByAnyIngress(pod), to.StringPtr(reason)
 	}
 
 	if endpoints, ok := event.Value.(*v1.Endpoints); ok {
-		if endpoints.Namespace == "kube-system" {
-			// Ignore kube-system namespace events
-			return false, nil
-		}
-
 		if endpoints.Namespace == "default" && endpoints.Name == "aad-pod-identity-mic" {
 			// Ignore AAD Pod Identity
 			return false, nil

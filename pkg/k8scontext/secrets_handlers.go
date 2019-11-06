@@ -18,6 +18,13 @@ import (
 // secret resource handlers
 func (h handlers) secretAdd(obj interface{}) {
 	sec := obj.(*v1.Secret)
+	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[sec.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		// find if this secKey exists in the map[string]UnorderedSets
@@ -32,11 +39,18 @@ func (h handlers) secretAdd(obj interface{}) {
 }
 
 func (h handlers) secretUpdate(oldObj, newObj interface{}) {
+	sec := newObj.(*v1.Secret)
+	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[sec.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
 
-	sec := newObj.(*v1.Secret)
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		if err := h.context.CertificateSecretStore.ConvertSecret(secKey, sec); err == nil {
@@ -51,6 +65,13 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 
 func (h handlers) secretDelete(obj interface{}) {
 	sec, ok := obj.(*v1.Secret)
+	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[sec.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	if !ok {
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {

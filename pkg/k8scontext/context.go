@@ -38,6 +38,11 @@ import (
 const providerPrefix = "azure://"
 const workBuffer = 1024
 
+var namespacesToIgnore = map[string]interface{}{
+	"kube-system": nil,
+	"kube-public": nil,
+}
+
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
