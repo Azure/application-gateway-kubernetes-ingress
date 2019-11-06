@@ -157,7 +157,7 @@ Now the `guestbook` application will be available on both HTTP and HTTPS only on
 
 The following ingress will allow you to add additional paths into this ingress and redirect those paths to other services:
 
-    ```yaml
+```yaml
     apiVersion: extensions/v1beta1
     kind: Ingress
     metadata:
@@ -175,4 +175,4 @@ The following ingress will allow you to add additional paths into this ingress a
           - backend:
               serviceName: frontend
               servicePort: 80
-    ```
+```
