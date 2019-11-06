@@ -14,11 +14,20 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
+var namespacesToIgnore = map[string]interface{}{
+	"kube-system": nil,
+	"kube-public": nil,
+}
+
 // ShouldProcess determines whether to process an event.
 func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
 	if pod, ok := event.Value.(*v1.Pod); ok {
-		if pod.Namespace == "kube-system" {
+		if _, exists := namespacesToIgnore[pod.Namespace]; exists {
 			// Ignore kube-system namespace events
+			return false, nil
+		}
+		// Ignore events for namespaces we don't observe.
+		if _, exists := c.worker.Namespaces[pod.Namespace]; len(c.worker.Namespaces) > 0 && !exists {
 			return false, nil
 		}
 		// this pod is not used by any ingress, skip any event for this

@@ -57,6 +57,7 @@ type Context struct {
 	CacheSynced chan interface{}
 
 	metricStore metricstore.MetricStore
+	namespaces  map[string]interface{}
 }
 
 // IPAddress is type for IP address string
