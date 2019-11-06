@@ -25,14 +25,21 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
+	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)
 	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx) {
+		httpListener, exists := httpListenersMap[listenerID]
+		if !exists {
+			glog.Errorf("Redirect will not be created for target listener %+v as listener does not exist in listenerMap", listenerID)
+			continue
+		}
+
 		isHTTPS := listenerConfig.Protocol == n.HTTPS
 		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
 
 		// We will configure a Redirect only if the listener has TLS enabled (has a Certificate)
 		if isHTTPS && hasSslRedirect {
-			targetListener := resourceRef(c.appGwIdentifier.listenerID(generateListenerName(listenerID)))
+			targetListener := resourceRef(*httpListener.ID)
 			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
 			glog.V(5).Infof("Created redirection configuration %s for %s:%d; not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName, listenerID.HostName, listenerID.FrontendPort)
 		}
