@@ -199,12 +199,12 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
     identityClientId=$(jq -r ".identityClientId.value" deployment-outputs.json)
     identityResourceId=$(jq -r ".identityResourceId.value" deployment-outputs.json)
     ```
-1. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
+2. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
     ```bash
     wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
     ```
 
-1. Edit the newly downloaded [helm-config.yaml](../examples/sample-helm-config.yaml) and fill out the sections `appgw` and `armAuth`.
+3. Edit the newly downloaded [helm-config.yaml](../examples/sample-helm-config.yaml) and fill out the sections `appgw` and `armAuth`.
     ```bash
     sed -i "s|<subscriptionId>|${subscriptionId}|g" helm-config.yaml
     sed -i "s|<resourceGroupName>|${resourceGroupName}|g" helm-config.yaml
@@ -216,18 +216,18 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
     nano helm-config.yaml
     ```
 
-   Values:
-     - `verbosityLevel`: Sets the verbosity level of the AGIC logging infrastructure. See [Logging Levels](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/463a87213bbc3106af6fce0f4023477216d2ad78/docs/troubleshooting.md#logging-levels) for possible values.
-     - `appgw.subscriptionId`: The Azure Subscription ID in which App Gateway resides. Example: `a123b234-a3b4-557d-b2df-a0bc12de1234`
-     - `appgw.resourceGroup`: Name of the Azure Resource Group in which App Gateway was created. Example: `app-gw-resource-group`
-     - `appgw.name`: Name of the Application Gateway. Example: `applicationgatewayd0f0`
-     - `appgw.shared`: This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
-     - `kubernetes.watchNamespace`: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
-    - `armAuth.type`: could be `aadPodIdentity` or `servicePrincipal`
-    - `armAuth.identityResourceID`: Resource ID of the Azure Managed Identity
-    - `armAuth.identityClientId`: The Client ID of the Identity. See below for more information on Identity
-    - `armAuth.secretJSON`: Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) 
-
+Values:
+- `verbosityLevel`: Sets the verbosity level of the AGIC logging infrastructure. See [Logging Levels](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/463a87213bbc3106af6fce0f4023477216d2ad78/docs/troubleshooting.md#logging-levels) for possible values.
+- `appgw.subscriptionId`: The Azure Subscription ID in which App Gateway resides. Example: `a123b234-a3b4-557d-b2df-a0bc12de1234`
+- `appgw.resourceGroup`: Name of the Azure Resource Group in which App Gateway was created. Example: `app-gw-resource-group`
+- `appgw.name`: Name of the Application Gateway. Example: `applicationgatewayd0f0`
+- `appgw.shared`: This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
+- `kubernetes.watchNamespace`: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
+- `armAuth.type`: could be `aadPodIdentity` or `servicePrincipal`
+- `armAuth.identityResourceID`: Resource ID of the Azure Managed Identity
+- `armAuth.identityClientId`: The Client ID of the Identity. See below for more information on Identity
+- `armAuth.secretJSON`: Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`)
+- `rbac.enabled`: Make sure to set this to true if you have a AKS cluster that is RBAC enabled.
 
    Note on Identity: The `identityResourceID` and `identityClientID` are values that were created
    during the [Create an Identity](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity)
@@ -235,10 +235,11 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
    ```bash
    az identity show -g <resource-group> -n <identity-name>
    ```
-   `<resource-group>` in the command above is the resource group of your App Gateway. `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
+- `<resource-group>` in the command above is the resource group of your App Gateway. 
+- `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
 
 
-1. Install the Application Gateway ingress controller package:
+4. Install the Application Gateway ingress controller package:
 
     ```bash
     helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
