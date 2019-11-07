@@ -11,7 +11,7 @@ We are going to use following two components:
 
 ## Setting up Azure K8S Metric Adapter
 
-1. We will first create an Azure AAD service principal and assign it `Monitoring Reader` access over Application Gateway's resource group.
+1. We will first create an Azure AAD service principal and assign it `Monitoring Reader` access over Application Gateway's resource group. Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
     ```bash
     applicationGatewayGroupName="<application-gateway-group-id>"
     applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
@@ -32,7 +32,7 @@ We are going to use following two components:
     kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml -n custom-metrics
     ```
 
-1. We will create an `ExternalMetric` resource with name `appgw-request-count-metric`. This will instruct the metric adapter to expose `AvgRequestCountPerHealthyHost` metric for `myApplicationGateway` resource in `myResourceGroup` resource group. You can use the `filter` field to target a specific backend pool and backend http setting in the Application Gateway.
+1. We will create an `ExternalMetric` resource with name `appgw-request-count-metric`. This will instruct the metric adapter to expose `AvgRequestCountPerHealthyHost` metric for `myApplicationGateway` resource in `myResourceGroup` resource group. You can use the `filter` field to target a specific backend pool and backend http setting in the Application Gateway. Copy paste this YAML content in `external-metric.yaml` and apply with `kubectl apply -f external-metric.yaml`.
 
     ```yaml
     apiVersion: azure.com/v1alpha2
@@ -81,7 +81,7 @@ Once we are able to expose `appgw-request-count-metric` through the metric serve
 
 In following example, we will target a sample deployment `aspnet`. We will scale up Pods when `appgw-request-count-metric` > 200 per Pod upto a max of `10` Pods.
 
-Replace your target deployment name and apply the following auto scale configuration:
+Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in `autoscale-config.yaml` and apply with `kubectl apply -f autoscale-config.yaml`.
 ```yaml
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
@@ -101,7 +101,7 @@ spec:
       targetAverageValue: 200
 ```
 
-Test your setup by using a load test tool like apache bench:
+Test your configuration by using a load test tools like apache bench:
 ```bash
-ab -n10000 http://<applicaiton-gateway-ip-address>/
+ab -n10000 http://<application-gateway-ip-address>/
 ```
