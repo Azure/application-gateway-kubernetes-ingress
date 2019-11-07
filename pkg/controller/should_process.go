@@ -14,11 +14,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-var namespacesToIgnore = map[string]interface{}{
-	"kube-system": nil,
-	"kube-public": nil,
-}
-
 // ShouldProcess determines whether to process an event.
 func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
 	if pod, ok := event.Value.(*v1.Pod); ok {

@@ -55,7 +55,6 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 	controller.worker = &worker.Worker{
 		EventProcessor: controller,
 	}
-
 	return controller
 }
 

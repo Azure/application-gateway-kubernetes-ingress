@@ -20,5 +20,4 @@ type EventProcessor interface {
 // for each event.
 type Worker struct {
 	EventProcessor
-	Namespaces map[string]interface{}
 }
