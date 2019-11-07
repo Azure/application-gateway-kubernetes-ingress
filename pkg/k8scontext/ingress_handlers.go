@@ -14,6 +14,12 @@ import (
 // ingress resource handlers
 func (h handlers) ingressAdd(obj interface{}) {
 	ing := obj.(*v1beta1.Ingress)
+	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
 
 	if !IsIngressApplicationGateway(ing) {
 		return
@@ -48,6 +54,13 @@ func (h handlers) ingressAdd(obj interface{}) {
 
 func (h handlers) ingressDelete(obj interface{}) {
 	ing, ok := obj.(*v1beta1.Ingress)
+	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	if !ok {
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
@@ -73,11 +86,18 @@ func (h handlers) ingressDelete(obj interface{}) {
 }
 
 func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
+	ing := newObj.(*v1beta1.Ingress)
+	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
 	oldIng := oldObj.(*v1beta1.Ingress)
-	ing := newObj.(*v1beta1.Ingress)
 	if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
 		return
 	}
