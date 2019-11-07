@@ -8,21 +8,23 @@ package k8scontext
 import (
 	"time"
 
-	"github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 )
 
-var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
+var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 	var k8sClient kubernetes.Interface
 	var context *Context
 	var h handlers
@@ -44,41 +46,34 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 
-		secret := tests.NewSecretTestFixture()
-		secret.Namespace = ""
-		_, err = k8sClient.CoreV1().Secrets("ns").Create(secret)
-		Expect(err).To(BeNil())
-		_, err = k8sClient.CoreV1().Secrets("ns1").Create(secret)
-		Expect(err).To(BeNil())
-
 		context = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
 			context: context,
 		}
 	})
 
-	ginkgo.Context("Test ingress handlers", func() {
-		ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
-			Expect(context.namespaces).ToNot(BeNil())
-			ing := fixtures.GetIngress()
-			ing.Namespace = "ns"
-			h.ingressAdd(ing)
+	ginkgo.Context("Test general handlers", func() {
+		ginkgo.It("add, delete, update pods from cache for allowed namespace ns", func() {
+			pod := tests.NewPodTestFixture("ns", "pod")
+			context.ingressSecretsMap.Insert("ns/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
+
+			h.addFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(1))
-			h.ingressDelete(ing)
+			h.deleteFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(2))
-			h.ingressUpdate(ing, ing)
+			h.updateFunc(&pod, &pod)
 			Expect(len(h.context.Work)).To(Equal(2))
 		})
 
-		ginkgo.It("should not add events for namespace ns1 not in the namespaces list", func() {
-			Expect(context.namespaces).ToNot(BeNil())
-			ing := fixtures.GetIngress()
-			ing.Namespace = "ns1"
-			h.ingressAdd(ing)
+		ginkgo.It("should not add pods for namespace ns1 not in the namespaces list", func() {
+			pod := tests.NewPodTestFixture("ns1", "pod")
+			context.ingressSecretsMap.Insert("ns1/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
+
+			h.addFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(0))
-			h.ingressDelete(ing)
+			h.deleteFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(0))
-			h.ingressUpdate(ing, ing)
+			h.updateFunc(&pod, &pod)
 			Expect(len(h.context.Work)).To(Equal(0))
 		})
 	})

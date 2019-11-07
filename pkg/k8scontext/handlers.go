@@ -12,6 +12,14 @@ type handlers struct {
 
 // general resource handlers
 func (h handlers) addFunc(obj interface{}) {
+	ns := getNamespace(obj)
+	if _, exists := namespacesToIgnore[ns]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ns]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	h.context.Work <- events.Event{
 		Type:  events.Create,
 		Value: obj,
@@ -20,6 +28,14 @@ func (h handlers) addFunc(obj interface{}) {
 }
 
 func (h handlers) updateFunc(oldObj, newObj interface{}) {
+	ns := getNamespace(newObj)
+	if _, exists := namespacesToIgnore[ns]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ns]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
@@ -31,9 +47,21 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
+	ns := getNamespace(obj)
+	if _, exists := namespacesToIgnore[ns]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ns]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
+
 	h.context.Work <- events.Event{
 		Type:  events.Delete,
 		Value: obj,
 	}
 	h.context.metricStore.IncK8sAPIEventCounter()
+}
+
+func getNamespace(obj interface{}) string {
+	return reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
 }
