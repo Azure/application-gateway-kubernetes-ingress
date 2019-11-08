@@ -37,6 +37,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
 
     ```bash
     NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
+    application-gateway-kubernetes-ingress/ingress-azure    1.0.0           1.0.0           Use Azure Application Gateway as the ingress for an Azure...
     application-gateway-kubernetes-ingress/ingress-azure    0.7.0-rc1       0.7.0-rc1       Use Azure Application Gateway as the ingress for an Azure...
     application-gateway-kubernetes-ingress/ingress-azure    0.6.0           0.6.0           Use Azure Application Gateway as the ingress for an Azure...
     ```
@@ -53,7 +54,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
 
     ```bash
     NAME            REVISION        UPDATED                         STATUS  CHART                   APP VERSION     NAMESPACE
-    odd-billygoat   22              Fri Jun 21 15:56:06 2019        FAILED  ingress-azure-0.7.0-rc1 0.7.0-rc1       default
+    odd-billygoat   22              Fri Nov 08 15:56:06 2019        FAILED  ingress-azure-1.0.0     1.0.0           default
     ```
 
     The Helm chart installation from the sample response above is named `odd-billygoat`. We will
@@ -65,7 +66,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
     helm upgrade \
         odd-billygoat \
         application-gateway-kubernetes-ingress/ingress-azure \
-        --version 0.9.0-rc2
+        --version 1.0.0
     ```
 
 ## Rollback

@@ -1,10 +1,12 @@
-![Ingress Controller - Status](https://img.shields.io/badge/project--status-beta-orange.svg)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/azure/application-gateway-kubernetes-ingress)
 [![Build Status](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_apis/build/status/Merge%20Builds?branchName=master)](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_build/latest?definitionId=30&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
+![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/azure/application-gateway-kubernetes-ingress/30)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/azure/application-gateway-kubernetes-ingress)
 
-The Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
+Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
 
-The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway specific configuration and applied to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
+The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway  specific configuration and applied to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
 ![Azure Application Gateway + AKS](docs/images/architecture.png)
 
