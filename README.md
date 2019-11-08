@@ -1,7 +1,6 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/azure/application-gateway-kubernetes-ingress)
 [![Build Status](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_apis/build/status/Merge%20Builds?branchName=master)](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_build/latest?definitionId=30&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
-![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/azure/application-gateway-kubernetes-ingress/30)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/azure/application-gateway-kubernetes-ingress)
 
 Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
@@ -18,15 +17,16 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Support for public, private, and hybrid web sites
   - Integrated web application firewall
 
-## General
+[Ignite 2019 - AGIC GA announcement](https://myignite.techcommunity.microsoft.com/sessions/82945)
 
-### Setup
+
+## Setup
 
 - [**Greenfield Deployment**](docs/setup/install-new.md): Instructions on installing AGIC, AKS and App Gateway on
 blank-slate infrastructure.
 - [**Brownfield Deployment**](docs/setup/install-existing.md): Install AGIC on an existing AKS and Application Gateway.
 
-### Usage
+## Usage
 
 [**Tutorials**](docs/tutorial.md): Refer to these to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
@@ -36,17 +36,17 @@ blank-slate infrastructure.
 
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
 
-### How-tos
+## How-tos
 * [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
 * [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
 
-### Troubleshooting
+## Troubleshooting
 
 For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
 
-### Frequently asked questions
+## Frequently asked questions
 
 For FAQ, please refer to this [guide](docs/faq.md).
 
