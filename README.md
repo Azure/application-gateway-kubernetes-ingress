@@ -1,10 +1,11 @@
-![Ingress Controller - Status](https://img.shields.io/badge/project--status-beta-orange.svg)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/azure/application-gateway-kubernetes-ingress)
 [![Build Status](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_apis/build/status/Merge%20Builds?branchName=master)](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_build/latest?definitionId=30&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/azure/application-gateway-kubernetes-ingress)
 
-The Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
+Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
 
-The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway specific configuration and applied to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
+The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway  specific configuration and applied to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
 ![Azure Application Gateway + AKS](docs/images/architecture.png)
 
@@ -16,15 +17,16 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Support for public, private, and hybrid web sites
   - Integrated web application firewall
 
-## General
+[Ignite 2019 - AGIC GA announcement](https://myignite.techcommunity.microsoft.com/sessions/82945)
 
-### Setup
+
+## Setup
 
 - [**Greenfield Deployment**](docs/setup/install-new.md): Instructions on installing AGIC, AKS and App Gateway on
 blank-slate infrastructure.
 - [**Brownfield Deployment**](docs/setup/install-existing.md): Install AGIC on an existing AKS and Application Gateway.
 
-### Usage
+## Usage
 
 [**Tutorials**](docs/tutorial.md): Refer to these to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
@@ -34,17 +36,17 @@ blank-slate infrastructure.
 
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
 
-### How-tos
+## How-tos
 * [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
 * [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
 
-### Troubleshooting
+## Troubleshooting
 
 For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
 
-### Frequently asked questions
+## Frequently asked questions
 
 For FAQ, please refer to this [guide](docs/faq.md).
 
