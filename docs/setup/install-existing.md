@@ -89,7 +89,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
 
  1. Create an Active Directory Service Principal and encode with base64. The base64 encoding is required for the JSON blob to be saved to Kubernetes.
     ```bash
-    az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth > auth.json
+    az ad sp create-for-rbac --sdk-auth > auth.json
     spBase64Encoded=$(cat auth.json | base64 -w0)
     spAppId=$(jq -r ".appId" auth.json)
     ```
