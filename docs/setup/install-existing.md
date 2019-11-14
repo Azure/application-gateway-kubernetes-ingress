@@ -67,7 +67,6 @@ agicIdentityName="agic-identity"
     ```bash
     # Create identity in agent pool's resource group
     nodeResourceGroupName=$(az aks show -n $aksClusterName -g $aksClusterGroupName --query "nodeResourceGroup" -o tsv)
-    nodeResourceGroupId=$(az group show -g $nodeResourceGroupName --query "id" -o tsv)
 
     az identity create -n $agicIdentityName -g $nodeResourceGroupName -l $location
     identityPrincipalId=$(az identity show -n $agicIdentityName -g $nodeResourceGroupName --query "principalId" -o tsv)

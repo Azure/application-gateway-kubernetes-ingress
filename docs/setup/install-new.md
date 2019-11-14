@@ -77,7 +77,7 @@ az aks get-credentials -g $aksClusterGroupName -n $aksClusterName
     az role assignment create \
             --role Contributor \
             --assignee "$identityPrincipalId" \
-            --scope "$nodeResourceGroupName"
+            --scope "$nodeResourceGroupId"
     ```
 
 ### Using Service Principal
@@ -95,7 +95,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
     az role assignment create \
             --role Contributor \
             --assignee "$spAppId" \
-            --scope "$nodeResourceGroupName"
+            --scope "$nodeResourceGroupId"
     ```
 
 ## Set up Application Gateway Ingress Controller
