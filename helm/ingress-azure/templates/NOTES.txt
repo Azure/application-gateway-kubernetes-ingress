@@ -17,6 +17,9 @@ Configuration Details:
     - Subscription ID : {{ .Values.appgw.subscriptionId }}
     - Resource Group  : {{ .Values.appgw.resourceGroup }}
     - Application Gateway Name : {{ .Values.appgw.name }}
+{{- if .Values.appgw.usePrivateIP }}
+    - Using Application Gateway's private IP address
+{{- end }}
  * Kubernetes Ingress Controller:
 {{- if .Values.kubernetes }}
     {{- if .Values.kubernetes.watchNamespace }}
