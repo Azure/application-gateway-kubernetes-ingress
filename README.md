@@ -41,6 +41,8 @@ blank-slate infrastructure.
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
 * [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
+* [Scale your Applications using Application Gateway Metrics (Beta)](docs/how-tos/scale-applications-using-appgw-metrics.md)
+* [Continuous Deployment with AKS and AGIC using Azure Pipelines](docs/how-tos/continuous-deployment.md)
 
 ## Troubleshooting
 
