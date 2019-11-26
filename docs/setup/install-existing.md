@@ -80,7 +80,7 @@ the resource group of the `aks-agentpool` virtual machines. Typically that resou
     az identity create -g <agent-pool-resource-group> -n <identity-name>
     ```
 
-1. For the role assignment commands below we need to obtain `principalId` for the newly created identity:
+1. For the role assignment commands below we need to obtain `clientId` for the newly created identity:
 
     ```bash
     az identity show -g <resourcegroup> -n <identity-name>
@@ -94,7 +94,7 @@ look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft
     ```bash
     az role assignment create \
         --role Contributor \
-        --assignee <principalId> \
+        --assignee <clientId> \
         --scope <App-Gateway-ID>
     ```
 
@@ -104,7 +104,7 @@ look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft
     ```bash
     az role assignment create \
         --role Reader \
-        --assignee <principalId> \
+        --assignee <clientId> \
         --scope <App-Gateway-Resource-Group-ID>
     ```
 
