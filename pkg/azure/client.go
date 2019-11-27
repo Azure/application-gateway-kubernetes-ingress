@@ -55,12 +55,12 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
-		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
-		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
-		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
-		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
-		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
+		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint,string(subscriptionID)),
 
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
