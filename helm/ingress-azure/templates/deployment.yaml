@@ -38,14 +38,14 @@ spec:
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 5
           periodSeconds: 10
-          failureThreshold: 180
+          failureThreshold: 60
         livenessProbe:
           httpGet:
             path: /health/alive
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
-          failureThreshold: 90
+          failureThreshold: 30
         env:
         - name: AZURE_CONTEXT_LOCATION
           value: /etc/appgw/azure.json
