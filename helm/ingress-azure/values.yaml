@@ -1,7 +1,3 @@
-# The values.yaml file is important to templates.
-# This file contains the default values for a chart.
-# These values may be overridden during helm install or helm upgrade.
-
 replicaCount: 1
 
 # Verbosity level of the App Gateway Ingress Controller
@@ -9,7 +5,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 0.7.1
+  tag: 1.0.2
   pullPolicy: Always
 
 
@@ -25,12 +21,14 @@ kubernetes:
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
+# Specity which cloud environment will be used AZURECHINACLOUD,AZUREGERMANCLOUD,AZUREPUBLICCLOUD,AZUREUSGOVERNMENTCLOUD default: AZUREPUBLICCLOUD
 #
-appgw:
-  subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  resourceGroup: myResourceGroup
-  name: myApplicationGateway
-  usePrivateIP: false
+# appgw:
+#   environment: AZUREPUBLICCLOUD
+#   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#   resourceGroup: myResourceGroup
+#   name: myApplicationGateway
+#   usePrivateIP: false
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
@@ -54,5 +52,3 @@ appgw:
 # Specify if the cluster is RBAC enabled or not
 rbac:
     enabled: false # true/false
-
-nodeSelector: {}

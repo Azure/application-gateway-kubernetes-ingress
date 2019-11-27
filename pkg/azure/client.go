@@ -15,7 +15,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/golang/glog"
-
+    "github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -48,14 +48,19 @@ type azClient struct {
 
 // NewAzClient returns an Azure Client
 func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil
+	}
+	
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient:     n.NewApplicationGatewaysClient(string(subscriptionID)),
-		publicIPsClient:       n.NewPublicIPAddressesClient(string(subscriptionID)),
-		virtualNetworksClient: n.NewVirtualNetworksClient(string(subscriptionID)),
-		subnetsClient:         n.NewSubnetsClient(string(subscriptionID)),
-		groupsClient:          r.NewGroupsClient(string(subscriptionID)),
-		deploymentsClient:     r.NewDeploymentsClient(string(subscriptionID)),
+		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ManagementPortalURL,string(subscriptionID)),
 
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
@@ -65,7 +70,7 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		ctx:        context.Background(),
 		authorizer: authorizer,
 	}
-
+   
 	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to App Gateway client: ", userAgent)
 	}
