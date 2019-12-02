@@ -21,7 +21,9 @@ data:
   APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel | quote }}
   HTTP_SERVICE_PORT:     {{ .Values.kubernetes.httpServicePort | quote }}
   USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}
-
+{{- if .Values.appgw.environment }}
+  AZURE_ENVIRONMENT:     {{ .Values.appgw.environment | quote }}
+{{- end -}}
 {{- if .Values.appgw.applicationGatewayID }}
   APPGW_RESOURCE_ID: {{ .Values.appgw.applicationGatewayID | quote }}
 {{- else }}

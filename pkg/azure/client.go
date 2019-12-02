@@ -11,12 +11,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 // AzClient is an interface for client to Azure
@@ -48,14 +48,19 @@ type azClient struct {
 
 // NewAzClient returns an Azure Client
 func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil
+	}
+
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient:     n.NewApplicationGatewaysClient(string(subscriptionID)),
-		publicIPsClient:       n.NewPublicIPAddressesClient(string(subscriptionID)),
-		virtualNetworksClient: n.NewVirtualNetworksClient(string(subscriptionID)),
-		subnetsClient:         n.NewSubnetsClient(string(subscriptionID)),
-		groupsClient:          r.NewGroupsClient(string(subscriptionID)),
-		deploymentsClient:     r.NewDeploymentsClient(string(subscriptionID)),
+		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
