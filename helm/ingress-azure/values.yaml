@@ -1,5 +1,5 @@
-# The values.yaml file is important to templates.	
-# This file contains the default values for a chart.	
+# The values.yaml file is important to templates.
+# This file contains the default values for a chart.
 # These values may be overridden during helm install or helm upgrade.
 
 replicaCount: 1
