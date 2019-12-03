@@ -129,6 +129,23 @@ func main() {
 		glog.Fatal(errorLine)
 	}
 
+	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName))
+	appGwIdentifier := appgw.Identifier{
+		SubscriptionID: env.SubscriptionID,
+		ResourceGroup:  env.ResourceGroupName,
+		AppGwName:      env.AppGwName,
+	}
+
+	// create a new agic controller
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+
+	// initialize the http server and start it
+	httpServer := httpserver.NewHTTPServer(
+		appGwIngressController,
+		metricStore,
+		env.HTTPServicePort)
+	httpServer.Start()
+
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
@@ -138,9 +155,10 @@ func main() {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 		}
 		glog.Fatal(errorLine)
+	} else {
+		azClient.SetAuthorizer(authorizer)
 	}
 
-	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), authorizer)
 	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
@@ -163,12 +181,6 @@ func main() {
 			}
 			glog.Fatal(errorLine)
 		}
-	}
-
-	appGwIdentifier := appgw.Identifier{
-		SubscriptionID: env.SubscriptionID,
-		ResourceGroup:  env.ResourceGroupName,
-		AppGwName:      env.AppGwName,
 	}
 
 	// namespace validations
@@ -197,8 +209,6 @@ func main() {
 		glog.Fatal(errorLine)
 	}
 
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
-
 	if err := appGwIngressController.Start(env); err != nil {
 		errorLine := fmt.Sprint("Could not start AGIC: ", err)
 		if agicPod != nil {
@@ -206,12 +216,6 @@ func main() {
 		}
 		glog.Fatal(errorLine)
 	}
-
-	httpServer := httpserver.NewHTTPServer(
-		appGwIngressController,
-		metricStore,
-		env.HTTPServicePort)
-	httpServer.Start()
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
