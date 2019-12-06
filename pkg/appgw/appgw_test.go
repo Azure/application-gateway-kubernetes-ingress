@@ -310,8 +310,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
-		listenerId, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerId)))
+		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerID)))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
