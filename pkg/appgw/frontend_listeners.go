@@ -167,8 +167,18 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 			FrontendIPConfiguration: resourceRef(*frontIPConfiguration.ID),
 			FrontendPort:            resourceRef(*frontendPort.ID),
 			Protocol:                protocol,
-			HostName:                &listenerID.HostName,
+			HostName:                nil,
+			Hostnames:               nil,
 		},
+	}
+
+	// Use only the 'Hostnames' field as application gateway allows either 'HostName' or 'Hostnames'
+	if hostnames := listenerID.getHostNames(); len(hostnames) != 0 {
+		if len(hostnames) == 1 {
+			listener.HostName = &hostnames[0]
+		} else {
+			listener.Hostnames = &hostnames
+		}
 	}
 
 	// Note: This field is only supported on V1 gateway.
@@ -197,9 +207,13 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 		listenerID := listenerIdentifier{
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
-		if listener.HostName != nil {
-			listenerID.HostName = *listener.HostName
+
+		if listener.Hostnames != nil {
+			listenerID.setHostNames(*listener.Hostnames)
+		} else if listener.HostName != nil {
+			listenerID.setHostNames([]string{*listener.HostName})
 		}
+
 		if portExists && port.Port != nil {
 			listenerID.FrontendPort = Port(*port.Port)
 		} else {

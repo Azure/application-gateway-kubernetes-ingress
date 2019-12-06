@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
@@ -212,10 +213,11 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			actual := cb.getIstioPathMaps(cbCtx)
+
+			expectedListerID80, _ := newTestListenerID(Port(80), nil, false)
 			expected := map[listenerIdentifier]*n.ApplicationGatewayURLPathMap{
 
-				listenerIdentifier{FrontendPort: 80, HostName: "", UsePrivateIP: false}: {
-
+				expectedListerID80: {
 					ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 						DefaultBackendAddressPool: &n.SubResource{
 							ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
@@ -232,7 +234,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 						PathRules:                    &[]n.ApplicationGatewayPathRule{},
 						ProvisioningState:            "",
 					},
-					Name: to.StringPtr("url-80"),
+					Name: to.StringPtr("url-" + utils.GetHashCode(expectedListerID80)),
 					Etag: to.StringPtr("*"),
 					Type: nil,
 					ID:   nil,

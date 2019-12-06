@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -62,7 +63,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.HTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool", func() {
 			Expect(generatedPathMap.DefaultBackendAddressPool).To(Not(BeNil()))
@@ -140,7 +141,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		backendIDBasic := generateBackendID(ingressBasic, &ruleBasic, pathBasic, backendBasic)
 		It("has default backend pool coming from basic ingress", func() {
@@ -207,7 +208,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMap := configBuilder.getPathMaps(cbCtx)
-		listenerID := generateListenerID(rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})
@@ -215,11 +216,9 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].DefaultBackendHTTPSettings).To(BeNil())
 		})
 
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
-			generateSSLRedirectConfigurationName(listenerIdentifier{
-				HostName:     rule.Host,
-				FrontendPort: 443,
-			}))
+			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
 		It("generated expected ID", func() {
 			Expect(actualID).To(Equal(expectedRedirectID))
@@ -262,7 +261,7 @@ var _ = Describe("Test routing rules generations", func() {
 		pathMap := configBuilder.getPathMaps(cbCtx)
 
 		rule := &ingress.Spec.Rules[0]
-		listenerID := generateListenerID(rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})
@@ -273,11 +272,9 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].PathRules).To(BeNil())
 		})
 
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
-			generateSSLRedirectConfigurationName(listenerIdentifier{
-				HostName:     rule.Host,
-				FrontendPort: 443,
-			}))
+			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
 		It("generated expected ID", func() {
 			Expect(expectedRedirectID).To(Equal(actualID))
@@ -306,6 +303,8 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
+		expectedListenerID80, expectedListenerID80Name := newTestListenerID(Port(80), []string{"foo.baz"}, false)
+		expectedListenerID443, expectedListenerID443Name := newTestListenerID(Port(443), []string{"foo.baz"}, false)
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGw.RequestRoutingRules)).To(Equal(2))
 
@@ -316,20 +315,20 @@ var _ = Describe("Test routing rules generations", func() {
 					BackendHTTPSettings: nil,
 					HTTPListener: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
-							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-80"),
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/" + expectedListenerID80Name),
 					},
 					URLPathMap:     nil,
 					RewriteRuleSet: nil,
 					RedirectConfiguration: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
-							"/redirectConfigurations/sslr-fl-foo.baz-443")},
+							"/redirectConfigurations/sslr-" + expectedListenerID443Name)},
 					ProvisioningState: "",
 				},
-				Name: to.StringPtr("rr-foo.baz-80"),
+				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID80)),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-80")),
+				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-" + utils.GetHashCode(expectedListenerID80))),
 			}))
 
 			Expect(*configBuilder.appGw.RequestRoutingRules).To(ContainElement(n.ApplicationGatewayRequestRoutingRule{
@@ -347,17 +346,17 @@ var _ = Describe("Test routing rules generations", func() {
 					},
 					HTTPListener: &n.SubResource{
 						ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
-							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-foo.baz-443"),
+							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/" + expectedListenerID443Name),
 					},
 					URLPathMap:            nil,
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     "",
 				},
-				Name: to.StringPtr("rr-foo.baz-443"),
+				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID443)),
 				Etag: to.StringPtr("*"),
 				Type: nil,
-				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-foo.baz-443")),
+				ID:   to.StringPtr(configBuilder.appGwIdentifier.requestRoutingRuleID("rr-" + utils.GetHashCode(expectedListenerID443))),
 			}))
 		})
 

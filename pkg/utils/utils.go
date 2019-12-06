@@ -6,6 +6,8 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -49,4 +51,15 @@ func SaveToFile(fileName string, content []byte) (string, error) {
 	}
 	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
 	return tempFile.Name(), nil
+}
+
+// GetHashCode generates hashcode of given type
+func GetHashCode(i interface{}) string {
+	arrBytes := []byte{}
+	jsonBytes, _ := json.Marshal(i)
+	arrBytes = append(arrBytes, jsonBytes...)
+
+	md5Generator := md5.New()
+	md5Generator.Write(arrBytes)
+	return hex.EncodeToString(md5Generator.Sum(nil))
 }

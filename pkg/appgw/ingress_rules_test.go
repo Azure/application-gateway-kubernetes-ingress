@@ -16,10 +16,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 	port80 := Port(80)
 	port443 := Port(443)
 
-	expectedListener80 := listenerIdentifier{
-		FrontendPort: port80,
-		HostName:     tests.Host,
-	}
+	expectedListener80, _ := newTestListenerID(Port(80), []string{tests.Host}, false)
 
 	expectedListenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
@@ -30,10 +27,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		SslRedirectConfigurationName: "",
 	}
 
-	expectedListener443 := listenerIdentifier{
-		FrontendPort: 443,
-		HostName:     tests.Host,
-	}
+	expectedListener443, expectedListener443Name := newTestListenerID(Port(443), []string{tests.Host}, false)
 
 	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",
@@ -41,7 +35,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 			Namespace: tests.Namespace,
 			Name:      tests.NameOfSecret,
 		},
-		SslRedirectConfigurationName: "sslr-fl-bye.com-443",
+		SslRedirectConfigurationName: "sslr-" + expectedListener443Name,
 	}
 
 	Context("ingress rules without certificates", func() {

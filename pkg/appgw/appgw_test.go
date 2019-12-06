@@ -279,7 +279,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultListenersChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		// Test the listener.
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		listenerName := generateListenerName(listenerIdentifier{FrontendPort: 80, HostName: domainName, UsePrivateIP: false})
+		_, listenerName := newTestListenerID(Port(80), []string{domainName}, false)
 		listener := &n.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: &listenerName,
@@ -296,7 +296,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
-		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerIdentifier{FrontendPort: frontEndPort, HostName: host, UsePrivateIP: false})))
+		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
+		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerID)))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.PathBasedRouting))
 	}
 
@@ -309,7 +310,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
-		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerIdentifier{FrontendPort: frontEndPort, HostName: host, UsePrivateIP: false})))
+		listenerId, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
+		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerId)))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
 
@@ -645,7 +647,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
-				httpsListenerName := generateListenerName(listenerIdentifier{FrontendPort: 443, HostName: domainName, UsePrivateIP: false})
+				_, httpsListenerName := newTestListenerID(Port(443), []string{domainName}, false)
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
 				httpsListener := &n.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),
