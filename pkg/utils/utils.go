@@ -7,7 +7,6 @@ package utils
 
 import (
 	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -55,11 +54,10 @@ func SaveToFile(fileName string, content []byte) (string, error) {
 
 // GetHashCode generates hashcode of given type
 func GetHashCode(i interface{}) string {
-	arrBytes := []byte{}
-	jsonBytes, _ := json.Marshal(i)
-	arrBytes = append(arrBytes, jsonBytes...)
-
-	md5Generator := md5.New()
-	md5Generator.Write(arrBytes)
-	return hex.EncodeToString(md5Generator.Sum(nil))
+	jsonBytes, err := json.Marshal(i)
+	if err != nil {
+		glog.Errorf("Failed MD5 hashing %+v", i)
+		return ""
+	}
+	return fmt.Sprintf("%x", md5.Sum(jsonBytes))
 }
