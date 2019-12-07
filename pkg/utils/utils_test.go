@@ -53,5 +53,12 @@ var _ = Describe("Utils", func() {
 --prefix--}`)))
 			})
 		})
+
+		Context("Test GetHashCode", func() {
+			It("should generate a deterministic hash", func() {
+				hashcode := GetHashCode([]string{"testing hash generation"})
+				Expect(hashcode).To(Equal("28a37ff7b783ffb4696dfb7774331163"))
+			})
+		})
 	})
 })

@@ -7,9 +7,8 @@ package appgw
 
 import (
 	"fmt"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -221,6 +220,44 @@ var _ = Describe("Test string key generators", func() {
 			actual := getResourceKey(tests.Namespace, tests.Name)
 			expected := tests.Namespace + "/" + tests.Name
 			Expect(actual).To(Equal(expected))
+		})
+	})
+
+	Context("test GetHostNames works correctly", func() {
+		It("should correctly return the hostnames", func() {
+			var hostnameValues = [5]string{"www.test1.com", "www.test2.com", "www.test3.com","www.test4.com","www.test5.com"}
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+				HostName: "www.test.com",
+				HostNames: hostnameValues,
+			}
+			actualHostName := listenerID.getHostNames()
+			Expect(actualHostName).To(Equal(hostnameValues[0:]))
+		})
+
+		It("should return nil if the 'hostnames' field is not set", func() {
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+			}
+			actualHostName := listenerID.getHostNames()
+			Expect(actualHostName).To(BeNil())
+		})
+	})
+
+	Context("test SetHostNames works correctly", func() {
+		It("should correctly update the listenerIdentifier", func() {
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+			}
+			hostnames := []string{"www.test.com", "www.t*.com"}
+			listenerID.setHostNames(hostnames)
+			Expect(listenerID.HostName).To(Equal("www.test.com"))
+			Expect(listenerID.HostNames[0]).To(Equal("www.test.com"))
+			Expect(listenerID.HostNames[1]).To(Equal("www.t*.com"))
+			Expect(listenerID.HostNames[2]).To(Equal(""))
 		})
 	})
 })

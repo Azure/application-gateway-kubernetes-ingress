@@ -28,6 +28,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 	var listenerID80 listenerIdentifier
 	var listenerID80Priv listenerIdentifier
 	var listenerID443 listenerIdentifier
+	var listenerID80ExtendedHost listenerIdentifier
 	var listenerAzConfigNoSSL listenerAzConfig
 	var listenerAzConfigWithSSL listenerAzConfig
 	var expectedPort80 n.ApplicationGatewayFrontendPort
@@ -36,10 +37,12 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 	var expectedListener80Priv n.ApplicationGatewayHTTPListener
 	var expectedListener443 n.ApplicationGatewayHTTPListener
 	var expectedListener443Priv n.ApplicationGatewayHTTPListener
+	var expectedListener80MultiHostnames n.ApplicationGatewayHTTPListener
 	var listenerID80Name string
 	var listenerID80PrivName string
 	var listenerID443Name string
 	var listenerID443PrivName string
+	var listenerID80ExtendedHostName string
 
 	resPref := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/"
 
@@ -47,6 +50,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 		envVariables = environment.GetFakeEnv()
 
 		listenerID80, listenerID80Name = newTestListenerID(Port(80), []string{tests.Host}, false)
+
+		listenerID80ExtendedHost, listenerID80ExtendedHostName = newTestListenerID(Port(80), []string{"test.com", "t*.com"}, false)
 
 		listenerID80Priv, listenerID80PrivName = newTestListenerID(Port(80), []string{tests.Host}, true)
 
@@ -99,6 +104,19 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                n.ApplicationGatewayProtocol("Http"),
 				HostName:                to.StringPtr(tests.Host),
+			},
+		}
+
+		expectedListener80MultiHostnames = n.ApplicationGatewayHTTPListener{
+			Etag: to.StringPtr("*"),
+			Name: to.StringPtr(listenerID80ExtendedHostName),
+			ID:   to.StringPtr(resPref + "httpListeners/" + listenerID80ExtendedHostName),
+			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+				FrontendIPConfiguration: resourceRef(tests.PublicIPID),
+				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-80"),
+				Protocol:                n.ApplicationGatewayProtocol("Http"),
+				HostName:                nil,
+				Hostnames:               to.StringSlicePtr([]string{"test.com", "t*.com"}),
 			},
 		}
 
@@ -184,7 +202,27 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			Expect(*listener).To(Equal(expectedListener80))
 			Expect(*port).To(Equal(expectedPort80))
+		})
 
+		It("should create a correct App Gwy listener when ingress has extended hostnames", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					tests.NewIngressFixture(),
+					tests.NewIngressFixture(),
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
+			listener, port, err := cb.newListener(cbCtx, listenerID80ExtendedHost, n.ApplicationGatewayProtocol("Http"), ports)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(*listener).To(Equal(expectedListener80MultiHostnames))
+			Expect(*port).To(Equal(expectedPort80))
 		})
 	})
 

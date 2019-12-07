@@ -642,4 +642,268 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		})
 	})
+
+	Context("Tests Application Gateway config creation with hostname extensions", func() {
+		ingressWithHostNameExtension := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						Host: "foo.baz",
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceName,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				TLS: []v1beta1.IngressTLS{
+					{
+						Hosts: []string{
+							"www.contoso.com",
+							"ftp.contoso.com",
+							tests.Host,
+							"",
+						},
+						SecretName: tests.NameOfSecret,
+					},
+					{
+						Hosts:      []string{},
+						SecretName: tests.NameOfSecret,
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.SslRedirectKey:  "true",
+					annotations.HostNameExtensionKey: "bye.com, test.com",
+				},
+				Namespace: ingressNS,
+				Name:      tests.Name,
+			},
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingressWithHostNameExtension},
+			ServiceList:           serviceList,
+			EnvVariables:          environment.GetFakeEnv(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		It("Should have created correct App Gateway config JSON blob", func() {
+			// Start the informers. This will sync the cache with the latest ingress.
+			err := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(err).ToNot(HaveOccurred())
+
+			appGW, err := configBuilder.Build(cbCtx)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err := appGW.MarshalJSON()
+			Expect(err).ToNot(HaveOccurred())
+
+			var into map[string]interface{}
+			err = json.Unmarshal(jsonBlob, &into)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonTxt := string(jsonBlob)
+
+			expected := `{
+--    "properties": {
+--        "backendAddressPools": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
+--                "name": "defaultaddresspool",
+--                "properties": {
+--                    "backendAddresses": []
+--                }
+--            },
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80",
+--                "name": "pool-test-ingress-controller-hello-world-80-bp-80",
+--                "properties": {
+--                    "backendAddresses": [
+--                        {
+--                            "ipAddress": "1.1.1.1"
+--                        },
+--                        {
+--                            "ipAddress": "1.1.1.2"
+--                        },
+--                        {
+--                            "ipAddress": "1.1.1.3"
+--                        }
+--                    ]
+--                }
+--            }
+--        ],
+--        "backendHttpSettingsCollection": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
+--                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
+--                "properties": {
+--                    "port": 80,
+--                    "probe": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--"
+--                    },
+--                    "protocol": "Http"
+--                }
+--            },
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
+--                "name": "defaulthttpsetting",
+--                "properties": {
+--                    "port": 80,
+--                    "probe": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+--                    },
+--                    "protocol": "Http"
+--                }
+--            }
+--        ],
+--        "frontendIPConfigurations": [
+--            {
+--                "id": "--front-end-ip-id-1--",
+--                "name": "xx3",
+--                "properties": {
+--                    "publicIPAddress": {
+--                        "id": "xyz"
+--                    }
+--                }
+--            },
+--            {
+--                "id": "--front-end-ip-id-2--",
+--                "name": "yy3",
+--                "properties": {
+--                    "privateIPAddress": "abc"
+--                }
+--            }
+--        ],
+--        "frontendPorts": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
+--                "name": "fp-80",
+--                "properties": {
+--                    "port": 80
+--                }
+--            }
+--        ],
+--        "httpListeners": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-551927cc13f570e2ce70170a2de31927",
+--                "name": "fl-551927cc13f570e2ce70170a2de31927",
+--                "properties": {
+--                    "frontendIPConfiguration": {
+--                        "id": "--front-end-ip-id-1--"
+--                    },
+--                    "frontendPort": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
+--                    },
+--                    "hostnames": [
+--                        "foo.baz",
+--                        "bye.com",
+--                        "test.com"
+--                    ],
+--                    "protocol": "Http"
+--                }
+--            }
+--        ],
+--        "probes": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
+--                "name": "defaultprobe-Http",
+--                "properties": {
+--                    "host": "localhost",
+--                    "interval": 30,
+--                    "path": "/",
+--                    "protocol": "Http",
+--                    "timeout": 30,
+--                    "unhealthyThreshold": 3
+--                }
+--            },
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
+--                "name": "defaultprobe-Https",
+--                "properties": {
+--                    "host": "localhost",
+--                    "interval": 30,
+--                    "path": "/",
+--                    "protocol": "Https",
+--                    "timeout": 30,
+--                    "unhealthyThreshold": 3
+--                }
+--            },
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--",
+--                "name": "pb-test-ingress-controller-hello-world-80---name--",
+--                "properties": {
+--                    "host": "foo.baz",
+--                    "interval": 30,
+--                    "path": "/",
+--                    "protocol": "Http",
+--                    "timeout": 30,
+--                    "unhealthyThreshold": 3
+--                }
+--            }
+--        ],
+--        "redirectConfigurations": null,
+--        "requestRoutingRules": [
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-551927cc13f570e2ce70170a2de31927",
+--                "name": "rr-551927cc13f570e2ce70170a2de31927",
+--                "properties": {
+--                    "backendAddressPool": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
+--                    },
+--                    "backendHttpSettings": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
+--                    },
+--                    "httpListener": {
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-551927cc13f570e2ce70170a2de31927"
+--                    },
+--                    "ruleType": "Basic"
+--                }
+--            }
+--        ],
+--        "sku": {
+--            "capacity": 3,
+--            "name": "Standard_v2",
+--            "tier": "Standard_v2"
+--        },
+--        "sslCertificates": null,
+--        "urlPathMaps": null
+--    },
+--    "tags": {
+--        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
+--        "last-updated-by-k8s-ingress": "2009-11-17 20:34:58.651387237 +0000 UTC",
+--        "managed-by-k8s-ingress": "a/b/c"
+--    }
+--}`
+
+			linesAct := strings.Split(jsonTxt, "\n")
+			linesExp := strings.Split(expected, "\n")
+
+			Expect(len(linesAct)).To(Equal(len(linesExp)), "Line counts are different: ", len(linesAct), " vs ", len(linesExp), "\nActual:", jsonTxt, "\nExpected:", expected)
+
+			for idx, line := range linesAct {
+				curatedLineAct := strings.Trim(line, " ")
+				curatedLineExp := strings.Trim(linesExp[idx], " ")
+				Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
+			}
+
+		})
+	})
 })
