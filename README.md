@@ -1,3 +1,4 @@
+# Application Gateway Ingress Controller
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/azure/application-gateway-kubernetes-ingress)
 [![Build Status](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_apis/build/status/Merge%20Builds?branchName=master)](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_build/latest?definitionId=30&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
@@ -41,6 +42,8 @@ blank-slate infrastructure.
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
 * [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
+* [Scale your Applications using Application Gateway Metrics (Beta)](docs/how-tos/scale-applications-using-appgw-metrics.md)
+* [Continuous Deployment with AKS and AGIC using Azure Pipelines](docs/how-tos/continuous-deployment.md)
 
 ## Troubleshooting
 

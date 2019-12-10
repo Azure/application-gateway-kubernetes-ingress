@@ -1,0 +1,394 @@
+{
+    "source": 2,
+    "revision": 1,
+    "description": "This is an example pipeline which creates an AKS cluster and installed AGIC as ingress controller",
+    "isDeleted": false,
+    "variables": {
+        "agicIdentityName": {
+            "value": "agic-identity"
+        },
+        "aksClusterGroupName": {
+            "value": "resource-group"
+        },
+        "aksClusterName": {
+            "value": "aks-cluster"
+        },
+        "applicationGatewayName": {
+            "value": "app-gateway"
+        },
+        "applicationGatewaySubnetPrefix": {
+            "value": "10.1.0.0/16"
+        },
+        "clientId": {
+            "value": null,
+            "isSecret": true
+        },
+        "clientSecret": {
+            "value": null,
+            "isSecret": true
+        },
+        "location": {
+            "value": "West Europe",
+            "allowOverride": true
+        }
+    },
+    "environments": [
+        {
+            "name": "Deploy Cluster",
+            "rank": 1,
+            "preDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": 1
+                }
+            },
+            "postDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": null,
+                    "releaseCreatorCanBeApprover": false,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 0,
+                    "executionOrder": 2
+                }
+            },
+            "deployPhases": [
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "parallelExecutionType": 0
+                        },
+                        "agentSpecification": {
+                            "identifier": "ubuntu-18.04"
+                        },
+                        "skipArtifactsDownload": false,
+                        "artifactsDownloadInput": {
+                            "downloadInputs": []
+                        },
+                        "queueId": 4325,
+                        "demands": [],
+                        "enableAccessToken": false,
+                        "timeoutInMinutes": 0,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 1,
+                    "phaseType": 1,
+                    "name": "Agent job",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "environment": {},
+                            "taskId": "46e4be58-730b-4389-8a2f-ea10b3e5e815",
+                            "version": "1.*",
+                            "name": "Create Kubernetes Cluster",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "scriptLocation": "inlineScript",
+                                "scriptPath": "",
+                                "inlineScript": "# create a resource group\naz group create -g $(aksClusterGroupName) -l \"$(location)\"\n\n# create an AKS cluster\naz aks create -g $(aksClusterGroupName) -n $(aksClusterName) --node-count 3 --network-plugin azure --generate-ssh-keys --service-principal $(clientId) --client-secret $(clientSecret)\n\n# get AKS credentials\naz aks get-credentials --resource-group $(aksClusterGroupName) --name $(aksClusterName)",
+                                "args": "",
+                                "addSpnToEnvironment": "false",
+                                "useGlobalConfig": "false",
+                                "cwd": "",
+                                "failOnStandardError": "false"
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "46e4be58-730b-4389-8a2f-ea10b3e5e815",
+                            "version": "1.*",
+                            "name": "Create AGIC Identity",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "scriptLocation": "inlineScript",
+                                "scriptPath": "",
+                                "inlineScript": "# Create identity in agent pool's resource group\nnodeResourceGroupName=$(az aks show -n $(aksClusterName) -g $(aksClusterGroupName) --query \"nodeResourceGroup\" -o tsv)\nnodeResourceGroupId=$(az group show -g $nodeResourceGroupName --query \"id\" -o tsv)\n\naz identity create -n $(agicIdentityName) -g $nodeResourceGroupName -l \"$(location)\"\nidentityPrincipalId=$(az identity show -n $(agicIdentityName) -g $nodeResourceGroupName --query \"principalId\" -o tsv)\nidentityResourceId=$(az identity show -n $(agicIdentityName) -g $nodeResourceGroupName --query \"id\" -o tsv)\nidentityClientId=$(az identity show -n $(agicIdentityName) -g $nodeResourceGroupName --query \"clientId\" -o tsv)\n\necho \"##vso[task.setvariable variable=identityClientId]$identityClientId\"\necho \"##vso[task.setvariable variable=identityResourceId]$identityResourceId\"\n\naz role assignment create --role Contributor --assignee-object-id \"$identityPrincipalId\" --scope \"$nodeResourceGroupId\"\naz role assignment create --role Contributor --assignee-object-id \"$identityPrincipalId\" --scope \"$nodeResourceGroupId\"",
+                                "args": "",
+                                "addSpnToEnvironment": "true",
+                                "useGlobalConfig": "false",
+                                "cwd": "",
+                                "failOnStandardError": "false"
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "068d5909-43e6-48c5-9e01-7c8a94816220",
+                            "version": "0.*",
+                            "name": "Install Helm 2.14.1",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "helmVersion": "2.14.1",
+                                "checkLatestHelmVersion": "false",
+                                "installKubeCtl": "true",
+                                "kubectlVersion": "1.16.2",
+                                "checkLatestKubeCtl": "true"
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+                            "version": "3.*",
+                            "name": "Setup Helm Tiller and Helm Repo",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "targetType": "inline",
+                                "filePath": "",
+                                "arguments": "",
+                                "script": "kubectl create serviceaccount --namespace kube-system tiller-sa\nkubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa\nhelm init --tiller-namespace kube-system --service-account tiller-sa --wait\n\n# setup helm repo\nhelm repo add aad-pod-identity https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts\nhelm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/\nhelm repo update",
+                                "workingDirectory": "",
+                                "failOnStderr": "false",
+                                "noProfile": "true",
+                                "noRc": "true"
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "afa7d54d-537b-4dc8-b60a-e0eeea2c9a87",
+                            "version": "0.*",
+                            "name": "helm install/upgrade AAD Pod Identity",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "connectionType": "None",
+                                "azureSubscriptionEndpoint": "",
+                                "azureResourceGroup": "",
+                                "kubernetesCluster": "",
+                                "useClusterAdmin": "false",
+                                "kubernetesServiceEndpoint": "",
+                                "namespace": "aad-pod-identity",
+                                "command": "upgrade",
+                                "chartType": "Name",
+                                "chartName": "aad-pod-identity/aad-pod-identity",
+                                "chartPath": "",
+                                "version": "",
+                                "releaseName": "aad-pod-identity",
+                                "overrideValues": "rbac.enabled=true",
+                                "valueFile": "",
+                                "destination": "$(Build.ArtifactStagingDirectory)",
+                                "canaryimage": "false",
+                                "upgradetiller": "true",
+                                "updatedependency": "false",
+                                "save": "true",
+                                "install": "true",
+                                "recreate": "false",
+                                "resetValues": "false",
+                                "force": "true",
+                                "waitForExecution": "true",
+                                "arguments": "",
+                                "enableTls": "false",
+                                "caCert": "",
+                                "certificate": "",
+                                "privatekey": "",
+                                "tillernamespace": ""
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "afa7d54d-537b-4dc8-b60a-e0eeea2c9a87",
+                            "version": "0.*",
+                            "name": "helm install/upgrade AGIC",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "connectionType": "None",
+                                "azureSubscriptionEndpoint": "",
+                                "azureResourceGroup": "",
+                                "kubernetesCluster": "",
+                                "useClusterAdmin": "false",
+                                "kubernetesServiceEndpoint": "",
+                                "namespace": "agic",
+                                "command": "upgrade",
+                                "chartType": "Name",
+                                "chartName": "application-gateway-kubernetes-ingress/ingress-azure",
+                                "chartPath": "",
+                                "version": "",
+                                "releaseName": "agic",
+                                "overrideValues": "appgw.name=$(applicationGatewayName),appgw.subnetPrefix=$(applicationGatewaySubnetPrefix),armAuth.type=aadPodIdentity,armAuth.identityResourceID=$(identityResourceId),armAuth.identityClientID=$(identityClientId),rbac.enabled=true",
+                                "valueFile": "",
+                                "destination": "$(Build.ArtifactStagingDirectory)",
+                                "canaryimage": "false",
+                                "upgradetiller": "true",
+                                "updatedependency": "false",
+                                "save": "true",
+                                "install": "true",
+                                "recreate": "false",
+                                "resetValues": "false",
+                                "force": "true",
+                                "waitForExecution": "false",
+                                "arguments": "",
+                                "enableTls": "false",
+                                "caCert": "",
+                                "certificate": "",
+                                "privatekey": "",
+                                "tillernamespace": ""
+                            }
+                        },
+                        {
+                            "environment": {},
+                            "taskId": "cbc316a2-586f-4def-be79-488a1f503564",
+                            "version": "1.*",
+                            "name": "Install sample application",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "inputs": {
+                                "connectionType": "None",
+                                "kubernetesServiceEndpoint": "",
+                                "azureSubscriptionEndpoint": "",
+                                "azureResourceGroup": "",
+                                "kubernetesCluster": "",
+                                "useClusterAdmin": "false",
+                                "namespace": "",
+                                "command": "apply",
+                                "useConfigurationFile": "false",
+                                "configurationType": "configuration",
+                                "configuration": "",
+                                "inline": "",
+                                "arguments": "-f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/aksgupta/cd/docs/examples/aspnetapp.yaml",
+                                "secretType": "dockerRegistry",
+                                "secretArguments": "",
+                                "containerRegistryType": "Azure Container Registry",
+                                "dockerRegistryEndpoint": "",
+                                "azureSubscriptionEndpointForSecrets": "",
+                                "azureContainerRegistry": "",
+                                "secretName": "",
+                                "forceUpdate": "true",
+                                "configMapName": "",
+                                "forceUpdateConfigMap": "false",
+                                "useConfigMapFile": "false",
+                                "configMapFile": "",
+                                "configMapArguments": "",
+                                "versionOrLocation": "version",
+                                "versionSpec": "1.13.2",
+                                "checkLatest": "false",
+                                "specifyLocation": "",
+                                "cwd": "$(System.DefaultWorkingDirectory)",
+                                "outputFormat": "json"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "environmentOptions": {
+                "emailNotificationType": "OnlyOnFailure",
+                "emailRecipients": "release.environment.owner;release.creator",
+                "skipArtifactsDownload": false,
+                "timeoutInMinutes": 0,
+                "enableAccessToken": false,
+                "publishDeploymentStatus": true,
+                "badgeEnabled": false,
+                "autoLinkWorkItems": false,
+                "pullRequestDeploymentEnabled": false
+            },
+            "demands": [],
+            "conditions": [
+                {
+                    "name": "ReleaseStarted",
+                    "conditionType": 1,
+                    "value": ""
+                }
+            ],
+            "executionPolicy": {
+                "concurrencyCount": 1,
+                "queueDepthCount": 0
+            },
+            "retentionPolicy": {
+                "daysToKeep": 30,
+                "releasesToKeep": 3,
+                "retainBuild": true
+            },
+            "properties": {
+                "LinkBoardsWorkItems": {
+                    "$type": "System.String",
+                    "$value": "False"
+                },
+                "BoardsEnvironmentType": {
+                    "$type": "System.String",
+                    "$value": "unmapped"
+                }
+            },
+            "preDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "postDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            }
+        }
+    ],
+    "artifacts": [],
+    "triggers": [],
+    "releaseNameFormat": "Release-$(rev:r)",
+    "tags": [],
+    "name": "Continuous Deployment Pipeline",
+    "path": "\\",
+    "projectReference": null
+}

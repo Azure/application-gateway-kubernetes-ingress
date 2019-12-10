@@ -5,7 +5,11 @@
 
 package azure
 
-import n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+import (
+	"github.com/Azure/go-autorest/autorest"
+
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+)
 
 // GetGatewayFunc is a function type
 type GetGatewayFunc func() (n.ApplicationGateway, error)
@@ -30,6 +34,10 @@ type FakeAzClient struct {
 // NewFakeAzClient returns a fake Azure Client
 func NewFakeAzClient() *FakeAzClient {
 	return &FakeAzClient{}
+}
+
+// SetAuthorizer is an empty function
+func (az *FakeAzClient) SetAuthorizer(authorizer autorest.Authorizer) {
 }
 
 // GetGateway runs GetGatewayFunc and return a gateway

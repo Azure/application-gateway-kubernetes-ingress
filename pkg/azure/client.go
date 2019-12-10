@@ -11,16 +11,18 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 // AzClient is an interface for client to Azure
 type AzClient interface {
+	SetAuthorizer(authorizer autorest.Authorizer)
+
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
@@ -36,7 +38,6 @@ type azClient struct {
 	subnetsClient         n.SubnetsClient
 	groupsClient          r.GroupsClient
 	deploymentsClient     r.DeploymentsClient
-	authorizer            autorest.Authorizer
 
 	subscriptionID    SubscriptionID
 	resourceGroupName ResourceGroup
@@ -47,56 +48,58 @@ type azClient struct {
 }
 
 // NewAzClient returns an Azure Client
-func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, authorizer autorest.Authorizer) AzClient {
+func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName) AzClient {
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil
+	}
+
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient:     n.NewApplicationGatewaysClient(string(subscriptionID)),
-		publicIPsClient:       n.NewPublicIPAddressesClient(string(subscriptionID)),
-		virtualNetworksClient: n.NewVirtualNetworksClient(string(subscriptionID)),
-		subnetsClient:         n.NewSubnetsClient(string(subscriptionID)),
-		groupsClient:          r.NewGroupsClient(string(subscriptionID)),
-		deploymentsClient:     r.NewDeploymentsClient(string(subscriptionID)),
+		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
 		appGwName:         appGwName,
 		memoizedIPs:       make(map[string]n.PublicIPAddress),
 
-		ctx:        context.Background(),
-		authorizer: authorizer,
+		ctx: context.Background(),
 	}
 
 	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to App Gateway client: ", userAgent)
 	}
-	az.appGatewaysClient.Authorizer = az.authorizer
-
 	if err := az.publicIPsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Public IP client: ", userAgent)
 	}
-	az.publicIPsClient.Authorizer = az.authorizer
-
 	if err := az.virtualNetworksClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Virtual Networks client: ", userAgent)
 	}
-	az.virtualNetworksClient.Authorizer = az.authorizer
-
 	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
 	}
-	az.subnetsClient.Authorizer = az.authorizer
-
 	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Groups client: ", userAgent)
 	}
-	az.groupsClient.Authorizer = az.authorizer
-
 	if err := az.deploymentsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
-	az.deploymentsClient.Authorizer = az.authorizer
 
 	return az
+}
+
+func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
+	az.appGatewaysClient.Authorizer = authorizer
+	az.publicIPsClient.Authorizer = authorizer
+	az.virtualNetworksClient.Authorizer = authorizer
+	az.subnetsClient.Authorizer = authorizer
+	az.groupsClient.Authorizer = authorizer
+	az.deploymentsClient.Authorizer = authorizer
 }
 
 func (az *azClient) GetGateway() (n.ApplicationGateway, error) {
