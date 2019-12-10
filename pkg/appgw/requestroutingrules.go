@@ -104,12 +104,12 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			pathMap = append(pathMap, *urlPathMap)
 		}
 		if rule.RuleType == n.PathBasedRouting {
-			glog.V(5).Infof("Bound path-based rule %s to listener %s(%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
+			glog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
 		} else {
 			if rule.RedirectConfiguration != nil {
-				glog.V(5).Infof("Bound basic rule %s to listener %s(%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+				glog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
 			} else {
-				glog.V(5).Infof("Bound basic rule %s to listener %s(%s, %d), backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostName, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+				glog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
 		}
 		requestRoutingRules = append(requestRoutingRules, rule)
@@ -238,11 +238,8 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 
 func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) (*string, *string, *string) {
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
-		targetListener := listenerIdentifier{
-			HostName:     listenerID.HostName,
-			FrontendPort: 443,
-			UsePrivateIP: listenerID.UsePrivateIP,
-		}
+		targetListener := listenerID
+		targetListener.FrontendPort = 443
 
 		// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
 		redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
@@ -312,11 +309,8 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
-			targetListener := listenerIdentifier{
-				HostName:     listenerID.HostName,
-				FrontendPort: 443,
-				UsePrivateIP: listenerID.UsePrivateIP,
-			}
+			targetListener := listenerID
+			targetListener.FrontendPort = 443
 
 			// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
 			redirectRef := c.getSslRedirectConfigResourceReference(targetListener)

@@ -20,14 +20,9 @@ import (
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
-	listenerID1 := listenerIdentifier{
-		FrontendPort: 80,
-		HostName:     "bye.com",
-	}
-	listenerID2 := listenerIdentifier{
-		FrontendPort: 443,
-		HostName:     "bye.com",
-	}
+	listenerID1, _ := newTestListenerID(Port(80), []string{tests.Host}, false)
+
+	listenerID2, listenerID2Name := newTestListenerID(Port(443), []string{tests.Host}, false)
 
 	expectedListenerConfigs := map[listenerIdentifier]listenerAzConfig{
 		listenerID1: {
@@ -39,7 +34,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				Namespace: tests.Namespace,
 				Name:      "--the-name-of-the-secret--",
 			},
-			SslRedirectConfigurationName: "sslr-fl-bye.com-443",
+			SslRedirectConfigurationName: "sslr-" + listenerID2Name,
 		},
 	}
 
@@ -61,7 +56,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 						"/resourceGroups/--resource-group--" +
 						"/providers/Microsoft.Network" +
 						"/applicationGateways/--app-gw-name--" +
-						"/httpListeners/fl-bye.com-443"),
+						"/httpListeners/" + listenerID2Name),
 				},
 				TargetURL:           nil,
 				IncludePath:         to.BoolPtr(true),
@@ -70,10 +65,10 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 				URLPathMaps:         nil,
 				PathRules:           nil,
 			},
-			Name: to.StringPtr("sslr-fl-bye.com-443"),
+			Name: to.StringPtr("sslr-" + listenerID2Name),
 			Etag: to.StringPtr("*"),
 			Type: nil,
-			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-fl-bye.com-443")),
+			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-" + listenerID2Name)),
 		}
 
 		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
@@ -89,7 +84,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			Expect(len(actualListeners)).To(Equal(2))
 			Expect(actualListeners[listenerID1]).To(Equal(expectedListenerConfigs[listenerID1]))
 			Expect(actualListeners[listenerID2]).To(Equal(expectedListenerConfigs[listenerID2]))
-			expected := "sslr-fl-bye.com-443"
+			expected := "sslr-" + listenerID2Name
 			Expect(actualListeners[listenerID2].SslRedirectConfigurationName).To(Equal(expected), fmt.Sprintf("Actual: %+v", actualListeners))
 		})
 	})

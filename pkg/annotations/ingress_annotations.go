@@ -42,6 +42,11 @@ const (
 	// BackendProtocolKey defines the key to determine whether to use private ip with the ingress.
 	BackendProtocolKey = ApplicationGatewayPrefix + "/backend-protocol"
 
+	// HostNameExtensionKey defines the key to add multiple hostnames to ingress rules including wildcard hostnames
+	// annotation will be appgw.ingress.kubernetes.io/hostname-extension : "hostname1, hostname2"
+	// The extended hostnames will be appended to ingress host for a rule if specified
+	HostNameExtensionKey = ApplicationGatewayPrefix + "/hostname-extension"
+
 	// IngressClassKey defines the key of the annotation which needs to be set in order to specify
 	// that this is an ingress resource meant for the application gateway ingress controller.
 	IngressClassKey = "kubernetes.io/ingress.class"
@@ -139,6 +144,22 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 	}
 
 	return HTTP, NewInvalidAnnotationContent(BackendProtocolKey, protocol)
+}
+
+// GetHostNameExtensions from a given ingress
+func GetHostNameExtensions(ing *v1beta1.Ingress) ([]string, error) {
+	val, err := parseString(ing, HostNameExtensionKey)
+	if err == nil {
+		var hostnames []string
+		for _, hostname := range strings.Split(val, ",") {
+			if len(hostname) > 0 {
+				hostnames = append(hostnames, strings.TrimSpace(hostname))
+			}
+		}
+		return hostnames, nil
+	}
+
+	return nil, err
 }
 
 // WAFPolicy override path
