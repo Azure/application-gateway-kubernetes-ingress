@@ -309,12 +309,8 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
-			targetListener := listenerIdentifier{
-				HostName:     listenerID.HostName,
-				HostNames:    listenerID.HostNames,
-				FrontendPort: 443,
-				UsePrivateIP: listenerID.UsePrivateIP,
-			}
+			targetListener := listenerID
+			targetListener.FrontendPort = 443
 
 			// We could end up in a situation where we are attempting to attach a redirect, which does not exist.
 			redirectRef := c.getSslRedirectConfigResourceReference(targetListener)
