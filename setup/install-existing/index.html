@@ -138,11 +138,23 @@
     <ul class="subnav">
                 <li class="">
                     
+    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
     <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
                 </li>
                 <li class="">
                     
     <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
                 </li>
                 <li class="">
                     
@@ -292,7 +304,7 @@ the resource group of the <code>aks-agentpool</code> virtual machines. Typically
 
 </li>
 <li>
-<p>For the role assignment commands below we need to obtain <code>principalId</code> for the newly created identity:</p>
+<p>For the role assignment commands below we need to obtain <code>clientId</code> for the newly created identity:</p>
 <div class="highlight"><pre><span></span>az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;
 </pre></div>
 
@@ -303,7 +315,7 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
 <p>Get the list of App Gateway IDs in your subscription with: <code>az network application-gateway list --query '[].id'</code></p>
 <div class="highlight"><pre><span></span>az role assignment create <span class="se">\</span>
     --role Contributor <span class="se">\</span>
-    --assignee &lt;principalId&gt; <span class="se">\</span>
+    --assignee &lt;clientId&gt; <span class="se">\</span>
     --scope &lt;App-Gateway-ID&gt;
 </pre></div>
 
@@ -313,7 +325,7 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
 <code>/subscriptions/A/resourceGroups/B</code>. You can get all resource groups with: <code>az group list --query '[].id'</code></p>
 <div class="highlight"><pre><span></span>az role assignment create <span class="se">\</span>
     --role Reader <span class="se">\</span>
-    --assignee &lt;principalId&gt; <span class="se">\</span>
+    --assignee &lt;clientId&gt; <span class="se">\</span>
     --scope &lt;App-Gateway-Resource-Group-ID&gt;
 </pre></div>
 

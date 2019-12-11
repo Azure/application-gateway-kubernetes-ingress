@@ -132,11 +132,23 @@
     <ul class="subnav">
                 <li class="">
                     
+    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
     <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
                 </li>
                 <li class="">
                     
     <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
                 </li>
                 <li class="">
                     
@@ -412,22 +424,24 @@ nano helm-config.yaml
 </li>
 </ol>
 <p>Values:
-     - <code>verbosityLevel</code>: Sets the verbosity level of the AGIC logging infrastructure. See <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/463a87213bbc3106af6fce0f4023477216d2ad78/docs/troubleshooting.md#logging-levels">Logging Levels</a> for possible values.
-     - <code>appgw.subscriptionId</code>: The Azure Subscription ID in which App Gateway resides. Example: <code>a123b234-a3b4-557d-b2df-a0bc12de1234</code>
-     - <code>appgw.resourceGroup</code>: Name of the Azure Resource Group in which App Gateway was created. Example: <code>app-gw-resource-group</code>
-     - <code>appgw.name</code>: Name of the Application Gateway. Example: <code>applicationgatewayd0f0</code>
-     - <code>appgw.shared</code>: This boolean flag should be defaulted to <code>false</code>. Set to <code>true</code> should you need a <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway">Shared App Gateway</a>.
-     - <code>kubernetes.watchNamespace</code>: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
-    - <code>armAuth.type</code>: could be <code>aadPodIdentity</code> or <code>servicePrincipal</code>
-    - <code>armAuth.identityResourceID</code>: Resource ID of the Azure Managed Identity
-    - <code>armAuth.identityClientId</code>: The Client ID of the Identity. See below for more information on Identity
-    - <code>armAuth.secretJSON</code>: Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>servicePrincipal</code>) </p>
+- <code>verbosityLevel</code>: Sets the verbosity level of the AGIC logging infrastructure. See <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/463a87213bbc3106af6fce0f4023477216d2ad78/docs/troubleshooting.md#logging-levels">Logging Levels</a> for possible values.
+- <code>appgw.subscriptionId</code>: The Azure Subscription ID in which App Gateway resides. Example: <code>a123b234-a3b4-557d-b2df-a0bc12de1234</code>
+- <code>appgw.resourceGroup</code>: Name of the Azure Resource Group in which App Gateway was created. Example: <code>app-gw-resource-group</code>
+- <code>appgw.name</code>: Name of the Application Gateway. Example: <code>applicationgatewayd0f0</code>
+- <code>appgw.shared</code>: This boolean flag should be defaulted to <code>false</code>. Set to <code>true</code> should you need a <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway">Shared App Gateway</a>.
+- <code>kubernetes.watchNamespace</code>: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
+- <code>armAuth.type</code>: could be <code>aadPodIdentity</code> or <code>servicePrincipal</code>
+- <code>armAuth.identityResourceID</code>: Resource ID of the Azure Managed Identity
+- <code>armAuth.identityClientId</code>: The Client ID of the Identity. See below for more information on Identity
+- <code>armAuth.secretJSON</code>: Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>servicePrincipal</code>)
+- <code>rbac.enabled</code>: Make sure to set this to true if you have a AKS cluster that is RBAC enabled.</p>
 <p>Note on Identity: The <code>identityResourceID</code> and <code>identityClientID</code> are values that were created
    during the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity">Create an Identity</a>
    steps, and could be obtained again using the following command:
    <div class="highlight"><pre><span></span>az identity show -g &lt;resource-group&gt; -n &lt;identity-name&gt;
 </pre></div>
-   <code>&lt;resource-group&gt;</code> in the command above is the resource group of your App Gateway. <code>&lt;identity-name&gt;</code> is the name of the created identity. All identities for a given subscription can be listed using: <code>az identity list</code></p>
+- <code>&lt;resource-group&gt;</code> in the command above is the resource group of your App Gateway. 
+- <code>&lt;identity-name&gt;</code> is the name of the created identity. All identities for a given subscription can be listed using: <code>az identity list</code></p>
 <ol>
 <li>
 <p>Install the Application Gateway ingress controller package:</p>
