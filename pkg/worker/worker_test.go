@@ -28,18 +28,14 @@ var _ = Describe("Worker Test", func() {
 		close(stopChannel)
 	})
 
-	Context("Check that worker executes the process", func() {
+	Context("Check that worker processes the event", func() {
 		It("Should be able to run process func", func() {
 			backChannel := make(chan struct{})
-			mutateAppGw := func() error {
+			processEvent := func(event events.Event) error {
 				backChannel <- struct{}{}
 				return nil
 			}
-			mutateAKS := func() error {
-				backChannel <- struct{}{}
-				return nil
-			}
-			eventProcessor := NewFakeProcessor(mutateAppGw, mutateAKS)
+			eventProcessor := NewFakeProcessor(processEvent)
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}

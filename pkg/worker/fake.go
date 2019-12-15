@@ -10,30 +10,23 @@ import (
 )
 
 // FakeProcessor is fake event processor type
-type FakeProcessor struct {
-	mutateAppGwy func() error
-	mutateAKS    func() error
+type FakeEventProcessor struct {
+	processEventCallBack func(event events.Event) error
 }
 
-// MutateAppGateway will call the callback provided
-func (fp FakeProcessor) MutateAppGateway() error {
-	return fp.mutateAppGwy()
-}
-
-// MutateAKS will call the callback provided
-func (fp FakeProcessor) MutateAKS() error {
-	return fp.mutateAKS()
+// ProcessEvent will invoke the callback provided
+func (fp FakeEventProcessor) ProcessEvent(event events.Event) error {
+	return fp.processEventCallBack(event)
 }
 
 // ShouldProcess will return true
-func (fp FakeProcessor) ShouldProcess(event events.Event) (bool, *string) {
+func (fp FakeEventProcessor) ShouldProcess(event events.Event) (bool, *string) {
 	return true, nil
 }
 
 // NewFakeProcessor returns a fake processor struct.
-func NewFakeProcessor(mutateAppGwy func() error, mutateAKS func() error) FakeProcessor {
-	return FakeProcessor{
-		mutateAppGwy: mutateAppGwy,
-		mutateAKS:    mutateAKS,
+func NewFakeProcessor(processEvent func(event events.Event) error) FakeEventProcessor {
+	return FakeEventProcessor{
+		processEventCallBack: processEvent,
 	}
 }

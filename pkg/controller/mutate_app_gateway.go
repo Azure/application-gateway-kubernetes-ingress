@@ -25,7 +25,7 @@ type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
 
-func (c AppGwIngressController) getAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
+func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
 	c.metricStore.IncArmAPICallCounter()
@@ -57,12 +57,8 @@ func (c AppGwIngressController) getAppGw() (*n.ApplicationGateway, *appgw.Config
 }
 
 // MutateAppGateway applies App Gateway config.
-func (c AppGwIngressController) MutateAppGateway() error {
-	appGw, cbCtx, err := c.getAppGw()
-	if err != nil {
-		return err
-	}
-
+func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
+	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 

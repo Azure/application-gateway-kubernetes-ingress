@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"fmt"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -21,13 +22,8 @@ import (
 type ipResource string
 type ipAddress string
 
-// MutateAKS applies changes to Kubernetes resources.
-func (c AppGwIngressController) MutateAKS() error {
-	appGw, cbCtx, err := c.getAppGw()
-	if err != nil {
-		return err
-	}
-
+// MutateAllIngress applies changes to ingress status object in kubernetes
+func (c AppGwIngressController) MutateAllIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
 	ips := getIPsFromAppGateway(appGw, c.azClient)
 
 	// update all relevant ingresses with IP address obtained from existing App Gateway configuration
@@ -36,6 +32,21 @@ func (c AppGwIngressController) MutateAKS() error {
 		c.updateIngressStatus(appGw, cbCtx, ingress, ips)
 	}
 	return nil
+}
+
+// ResetAllIngress resets the ingress status object in kubernetes
+func (c AppGwIngressController) ResetAllIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) {
+	for _, ingress := range cbCtx.IngressList {
+		if err := c.k8sContext.UpdateIngressStatus(*ingress, k8scontext.IPAddress("")); err != nil {
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonUnableToResetIngressStatus, err.Error())
+			glog.Errorf("[mutate_aks] Error resetting ingress %s/%s IP", ingress.Namespace, ingress.Name)
+			continue
+		}
+
+		msg := fmt.Sprintf("Reset IP for Ingress %s/%s. Application Gateway %s is in stopped state", ingress.Namespace, ingress.Name, *appGw.ID)
+		c.recorder.Event(ingress, v1.EventTypeNormal, events.ReasonResetIngressStatus, msg)
+		glog.V(5).Infof(msg)
+	}
 }
 
 func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress, ips map[ipResource]ipAddress) {
