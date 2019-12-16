@@ -25,6 +25,7 @@ type realClock struct{}
 
 func (realClock) Now() time.Time { return time.Now() }
 
+// GetAppGw gets App Gateway config.
 func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()

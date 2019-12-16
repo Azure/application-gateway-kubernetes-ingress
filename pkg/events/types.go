@@ -36,8 +36,8 @@ const (
 	// ReasonResetIngressStatus is a reason for an event to be emitted.
 	ReasonResetIngressStatus = "ResetIngressStatus"
 
-	// ReasonResetIngressStatus is a reason for an event to be emitted.
-	ReasonUnableToResetIngressStatus = "UnableResetIngressStatus"
+	// ReasonUnableToResetIngressStatus is a reason for an event to be emitted.
+	ReasonUnableToResetIngressStatus = "UnableToResetIngressStatus"
 
 	// ReasonInvalidAnnotation is a reason for an event to be emitted.
 	ReasonInvalidAnnotation = "InvalidAnnotation"

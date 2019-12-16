@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-// FakeProcessor is fake event processor type
+// FakeEventProcessor is fake event processor type
 type FakeEventProcessor struct {
 	processEventCallBack func(event events.Event) error
 }

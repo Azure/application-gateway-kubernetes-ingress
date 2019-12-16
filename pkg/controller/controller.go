@@ -93,6 +93,7 @@ func (c *AppGwIngressController) Readiness() bool {
 	return !isOpen
 }
 
+// ProcessEvent is the handler for K8 cluster events which are listened by informers.
 func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	appGw, cbCtx, err := c.GetAppGw()
 	if err != nil {
