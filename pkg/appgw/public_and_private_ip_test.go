@@ -394,8 +394,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "httpListeners": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443",
---                "name": "fl-443",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-8b237668c03a7c9ad070511906fb4dc8",
+--                "name": "fl-8b237668c03a7c9ad070511906fb4dc8",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-1--"
@@ -403,7 +403,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
 --                    },
---                    "hostName": "",
 --                    "protocol": "Https",
 --                    "sslCertificate": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
@@ -411,8 +410,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            },
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80-privateip",
---                "name": "fl-80-privateip",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-eeaf0e75278df30f10d163ad64541e15",
+--                "name": "fl-eeaf0e75278df30f10d163ad64541e15",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-2--"
@@ -420,7 +419,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "hostName": "",
 --                    "protocol": "Http"
 --                }
 --            }
@@ -454,8 +452,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "redirectConfigurations": null,
 --        "requestRoutingRules": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-443",
---                "name": "rr-443",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-8b237668c03a7c9ad070511906fb4dc8",
+--                "name": "rr-8b237668c03a7c9ad070511906fb4dc8",
 --                "properties": {
 --                    "backendAddressPool": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
@@ -464,14 +462,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-443"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-8b237668c03a7c9ad070511906fb4dc8"
 --                    },
 --                    "ruleType": "Basic"
 --                }
 --            },
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-80",
---                "name": "rr-80",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-eeaf0e75278df30f10d163ad64541e15",
+--                "name": "rr-eeaf0e75278df30f10d163ad64541e15",
 --                "properties": {
 --                    "backendAddressPool": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
@@ -480,7 +478,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80-internal-ingress-resource"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-80-privateip"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-eeaf0e75278df30f10d163ad64541e15"
 --                    },
 --                    "ruleType": "Basic"
 --                }

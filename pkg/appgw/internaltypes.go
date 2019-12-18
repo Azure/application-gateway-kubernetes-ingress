@@ -12,6 +12,7 @@ package appgw
 import (
 	"crypto/md5"
 	"fmt"
+	"math"
 	"regexp"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -20,6 +21,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 const (
@@ -32,6 +34,11 @@ const (
 	prefixRoutingRule  = "rr"
 	prefixRedirect     = "sslr"
 	prefixPathRule     = "pr"
+)
+
+const (
+	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
+	MaxAllowedHostnames int = 5
 )
 
 type backendIdentifier struct {
@@ -50,6 +57,7 @@ type serviceBackendPortPair struct {
 type listenerIdentifier struct {
 	FrontendPort Port
 	HostName     string
+	HostNames    [MaxAllowedHostnames]string
 	UsePrivateIP bool
 }
 
@@ -127,18 +135,15 @@ func generateFrontendPortName(port Port) string {
 }
 
 func generateListenerName(listenerID listenerIdentifier) string {
-	if listenerID.UsePrivateIP {
-		return formatPropName(fmt.Sprintf("%s%s-%v%v-privateip", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
-	}
-	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixListener, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%s", agPrefix, prefixListener, utils.GetHashCode(listenerID)))
 }
 
 func generateURLPathMapName(listenerID listenerIdentifier) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixPathMap, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%s", agPrefix, prefixPathMap, utils.GetHashCode(listenerID)))
 }
 
 func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
-	return formatPropName(fmt.Sprintf("%s%s-%v%v", agPrefix, prefixRoutingRule, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+	return formatPropName(fmt.Sprintf("%s%s-%s", agPrefix, prefixRoutingRule, utils.GetHashCode(listenerID)))
 }
 
 func generateSSLRedirectConfigurationName(targetListener listenerIdentifier) string {
@@ -211,12 +216,26 @@ func defaultFrontendListenerIdentifier() listenerIdentifier {
 	}
 }
 
-// formatHostname formats the hostname, which could be an empty string.
-func formatHostname(hostName string) string {
-	// Hostname could be empty.
-	if hostName == "" {
-		return ""
+func (listenerID *listenerIdentifier) setHostNames(hostnames []string) {
+	listenerID.HostName = ""
+	hostnameCount := int(math.Min(float64(len(hostnames)), float64(MaxAllowedHostnames)))
+	for i := 0; i < hostnameCount; i++ {
+		if listenerID.HostName == "" {
+			listenerID.HostName = hostnames[i]
+		}
+		listenerID.HostNames[i] = hostnames[i]
 	}
-	// Hostname is NOT empty - prefix it with a dash
-	return fmt.Sprintf("%s-", hostName)
+}
+
+// Returns the hostnames as a slice
+func (listenerID *listenerIdentifier) getHostNames() []string {
+	var hostnames []string
+
+	for i := 0; i < len(listenerID.HostNames); i++ {
+		if listenerID.HostNames[i] != "" {
+			hostnames = append(hostnames, listenerID.HostNames[i])
+		}
+	}
+
+	return hostnames
 }

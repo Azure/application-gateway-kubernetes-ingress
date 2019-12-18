@@ -79,8 +79,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-6d1d6d2bd4405b8228172c2ef8a065fb",
-                "name": "fl-6d1d6d2bd4405b8228172c2ef8a065fb",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-d8f5c23dcab3db80f8466dbc57706908",
+                "name": "fl-d8f5c23dcab3db80f8466dbc57706908",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-1--"
@@ -88,6 +88,7 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
+                    "hostName": "foo.baz",
                     "protocol": "Http"
                 }
             }
@@ -123,7 +124,7 @@
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
-                    "path": "/B/",
+                    "path": "/.well-known/acme-challenge/blahBlahBBLLAAHH",
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -133,15 +134,15 @@
         "redirectConfigurations": null,
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-6d1d6d2bd4405b8228172c2ef8a065fb",
-                "name": "rr-6d1d6d2bd4405b8228172c2ef8a065fb",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-d8f5c23dcab3db80f8466dbc57706908",
+                "name": "rr-d8f5c23dcab3db80f8466dbc57706908",
                 "properties": {
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-6d1d6d2bd4405b8228172c2ef8a065fb"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-d8f5c23dcab3db80f8466dbc57706908"
                     },
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-6d1d6d2bd4405b8228172c2ef8a065fb"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-d8f5c23dcab3db80f8466dbc57706908"
                     }
                 }
             }
@@ -154,11 +155,15 @@
         "sslCertificates": null,
         "urlPathMaps": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-6d1d6d2bd4405b8228172c2ef8a065fb",
-                "name": "url-6d1d6d2bd4405b8228172c2ef8a065fb",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-d8f5c23dcab3db80f8466dbc57706908",
+                "name": "url-d8f5c23dcab3db80f8466dbc57706908",
                 "properties": {
-                    "defaultBackendAddressPool": {},
-                    "defaultBackendHttpSettings": {},
+                    "defaultBackendAddressPool": {
+                        "id": "xx"
+                    },
+                    "defaultBackendHttpSettings": {
+                        "id": "yy"
+                    },
                     "pathRules": [
                         {
                             "name": "pr---namespace-----name---0",
@@ -169,11 +174,22 @@
                                 "backendHttpSettings": {
                                     "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--"
                                 },
-                                "firewallPolicy": {
-                                    "id": "/some/policy/here"
+                                "paths": [
+                                    "/.well-known/acme-challenge/blahBlahBBLLAAHH"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "pr---namespace-----name---0",
+                            "properties": {
+                                "backendAddressPool": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
+                                },
+                                "backendHttpSettings": {
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--"
                                 },
                                 "paths": [
-                                    "/B/"
+                                    "/.well-known/acme-challenge/blahBlahBBLLAAHH"
                                 ]
                             }
                         }

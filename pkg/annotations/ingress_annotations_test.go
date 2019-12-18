@@ -41,6 +41,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/request-timeout":             "123456",
 		"appgw.ingress.kubernetes.io/connection-draining-timeout": "3456",
 		"appgw.ingress.kubernetes.io/backend-path-prefix":         "prefix-here",
+		"appgw.ingress.kubernetes.io/hostname-extension":          "www.bye.com, www.b*.com",
 		"kubernetes.io/ingress.class":                             "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                         "azure/application-gateway",
 		"falseKey":                                                "false",
@@ -181,6 +182,31 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := UsePrivateIP(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test GetHostNameExtensions", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			hostnames, err := GetHostNameExtensions(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(hostnames).To(BeNil())
+		})
+
+		It("parses the hostname-extension correctly at correct delimiter", func() {
+			ing := &v1beta1.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/hostname-extension": " www.bye.com ,  www.b*.com ",
+			}
+			hostnames, err := GetHostNameExtensions(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hostnames).To(Equal([]string{"www.bye.com", "www.b*.com"}))
+		})
+
+		It("returns correct hostnames", func() {
+			hostnames, err := GetHostNameExtensions(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hostnames).To(Equal([]string{"www.bye.com", "www.b*.com"}))
 		})
 	})
 
