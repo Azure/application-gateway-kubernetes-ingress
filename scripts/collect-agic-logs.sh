@@ -11,6 +11,12 @@ if ! [ "which kubectl" ]; then
   exit 1
 fi
 
+read -p 'Please confirm azure-cli is updated to latest version (y/N):' cliVersionConfirmation
+if [ $cliVersionConfirmation != "y" ]
+then
+  exit 1
+fi
+
 az extension add --name aks-preview
 az extension update --name aks-preview
 
@@ -20,7 +26,7 @@ read -p 'ResourceGroup for '$clusterName' cluster: ' resourceGroupName
 read -p 'StorageAccountName: ' storageAccountName
 read -p 'StorageAccountSAS: ' sasKey
 
-file="/tmp/t0923"
+file="/tmp/agict0923"
 kubectl get pods -l "app=ingress-azure" --template '{{range .items}}{{.metadata.namespace}}{{"/"}}{{.metadata.name}}{{"\n"}}{{end}}' > $file
 
 ## Construct the pods to get the logs from
@@ -30,7 +36,13 @@ do
   containers="$containers $line"
 done < "$file"
 
+if [ -z "$containers" ]
+then
+  echo "No AGIC deployments found"
+  exit 1
+fi
+
 echo "Collect Logs for following AGIC containers: $containers"
-az aks kollect -n $clusterName -g $resourceGroupName --storage-account $storageAccountName --storage-account $storageAccountName --sas-token $sasKey --container-logs $containers
+az aks kollect -n $clusterName -g $resourceGroupName --storage-account "$storageAccountName" --sas-token "$sasKey" --container-logs "$containers"
 
 rm -rf $file
