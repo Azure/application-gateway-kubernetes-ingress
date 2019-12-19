@@ -703,7 +703,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
-			check(cbCtx, "two_ingresses_with_and_without_extendedhostname.json", stopChannel, ctxt, configBuilder)
+			check(cbCtx, "two_ingresses_with_and_without_extended_hostname.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("Preexisting port w/ same port number", func() {
