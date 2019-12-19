@@ -16,7 +16,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -183,7 +182,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool) listenerIdentifier {
+func generateListenerID(rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool, additionalHostnames []string) listenerIdentifier {
 	frontendPort := Port(80)
 	if protocol == n.HTTPS {
 		frontendPort = Port(443)
@@ -201,14 +200,7 @@ func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, pro
 	if rule != nil && rule.Host != "" {
 		hostnames = append(hostnames, rule.Host)
 	}
-
-	if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
-		if extendedHostNames != nil {
-			hostnames = append(hostnames, extendedHostNames...)
-		}
-	}
-
-	listenerID.setHostNames(hostnames)
+	listenerID.setHostNames(append(hostnames, additionalHostnames...))
 	return listenerID
 }
 

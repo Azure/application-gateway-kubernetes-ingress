@@ -113,9 +113,13 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
-	for _, ingress := range cbCtx.IngressList {
+	for idx, ingress := range cbCtx.IngressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
-		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
+		var additionalHostnames []string
+		if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil && extendedHostNames != nil && idx == 0 {
+			additionalHostnames = extendedHostNames
+		}
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables, additionalHostnames)
 		for listenerID, azConfig := range azListenerConfigs {
 			if cbCtx.EnvVariables.AttachWAFPolicyToListener {
 				attachFirewallPolicy(cbCtx, ingress, &azConfig)

@@ -14,15 +14,18 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables, additionalHostnames []string) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
 		if rule.HTTP == nil {
 			continue
 		}
-
-		_, ruleListeners := c.processIngressRule(rule, ingress, env)
+		var addHNames []string
+		if ruleIdx == 0 {
+			addHNames = additionalHostnames
+		}
+		_, ruleListeners := c.processIngressRule(rule, ingress, env, addHNames)
 		for k, v := range ruleListeners {
 			listeners[k] = v
 		}
@@ -30,7 +33,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	return listeners
 }
 
-func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables, additionalHostnames []string) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[Port]interface{})
 	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
@@ -45,7 +48,7 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 	// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
 	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
 	if hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTPS, nil, usePrivateIPForIngress)
+		listenerID := generateListenerID(rule, n.HTTPS, nil, usePrivateIPForIngress, additionalHostnames)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		// Only associate the Listener with a Redirect if redirect is enabled
 		redirect := ""
@@ -62,7 +65,7 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 
 	// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 	if sslRedirect || !hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, usePrivateIPForIngress)
+		listenerID := generateListenerID(rule, n.HTTP, nil, usePrivateIPForIngress, additionalHostnames)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		listeners[listenerID] = listenerAzConfig{
 			Protocol: n.HTTP,

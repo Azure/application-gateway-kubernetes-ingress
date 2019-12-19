@@ -63,7 +63,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(rule, n.HTTPS, nil, false, []string{})
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool", func() {
 			Expect(generatedPathMap.DefaultBackendAddressPool).To(Not(BeNil()))
@@ -141,7 +141,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(rule, n.HTTPS, nil, false, []string{})
 		generatedPathMap := pathMaps[sharedListenerID]
 		backendIDBasic := generateBackendID(ingressBasic, &ruleBasic, pathBasic, backendBasic)
 		It("has default backend pool coming from basic ingress", func() {
@@ -208,7 +208,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMap := configBuilder.getPathMaps(cbCtx)
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(rule, n.HTTP, nil, false, []string{})
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})
@@ -261,7 +261,7 @@ var _ = Describe("Test routing rules generations", func() {
 		pathMap := configBuilder.getPathMaps(cbCtx)
 
 		rule := &ingress.Spec.Rules[0]
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(rule, n.HTTP, nil, false, []string{})
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})

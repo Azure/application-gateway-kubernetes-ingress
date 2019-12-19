@@ -163,8 +163,13 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				continue
 			}
 
-			_, azListenerConfig := c.processIngressRule(rule, ingress, cbCtx.EnvVariables)
-			for listenerID, listenerAzConfig := range azListenerConfig {
+			var additionalHostnames []string
+			if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil && extendedHostNames != nil && ruleIdx == 0 {
+				additionalHostnames = extendedHostNames
+			}
+
+			_, azListenerConfigs := c.processIngressRule(rule, ingress, cbCtx.EnvVariables, additionalHostnames)
+			for listenerID, listenerAzConfig := range azListenerConfigs {
 				if _, exists := urlPathMaps[listenerID]; !exists {
 					urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 						Etag: to.StringPtr("*"),
