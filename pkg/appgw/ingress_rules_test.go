@@ -13,7 +13,6 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() {
-	port80 := Port(80)
 	port443 := Port(443)
 
 	expectedListener80, _ := newTestListenerID(Port(80), []string{tests.Host}, false)
@@ -53,7 +52,6 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
 		listenerConfigs := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		// Verify front end listeners
@@ -63,16 +61,6 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		It("should have a listener on port 80", func() {
 			actualListenerID := getMapKeys(&listenerConfigs)[0]
 			Expect(actualListenerID).To(Equal(expectedListener80))
-		})
-
-		// Verify front end ports
-		It("should have correct count of front end ports", func() {
-			Expect(len(frontendPorts)).To(Equal(1))
-		})
-
-		It("should have one port 80", func() {
-			actualPort := getPortsList(&frontendPorts)[0]
-			Expect(actualPort).To(Equal(port80))
 		})
 
 		// check the request routing rules
@@ -127,7 +115,6 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		}
 
 		// !! Action !!
-		frontendPorts := cb.getFrontendPortsFromIngress(ingress, cbCtx.EnvVariables)
 		frontendListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
@@ -135,19 +122,12 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		It("should have correct number of front end listener", func() {
 			Expect(len(frontendListeners)).To(Equal(1))
 		})
-		It("should have correct number of front end ports", func() {
-			Expect(len(frontendPorts)).To(Equal(1))
-		})
 		It("should have a listener on port 443", func() {
 			listeners := getMapKeys(&frontendListeners)
 			ports := make([]Port, 0, len(listeners))
 			for _, listener := range listeners {
 				ports = append(ports, listener.FrontendPort)
 			}
-			Expect(ports).To(ContainElement(port443))
-		})
-		It("should have one port 443", func() {
-			ports := getPortsList(&frontendPorts)
 			Expect(ports).To(ContainElement(port443))
 		})
 
