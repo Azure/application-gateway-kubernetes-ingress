@@ -14,22 +14,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getFrontendPortsFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[Port]interface{} {
-	frontendPorts := make(map[Port]interface{})
-	for ruleIdx := range ingress.Spec.Rules {
-		rule := &ingress.Spec.Rules[ruleIdx]
-		if rule.HTTP == nil {
-			continue
-		}
-
-		ruleFrontendPorts, _ := c.processIngressRule(rule, ingress, env)
-		for port := range ruleFrontendPorts {
-			frontendPorts[port] = nil
-		}
-	}
-	return frontendPorts
-}
-
 func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 	for ruleIdx := range ingress.Spec.Rules {
