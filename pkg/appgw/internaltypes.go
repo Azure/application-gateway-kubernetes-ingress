@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -228,7 +229,7 @@ func (listenerID *listenerIdentifier) setHostNames(hostnames []string) {
 }
 
 // Returns the hostnames as a slice
-func (listenerID *listenerIdentifier) getHostNames() []string {
+func (listenerID *listenerIdentifier) getHostNames() ([]string, string) {
 	var hostnames []string
 
 	for i := 0; i < len(listenerID.HostNames); i++ {
@@ -237,5 +238,5 @@ func (listenerID *listenerIdentifier) getHostNames() []string {
 		}
 	}
 
-	return hostnames
+	return hostnames, strings.Join(hostnames, ",")
 }

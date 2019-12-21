@@ -812,11 +812,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "hostnames": [
---                        "foo.baz",
---                        "bye.com",
---                        "test.com"
---                    ],
+--                    "hostName": "foo.baz,bye.com,test.com",
 --                    "protocol": "Http"
 --                }
 --            }

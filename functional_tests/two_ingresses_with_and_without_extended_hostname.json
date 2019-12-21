@@ -101,10 +101,7 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
-                    "hostnames": [
-                        "test.com",
-                        "t*.com"
-                    ],
+                    "hostName": "test.com,t*.com",
                     "protocol": "Http"
                 }
             }

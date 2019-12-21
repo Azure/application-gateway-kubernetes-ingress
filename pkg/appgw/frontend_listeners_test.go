@@ -115,8 +115,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration: resourceRef(tests.PublicIPID),
 				FrontendPort:            resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                n.ApplicationGatewayProtocol("Http"),
-				HostName:                nil,
-				Hostnames:               to.StringSlicePtr([]string{"test.com", "t*.com"}),
+				HostName:                to.StringPtr("test.com,t*.com"),
+				Hostnames:               nil,
 			},
 		}
 

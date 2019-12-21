@@ -27,6 +27,8 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 			listeners[k] = v
 		}
 	}
+
+	glog.V(5).Infof("[%s] Final Listeners created:  %+v", ingress.Name, listeners)
 	return listeners
 }
 

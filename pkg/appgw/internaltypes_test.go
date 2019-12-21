@@ -232,7 +232,7 @@ var _ = Describe("Test string key generators", func() {
 				HostName: "www.test.com",
 				HostNames: hostnameValues,
 			}
-			actualHostName := listenerID.getHostNames()
+			actualHostName,_ := listenerID.getHostNames()
 			Expect(actualHostName).To(Equal(hostnameValues[0:]))
 		})
 
@@ -241,7 +241,7 @@ var _ = Describe("Test string key generators", func() {
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
 			}
-			actualHostName := listenerID.getHostNames()
+			actualHostName,_ := listenerID.getHostNames()
 			Expect(actualHostName).To(BeNil())
 		})
 	})

@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"sort"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -173,11 +174,11 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 	}
 
 	// Use only the 'Hostnames' field as application gateway allows either 'HostName' or 'Hostnames'
-	if hostnames := listenerID.getHostNames(); len(hostnames) != 0 {
+	if hostnames, hostnamesAsString := listenerID.getHostNames(); len(hostnames) != 0 {
 		if len(hostnames) == 1 {
 			listener.HostName = &hostnames[0]
 		} else {
-			listener.Hostnames = &hostnames
+			listener.HostName = &hostnamesAsString
 		}
 	}
 
@@ -211,7 +212,8 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 		if listener.Hostnames != nil {
 			listenerID.setHostNames(*listener.Hostnames)
 		} else if listener.HostName != nil {
-			listenerID.setHostNames([]string{*listener.HostName})
+			// even if the hostname filed is suppose to have a single value split it my comma
+			listenerID.setHostNames(strings.Split(*listener.HostName, ","))
 		}
 
 		if portExists && port.Port != nil {
