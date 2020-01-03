@@ -11,14 +11,14 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | Annotation Key | Value Type | Default Value | Allowed Values
 | -- | -- | -- | -- |
 | [appgw.ingress.kubernetes.io/backend-path-prefix](#backend-path-prefix) | `string` | `nil` | |
+| [appgw.ingress.kubernetes.io/backend-hostname](#backend-hostname) | `string` | `nil` | |
+| [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | |
-| [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
-| [appgw.ingress.kubernetes.io/backend-protocol](#backend-host) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/waf-policy-for-path](#azure-waf-policy-for-path) | `string` |   |   |
 
 ## Backend Path Prefix
@@ -54,6 +54,68 @@ spec:
 In the example above we have defined an ingress resource named `go-server-ingress-bkprefix` with an annotation `appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"` . The annotation tells application gateway to create an HTTP setting which will have a path prefix override for the path `/hello` to `/test/`.
 
 ***NOTE:*** In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths specified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.
+
+## Backend Hostname
+
+This annotations allows us to specify the host name that Application Gateway should use while talking to the Pods.
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
+```
+
+## Backend Protocol
+
+This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: `http`, `https`
+
+> **Note**
+1) While self-signed certificates are supported on Application Gateway, currently, AGIC only support `https` when Pods are using certificate signed by a well-known CA.
+2) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/backend-protocol: "https"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 443
+```
 
 ## SSL Redirect
 
@@ -224,38 +286,6 @@ spec:
           servicePort: 80
 ```
 
-## Backend Protocol
-
-This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: `http`, `https`
-
-> **Note**
-1) While self-signed certificates are supported on Application Gateway, currently, AGIC only support `https` when Pods are using certificate signed by a well-known CA.
-2) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.
-
-### Usage
-```yaml
-appgw.ingress.kubernetes.io/backend-protocol: "https"
-```
-
-### Example
-```yaml
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: go-server-ingress-timeout
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-protocol: "https"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          serviceName: go-server-service
-          servicePort: 443
-```
 
 ## Attach firewall policy to a host and path
 This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
