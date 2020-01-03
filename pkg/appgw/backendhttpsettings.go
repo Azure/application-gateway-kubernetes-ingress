@@ -224,6 +224,12 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
+	if hostName, err := annotations.BackendHostName(backendID.Ingress); err == nil {
+		httpSettings.HostName = to.StringPtr(hostName)
+	} else if !annotations.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
 	if isConnDrain, err := annotations.IsConnectionDraining(backendID.Ingress); err == nil && isConnDrain {
 		httpSettings.ConnectionDraining = &n.ApplicationGatewayConnectionDraining{
 			Enabled: to.BoolPtr(true),

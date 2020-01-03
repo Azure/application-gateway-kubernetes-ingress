@@ -720,6 +720,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			// Set the ingress annotations for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
+			ingress.Annotations[annotations.BackendHostNameKey] = "www.backend.com"
 			ingress.Annotations[annotations.ConnectionDrainingKey] = "true"
 			ingress.Annotations[annotations.ConnectionDrainingTimeoutKey] = "10"
 			ingress.Annotations[annotations.CookieBasedAffinityKey] = "true"
@@ -764,7 +765,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						Port:                to.Int32Ptr(int32(backendPort)),
 						Path:                to.StringPtr("/test"),
 						Probe:               resourceRef(probeID),
-						HostName:            nil,
+						HostName:            to.StringPtr("www.backend.com"),
 						CookieBasedAffinity: n.Enabled,
 						ConnectionDraining: &n.ApplicationGatewayConnectionDraining{
 							Enabled:           to.BoolPtr(true),
