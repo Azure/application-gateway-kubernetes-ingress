@@ -11,6 +11,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | Annotation Key | Value Type | Default Value | Allowed Values
 | -- | -- | -- | -- |
 | [appgw.ingress.kubernetes.io/backend-path-prefix](#backend-path-prefix) | `string` | `nil` | |
+| [appgw.ingress.kubernetes.io/backend-trusted-root](#backend-trusted-root) | `string` | `nil` | `base64-encoded public key` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
@@ -53,6 +54,35 @@ spec:
 In the example above we have defined an ingress resource named `go-server-ingress-bkprefix` with an annotation `appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"` . The annotation tells application gateway to create an HTTP setting which will have a path prefix override for the path `/hello` to `/test/`.
 
 ***NOTE:*** In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths specified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.
+
+## Backend Trusted Root
+
+This annotations allows us to specify the trusted root certificate that Application Gateway should use in SSL handshake to the Pods.
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/backend-trusted-root: ""
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-trusted-root: ""
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
+```
 
 ## SSL Redirect
 

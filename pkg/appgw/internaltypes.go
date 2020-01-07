@@ -25,15 +25,16 @@ import (
 )
 
 const (
-	prefixHTTPSettings = "bp"
-	prefixProbe        = "pb"
-	prefixPool         = "pool"
-	prefixPort         = "fp"
-	prefixListener     = "fl"
-	prefixPathMap      = "url"
-	prefixRoutingRule  = "rr"
-	prefixRedirect     = "sslr"
-	prefixPathRule     = "pr"
+	prefixHTTPSettings           = "bp"
+	prefixProbe                  = "pb"
+	prefixPool                   = "pool"
+	prefixPort                   = "fp"
+	prefixListener               = "fl"
+	prefixPathMap                = "url"
+	prefixRoutingRule            = "rr"
+	prefixRedirect               = "sslr"
+	prefixPathRule               = "pr"
+	prefixTrustedRootCertificate = "tr"
 )
 
 const (
@@ -152,6 +153,10 @@ func generateSSLRedirectConfigurationName(targetListener listenerIdentifier) str
 
 func generatePathRuleName(namespace, ingress, suffix string) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
+}
+
+func generateTrustedRootCertificateName(ingress *v1beta1.Ingress) string {
+	return formatPropName(fmt.Sprintf("%s%s-%s-%s", agPrefix, prefixTrustedRootCertificate, ingress.Namespace, ingress.Name))
 }
 
 // DefaultBackendHTTPSettingsName is the name to be assigned to App Gateway's default HTTP settings resource.

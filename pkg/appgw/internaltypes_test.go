@@ -225,12 +225,12 @@ var _ = Describe("Test string key generators", func() {
 
 	Context("test GetHostNames works correctly", func() {
 		It("should correctly return the hostnames", func() {
-			var hostnameValues = [5]string{"www.test1.com", "www.test2.com", "www.test3.com","www.test4.com","www.test5.com"}
+			var hostnameValues = [5]string{"www.test1.com", "www.test2.com", "www.test3.com", "www.test4.com", "www.test5.com"}
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
-				HostName: "www.test.com",
-				HostNames: hostnameValues,
+				HostName:     "www.test.com",
+				HostNames:    hostnameValues,
 			}
 			actualHostName := listenerID.getHostNames()
 			Expect(actualHostName).To(Equal(hostnameValues[0:]))

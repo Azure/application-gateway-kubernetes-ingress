@@ -685,8 +685,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
-					annotations.SslRedirectKey:  "true",
+					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+					annotations.SslRedirectKey:       "true",
 					annotations.HostNameExtensionKey: "bye.com, test.com",
 				},
 				Namespace: ingressNS,

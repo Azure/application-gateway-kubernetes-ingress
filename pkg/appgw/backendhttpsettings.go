@@ -256,5 +256,13 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
+	if _, err := annotations.BackendTrustedRoot(backendID.Ingress); err == nil {
+		httpSettings.TrustedRootCertificates = &[]n.SubResource{
+			n.SubResource{ID: to.StringPtr(c.appGwIdentifier.trustedRootCertificateID(generateTrustedRootCertificateName(backendID.Ingress)))},
+		}
+	} else if err != nil && !annotations.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
 	return httpSettings
 }

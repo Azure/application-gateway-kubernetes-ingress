@@ -21,6 +21,9 @@ const (
 	// Null means no path will be prefixed. Default value is null.
 	BackendPathPrefixKey = ApplicationGatewayPrefix + "/backend-path-prefix"
 
+	// BackendTrustedRootKey defines the key for Trusted Root Certificate which should be used to verify backend certificate when making a SSL connection to the backend.
+	BackendTrustedRootKey = ApplicationGatewayPrefix + "/backend-trusted-root"
+
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
@@ -105,6 +108,11 @@ func IsSslRedirect(ing *v1beta1.Ingress) (bool, error) {
 // BackendPathPrefix override path
 func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, BackendPathPrefixKey)
+}
+
+// BackendTrustedRoot override hostname
+func BackendTrustedRoot(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, BackendTrustedRootKey)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection
