@@ -12,63 +12,57 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // WaitForAzureAuth waits until we can successfully get the gateway
 func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.Duration) error {
-	retryCount := 0
-	for {
-		response, err := azClient.GetGateway()
-		if err == nil {
-			return nil
-		}
+	err := utils.Retry(maxAuthRetryCount, retryPause,
+		func() (bool, error) {
+			response, err := azClient.GetGateway()
+			if err == nil {
+				return false, nil
+			}
 
-		// Reasons for 403 errors
-		if response.Response.Response != nil && response.Response.StatusCode == 403 {
-			glog.Error("Possible reasons:" +
-				" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
-				" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
-				" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
-		}
+			// Reasons for 403 errors
+			if response.Response.Response != nil && response.Response.StatusCode == 403 {
+				glog.Error("Possible reasons:" +
+					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
+					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
+					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+			}
 
-		if response.Response.Response != nil && response.Response.StatusCode == 404 {
-			glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
-			return ErrAppGatewayNotFound
-		}
+			if response.Response.Response != nil && response.Response.StatusCode == 404 {
+				glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
+				return false, ErrAppGatewayNotFound
+			}
 
-		if response.Response.Response != nil && response.Response.StatusCode != 200 {
-			// for example, getting 401. This is not expected as we are getting a token before making the call.
-			glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
-		}
+			if response.Response.Response != nil && response.Response.StatusCode != 200 {
+				// for example, getting 401. This is not expected as we are getting a token before making the call.
+				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
+			}
 
-		if retryCount >= maxAuthRetryCount {
-			glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
-			return ErrGetArmAuth
-		}
-		retryCount++
-		glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
-		time.Sleep(retryPause)
+			glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
+			return true, ErrGetArmAuth
+		})
+
+	if err != ErrAppGatewayNotFound {
+		glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", maxAuthRetryCount, err)
 	}
+
+	return err
 }
 
 // GetAuthorizerWithRetry return azure.Authorizer
-func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, azContext *AzContext, maxAuthRetryCount int, retryPause time.Duration) (autorest.Authorizer, error) {
-	var err error
-	retryCount := 0
-	for {
-		// Fetch a new token
-		if authorizer, err := getAuthorizer(authLocation, useManagedidentity, azContext); err == nil && authorizer != nil {
-			return authorizer, nil
-		}
-
-		if retryCount >= maxAuthRetryCount {
-			glog.Errorf("Tried %d times to get ARM authorization token; Error: %s", retryCount, err)
-			return nil, ErrFailedGetToken
-		}
-		retryCount++
-		glog.Errorf("Failed fetching authorization token for ARM. Will retry in %v. Error: %s", retryPause, err)
-		time.Sleep(retryPause)
-	}
+func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, azContext *AzContext, maxAuthRetryCount int, retryPause time.Duration) (authorizer autorest.Authorizer, err error) {
+	utils.Retry(maxAuthRetryCount, retryPause,
+		func() (bool, error) {
+			// Fetch a new token
+			authorizer, err = getAuthorizer(authLocation, useManagedidentity, azContext)
+			return true, err
+		})
+	return authorizer, nil
 }
 
 func getAuthorizer(authLocation string, useManagedidentity bool, azContext *AzContext) (autorest.Authorizer, error) {

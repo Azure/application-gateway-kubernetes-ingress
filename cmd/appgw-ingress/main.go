@@ -41,6 +41,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -161,14 +162,20 @@ func main() {
 
 	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
-			if env.AppGwSubnetID != "" {
-				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
-			} else if azContext != nil {
-				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
-			}
+			// create application gateway with retries
+			err = utils.Retry(maxAuthRetryCount, retryPause,
+				func() (bool, error) {
+					if env.AppGwSubnetID != "" {
+						err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
+					} else if azContext != nil {
+						err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
+					}
+					glog.Error("Failed in deploying Application Gateway and dependencies: ", err)
+					return true, err
+				})
 
 			if err != nil {
-				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
+				errorLine := fmt.Sprint("Failed in deploying Application Gateway and dependencies: ", err)
 				if agicPod != nil {
 					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
 				}
