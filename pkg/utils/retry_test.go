@@ -15,9 +15,9 @@ var _ = Describe("Retry", func() {
 				retry := 10
 				counter := 0
 				Retry(retry, time.Duration(0),
-					func() (bool, error) {
+					func() (Retriable, error) {
 						counter++
-						return true, nil
+						return Retriable(true), nil
 					})
 				Expect(counter).To(Equal(1))
 			})
@@ -27,9 +27,9 @@ var _ = Describe("Retry", func() {
 				counter := 0
 				err := errors.New("fake")
 				retryError := Retry(retry, time.Duration(0),
-					func() (bool, error) {
+					func() (Retriable, error) {
 						counter++
-						return false, err
+						return Retriable(false), err
 					})
 				Expect(counter).To(Equal(1))
 				Expect(err).To(Equal(retryError))
@@ -42,9 +42,9 @@ var _ = Describe("Retry", func() {
 				counter := 0
 				err := errors.New("fake")
 				retryError := Retry(retry, time.Duration(0),
-					func() (bool, error) {
+					func() (Retriable, error) {
 						counter++
-						return true, err
+						return Retriable(true), err
 					})
 				Expect(counter).To(Equal(retry))
 				Expect(err).To(Equal(retryError))
@@ -59,10 +59,10 @@ var _ = Describe("Retry", func() {
 				pause := time.Second
 				execTimeList := make([]time.Time, 0)
 				retryError := Retry(retry, pause,
-					func() (bool, error) {
+					func() (Retriable, error) {
 						counter++
 						execTimeList = append(execTimeList, time.Now())
-						return true, err
+						return Retriable(true), err
 					})
 				Expect(counter).To(Equal(2))
 				Expect(err).To(Equal(retryError))

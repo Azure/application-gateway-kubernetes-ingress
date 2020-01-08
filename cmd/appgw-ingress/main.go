@@ -164,14 +164,14 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			// create application gateway with retries
 			err = utils.Retry(maxAuthRetryCount, retryPause,
-				func() (bool, error) {
+				func() (utils.Retriable, error) {
 					if env.AppGwSubnetID != "" {
 						err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
 					} else if azContext != nil {
 						err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
 					}
 					glog.Error("Failed in deploying Application Gateway and dependencies: ", err)
-					return true, err
+					return utils.Retriable(true), err
 				})
 
 			if err != nil {

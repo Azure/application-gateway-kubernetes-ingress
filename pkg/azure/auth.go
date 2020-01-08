@@ -19,10 +19,10 @@ import (
 // WaitForAzureAuth waits until we can successfully get the gateway
 func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.Duration) error {
 	err := utils.Retry(maxAuthRetryCount, retryPause,
-		func() (bool, error) {
+		func() (utils.Retriable, error) {
 			response, err := azClient.GetGateway()
 			if err == nil {
-				return false, nil
+				return utils.Retriable(false), nil
 			}
 
 			// Reasons for 403 errors
@@ -35,7 +35,7 @@ func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.
 
 			if response.Response.Response != nil && response.Response.StatusCode == 404 {
 				glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
-				return false, ErrAppGatewayNotFound
+				return utils.Retriable(false), ErrAppGatewayNotFound
 			}
 
 			if response.Response.Response != nil && response.Response.StatusCode != 200 {
@@ -44,7 +44,7 @@ func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.
 			}
 
 			glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
-			return true, ErrGetArmAuth
+			return utils.Retriable(true), ErrGetArmAuth
 		})
 
 	if err != ErrAppGatewayNotFound {
@@ -57,10 +57,10 @@ func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.
 // GetAuthorizerWithRetry return azure.Authorizer
 func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, azContext *AzContext, maxAuthRetryCount int, retryPause time.Duration) (authorizer autorest.Authorizer, err error) {
 	utils.Retry(maxAuthRetryCount, retryPause,
-		func() (bool, error) {
+		func() (utils.Retriable, error) {
 			// Fetch a new token
 			authorizer, err = getAuthorizer(authLocation, useManagedidentity, azContext)
-			return true, err
+			return utils.Retriable(true), err
 		})
 	return authorizer, nil
 }
