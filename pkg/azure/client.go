@@ -24,7 +24,7 @@ import (
 
 const (
 	retryPause = 10 * time.Second
-	retryCount = 3
+	retryCount = 10
 )
 
 // AzClient is an interface for client to Azure
@@ -140,7 +140,7 @@ func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
 			return utils.Retriable(true), ErrGetArmAuth
 		})
 
-	if err != ErrAppGatewayNotFound {
+	if err != nil && err != ErrAppGatewayNotFound {
 		glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
 	}
 	return
@@ -229,6 +229,9 @@ func (az *azClient) getGroup() (group r.Group, err error) {
 	utils.Retry(retryCount, retryPause,
 		func() (utils.Retriable, error) {
 			group, err = az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
+			if err != nil {
+				glog.Errorf("Error while getting resource group '%s': %s", az.resourceGroupName, err)
+			}
 			return utils.Retriable(true), err
 		})
 
@@ -239,6 +242,9 @@ func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceNa
 	utils.Retry(retryCount, retryPause,
 		func() (utils.Retriable, error) {
 			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
+			if err != nil {
+				glog.Errorf("Error while getting virtual network '%s': %s", vnetName, err)
+			}
 			return utils.Retriable(true), err
 		})
 
