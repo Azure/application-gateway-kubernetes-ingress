@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
@@ -17,6 +18,13 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+)
+
+const (
+	retryPause = 10 * time.Second
+	retryCount = 3
 )
 
 // AzClient is an interface for client to Azure
@@ -102,8 +110,40 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.deploymentsClient.Authorizer = authorizer
 }
 
-func (az *azClient) GetGateway() (n.ApplicationGateway, error) {
-	return az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
+func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
+	err = utils.Retry(retryCount, retryPause,
+		func() (utils.Retriable, error) {
+			response, err = az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
+			if err == nil {
+				return utils.Retriable(false), nil
+			}
+
+			// Reasons for 403 errors
+			if response.Response.Response != nil && response.Response.StatusCode == 403 {
+				glog.Error("Possible reasons:" +
+					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
+					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
+					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+			}
+
+			if response.Response.Response != nil && response.Response.StatusCode == 404 {
+				glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
+				return utils.Retriable(false), ErrAppGatewayNotFound
+			}
+
+			if response.Response.Response != nil && response.Response.StatusCode != 200 {
+				// for example, getting 401. This is not expected as we are getting a token before making the call.
+				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
+			}
+
+			glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
+			return utils.Retriable(true), ErrGetArmAuth
+		})
+
+	if err != ErrAppGatewayNotFound {
+		glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
+	}
+	return
 }
 
 func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
@@ -185,12 +225,24 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 }
 
 // Create a resource group for the deployment.
-func (az *azClient) getGroup() (r.Group, error) {
-	return az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
+func (az *azClient) getGroup() (group r.Group, err error) {
+	utils.Retry(retryCount, retryPause,
+		func() (utils.Retriable, error) {
+			group, err = az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
+			return utils.Retriable(true), err
+		})
+
+	return
 }
 
-func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceName) (n.VirtualNetwork, error) {
-	return az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
+func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceName) (vnet n.VirtualNetwork, err error) {
+	utils.Retry(retryCount, retryPause,
+		func() (utils.Retriable, error) {
+			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
+			return utils.Retriable(true), err
+		})
+
+	return
 }
 
 func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetName ResourceName, subnetPrefix string) (subnet n.Subnet, err error) {

@@ -104,11 +104,10 @@ var _ = Describe("test helpers", func() {
 
 	Context("ensure isApplicationGatewayMutable works as expected", func() {
 		It("should return true as appgw is running", func() {
-			c := AppGwIngressController{
-			}
+			c := AppGwIngressController{}
 			config := &n.ApplicationGateway{
 				ID: to.StringPtr("something"),
-				ApplicationGatewayPropertiesFormat : &n.ApplicationGatewayPropertiesFormat{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					OperationalState: "Running",
 				},
 			}
@@ -116,11 +115,10 @@ var _ = Describe("test helpers", func() {
 		})
 
 		It("should return true as appgw is starting", func() {
-			c := AppGwIngressController{
-			}
+			c := AppGwIngressController{}
 			config := &n.ApplicationGateway{
 				ID: to.StringPtr("something"),
-				ApplicationGatewayPropertiesFormat : &n.ApplicationGatewayPropertiesFormat{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					OperationalState: "Starting",
 				},
 			}
@@ -128,11 +126,10 @@ var _ = Describe("test helpers", func() {
 		})
 
 		It("should return false as appgw is stopped", func() {
-			c := AppGwIngressController{
-			}
+			c := AppGwIngressController{}
 			config := &n.ApplicationGateway{
 				ID: to.StringPtr("something"),
-				ApplicationGatewayPropertiesFormat : &n.ApplicationGatewayPropertiesFormat{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					OperationalState: "Stopped",
 				},
 			}
@@ -140,11 +137,10 @@ var _ = Describe("test helpers", func() {
 		})
 
 		It("should return false as appgw is stopping", func() {
-			c := AppGwIngressController{
-			}
+			c := AppGwIngressController{}
 			config := &n.ApplicationGateway{
 				ID: to.StringPtr("something"),
-				ApplicationGatewayPropertiesFormat : &n.ApplicationGatewayPropertiesFormat{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					OperationalState: "Stopping",
 				},
 			}
@@ -152,11 +148,10 @@ var _ = Describe("test helpers", func() {
 		})
 
 		It("should return false for valid running state but incorrect casing", func() {
-			c := AppGwIngressController{
-			}
+			c := AppGwIngressController{}
 			config := &n.ApplicationGateway{
 				ID: to.StringPtr("something"),
-				ApplicationGatewayPropertiesFormat : &n.ApplicationGatewayPropertiesFormat{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					OperationalState: "running",
 				},
 			}

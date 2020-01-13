@@ -16,44 +16,6 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-// WaitForAzureAuth waits until we can successfully get the gateway
-func WaitForAzureAuth(azClient AzClient, maxAuthRetryCount int, retryPause time.Duration) error {
-	err := utils.Retry(maxAuthRetryCount, retryPause,
-		func() (utils.Retriable, error) {
-			response, err := azClient.GetGateway()
-			if err == nil {
-				return utils.Retriable(false), nil
-			}
-
-			// Reasons for 403 errors
-			if response.Response.Response != nil && response.Response.StatusCode == 403 {
-				glog.Error("Possible reasons:" +
-					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
-					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
-					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
-			}
-
-			if response.Response.Response != nil && response.Response.StatusCode == 404 {
-				glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
-				return utils.Retriable(false), ErrAppGatewayNotFound
-			}
-
-			if response.Response.Response != nil && response.Response.StatusCode != 200 {
-				// for example, getting 401. This is not expected as we are getting a token before making the call.
-				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
-			}
-
-			glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
-			return utils.Retriable(true), ErrGetArmAuth
-		})
-
-	if err != ErrAppGatewayNotFound {
-		glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", maxAuthRetryCount, err)
-	}
-
-	return err
-}
-
 // GetAuthorizerWithRetry return azure.Authorizer
 func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, azContext *AzContext, maxAuthRetryCount int, retryPause time.Duration) (authorizer autorest.Authorizer, err error) {
 	utils.Retry(maxAuthRetryCount, retryPause,
