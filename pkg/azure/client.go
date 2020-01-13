@@ -24,7 +24,8 @@ import (
 
 const (
 	retryPause = 10 * time.Second
-	retryCount = 10
+	retryCount = 3
+	extendedRetryCount = 60
 )
 
 // AzClient is an interface for client to Azure
@@ -239,7 +240,7 @@ func (az *azClient) getGroup() (group r.Group, err error) {
 }
 
 func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceName) (vnet n.VirtualNetwork, err error) {
-	utils.Retry(retryCount, retryPause,
+	utils.Retry(extendedRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
 			if err != nil {
