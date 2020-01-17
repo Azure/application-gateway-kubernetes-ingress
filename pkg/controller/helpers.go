@@ -96,6 +96,10 @@ func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool, overwritePre
 	return prettyJSON, err
 }
 
+func (c *AppGwIngressController) isApplicationGatewayMutable(appGw *n.ApplicationGateway) bool {
+	return appGw.OperationalState == "Running" || appGw.OperationalState == "Starting"
+}
+
 func isMap(v interface{}) bool {
 	return v != nil && reflect.ValueOf(v).Type().Kind() == reflect.Map
 }

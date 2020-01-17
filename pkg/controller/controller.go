@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/worker"
@@ -90,4 +91,31 @@ func (c *AppGwIngressController) Readiness() bool {
 	_, isOpen := <-c.k8sContext.CacheSynced
 	// When the channel is CLOSED we have synced cache and are READY!
 	return !isOpen
+}
+
+// ProcessEvent is the handler for K8 cluster events which are listened by informers.
+func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
+	appGw, cbCtx, err := c.GetAppGw()
+	if err != nil {
+		glog.Error("Error Retrieving AppGw for k8s event. ", err)
+		return err
+	}
+
+	// Reset all ingress Ips and igore mutating appgw if gateway is in stopped state
+	if !c.isApplicationGatewayMutable(appGw) {
+		glog.Info("Reset all ingress ip")
+		c.ResetAllIngress(appGw, cbCtx)
+		glog.Info("Ignore mutating App Gateway as it is not mutable")
+		return nil
+	}
+
+	if err := c.MutateAllIngress(appGw, cbCtx); err != nil {
+		glog.Error("Error mutating AKS from k8s event. ", err)
+	}
+
+	if err := c.MutateAppGateway(appGw, cbCtx); err != nil {
+		glog.Error("Error mutating App Gateway config from k8s event. ", err)
+	}
+
+	return nil
 }
