@@ -41,6 +41,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/request-timeout":             "123456",
 		"appgw.ingress.kubernetes.io/connection-draining-timeout": "3456",
 		"appgw.ingress.kubernetes.io/backend-path-prefix":         "prefix-here",
+		"appgw.ingress.kubernetes.io/backend-hostname":            "www.backend.com",
 		"appgw.ingress.kubernetes.io/hostname-extension":          "www.bye.com, www.b*.com",
 		"kubernetes.io/ingress.class":                             "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                         "azure/application-gateway",
@@ -121,6 +122,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := BackendPathPrefix(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("prefix-here"))
+		})
+	})
+
+	Context("test BackendHostName", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := BackendHostName(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns the hostname", func() {
+			actual, err := BackendHostName(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("www.backend.com"))
 		})
 	})
 

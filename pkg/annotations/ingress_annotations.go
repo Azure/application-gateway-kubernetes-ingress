@@ -21,6 +21,10 @@ const (
 	// Null means no path will be prefixed. Default value is null.
 	BackendPathPrefixKey = ApplicationGatewayPrefix + "/backend-path-prefix"
 
+	// BackendHostNameKey defines the key for Host which should be used as when making a connection to the backend.
+	// Null means Host specified in the request to Application Gateway is used to connect to the backend.
+	BackendHostNameKey = ApplicationGatewayPrefix + "/backend-hostname"
+
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
@@ -105,6 +109,11 @@ func IsSslRedirect(ing *v1beta1.Ingress) (bool, error) {
 // BackendPathPrefix override path
 func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, BackendPathPrefixKey)
+}
+
+// BackendHostName override hostname
+func BackendHostName(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, BackendHostNameKey)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection
