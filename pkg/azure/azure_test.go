@@ -7,12 +7,10 @@ package azure
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -69,17 +67,6 @@ var _ = Describe("Azure", func() {
 				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
-			})
-		})
-
-		Context("test waitForAzureAuth", func() {
-			client := NewFakeAzClient()
-			client.GetGatewayFunc = GetGatewayFunc(func() (n.ApplicationGateway, error) {
-				return n.ApplicationGateway{}, errors.New("some error")
-			})
-			It("should try and panic", func() {
-				err := WaitForAzureAuth(client, 0, time.Duration(10))
-				Ω(err).To(HaveOccurred())
 			})
 		})
 

@@ -23,5 +23,5 @@ var (
 	ErrGetArmAuth = errors.New("failed arm auth (AZUR004)")
 
 	// ErrAppGatewayNotFound is an error message.
-	ErrAppGatewayNotFound = errors.New("not found (AZUR005)")
+	ErrAppGatewayNotFound = errors.New("unable to find Application Gateway (AZUR005)")
 )
