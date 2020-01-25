@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	retryPause = 10 * time.Second
-	retryCount = 3
+	retryPause         = 10 * time.Second
+	retryCount         = 3
 	extendedRetryCount = 60
 )
 

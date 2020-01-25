@@ -137,7 +137,7 @@ func main() {
 	}
 
 	// create a new agic controller
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, env.HostedOnUnderlay)
 
 	// initialize the http server and start it
 	httpServer := httpserver.NewHTTPServer(
