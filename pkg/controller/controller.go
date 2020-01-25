@@ -26,8 +26,8 @@ type AppGwIngressController struct {
 	appGwIdentifier appgw.Identifier
 	ipAddressMap    map[string]k8scontext.IPAddress
 
-	k8sContext  *k8scontext.Context
-	worker      *worker.Worker
+	k8sContext       *k8scontext.Context
+	worker           *worker.Worker
 	hostedOnUnderlay bool
 
 	configCache *[]byte
@@ -43,16 +43,16 @@ type AppGwIngressController struct {
 // NewAppGwIngressController constructs a controller object.
 func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, hostedOnUnderlay bool) *AppGwIngressController {
 	controller := &AppGwIngressController{
-		azClient:        azClient,
-		appGwIdentifier: appGwIdentifier,
-		k8sContext:      k8sContext,
-		recorder:        recorder,
-		configCache:     to.ByteSlicePtr([]byte{}),
-		ipAddressMap:    map[string]k8scontext.IPAddress{},
-		stopChannel:     make(chan struct{}),
-		agicPod:         agicPod,
-		metricStore:     metricStore,
-		hostedOnUnderlay:     hostedOnUnderlay,
+		azClient:         azClient,
+		appGwIdentifier:  appGwIdentifier,
+		k8sContext:       k8sContext,
+		recorder:         recorder,
+		configCache:      to.ByteSlicePtr([]byte{}),
+		ipAddressMap:     map[string]k8scontext.IPAddress{},
+		stopChannel:      make(chan struct{}),
+		agicPod:          agicPod,
+		metricStore:      metricStore,
+		hostedOnUnderlay: hostedOnUnderlay,
 	}
 
 	controller.worker = &worker.Worker{

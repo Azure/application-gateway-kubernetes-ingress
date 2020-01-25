@@ -107,7 +107,7 @@ type EnvVariables struct {
 	UseManagedIdentityForPod   bool
 	HTTPServicePort            string
 	AttachWAFPolicyToListener  bool
-	HostedOnUnderlay                bool
+	HostedOnUnderlay           bool
 }
 
 var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
@@ -138,7 +138,7 @@ func GetEnv() EnvVariables {
 		UseManagedIdentityForPod:   GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
 		HTTPServicePort:            GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
 		AttachWAFPolicyToListener:  GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
-		HostedOnUnderlay:                GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
+		HostedOnUnderlay:           GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
 	}
 
 	return env
