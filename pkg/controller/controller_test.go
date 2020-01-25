@@ -25,7 +25,7 @@ var _ = Describe("test NewAppGwIngressController", func() {
 		appGwIdentifier := appgw.Identifier{}
 		k8sContext := &k8scontext.Context{}
 		recorder := record.NewFakeRecorder(0)
-		controller := NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricstore.NewFakeMetricStore(), nil)
+		controller := NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricstore.NewFakeMetricStore(), nil, false)
 		It("should have created the AppGwIngressController struct", func() {
 			err := controller.Start(environment.GetEnv())
 			Expect(err).To(HaveOccurred())
