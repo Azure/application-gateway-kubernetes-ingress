@@ -28,7 +28,7 @@ type AppGwIngressController struct {
 
 	k8sContext  *k8scontext.Context
 	worker      *worker.Worker
-	hostedOnOverlay bool
+	hostedOnUnderlay bool
 
 	configCache *[]byte
 
@@ -41,7 +41,7 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, hostedOnOverlay bool) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, hostedOnUnderlay bool) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		azClient:        azClient,
 		appGwIdentifier: appGwIdentifier,
@@ -52,7 +52,7 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 		stopChannel:     make(chan struct{}),
 		agicPod:         agicPod,
 		metricStore:     metricStore,
-		hostedOnOverlay:     hostedOnOverlay,
+		hostedOnUnderlay:     hostedOnUnderlay,
 	}
 
 	controller.worker = &worker.Worker{
@@ -90,7 +90,7 @@ func (c *AppGwIngressController) Liveness() bool {
 
 // Readiness fulfills the health.HealthProbe interface; It is evaluated when K8s readiness-checks the AGIC pod.
 func (c *AppGwIngressController) Readiness() bool {
-	if !c.hostedOnOverlay {
+	if !c.hostedOnUnderlay {
 		// When the channel is CLOSED we have synced cache and are READY!
 		_, isOpen := <-c.k8sContext.CacheSynced
 		return !isOpen
