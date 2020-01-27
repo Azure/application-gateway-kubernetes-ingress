@@ -97,11 +97,17 @@ func main() {
 	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
+	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
 	azContext, err := azure.NewAzContext(env.AzContextLocation)
 	if err != nil {
 		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
-	} else if azContext.VNetResourceGroup == "" {
-		azContext.VNetResourceGroup = azContext.ResourceGroup
+	} else {
+		if azContext.VNetResourceGroup == "" {
+			azContext.VNetResourceGroup = azContext.ResourceGroup
+		}
+		if azContext.RouteTableResourceGroup == "" {
+			azContext.RouteTableResourceGroup = azContext.ResourceGroup
+		}
 	}
 
 	// adjust env variable
@@ -212,13 +218,14 @@ func main() {
 	// associate route table to application gateway subnet
 	if azContext != nil && azContext.RouteTableName != "" {
 		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
-		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.RouteTableName))
+		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.RouteTableResourceGroup), azure.ResourceName(azContext.RouteTableName))
 
 		err = azClient.ApplyRouteTable(subnetID, routeTableID)
 		if err != nil {
-			glog.Warningf("Unable to associate Application Gateway subnet %s with route table %s due to error: %s",
-				env.AppGwSubnetName, azContext.RouteTableName,
-				err.Error())
+			glog.Warningf("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error: [%+v]",
+				subnetID,
+				routeTableID,
+				err)
 		}
 	}
 
