@@ -187,9 +187,9 @@ func main() {
 	if azContext != nil && azContext.RouteTableName != "" {
 		err = azClient.ApplyRouteTable(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), azure.ResourceName(azContext.RouteTableName))
 		if err != nil {
-			glog.Errorf("Unable to associate Application Gateway subnet %s with route table %s due to error: ",
+			glog.Warningf("Unable to associate Application Gateway subnet %s with route table %s due to error: %s",
 				env.AppGwSubnetName, azContext.RouteTableName,
-				err)
+				err.Error())
 		}
 	}
 
