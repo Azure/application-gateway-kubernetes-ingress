@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"k8s.io/client-go/tools/record"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -75,6 +76,7 @@ var _ = Describe("process function tests", func() {
 				*fixtures.GetPublicIPConfiguration().ID:  publicIP,
 				*fixtures.GetPrivateIPConfiguration().ID: privateIP,
 			},
+			recorder: record.NewFakeRecorder(100),
 		}
 		cbCtx = &appgw.ConfigBuilderContext{
 			IngressList: []*v1beta1.Ingress{
@@ -115,6 +117,23 @@ var _ = Describe("process function tests", func() {
 				IP:       string(privateIP),
 			}))
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(1))
+		})
+	})
+
+	Context("test ResetAllIngress", func() {
+		It("ensure that ResetAllIngress sets removes the loadbalancer from ingress", func() {
+			// Setup Ip Address first
+			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+				Hostname: "",
+				IP:       string(publicIP),
+			}))
+
+			// Reset should clear it
+			controller.ResetAllIngress(&appGw, cbCtx)
+			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
 		})
 	})
 })

@@ -101,4 +101,61 @@ var _ = Describe("test helpers", func() {
 			Expect(isSlice(make(map[string]interface{}))).To(BeFalse())
 		})
 	})
+
+	Context("ensure isApplicationGatewayMutable works as expected", func() {
+		It("should return true as appgw is running", func() {
+			c := AppGwIngressController{}
+			config := &n.ApplicationGateway{
+				ID: to.StringPtr("something"),
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					OperationalState: "Running",
+				},
+			}
+			Expect(c.isApplicationGatewayMutable(config)).To(BeTrue())
+		})
+
+		It("should return true as appgw is starting", func() {
+			c := AppGwIngressController{}
+			config := &n.ApplicationGateway{
+				ID: to.StringPtr("something"),
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					OperationalState: "Starting",
+				},
+			}
+			Expect(c.isApplicationGatewayMutable(config)).To(BeTrue())
+		})
+
+		It("should return false as appgw is stopped", func() {
+			c := AppGwIngressController{}
+			config := &n.ApplicationGateway{
+				ID: to.StringPtr("something"),
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					OperationalState: "Stopped",
+				},
+			}
+			Expect(c.isApplicationGatewayMutable(config)).To(BeFalse())
+		})
+
+		It("should return false as appgw is stopping", func() {
+			c := AppGwIngressController{}
+			config := &n.ApplicationGateway{
+				ID: to.StringPtr("something"),
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					OperationalState: "Stopping",
+				},
+			}
+			Expect(c.isApplicationGatewayMutable(config)).To(BeFalse())
+		})
+
+		It("should return false for valid running state but incorrect casing", func() {
+			c := AppGwIngressController{}
+			config := &n.ApplicationGateway{
+				ID: to.StringPtr("something"),
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					OperationalState: "running",
+				},
+			}
+			Expect(c.isApplicationGatewayMutable(config)).To(BeFalse())
+		})
+	})
 })

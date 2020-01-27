@@ -189,7 +189,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
 				annotations.HostNameExtensionKey: "foo.baz",
 			},
 			Namespace: tests.Namespace,
@@ -534,7 +534,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
 					annotations.HostNameExtensionKey: "test.com, t*.com",
 				},
 				Namespace: tests.Namespace,

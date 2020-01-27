@@ -45,10 +45,10 @@ import (
 )
 
 const (
-	verbosityFlag     = "verbosity"
-	maxAuthRetryCount = 10
-	retryPause        = 10 * time.Second
-	resyncPause       = 30 * time.Second
+	verbosityFlag = "verbosity"
+	maxRetryCount = 10
+	retryPause    = 10 * time.Second
+	resyncPause   = 30 * time.Second
 )
 
 var (
@@ -137,7 +137,7 @@ func main() {
 	}
 
 	// create a new agic controller
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, env.HostedOnUnderlay)
 
 	// initialize the http server and start it
 	httpServer := httpserver.NewHTTPServer(
@@ -149,7 +149,7 @@ func main() {
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxAuthRetryCount, retryPause); err != nil {
+	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxRetryCount, retryPause); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
@@ -159,7 +159,7 @@ func main() {
 		azClient.SetAuthorizer(authorizer)
 	}
 
-	if err = azure.WaitForAzureAuth(azClient, maxAuthRetryCount, retryPause); err != nil {
+	if _, err = azClient.GetGateway(); err != nil {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)

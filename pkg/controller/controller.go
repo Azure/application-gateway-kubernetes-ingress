@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/worker"
@@ -25,8 +26,9 @@ type AppGwIngressController struct {
 	appGwIdentifier appgw.Identifier
 	ipAddressMap    map[string]k8scontext.IPAddress
 
-	k8sContext *k8scontext.Context
-	worker     *worker.Worker
+	k8sContext       *k8scontext.Context
+	worker           *worker.Worker
+	hostedOnUnderlay bool
 
 	configCache *[]byte
 
@@ -39,17 +41,18 @@ type AppGwIngressController struct {
 }
 
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, hostedOnUnderlay bool) *AppGwIngressController {
 	controller := &AppGwIngressController{
-		azClient:        azClient,
-		appGwIdentifier: appGwIdentifier,
-		k8sContext:      k8sContext,
-		recorder:        recorder,
-		configCache:     to.ByteSlicePtr([]byte{}),
-		ipAddressMap:    map[string]k8scontext.IPAddress{},
-		stopChannel:     make(chan struct{}),
-		agicPod:         agicPod,
-		metricStore:     metricStore,
+		azClient:         azClient,
+		appGwIdentifier:  appGwIdentifier,
+		k8sContext:       k8sContext,
+		recorder:         recorder,
+		configCache:      to.ByteSlicePtr([]byte{}),
+		ipAddressMap:     map[string]k8scontext.IPAddress{},
+		stopChannel:      make(chan struct{}),
+		agicPod:          agicPod,
+		metricStore:      metricStore,
+		hostedOnUnderlay: hostedOnUnderlay,
 	}
 
 	controller.worker = &worker.Worker{
@@ -87,7 +90,38 @@ func (c *AppGwIngressController) Liveness() bool {
 
 // Readiness fulfills the health.HealthProbe interface; It is evaluated when K8s readiness-checks the AGIC pod.
 func (c *AppGwIngressController) Readiness() bool {
-	_, isOpen := <-c.k8sContext.CacheSynced
-	// When the channel is CLOSED we have synced cache and are READY!
-	return !isOpen
+	if !c.hostedOnUnderlay {
+		// When the channel is CLOSED we have synced cache and are READY!
+		_, isOpen := <-c.k8sContext.CacheSynced
+		return !isOpen
+	}
+
+	return true
+}
+
+// ProcessEvent is the handler for K8 cluster events which are listened by informers.
+func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
+	appGw, cbCtx, err := c.GetAppGw()
+	if err != nil {
+		glog.Error("Error Retrieving AppGw for k8s event. ", err)
+		return err
+	}
+
+	// Reset all ingress Ips and igore mutating appgw if gateway is in stopped state
+	if !c.isApplicationGatewayMutable(appGw) {
+		glog.Info("Reset all ingress ip")
+		c.ResetAllIngress(appGw, cbCtx)
+		glog.Info("Ignore mutating App Gateway as it is not mutable")
+		return nil
+	}
+
+	if err := c.MutateAllIngress(appGw, cbCtx); err != nil {
+		glog.Error("Error mutating AKS from k8s event. ", err)
+	}
+
+	if err := c.MutateAppGateway(appGw, cbCtx); err != nil {
+		glog.Error("Error mutating App Gateway config from k8s event. ", err)
+	}
+
+	return nil
 }

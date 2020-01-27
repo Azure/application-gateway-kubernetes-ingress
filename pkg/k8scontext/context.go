@@ -182,7 +182,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(envVariables.AGICPodName, metav1.GetOptions{})
 	if err != nil {
-		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment), error occurred ", err)
+		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: ", err)
 		return nil
 	}
 	return pod

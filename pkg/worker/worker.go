@@ -54,12 +54,8 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 
 			_ = drainChan(work, event)
 
-			if err := w.MutateAKS(); err != nil {
-				glog.Error("Error mutating AKS from k8s event. ", err)
-			}
-
-			if err := w.MutateAppGateway(); err != nil {
-				glog.Error("Error mutating App Gateway config from k8s event. ", err)
+			if err := w.ProcessEvent(event); err != nil {
+				glog.Error("Error processing event.", err)
 				time.Sleep(sleepOnErrorSeconds * time.Second)
 			}
 

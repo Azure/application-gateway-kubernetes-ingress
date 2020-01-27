@@ -15,6 +15,7 @@ import (
 func GetAppGateway() n.ApplicationGateway {
 	// The order of the lists below is important as we reference these by index in unit tests.
 	return n.ApplicationGateway{
+		ID: to.StringPtr("something"),
 		ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 
 			RequestRoutingRules: &[]n.ApplicationGatewayRequestRoutingRule{

@@ -18,7 +18,7 @@ Follow the steps below to install [cert-manager](https://docs.cert-manager.io) o
     ```bash
     # Install the CustomResourceDefinition resources separately
     # Note: --validate=false is required per https://github.com/jetstack/cert-manager/issues/2208#issuecomment-541311021
-    kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml --validate=false
+    kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml --validate=false
 
     # Create the namespace for cert-manager
     kubectl create namespace cert-manager
@@ -36,7 +36,7 @@ Follow the steps below to install [cert-manager](https://docs.cert-manager.io) o
     helm install \
       --name cert-manager \
       --namespace cert-manager \
-      --version v0.11.0 \
+      --version v0.13.0 \
       jetstack/cert-manager
     ```
 
