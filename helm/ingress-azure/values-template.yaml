@@ -18,6 +18,9 @@ kubernetes:
     # Port for AGIC's HTTP API endpoint
     httpServicePort: 8123
 
+    # Whether to force private IP for all the listeners on Application Gateway
+    usePrivateIP: "false"
+
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
