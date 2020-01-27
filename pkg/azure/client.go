@@ -32,7 +32,7 @@ const (
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 
-	ApplyRouteTable(ResourceGroup, ResourceName, ResourceName, ResourceName) error
+	ApplyRouteTable(string, string) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
@@ -180,25 +180,33 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 	return ip, nil
 }
 
-func (az *azClient) ApplyRouteTable(resourceGroup ResourceGroup, vnetName ResourceName, subnetName ResourceName, routeTableName ResourceName) error {
+func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error {
 	// Check if the route table exists
-	routeTable, err := az.routeTablesClient.Get(az.ctx, string(resourceGroup), string(routeTableName), "")
+	_, routeTableResourceGroup, routeTableName := ParseResourceID(routeTableID)
+	routeTable, err := az.routeTablesClient.Get(az.ctx, string(routeTableResourceGroup), string(routeTableName), "")
 	if err != nil {
 		// no access or no route table
 		return err
 	}
 
+	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
 	// Associated the route table to the subnet as k8s using kubenet network plugin.
-	subnet, err := az.subnetsClient.Get(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), "")
+	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
 	if err != nil {
 		return err
 	}
 
 	if subnet.RouteTable != nil {
-		glog.Infof("Skipping associating Application Gateway subnet %s with route table %s used by k8s cluster as it already has route table %s associated to it",
-			subnetName,
-			routeTableName,
-			*subnet.SubnetPropertiesFormat.RouteTable.ID)
+		if *subnet.RouteTable.ID != routeTableID {
+			glog.Infof("Skipping associating Application Gateway subnet %s with route table %s used by k8s cluster as it is already associated to route table %s.",
+				subnetName,
+				routeTableName,
+				*subnet.SubnetPropertiesFormat.RouteTable.ID)
+		} else {
+			glog.Infof("Application Gateway subnet %s is associated with route table %s used by k8s cluster.",
+				subnetName,
+				routeTableName)
+		}
 
 		return nil
 	}
@@ -206,7 +214,7 @@ func (az *azClient) ApplyRouteTable(resourceGroup ResourceGroup, vnetName Resour
 	glog.Infof("Associating Application Gateway subnet %s with route table %s used by k8s cluster.", subnetName, routeTableName)
 	subnet.RouteTable = &routeTable
 
-	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
+	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), subnet)
 	if err != nil {
 		return err
 	}

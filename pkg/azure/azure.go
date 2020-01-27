@@ -32,6 +32,27 @@ func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 	return SubscriptionID(split[2]), ResourceGroup(split[4]), ResourceName(split[8])
 }
 
+// ParseSubResourceID gets subscriptionId, resource group, vnet name, sub resource name from resourceID
+func ParseSubResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName, ResourceName) {
+	split := strings.Split(ID, "/")
+	if len(split) < 9 {
+		glog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
+		return "", "", "", ""
+	}
+
+	return SubscriptionID(split[2]), ResourceGroup(split[4]), ResourceName(split[8]), ResourceName(split[10])
+}
+
+// ResourceID generates a resource id
+func ResourceID(subscriptionID SubscriptionID, resourceGroup ResourceGroup, provider string, resourceKind string, resourcePath string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/%s/%s/%s", subscriptionID, resourceGroup, provider, resourceKind, resourcePath)
+}
+
+// RouteTableID generates a route table resource id
+func RouteTableID(subscriptionID SubscriptionID, resourceGroup ResourceGroup, routeTableName ResourceName) string {
+	return ResourceID(subscriptionID, resourceGroup, "Microsoft.Network", "routeTables", string(routeTableName))
+}
+
 // ConvertToClusterResourceGroup converts infra resource group to aks cluster ID
 func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup ResourceGroup, err error) (string, error) {
 	if err != nil {

@@ -24,7 +24,7 @@ type DeployGatewayFunc func(string) error
 type GetPublicIPFunc func(string) (n.PublicIPAddress, error)
 
 // ApplyRouteTableFunc is a function type
-type ApplyRouteTableFunc  func(ResourceGroup, ResourceName, ResourceName, ResourceName) error
+type ApplyRouteTableFunc func(string, string) error
 
 // FakeAzClient is a fake struct for AzClient
 type FakeAzClient struct {
@@ -85,9 +85,9 @@ func (az *FakeAzClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error
 }
 
 // ApplyRouteTable runs ApplyRouteTableFunc
-func (az *FakeAzClient) ApplyRouteTable(resourceGroup ResourceGroup, vnetName ResourceName, subnetName ResourceName, routeTableName ResourceName) error {
+func (az *FakeAzClient) ApplyRouteTable(subnetID string, routeTableID string) error {
 	if az.ApplyRouteTableFunc != nil {
-		return az.ApplyRouteTableFunc(resourceGroup, vnetName, subnetName, routeTableName)
+		return az.ApplyRouteTableFunc(subnetID, routeTableID)
 	}
 	return nil
 }

@@ -183,16 +183,6 @@ func main() {
 		}
 	}
 
-	// add route table to application gateway subnet
-	if azContext != nil && azContext.RouteTableName != "" {
-		err = azClient.ApplyRouteTable(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), azure.ResourceName(azContext.RouteTableName))
-		if err != nil {
-			glog.Warningf("Unable to associate Application Gateway subnet %s with route table %s due to error: %s",
-				env.AppGwSubnetName, azContext.RouteTableName,
-				err.Error())
-		}
-	}
-
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
 		glog.Fatal(err) // side-effect: will panic on non-existent namespace
@@ -217,6 +207,19 @@ func main() {
 		// Slow down the cycling of the AGIC pod.
 		time.Sleep(5 * time.Second)
 		glog.Fatal(errorLine)
+	}
+
+	// associate route table to application gateway subnet
+	if azContext != nil && azContext.RouteTableName != "" {
+		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
+		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.RouteTableName))
+
+		err = azClient.ApplyRouteTable(subnetID, routeTableID)
+		if err != nil {
+			glog.Warningf("Unable to associate Application Gateway subnet %s with route table %s due to error: %s",
+				env.AppGwSubnetName, azContext.RouteTableName,
+				err.Error())
+		}
 	}
 
 	if err := appGwIngressController.Start(env); err != nil {
