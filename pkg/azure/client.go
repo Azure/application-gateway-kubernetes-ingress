@@ -32,6 +32,7 @@ const (
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 
+	ApplyRouteTable(ResourceGroup, ResourceName, ResourceName, ResourceName) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
@@ -45,6 +46,7 @@ type azClient struct {
 	publicIPsClient       n.PublicIPAddressesClient
 	virtualNetworksClient n.VirtualNetworksClient
 	subnetsClient         n.SubnetsClient
+	routeTablesClient     n.RouteTablesClient
 	groupsClient          r.GroupsClient
 	deploymentsClient     r.DeploymentsClient
 
@@ -69,6 +71,7 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		routeTablesClient:     n.NewRouteTablesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 
@@ -92,6 +95,9 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
 	}
+	if err := az.routeTablesClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Route Tables client: ", userAgent)
+	}
 	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Groups client: ", userAgent)
 	}
@@ -107,6 +113,7 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.publicIPsClient.Authorizer = authorizer
 	az.virtualNetworksClient.Authorizer = authorizer
 	az.subnetsClient.Authorizer = authorizer
+	az.routeTablesClient.Authorizer = authorizer
 	az.groupsClient.Authorizer = authorizer
 	az.deploymentsClient.Authorizer = authorizer
 }
@@ -171,6 +178,46 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 	}
 	az.memoizedIPs[resourceID] = ip
 	return ip, nil
+}
+
+func (az *azClient) ApplyRouteTable(resourceGroup ResourceGroup, vnetName ResourceName, subnetName ResourceName, routeTableName ResourceName) error {
+	// Check if the route table exists
+	routeTable, err := az.routeTablesClient.Get(az.ctx, string(resourceGroup), string(routeTableName), "")
+	if err != nil {
+		// no access or no route table
+		return err
+	}
+
+	// Associated the route table to the subnet as k8s using kubenet network plugin.
+	subnet, err := az.subnetsClient.Get(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), "")
+	if err != nil {
+		return err
+	}
+
+	if subnet.RouteTable != nil {
+		glog.Infof("Skipping associating Application Gateway subnet %s with route table %s used by k8s cluster as it already has route table %s associated to it",
+			subnetName,
+			routeTableName,
+			*subnet.SubnetPropertiesFormat.RouteTable.ID)
+
+		return nil
+	}
+
+	glog.Infof("Associating Application Gateway subnet %s with route table %s used by k8s cluster.", subnetName, routeTableName)
+	subnet.RouteTable = &routeTable
+
+	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
+	if err != nil {
+		return err
+	}
+
+	// Wait until deployment finshes and save the error message
+	err = subnetFuture.WaitForCompletionRef(az.ctx, az.subnetsClient.BaseClient.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeployGateway is a method that deploy the appgw and related resources

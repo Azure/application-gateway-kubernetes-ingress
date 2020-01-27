@@ -183,6 +183,16 @@ func main() {
 		}
 	}
 
+	// add route table to application gateway subnet
+	if azContext != nil && azContext.RouteTableName != "" {
+		err = azClient.ApplyRouteTable(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), azure.ResourceName(azContext.RouteTableName))
+		if err != nil {
+			glog.Errorf("Unable to associate Application Gateway subnet %s with route table %s due to error: ",
+				env.AppGwSubnetName, azContext.RouteTableName,
+				err)
+		}
+	}
+
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
 		glog.Fatal(err) // side-effect: will panic on non-existent namespace
