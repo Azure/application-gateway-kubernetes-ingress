@@ -181,6 +181,23 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 }
 
 func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error {
+	// Check if the route table exists
+	_, routeTableResourceGroup, routeTableName := ParseResourceID(routeTableID)
+	routeTable, err := az.routeTablesClient.Get(az.ctx, string(routeTableResourceGroup), string(routeTableName), "")
+
+	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
+	if routeTable.Response.StatusCode == 404 {
+		glog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
+			routeTableID,
+			err.Error())
+		return nil
+	}
+
+	if err != nil {
+		// no access or no route table
+		return err
+	}
+	
 	// Get subnet and check if it is already associated to a route table
 	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
 	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
@@ -201,23 +218,6 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 		}
 
 		return nil
-	}
-
-	// Check if the route table exists
-	_, routeTableResourceGroup, routeTableName := ParseResourceID(routeTableID)
-	routeTable, err := az.routeTablesClient.Get(az.ctx, string(routeTableResourceGroup), string(routeTableName), "")
-
-	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
-	if routeTable.Response.StatusCode == 404 {
-		glog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
-			routeTableID,
-			err.Error())
-		return nil
-	}
-
-	if err != nil {
-		// no access or no route table
-		return err
 	}
 
 	glog.Infof("Associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster.", subnetID, routeTableID)

@@ -222,7 +222,7 @@ func main() {
 
 		err = azClient.ApplyRouteTable(subnetID, routeTableID)
 		if err != nil {
-			glog.Warningf("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error: [%+v]",
+			glog.V(5).Infof("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin): [%+v]",
 				subnetID,
 				routeTableID,
 				err)
