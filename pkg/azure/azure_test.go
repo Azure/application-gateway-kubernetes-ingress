@@ -114,5 +114,32 @@ var _ = Describe("Azure", func() {
 				Ω(context.Region).To(Equal("l"))
 			})
 		})
+
+		Context("test RouteTableID func", func(){
+			It("generate correct route table ID", func(){
+				expectedRouteTable := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/routeTables/rt"
+				Expect(RouteTableID(SubscriptionID("subID"), ResourceGroup("resGp"), ResourceName("rt"))).To(Equal(expectedRouteTable))
+			})
+		})
+
+		Context("test ParseSubResourceID func", func(){
+			It("parses sub resource ID correctly", func(){
+				subResourceID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/appgw/sslCertificates/cert"
+				subID, resourceGp, resource, subResource := ParseSubResourceID(subResourceID)
+				Expect(subID).To(Equal(SubscriptionID("subID")))
+				Expect(resourceGp).To(Equal(ResourceGroup("resGp")))
+				Expect(resource).To(Equal(ResourceName("appgw")))
+				Expect(subResource).To(Equal(ResourceName("cert")))
+			})
+
+			It("should give error if segements are less", func(){
+				subResourceID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/appgw"
+				subID, resourceGp, resource, subResource := ParseSubResourceID(subResourceID)
+				Expect(subID).To(Equal(SubscriptionID("")))
+				Expect(resourceGp).To(Equal(ResourceGroup("")))
+				Expect(resource).To(Equal(ResourceName("")))
+				Expect(subResource).To(Equal(ResourceName("")))
+			})
+		})
 	})
 })

@@ -13,17 +13,18 @@ import (
 
 // AzContext represents the Azure context file
 type AzContext struct {
-	Cloud                  string `json:"cloud"`
-	TenantID               string `json:"tenantId"`
-	SubscriptionID         string `json:"subscriptionId"`
-	ClientID               string `json:"aadClientId"`
-	ClientSecret           string `json:"aadClientSecret"`
-	ResourceGroup          string `json:"resourceGroup"`
-	Region                 string `json:"location"`
-	VNetName               string `json:"vnetName"`
-	VNetResourceGroup      string `json:"vnetResourceGroup"`
-	RouteTableName         string `json:"routeTableName"`
-	UserAssignedIdentityID string `json:"userAssignedIdentityID"`
+	Cloud                   string `json:"cloud"`
+	TenantID                string `json:"tenantId"`
+	SubscriptionID          string `json:"subscriptionId"`
+	ClientID                string `json:"aadClientId"`
+	ClientSecret            string `json:"aadClientSecret"`
+	ResourceGroup           string `json:"resourceGroup"`
+	Region                  string `json:"location"`
+	VNetName                string `json:"vnetName"`
+	VNetResourceGroup       string `json:"vnetResourceGroup"`
+	RouteTableName          string `json:"routeTableName"`
+	RouteTableResourceGroup string `json:"routeTableResourceGroup"`
+	UserAssignedIdentityID  string `json:"userAssignedIdentityID"`
 }
 
 // NewAzContext returns an AzContext struct from file path

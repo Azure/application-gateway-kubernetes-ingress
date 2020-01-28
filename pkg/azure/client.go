@@ -32,6 +32,7 @@ const (
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 
+	ApplyRouteTable(string, string) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
@@ -45,6 +46,7 @@ type azClient struct {
 	publicIPsClient       n.PublicIPAddressesClient
 	virtualNetworksClient n.VirtualNetworksClient
 	subnetsClient         n.SubnetsClient
+	routeTablesClient     n.RouteTablesClient
 	groupsClient          r.GroupsClient
 	deploymentsClient     r.DeploymentsClient
 
@@ -69,6 +71,7 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		routeTablesClient:     n.NewRouteTablesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 
@@ -92,6 +95,9 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
 	}
+	if err := az.routeTablesClient.AddToUserAgent(userAgent); err != nil {
+		glog.Error("Error adding User Agent to Route Tables client: ", userAgent)
+	}
 	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
 		glog.Error("Error adding User Agent to Groups client: ", userAgent)
 	}
@@ -107,6 +113,7 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.publicIPsClient.Authorizer = authorizer
 	az.virtualNetworksClient.Authorizer = authorizer
 	az.subnetsClient.Authorizer = authorizer
+	az.routeTablesClient.Authorizer = authorizer
 	az.groupsClient.Authorizer = authorizer
 	az.deploymentsClient.Authorizer = authorizer
 }
@@ -171,6 +178,63 @@ func (az *azClient) GetPublicIP(resourceID string) (n.PublicIPAddress, error) {
 	}
 	az.memoizedIPs[resourceID] = ip
 	return ip, nil
+}
+
+func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error {
+	// Check if the route table exists
+	_, routeTableResourceGroup, routeTableName := ParseResourceID(routeTableID)
+	routeTable, err := az.routeTablesClient.Get(az.ctx, string(routeTableResourceGroup), string(routeTableName), "")
+
+	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
+	if routeTable.Response.StatusCode == 404 {
+		glog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
+			routeTableID,
+			err.Error())
+		return nil
+	}
+
+	if err != nil {
+		// no access or no route table
+		return err
+	}
+	
+	// Get subnet and check if it is already associated to a route table
+	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
+	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
+	if err != nil {
+		return err
+	}
+
+	if subnet.RouteTable != nil {
+		if *subnet.RouteTable.ID != routeTableID {
+			glog.V(5).Infof("Skipping associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster as it is already associated to route table '%s'.",
+				subnetID,
+				routeTableID,
+				*subnet.SubnetPropertiesFormat.RouteTable.ID)
+		} else {
+			glog.V(5).Infof("Application Gateway subnet '%s' is associated with route table '%s' used by k8s cluster.",
+				subnetID,
+				routeTableID)
+		}
+
+		return nil
+	}
+
+	glog.Infof("Associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster.", subnetID, routeTableID)
+	subnet.RouteTable = &routeTable
+
+	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), subnet)
+	if err != nil {
+		return err
+	}
+
+	// Wait until deployment finshes and save the error message
+	err = subnetFuture.WaitForCompletionRef(az.ctx, az.subnetsClient.BaseClient.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
