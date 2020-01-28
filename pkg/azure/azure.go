@@ -35,7 +35,7 @@ func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 // ParseSubResourceID gets subscriptionId, resource group, vnet name, sub resource name from resourceID
 func ParseSubResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName, ResourceName) {
 	split := strings.Split(ID, "/")
-	if len(split) < 9 {
+	if len(split) < 11 {
 		glog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
 		return "", "", "", ""
 	}
