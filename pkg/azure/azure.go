@@ -32,7 +32,7 @@ func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 	return SubscriptionID(split[2]), ResourceGroup(split[4]), ResourceName(split[8])
 }
 
-// ParseSubResourceID gets subscriptionId, resource group, vnet name, sub resource name from resourceID
+// ParseSubResourceID gets subscriptionId, resource group, resource name, sub resource name from resourceID
 func ParseSubResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName, ResourceName) {
 	split := strings.Split(ID, "/")
 	if len(split) < 11 {
