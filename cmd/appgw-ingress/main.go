@@ -97,11 +97,17 @@ func main() {
 	agicPod := k8sContext.GetAGICPod(env)
 
 	// get the details from Azure Context
+	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
 	azContext, err := azure.NewAzContext(env.AzContextLocation)
 	if err != nil {
 		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
-	} else if azContext.VNetResourceGroup == "" {
-		azContext.VNetResourceGroup = azContext.ResourceGroup
+	} else {
+		if azContext.VNetResourceGroup == "" {
+			azContext.VNetResourceGroup = azContext.ResourceGroup
+		}
+		if azContext.RouteTableResourceGroup == "" {
+			azContext.RouteTableResourceGroup = azContext.ResourceGroup
+		}
 	}
 
 	// adjust env variable
@@ -137,7 +143,7 @@ func main() {
 	}
 
 	// create a new agic controller
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod)
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, env.HostedOnUnderlay)
 
 	// initialize the http server and start it
 	httpServer := httpserver.NewHTTPServer(
@@ -207,6 +213,20 @@ func main() {
 		// Slow down the cycling of the AGIC pod.
 		time.Sleep(5 * time.Second)
 		glog.Fatal(errorLine)
+	}
+
+	// associate route table to application gateway subnet
+	if azContext != nil && azContext.RouteTableName != "" {
+		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
+		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.RouteTableResourceGroup), azure.ResourceName(azContext.RouteTableName))
+
+		err = azClient.ApplyRouteTable(subnetID, routeTableID)
+		if err != nil {
+			glog.V(5).Infof("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin): [%+v]",
+				subnetID,
+				routeTableID,
+				err)
+		}
 	}
 
 	if err := appGwIngressController.Start(env); err != nil {
