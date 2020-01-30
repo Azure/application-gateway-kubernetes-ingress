@@ -24,4 +24,7 @@ var (
 
 	// ErrAppGatewayNotFound is an error message.
 	ErrAppGatewayNotFound = errors.New("unable to find Application Gateway (AZUR005)")
+
+	// ErrVnetUpdating is an error message.
+	ErrVnetUpdating = errors.New("Virtual network is in provisioning state: 'Updating'")
 )

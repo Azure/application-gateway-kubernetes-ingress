@@ -197,7 +197,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 		// no access or no route table
 		return err
 	}
-	
+
 	// Get subnet and check if it is already associated to a route table
 	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
 	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
@@ -307,6 +307,10 @@ func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceNa
 	utils.Retry(extendedRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
+			if vnet.ProvisioningState == n.Updating {
+				return utils.Retriable(true), ErrVnetUpdating
+			}
+
 			if err != nil {
 				glog.Errorf("Error while getting virtual network '%s': %s", vnetName, err)
 			}
