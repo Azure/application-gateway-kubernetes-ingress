@@ -102,8 +102,20 @@ spec:
       terminationGracePeriodSeconds: 101
 ```
 
-4. Decrease interval between App Gateway health probes to backend pools. The goal is to increase number of probes per unit of time. This will ensure that a terminated pod, which has not yet been removed from App Gateway's backend pool, will be marked as unhealthy sooner, thus removing the probability of a request landing on a terminated pod and resulting in a 502 error.
+4. Decrease interval between App Gateway health probes to backend pools. The goal is to increase number of probes per unit of time. This will ensure that a terminated pod, which has not yet been removed from App Gateway's backend pool, will be marked as unhealthy sooner, thus removing the probability of a request landing on a terminated pod and resulting in a 502 error. 
 
+For example the following [Kubernetes Deployment liveness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) will result in the respective pods being marked as unhealthy after 15 seconds and 3 failed probes. This config will be directly applied to Application Gateway (by AGIC), as well as Kubernetes.
+
+```yaml
+...
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 4
+          timeoutSeconds: 5
+          failureThreshold: 3
+```
 
 ## Summary
 To achieve a near-zero-downtime deployments, we need to add a:
