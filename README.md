@@ -44,6 +44,7 @@ blank-slate infrastructure.
 * [Upgrade AGIC via Helm](docs/how-tos/helm-upgrade.md)
 * [Scale your Applications using Application Gateway Metrics (Beta)](docs/how-tos/scale-applications-using-appgw-metrics.md)
 * [Continuous Deployment with AKS and AGIC using Azure Pipelines](docs/how-tos/continuous-deployment.md)
+* [Minimizing Downtime During Deployments](./docs/how-tos/minimize-downtime-during-deployments.md)
 
 ## Troubleshooting
 
