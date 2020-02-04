@@ -1,4 +1,4 @@
-# Zero Downtime Deployments
+# Minimizing Downtime During Deployments
 
 ## Purpose
 This document outlines a Kubernetes and Ingress controller configuration, which when incorporated with proper Kubernetes rolling updates deployment could achieve a near-zero-downtime deployments.
