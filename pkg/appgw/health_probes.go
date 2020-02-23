@@ -90,8 +90,10 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	probe.PickHostNameFromBackendHTTPSettings = to.BoolPtr(false)
 	probe.MinServers = to.Int32Ptr(0)
 
-	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
-		probe.Host = to.StringPtr(backendID.Rule.Host)
+	listenerID := generateListenerID(backendID.Ingress, backendID.Rule, n.HTTP, nil, false)
+	hostName := listenerID.getFirstHostNameWithouSpecialChars()
+	if hostName != nil {
+		probe.Host = hostName
 	}
 
 	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)

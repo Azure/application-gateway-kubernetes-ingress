@@ -17,7 +17,7 @@ import (
 
 // appgw_suite_test.go launches these Ginkgo tests
 
-var _ = Describe("Test string key generators", func() {
+var _ = Describe("Test internal types", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
 	targetListener := listenerIdentifier{
 		FrontendPort: Port(8080),
@@ -260,6 +260,40 @@ var _ = Describe("Test string key generators", func() {
 			Expect(listenerID.HostNames[0]).To(Equal("www.test.com"))
 			Expect(listenerID.HostNames[1]).To(Equal("www.t*.com"))
 			Expect(listenerID.HostNames[2]).To(Equal(""))
+		})
+	})
+
+	Context("test getFirstHostNameWithouSpecialChars works correctly", func() {
+		It("should correctly return the hostname without special chars", func() {
+			var hostnameValues = [5]string{"www.test*.com", "www.test?.com", "www.test*?.com", "www.test4.com", "www.test5.com"}
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+				HostNames:    hostnameValues,
+			}
+			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			Expect(hostName).ToNot(BeNil())
+			Expect(*hostName).To(Equal("www.test4.com"))
+		})
+
+		It("should return nil if no valid hostname", func() {
+			var hostnameValues = [5]string{"www.test*.com", "www.test?.com", "www.test*?.com"}
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+				HostNames:    hostnameValues,
+			}
+			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			Expect(hostName).To(BeNil())
+		})
+
+		It("should return nil if no hostname provided", func() {
+			listenerID := listenerIdentifier{
+				FrontendPort: Port(80),
+				UsePrivateIP: false,
+			}
+			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			Expect(hostName).To(BeNil())
 		})
 	})
 })
