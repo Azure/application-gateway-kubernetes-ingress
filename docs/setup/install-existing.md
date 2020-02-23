@@ -32,22 +32,6 @@ Gateway should that become necessary
 Kubernetes. We will leverage it to install the `application-gateway-kubernetes-ingress` package.
 Use [Cloud Shell](https://shell.azure.com/) to install Helm:
 
-1. Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
-
-    - *RBAC enabled* AKS cluster
-
-    ```bash
-    kubectl create serviceaccount --namespace kube-system tiller-sa
-    kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-    helm init --tiller-namespace kube-system --service-account tiller-sa
-    ```
-
-    - *RBAC disabled* AKS cluster
-
-    ```bash
-    helm init
-    ```
-
 1. Add the AGIC Helm repository:
     ```bash
     helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
