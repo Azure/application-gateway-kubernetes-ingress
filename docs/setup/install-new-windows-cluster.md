@@ -360,7 +360,7 @@ Alternatively you can:
 
 1. Download the YAML file above:
 ```bash
-curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
+curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetappwin.yaml -o aspnetapp.yaml
 ```
 
 2. Apply the YAML file:
