@@ -135,13 +135,12 @@ In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use 
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
+    helm install -f <helm-config.yaml> ingress-azure application-gateway-kubernetes-ingress/ingress-azure
     ```
 
     Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
     ```bash
-    helm install ./helm/ingress-azure \
-         --name ingress-azure \
+    helm install ./helm/ingress-azure ingress-azure \
          --namespace default \
          --debug \
          --set appgw.name=applicationgatewayABCD \
@@ -160,8 +159,35 @@ In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use 
 
 Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
 
+### Error no matches for kind "Deployment" in version "apps/v1beta2" (Kubernetes >= v1.17)
 
+you might receive an error:
+```
+error: unable to recognize "file.yml": no matches for kind "Deployment" in version "apps/v1beta2"
+```
 
+Create the kubernetes config file from your helm template:
+```
+helm -f <helm-config.yaml> template ingress-azure application-gateway-kubernetes-ingress/ingress-azure > ks-ingress-azure.yml
+```
+
+Open the file and replace api version of the `Deployment` from `apiVersion: apps/v1beta2` to: `apiVersion: apps/v1` and save the file.
+
+your file now will look like this:
+
+```yml
+...
+# Source: ingress-azure/templates/deployment.yaml
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+...
+```
+
+Now upload the fixed kubernetes configuration to your cluster:
+```
+kubectl apply -f  ks-ingress-azure.yml
+```
 ## Multi-cluster / Shared App Gateway
 By default AGIC assumes full ownership of the App Gateway it is linked to. AGIC version 0.8.0 and later can
 share a single App Gateway with other Azure components. For instance, we could use the same App Gateway for an app
