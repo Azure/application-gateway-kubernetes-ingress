@@ -33,8 +33,7 @@ Follow the steps below to install [cert-manager](https://docs.cert-manager.io) o
     helm repo update
 
     # Install v0.11 of cert-manager Helm chart
-    helm install \
-      --name cert-manager \
+    helm install cert-manager \
       --namespace cert-manager \
       --version v0.13.0 \
       jetstack/cert-manager
