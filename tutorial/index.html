@@ -7,14 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
+  
   <link rel="shortcut icon" href="../img/favicon.ico">
   <title>Tutorials - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  <link href="../css/extra.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="../css/extra.css" rel="stylesheet" />
   
   <script>
     // Current page data
@@ -25,11 +26,11 @@
   
   <script src="../js/jquery-2.1.1.min.js" defer></script>
   <script src="../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -40,6 +41,7 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href=".." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -50,141 +52,90 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="..">Introduction</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Setup</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../setup/install-existing/">Brownfield Deployment</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../setup/install-new/">Greenfield Deployment</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">Tutorials</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#tutorials">Tutorials</a></li>
-    
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Setup</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-existing/">Brownfield Deployment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-new/">Greenfield Deployment</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tutorials</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#deploy-guestbook-application">Deploy guestbook application</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#expose-services-over-http">Expose services over HTTP</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#expose-services-over-https">Expose services over HTTPS</a>
         <ul>
-        
-            <li><a class="toctree-l3" href="#table-of-contents">Table of Contents</a></li>
-        
-            <li><a class="toctree-l3" href="#prerequisites">Prerequisites</a></li>
-        
-            <li><a class="toctree-l3" href="#deploy-guestbook-application">Deploy guestbook application</a></li>
-        
-            <li><a class="toctree-l3" href="#expose-services-over-http">Expose services over HTTP</a></li>
-        
-            <li><a class="toctree-l3" href="#expose-services-over-https">Expose services over HTTPS</a></li>
-        
+    <li class="toctree-l3"><a class="reference internal" href="#without-specified-hostname">Without specified hostname</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#with-specified-hostname">With specified hostname</a>
+    </li>
         </ul>
-    
-
+    </li>
     </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../annotations/">Annotations</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Features</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../features/cookie-affinity/">Cookie affinity</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../features/private-ip/">Using Private IP for internal routing</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../features/probes/">Probes</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">How tos</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../how-tos/dns/">Automate DNS updates</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../how-tos/websockets/">Websockets</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../faq/">Frequrently Asked Questions: [WIP]</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../troubleshooting/">Troubleshooting</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Developers</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../developers/build/">Building the controller</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../developers/contribute/">Contribution Guidelines</a>
-                </li>
-    </ul>
-	    </li>
-          
-        </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Features</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/cookie-affinity/">Cookie affinity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/private-ip/">Using Private IP for internal routing</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/probes/">Probes</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">How tos</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/dns/">Automate DNS updates</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/websockets/">Websockets</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../faq/">Frequrently Asked Questions: [WIP]</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../developers/build/">Building the controller</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../developers/contribute/">Contribution Guidelines</a>
+                    </li>
+                </ul>
       </div>
-      &nbsp;
+    </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -211,6 +162,7 @@
       
     </li>
   </ul>
+  
   <hr/>
 </div>
           <div role="main">
@@ -242,26 +194,24 @@
 <li>Download <code>guestbook-all-in-one.yaml</code> from <a href="https://raw.githubusercontent.com/kubernetes/examples/master/guestbook/all-in-one/guestbook-all-in-one.yaml">here</a></li>
 <li>Deploy <code>guestbook-all-in-one.yaml</code> into your AKS cluster by running</li>
 </ol>
-<div class="highlight"><pre><span></span>kubectl apply -f guestbook-all-in-one.yaml
-</pre></div>
+<pre class="highlight"><code class="language-bash">kubectl apply -f guestbook-all-in-one.yaml</code></pre>
 
 <p>Now, the <code>guestbook</code> application has been deployed.</p>
 <h2 id="expose-services-over-http">Expose services over HTTP</h2>
 <p>In order to expose the guestbook application we will using the following ingress resource:</p>
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
-<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
-<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
-  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
-      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
-          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
-          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
-</pre></div>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
 
 <p>This ingress will expose the <code>frontend</code> service of the <code>guestbook-all-in-one</code> deployment
 as a default backend of the Application Gateway.</p>
@@ -269,8 +219,7 @@ as a default backend of the Application Gateway.</p>
 <ol>
 <li>
 <p>Deploy <code>ing-guestbook.yaml</code> by running:</p>
-<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook.yaml
-</pre></div>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook.yaml</code></pre>
 
 </li>
 <li>
@@ -285,35 +234,32 @@ public address of the Application Gateway.</p>
 <ol>
 <li>
 <p>Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running</p>
-<div class="highlight"><pre><span></span>kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;
-</pre></div>
+<pre class="highlight"><code class="language-bash">kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;</code></pre>
 
 </li>
 <li>
 <p>Define the following ingress. In the ingress, specify the name of the secret in the <code>secretName</code> section.</p>
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
-<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
-<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
-  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">tls</span><span class="p p-Indicator">:</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">secretName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
-  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
-      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
-          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
-          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
-</pre></div>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  tls:
+    - secretName: &lt;guestbook-secret-name&gt;
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
 
 <p><em>NOTE:</em> Replace <code>&lt;guestbook-secret-name&gt;</code> in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name <code>ing-guestbook-tls.yaml</code>.</p>
 </li>
 <li>
 <p>Deploy ing-guestbook-tls.yaml by running</p>
-<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls.yaml
-</pre></div>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls.yaml</code></pre>
 
 </li>
 <li>
@@ -328,31 +274,29 @@ By specifying hostname, the guestbook service will only be available on the spec
 <li>
 <p>Define the following ingress.
     In the ingress, specify the name of the secret in the <code>secretName</code> section and replace the hostname in the <code>hosts</code> section accordingly.</p>
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
-<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
-<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
-  <span class="l l-Scalar l-Scalar-Plain">annotations</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/ingress.class</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">tls</span><span class="p p-Indicator">:</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hosts</span><span class="p p-Indicator">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
-      <span class="l l-Scalar l-Scalar-Plain">secretName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
-  <span class="l l-Scalar l-Scalar-Plain">rules</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
-    <span class="l l-Scalar l-Scalar-Plain">http</span><span class="p p-Indicator">:</span>
-      <span class="l l-Scalar l-Scalar-Plain">paths</span><span class="p p-Indicator">:</span>
-      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
-          <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
-          <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
-</pre></div>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: guestbook
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  tls:
+    - hosts:
+      - &lt;guestbook.contoso.com&gt;
+      secretName: &lt;guestbook-secret-name&gt;
+  rules:
+  - host: &lt;guestbook.contoso.com&gt;
+    http:
+      paths:
+      - backend:
+          serviceName: frontend
+          servicePort: 80</code></pre>
 
 </li>
 <li>
 <p>Deploy <code>ing-guestbook-tls-sni.yaml</code> by running</p>
-<div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls-sni.yaml
-</pre></div>
+<pre class="highlight"><code class="language-bash">kubectl apply -f ing-guestbook-tls-sni.yaml</code></pre>
 
 </li>
 <li>
@@ -382,7 +326,7 @@ By specifying hostname, the guestbook service will only be available on the spec
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -392,7 +336,7 @@ By specifying hostname, the guestbook service will only be available on the spec
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -406,6 +350,11 @@ By specifying hostname, the guestbook service will only be available on the spec
     <script>var base_url = '..';</script>
     <script src="../js/theme.js" defer></script>
       <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
 
 </body>
 </html>

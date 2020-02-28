@@ -7,14 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
+  
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Scale your Applications using Application Gateway Metrics (Beta) - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  <link href="../../css/extra.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="../../css/extra.css" rel="stylesheet" />
   
   <script>
     // Current page data
@@ -25,11 +26,11 @@
   
   <script src="../../js/jquery-2.1.1.min.js" defer></script>
   <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -40,6 +41,7 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -50,135 +52,78 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Introduction</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Setup</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
-                </li>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Setup</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorial/">Tutorials</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Features</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">How tos</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Scale your Applications using Application Gateway Metrics (Beta)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#setting-up-azure-k8s-metric-adapter">Setting up Azure K8S Metric Adapter</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</a>
+    </li>
     </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../tutorial/">Tutorials</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../annotations/">Annotations</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Features</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/probes/">Probes</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">How tos</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../dns/">Automate DNS updates</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Scale your Applications using Application Gateway Metrics (Beta)</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#scale-your-applications-using-application-gateway-metrics-beta">Scale your Applications using Application Gateway Metrics (Beta)</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#setting-up-azure-k8s-metric-adapter">Setting up Azure K8S Metric Adapter</a></li>
-        
-            <li><a class="toctree-l4" href="#using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</a></li>
-        
-        </ul>
-    
-
-    </ul>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../websockets/">Websockets</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../troubleshooting/">Troubleshooting</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Developers</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../developers/build/">Building the controller</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
-                </li>
-    </ul>
-	    </li>
-          
-        </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                    </li>
+                </ul>
       </div>
-      &nbsp;
+    </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -209,6 +154,7 @@
       
     </li>
   </ul>
+  
   <hr/>
 </div>
           <div role="main">
@@ -226,91 +172,85 @@
 <ol>
 <li>
 <p>We will first create an Azure AAD service principal and assign it <code>Monitoring Reader</code> access over Application Gateway's resource group. Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:
-    <div class="highlight"><pre><span></span><span class="nv">applicationGatewayGroupName</span><span class="o">=</span><span class="s2">&quot;&lt;application-gateway-group-id&gt;&quot;</span>
-<span class="nv">applicationGatewayGroupId</span><span class="o">=</span><span class="k">$(</span>az group show -g <span class="nv">$applicationGatewayGroupName</span> -o tsv --query <span class="s2">&quot;id&quot;</span><span class="k">)</span>
-az ad sp create-for-rbac -n <span class="s2">&quot;azure-k8s-metric-adapter-sp&quot;</span> --role <span class="s2">&quot;Monitoring Reader&quot;</span> --scopes applicationGatewayGroupId
-</pre></div></p>
+    <pre class="highlight"><code class="language-bash">applicationGatewayGroupName="&lt;application-gateway-group-id&gt;"
+applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
+az ad sp create-for-rbac -n "azure-k8s-metric-adapter-sp" --role "Monitoring Reader" --scopes applicationGatewayGroupId</code></pre></p>
 </li>
 <li>
 <p>Now, We will deploy the <a href="https://github.com/Azure/azure-k8s-metrics-adapter"><code>Azure K8S Metric Adapter</code></a> using the AAD service principal created above.</p>
-<div class="highlight"><pre><span></span>kubectl create namespace custom-metrics
+<pre class="highlight"><code class="language-bash">kubectl create namespace custom-metrics
 
-<span class="c1"># use values from service principle created above to create secret</span>
-kubectl create secret generic azure-k8s-metrics-adapter -n custom-metrics <span class="se">\</span>
-    --from-literal<span class="o">=</span>azure-tenant-id<span class="o">=</span>&lt;tenantid&gt; <span class="se">\</span>
-    --from-literal<span class="o">=</span>azure-client-id<span class="o">=</span>&lt;clientid&gt; <span class="se">\</span>
-    --from-literal<span class="o">=</span>azure-client-secret<span class="o">=</span>&lt;secret&gt;
+# use values from service principle created above to create secret
+kubectl create secret generic azure-k8s-metrics-adapter -n custom-metrics \
+    --from-literal=azure-tenant-id=&lt;tenantid&gt; \
+    --from-literal=azure-client-id=&lt;clientid&gt; \
+    --from-literal=azure-client-secret=&lt;secret&gt;
 
-kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml -n custom-metrics
-</pre></div>
+kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml -n custom-metrics</code></pre>
 
 </li>
 <li>
 <p>We will create an <code>ExternalMetric</code> resource with name <code>appgw-request-count-metric</code>. This will instruct the metric adapter to expose <code>AvgRequestCountPerHealthyHost</code> metric for <code>myApplicationGateway</code> resource in <code>myResourceGroup</code> resource group. You can use the <code>filter</code> field to target a specific backend pool and backend http setting in the Application Gateway. Copy paste this YAML content in <code>external-metric.yaml</code> and apply with <code>kubectl apply -f external-metric.yaml</code>.</p>
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azure.com/v1alpha2</span>
-<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ExternalMetric</span>
-<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
-<span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">appgw-request-count-metric</span>
-<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">azuremonitor</span>
-  <span class="l l-Scalar l-Scalar-Plain">azure</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">resourceGroup</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">myResourceGroup</span> <span class="c1"># replace with your application gateway&#39;s resource group name</span>
-    <span class="l l-Scalar l-Scalar-Plain">resourceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">myApplicationGateway</span> <span class="c1"># replace with your application gateway&#39;s name</span>
-    <span class="l l-Scalar l-Scalar-Plain">resourceProviderNamespace</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Microsoft.Network</span>
-    <span class="l l-Scalar l-Scalar-Plain">resourceType</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">applicationGateways</span>
-  <span class="l l-Scalar l-Scalar-Plain">metric</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">metricName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">AvgRequestCountPerHealthyHost</span>
-    <span class="l l-Scalar l-Scalar-Plain">aggregation</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Average</span>
-    <span class="l l-Scalar l-Scalar-Plain">filter</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">BackendSettingsPool eq &#39;&lt;backend-pool-name&gt;~&lt;backend-http-setting-name&gt;&#39;</span> <span class="c1"># optional</span>
-</pre></div>
+<pre class="highlight"><code class="language-yaml">apiVersion: azure.com/v1alpha2
+kind: ExternalMetric
+metadata:
+name: appgw-request-count-metric
+spec:
+  type: azuremonitor
+  azure:
+    resourceGroup: myResourceGroup # replace with your application gateway's resource group name
+    resourceName: myApplicationGateway # replace with your application gateway's name
+    resourceProviderNamespace: Microsoft.Network
+    resourceType: applicationGateways
+  metric:
+    metricName: AvgRequestCountPerHealthyHost
+    aggregation: Average
+    filter: BackendSettingsPool eq '&lt;backend-pool-name&gt;~&lt;backend-http-setting-name&gt;' # optional</code></pre>
 
 </li>
 </ol>
 <p>You can now make a request to the metric server to see if our new metric is getting exposed:
-<div class="highlight"><pre><span></span>kubectl get --raw <span class="s2">&quot;/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric&quot;</span>
-<span class="c1"># Sample Output</span>
-<span class="c1"># {</span>
-<span class="c1">#   &quot;kind&quot;: &quot;ExternalMetricValueList&quot;,</span>
-<span class="c1">#   &quot;apiVersion&quot;: &quot;external.metrics.k8s.io/v1beta1&quot;,</span>
-<span class="c1">#   &quot;metadata&quot;:</span>
-<span class="c1">#     {</span>
-<span class="c1">#       &quot;selfLink&quot;: &quot;/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric&quot;,</span>
-<span class="c1">#     },</span>
-<span class="c1">#   &quot;items&quot;:</span>
-<span class="c1">#     [</span>
-<span class="c1">#       {</span>
-<span class="c1">#         &quot;metricName&quot;: &quot;appgw-request-count-metric&quot;,</span>
-<span class="c1">#         &quot;metricLabels&quot;: null,</span>
-<span class="c1">#         &quot;timestamp&quot;: &quot;2019-11-05T00:18:51Z&quot;,</span>
-<span class="c1">#         &quot;value&quot;: &quot;30&quot;,</span>
-<span class="c1">#       },</span>
-<span class="c1">#     ],</span>
-<span class="c1"># }</span>
-</pre></div></p>
+<pre class="highlight"><code class="language-bash">kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric"
+# Sample Output
+# {
+#   "kind": "ExternalMetricValueList",
+#   "apiVersion": "external.metrics.k8s.io/v1beta1",
+#   "metadata":
+#     {
+#       "selfLink": "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric",
+#     },
+#   "items":
+#     [
+#       {
+#         "metricName": "appgw-request-count-metric",
+#         "metricLabels": null,
+#         "timestamp": "2019-11-05T00:18:51Z",
+#         "value": "30",
+#       },
+#     ],
+# }</code></pre></p>
 <h2 id="using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</h2>
 <p>Once we are able to expose <code>appgw-request-count-metric</code> through the metric server, We are ready to use <a href="https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler"><code>Horizontal Pod Autoscaler</code></a> to scale up our target deployment.</p>
 <p>In following example, we will target a sample deployment <code>aspnet</code>. We will scale up Pods when <code>appgw-request-count-metric</code> &gt; 200 per Pod upto a max of <code>10</code> Pods.</p>
 <p>Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in <code>autoscale-config.yaml</code> and apply with <code>kubectl apply -f autoscale-config.yaml</code>.
-<div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">autoscaling/v2beta1</span>
-<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">HorizontalPodAutoscaler</span>
-<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">deployment-scaler</span>
-<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">scaleTargetRef</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
-    <span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
-    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">aspnet</span> <span class="c1"># replace with your deployment&#39;s name</span>
-  <span class="l l-Scalar l-Scalar-Plain">minReplicas</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-  <span class="l l-Scalar l-Scalar-Plain">maxReplicas</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
-  <span class="l l-Scalar l-Scalar-Plain">metrics</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">External</span>
-    <span class="l l-Scalar l-Scalar-Plain">external</span><span class="p p-Indicator">:</span>
-      <span class="l l-Scalar l-Scalar-Plain">metricName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">appgw-request-count-metric</span>
-      <span class="l l-Scalar l-Scalar-Plain">targetAverageValue</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">200</span>
-</pre></div></p>
+<pre class="highlight"><code class="language-yaml">apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: deployment-scaler
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: aspnet # replace with your deployment's name
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: External
+    external:
+      metricName: appgw-request-count-metric
+      targetAverageValue: 200</code></pre></p>
 <p>Test your configuration by using a load test tools like apache bench:
-<div class="highlight"><pre><span></span>ab -n10000 http://&lt;application-gateway-ip-address&gt;/
-</pre></div></p>
+<pre class="highlight"><code class="language-bash">ab -n10000 http://&lt;application-gateway-ip-address&gt;/</code></pre></p>
               
             </div>
           </div>
@@ -321,7 +261,7 @@ kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-
         <a href="../websockets/" class="btn btn-neutral float-right" title="Websockets">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../lets-encrypt/" class="btn btn-neutral" title="Certificate issuance with LetsEncrypt.org"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../minimize-downtime-during-deployments/" class="btn btn-neutral" title="Minimizing Downtime During Deployments"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -333,7 +273,7 @@ kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -343,11 +283,11 @@ kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../lets-encrypt/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../minimize-downtime-during-deployments/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../websockets/" style="color: #fcfcfc">Next &raquo;</a></span>
@@ -357,6 +297,11 @@ kubectl apply -f kubectl apply -f https://raw.githubusercontent.com/Azure/azure-
     <script>var base_url = '../..';</script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
 
 </body>
 </html>
