@@ -64,7 +64,6 @@ func main() {
 		glog.Fatal("Error parsing command line arguments:", err)
 	}
 
-	// Setup enviroment
 	env := environment.GetEnv()
 	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
 	if *versionInfo {
