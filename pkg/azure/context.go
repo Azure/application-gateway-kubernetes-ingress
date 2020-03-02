@@ -40,5 +40,12 @@ func NewAzContext(path string) (*AzContext, error) {
 		return nil, err
 	}
 
+	if context.VNetResourceGroup == "" {
+		context.VNetResourceGroup = context.ResourceGroup
+	}
+	if context.RouteTableResourceGroup == "" {
+		context.RouteTableResourceGroup = context.ResourceGroup
+	}
+
 	return &context, nil
 }

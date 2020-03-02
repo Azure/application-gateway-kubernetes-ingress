@@ -9,12 +9,16 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/golang/glog"
 )
 
 const (
 	// AzContextLocationVarName is an environment variable name. This file is available on azure cluster.
 	AzContextLocationVarName = "AZURE_CONTEXT_LOCATION"
+
+	// AzureEnvironmentVarName is an evironment variable name. It represents the cloud in which the application is running.
+	AzureEnvironmentVarName = "AZURE_ENVIRONMENT"
 
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
@@ -83,9 +87,15 @@ const (
 	HostedOnUnderlayVarName = "HOSTED_ON_UNDERLAY"
 )
 
+var (
+	portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
+	boolValidator       = regexp.MustCompile(`^(?i)(true|false)$`)
+)
+
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
 	AzContextLocation          string
+	AzureEnvironment           string
 	SubscriptionID             string
 	ResourceGroupName          string
 	AppGwName                  string
@@ -110,13 +120,45 @@ type EnvVariables struct {
 	HostedOnUnderlay           bool
 }
 
-var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
-var boolValidator = regexp.MustCompile(`^(?i)(true|false)$`)
+// Consolidate sets values from azContext and provide defaults
+func (env *EnvVariables) Consolidate(azContext *azure.AzContext) {
+	// adjust env variable
+	if env.AppGwResourceID != "" {
+		subscriptionID, resourceGroupName, applicationGatewayName := azure.ParseResourceID(env.AppGwResourceID)
+		env.SubscriptionID = string(subscriptionID)
+		env.ResourceGroupName = string(resourceGroupName)
+		env.AppGwName = string(applicationGatewayName)
+	}
+
+	// Set using cloud provider config (AzContext)
+	if azContext != nil {
+		if env.SubscriptionID == "" {
+			env.SubscriptionID = string(azContext.SubscriptionID)
+		}
+
+		if env.ResourceGroupName == "" {
+			env.ResourceGroupName = string(azContext.ResourceGroup)
+		}
+
+		if env.AzureEnvironment == "" {
+			env.AzureEnvironment = azContext.Cloud
+		}
+	}
+
+	// Set defaults
+	if env.AppGwSubnetName == "" {
+		env.AppGwSubnetName = env.AppGwName + "-subnet"
+	}
+	if env.AzureEnvironment == "" {
+		env.AzureEnvironment = "AZUREPUBLICCLOUD"
+	}
+}
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
 	env := EnvVariables{
 		AzContextLocation:          os.Getenv(AzContextLocationVarName),
+		AzureEnvironment:           os.Getenv(AzureEnvironmentVarName),
 		SubscriptionID:             os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:          os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                  os.Getenv(AppGwNameVarName),
