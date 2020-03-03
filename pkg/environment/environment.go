@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/golang/glog"
 )
 
@@ -83,6 +84,11 @@ const (
 	HostedOnUnderlayVarName = "HOSTED_ON_UNDERLAY"
 )
 
+var (
+	portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
+	boolValidator       = regexp.MustCompile(`^(?i)(true|false)$`)
+)
+
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
 	AzContextLocation          string
@@ -110,8 +116,32 @@ type EnvVariables struct {
 	HostedOnUnderlay           bool
 }
 
-var portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
-var boolValidator = regexp.MustCompile(`^(?i)(true|false)$`)
+// Consolidate sets defaults and missing values using azContext
+func (env *EnvVariables) Consolidate(azContext *azure.AzContext) {
+	// adjust env variable
+	if env.AppGwResourceID != "" {
+		subscriptionID, resourceGroupName, applicationGatewayName := azure.ParseResourceID(env.AppGwResourceID)
+		env.SubscriptionID = string(subscriptionID)
+		env.ResourceGroupName = string(resourceGroupName)
+		env.AppGwName = string(applicationGatewayName)
+	}
+
+	// Set using cloud provider config (AzContext)
+	if azContext != nil {
+		if env.SubscriptionID == "" {
+			env.SubscriptionID = string(azContext.SubscriptionID)
+		}
+
+		if env.ResourceGroupName == "" {
+			env.ResourceGroupName = string(azContext.ResourceGroup)
+		}
+	}
+
+	// Set defaults
+	if env.AppGwSubnetName == "" {
+		env.AppGwSubnetName = env.AppGwName + "-subnet"
+	}
+}
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
