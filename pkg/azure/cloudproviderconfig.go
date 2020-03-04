@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 )
 
-// CloudProviderConfig represents the Azure context file
+// CloudProviderConfig represents the Cloud Provider file format
 type CloudProviderConfig struct {
 	Cloud                   string `json:"cloud"`
 	TenantID                string `json:"tenantId"`
