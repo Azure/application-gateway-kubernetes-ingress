@@ -71,7 +71,7 @@ var _ = Describe("Azure", func() {
 		})
 
 		Context("test AzContext struct", func() {
-			contextFile := `{
+			cpConfigFile := `{
 				"cloud": "xxxx",
 				"tenantId": "t",
 				"subscriptionId": "s",
@@ -107,23 +107,23 @@ var _ = Describe("Azure", func() {
 			}`
 
 			It("should deserialize correctly", func() {
-				var context AzContext
-				err := json.Unmarshal([]byte(contextFile), &context)
+				var cpConfig CloudProviderConfig
+				err := json.Unmarshal([]byte(cpConfigFile), &cpConfig)
 				Ω(err).ToNot(HaveOccurred())
-				Ω(context.TenantID).To(Equal("t"))
-				Ω(context.Region).To(Equal("l"))
+				Ω(cpConfig.TenantID).To(Equal("t"))
+				Ω(cpConfig.Region).To(Equal("l"))
 			})
 		})
 
-		Context("test RouteTableID func", func(){
-			It("generate correct route table ID", func(){
+		Context("test RouteTableID func", func() {
+			It("generate correct route table ID", func() {
 				expectedRouteTable := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/routeTables/rt"
 				Expect(RouteTableID(SubscriptionID("subID"), ResourceGroup("resGp"), ResourceName("rt"))).To(Equal(expectedRouteTable))
 			})
 		})
 
-		Context("test ParseSubResourceID func", func(){
-			It("parses sub resource ID correctly", func(){
+		Context("test ParseSubResourceID func", func() {
+			It("parses sub resource ID correctly", func() {
 				subResourceID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/appgw/sslCertificates/cert"
 				subID, resourceGp, resource, subResource := ParseSubResourceID(subResourceID)
 				Expect(subID).To(Equal(SubscriptionID("subID")))
@@ -132,7 +132,7 @@ var _ = Describe("Azure", func() {
 				Expect(subResource).To(Equal(ResourceName("cert")))
 			})
 
-			It("should give error if segements are less", func(){
+			It("should give error if segements are less", func() {
 				subResourceID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/appgw"
 				subID, resourceGp, resource, subResource := ParseSubResourceID(subResourceID)
 				Expect(subID).To(Equal(SubscriptionID("")))
