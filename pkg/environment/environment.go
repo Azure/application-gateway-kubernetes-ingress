@@ -15,7 +15,7 @@ import (
 
 const (
 	// CloudProviderConfigLocationVarName is an environment variable name. This file is available on azure cluster.
-	CloudProviderConfigLocationVarName = "AZURE_CONTEXT_LOCATION"
+	CloudProviderConfigLocationVarName = "AZURE_CLOUD_PROVIDER_LOCATION"
 
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
