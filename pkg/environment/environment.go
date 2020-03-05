@@ -17,6 +17,9 @@ const (
 	// CloudProviderConfigLocationVarName is an environment variable name. This file is available on azure cluster.
 	CloudProviderConfigLocationVarName = "AZURE_CLOUD_PROVIDER_LOCATION"
 
+	// AzureEnvironmentVarName is an evironment variable name. It represents the cloud in which the application is running.
+	AzureEnvironmentVarName = "AZURE_ENVIRONMENT"
+
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
 
@@ -92,6 +95,7 @@ var (
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
 	CloudProviderConfigLocation string
+	AzureEnvironment            string
 	SubscriptionID              string
 	ResourceGroupName           string
 	AppGwName                   string
@@ -135,11 +139,19 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 		if env.ResourceGroupName == "" {
 			env.ResourceGroupName = string(cpConfig.ResourceGroup)
 		}
+
+		if env.AzureEnvironment == "" {
+			env.AzureEnvironment = cpConfig.Cloud
+		}
 	}
 
 	// Set defaults
 	if env.AppGwSubnetName == "" {
 		env.AppGwSubnetName = env.AppGwName + "-subnet"
+	}
+
+	if env.AzureEnvironment == "" {
+		env.AzureEnvironment = "AZUREPUBLICCLOUD"
 	}
 }
 
@@ -147,6 +159,7 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 func GetEnv() EnvVariables {
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
+		AzureEnvironment:            os.Getenv(AzureEnvironmentVarName),
 		SubscriptionID:              os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:           os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                   os.Getenv(AppGwNameVarName),

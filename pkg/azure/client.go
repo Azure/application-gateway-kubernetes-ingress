@@ -10,27 +10,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-const (
-	retryPause         = 10 * time.Second
-	retryCount         = 3
-	extendedRetryCount = 60
-)
-
 // AzClient is an interface for client to Azure
 type AzClient interface {
-	SetAuthorizer(authorizer autorest.Authorizer)
+	InitializeAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) error
 
 	ApplyRouteTable(string, string) error
 	GetGateway() (n.ApplicationGateway, error)
@@ -54,31 +47,30 @@ type azClient struct {
 	resourceGroupName ResourceGroup
 	appGwName         ResourceName
 	memoizedIPs       map[string]n.PublicIPAddress
+	cloudName         string
 
 	ctx context.Context
 }
 
 // NewAzClient returns an Azure Client
-func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName) AzClient {
-	settings, err := auth.GetSettingsFromEnvironment()
-	if err != nil {
-		return nil
-	}
+func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, cloudName string) AzClient {
+	azureEnvironment, _ := azure.EnvironmentFromName(cloudName)
 
 	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
 	az := &azClient{
-		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		subnetsClient:         n.NewSubnetsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		routeTablesClient:     n.NewRouteTablesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		groupsClient:          r.NewGroupsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
-		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
+		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		virtualNetworksClient: n.NewVirtualNetworksClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		subnetsClient:         n.NewSubnetsClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		routeTablesClient:     n.NewRouteTablesClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		groupsClient:          r.NewGroupsClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
+		deploymentsClient:     r.NewDeploymentsClientWithBaseURI(azureEnvironment.ResourceManagerEndpoint, string(subscriptionID)),
 
 		subscriptionID:    subscriptionID,
 		resourceGroupName: resourceGroupName,
 		appGwName:         appGwName,
 		memoizedIPs:       make(map[string]n.PublicIPAddress),
+		cloudName:         cloudName,
 
 		ctx: context.Background(),
 	}
@@ -108,7 +100,24 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	return az
 }
 
-func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
+func (az *azClient) InitializeAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (err error) {
+	var authorizer autorest.Authorizer
+	utils.Retry(maxAuthRetryCount, retryPause,
+		func() (utils.Retriable, error) {
+			// try initializing authorizer
+			glog.Info("Trying to initialize authorizer")
+			authorizer, err = getAuthorizer(authLocation, useManagedidentity, cpConfig, az.cloudName)
+			if err != nil {
+				glog.Error("Error initilizing authorizer: ", err)
+			}
+
+			return utils.Retriable(true), err
+		})
+
+	if err != nil {
+		return err
+	}
+
 	az.appGatewaysClient.Authorizer = authorizer
 	az.publicIPsClient.Authorizer = authorizer
 	az.virtualNetworksClient.Authorizer = authorizer
@@ -116,6 +125,7 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.routeTablesClient.Authorizer = authorizer
 	az.groupsClient.Authorizer = authorizer
 	az.deploymentsClient.Authorizer = authorizer
+	return nil
 }
 
 func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
@@ -197,7 +207,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 		// no access or no route table
 		return err
 	}
-	
+
 	// Get subnet and check if it is already associated to a route table
 	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
 	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")

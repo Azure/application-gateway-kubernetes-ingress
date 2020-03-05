@@ -6,8 +6,6 @@
 package azure
 
 import (
-	"github.com/Azure/go-autorest/autorest"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 )
 
@@ -40,8 +38,9 @@ func NewFakeAzClient() *FakeAzClient {
 	return &FakeAzClient{}
 }
 
-// SetAuthorizer is an empty function
-func (az *FakeAzClient) SetAuthorizer(authorizer autorest.Authorizer) {
+// InitializeAuthorizer is an empty function
+func (az *FakeAzClient) InitializeAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (err error) {
+	return nil
 }
 
 // GetGateway runs GetGatewayFunc and return a gateway

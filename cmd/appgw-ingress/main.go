@@ -16,7 +16,6 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
@@ -38,8 +37,6 @@ import (
 
 const (
 	verbosityFlag = "verbosity"
-	maxRetryCount = 10
-	retryPause    = 10 * time.Second
 	resyncPause   = 30 * time.Second
 )
 
@@ -104,7 +101,7 @@ func main() {
 		glog.Fatal(errorLine)
 	}
 
-	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName))
+	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), env.AzureEnvironment)
 	appGwIdentifier := appgw.Identifier{
 		SubscriptionID: env.SubscriptionID,
 		ResourceGroup:  env.ResourceGroupName,
@@ -123,15 +120,12 @@ func main() {
 
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
-	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {
+	if err = azClient.InitializeAuthorizer(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 		}
 		glog.Fatal(errorLine)
-	} else {
-		azClient.SetAuthorizer(authorizer)
 	}
 
 	if _, err = azClient.GetGateway(); err != nil {
