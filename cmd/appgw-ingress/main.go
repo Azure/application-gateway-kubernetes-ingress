@@ -70,14 +70,14 @@ func main() {
 		version.PrintVersionAndExit()
 	}
 
-	// get the details from Azure Context
+	// get the details from Cloud Provider Config
 	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
-	azContext, err := azure.NewAzContext(env.AzContextLocation)
+	cpConfig, err := azure.NewCloudProviderConfig(env.CloudProviderConfigLocation)
 	if err != nil {
-		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
+		glog.Info("Unable to load cloud provider config:", env.CloudProviderConfigLocation)
 	}
 
-	env.Consolidate(azContext)
+	env.Consolidate(cpConfig)
 
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
@@ -124,7 +124,7 @@ func main() {
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxRetryCount, retryPause); err != nil {
+	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
@@ -138,8 +138,8 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
-			} else if azContext != nil {
-				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
+			} else if cpConfig != nil {
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(cpConfig.VNetResourceGroup), azure.ResourceName(cpConfig.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
 			}
 
 			if err != nil {
@@ -185,9 +185,9 @@ func main() {
 	}
 
 	// associate route table to application gateway subnet
-	if azContext != nil && azContext.RouteTableName != "" {
+	if cpConfig != nil && cpConfig.RouteTableName != "" {
 		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
-		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.RouteTableResourceGroup), azure.ResourceName(azContext.RouteTableName))
+		routeTableID := azure.RouteTableID(azure.SubscriptionID(cpConfig.SubscriptionID), azure.ResourceGroup(cpConfig.RouteTableResourceGroup), azure.ResourceName(cpConfig.RouteTableName))
 
 		err = azClient.ApplyRouteTable(subnetID, routeTableID)
 		if err != nil {
