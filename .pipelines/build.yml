@@ -92,3 +92,17 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: $(modulePath)/coverage.xml
     reportDirectory: $(modulePath)/coverage
+
+- task: CopyFiles@2
+  inputs:
+    contents: |
+     $(GOBIN)/appgw-ingress
+     $(modulePath)/dockerfiles/deploy.Dockerfile
+     $(modulePath)/scripts/**
+     $(modulePath)/helm/**
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: drop
