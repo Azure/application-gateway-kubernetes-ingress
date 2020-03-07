@@ -18,17 +18,3 @@ variables:
 
 steps:
 - template: build.yml
-
-- task: CopyFiles@2
-  inputs:
-    contents: |
-     $(GOBIN)/appgw-ingress
-     $(modulePath)/dockerfiles/deploy.Dockerfile
-     $(modulePath)/scripts/**
-     $(modulePath)/helm/**
-    targetFolder: $(Build.ArtifactStagingDirectory)
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: $(Build.ArtifactStagingDirectory)
-    artifactName: drop
