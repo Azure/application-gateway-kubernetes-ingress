@@ -19,9 +19,10 @@ limitations under the License.
 package v1alpha3
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/scheme"
 	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
 	rest "k8s.io/client-go/rest"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/scheme"
 )
 
 type NetworkingV1alpha3Interface interface {

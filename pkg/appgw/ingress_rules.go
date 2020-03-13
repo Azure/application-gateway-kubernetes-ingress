@@ -32,18 +32,29 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 
 func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[Port]interface{})
+
+	// certificate from ingress TLS spec
 	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
+
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
 	// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
 	usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIPForIngress := usePrivateIPFromAnnotation || env.UsePrivateIP == "true"
 
+	appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
+	if len(appgwCertName) > 0 {
+		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
+		glog.V(5).Infof("Found anonotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
+	}
+
 	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
-	hasTLS := cert != nil
+	hasTLS := (cert != nil || len(appgwCertName) > 0)
+
 	sslRedirect, _ := annotations.IsSslRedirect(ingress)
+
 	// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
-	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS.
+	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS;
 	if hasTLS {
 		listenerID := generateListenerID(ingress, rule, n.HTTPS, nil, usePrivateIPForIngress)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
@@ -53,13 +64,28 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 			redirect = generateSSLRedirectConfigurationName(listenerID)
 		}
 
-		listeners[listenerID] = listenerAzConfig{
-			Protocol:                     n.HTTPS,
-			Secret:                       *secID,
-			SslRedirectConfigurationName: redirect,
+		// appgw-ssl-certificate annotation will be ignored if TLS spec found
+		if cert != nil {
+			listeners[listenerID] = listenerAzConfig{
+				Protocol:                     n.HTTPS,
+				Secret:                       *secID,
+				SslRedirectConfigurationName: redirect,
+			}
+		} else if len(appgwCertName) > 0 {
+			// the cert annotated can be referred across namespace,
+			// set namespace to "" to ignore namespace
+			annotatedSecret := secretIdentifier{
+				Name:      appgwCertName,
+				Namespace: "",
+			}
+
+			listeners[listenerID] = listenerAzConfig{
+				Protocol:                     n.HTTPS,
+				Secret:                       annotatedSecret,
+				SslRedirectConfigurationName: redirect,
+			}
 		}
 	}
-
 	// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 	if sslRedirect || !hasTLS {
 		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, usePrivateIPForIngress)

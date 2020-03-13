@@ -6,9 +6,10 @@
 package brownfield
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 )

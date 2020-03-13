@@ -21,12 +21,13 @@ package v1alpha3
 import (
 	"time"
 
-	scheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/scheme"
 	v1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
+
+	scheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/scheme"
 )
 
 // DestinationRulesGetter has a method to return a DestinationRuleInterface.
