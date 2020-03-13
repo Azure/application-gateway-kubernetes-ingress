@@ -8,7 +8,7 @@ package utils
 import (
 	"sync"
 
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 )
 
 // ThreadsafeMultiMap is a thread safe implementation of a multimap.

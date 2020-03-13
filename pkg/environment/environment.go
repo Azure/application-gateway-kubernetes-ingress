@@ -9,8 +9,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 )
 
 const (
