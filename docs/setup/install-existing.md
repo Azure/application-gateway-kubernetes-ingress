@@ -147,6 +147,7 @@ In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use 
          --set appgw.name=applicationgatewayABCD \
          --set appgw.resourceGroup=your-resource-group \
          --set appgw.subscriptionId=subscription-uuid \
+         --set appgw.usePrivateIP=false \
          --set appgw.shared=false \
          --set armAuth.type=servicePrincipal \
          --set armAuth.secretJSON=$(az ad sp create-for-rbac --sdk-auth | base64 -w0) \
