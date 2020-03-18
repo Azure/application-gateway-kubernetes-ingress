@@ -112,7 +112,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 
 		It("should configure App Gateway listeners correctly with SSL", func() {
 			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
-			//
+			// no ssl-redirect
 			Expect(len(azConfigMapKeys)).To(Equal(1))
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener443))
 

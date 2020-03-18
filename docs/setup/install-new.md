@@ -221,6 +221,7 @@ Values:
 - `appgw.subscriptionId`: The Azure Subscription ID in which App Gateway resides. Example: `a123b234-a3b4-557d-b2df-a0bc12de1234`
 - `appgw.resourceGroup`: Name of the Azure Resource Group in which App Gateway was created. Example: `app-gw-resource-group`
 - `appgw.name`: Name of the Application Gateway. Example: `applicationgatewayd0f0`
+- `appgw.usePrivateIP`: The boolean flag if all Ingresses are exposed over Private IP. Set to `false` should you use an [Application Gateway v2 SKU](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/features/private-ip.md#assign-globally)
 - `appgw.shared`: This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
 - `kubernetes.watchNamespace`: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
 - `armAuth.type`: could be `aadPodIdentity` or `servicePrincipal`
