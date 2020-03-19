@@ -85,13 +85,9 @@ func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGatewa
 	}
 
 	for _, ingress := range ingressList {
-		annotatedSslCertificate, err := annotations.GetAppGwSslCertificate(ingress)
-		if err != nil && annotations.IsInvalidContent(err) {
-			glog.Errorf("Ingress %s/%s has invalid value for annotation %s", ingress.Namespace, ingress.Name, annotations.AppGwSslCertificate)
-		}
-
-		if _, exists := set[annotatedSslCertificate]; !exists {
-			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s to have pre-installed ssl certificate", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
+		annotatedSslCertificate, _ := annotations.GetAppGwSslCertificate(ingress)
+		if _, exists := set[annotatedSslCertificate]; annotatedSslCertificate != "" && !exists {
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s to have pre-installed ssl certificate '%s'", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName, annotatedSslCertificate)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPreInstalledSslCertificate, errorLine)
 			if c.agicPod != nil {
@@ -113,7 +109,7 @@ func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGatew
 		hasTLS := (ingress.Spec.TLS != nil && len(ingress.Spec.TLS) > 0) || len(appgwCertName) > 0
 		sslRedirect, _ := annotations.IsSslRedirect(ingress)
 		if !hasTLS && sslRedirect {
-			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret or annotation. Please add a TLS secret/annotation or remove ssl-redirect annotation", ingress.Namespace, ingress.Name)
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret or '%s' annotation. Please add a TLS secret/annotation or remove ssl-redirect annotation", ingress.Namespace, ingress.Name, annotations.AppGwSslCertificate)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
 			if c.agicPod != nil {

@@ -45,7 +45,7 @@ func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingre
 	appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
 	if len(appgwCertName) > 0 {
 		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
-		glog.V(5).Infof("Found anonotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
+		glog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
 	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)

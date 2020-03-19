@@ -93,7 +93,7 @@ var _ = Describe("prune function tests", func() {
 		It("removes the ingress using appgw-ssl-certificate and keeps others", func() {
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
-			Expect(len(prunedIngresses)).To(Equal(0))
+			Expect(len(prunedIngresses)).To(Equal(1))
 		})
 
 		It("keeps the ingress using appgw-ssl-certificate when annotated ssl cert is pre-installed", func() {
@@ -102,7 +102,7 @@ var _ = Describe("prune function tests", func() {
 			}
 
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
-			prunedIngresses := pruneNoPrivateIP(controller, &appGw, cbCtx, cbCtx.IngressList)
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
 			Expect(len(prunedIngresses)).To(Equal(2))
 		})
 	})
