@@ -14,6 +14,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/backend-hostname](#backend-hostname) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | |
@@ -147,6 +148,43 @@ spec:
    - hosts:
      - www.contoso.com
      secretName: testsecret-tls
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80
+```
+
+## AppGw SSL Certificate
+
+Application Gateway [can be configured](https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps)
+to do ssl termination with Key Vault certificates.
+When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, 
+Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
+
+> **Note**
+Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/appgw-ssl-certificate: "appgw-installed-certificate"
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-certificate
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-installed-certificate"
+spec:
   rules:
   - host: www.contoso.com
     http:
