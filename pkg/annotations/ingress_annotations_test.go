@@ -7,8 +7,9 @@ package annotations
 
 import (
 	"fmt"
-	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"testing"
+
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -43,6 +44,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/backend-path-prefix":         "prefix-here",
 		"appgw.ingress.kubernetes.io/backend-hostname":            "www.backend.com",
 		"appgw.ingress.kubernetes.io/hostname-extension":          "www.bye.com, www.b*.com",
+		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":       "appgw-cert",
 		"kubernetes.io/ingress.class":                             "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                         "azure/application-gateway",
 		"falseKey":                                                "false",
@@ -66,6 +68,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := IsCookieBasedAffinity(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test appgwSslCertificate", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := GetAppGwSslCertificate(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns true", func() {
+			actual, err := GetAppGwSslCertificate(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("appgw-cert"))
 		})
 	})
 

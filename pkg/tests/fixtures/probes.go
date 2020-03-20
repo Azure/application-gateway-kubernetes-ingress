@@ -8,9 +8,10 @@ package fixtures
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"strings"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )

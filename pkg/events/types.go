@@ -27,6 +27,9 @@ const (
 	// ReasonNoPrivateIPError is a reason for an event to be emitted.
 	ReasonNoPrivateIPError = "NoPrivateIP"
 
+	// ReasonNoPreInstalledSslCertificate is a reason for an event to be emitted.
+	ReasonNoPreInstalledSslCertificate = "NoPreInstalledSslCertificate"
+
 	// ReasonRedirectWithNoTLS is a reason for an event to be emitted.
 	ReasonRedirectWithNoTLS = "RedirectWithNoTLS"
 

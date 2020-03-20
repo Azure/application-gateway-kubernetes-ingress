@@ -412,4 +412,27 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			Expect(listener.RequireServerNameIndication).To(BeNil())
 		})
 	})
+
+	Context("create a new App Gateway with annotated certificate", func() {
+		It("should create listener with certificate", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			ing := tests.NewIngressFixture()
+			ing.Annotations[annotations.AppGwSslCertificate] = "appgw-installed-cert"
+			ing.Spec.TLS = nil
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ing,
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			listeners, _ := cb.getListeners(cbCtx)
+
+			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/appgw-installed-cert")
+			Expect(*listeners).To(ContainElement(expectedListener443))
+		})
+	})
 })
