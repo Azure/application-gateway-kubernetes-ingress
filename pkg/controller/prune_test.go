@@ -71,6 +71,42 @@ var _ = Describe("prune function tests", func() {
 		})
 	})
 
+	Context("ensure pruneNoSslCertificate prunes ingress", func() {
+		ingressSslCertAnnotated := tests.NewIngressFixture()
+		ingressSslCertAnnotated.Annotations = map[string]string{
+			annotations.AppGwSslCertificate: "appgw-installed-cert",
+		}
+		ingressNoSslCertAnnotated := tests.NewIngressFixture()
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{
+				ingressSslCertAnnotated,
+				ingressNoSslCertAnnotated,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using appgw-ssl-certificate and keeps others", func() {
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+		})
+
+		It("keeps the ingress using appgw-ssl-certificate when annotated ssl cert is pre-installed", func() {
+			ingressSslCertAnnotated.Annotations = map[string]string{
+				annotations.AppGwSslCertificate: *fixtures.GetCertificate1().Name,
+			}
+
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
 	Context("ensure pruneRedirectNoTLS prunes ingress", func() {
 		// invalid ingress without https and redirect
 		ingressInvalid := tests.NewIngressFixture()

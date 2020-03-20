@@ -11,8 +11,8 @@ import (
 	"io/ioutil"
 )
 
-// AzContext represents the Azure context file
-type AzContext struct {
+// CloudProviderConfig represent the CloudProvider Context file such as Azure
+type CloudProviderConfig struct {
 	Cloud                   string `json:"cloud"`
 	TenantID                string `json:"tenantId"`
 	SubscriptionID          string `json:"subscriptionId"`
@@ -27,17 +27,24 @@ type AzContext struct {
 	UserAssignedIdentityID  string `json:"userAssignedIdentityID"`
 }
 
-// NewAzContext returns an AzContext struct from file path
-func NewAzContext(path string) (*AzContext, error) {
+// NewCloudProviderConfig returns an CloudProviderConfig struct from file path
+func NewCloudProviderConfig(path string) (*CloudProviderConfig, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Reading Az Context file %q failed: %v", path, err)
 	}
 
 	// Unmarshal the authentication file.
-	var context AzContext
+	var context CloudProviderConfig
 	if err := json.Unmarshal(b, &context); err != nil {
 		return nil, err
+	}
+
+	if context.VNetResourceGroup == "" {
+		context.VNetResourceGroup = context.ResourceGroup
+	}
+	if context.RouteTableResourceGroup == "" {
+		context.RouteTableResourceGroup = context.ResourceGroup
 	}
 
 	return &context, nil

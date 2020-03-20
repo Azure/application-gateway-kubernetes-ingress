@@ -1,4 +1,4 @@
-# Greenfield Deployment
+# Preview - Greenfield Deployment (Windows Cluster)
 
 The instructions below assume Application Gateway Ingress Controller (AGIC) will be
 installed in an environment with no pre-existing components.
@@ -21,6 +21,62 @@ choose to use another environment, please ensure the following command line tool
 1. `helm` - Kubernetes package manager: [installation instructions](https://github.com/helm/helm/releases/latest)
 1. `jq` - command-line JSON processor: [installation instructions](https://stedolan.github.io/jq/download/)
 
+### Enable you Subscription to support preview features for Kubernetes
+
+Here are the steps to instal aks-preview CLI and register Windows preview feature.
+
+> [!IMPORTANT]
+> AKS preview features are self-service opt-in. Previews are provided "as-is" and "as available" and are excluded from the service level agreements and limited warranty. AKS Previews are partially covered by customer support on best effort basis. As such, these features are not meant for production use. For additional infromation, please see the following support articles:
+>
+> * [AKS Support Policies][aks-support-policies]
+> * [Azure Support FAQ][aks-faq]
+
+#### Install aks-preview CLI extension
+
+To use Windows Server containers, you need the *aks-preview* CLI extension version 0.4.12 or higher. Install the *aks-preview* Azure CLI extension using the [az extension add][az-extension-add] command, then check for any available updates using the [az extension update][az-extension-update] command::
+
+```azurecli-interactive
+# Install the aks-preview extension
+az extension add --name aks-preview
+
+# Update the extension to make sure you have the latest version installed
+az extension update --name aks-preview
+```
+
+#### Register Windows preview feature
+
+To create an AKS cluster that can use multiple node pools and run Windows Server containers, first enable the *WindowsPreview* feature flags on your subscription. The *WindowsPreview* feature also uses multi-node pool clusters and virtual machine scale set to manage the deployment and configuration of the Kubernetes nodes. Register the  *WindowsPreview* feature flag using the [az feature register][az-feature-register] command as shown in the following example:
+
+```azurecli-interactive
+az feature register --name WindowsPreview --namespace Microsoft.ContainerService
+```
+
+> [!NOTE]
+> Any AKS cluster you create after you've successfully registered the *WindowsPreview* feature flag use this preview cluster experience. To continue to create regular, fully-supported clusters, don't enable preview features on production subscriptions. Use a separate test or development Azure subscription for testing preview features.
+
+It takes a few minutes for the registration to complete. Check on the registration status using the [az feature list][az-feature-list] command:
+
+```azurecli-interactive
+az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/WindowsPreview')].{Name:name,State:properties.state}"
+```
+
+When the registration state is `Registered`, press Ctrl-C to stop monitoring the state.  Then refresh the registration of the *Microsoft.ContainerService* resource provider using the [az provider register][az-provider-register] command:
+
+```azurecli-interactive
+az provider register --namespace Microsoft.ContainerService
+```
+
+#### Limitations
+
+The following limitations apply when you create and manage AKS clusters that support multiple node pools:
+
+* You can't delete the first node pool.
+
+While this feature is in preview, the following additional limitations apply:
+
+* The AKS cluster can have a maximum of eight node pools.
+* The AKS cluster can have a maximum of 400 nodes across those eight node pools.
+* The Windows Server node pool name has a limit of 6 characters.
 
 ### Create an Identity
 
@@ -65,7 +121,7 @@ The next few steps will add the following list of components to your Azure subsc
 
 1. Download the ARM template into template.json file. Paste the following in your [shell](https://shell.azure.com/):
     ```bash
-    wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploy.json -O template.json
+    wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploywindowscluster.json -O template.json
     ```
 
 1. Deploy the ARM template via [Azure Cloud Shell](https://shell.azure.com/) and the `az` tool. Modify the name of the resource group and region/location, then paste each of the following lines into your [shell](https://shell.azure.com/):
@@ -174,7 +230,7 @@ Kubernetes. We will leverage it to install the `application-gateway-kubernetes-i
     ```bash
     kubectl create serviceaccount --namespace kube-system tiller-sa
     kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-    helm init --tiller-namespace kube-system --service-account tiller-sa
+    helm init --tiller-namespace kube-system --service-account tiller-sa --generate-name
     ```
 
     - *RBAC disabled* AKS cluster
@@ -243,7 +299,7 @@ Values:
 4. Install the Application Gateway ingress controller package:
 
     ```bash
-    helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
+    helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --generate-name --set nodeSelector."beta\.kubernetes\.io/os"=linux
     ```
 
 ### Install a Sample App
@@ -259,8 +315,10 @@ metadata:
   labels:
     app: aspnetapp
 spec:
+  nodeSelector:
+    "beta.kubernetes.io/os": windows
   containers:
-  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+  - image: "mcr.microsoft.com/dotnet/framework/samples:aspnetapp"
     name: aspnetapp-image
     ports:
     - containerPort: 80
@@ -303,7 +361,7 @@ Alternatively you can:
 
 1. Download the YAML file above:
 ```bash
-curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
+curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetappwin.yaml -o aspnetapp.yaml
 ```
 
 2. Apply the YAML file:
@@ -313,5 +371,5 @@ kubectl apply -f aspnetapp.yaml
 
 
 ## Other Examples
-The **[tutorials](../tutorial.md)** document contains more examples on how toexpose an AKS
+The **[tutorials](../tutorial.md)** document contains more examples on how to expose an AKS
 service via HTTP or HTTPS, to the Internet with App Gateway.

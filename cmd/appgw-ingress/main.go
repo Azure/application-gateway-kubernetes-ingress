@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sort"
 	"strconv"
 	"strings"
 	"syscall"
@@ -22,15 +21,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
-	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/record"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
@@ -73,11 +65,19 @@ func main() {
 	}
 
 	env := environment.GetEnv()
-
 	verbosity = to.IntPtr(getVerbosity(*verbosity, env.VerbosityLevel))
 	if *versionInfo {
 		version.PrintVersionAndExit()
 	}
+
+	// get the details from Cloud Provider Config
+	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
+	cpConfig, err := azure.NewCloudProviderConfig(env.CloudProviderConfigLocation)
+	if err != nil {
+		glog.Info("Unable to load cloud provider config:", env.CloudProviderConfigLocation)
+	}
+
+	env.Consolidate(cpConfig)
 
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
@@ -95,37 +95,6 @@ func main() {
 	metricStore.Start()
 	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
 	agicPod := k8sContext.GetAGICPod(env)
-
-	// get the details from Azure Context
-	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
-	azContext, err := azure.NewAzContext(env.AzContextLocation)
-	if err != nil {
-		glog.Info("Unable to load Azure Context file:", env.AzContextLocation)
-	} else {
-		if azContext.VNetResourceGroup == "" {
-			azContext.VNetResourceGroup = azContext.ResourceGroup
-		}
-		if azContext.RouteTableResourceGroup == "" {
-			azContext.RouteTableResourceGroup = azContext.ResourceGroup
-		}
-	}
-
-	// adjust env variable
-	if env.AppGwResourceID != "" {
-		subscriptionID, resourceGroupName, applicationGatewayName := azure.ParseResourceID(env.AppGwResourceID)
-		env.SubscriptionID = string(subscriptionID)
-		env.ResourceGroupName = string(resourceGroupName)
-		env.AppGwName = string(applicationGatewayName)
-	}
-	if azContext != nil && env.SubscriptionID == "" {
-		env.SubscriptionID = string(azContext.SubscriptionID)
-	}
-	if azContext != nil && env.ResourceGroupName == "" {
-		env.ResourceGroupName = string(azContext.ResourceGroup)
-	}
-	if env.AppGwSubnetName == "" {
-		env.AppGwSubnetName = env.AppGwName + "-subnet"
-	}
 
 	if err := environment.ValidateEnv(env); err != nil {
 		errorLine := fmt.Sprint("Error while initializing values from environment. Please check helm configuration for missing values: ", err)
@@ -155,7 +124,7 @@ func main() {
 	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
-	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, azContext, maxRetryCount, retryPause); err != nil {
+	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {
 		errorLine := fmt.Sprint("Failed obtaining authentication token for Azure Resource Manager: ", err)
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
@@ -169,8 +138,8 @@ func main() {
 		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
-			} else if azContext != nil {
-				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(azContext.VNetResourceGroup), azure.ResourceName(azContext.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
+			} else if cpConfig != nil {
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(cpConfig.VNetResourceGroup), azure.ResourceName(cpConfig.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix)
 			}
 
 			if err != nil {
@@ -216,9 +185,9 @@ func main() {
 	}
 
 	// associate route table to application gateway subnet
-	if azContext != nil && azContext.RouteTableName != "" {
+	if cpConfig != nil && cpConfig.RouteTableName != "" {
 		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
-		routeTableID := azure.RouteTableID(azure.SubscriptionID(azContext.SubscriptionID), azure.ResourceGroup(azContext.RouteTableResourceGroup), azure.ResourceName(azContext.RouteTableName))
+		routeTableID := azure.RouteTableID(azure.SubscriptionID(cpConfig.SubscriptionID), azure.ResourceGroup(cpConfig.RouteTableResourceGroup), azure.ResourceName(cpConfig.RouteTableName))
 
 		err = azClient.ApplyRouteTable(subnetID, routeTableID)
 		if err != nil {
@@ -244,85 +213,4 @@ func main() {
 	appGwIngressController.Stop()
 	httpServer.Stop()
 	glog.Info("Goodbye!")
-}
-
-func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) error {
-	var nonExistent []string
-	for _, ns := range namespaces {
-		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
-			nonExistent = append(nonExistent, ns)
-		}
-	}
-	if len(nonExistent) > 0 {
-		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
-		return ErrNoSuchNamespace
-	}
-	return nil
-}
-
-func getNamespacesToWatch(namespaceEnvVar string) []string {
-	// Returning an empty array effectively switches Ingress Controller
-	// in a mode of observing all accessible namespaces.
-	if namespaceEnvVar == "" {
-		return []string{}
-	}
-
-	// Namespaces (DNS-1123 label) can have lower case alphanumeric characters or '-'
-	// Commas are safe to use as a separator
-	if strings.Contains(namespaceEnvVar, ",") {
-		var namespaces []string
-		for _, ns := range strings.Split(namespaceEnvVar, ",") {
-			if len(ns) > 0 {
-				namespaces = append(namespaces, strings.TrimSpace(ns))
-			}
-		}
-		sort.Strings(namespaces)
-		return namespaces
-	}
-	return []string{namespaceEnvVar}
-}
-
-func getKubeClientConfig() *rest.Config {
-	if *inCluster {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			glog.Fatal("Error creating client configuration:", err)
-		}
-		return config
-	}
-
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
-	if err != nil {
-		glog.Fatal("error creating client configuration:", err)
-	}
-
-	return config
-}
-
-func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
-	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.V(5).Infof)
-	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
-	eventBroadcaster.StartRecordingToSink(sink)
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Error("Could not obtain host name from the operating system", err)
-		hostname = "unknown-hostname"
-	}
-	source := v1.EventSource{
-		Component: annotations.ApplicationGatewayIngressClass,
-		Host:      hostname,
-	}
-	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
-}
-
-func getVerbosity(flagVerbosity int, envVerbosity string) int {
-	envVerbosityInt, err := strconv.Atoi(envVerbosity)
-	if err != nil {
-		glog.Infof("Using verbosity level %d from CLI flag %s", flagVerbosity, verbosityFlag)
-		return flagVerbosity
-	}
-	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
-	return envVerbosityInt
 }

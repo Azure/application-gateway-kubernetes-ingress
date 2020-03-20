@@ -49,7 +49,7 @@
             }
         },
         "aksAgentOsDiskSizeGB": {
-            "defaultValue": 40,
+            "defaultValue": 100,
             "minValue": 30,
             "maxValue": 1023,
             "type": "int",
@@ -58,7 +58,7 @@
             }
         },
         "aksAgentCount": {
-            "defaultValue": 3,
+            "defaultValue": 1,
             "minValue": 1,
             "maxValue": 50,
             "type": "int",
@@ -68,6 +68,7 @@
         },
         "aksAgentVMSize": {
             "defaultValue": "Standard_D3_v2",
+            "type": "string",
             "allowedValues": [
                 "Standard_A0",
                 "Standard_A1",
@@ -274,14 +275,13 @@
                 "Standard_NV12",
                 "Standard_NV24",
                 "Standard_NV6"
-            ],
-            "type": "string",
+            ],        
             "metadata": {
                 "description": "The size of the Virtual Machine."
             }
         },
         "kubernetesVersion": {
-            "defaultValue": "1.15.5",
+            "defaultValue": "1.15.7",
             "type": "string",
             "metadata": {
                 "description": "The version of Kubernetes."
@@ -348,8 +348,8 @@
         "managedIdentityOperatorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f1a07417-d97a-45cb-824c-7a7467783830')]",
         "readerRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
         "webApplicationFirewallConfiguration": {
-          "enabled": "true",
-          "firewallMode": "Detection"
+            "enabled": "true",
+            "firewallMode": "Detection"
         }
     },
     "resources": [
@@ -519,9 +519,9 @@
                             "apiVersion": "2017-05-01",
                             "name": "[concat(variables('vnetName'), '/', variables('kubernetesSubnetName'),'/Microsoft.Authorization/', guid(resourceGroup().id, 'aksvnetaccess'))]",
                             "properties": {
-                              "roleDefinitionId": "[variables('networkContributorRole')]",
-                              "principalId": "[parameters('aksServicePrincipalObjectId')]",
-                              "scope": "[variables('kubernetesSubnetId')]"
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "principalId": "[parameters('aksServicePrincipalObjectId')]",
+                                "scope": "[variables('kubernetesSubnetId')]"
                             }
                         },
                         {
@@ -588,7 +588,7 @@
         {
             "type": "Microsoft.ContainerService/managedClusters",
             "name": "[variables('aksClusterName')]",
-            "apiVersion": "2018-03-31",
+            "apiVersion": "2020-02-01",
             "location": "[resourceGroup().location]",
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
@@ -603,18 +603,45 @@
                         "osType": "Linux",
                         "storageProfile": "ManagedDisks",
                         "vnetSubnetID": "[variables('kubernetesSubnetId')]",
-                        "dnsPrefix": "agents"
+                        "dnsPrefix": "agents",
+                        "maxPods": 30,
+                        "type": "VirtualMachineScaleSets",
+                        "enableAutoScaling": false
+                    },
+                    {
+                        "name": "winpl",
+                        "count": "[parameters('aksAgentCount')]",
+                        "vmSize": "[parameters('aksAgentVMSize')]",
+                        "osDiskSizeGB": "[parameters('aksAgentOsDiskSizeGB')]",
+                        "vnetSubnetID": "[variables('kubernetesSubnetId')]",
+                        "maxPods": 30,
+                        "type": "VirtualMachineScaleSets",
+                        "osType": "Windows"
                     }
                 ],
+                "windowsProfile": {
+                    "adminUsername": "azureuser",
+                    "adminPassword": "[parameters('aksServicePrincipalClientSecret')]"
+                },
                 "servicePrincipalProfile": {
                     "clientId": "[parameters('aksServicePrincipalAppId')]",
                     "secret": "[parameters('aksServicePrincipalClientSecret')]"
                 },
                 "networkProfile": {
                     "networkPlugin": "azure",
+                    "loadBalancerSku": "Standard",
                     "serviceCidr": "[parameters('aksServiceCIDR')]",
                     "dnsServiceIP": "[parameters('aksDnsServiceIP')]",
                     "dockerBridgeCidr": "[parameters('aksDockerBridgeCIDR')]"
+                },
+                              
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": false
+                    },
+                    "omsagent": {
+                        "enabled": false
+                    }
                 }
             },
             "dependsOn": [

@@ -12,12 +12,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -197,7 +198,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 		// no access or no route table
 		return err
 	}
-	
+
 	// Get subnet and check if it is already associated to a route table
 	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
 	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
