@@ -441,8 +441,6 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 		)
 		c.MetricStore.IncErrorCount(e.Code)
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
-
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
 	}
 	if nodes == nil || len(nodes.Items) == 0 {
 		e := controllererrors.NewError(
