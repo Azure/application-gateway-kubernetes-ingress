@@ -14,12 +14,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
-// PrometheusNamespace is the namespace for appgw ingress controller
-var PrometheusNamespace = "appgw_ingress_controller"
+const (
+	// PrometheusNamespace is the namespace for appgw ingress controller
+	PrometheusNamespace = "appgw_ingress_controller"
+
+	// ErrorCode is a sub-label for keeping track of error for a specific error code
+	ErrorCode = "error_code"
+)
 
 // MetricStore is store maintaining all metrics
 type MetricStore interface {
@@ -31,6 +37,7 @@ type MetricStore interface {
 	IncArmAPIUpdateCallSuccessCounter()
 	IncArmAPICallCounter()
 	IncK8sAPIEventCounter()
+	IncErrorCount(controllererrors.ErrorCode)
 }
 
 // AGICMetricStore is store
@@ -41,6 +48,7 @@ type AGICMetricStore struct {
 	armAPICallCounter              prometheus.Counter
 	armAPIUpdateCallFailureCounter prometheus.Counter
 	armAPIUpdateCallSuccessCounter prometheus.Counter
+	errorCounterVec                *prometheus.CounterVec
 
 	registry *prometheus.Registry
 }
@@ -88,6 +96,15 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 			Name:        "arm_api_update_call_success_counter",
 			Help:        "This counter represents the number of update API calls that successfully updated Application Gateway",
 		}),
+		errorCounterVec: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace:   PrometheusNamespace,
+				ConstLabels: constLabels,
+				Name:        "error_counter",
+				Help:        "This guage changes represents an error on AGIC",
+			},
+			[]string{ErrorCode},
+		),
 		registry: prometheus.NewRegistry(),
 	}
 }
@@ -99,6 +116,7 @@ func (ms *AGICMetricStore) Start() {
 	ms.registry.MustRegister(ms.armAPIUpdateCallSuccessCounter)
 	ms.registry.MustRegister(ms.armAPIUpdateCallFailureCounter)
 	ms.registry.MustRegister(ms.armAPICallCounter)
+	ms.registry.MustRegister(ms.errorCounterVec)
 }
 
 // Stop store
@@ -108,6 +126,7 @@ func (ms *AGICMetricStore) Stop() {
 	ms.registry.Unregister(ms.armAPIUpdateCallSuccessCounter)
 	ms.registry.Unregister(ms.armAPIUpdateCallFailureCounter)
 	ms.registry.Unregister(ms.armAPICallCounter)
+	ms.registry.Unregister(ms.errorCounterVec)
 }
 
 // SetUpdateLatencySec updates latency
@@ -135,6 +154,11 @@ func (ms *AGICMetricStore) IncArmAPIUpdateCallSuccessCounter() {
 // IncArmAPICallCounter increases the counter for success on ARM
 func (ms *AGICMetricStore) IncArmAPICallCounter() {
 	ms.armAPICallCounter.Inc()
+}
+
+// IncErrorCount increases the counter for success on ARM
+func (ms *AGICMetricStore) IncErrorCount(errorCode controllererrors.ErrorCode) {
+	ms.errorCounterVec.With(prometheus.Labels{ErrorCode: string(errorCode)}).Inc()
 }
 
 // Handler return the registry

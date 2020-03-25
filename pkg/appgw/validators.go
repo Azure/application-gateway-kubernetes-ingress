@@ -15,27 +15,10 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
-
-const (
-	errKeyNoDefaults     = "no-defaults"
-	errKeyEitherDefaults = "either-defaults"
-	errKeyNoBorR         = "no-backend-or-redirect"
-	errKeyEitherBorR     = "either-backend-or-redirect"
-	errKeyNoPrivateIP    = "no-private-ip"
-	errKeyNoPublicIP     = "no-public-ip"
-)
-
-var validationErrors = map[string]error{
-	errKeyNoDefaults:     ErrKeyNoDefaults,
-	errKeyEitherDefaults: ErrKeyEitherDefaults,
-	errKeyNoBorR:         ErrKeyNoBorR,
-	errKeyEitherBorR:     ErrKeyEitherBorR,
-	errKeyNoPrivateIP:    ErrKeyNoPrivateIP,
-	errKeyNoPublicIP:     ErrKeyNoPublicIP,
-}
 
 func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
 	// TODO(draychev): reuse newBackendIds() to get backendIDs oncehttps://github.com/Azure/application-gateway-kubernetes-ingress/pull/262 is merged
@@ -85,12 +68,20 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 
 			if !validRedirect && !validBackend {
 				// TODO(draychev): Emit an event for the appropriate object
-				return validationErrors[errKeyNoDefaults]
+				e := controllererrors.NewError(
+					controllererrors.ErrorNoDefaults,
+					"message",
+				)
+				return e
 			}
 
 			if validRedirect && validBackend || !validRedirect && !validBackend {
 				// TODO(draychev): Emit an event for the appropriate object
-				return validationErrors[errKeyEitherDefaults]
+				e := controllererrors.NewError(
+					controllererrors.ErrorEitherDefaults,
+					"message",
+				)
+				return e
 			}
 
 		} else {
@@ -100,11 +91,19 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 				validBackend := rule.BackendAddressPool != nil && rule.BackendHTTPSettings != nil
 
 				if !validRedirect && !validBackend {
-					return validationErrors[errKeyNoBorR]
+					e := controllererrors.NewError(
+						controllererrors.ErrorNoBackendorRedirect,
+						"message",
+					)
+					return e
 				}
 
 				if validRedirect && validBackend || !validRedirect && !validBackend {
-					return validationErrors[errKeyEitherBorR]
+					e := controllererrors.NewError(
+						controllererrors.ErrorEitherBackendorRedirect,
+						"message",
+					)
+					return e
 				}
 			}
 
@@ -131,11 +130,19 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 	}
 
 	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
-		return validationErrors[errKeyNoPrivateIP]
+		e := controllererrors.NewError(
+			controllererrors.ErrorNoPrivateIP,
+			"message",
+		)
+		return e
 	}
 
 	if !publicIPPresent {
-		return validationErrors[errKeyNoPublicIP]
+		e := controllererrors.NewError(
+			controllererrors.ErrorNoPublicIP,
+			"message",
+		)
+		return e
 	}
 
 	return nil
@@ -144,7 +151,11 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 // FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
 func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
 	if config == nil {
-		return ErrEmptyConfig
+		e := controllererrors.NewError(
+			controllererrors.ErrorEmptyConfig,
+			"message",
+		)
+		return e
 	}
 
 	validators := []func(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
