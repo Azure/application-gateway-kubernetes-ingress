@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -19,13 +20,13 @@ var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 		secret := v1.Secret{}
 		ginkgo.It("Should have returned an error - unrecognized type of secret", func() {
 			err := secretsStore.ConvertSecret("someKey", &secret)
-			Expect(err).To(Equal(ErrorUnknownSecretType))
+			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorUnknownSecretType))
 		})
 		ginkgo.It("", func() {
 			malformed := secret
 			malformed.Type = recognizedSecretType
 			err := secretsStore.ConvertSecret("someKey", &malformed)
-			Expect(err).To(Equal(ErrorMalformedSecret))
+			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorMalformedSecret))
 		})
 		ginkgo.It("", func() {
 			malformed := secret
@@ -34,7 +35,7 @@ var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 			malformed.Data[tlsKey] = []byte("X")
 			malformed.Data[tlsCrt] = []byte("Y")
 			err := secretsStore.ConvertSecret("someKey", &malformed)
-			Expect(err).To(Equal(ErrorExportingWithOpenSSL))
+			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorExportingWithOpenSSL))
 		})
 		ginkgo.It("", func() {
 			err := secretsStore.ConvertSecret("someKey", tests.NewSecretTestFixture())

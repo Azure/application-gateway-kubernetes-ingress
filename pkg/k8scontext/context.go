@@ -86,7 +86,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
 
-		metricStore: metricStore,
+		MetricStore: metricStore,
 		namespaces:  make(map[string]interface{}),
 	}
 
@@ -135,7 +135,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 			controllererrors.ErrorInformersNotInitialized,
 			"informers are not initialized",
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
@@ -177,7 +177,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 			controllererrors.ErrorFailedInitialCacheSync,
 			"failed initial sync of resources required for ingress",
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return e
 	}
 
@@ -224,7 +224,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 			"Endpoint not found for %s",
 			serviceKey)
 		glog.Error(e.Error())
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
 
@@ -235,7 +235,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 			"Error fetching endpoints from store for %s",
 			serviceKey)
 		glog.Error(e.Error())
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
 
@@ -439,7 +439,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 			err,
 			"no nodes were found in the node list",
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
@@ -449,7 +449,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 			controllererrors.ErrorNoNodesFound,
 			"no nodes were found in the node list",
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 	}
 	if !strings.HasPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix) {
@@ -457,7 +457,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 			controllererrors.ErrorUnrecognizedNodeProviderPrefix,
 			"providerID is not prefixed with azure://",
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 	}
 	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix))
@@ -474,7 +474,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 			err,
 			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return e
 	}
 
@@ -500,7 +500,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 			err,
 			"Unable to update ingress %s/%s status:", ingress.Namespace, ingress.Name,
 		)
-		c.metricStore.IncErrorCount(e.Code)
+		c.MetricStore.IncErrorCount(e.Code)
 		return e
 	}
 

@@ -30,7 +30,7 @@ func (realClock) Now() time.Time { return time.Now() }
 func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
 	// Get current application gateway config
 	appGw, err := c.azClient.GetGateway()
-	c.metricStore.IncArmAPICallCounter()
+	c.MetricStore.IncArmAPICallCounter()
 	if err != nil {
 		errorLine := fmt.Sprintf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
 		glog.Errorf(errorLine)
@@ -183,7 +183,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
 		}
-		c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
 	// Wait until deployment finshes and save the error message
@@ -194,7 +194,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	duration := time.Now().Sub(deploymentStart)
 	glog.V(1).Infof("Applied App Gateway config in %+v", duration.String())
 
-	c.metricStore.SetUpdateLatencySec(duration)
+	c.MetricStore.SetUpdateLatencySec(duration)
 	// ----------------- //
 
 	// Cache Phase //
@@ -207,7 +207,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
 		}
-		c.metricStore.IncArmAPIUpdateCallFailureCounter()
+		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
 		return ErrDeployingAppGatewayConfig
 	}
 
@@ -215,7 +215,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	c.updateCache(appGw)
 	// ----------- //
 
-	c.metricStore.IncArmAPIUpdateCallSuccessCounter()
+	c.MetricStore.IncArmAPIUpdateCallSuccessCounter()
 
 	return nil
 }
