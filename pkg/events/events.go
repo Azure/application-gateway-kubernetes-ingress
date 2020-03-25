@@ -17,6 +17,9 @@ const (
 
 	// Delete is a type of a Kubernetes API event.
 	Delete
+
+	// PeriodicReconcile is a event for periodically reconciling Application Gateway
+	PeriodicReconcile
 )
 
 // Event is the combined type and actual object we received from Kubernetes

@@ -8,6 +8,7 @@ package environment
 import (
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/golang/glog"
 
@@ -83,6 +84,9 @@ const (
 
 	// HostedOnUnderlayVarName  is an environment variable name.
 	HostedOnUnderlayVarName = "HOSTED_ON_UNDERLAY"
+
+	// ReconcilePeriodSecondsVarName is an environment variable to control reconcile period for the AGIC.
+	ReconcilePeriodSecondsVarName = "RECONCILE_PERIOD_SECONDS"
 )
 
 var (
@@ -115,6 +119,7 @@ type EnvVariables struct {
 	HTTPServicePort             string
 	AttachWAFPolicyToListener   bool
 	HostedOnUnderlay            bool
+	ReconcilePeriodSeconds      int
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -172,6 +177,11 @@ func GetEnv() EnvVariables {
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
 	}
 
+	env.ReconcilePeriodSeconds = -1
+	if reconcilePeriodSecondsStr := os.Getenv(ReconcilePeriodSecondsVarName); reconcilePeriodSecondsStr != "" {
+		env.ReconcilePeriodSeconds, _ = strconv.Atoi(reconcilePeriodSecondsStr)
+	}
+
 	return env
 }
 
@@ -203,6 +213,13 @@ func ValidateEnv(env EnvVariables) error {
 	if env.WatchNamespace == "" {
 		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
+
+	if reconcilePeriodSecondsStr := os.Getenv(ReconcilePeriodSecondsVarName); reconcilePeriodSecondsStr != "" {
+		if _, err := strconv.Atoi(reconcilePeriodSecondsStr); err != nil {
+			return ErrorInvalidReconcilePeriod
+		}
+	}
+
 	return nil
 }
 

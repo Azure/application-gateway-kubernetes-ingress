@@ -69,6 +69,7 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(EnableIstioIntegrationVarName, "true")
 				_ = os.Setenv(EnableSaveConfigToFileVarName, "false")
 				_ = os.Setenv(EnablePanicOnPutErrorVarName, "true")
+				_ = os.Setenv(ReconcilePeriodSecondsVarName, "30")
 
 				expected := EnvVariables{
 					SubscriptionID:             "SubscriptionIDVarName",
@@ -83,6 +84,7 @@ var _ = Describe("Environment", func() {
 					EnableSaveConfigToFile:     false,
 					EnablePanicOnPutError:      true,
 					HTTPServicePort:            "8123",
+					ReconcilePeriodSeconds:     30,
 				}
 
 				Expect(GetEnv()).To(Equal(expected))

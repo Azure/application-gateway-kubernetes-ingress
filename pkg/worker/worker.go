@@ -29,8 +29,29 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	}
 }
 
+func reconcilerEventTicker(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
+	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)
+	for {
+		select {
+		case tickedTime := <-reconcileTicker.C:
+			glog.V(5).Info("Reconciling ticker at ", tickedTime)
+			work <- events.Event{
+				Type: events.PeriodicReconcile,
+			}
+		case <-stopChannel:
+			break
+		}
+	}
+}
+
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
-func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
+func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
+
+	// initilize reconcilerEventTicker
+	if reconcilePeriodSeconds != -1 {
+		go reconcilerEventTicker(work, stopChannel, reconcilePeriodSeconds)
+	}
+
 	lastUpdate := time.Now().Add(-1 * time.Second)
 	glog.V(1).Infoln("Worker started")
 	for {
