@@ -119,7 +119,9 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 		glog.Error("Error mutating AKS from k8s event. ", err)
 	}
 
-	if err := c.MutateAppGateway(appGw, cbCtx); err != nil {
+	invokedForReconciliation := event.Type == events.PeriodicReconcile
+	glog.Info("[reconcile] triggered: ", invokedForReconciliation)
+	if err := c.MutateAppGateway(appGw, cbCtx, invokedForReconciliation); err != nil {
 		glog.Error("Error mutating App Gateway config from k8s event. ", err)
 	}
 

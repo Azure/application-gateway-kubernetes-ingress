@@ -39,7 +39,7 @@ func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, rec
 	for {
 		select {
 		case tickedTime := <-reconcileTicker.C:
-			glog.V(9).Info("Reconciling ticker at ", tickedTime)
+			glog.V(9).Info("Reconciling ticker ticked at ", tickedTime)
 			work <- events.Event{
 				Type: events.PeriodicReconcile,
 			}

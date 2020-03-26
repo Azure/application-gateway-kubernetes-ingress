@@ -59,7 +59,16 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 }
 
 // MutateAppGateway applies App Gateway config.
-func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
+func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, invokedForReconciliation bool) error {
+	// if this is a reconciliation task, then before doing anything, compare the current expected state vs cached state of the gateway
+	if invokedForReconciliation {
+		glog.V(5).Info("[reconcile] triggered: ", invokedForReconciliation)
+		if c.configIsSame(appGw) {
+			glog.V(5).Info("[reconcile] NoOp: current gateway state == cached gateway state")
+			return nil
+		}
+	}
+
 	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
@@ -144,7 +153,9 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 		}
 	}
 
-	if c.configIsSame(appGw) {
+	// if this is not a reconciliation task
+	// then compare the generated state with cached state
+	if !invokedForReconciliation && c.configIsSame(appGw) {
 		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}

@@ -164,11 +164,12 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 		ID:   to.StringPtr(c.appGwIdentifier.listenerID(listenerName)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
-			FrontendIPConfiguration: resourceRef(*frontIPConfiguration.ID),
-			FrontendPort:            resourceRef(*frontendPort.ID),
-			Protocol:                protocol,
-			HostName:                nil,
-			Hostnames:               nil,
+			FrontendIPConfiguration:     resourceRef(*frontIPConfiguration.ID),
+			FrontendPort:                resourceRef(*frontendPort.ID),
+			Protocol:                    protocol,
+			HostName:                    nil,
+			Hostnames:                   &[]string{},
+			RequireServerNameIndication: to.BoolPtr(false), // not used in V2 SKU but setting to default
 		},
 	}
 

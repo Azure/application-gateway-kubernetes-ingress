@@ -178,6 +178,11 @@ func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.Applicati
 			Protocol: protocol,
 			Port:     &defHTTPSettingsPort,
 			Probe:    resourceRef(appGWIdentifier.probeID(defaultProbeName(protocol))),
+
+			// setting to default
+			PickHostNameFromBackendAddress: to.BoolPtr(false),
+			CookieBasedAffinity:            n.Disabled,
+			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
 }
@@ -199,6 +204,11 @@ func defaultProbe(appGWIdentifier Identifier, protocol n.ApplicationGatewayProto
 			Interval:           &defInterval,
 			Timeout:            &defTimeout,
 			UnhealthyThreshold: &defUnHealthyCount,
+
+			// setting to defaults
+			Match:                               &n.ApplicationGatewayProbeHealthResponseMatch{},
+			PickHostNameFromBackendHTTPSettings: to.BoolPtr(false),
+			MinServers:                          to.Int32Ptr(0),
 		},
 	}
 }
