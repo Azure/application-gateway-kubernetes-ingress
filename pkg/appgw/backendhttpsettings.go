@@ -8,6 +8,7 @@ package appgw
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -200,6 +201,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
 	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
+
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
@@ -260,6 +262,32 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		httpSettings.Protocol = n.HTTPS
 	} else if err != nil && !annotations.IsMissingAnnotations(err) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	if whitelistRootCertificates, err := annotations.GetAppGwWhitelistRootCertificate(backendID.Ingress); err == nil {
+		certificateNames := strings.TrimRight(whitelistRootCertificates, ",")
+		certificateNameList := strings.Split(certificateNames, ",")
+		var certs []n.SubResource
+		for _, certName := range certificateNameList {
+			trustCertID := c.appGwIdentifier.trustedRootCertificateID(certName)
+			certs = append(certs, *resourceRef(trustCertID))
+		}
+		httpSettings.TrustedRootCertificates = &certs
+		glog.V(5).Infof("Found root certificates: %s are whitelisted", certificateNames)
+
+	} else if err != nil && !annotations.IsMissingAnnotations(err) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
+	if httpSettings.TrustedRootCertificates != nil {
+		if httpSettings.Protocol == n.HTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
+			if httpSettings.HostName != nil && len(*httpSettings.HostName) > 0 {
+				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
+			} else {
+				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(true)
+			}
+		}
 	}
 
 	return httpSettings
