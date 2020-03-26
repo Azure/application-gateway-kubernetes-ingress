@@ -22,19 +22,24 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	for {
 		select {
 		case event := <-ch:
-			lastEvent = event
+			// if there are more event in the queue
+			// we will skip the reconcile event as we are only looking for k8s based events
+			if event.Type != events.PeriodicReconcile {
+				lastEvent = event
+			}
 		default:
 			return lastEvent
 		}
 	}
 }
 
-func reconcilerEventTicker(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
+func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
+	glog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSeconds)
 	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)
 	for {
 		select {
 		case tickedTime := <-reconcileTicker.C:
-			glog.V(5).Info("Reconciling ticker at ", tickedTime)
+			glog.V(9).Info("Reconciling ticker at ", tickedTime)
 			work <- events.Event{
 				Type: events.PeriodicReconcile,
 			}
@@ -47,9 +52,9 @@ func reconcilerEventTicker(work chan events.Event, stopChannel chan struct{}, re
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
 func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
 
-	// initilize reconcilerEventTicker
+	// initilize reconcilerTickerTask
 	if reconcilePeriodSeconds != -1 {
-		go reconcilerEventTicker(work, stopChannel, reconcilePeriodSeconds)
+		go reconcilerTickerTask(work, stopChannel, reconcilePeriodSeconds)
 	}
 
 	lastUpdate := time.Now().Add(-1 * time.Second)
