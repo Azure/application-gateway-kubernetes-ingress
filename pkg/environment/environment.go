@@ -215,7 +215,12 @@ func ValidateEnv(env EnvVariables) error {
 	}
 
 	if reconcilePeriodSecondsStr := os.Getenv(ReconcilePeriodSecondsVarName); reconcilePeriodSecondsStr != "" {
-		if _, err := strconv.Atoi(reconcilePeriodSecondsStr); err != nil {
+		reconcilePeriodSeconds, err := strconv.Atoi(reconcilePeriodSecondsStr)
+		if err != nil {
+			return ErrorInvalidReconcilePeriod
+		}
+
+		if reconcilePeriodSeconds < 30 || reconcilePeriodSeconds > 300 {
 			return ErrorInvalidReconcilePeriod
 		}
 	}

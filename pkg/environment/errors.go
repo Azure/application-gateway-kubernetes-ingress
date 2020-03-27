@@ -27,5 +27,5 @@ var (
 		"If a subnet is not found, then a new subnet will be created. This will be used to deploy the Application Gateway (ENVT004)")
 
 	// ErrorInvalidReconcilePeriod is an error.
-	ErrorInvalidReconcilePeriod = errors.New("Please make sure that periodic reconcile is an integer. Range: (30 - 300) (ENVT005)")
+	ErrorInvalidReconcilePeriod = errors.New("Please make sure that RECONCILE_PERIOD_SECONDS (helm var name: .reconcilePeriodSeconds) is an integer. Range: (30 - 300) (ENVT005)")
 )
