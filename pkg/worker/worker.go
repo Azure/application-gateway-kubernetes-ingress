@@ -6,6 +6,7 @@
 package worker
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -33,8 +34,10 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	}
 }
 
-func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
-	glog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSeconds)
+func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSecondsStr string) {
+	glog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
+
+	reconcilePeriodSeconds, _ := strconv.Atoi(reconcilePeriodSecondsStr)
 	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)
 	for {
 		select {
@@ -50,10 +53,10 @@ func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, rec
 }
 
 // Run starts the worker which listens for events in eventChannel; stops when stopChannel is closed.
-func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds int) {
+func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSeconds string) {
 
 	// initilize reconcilerTickerTask
-	if reconcilePeriodSeconds != -1 {
+	if reconcilePeriodSeconds != "" {
 		go reconcilerTickerTask(work, stopChannel, reconcilePeriodSeconds)
 	}
 

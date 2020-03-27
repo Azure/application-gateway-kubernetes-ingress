@@ -119,7 +119,7 @@ type EnvVariables struct {
 	HTTPServicePort             string
 	AttachWAFPolicyToListener   bool
 	HostedOnUnderlay            bool
-	ReconcilePeriodSeconds      int
+	ReconcilePeriodSeconds      string
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -175,11 +175,7 @@ func GetEnv() EnvVariables {
 		HTTPServicePort:             GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
 		AttachWAFPolicyToListener:   GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
-	}
-
-	env.ReconcilePeriodSeconds = -1
-	if reconcilePeriodSecondsStr := os.Getenv(ReconcilePeriodSecondsVarName); reconcilePeriodSecondsStr != "" {
-		env.ReconcilePeriodSeconds, _ = strconv.Atoi(reconcilePeriodSecondsStr)
+		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
 	}
 
 	return env
@@ -214,8 +210,8 @@ func ValidateEnv(env EnvVariables) error {
 		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
 
-	if reconcilePeriodSecondsStr := os.Getenv(ReconcilePeriodSecondsVarName); reconcilePeriodSecondsStr != "" {
-		reconcilePeriodSeconds, err := strconv.Atoi(reconcilePeriodSecondsStr)
+	if env.ReconcilePeriodSeconds != "" {
+		reconcilePeriodSeconds, err := strconv.Atoi(env.ReconcilePeriodSeconds)
 		if err != nil {
 			return ErrorInvalidReconcilePeriod
 		}

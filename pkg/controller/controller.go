@@ -120,7 +120,6 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	}
 
 	invokedForReconciliation := event.Type == events.PeriodicReconcile
-	glog.Info("[reconcile] triggered: ", invokedForReconciliation)
 	if err := c.MutateAppGateway(appGw, cbCtx, invokedForReconciliation); err != nil {
 		glog.Error("Error mutating App Gateway config from k8s event. ", err)
 	}

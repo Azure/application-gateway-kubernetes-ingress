@@ -159,5 +159,43 @@ var _ = Describe("Environment", func() {
 			})
 		})
 
+		Context("Test ValidateEnv for RECONCILE_PERIOD_SECONDS", func() {
+			It("should error when invalid input in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "string",
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+			})
+
+			It("should not error when input is in range in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "30",
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+
+				env.ReconcilePeriodSeconds = "300"
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+
+			It("should not error when input is out of range in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "29",
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+
+				env.ReconcilePeriodSeconds = "301"
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+		})
+
 	})
 })

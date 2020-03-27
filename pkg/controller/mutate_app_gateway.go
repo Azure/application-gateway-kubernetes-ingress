@@ -65,9 +65,9 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 	// --------------------------------- //
 	// if this is a reconciliation task, then before doing anything, compare the current expected state vs cached state of the gateway
 	if invokedForReconciliation {
-		glog.V(5).Info("[reconcile] triggered: ", invokedForReconciliation)
+		glog.V(5).Info("Triggered by reconciler event")
 		if c.configIsSame(appGw) {
-			glog.V(5).Info("[reconcile] NoOp: current gateway state == cached gateway state")
+			glog.V(5).Info("NoOp: current gateway state == cached gateway state")
 			return nil
 		}
 	}
