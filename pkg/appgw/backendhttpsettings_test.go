@@ -8,6 +8,8 @@ package appgw
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 
+	"strings"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -76,13 +78,13 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		})
 	})
 
-	Context("test appgw whitelist root certificate annotation configures trusted root certificate(s) on httpsettings", func() {
+	Context("test appgw trusted root certificate annotation configures trusted root certificate(s) on httpsettings", func() {
 
-		checkWhitelistRootCertificateAnnotation := func(protocol string, whitelistRootCertificate string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
-			// appgw whitelist root certificate needs to be used together with backend protocal annotation, and protocal "https" should be used.
+		checkTrustedRootCertificateAnnotation := func(protocol string, trustedRootCertificate string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
+			// appgw trusted root certificate needs to be used together with backend protocal annotation, and protocal "https" should be used.
 			// PickHostNameFromBackendAddress will be true given backend hostname is not specified
 			ingress.Annotations[annotations.BackendProtocolKey] = protocol
-			ingress.Annotations[annotations.AppGwWhitelistRootCertificate] = whitelistRootCertificate
+			ingress.Annotations[annotations.AppGwTrustedRootCertificate] = trustedRootCertificate
 			_ = configBuilder.k8sContext.Caches.Ingress.Update(ingress)
 
 			cbCtx := &ConfigBuilderContext{
@@ -107,11 +109,16 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 				Expect(setting.Protocol).To(Equal(expectedProtocolValue), "backend %s should have %s", *setting.Name, expectedProtocolValue)
 				Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(expectedProtocolValue), "probe should have same protocol as http setting")
 				Expect(len(*setting.TrustedRootCertificates)).To(Equal(2), "backend %s should have one two trusted root certificates configured", *setting.Name)
+				for _, certID := range *setting.TrustedRootCertificates {
+					segments := strings.Split(*certID.ID, "/")
+					certName := segments[len(segments)-1]
+					Expect(strings.Contains("rootcert1,rootcert2", certName)).To(Equal(true), "root certificate %s is not found", certName)
+				}
 			}
 		}
 
 		It("should have all but default backend http settings with https and trusted root certificates", func() {
-			checkWhitelistRootCertificateAnnotation("Https", "appgw-root-certificate1,appgw-root-certificate2", annotations.HTTPS, n.HTTPS)
+			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.HTTPS)
 		})
 
 	})

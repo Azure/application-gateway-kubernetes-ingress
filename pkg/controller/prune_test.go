@@ -112,7 +112,7 @@ var _ = Describe("prune function tests", func() {
 	Context("ensure pruneNoTrustedRootCertificate prunes ingress", func() {
 		ingressRootCertAnnotated := tests.NewIngressFixture()
 		ingressRootCertAnnotated.Annotations = map[string]string{
-			annotations.AppGwWhitelistRootCertificate: "appgw-installed-root-cert",
+			annotations.AppGwTrustedRootCertificate: "appgw-installed-root-cert",
 		}
 		ingressNoRootCertAnnotated := tests.NewIngressFixture()
 		cbCtx := &appgw.ConfigBuilderContext{
@@ -128,22 +128,22 @@ var _ = Describe("prune function tests", func() {
 		}
 		appGw := fixtures.GetAppGateway()
 
-		It("removes the ingress using appgw-whitelist-root-certificate and keeps others", func() {
+		It("removes the ingress using appgw-trusted-root-certificate and keeps others", func() {
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoTrustedRootCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
-			Expect(len(prunedIngresses)).To(Equal(0))
+			Expect(len(prunedIngresses)).To(Equal(1))
 		})
 
-		It("keeps the ingress using appgw-whitelist-root-certificate when annotated root cert is pre-installed", func() {
+		It("keeps the ingress using appgw-trusted-root-certificate when annotated root cert is pre-installed", func() {
 			// annotate with a installed root certificate
 			installedRootCerts := fmt.Sprintf("%s,%s,%s", *fixtures.GetRootCertificate1().Name, *fixtures.GetRootCertificate2().Name, *fixtures.GetRootCertificate3().Name)
 			ingressRootCertAnnotated.Annotations = map[string]string{
-				annotations.AppGwWhitelistRootCertificate: installedRootCerts,
+				annotations.AppGwTrustedRootCertificate: installedRootCerts,
 			}
 
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoTrustedRootCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
-			Expect(len(prunedIngresses)).To(Equal(1))
+			Expect(len(prunedIngresses)).To(Equal(2))
 		})
 	})
 

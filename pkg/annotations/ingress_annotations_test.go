@@ -35,21 +35,21 @@ func TestIt(t *testing.T) {
 
 var _ = Describe("Test ingress annotation functions", func() {
 	annotations := map[string]string{
-		"appgw.ingress.kubernetes.io/use-private-ip":                   "true",
-		"appgw.ingress.kubernetes.io/connection-draining":              "true",
-		"appgw.ingress.kubernetes.io/cookie-based-affinity":            "true",
-		"appgw.ingress.kubernetes.io/ssl-redirect":                     "true",
-		"appgw.ingress.kubernetes.io/request-timeout":                  "123456",
-		"appgw.ingress.kubernetes.io/connection-draining-timeout":      "3456",
-		"appgw.ingress.kubernetes.io/backend-path-prefix":              "prefix-here",
-		"appgw.ingress.kubernetes.io/backend-hostname":                 "www.backend.com",
-		"appgw.ingress.kubernetes.io/hostname-extension":               "www.bye.com, www.b*.com",
-		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":            "appgw-cert",
-		"appgw.ingress.kubernetes.io/appgw-whitelist-root-certificate": "appgw-root-cert1,appgw-root-cert2",
-		"kubernetes.io/ingress.class":                                  "azure/application-gateway",
-		"appgw.ingress.istio.io/v1alpha3":                              "azure/application-gateway",
-		"falseKey":                                                     "false",
-		"errorKey":                                                     "234error!!",
+		"appgw.ingress.kubernetes.io/use-private-ip":                 "true",
+		"appgw.ingress.kubernetes.io/connection-draining":            "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity":          "true",
+		"appgw.ingress.kubernetes.io/ssl-redirect":                   "true",
+		"appgw.ingress.kubernetes.io/request-timeout":                "123456",
+		"appgw.ingress.kubernetes.io/connection-draining-timeout":    "3456",
+		"appgw.ingress.kubernetes.io/backend-path-prefix":            "prefix-here",
+		"appgw.ingress.kubernetes.io/backend-hostname":               "www.backend.com",
+		"appgw.ingress.kubernetes.io/hostname-extension":             "www.bye.com, www.b*.com",
+		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":          "appgw-cert",
+		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate": "appgw-root-cert1,appgw-root-cert2",
+		"kubernetes.io/ingress.class":                                "azure/application-gateway",
+		"appgw.ingress.istio.io/v1alpha3":                            "azure/application-gateway",
+		"falseKey":                                                   "false",
+		"errorKey":                                                   "234error!!",
 	}
 
 	ing := &v1beta1.Ingress{
@@ -86,15 +86,15 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
-	Context("test appgwWhitelistRootCertificate", func() {
+	Context("test appgwTrustedRootCertificate", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &v1beta1.Ingress{}
-			actual, err := GetAppGwWhitelistRootCertificate(ing)
+			actual, err := GetAppGwTrustedRootCertificate(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
 		})
 		It("returns true", func() {
-			actual, err := GetAppGwWhitelistRootCertificate(ing)
+			actual, err := GetAppGwTrustedRootCertificate(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("appgw-root-cert1,appgw-root-cert2"))
 		})

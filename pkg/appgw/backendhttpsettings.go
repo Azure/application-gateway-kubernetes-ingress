@@ -264,8 +264,8 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
-	if whitelistRootCertificates, err := annotations.GetAppGwWhitelistRootCertificate(backendID.Ingress); err == nil {
-		certificateNames := strings.TrimRight(whitelistRootCertificates, ",")
+	if trustedRootCertificates, err := annotations.GetAppGwTrustedRootCertificate(backendID.Ingress); err == nil {
+		certificateNames := strings.TrimRight(trustedRootCertificates, ",")
 		certificateNameList := strings.Split(certificateNames, ",")
 		var certs []n.SubResource
 		for _, certName := range certificateNameList {
@@ -273,7 +273,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 			certs = append(certs, *resourceRef(trustCertID))
 		}
 		httpSettings.TrustedRootCertificates = &certs
-		glog.V(5).Infof("Found root certificates: %s are whitelisted", certificateNames)
+		glog.V(5).Infof("Found trusted root certificate(s): %s from ingress: %s/%s", certificateNames, backendID.Ingress.Namespace, backendID.Ingress.Name)
 
 	} else if err != nil && !annotations.IsMissingAnnotations(err) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
