@@ -214,13 +214,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &probeName,
 			ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:           n.HTTP,
-				Host:               to.StringPtr(tests.Host),
-				Path:               to.StringPtr(tests.HealthPath),
-				Interval:           to.Int32Ptr(20),
-				UnhealthyThreshold: to.Int32Ptr(3),
-				Timeout:            to.Int32Ptr(5),
-				Port:               to.Int32Ptr(9090),
+				Protocol:                            n.HTTP,
+				Host:                                to.StringPtr(tests.Host),
+				Path:                                to.StringPtr(tests.HealthPath),
+				Interval:                            to.Int32Ptr(20),
+				UnhealthyThreshold:                  to.Int32Ptr(3),
+				Timeout:                             to.Int32Ptr(5),
+				Port:                                to.Int32Ptr(9090),
+				Match:                               &n.ApplicationGatewayProbeHealthResponseMatch{},
+				PickHostNameFromBackendHTTPSettings: to.BoolPtr(false),
+				MinServers:                          to.Int32Ptr(0),
 			},
 		}
 
@@ -242,11 +245,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &httpSettingsName,
 			ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Protocol: n.HTTP,
-				Port:     to.Int32Ptr(int32(backendPort)),
-				Path:     nil,
-				HostName: nil,
-				Probe:    resourceRef(probeID),
+				Protocol:                       n.HTTP,
+				Port:                           to.Int32Ptr(int32(backendPort)),
+				Path:                           nil,
+				HostName:                       nil,
+				Probe:                          resourceRef(probeID),
+				PickHostNameFromBackendAddress: to.BoolPtr(false),
+				CookieBasedAffinity:            n.Disabled,
+				RequestTimeout:                 to.Int32Ptr(30),
 			},
 		}
 
@@ -285,10 +291,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &listenerName,
 			ID:   to.StringPtr(appGwIdentifier.listenerID(listenerName)),
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
-				FrontendIPConfiguration: resourceRef("--front-end-ip-id-1--"),
-				FrontendPort:            resourceRef(frontendPortID),
-				Protocol:                n.HTTP,
-				HostName:                &domainName,
+				FrontendIPConfiguration:     resourceRef("--front-end-ip-id-1--"),
+				FrontendPort:                resourceRef(frontendPortID),
+				Protocol:                    n.HTTP,
+				HostName:                    &domainName,
+				Hostnames:                   &[]string{},
+				RequireServerNameIndication: to.BoolPtr(false),
 			},
 		}
 
@@ -533,10 +541,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &httpSettingsName,
 					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol: n.HTTP,
-						Port:     to.Int32Ptr(int32(servicePort)),
-						Path:     nil,
-						Probe:    resourceRef(appGwIdentifier.probeID(defaultProbeName(n.HTTP))),
+						Protocol:                       n.HTTP,
+						Port:                           to.Int32Ptr(int32(servicePort)),
+						Path:                           nil,
+						Probe:                          resourceRef(appGwIdentifier.probeID(defaultProbeName(n.HTTP))),
+						PickHostNameFromBackendAddress: to.BoolPtr(false),
+						CookieBasedAffinity:            n.Disabled,
+						RequestTimeout:                 to.Int32Ptr(30),
 					},
 				}
 
@@ -661,7 +672,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						HostName:                &domainName,
 
 						// RequireServerNameIndication is not used in Application Gateway v2
-						RequireServerNameIndication: nil,
+						RequireServerNameIndication: to.BoolPtr(false),
+						Hostnames:                   &[]string{},
 					},
 				}
 
@@ -771,7 +783,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 							Enabled:           to.BoolPtr(true),
 							DrainTimeoutInSec: to.Int32Ptr(10),
 						},
-						RequestTimeout: to.Int32Ptr(10),
+						RequestTimeout:                 to.Int32Ptr(10),
+						PickHostNameFromBackendAddress: to.BoolPtr(false),
 					},
 				}
 

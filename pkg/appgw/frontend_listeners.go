@@ -164,12 +164,14 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 		ID:   to.StringPtr(c.appGwIdentifier.listenerID(listenerName)),
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			// TODO: expose this to external configuration
-			FrontendIPConfiguration:     resourceRef(*frontIPConfiguration.ID),
-			FrontendPort:                resourceRef(*frontendPort.ID),
-			Protocol:                    protocol,
-			HostName:                    nil,
-			Hostnames:                   &[]string{},
-			RequireServerNameIndication: to.BoolPtr(false), // not used in V2 SKU but setting to default
+			FrontendIPConfiguration: resourceRef(*frontIPConfiguration.ID),
+			FrontendPort:            resourceRef(*frontendPort.ID),
+			Protocol:                protocol,
+			HostName:                nil,
+			Hostnames:               &[]string{},
+
+			// setting to default
+			RequireServerNameIndication: to.BoolPtr(false),
 		},
 	}
 
@@ -209,7 +211,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 
-		if listener.Hostnames != nil {
+		if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
 			listenerID.setHostNames(*listener.Hostnames)
 		} else if listener.HostName != nil {
 			listenerID.setHostNames([]string{*listener.HostName})

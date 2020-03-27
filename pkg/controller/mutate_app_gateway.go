@@ -60,6 +60,9 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 
 // MutateAppGateway applies App Gateway config.
 func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, invokedForReconciliation bool) error {
+
+	// Pre Compare Phase (reconiliation) //
+	// --------------------------------- //
 	// if this is a reconciliation task, then before doing anything, compare the current expected state vs cached state of the gateway
 	if invokedForReconciliation {
 		glog.V(5).Info("[reconcile] triggered: ", invokedForReconciliation)
@@ -73,6 +76,8 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
+	// Prepare k8s resources Phase //
+	// --------------------------- //
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
 		if len(prohibitedTargets) > 0 {
@@ -120,7 +125,10 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 		}
 		return err
 	}
+	// -------------------------- //
 
+	// Generate App Gateway Phase //
+	// -------------------------- //
 	// Create a configbuilder based on current appgw config
 	configBuilder := appgw.NewConfigBuilder(c.k8sContext, &c.appGwIdentifier, appGw, c.recorder, realClock{})
 
@@ -152,14 +160,20 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		}
 	}
+	// -------------------------- //
 
+	// Post Compare Phase //
+	// ------------------ //
 	// if this is not a reconciliation task
 	// then compare the generated state with cached state
 	if !invokedForReconciliation && c.configIsSame(appGw) {
 		glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 		return nil
 	}
+	// ------------------ //
 
+	// Deployment Phase //
+	// ---------------- //
 	glog.V(3).Info("BEGIN AppGateway deployment")
 	defer glog.V(3).Info("END AppGateway deployment")
 
@@ -191,7 +205,10 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 	glog.V(1).Infof("Applied App Gateway config in %+v", duration.String())
 
 	c.metricStore.SetUpdateLatencySec(duration)
+	// ----------------- //
 
+	// Cache Phase //
+	// ----------- //
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
@@ -206,6 +223,7 @@ func (c AppGwIngressController) MutateAppGateway(appGw *n.ApplicationGateway, cb
 
 	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(appGw)
+	// ----------- //
 
 	c.metricStore.IncArmAPIUpdateCallSuccessCounter()
 

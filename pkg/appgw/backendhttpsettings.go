@@ -205,11 +205,13 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		Name: &httpSettingsName,
 		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol:                       n.HTTP,
-			Port:                           to.Int32Ptr(int32(port)),
-			PickHostNameFromBackendAddress: to.BoolPtr(false), // setting to default
-			CookieBasedAffinity:            n.Disabled,        // setting to default
-			RequestTimeout:                 to.Int32Ptr(30),   // setting to default
+			Protocol: n.HTTP,
+			Port:     to.Int32Ptr(int32(port)),
+
+			// setting to default
+			PickHostNameFromBackendAddress: to.BoolPtr(false),
+			CookieBasedAffinity:            n.Disabled,
+			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
 
