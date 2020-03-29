@@ -39,7 +39,7 @@ var _ = Describe("Worker Test", func() {
 			worker := Worker{
 				EventProcessor: eventProcessor,
 			}
-			go worker.Run(work, stopChannel, 1)
+			go worker.Run(work, stopChannel, "")
 
 			ingress := *tests.NewIngressFixture()
 			work <- events.Event{
@@ -93,6 +93,32 @@ var _ = Describe("Worker Test", func() {
 			def := events.Event{}
 			lastEvent := drainChan(work, def)
 			Expect(lastEvent).To(Equal(def))
+		})
+	})
+	Context("Verify that reconcilerTickerTask works", func() {
+		It("should run reconcilePeriodSecondsStr if timeout is provided", func() {
+			backChannel := make(chan struct{})
+			processEvent := func(event events.Event) error {
+				backChannel <- struct{}{}
+				return nil
+			}
+			eventProcessor := NewFakeProcessor(processEvent)
+			worker := Worker{
+				EventProcessor: eventProcessor,
+			}
+			go worker.Run(work, stopChannel, "1")
+
+			// after 1 seconds, reconcilerTickerTask should add an event to the worker
+			processCalled := false
+			select {
+			case <-backChannel:
+				processCalled = true
+				break
+			case <-time.After(2 * time.Second):
+				processCalled = false
+			}
+
+			Expect(processCalled).To(Equal(true), "Worker was not able to call process function within timeout")
 		})
 	})
 })

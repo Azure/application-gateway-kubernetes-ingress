@@ -84,7 +84,7 @@ var _ = Describe("Environment", func() {
 					EnableSaveConfigToFile:     false,
 					EnablePanicOnPutError:      true,
 					HTTPServicePort:            "8123",
-					ReconcilePeriodSeconds:     30,
+					ReconcilePeriodSeconds:     "30",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))
@@ -190,10 +190,10 @@ var _ = Describe("Environment", func() {
 
 					ReconcilePeriodSeconds: "29",
 				}
-				Expect(ValidateEnv(env)).To(BeNil())
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
 
 				env.ReconcilePeriodSeconds = "301"
-				Expect(ValidateEnv(env)).To(BeNil())
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
 			})
 		})
 
