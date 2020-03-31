@@ -183,7 +183,7 @@ var _ = Describe("Environment", func() {
 				Expect(ValidateEnv(env)).To(BeNil())
 			})
 
-			It("should not error when input is out of range in RECONCILE_PERIOD_SECONDS", func() {
+			It("should error when input is out of range in RECONCILE_PERIOD_SECONDS", func() {
 				env := EnvVariables{
 					AppGwResourceID:        "id",
 					EnableDeployAppGateway: false,
