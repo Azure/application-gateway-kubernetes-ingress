@@ -68,18 +68,18 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 
 			if !validRedirect && !validBackend {
 				// TODO(draychev): Emit an event for the appropriate object
-				e := controllererrors.NewError(
+				e := controllererrors.NewErrorf(
 					controllererrors.ErrorNoDefaults,
-					"message",
+					"URL path map '%s' needs either a default backend pool or default redirect", *pathMap.Name,
 				)
 				return e
 			}
 
 			if validRedirect && validBackend || !validRedirect && !validBackend {
 				// TODO(draychev): Emit an event for the appropriate object
-				e := controllererrors.NewError(
+				e := controllererrors.NewErrorf(
 					controllererrors.ErrorEitherDefaults,
-					"message",
+					"URL path map '%s' needs only one of default backend pool or default redirect", *pathMap.Name,
 				)
 				return e
 			}
@@ -91,17 +91,17 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 				validBackend := rule.BackendAddressPool != nil && rule.BackendHTTPSettings != nil
 
 				if !validRedirect && !validBackend {
-					e := controllererrors.NewError(
+					e := controllererrors.NewErrorf(
 						controllererrors.ErrorNoBackendorRedirect,
-						"message",
+						"Path Rule '%s' needs either a default backend pool or default redirect", *rule.Name,
 					)
 					return e
 				}
 
 				if validRedirect && validBackend || !validRedirect && !validBackend {
-					e := controllererrors.NewError(
+					e := controllererrors.NewErrorf(
 						controllererrors.ErrorEitherBackendorRedirect,
-						"message",
+						"Path Rule '%s' needs either a default backend pool or default redirect", *rule.Name,
 					)
 					return e
 				}
@@ -132,7 +132,7 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
 		e := controllererrors.NewError(
 			controllererrors.ErrorNoPrivateIP,
-			"message",
+			"Applcation Gateway doesn't have a private IP. Either add a private IP or set usePrivateIP flag to false in helm config.",
 		)
 		return e
 	}
@@ -140,7 +140,7 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 	if !publicIPPresent {
 		e := controllererrors.NewError(
 			controllererrors.ErrorNoPublicIP,
-			"message",
+			"Applcation Gateway doesn't have a public IP",
 		)
 		return e
 	}
@@ -153,7 +153,7 @@ func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n
 	if config == nil {
 		e := controllererrors.NewError(
 			controllererrors.ErrorEmptyConfig,
-			"message",
+			"Application Gateway configuration should not be empty.",
 		)
 		return e
 	}

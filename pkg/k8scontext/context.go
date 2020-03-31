@@ -496,7 +496,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorUpdatingIngressStatus,
 			err,
-			"Unable to update ingress %s/%s status:", ingress.Namespace, ingress.Name,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
 		)
 		c.MetricStore.IncErrorCount(e.Code)
 		return e

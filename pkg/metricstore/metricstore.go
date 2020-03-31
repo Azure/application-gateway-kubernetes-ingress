@@ -156,7 +156,7 @@ func (ms *AGICMetricStore) IncArmAPICallCounter() {
 	ms.armAPICallCounter.Inc()
 }
 
-// IncErrorCount increases the counter for success on ARM
+// IncErrorCount increases the counter for a particular error code error encountered by AGIC
 func (ms *AGICMetricStore) IncErrorCount(errorCode controllererrors.ErrorCode) {
 	ms.errorCounterVec.With(prometheus.Labels{ErrorCode: string(errorCode)}).Inc()
 }
