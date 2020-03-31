@@ -6,6 +6,9 @@
 package controller
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -71,8 +74,14 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 		return err
 	}
 
+	// initilize reconcilerTickerTask
+	if envVariables.ReconcilePeriodSeconds != "" {
+		go reconcilerTickerTask(c.k8sContext.Work, c.stopChannel, envVariables.ReconcilePeriodSeconds)
+	}
+
 	// Starts Worker processing events from k8sContext
 	go c.worker.Run(c.k8sContext.Work, c.stopChannel)
+
 	return nil
 }
 
@@ -119,9 +128,27 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 		glog.Error("Error mutating AKS from k8s event. ", err)
 	}
 
-	if err := c.MutateAppGateway(appGw, cbCtx); err != nil {
+	if err := c.MutateAppGateway(event, appGw, cbCtx); err != nil {
 		glog.Error("Error mutating App Gateway config from k8s event. ", err)
 	}
 
 	return nil
+}
+
+func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSecondsStr string) {
+	glog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
+
+	reconcilePeriodSeconds, _ := strconv.Atoi(reconcilePeriodSecondsStr)
+	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)
+	for {
+		select {
+		case tickedTime := <-reconcileTicker.C:
+			glog.V(9).Info("Reconciling ticker ticked at ", tickedTime)
+			work <- events.Event{
+				Type: events.PeriodicReconcile,
+			}
+		case <-stopChannel:
+			break
+		}
+	}
 }

@@ -84,6 +84,12 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
+
+	// set defaults
+	probe.Match = &n.ApplicationGatewayProbeHealthResponseMatch{}
+	probe.PickHostNameFromBackendHTTPSettings = to.BoolPtr(false)
+	probe.MinServers = to.Int32Ptr(0)
+
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 		probe.Host = to.StringPtr(backendID.Rule.Host)
 	}

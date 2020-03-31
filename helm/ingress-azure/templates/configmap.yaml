@@ -71,3 +71,7 @@ data:
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}
 {{- end }}
+
+{{- if .Values.reconcilePeriodSeconds -}}
+  RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
+{{- end }}
