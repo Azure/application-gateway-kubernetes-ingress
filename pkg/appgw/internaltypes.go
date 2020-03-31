@@ -258,7 +258,7 @@ func (listenerID *listenerIdentifier) getHostNames() []string {
 	return hostnames
 }
 
-// Returns the hostnames as a slice
+// getFirstHostNameWithouSpecialChars returns the first hostname which doesn't have special chars. To be used for probes.
 func (listenerID *listenerIdentifier) getFirstHostNameWithouSpecialChars() *string {
 	hostNames := listenerID.getHostNames()
 	for _, hostName := range hostNames {
