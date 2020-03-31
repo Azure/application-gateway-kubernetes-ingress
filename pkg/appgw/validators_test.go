@@ -40,6 +40,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should error out when no defaults have been set", func() {
 			pathMap := n.ApplicationGatewayURLPathMap{
+				Name: to.StringPtr("pathMap"),
 				ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 					PathRules:                    &[]n.ApplicationGatewayPathRule{},
 					DefaultBackendHTTPSettings:   nil,
@@ -55,6 +56,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should error out when all defaults have been set", func() {
 			pathMap := n.ApplicationGatewayURLPathMap{
+				Name: to.StringPtr("pathMap"),
 				ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 					PathRules:                    &[]n.ApplicationGatewayPathRule{},
 					DefaultBackendHTTPSettings:   &n.SubResource{ID: to.StringPtr("x")},
@@ -70,6 +72,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should error out when all defaults are partially set", func() {
 			pathMap := n.ApplicationGatewayURLPathMap{
+				Name: to.StringPtr("pathMap"),
 				ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 					PathRules:                    &[]n.ApplicationGatewayPathRule{},
 					DefaultBackendHTTPSettings:   nil,
@@ -85,6 +88,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should NOT error out when all defaults are properly set", func() {
 			pathMap := n.ApplicationGatewayURLPathMap{
+				Name: to.StringPtr("pathMap"),
 				ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 					PathRules:                    &[]n.ApplicationGatewayPathRule{},
 					DefaultBackendHTTPSettings:   &n.SubResource{ID: to.StringPtr("x")},
@@ -99,6 +103,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should NOT error out when all defaults are properly set", func() {
 			pathMap := n.ApplicationGatewayURLPathMap{
+				Name: to.StringPtr("pathMap"),
 				ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 					PathRules:                    &[]n.ApplicationGatewayPathRule{},
 					DefaultBackendHTTPSettings:   nil,
