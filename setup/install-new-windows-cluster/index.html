@@ -371,28 +371,11 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 
 <h3 id="install-helm">Install Helm</h3>
 <p><a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> is a package manager for
-Kubernetes. We will leverage it to install the <code>application-gateway-kubernetes-ingress</code> package:</p>
+Kubernetes. This document will use version 3 of helm, which is not backwards compatbile with previous versions.</p>
 <ol>
-<li>
-<p>Install <a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> and run the following to add <code>application-gateway-kubernetes-ingress</code> helm package:</p>
-<ul>
-<li><em>RBAC enabled</em> AKS cluster</li>
-</ul>
-<pre class="highlight"><code class="language-bash">kubectl create serviceaccount --namespace kube-system tiller-sa
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-helm init --tiller-namespace kube-system --service-account tiller-sa --generate-name</code></pre>
-
-<ul>
-<li><em>RBAC disabled</em> AKS cluster</li>
-</ul>
-<pre class="highlight"><code class="language-bash">helm init</code></pre>
-
-</li>
-<li>
-<p>Add the AGIC Helm repository:
+<li>Add the AGIC Helm repository:
     <pre class="highlight"><code class="language-bash">helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></pre></p>
-</li>
+helm repo update</code></pre></li>
 </ol>
 <h3 id="install-ingress-controller-helm-chart">Install Ingress Controller Helm Chart</h3>
 <ol>
@@ -423,6 +406,7 @@ nano helm-config.yaml</code></pre></p>
 - <code>appgw.subscriptionId</code>: The Azure Subscription ID in which App Gateway resides. Example: <code>a123b234-a3b4-557d-b2df-a0bc12de1234</code>
 - <code>appgw.resourceGroup</code>: Name of the Azure Resource Group in which App Gateway was created. Example: <code>app-gw-resource-group</code>
 - <code>appgw.name</code>: Name of the Application Gateway. Example: <code>applicationgatewayd0f0</code>
+- <code>appgw.usePrivateIP</code>: The boolean flag if all Ingresses are exposed over Private IP. Set to <code>false</code> should you use an <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/features/private-ip.md#assign-globally">Application Gateway v2 SKU</a>
 - <code>appgw.shared</code>: This boolean flag should be defaulted to <code>false</code>. Set to <code>true</code> should you need a <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway">Shared App Gateway</a>.
 - <code>kubernetes.watchNamespace</code>: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
 - <code>armAuth.type</code>: could be <code>aadPodIdentity</code> or <code>servicePrincipal</code>
@@ -439,7 +423,7 @@ nano helm-config.yaml</code></pre></p>
 <ol>
 <li>
 <p>Install the Application Gateway ingress controller package:</p>
-<pre class="highlight"><code class="language-bash">helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --generate-name --set nodeSelector."beta\.kubernetes\.io/os"=linux</code></pre>
+<pre class="highlight"><code class="language-bash">helm install ingress-azure -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --set nodeSelector."beta\.kubernetes\.io/os"=linux</code></pre>
 
 </li>
 </ol>

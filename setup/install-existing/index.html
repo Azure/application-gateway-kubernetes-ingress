@@ -279,7 +279,7 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
     secretJSON: &lt;Base64-Encoded-Credentials&gt;</code></pre></li>
 </ol>
 <h2 id="install-ingress-controller-as-a-helm-chart">Install Ingress Controller as a Helm Chart</h2>
-<p>In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use <a href="https://shell.azure.com/">Cloud Shell</a> to install the AGIC Helm package:</p>
+<p>You can use <a href="https://shell.azure.com/">Cloud Shell</a> to install the AGIC Helm package:</p>
 <ol>
 <li>
 <p>Add the <code>application-gateway-kubernetes-ingress</code> helm repo and perform a helm update</p>
@@ -298,16 +298,16 @@ helm repo update</code></pre>
 </li>
 <li>
 <p>Install Helm chart <code>application-gateway-kubernetes-ingress</code> with the <code>helm-config.yaml</code> configuration from the previous step</p>
-<pre class="highlight"><code class="language-bash">helm install -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure</code></pre>
+<pre class="highlight"><code class="language-bash">helm install ingress-azure -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure</code></pre>
 
 <p>Alternatively you can combine the <code>helm-config.yaml</code> and the Helm command in one step:
-<pre class="highlight"><code class="language-bash">helm install ./helm/ingress-azure \
-     --name ingress-azure \
+<pre class="highlight"><code class="language-bash">helm install ingress-azure application-gateway-kubernetes-ingress/ingress-azure \
      --namespace default \
      --debug \
      --set appgw.name=applicationgatewayABCD \
      --set appgw.resourceGroup=your-resource-group \
      --set appgw.subscriptionId=subscription-uuid \
+     --set appgw.usePrivateIP=false \
      --set appgw.shared=false \
      --set armAuth.type=servicePrincipal \
      --set armAuth.secretJSON=$(az ad sp create-for-rbac --sdk-auth | base64 -w0) \
