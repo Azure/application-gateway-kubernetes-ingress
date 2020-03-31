@@ -70,6 +70,10 @@ const (
 
 	// AppGwSslCertificate indicates the name of ssl certificate installed by AppGw
 	AppGwSslCertificate = ApplicationGatewayPrefix + "/appgw-ssl-certificate"
+
+	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
+	// Multiple root certificates seperated by comma, e.g. "cert1,cert2"
+	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
 )
 
 // ProtocolEnum is the type for protocol
@@ -122,6 +126,11 @@ func BackendHostName(ing *v1beta1.Ingress) (string, error) {
 // GetAppGwSslCertificate refer to appgw installed certificate
 func GetAppGwSslCertificate(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, AppGwSslCertificate)
+}
+
+// GetAppGwTrustedRootCertificate refer to appgw installed root certificate
+func GetAppGwTrustedRootCertificate(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, AppGwTrustedRootCertificate)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection
