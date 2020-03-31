@@ -95,6 +95,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
+	// backend protocol "https" now supports to use certificate signed by well-known root certificate as well as trusted self-signed certificate
 	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
 		probe.Protocol = n.HTTPS
 	}
