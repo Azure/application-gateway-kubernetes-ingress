@@ -17,6 +17,10 @@ appgw:
     # Use "kubectl get AzureIngressProhibitedTargets" to view and change this.
     shared: false
 
+    # Setting waf_listener to "true" enables Web Application Functionality
+    # This is a prerequisite for https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/annotations.md#azure-waf-policy-for-path
+    waf_listener: false
+
 ################################################################################
 # Specify which kubernetes namespace the ingress controller will watch
 # Default value is "default"

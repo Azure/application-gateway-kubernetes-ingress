@@ -263,6 +263,7 @@ Values:
 - `appgw.name`: Name of the Application Gateway. Example: `applicationgatewayd0f0`
 - `appgw.usePrivateIP`: The boolean flag if all Ingresses are exposed over Private IP. Set to `false` should you use an [Application Gateway v2 SKU](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/features/private-ip.md#assign-globally)
 - `appgw.shared`: This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
+- `appgw.waf_listener`: Setting this boolean flag to `true` enables Web Application Firewall functionality as described in [the following document](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/annotations.md#azure-waf-policy-for-path)
 - `kubernetes.watchNamespace`: Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
 - `armAuth.type`: could be `aadPodIdentity` or `servicePrincipal`
 - `armAuth.identityResourceID`: Resource ID of the Azure Managed Identity
@@ -276,7 +277,7 @@ Values:
    ```bash
    az identity show -g <resource-group> -n <identity-name>
    ```
-- `<resource-group>` in the command above is the resource group of your App Gateway. 
+- `<resource-group>` in the command above is the resource group of your App Gateway.
 - `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
 
 

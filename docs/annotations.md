@@ -288,6 +288,9 @@ spec:
 
 
 ## Attach firewall policy to a host and path
+
+> Prerequisite: AGIC must be installed with `appgw.waf_listener=true` in the `helm-config.yaml`. Read more in the [Install Ingress Controller Heml Chart](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md#install-ingress-controller-helm-chart) document.
+
 This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.
 
@@ -309,7 +312,7 @@ appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGr
 ```
 
 ### Example
-The example below will apply the WAF policy 
+The example below will apply the WAF policy
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -327,7 +330,7 @@ spec:
         backend:
           serviceName: ad-server
           servicePort: 80
-          
+
       - path: /auth
         backend:
           serviceName: auth-server
