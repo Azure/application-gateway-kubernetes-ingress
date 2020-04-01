@@ -25,4 +25,7 @@ var (
 		"AGIC requires APPGW_SUBNET_PREFIX (helm var name: appgw.subnetPrefix) or APPGW_SUBNET_ID (helm var name: appgw.subnetID) of an existing subnet. " +
 		"If subnetPrefix is specified, AGIC will look up a subnet with matching address prefix in the AKS cluster vnet. " +
 		"If a subnet is not found, then a new subnet will be created. This will be used to deploy the Application Gateway (ENVT004)")
+
+	// ErrorInvalidReconcilePeriod is an error.
+	ErrorInvalidReconcilePeriod = errors.New("Please make sure that RECONCILE_PERIOD_SECONDS (helm var name: .reconcilePeriodSeconds) is an integer. Range: (30 - 300) (ENVT005)")
 )

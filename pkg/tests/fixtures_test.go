@@ -6,8 +6,9 @@
 package tests
 
 import (
-	"k8s.io/api/extensions/v1beta1"
 	"testing"
+
+	"k8s.io/api/extensions/v1beta1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

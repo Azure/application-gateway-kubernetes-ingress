@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -39,6 +40,9 @@ const (
 const (
 	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
 	MaxAllowedHostnames int = 5
+
+	// WildcardSpecialCharacters are characters that are allowed for wildcard hostnames.
+	WildcardSpecialCharacters = "*?"
 )
 
 type backendIdentifier struct {
@@ -111,6 +115,10 @@ func (s secretIdentifier) secretKey() string {
 }
 
 func (s secretIdentifier) secretFullName() string {
+	// in case of referring ssl certificate from agic annotation
+	if len(s.Namespace) == 0 {
+		return s.Name
+	}
 	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
 
@@ -174,6 +182,11 @@ func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.Applicati
 			Protocol: protocol,
 			Port:     &defHTTPSettingsPort,
 			Probe:    resourceRef(appGWIdentifier.probeID(defaultProbeName(protocol))),
+
+			// setting to default
+			PickHostNameFromBackendAddress: to.BoolPtr(false),
+			CookieBasedAffinity:            n.Disabled,
+			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
 }
@@ -195,6 +208,11 @@ func defaultProbe(appGWIdentifier Identifier, protocol n.ApplicationGatewayProto
 			Interval:           &defInterval,
 			Timeout:            &defTimeout,
 			UnhealthyThreshold: &defUnHealthyCount,
+
+			// setting to defaults
+			Match:                               &n.ApplicationGatewayProbeHealthResponseMatch{},
+			PickHostNameFromBackendHTTPSettings: to.BoolPtr(false),
+			MinServers:                          to.Int32Ptr(0),
 		},
 	}
 }
@@ -238,4 +256,16 @@ func (listenerID *listenerIdentifier) getHostNames() []string {
 	}
 
 	return hostnames
+}
+
+// getHostNameForProbes returns the first hostname which doesn't have special chars. To be used for probes.
+func (listenerID *listenerIdentifier) getHostNameForProbes() *string {
+	hostNames := listenerID.getHostNames()
+	for _, hostName := range hostNames {
+		if !strings.ContainsAny(hostName, WildcardSpecialCharacters) {
+			return to.StringPtr(hostName)
+		}
+	}
+
+	return nil
 }

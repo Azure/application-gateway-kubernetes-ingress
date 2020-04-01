@@ -26,6 +26,15 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		SslRedirectConfigurationName: "",
 	}
 
+	expectedListenerAzConfigAnnotatedSSL := listenerAzConfig{
+		Protocol: "Https",
+		Secret: secretIdentifier{
+			Namespace: "",
+			Name:      "appgw-installed-cert",
+		},
+		SslRedirectConfigurationName: "",
+	}
+
 	expectedListener443, expectedListener443Name := newTestListenerID(Port(443), []string{tests.Host}, false)
 
 	expectedListenerAzConfigSSL := listenerAzConfig{
@@ -74,6 +83,83 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 			Expect(azConfigMapKeys).To(ContainElement(expectedListener80))
 			actualVal := listenersAzureConfigMap[expectedListener80]
 			Expect(actualVal).To(Equal(expectedListenerAzConfigNoSSL))
+		})
+	})
+
+	Context("ingress rules with no TLS spec but annotated certificates", func() {
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
+
+		newAnnotation := map[string]string{
+			annotations.AppGwSslCertificate: "appgw-installed-cert",
+		}
+
+		// no ssl direction
+		ingress.SetAnnotations(newAnnotation)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		// Ensure there are no certs
+		ingress.Spec.TLS = nil
+
+		// !! Action !!
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
+
+		It("should configure App Gateway listeners correctly with SSL", func() {
+			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+			// no ssl-redirect
+			Expect(len(azConfigMapKeys)).To(Equal(1))
+			Expect(azConfigMapKeys).To(ContainElement(expectedListener443))
+
+			actualVal := httpListenersAzureConfigMap[expectedListener443]
+			Expect(actualVal).To(Equal(expectedListenerAzConfigAnnotatedSSL))
+		})
+	})
+
+	Context("ingress rules with TLS Spec, ssl redirection and annotated certificate", func() {
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
+
+		// annotation settings below should be ignored
+		newAnnotation := map[string]string{
+			annotations.AppGwSslCertificate: "appgw-installed-cert",
+			annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+			annotations.SslRedirectKey:      "true",
+		}
+
+		ingress.SetAnnotations(newAnnotation)
+
+		It("should have 3 annotations set up", func() {
+			Expect(len(ingress.GetAnnotations())).To(Equal(3))
+		})
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		It("should have setup tests with some TLS certs", func() {
+			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
+		})
+
+		// !! Action !!
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
+
+		It("should configure App Gateway listeners correctly with SSL", func() {
+			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+
+			Expect(len(azConfigMapKeys)).To(Equal(2))
+			Expect(azConfigMapKeys).To(ContainElement(expectedListener443))
+
+			actualVal := httpListenersAzureConfigMap[expectedListener443]
+			Expect(actualVal).To(Equal(expectedListenerAzConfigSSL))
 		})
 	})
 

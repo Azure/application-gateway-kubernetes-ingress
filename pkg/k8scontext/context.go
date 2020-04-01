@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
@@ -85,7 +86,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
 
-		metricStore: metricStore,
+		MetricStore: metricStore,
 		namespaces:  make(map[string]interface{}),
 	}
 
@@ -130,7 +131,12 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	var hasSynced []cache.InformerSynced
 
 	if c.informers == nil {
-		return ErrorInformersNotInitialized
+		e := controllererrors.NewError(
+			controllererrors.ErrorInformersNotInitialized,
+			"informers are not initialized",
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
@@ -167,7 +173,12 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	glog.V(1).Infoln("Waiting for initial cache sync")
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
-		return ErrorFailedInitialCacheSync
+		e := controllererrors.NewError(
+			controllererrors.ErrorFailedInitialCacheSync,
+			"failed initial sync of resources required for ingress",
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
 	}
 
 	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
@@ -207,14 +218,25 @@ func (c *Context) ListServices() []*v1.Service {
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
-	if err != nil {
-		glog.Error("Error fetching endpoints from store, error occurred ", err)
-		return nil, err
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			"Endpoint not found for %s",
+			serviceKey)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
 	}
 
-	if !exist {
-		glog.Error("Error fetching endpoints from store! Service does not exist: ", serviceKey)
-		return nil, ErrorFetchingEnpdoints
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			err,
+			"Error fetching endpoints from store for %s",
+			serviceKey)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
 	}
 
 	return endpointsInterface.(*v1.Endpoints), nil
@@ -412,13 +434,29 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
 	nodes, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), err
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorFetchingNodes,
+			err,
+			"no nodes were found in the node list",
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 	}
 	if nodes == nil || len(nodes.Items) == 0 {
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorNoNodesFound
+		e := controllererrors.NewError(
+			controllererrors.ErrorNoNodesFound,
+			"no nodes were found in the node list",
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 	}
 	if !strings.HasPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix) {
-		return azure.SubscriptionID(""), azure.ResourceGroup(""), ErrorUnrecognizedNodeProviderPrefix
+		e := controllererrors.NewError(
+			controllererrors.ErrorUnrecognizedNodeProviderPrefix,
+			"providerID is not prefixed with azure://",
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return azure.SubscriptionID(""), azure.ResourceGroup(""), e
 	}
 	subscriptionID, resourceGroup, _ := azure.ParseResourceID(strings.TrimPrefix(nodes.Items[0].Spec.ProviderID, providerPrefix))
 	return subscriptionID, resourceGroup, nil
@@ -429,7 +467,13 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
 	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name)
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
 	}
 
 	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
@@ -449,9 +493,13 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
 	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
-		errorLine := fmt.Sprintf("Unable to update ingress %s/%s status: error %s", ingress.Namespace, ingress.Name, err)
-		glog.Error(errorLine)
-		return ErrorUnableToUpdateIngress
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
 	}
 
 	return nil

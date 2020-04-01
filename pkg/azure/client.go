@@ -11,12 +11,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )

@@ -22,7 +22,11 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	for {
 		select {
 		case event := <-ch:
-			lastEvent = event
+			// if there are more event in the queue
+			// we will skip the reconcile event as we should focus on k8s related events
+			if event.Type != events.PeriodicReconcile {
+				lastEvent = event
+			}
 		default:
 			return lastEvent
 		}

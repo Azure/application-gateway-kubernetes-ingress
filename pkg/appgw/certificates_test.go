@@ -1,9 +1,10 @@
 package appgw
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests

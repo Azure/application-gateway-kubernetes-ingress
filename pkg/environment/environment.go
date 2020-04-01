@@ -8,9 +8,11 @@ package environment
 import (
 	"os"
 	"regexp"
+	"strconv"
+
+	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
-	"github.com/golang/glog"
 )
 
 const (
@@ -85,6 +87,9 @@ const (
 
 	// HostedOnUnderlayVarName  is an environment variable name.
 	HostedOnUnderlayVarName = "HOSTED_ON_UNDERLAY"
+
+	// ReconcilePeriodSecondsVarName is an environment variable to control reconcile period for the AGIC.
+	ReconcilePeriodSecondsVarName = "RECONCILE_PERIOD_SECONDS"
 )
 
 var (
@@ -118,6 +123,7 @@ type EnvVariables struct {
 	HTTPServicePort             string
 	AttachWAFPolicyToListener   bool
 	HostedOnUnderlay            bool
+	ReconcilePeriodSeconds      string
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -182,6 +188,7 @@ func GetEnv() EnvVariables {
 		HTTPServicePort:             GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
 		AttachWAFPolicyToListener:   GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
+		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
 	}
 
 	return env
@@ -215,6 +222,18 @@ func ValidateEnv(env EnvVariables) error {
 	if env.WatchNamespace == "" {
 		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
+
+	if env.ReconcilePeriodSeconds != "" {
+		reconcilePeriodSeconds, err := strconv.Atoi(env.ReconcilePeriodSeconds)
+		if err != nil {
+			return ErrorInvalidReconcilePeriod
+		}
+
+		if reconcilePeriodSeconds < 30 || reconcilePeriodSeconds > 300 {
+			return ErrorInvalidReconcilePeriod
+		}
+	}
+
 	return nil
 }
 

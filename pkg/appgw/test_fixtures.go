@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -106,6 +108,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 				Ingress:   cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
+			MetricStore:            metricstore.NewFakeMetricStore(),
 		},
 		recorder: record.NewFakeRecorder(100),
 	}

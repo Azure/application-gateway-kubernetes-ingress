@@ -19,9 +19,10 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha3 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/typed/istio/v1alpha3"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
+
+	v1alpha3 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/typed/istio/v1alpha3"
 )
 
 type FakeNetworkingV1alpha3 struct {

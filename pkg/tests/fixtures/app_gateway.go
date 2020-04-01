@@ -6,9 +6,10 @@
 package fixtures
 
 import (
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // GetAppGateway creates an ApplicationGateway struct.
@@ -42,6 +43,12 @@ func GetAppGateway() n.ApplicationGateway {
 				GetCertificate1(),
 				GetCertificate2(),
 				GetCertificate3(),
+			},
+
+			TrustedRootCertificates: &[]n.ApplicationGatewayTrustedRootCertificate{
+				GetRootCertificate1(),
+				GetRootCertificate2(),
+				GetRootCertificate3(),
 			},
 
 			Probes: &[]n.ApplicationGatewayProbe{

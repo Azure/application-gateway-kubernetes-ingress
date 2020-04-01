@@ -276,22 +276,28 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
 --                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            },
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
 --                "name": "defaulthttpsetting",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            }
 --        ],
@@ -334,7 +340,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
 --                    "hostName": "foo.baz",
---                    "protocol": "Http"
+--                    "hostnames": [],
+--                    "protocol": "Http",
+--                    "requireServerNameIndication": false
 --                }
 --            }
 --        ],
@@ -345,7 +353,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
@@ -357,7 +368,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Https",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
@@ -369,14 +383,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "foo.baz",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
 --                }
 --            }
 --        ],
---        "redirectConfigurations": null,
+--        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-d8f5c23dcab3db80f8466dbc57706908",
@@ -400,8 +417,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --            "name": "Standard_v2",
 --            "tier": "Standard_v2"
 --        },
---        "sslCertificates": null,
---        "urlPathMaps": null
+--        "sslCertificates": [],
+--        "urlPathMaps": []
 --    },
 --    "tags": {
 --        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
@@ -508,22 +525,28 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80-hello-world",
 --                "name": "bp-test-ingress-controller-hello-world-80-80-hello-world",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            },
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
 --                "name": "defaulthttpsetting",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            }
 --        ],
@@ -565,7 +588,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "protocol": "Http"
+--                    "hostnames": [],
+--                    "protocol": "Http",
+--                    "requireServerNameIndication": false
 --                }
 --            }
 --        ],
@@ -576,7 +601,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
@@ -588,14 +616,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Https",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
 --                }
 --            }
 --        ],
---        "redirectConfigurations": null,
+--        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-6d1d6d2bd4405b8228172c2ef8a065fb",
@@ -619,8 +650,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --            "name": "Standard_v2",
 --            "tier": "Standard_v2"
 --        },
---        "sslCertificates": null,
---        "urlPathMaps": null
+--        "sslCertificates": [],
+--        "urlPathMaps": []
 --    },
 --    "tags": {
 --        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
@@ -755,22 +786,28 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--",
 --                "name": "bp-test-ingress-controller-hello-world-80-80---name--",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb-test-ingress-controller-hello-world-80---name--"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            },
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
 --                "name": "defaulthttpsetting",
 --                "properties": {
+--                    "cookieBasedAffinity": "Disabled",
+--                    "pickHostNameFromBackendAddress": false,
 --                    "port": 80,
 --                    "probe": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
 --                    },
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requestTimeout": 30
 --                }
 --            }
 --        ],
@@ -817,7 +854,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "bye.com",
 --                        "test.com"
 --                    ],
---                    "protocol": "Http"
+--                    "protocol": "Http",
+--                    "requireServerNameIndication": false
 --                }
 --            }
 --        ],
@@ -828,7 +866,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
@@ -840,7 +881,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "localhost",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Https",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
@@ -852,14 +896,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "host": "foo.baz",
 --                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
 --                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
 --                }
 --            }
 --        ],
---        "redirectConfigurations": null,
+--        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-551927cc13f570e2ce70170a2de31927",
@@ -883,8 +930,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --            "name": "Standard_v2",
 --            "tier": "Standard_v2"
 --        },
---        "sslCertificates": null,
---        "urlPathMaps": null
+--        "sslCertificates": [],
+--        "urlPathMaps": []
 --    },
 --    "tags": {
 --        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",

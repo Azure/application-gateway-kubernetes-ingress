@@ -8,6 +8,8 @@ package metricstore
 import (
 	"net/http"
 	"time"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 // NewFakeMetricStore return a fake metric store
@@ -42,3 +44,5 @@ func (ms *fakeMetricStore) IncArmAPIUpdateCallSuccessCounter() {}
 func (ms *fakeMetricStore) IncArmAPICallCounter() {}
 
 func (ms *fakeMetricStore) IncK8sAPIEventCounter() {}
+
+func (ms *fakeMetricStore) IncErrorCount(controllererrors.ErrorCode) {}

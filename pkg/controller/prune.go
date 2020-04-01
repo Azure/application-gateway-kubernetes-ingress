@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -28,6 +29,8 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 		}
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)
 		pruneFuncList = append(pruneFuncList, pruneRedirectWithNoTLS)
+		pruneFuncList = append(pruneFuncList, pruneNoSslCertificate)
+		pruneFuncList = append(pruneFuncList, pruneNoTrustedRootCertificate)
 	})
 	prunedIngresses := cbCtx.IngressList
 	for _, prune := range pruneFuncList {
@@ -75,14 +78,83 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 	return prunedIngresses
 }
 
+// pruneNoSslCertificate filters ingresses which use appgw-ssl-certificate annotation when AppGw doesn't have annotated ssl certificate installed
+func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	var prunedIngresses []*v1beta1.Ingress
+	set := make(map[string]bool)
+	for _, installedSslCertificate := range *appGw.SslCertificates {
+		set[*installedSslCertificate.Name] = true
+	}
+
+	for _, ingress := range ingressList {
+		annotatedSslCertificate, err := annotations.GetAppGwSslCertificate(ingress)
+		// if annotation is not specified, add the ingress and go check next
+		if err != nil && annotations.IsMissingAnnotations(err) {
+			prunedIngresses = append(prunedIngresses, ingress)
+			continue
+		}
+
+		// given empty string is a valid annotation value, we error out with a message if no match
+		if _, exists := set[annotatedSslCertificate]; !exists {
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s to have pre-installed ssl certificate '%s'", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName, annotatedSslCertificate)
+			glog.Error(errorLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPreInstalledSslCertificate, errorLine)
+			if c.agicPod != nil {
+				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPreInstalledSslCertificate, errorLine)
+			}
+		} else {
+			prunedIngresses = append(prunedIngresses, ingress)
+		}
+	}
+
+	return prunedIngresses
+}
+
+// pruneNoTrustedRootCertificate filters ingresses which use appgw-trusted-root-certificate annotation when AppGw doesn't have annotated root certificate(s) installed
+func pruneNoTrustedRootCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+	var prunedIngresses []*v1beta1.Ingress
+	set := make(map[string]bool)
+	for _, installedTrustedRootCertificate := range *appGw.TrustedRootCertificates {
+		set[*installedTrustedRootCertificate.Name] = true
+	}
+
+	for _, ingress := range ingressList {
+		installed := true
+		trustedRootCertificates, err := annotations.GetAppGwTrustedRootCertificate(ingress)
+		// if annotation is not specified
+		if err != nil && annotations.IsMissingAnnotations(err) {
+			prunedIngresses = append(prunedIngresses, ingress)
+			continue
+		}
+
+		for _, rootCert := range strings.Split(trustedRootCertificates, ",") {
+			if _, exists := set[rootCert]; !exists {
+				installed = false
+				errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s to have pre-installed root certificate '%s'", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName, rootCert)
+				glog.Error(errorLine)
+				c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPreInstalledRootCertificate, errorLine)
+				if c.agicPod != nil {
+					c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPreInstalledRootCertificate, errorLine)
+				}
+			}
+		}
+		if installed {
+			prunedIngresses = append(prunedIngresses, ingress)
+		}
+	}
+
+	return prunedIngresses
+}
+
 // pruneRedirectWithNoTLS filters ingresses which are annotated for ssl redirect but don't have a TLS section in the spec
 func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
 	var prunedIngresses []*v1beta1.Ingress
 	for _, ingress := range ingressList {
-		hasTLS := ingress.Spec.TLS != nil && len(ingress.Spec.TLS) > 0
+		appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
+		hasTLS := (ingress.Spec.TLS != nil && len(ingress.Spec.TLS) > 0) || len(appgwCertName) > 0
 		sslRedirect, _ := annotations.IsSslRedirect(ingress)
 		if !hasTLS && sslRedirect {
-			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret. Please add a TLS secret or remove ssl-redirect annotation", ingress.Namespace, ingress.Name)
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it has an invalid spec. It is annotated with ssl-redirect: true but is missing a TLS secret or '%s' annotation. Please add a TLS secret/annotation or remove ssl-redirect annotation", ingress.Namespace, ingress.Name, annotations.AppGwSslCertificate)
 			glog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonRedirectWithNoTLS, errorLine)
 			if c.agicPod != nil {

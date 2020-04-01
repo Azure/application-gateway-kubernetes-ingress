@@ -33,12 +33,13 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 		}
 	}
 
-	var sslCertificates []n.ApplicationGatewaySslCertificate
+	sslCertificates := []n.ApplicationGatewaySslCertificate{}
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}
 
-	if cbCtx.EnvVariables.EnableBrownfieldDeployment && c.appGw.SslCertificates != nil {
+	// Merge certs from k8s ingress with existing appgw certs
+	if c.appGw.SslCertificates != nil {
 		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
 		// as a managed pool would be overwritten.
 		sslCertificates = brownfield.MergeCerts(*c.appGw.SslCertificates, sslCertificates)
@@ -69,6 +70,7 @@ func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonSecretNotFound, logLine)
 		}
 	}
+
 	return secretIDCertificateMap
 }
 

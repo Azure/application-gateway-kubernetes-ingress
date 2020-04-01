@@ -6,6 +6,8 @@
 package controller
 
 import (
+	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -67,6 +69,80 @@ var _ = Describe("prune function tests", func() {
 			}
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoPrivateIP(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
+	Context("ensure pruneNoSslCertificate prunes ingress", func() {
+		ingressSslCertAnnotated := tests.NewIngressFixture()
+		ingressSslCertAnnotated.Annotations = map[string]string{
+			annotations.AppGwSslCertificate: "appgw-installed-cert",
+		}
+		ingressNoSslCertAnnotated := tests.NewIngressFixture()
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{
+				ingressSslCertAnnotated,
+				ingressNoSslCertAnnotated,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using appgw-ssl-certificate and keeps others", func() {
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+		})
+
+		It("keeps the ingress using appgw-ssl-certificate when annotated ssl cert is pre-installed", func() {
+			ingressSslCertAnnotated.Annotations = map[string]string{
+				annotations.AppGwSslCertificate: *fixtures.GetCertificate1().Name,
+			}
+
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
+	Context("ensure pruneNoTrustedRootCertificate prunes ingress", func() {
+		ingressRootCertAnnotated := tests.NewIngressFixture()
+		ingressRootCertAnnotated.Annotations = map[string]string{
+			annotations.AppGwTrustedRootCertificate: "appgw-installed-root-cert",
+		}
+		ingressNoRootCertAnnotated := tests.NewIngressFixture()
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{
+				ingressRootCertAnnotated,
+				ingressNoRootCertAnnotated,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using appgw-trusted-root-certificate and keeps others", func() {
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoTrustedRootCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+		})
+
+		It("keeps the ingress using appgw-trusted-root-certificate when annotated root cert is pre-installed", func() {
+			// annotate with a installed root certificate
+			installedRootCerts := fmt.Sprintf("%s,%s,%s", *fixtures.GetRootCertificate1().Name, *fixtures.GetRootCertificate2().Name, *fixtures.GetRootCertificate3().Name)
+			ingressRootCertAnnotated.Annotations = map[string]string{
+				annotations.AppGwTrustedRootCertificate: installedRootCerts,
+			}
+
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoTrustedRootCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
 			Expect(len(prunedIngresses)).To(Equal(2))
 		})
 	})

@@ -22,7 +22,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		return c.mem.redirectConfigs
 	}
 
-	var redirectConfigs []n.ApplicationGatewayRedirectConfiguration
+	redirectConfigs := []n.ApplicationGatewayRedirectConfiguration{}
 
 	// Iterate over all possible Listeners (generated from the K8s Ingress configurations)
 	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)

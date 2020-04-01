@@ -67,6 +67,13 @@ const (
 	// The value of this is an ID of a Firewall Policy. The Firewall Policy must be already defined in Azure.
 	// The policy will be attached to all URL paths declared in the annotated Ingress resource.
 	FirewallPolicy = ApplicationGatewayPrefix + "/waf-policy-for-path"
+
+	// AppGwSslCertificate indicates the name of ssl certificate installed by AppGw
+	AppGwSslCertificate = ApplicationGatewayPrefix + "/appgw-ssl-certificate"
+
+	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
+	// Multiple root certificates seperated by comma, e.g. "cert1,cert2"
+	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
 )
 
 // ProtocolEnum is the type for protocol
@@ -114,6 +121,16 @@ func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
 // BackendHostName override hostname
 func BackendHostName(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, BackendHostNameKey)
+}
+
+// GetAppGwSslCertificate refer to appgw installed certificate
+func GetAppGwSslCertificate(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, AppGwSslCertificate)
+}
+
+// GetAppGwTrustedRootCertificate refer to appgw installed root certificate
+func GetAppGwTrustedRootCertificate(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, AppGwTrustedRootCertificate)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection

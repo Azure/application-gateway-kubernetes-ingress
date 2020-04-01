@@ -20,7 +20,7 @@ func MergeCerts(certBuckets ...[]n.ApplicationGatewaySslCertificate) []n.Applica
 			uniq[certName(*cert.Name)] = cert
 		}
 	}
-	var merged []n.ApplicationGatewaySslCertificate
+	merged := []n.ApplicationGatewaySslCertificate{}
 	for _, cert := range uniq {
 		merged = append(merged, cert)
 	}

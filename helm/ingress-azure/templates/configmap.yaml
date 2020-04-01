@@ -20,7 +20,9 @@ metadata:
 data:
   APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel | quote }}
   HTTP_SERVICE_PORT:     {{ .Values.kubernetes.httpServicePort | quote }}
+{{- if .Values.appgw.usePrivateIP }}
   USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}
+{{- end }}
 {{- if .Values.appgw.environment }}
   AZURE_ENVIRONMENT:     {{ .Values.appgw.environment | quote }}
 {{- end -}}
@@ -70,4 +72,8 @@ data:
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}
+{{- end }}
+
+{{- if .Values.reconcilePeriodSeconds -}}
+  RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}

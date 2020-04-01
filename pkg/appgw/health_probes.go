@@ -84,8 +84,16 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
-	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
-		probe.Host = to.StringPtr(backendID.Rule.Host)
+
+	// set defaults
+	probe.Match = &n.ApplicationGatewayProbeHealthResponseMatch{}
+	probe.PickHostNameFromBackendHTTPSettings = to.BoolPtr(false)
+	probe.MinServers = to.Int32Ptr(0)
+
+	listenerID := generateListenerID(backendID.Ingress, backendID.Rule, n.HTTP, nil, false)
+	hostName := listenerID.getHostNameForProbes()
+	if hostName != nil {
+		probe.Host = hostName
 	}
 
 	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
@@ -95,6 +103,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
+	// backend protocol "https" now supports to use certificate signed by well-known root certificate as well as trusted self-signed certificate
 	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
 		probe.Protocol = n.HTTPS
 	}

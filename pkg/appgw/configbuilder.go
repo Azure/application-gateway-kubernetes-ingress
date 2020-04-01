@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -77,21 +78,36 @@ func NewConfigBuilder(context *k8scontext.Context, appGwIdentifier *Identifier, 
 func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
 	err := c.HealthProbesCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate Health Probes, error [%v]", err)
-		return nil, ErrGeneratingProbes
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorGeneratingProbes,
+			err,
+			"unable to generate Health Probes",
+		)
+		glog.Errorf(e.Error())
+		return nil, e
 	}
 
 	err = c.BackendHTTPSettingsCollection(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend http settings, error [%v]", err)
-		return nil, ErrGeneratingBackendSettings
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorGeneratingBackendSettings,
+			err,
+			"unable to generate backend http settings",
+		)
+		glog.Errorf(e.Error())
+		return nil, e
 	}
 
 	// BackendAddressPools depend on BackendHTTPSettings
 	err = c.BackendAddressPools(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate backend address pools, error [%v]", err)
-		return nil, ErrCreatingBackendPools
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingBackendPools,
+			err,
+			"unable to generate backend address pools",
+		)
+		glog.Errorf(e.Error())
+		return nil, e
 	}
 
 	// Listener configures the frontend listeners
@@ -100,15 +116,25 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	// The order of operations matters.
 	err = c.Listeners(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate frontend listeners, error [%v]", err)
-		return nil, ErrGeneratingListeners
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorGeneratingListeners,
+			err,
+			"unable to generate frontend listeners",
+		)
+		glog.Errorf(e.Error())
+		return nil, e
 	}
 
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
-		glog.Errorf("unable to generate request routing rules, error [%v]", err)
-		return nil, ErrGeneratingRoutingRules
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorGeneratingRoutingRules,
+			err,
+			"unable to generate request routing rules",
+		)
+		glog.Errorf(e.Error())
+		return nil, e
 	}
 
 	c.addTags()

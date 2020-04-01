@@ -23,6 +23,7 @@ import (
 var keysToDeleteForCache = []string{
 	"etag",
 	"tags", // In the Tags of App Gwy we store the timestamp of the most recent update.
+	"provisioningState",
 }
 
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
@@ -60,6 +61,10 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 		glog.Error("Failed stripping ETag key from App Gwy config. Will not use cache.", err)
 		return false
 	}
+
+	glog.V(9).Info("input state = ", string(sanitized))
+	glog.V(9).Info("cached state = ", string(*c.configCache))
+
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
 }

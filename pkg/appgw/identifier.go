@@ -46,6 +46,10 @@ func (agw Identifier) sslCertificateID(certname string) string {
 	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
+func (agw Identifier) trustedRootCertificateID(certname string) string {
+	return agw.gatewayResourceID("trustedRootCertificates", certname)
+}
+
 // HTTPSettingsID generates an ID for App Gateway HTTP settings resource.
 func (agw Identifier) HTTPSettingsID(settingsName string) string {
 	return agw.gatewayResourceID("backendHttpSettingsCollection", settingsName)

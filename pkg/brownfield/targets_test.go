@@ -6,9 +6,10 @@
 package brownfield
 
 import (
-	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
