@@ -59,6 +59,10 @@ func (agw Identifier) urlPathMapID(urlPathMapName string) string {
 	return agw.gatewayResourceID("urlPathMaps", urlPathMapName)
 }
 
+func (agw Identifier) pathRuleID(probeName string) string {
+	return agw.gatewayResourceID("pathRules", probeName)
+}
+
 func (agw Identifier) listenerID(listenerName string) string {
 	return agw.gatewayResourceID("httpListeners", listenerName)
 }

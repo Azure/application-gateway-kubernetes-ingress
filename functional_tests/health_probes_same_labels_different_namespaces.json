@@ -290,6 +290,7 @@
                     },
                     "pathRules": [
                         {
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/pathRules/pr---other-namespace-----name---0",
                             "name": "pr---other-namespace-----name---0",
                             "properties": {
                                 "backendAddressPool": {

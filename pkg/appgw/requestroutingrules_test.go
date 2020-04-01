@@ -82,9 +82,11 @@ var _ = Describe("Test routing rules generations", func() {
 						backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
 						backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 						httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+						pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
 						expectedPathRule := n.ApplicationGatewayPathRule{
-							Name: to.StringPtr(generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")),
+							Name: to.StringPtr(pathRuleName),
 							Etag: to.StringPtr("*"),
+							ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(pathRuleName)),
 							ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 								Paths: &[]string{
 									path.Path,
@@ -162,8 +164,10 @@ var _ = Describe("Test routing rules generations", func() {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
 					expectedPathRule := n.ApplicationGatewayPathRule{
-						Name: to.StringPtr(generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")),
+						Name: to.StringPtr(pathRuleName),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(pathRuleName)),
 						Etag: to.StringPtr("*"),
 						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 							Paths: &[]string{
