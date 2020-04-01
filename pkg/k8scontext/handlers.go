@@ -24,7 +24,7 @@ func (h handlers) addFunc(obj interface{}) {
 		Type:  events.Create,
 		Value: obj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }
 
 func (h handlers) updateFunc(oldObj, newObj interface{}) {
@@ -43,7 +43,7 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 		Type:  events.Update,
 		Value: newObj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
@@ -59,7 +59,7 @@ func (h handlers) deleteFunc(obj interface{}) {
 		Type:  events.Delete,
 		Value: obj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }
 
 func getNamespace(obj interface{}) string {
