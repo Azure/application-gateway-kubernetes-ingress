@@ -45,6 +45,12 @@ func GetAppGateway() n.ApplicationGateway {
 				GetCertificate3(),
 			},
 
+			TrustedRootCertificates: &[]n.ApplicationGatewayTrustedRootCertificate{
+				GetRootCertificate1(),
+				GetRootCertificate2(),
+				GetRootCertificate3(),
+			},
+
 			Probes: &[]n.ApplicationGatewayProbe{
 				GetApplicationGatewayProbe(nil, to.StringPtr(PathFoo)), // /foo
 				GetApplicationGatewayProbe(nil, to.StringPtr(PathBar)), // /bar

@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -31,6 +32,22 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
 		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), to.StringPtr(reason)
+	}
+
+	if event.Type == events.PeriodicReconcile {
+		appGw, _, err := c.GetAppGw()
+		if err != nil {
+			glog.Error("Error Retrieving AppGw for k8s event. ", err)
+			reason := err.Error()
+			return false, to.StringPtr(reason)
+		}
+
+		glog.V(5).Info("Triggered by reconciler event")
+		if c.configIsSame(appGw) {
+			reason := "NoOp: current gateway state == cached gateway state"
+			glog.V(5).Info(reason)
+			return false, to.StringPtr(reason)
+		}
 	}
 
 	return true, nil

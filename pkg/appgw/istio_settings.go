@@ -14,6 +14,8 @@ import (
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifier, map[istioDestinationIdentifier]interface{}) {
@@ -132,7 +134,11 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		}
 	}
 	if len(unresolvedDestinationID) > 0 {
-		return nil, nil, nil, ErrIstioResolvePortsForServices
+		e := controllererrors.NewError(
+			controllererrors.ErrorIstioResolvePortsForServices,
+			"unable to resolve backend port for some services",
+		)
+		return nil, nil, nil, e
 	}
 
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -145,11 +151,15 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 			} else {
 				// TODO(delqn): implement port lookup by name
 			}
-			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
-				destinationID.serviceKey(), backendServicePort)
-			glog.Warning(logLine)
+
 			//TODO(rhea): add error event recorder
-			return nil, nil, nil, ErrIstioMultipleServiceBackendPortBinding
+			e := controllererrors.NewErrorf(
+				controllererrors.ErrorIstioMultipleServiceBackendPortBinding,
+				"service:port [%s:%s] has more than one service-backend port binding",
+				destinationID.serviceKey(), backendServicePort,
+			)
+			glog.Warning(e.Error())
+			return nil, nil, nil, e
 		}
 
 		// At this point there will be only one pair

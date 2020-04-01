@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -107,6 +108,7 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 				Ingress:   cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
+			MetricStore:            metricstore.NewFakeMetricStore(),
 		},
 		recorder: record.NewFakeRecorder(100),
 	}

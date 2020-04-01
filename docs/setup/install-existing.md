@@ -111,7 +111,7 @@ It is also possible to provide AGIC access to ARM via a Kubernetes secret.
    ```
 
 ## Install Ingress Controller as a Helm Chart
-In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm package:
+You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm package:
 
 1. Add the `application-gateway-kubernetes-ingress` helm repo and perform a helm update
 
@@ -135,13 +135,12 @@ In the first few steps we install Helm's Tiller on your Kubernetes cluster. Use 
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
+    helm install ingress-azure -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
     ```
 
     Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
     ```bash
-    helm install ./helm/ingress-azure \
-         --name ingress-azure \
+    helm install ingress-azure application-gateway-kubernetes-ingress/ingress-azure \
          --namespace default \
          --debug \
          --set appgw.name=applicationgatewayABCD \

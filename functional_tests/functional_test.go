@@ -508,40 +508,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
-		ingressAWithExtendedHostName := &v1beta1.Ingress{
-			Spec: v1beta1.IngressSpec{
-				Rules: []v1beta1.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
-									{
-										Path: "/A/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
-											ServicePort: intstr.IntOrString{
-												Type:   intstr.Int,
-												IntVal: 80,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
-					annotations.HostNameExtensionKey: "test.com, t*.com",
-				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name,
-			},
-		}
-
 		ingressB := &v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
@@ -569,6 +535,40 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
+			},
+		}
+
+		ingressBWithExtendedHostName := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/B/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameB,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+					annotations.HostNameExtensionKey: "test.com, t*.com",
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name,
@@ -695,7 +695,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("TWO Ingress Resources with same path but one with extended hostname and one without", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
-					ingressAWithExtendedHostName,
+					ingressBWithExtendedHostName,
 					ingressA,
 				},
 				ServiceList:           serviceList,

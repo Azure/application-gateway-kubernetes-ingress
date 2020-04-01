@@ -33,7 +33,7 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 		}
 	}
 
-	var sslCertificates []n.ApplicationGatewaySslCertificate
+	sslCertificates := []n.ApplicationGatewaySslCertificate{}
 	for secretID, cert := range secretIDCertificateMap {
 		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}

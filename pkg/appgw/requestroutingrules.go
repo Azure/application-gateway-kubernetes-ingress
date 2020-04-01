@@ -66,7 +66,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		return *c.mem.routingRules, *c.mem.pathMaps
 	}
 	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)
-	var pathMap []n.ApplicationGatewayURLPathMap
+	pathMap := []n.ApplicationGatewayURLPathMap{}
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
