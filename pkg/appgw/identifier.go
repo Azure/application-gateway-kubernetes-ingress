@@ -59,6 +59,11 @@ func (agw Identifier) urlPathMapID(urlPathMapName string) string {
 	return agw.gatewayResourceID("urlPathMaps", urlPathMapName)
 }
 
+func (agw Identifier) pathRuleID(pathMapName string, pathRuleName string) string {
+	pathRuleSuffix := fmt.Sprintf("%s/pathRules/%s", pathMapName, pathRuleName)
+	return agw.urlPathMapID(pathRuleSuffix)
+}
+
 func (agw Identifier) listenerID(listenerName string) string {
 	return agw.gatewayResourceID("httpListeners", listenerName)
 }
