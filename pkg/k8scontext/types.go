@@ -56,7 +56,7 @@ type Context struct {
 
 	CacheSynced chan interface{}
 
-	metricStore metricstore.MetricStore
+	MetricStore metricstore.MetricStore
 	namespaces  map[string]interface{}
 }
 

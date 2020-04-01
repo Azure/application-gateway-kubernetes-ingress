@@ -18,6 +18,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 )
@@ -168,11 +169,14 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
 		if len(serviceBackendPairs) > 1 {
 			// more than one possible backend port exposed through ingress
-			logLine := fmt.Sprintf("service:port [%s:%s] has more than one service-backend port binding",
-				backendID.serviceKey(), backendID.Backend.ServicePort.String())
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
-			glog.Warning(logLine)
-			return nil, nil, nil, ErrMultipleServiceBackendPortBinding
+			e := controllererrors.NewErrorf(
+				controllererrors.ErrorMultipleServiceBackendPortBinding,
+				"service:port [%s:%s] has more than one service-backend port binding",
+				backendID.serviceKey(), backendID.Backend.ServicePort.String(),
+			)
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, e.Error())
+			glog.Warning(e.Error())
+			return nil, nil, nil, e
 		}
 
 		// At this point there will be only one pair

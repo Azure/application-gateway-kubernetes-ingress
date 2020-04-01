@@ -38,7 +38,7 @@ type AppGwIngressController struct {
 	recorder record.EventRecorder
 
 	agicPod     *v1.Pod
-	metricStore metricstore.MetricStore
+	MetricStore metricstore.MetricStore
 
 	stopChannel chan struct{}
 }
@@ -54,7 +54,7 @@ func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Id
 		ipAddressMap:     map[string]k8scontext.IPAddress{},
 		stopChannel:      make(chan struct{}),
 		agicPod:          agicPod,
-		metricStore:      metricStore,
+		MetricStore:      metricStore,
 		hostedOnUnderlay: hostedOnUnderlay,
 	}
 
@@ -87,7 +87,7 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 
 // Stop function terminates the k8scontext and signal the stopchannel
 func (c *AppGwIngressController) Stop() {
-	c.metricStore.Stop()
+	c.MetricStore.Stop()
 	close(c.stopChannel)
 }
 
