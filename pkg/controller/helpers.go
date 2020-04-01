@@ -24,6 +24,8 @@ var keysToDeleteForCache = []string{
 	"etag",
 	"tags", // In the Tags of App Gwy we store the timestamp of the most recent update.
 	"provisioningState",
+	"resourceGuid",
+	"location",
 }
 
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
