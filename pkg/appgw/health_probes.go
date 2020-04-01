@@ -91,7 +91,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	probe.MinServers = to.Int32Ptr(0)
 
 	listenerID := generateListenerID(backendID.Ingress, backendID.Rule, n.HTTP, nil, false)
-	hostName := listenerID.getFirstHostNameWithouSpecialChars()
+	hostName := listenerID.getHostNameForProbes()
 	if hostName != nil {
 		probe.Host = hostName
 	}

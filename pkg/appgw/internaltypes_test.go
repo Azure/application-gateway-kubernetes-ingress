@@ -263,7 +263,7 @@ var _ = Describe("Test internal types", func() {
 		})
 	})
 
-	Context("test getFirstHostNameWithouSpecialChars works correctly", func() {
+	Context("test getHostNameForProbes works correctly", func() {
 		It("should correctly return the hostname without special chars", func() {
 			var hostnameValues = [5]string{"www.test*.com", "www.test?.com", "www.test*?.com", "www.test4.com", "www.test5.com"}
 			listenerID := listenerIdentifier{
@@ -271,7 +271,7 @@ var _ = Describe("Test internal types", func() {
 				UsePrivateIP: false,
 				HostNames:    hostnameValues,
 			}
-			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			hostName := listenerID.getHostNameForProbes()
 			Expect(hostName).ToNot(BeNil())
 			Expect(*hostName).To(Equal("www.test4.com"))
 		})
@@ -283,7 +283,7 @@ var _ = Describe("Test internal types", func() {
 				UsePrivateIP: false,
 				HostNames:    hostnameValues,
 			}
-			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			hostName := listenerID.getHostNameForProbes()
 			Expect(hostName).To(BeNil())
 		})
 
@@ -292,7 +292,7 @@ var _ = Describe("Test internal types", func() {
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
 			}
-			hostName := listenerID.getFirstHostNameWithouSpecialChars()
+			hostName := listenerID.getHostNameForProbes()
 			Expect(hostName).To(BeNil())
 		})
 	})

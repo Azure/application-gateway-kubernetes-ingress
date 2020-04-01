@@ -258,8 +258,8 @@ func (listenerID *listenerIdentifier) getHostNames() []string {
 	return hostnames
 }
 
-// getFirstHostNameWithouSpecialChars returns the first hostname which doesn't have special chars. To be used for probes.
-func (listenerID *listenerIdentifier) getFirstHostNameWithouSpecialChars() *string {
+// getHostNameForProbes returns the first hostname which doesn't have special chars. To be used for probes.
+func (listenerID *listenerIdentifier) getHostNameForProbes() *string {
 	hostNames := listenerID.getHostNames()
 	for _, hostName := range hostNames {
 		if !strings.ContainsAny(hostName, WildcardSpecialCharacters) {
