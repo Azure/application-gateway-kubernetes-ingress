@@ -136,7 +136,7 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--",
                 "name": "pb---namespace---hello-world-b-80---name--",
                 "properties": {
-                    "host": "localhost",
+                    "host": "foo.baz",
                     "interval": 30,
                     "match": {},
                     "minServers": 0,
