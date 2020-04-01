@@ -77,7 +77,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 				pathRule := n.ApplicationGatewayPathRule{
 					Etag: to.StringPtr("*"),
 					Name: to.StringPtr(pathRuleName),
-					ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathRuleName)),
+					ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 					ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 						Paths: &[]string{
 							match.URI.Prefix,

@@ -297,11 +297,12 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			continue
 		}
 
+		pathMapName := generateURLPathMapName(listenerID)
 		pathRuleName := generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))
 		pathRule := n.ApplicationGatewayPathRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(pathRuleName),
-			ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathRuleName)),
+			ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 			ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 				Paths: &[]string{path.Path},
 			},

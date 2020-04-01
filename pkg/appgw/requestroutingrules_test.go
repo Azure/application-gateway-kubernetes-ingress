@@ -86,7 +86,7 @@ var _ = Describe("Test routing rules generations", func() {
 						expectedPathRule := n.ApplicationGatewayPathRule{
 							Name: to.StringPtr(pathRuleName),
 							Etag: to.StringPtr("*"),
-							ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(pathRuleName)),
+							ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
 							ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 								Paths: &[]string{
 									path.Path,
@@ -167,7 +167,7 @@ var _ = Describe("Test routing rules generations", func() {
 					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
 					expectedPathRule := n.ApplicationGatewayPathRule{
 						Name: to.StringPtr(pathRuleName),
-						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(pathRuleName)),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
 						Etag: to.StringPtr("*"),
 						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 							Paths: &[]string{
