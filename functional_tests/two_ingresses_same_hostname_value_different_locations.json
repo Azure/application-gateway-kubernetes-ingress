@@ -136,7 +136,7 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--",
                 "name": "pb---namespace---hello-world-b-80---name--",
                 "properties": {
-                    "host": "localhost",
+                    "host": "foo.baz",
                     "interval": 30,
                     "match": {},
                     "minServers": 0,
@@ -183,6 +183,7 @@
                     },
                     "pathRules": [
                         {
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-d8f5c23dcab3db80f8466dbc57706908/pathRules/pr---namespace-----name---0",
                             "name": "pr---namespace-----name---0",
                             "properties": {
                                 "backendAddressPool": {
@@ -197,6 +198,7 @@
                             }
                         },
                         {
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-d8f5c23dcab3db80f8466dbc57706908/pathRules/pr---namespace-----name---0",
                             "name": "pr---namespace-----name---0",
                             "properties": {
                                 "backendAddressPool": {

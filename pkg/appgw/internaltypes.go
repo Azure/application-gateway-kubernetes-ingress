@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -39,6 +40,9 @@ const (
 const (
 	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
 	MaxAllowedHostnames int = 5
+
+	// WildcardSpecialCharacters are characters that are allowed for wildcard hostnames.
+	WildcardSpecialCharacters = "*?"
 )
 
 type backendIdentifier struct {
@@ -252,4 +256,16 @@ func (listenerID *listenerIdentifier) getHostNames() []string {
 	}
 
 	return hostnames
+}
+
+// getHostNameForProbes returns the first hostname which doesn't have special chars. To be used for probes.
+func (listenerID *listenerIdentifier) getHostNameForProbes() *string {
+	hostNames := listenerID.getHostNames()
+	for _, hostName := range hostNames {
+		if !strings.ContainsAny(hostName, WildcardSpecialCharacters) {
+			return to.StringPtr(hostName)
+		}
+	}
+
+	return nil
 }

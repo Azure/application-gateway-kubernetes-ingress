@@ -15,15 +15,12 @@ image:
 
 kubernetes:
 
-    # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
-    # Accepts one or many comma-separated values
-    watchNamespace:
+  # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
+  # Accepts one or many comma-separated values
+  watchNamespace:
 
-    # Port for AGIC's HTTP API endpoint
-    httpServicePort: 8123
-
-    # Whether to force private IP for all the listeners on Application Gateway
-    usePrivateIP: "false"
+  # Port for AGIC's HTTP API endpoint
+  httpServicePort: 8123
 
 
 ################################################################################
@@ -35,6 +32,7 @@ kubernetes:
 #   subscriptionId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 #   resourceGroup: myResourceGroup
 #   name: myApplicationGateway
+#   # Whether to force private IP for all the listeners on Application Gateway
 #   usePrivateIP: false
 
 ################################################################################
@@ -58,4 +56,4 @@ kubernetes:
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
-    enabled: false # true/false
+  enabled: false # true/false

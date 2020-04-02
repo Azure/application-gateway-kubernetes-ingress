@@ -49,7 +49,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 		Type:  events.Create,
 		Value: obj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }
 
 func (h handlers) ingressDelete(obj interface{}) {
@@ -82,7 +82,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 		Type:  events.Delete,
 		Value: obj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }
 
 func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
@@ -127,5 +127,5 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 		Type:  events.Update,
 		Value: newObj,
 	}
-	h.context.metricStore.IncK8sAPIEventCounter()
+	h.context.MetricStore.IncK8sAPIEventCounter()
 }

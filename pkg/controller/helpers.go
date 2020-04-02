@@ -24,6 +24,8 @@ var keysToDeleteForCache = []string{
 	"etag",
 	"tags", // In the Tags of App Gwy we store the timestamp of the most recent update.
 	"provisioningState",
+	"resourceGuid",
+	"location",
 }
 
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
@@ -48,7 +50,9 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	if c.configCache == nil {
 		return false
 	}
-	jsonConfig, err := appGw.MarshalJSON()
+
+	sanitizedInput := resetBackReference(appGw)
+	jsonConfig, err := sanitizedInput.MarshalJSON()
 	if err != nil {
 		glog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
 		return false
@@ -67,6 +71,21 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
+}
+
+// resetBackReference removes the back references in app gateway.
+// Currently, This is an issue in redirectConfigurations
+func resetBackReference(appGw *n.ApplicationGateway) *n.ApplicationGateway {
+	if appGw != nil && appGw.ApplicationGatewayPropertiesFormat != nil {
+		if appGw.RedirectConfigurations != nil {
+			for idx := range *appGw.RedirectConfigurations {
+				(*appGw.RedirectConfigurations)[idx].RequestRoutingRules = nil
+				(*appGw.RedirectConfigurations)[idx].URLPathMaps = nil
+				(*appGw.RedirectConfigurations)[idx].PathRules = nil
+			}
+		}
+	}
+	return appGw
 }
 
 func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool, overwritePrefix *string) ([]byte, error) {

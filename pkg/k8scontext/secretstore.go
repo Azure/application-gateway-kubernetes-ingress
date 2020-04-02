@@ -15,6 +15,8 @@ import (
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 const (
@@ -67,37 +69,65 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 
 	// check if this is a secret with the correct type
 	if secret.Type != recognizedSecretType {
-		glog.Errorf("secret [%v] is not type kubernetes.io/tls", secretKey)
-		return ErrorUnknownSecretType
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorUnknownSecretType,
+			"secret [%v] is not type kubernetes.io/tls", secretKey,
+		)
+		glog.Error(e.Error())
+		return e
 	}
 
 	if len(secret.Data[tlsKey]) == 0 || len(secret.Data[tlsCrt]) == 0 {
-		glog.Errorf("secret [%v] is malformed, tls.key or tls.crt is not defined", secretKey)
-		return ErrorMalformedSecret
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorMalformedSecret,
+			"secret [%v] is malformed, tls.key or tls.crt is not defined", secretKey,
+		)
+		glog.Error(e.Error())
+		return e
 	}
 
 	tempfileCert, err := ioutil.TempFile("", "appgw-ingress-cert")
 	if err != nil {
-		glog.Error("unable to create temporary file for certificate conversion")
-		return ErrorCreatingFile
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorCreatingFile,
+			err,
+			"unable to create temporary file for certificate conversion",
+		)
+		glog.Error(e.Error())
+		return e
 	}
 	defer os.Remove(tempfileCert.Name())
 
 	tempfileKey, err := ioutil.TempFile("", "appgw-ingress-key")
 	if err != nil {
-		glog.Error("unable to create temporary file for certificate conversion")
-		return ErrorCreatingFile
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorCreatingFile,
+			err,
+			"unable to create temporary file for certificate conversion",
+		)
+		glog.Error(e.Error())
+		return e
 	}
 	defer os.Remove(tempfileKey.Name())
 
 	if err := writeFileDecode(secret.Data["tls.crt"], tempfileCert); err != nil {
-		glog.Errorf("unable to write secret [%v].tls.crt to temporary file, error: %v", secretKey, err)
-		return ErrorWritingToFile
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorWritingToFile,
+			err,
+			"unable to write secret [%v].tls.crt to temporary file", secretKey,
+		)
+		glog.Error(e.Error())
+		return e
 	}
 
 	if err := writeFileDecode(secret.Data["tls.key"], tempfileKey); err != nil {
-		glog.Errorf("unable to write secret [%v].tls.key to temporary file, error: %v", secretKey, err)
-		return ErrorWritingToFile
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorWritingToFile,
+			err,
+			"unable to write secret [%v].tls.key to temporary file", secretKey,
+		)
+		glog.Error(e.Error())
+		return e
 	}
 
 	// both cert and key are in temp file now, call openssl
@@ -108,8 +138,13 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 
 	// if openssl exited with an error or the output is empty, report error
 	if err := cmd.Run(); err != nil || len(cout.Bytes()) == 0 {
-		glog.Errorf("unable to export using openssl, error=[%v], stderr=[%v]", err, cerr.String())
-		return ErrorExportingWithOpenSSL
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorExportingWithOpenSSL,
+			err,
+			"unable to export using openssl, error=[%v], stderr=[%v]", err, cerr.String(),
+		)
+		glog.Error(e.Error())
+		return e
 	}
 
 	pfxCert := cout.Bytes()
