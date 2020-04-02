@@ -221,23 +221,7 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 
 ### Install Helm
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
-Kubernetes. We will leverage it to install the `application-gateway-kubernetes-ingress` package:
-
-1. Install [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) and run the following to add `application-gateway-kubernetes-ingress` helm package:
-
-    - *RBAC enabled* AKS cluster
-
-    ```bash
-    kubectl create serviceaccount --namespace kube-system tiller-sa
-    kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller-sa
-    helm init --tiller-namespace kube-system --service-account tiller-sa --generate-name
-    ```
-
-    - *RBAC disabled* AKS cluster
-
-    ```bash
-    helm init
-    ```
+Kubernetes. This document will use version 3 of helm, which is not backwards compatbile with previous versions.
 
 1. Add the AGIC Helm repository:
     ```bash
@@ -299,7 +283,7 @@ Values:
 4. Install the Application Gateway ingress controller package:
 
     ```bash
-    helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --generate-name --set nodeSelector."beta\.kubernetes\.io/os"=linux
+    helm install ingress-azure -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --set nodeSelector."beta\.kubernetes\.io/os"=linux
     ```
 
 ### Install a Sample App

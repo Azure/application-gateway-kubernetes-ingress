@@ -69,6 +69,7 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(EnableIstioIntegrationVarName, "true")
 				_ = os.Setenv(EnableSaveConfigToFileVarName, "false")
 				_ = os.Setenv(EnablePanicOnPutErrorVarName, "true")
+				_ = os.Setenv(ReconcilePeriodSecondsVarName, "30")
 
 				expected := EnvVariables{
 					SubscriptionID:             "SubscriptionIDVarName",
@@ -83,6 +84,7 @@ var _ = Describe("Environment", func() {
 					EnableSaveConfigToFile:     false,
 					EnablePanicOnPutError:      true,
 					HTTPServicePort:            "8123",
+					ReconcilePeriodSeconds:     "30",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))
@@ -154,6 +156,44 @@ var _ = Describe("Environment", func() {
 					EnableDeployAppGateway: true,
 				}
 				Expect(ValidateEnv(env)).To(BeNil())
+			})
+		})
+
+		Context("Test ValidateEnv for RECONCILE_PERIOD_SECONDS", func() {
+			It("should error when invalid input in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "string",
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+			})
+
+			It("should not error when input is in range in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "30",
+				}
+				Expect(ValidateEnv(env)).To(BeNil())
+
+				env.ReconcilePeriodSeconds = "300"
+				Expect(ValidateEnv(env)).To(BeNil())
+			})
+
+			It("should error when input is out of range in RECONCILE_PERIOD_SECONDS", func() {
+				env := EnvVariables{
+					AppGwResourceID:        "id",
+					EnableDeployAppGateway: false,
+
+					ReconcilePeriodSeconds: "29",
+				}
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+
+				env.ReconcilePeriodSeconds = "301"
+				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
 			})
 		})
 

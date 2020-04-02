@@ -65,44 +65,56 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-80-80---name--",
                 "name": "bp---namespace---hello-world-80-80---name--",
                 "properties": {
+                    "cookieBasedAffinity": "Disabled",
+                    "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-80---name--"
                     },
-                    "protocol": "Http"
+                    "protocol": "Http",
+                    "requestTimeout": 30
                 }
             },
             {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-a-80-80---name--",
                 "name": "bp---namespace---hello-world-a-80-80---name--",
                 "properties": {
+                    "cookieBasedAffinity": "Disabled",
+                    "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-a-80---name--"
                     },
-                    "protocol": "Http"
+                    "protocol": "Http",
+                    "requestTimeout": 30
                 }
             },
             {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--",
                 "name": "bp---namespace---hello-world-b-80-80---name--",
                 "properties": {
+                    "cookieBasedAffinity": "Disabled",
+                    "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--"
                     },
-                    "protocol": "Http"
+                    "protocol": "Http",
+                    "requestTimeout": 30
                 }
             },
             {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
                 "name": "defaulthttpsetting",
                 "properties": {
+                    "cookieBasedAffinity": "Disabled",
+                    "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
                     },
-                    "protocol": "Http"
+                    "protocol": "Http",
+                    "requestTimeout": 30
                 }
             }
         ],
@@ -152,7 +164,9 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
                     },
                     "hostName": "foo.baz",
+                    "hostnames": [],
                     "protocol": "Https",
+                    "requireServerNameIndication": false,
                     "sslCertificate": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
                     }
@@ -168,7 +182,9 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
-                    "protocol": "Http"
+                    "hostnames": [],
+                    "protocol": "Http",
+                    "requireServerNameIndication": false
                 }
             },
             {
@@ -182,7 +198,9 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
                     "hostName": "foo.baz",
-                    "protocol": "Http"
+                    "hostnames": [],
+                    "protocol": "Http",
+                    "requireServerNameIndication": false
                 }
             }
         ],
@@ -193,7 +211,10 @@
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
+                    "match": {},
+                    "minServers": 0,
                     "path": "/",
+                    "pickHostNameFromBackendHttpSettings": false,
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -205,7 +226,10 @@
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
+                    "match": {},
+                    "minServers": 0,
                     "path": "/",
+                    "pickHostNameFromBackendHttpSettings": false,
                     "protocol": "Https",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -217,7 +241,10 @@
                 "properties": {
                     "host": "foo.baz",
                     "interval": 30,
+                    "match": {},
+                    "minServers": 0,
                     "path": "/",
+                    "pickHostNameFromBackendHttpSettings": false,
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -229,7 +256,10 @@
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
+                    "match": {},
+                    "minServers": 0,
                     "path": "/A/",
+                    "pickHostNameFromBackendHttpSettings": false,
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3
@@ -241,7 +271,10 @@
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
+                    "match": {},
+                    "minServers": 0,
                     "path": "/B/",
+                    "pickHostNameFromBackendHttpSettings": false,
                     "protocol": "Http",
                     "timeout": 30,
                     "unhealthyThreshold": 3

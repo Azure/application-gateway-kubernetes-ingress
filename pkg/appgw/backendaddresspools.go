@@ -100,9 +100,8 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
-		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", backendID.serviceKey())
-		glog.Errorf(logLine)
-		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, logLine)
+		glog.Errorf(err.Error())
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, err.Error())
 		return nil
 	}
 
