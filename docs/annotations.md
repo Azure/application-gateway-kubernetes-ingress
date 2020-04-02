@@ -159,20 +159,20 @@ spec:
 
 ## AppGw SSL Certificate
 
-Application Gateway can be configured to do ssl termination with pre-installed certificates.
-The certificate [can be installed to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create) either from a local PFX cerficate file or a reference to a Azure Key Vault unversioned secret Id.
+The SSL certificate [can be configured to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create) either from a local PFX cerficate file or a reference to a Azure Key Vault unversioned secret Id.
 When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
+`appgw-ssl-certificate` annotation can also be used together with `ssl-redirect` annotation in case of SSL redirect.
 
 > **Note**
 * Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
 
 ### Use Azure CLI to install certificate to Application Gateway
-* Install from local PFX certificate file
+* Configure from a local PFX certificate file
 ```bash
 az network application-gateway ssl-cert create -g $resgp  --gateway-name $appgwName -n mysslcert --cert-file \path\to\cert\file --cert-password Abc123
 ```
 
-* Install from a reference to a Key Vault unversioned secret id
+* Configure from a reference to a Key Vault unversioned secret id
 ```bash
 az keyvault certificate create --vault-name $vaultName -n cert1 -p "$(az keyvault certificate get-default-policy)"
 versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName --query "sid" -o tsv)
@@ -183,7 +183,7 @@ az network application-gateway ssl-cert create -n mysslcert --gateway-name $appg
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/appgw-ssl-certificate: "appgw-installed-certificate"
+appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
 ```
 
 ### Example
