@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -53,15 +53,15 @@ const (
 )
 
 // GetIngress creates an Ingress test fixture.
-func GetIngress() (*v1beta1.Ingress, error) {
+func GetIngress() (*networking.Ingress, error) {
 	return getIngress("ingress.yaml")
 }
 
 // GetVerySimpleIngress creates one very simple Ingress test fixture with no rules.
-func GetVerySimpleIngress() (*v1beta1.Ingress, error) {
+func GetVerySimpleIngress() (*networking.Ingress, error) {
 	ingr := []byte(`
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: websocket-ingress
@@ -77,16 +77,16 @@ spec:
 	if err != nil {
 		return nil, err
 	}
-	return obj.(*v1beta1.Ingress), nil
+	return obj.(*networking.Ingress), nil
 }
 
 // GetIngressComplex creates an Ingress test fixture with multiple backends and path rules.
-func GetIngressComplex() (*v1beta1.Ingress, error) {
+func GetIngressComplex() (*networking.Ingress, error) {
 	return getIngress("ingress-complex.yaml")
 }
 
 // GetIngressNamespaced creates 2 Ingress test fixtures in different namespaces.
-func GetIngressNamespaced() (*[]v1beta1.Ingress, error) {
+func GetIngressNamespaced() (*[]networking.Ingress, error) {
 	ingr1, err := getIngress("ingress-namespace-1.yaml")
 	if err != nil {
 		glog.Fatal(err)
@@ -95,10 +95,10 @@ func GetIngressNamespaced() (*[]v1beta1.Ingress, error) {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	return &[]v1beta1.Ingress{*ingr1, *ingr2}, nil
+	return &[]networking.Ingress{*ingr1, *ingr2}, nil
 }
 
-func getIngress(fileName string) (*v1beta1.Ingress, error) {
+func getIngress(fileName string) (*networking.Ingress, error) {
 	ingr, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
@@ -108,7 +108,7 @@ func getIngress(fileName string) (*v1beta1.Ingress, error) {
 	if err != nil {
 		return nil, err
 	}
-	return obj.(*v1beta1.Ingress), nil
+	return obj.(*networking.Ingress), nil
 }
 
 // GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
@@ -127,8 +127,8 @@ func GetApplicationGatewayBackendAddressPool() *n.ApplicationGatewayBackendAddre
 }
 
 // NewIngressBackendFixture makes a new Ingress Backend for testing
-func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBackend {
-	return &v1beta1.IngressBackend{
+func NewIngressBackendFixture(serviceName string, port int32) *networking.IngressBackend {
+	return &networking.IngressBackend{
 		ServiceName: serviceName,
 		ServicePort: intstr.IntOrString{
 			IntVal: port,
@@ -137,12 +137,12 @@ func NewIngressBackendFixture(serviceName string, port int32) *v1beta1.IngressBa
 }
 
 // NewIngressRuleFixture makes a new Ingress Rule for testing
-func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBackend) v1beta1.IngressRule {
-	return v1beta1.IngressRule{
+func NewIngressRuleFixture(host string, urlPath string, be networking.IngressBackend) networking.IngressRule {
+	return networking.IngressRule{
 		Host: host,
-		IngressRuleValue: v1beta1.IngressRuleValue{
-			HTTP: &v1beta1.HTTPIngressRuleValue{
-				Paths: []v1beta1.HTTPIngressPath{
+		IngressRuleValue: networking.IngressRuleValue{
+			HTTP: &networking.HTTPIngressRuleValue{
+				Paths: []networking.HTTPIngressPath{
 					{
 						Path:    urlPath,
 						Backend: be,
@@ -154,17 +154,17 @@ func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 }
 
 // NewIngressFixture makes a new Ingress for testing
-func NewIngressFixture() *v1beta1.Ingress {
+func NewIngressFixture() *networking.Ingress {
 	be80 := NewIngressBackendFixture(ServiceName, 80)
 	be443 := NewIngressBackendFixture(ServiceName, 443)
 
-	return &v1beta1.Ingress{
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+	return &networking.Ingress{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				NewIngressRuleFixture(Host, URLPath1, *be80),
 				NewIngressRuleFixture(Host, URLPath2, *be443),
 			},
-			TLS: []v1beta1.IngressTLS{
+			TLS: []networking.IngressTLS{
 				{
 					Hosts: []string{
 						"www.contoso.com",
@@ -380,8 +380,8 @@ func NewEndpointsFixture() *v1.Endpoints {
 }
 
 // NewIngressTestFixture creates a new Ingress struct for testing.
-func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress {
-	return v1beta1.Ingress{
+func NewIngressTestFixture(namespace string, ingressName string) networking.Ingress {
+	return networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ingressName,
 			Namespace: namespace,
@@ -389,16 +389,16 @@ func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
 					Host: "hello.com",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/hi",
-									Backend: v1beta1.IngressBackend{
+									Backend: networking.IngressBackend{
 										ServiceName: ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
@@ -416,8 +416,8 @@ func NewIngressTestFixture(namespace string, ingressName string) v1beta1.Ingress
 }
 
 // NewIngressTestFixtureBasic creates a basic Ingress with / path for testing.
-func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) *v1beta1.Ingress {
-	ingress := &v1beta1.Ingress{
+func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) *networking.Ingress {
+	ingress := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ingressName,
 			Namespace: namespace,
@@ -425,16 +425,16 @@ func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) 
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
 					Host: "hello.com",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/",
-									Backend: v1beta1.IngressBackend{
+									Backend: networking.IngressBackend{
 										ServiceName: ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.String,
@@ -451,7 +451,7 @@ func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) 
 	}
 
 	if tls {
-		ingress.Spec.TLS = []v1beta1.IngressTLS{
+		ingress.Spec.TLS = []networking.IngressTLS{
 			{
 				SecretName: NameOfSecret,
 			},

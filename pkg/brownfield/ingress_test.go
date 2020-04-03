@@ -8,7 +8,7 @@ package brownfield
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -20,25 +20,25 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 	Context("Test PruneIngressRules()", func() {
 		prohibited := fixtures.GetAzureIngressProhibitedTargets()
 
-		ingress := v1beta1.Ingress{
-			Spec: v1beta1.IngressSpec{
-				Rules: []v1beta1.IngressRule{
+		ingress := networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
 					{
 						// Rule with no Paths
 						Host: tests.OtherHost,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{},
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{},
 						},
 					},
 					{
 						// Rule with Paths
 						Host: tests.Host,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
 									{
 										Path: fixtures.PathFoo,
-										Backend: v1beta1.IngressBackend{
+										Backend: networking.IngressBackend{
 											ServiceName: tests.ServiceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
@@ -48,7 +48,7 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 									},
 									{
 										Path: fixtures.PathFox,
-										Backend: v1beta1.IngressBackend{
+										Backend: networking.IngressBackend{
 											ServiceName: tests.ServiceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
@@ -66,18 +66,18 @@ var _ = Describe("test pruning Ingress based on white/white lists", func() {
 
 		actualRules := PruneIngressRules(&ingress, prohibited)
 
-		expected := v1beta1.Ingress{
-			Spec: v1beta1.IngressSpec{
-				Rules: []v1beta1.IngressRule{
+		expected := networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
 					{
 						// Should have kept one of the Paths of this Rule
 						Host: tests.Host,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
 									{
 										Path: fixtures.PathFoo,
-										Backend: v1beta1.IngressBackend{
+										Backend: networking.IngressBackend{
 											ServiceName: tests.ServiceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,

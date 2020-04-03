@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -142,7 +142,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	return &c.appGw, nil
 }
 
-type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error
+type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*networking.Ingress, serviceList []*v1.Service) error
 
 // PreBuildValidate runs all the validators that suggest misconfiguration in Kubernetes resources.
 func (c *appGwConfigBuilder) PreBuildValidate(cbCtx *ConfigBuilderContext) error {
@@ -196,7 +196,7 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 	return resolvedPorts
 }
 
-func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path *v1beta1.HTTPIngressPath, backend *v1beta1.IngressBackend) backendIdentifier {
+func generateBackendID(ingress *networking.Ingress, rule *networking.IngressRule, path *networking.HTTPIngressPath, backend *networking.IngressBackend) backendIdentifier {
 	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
 			Namespace: ingress.Namespace,
@@ -209,7 +209,7 @@ func generateBackendID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, path
 	}
 }
 
-func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool) listenerIdentifier {
+func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool) listenerIdentifier {
 	frontendPort := Port(80)
 	if protocol == n.HTTPS {
 		frontendPort = Port(443)

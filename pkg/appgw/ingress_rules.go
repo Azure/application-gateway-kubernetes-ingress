@@ -8,13 +8,13 @@ package appgw
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *networking.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
@@ -30,7 +30,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	return listeners
 }
 
-func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+func (c *appGwConfigBuilder) processIngressRule(rule *networking.IngressRule, ingress *networking.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[Port]interface{})
 
 	// certificate from ingress TLS spec

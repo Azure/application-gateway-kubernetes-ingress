@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -173,7 +173,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -195,7 +195,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 					tests.NewIngressFixture(),
 				},
@@ -217,7 +217,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 					tests.NewIngressFixture(),
 				},
@@ -240,7 +240,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 					tests.NewIngressFixture(),
 				},
@@ -285,7 +285,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 				},
 				EnvVariables:          envVariables,
@@ -311,7 +311,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			envVariablesCopy := envVariables
 			envVariablesCopy.UsePrivateIP = "true"
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 					tests.NewIngressFixture(),
 				},
@@ -339,7 +339,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					tests.NewIngressFixture(),
 				},
 				EnvVariables:          envVariables,
@@ -368,7 +368,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 	Context("create a new App Gateway HTTP Listener for V1 gateway", func() {
 		ing1 := tests.NewIngressFixture()
 		ing2 := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{
+		ingressList := []*networking.Ingress{
 			ing1,
 			ing2,
 		}
@@ -430,7 +430,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			ing.Annotations[annotations.AppGwSslCertificate] = "appgw-installed-cert"
 			ing.Spec.TLS = nil
 			cbCtx := &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					ing,
 				},
 				EnvVariables:          envVariables,

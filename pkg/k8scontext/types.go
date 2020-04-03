@@ -42,9 +42,10 @@ type CacheCollection struct {
 // Context : cache and listener for k8s resources.
 type Context struct {
 	// k8s Clients
-	kubeClient     kubernetes.Interface
-	crdClient      versioned.Interface
-	istioCrdClient istio_versioned.Interface
+	kubeClient                kubernetes.Interface
+	crdClient                 versioned.Interface
+	istioCrdClient            istio_versioned.Interface
+	supportsNetworkingV1Beta1 bool
 
 	informers              *InformerCollection
 	Caches                 *CacheCollection

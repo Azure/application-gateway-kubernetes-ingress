@@ -6,13 +6,13 @@
 package brownfield
 
 import (
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
 // PruneIngressRules transforms the given ingress struct to remove targets, which AGIC should not create configuration for.
-func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) []v1beta1.IngressRule {
+func PruneIngressRules(ing *networking.Ingress, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) []networking.IngressRule {
 
 	if ing.Spec.Rules == nil || len(ing.Spec.Rules) == 0 {
 		return ing.Spec.Rules
@@ -24,7 +24,7 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 		return ing.Spec.Rules
 	}
 
-	var rules []v1beta1.IngressRule
+	var rules []networking.IngressRule
 
 	for _, rule := range ing.Spec.Rules {
 		if rule.HTTP == nil {
@@ -41,11 +41,11 @@ func PruneIngressRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngr
 			continue // to next rule
 		}
 
-		newRule := v1beta1.IngressRule{
+		newRule := networking.IngressRule{
 			Host: rule.Host,
-			IngressRuleValue: v1beta1.IngressRuleValue{
-				HTTP: &v1beta1.HTTPIngressRuleValue{
-					Paths: []v1beta1.HTTPIngressPath{},
+			IngressRuleValue: networking.IngressRuleValue{
+				HTTP: &networking.HTTPIngressRuleValue{
+					Paths: []networking.HTTPIngressPath{},
 				},
 			},
 		}

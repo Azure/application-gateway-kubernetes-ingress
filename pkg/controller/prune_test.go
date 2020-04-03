@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -43,7 +43,7 @@ var _ = Describe("prune function tests", func() {
 		}
 		ingressPublic := tests.NewIngressFixture()
 		cbCtx := &appgw.ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingressPrivate,
 				ingressPublic,
 			},
@@ -80,7 +80,7 @@ var _ = Describe("prune function tests", func() {
 		}
 		ingressNoSslCertAnnotated := tests.NewIngressFixture()
 		cbCtx := &appgw.ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingressSslCertAnnotated,
 				ingressNoSslCertAnnotated,
 			},
@@ -116,7 +116,7 @@ var _ = Describe("prune function tests", func() {
 		}
 		ingressNoRootCertAnnotated := tests.NewIngressFixture()
 		cbCtx := &appgw.ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingressRootCertAnnotated,
 				ingressNoRootCertAnnotated,
 			},
@@ -181,7 +181,7 @@ var _ = Describe("prune function tests", func() {
 		})
 
 		cbCtx := &appgw.ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingressInvalid,
 				ingressValid1,
 				ingressValid2,

@@ -15,7 +15,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -46,13 +46,13 @@ var namespacesToIgnore = map[string]interface{}{
 
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
+	supportsNetworkingV1Beta1, _ := supportsNetworkingPackage(kubeClient)
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),
-		Ingress:   informerFactory.Extensions().V1beta1().Ingresses().Informer(),
 		Pods:      informerFactory.Core().V1().Pods().Informer(),
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
@@ -61,6 +61,12 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
+	}
+
+	if supportsNetworkingV1Beta1 {
+		informerCollection.Ingress = informerFactory.Networking().V1beta1().Ingresses().Informer()
+	} else {
+		informerCollection.Ingress = informerFactory.Extensions().V1beta1().Ingresses().Informer()
 	}
 
 	cacheCollection := CacheCollection{
@@ -75,9 +81,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	context := &Context{
-		kubeClient:     kubeClient,
-		crdClient:      crdClient,
-		istioCrdClient: istioCrdClient,
+		kubeClient:                kubeClient,
+		crdClient:                 crdClient,
+		istioCrdClient:            istioCrdClient,
+		supportsNetworkingV1Beta1: supportsNetworkingV1Beta1,
 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
@@ -289,10 +296,10 @@ func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool
 }
 
 // ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
-func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
-	var ingressList []*v1beta1.Ingress
+func (c *Context) ListHTTPIngresses() []*networking.Ingress {
+	var ingressList []*networking.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
-		ingress := ingressInterface.(*v1beta1.Ingress)
+		ingress := ingressInterface.(*networking.Ingress)
 		if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
 			continue
 		}
@@ -301,8 +308,8 @@ func (c *Context) ListHTTPIngresses() []*v1beta1.Ingress {
 	return filterAndSort(ingressList)
 }
 
-func filterAndSort(ingList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	var ingressList []*v1beta1.Ingress
+func filterAndSort(ingList []*networking.Ingress) []*networking.Ingress {
+	var ingressList []*networking.Ingress
 	for _, ingress := range ingList {
 		if !IsIngressApplicationGateway(ingress) {
 			continue
@@ -463,55 +470,95 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status
-func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPAddress) error {
-	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
-	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
-	if err != nil {
-		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorUpdatingIngressStatus,
-			err,
-			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
-		)
-		c.MetricStore.IncErrorCount(e.Code)
-		return e
-	}
-
-	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-		existingIP := lbi.IP
-		if existingIP == string(newIP) {
-			glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-			return nil
+func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	if c.supportsNetworkingV1Beta1 {
+		ingressClient := c.kubeClient.NetworkingV1beta1().Ingresses(ingressToUpdate.Namespace)
+		ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+		if err != nil {
+			e := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrorUpdatingIngressStatus,
+				err,
+				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+			)
+			c.MetricStore.IncErrorCount(e.Code)
+			return e
 		}
-	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
-	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-			IP: string(newIP),
-		})
-	}
-	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+			existingIP := lbi.IP
+			if existingIP == string(newIP) {
+				glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+				return nil
+			}
+		}
 
-	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
-		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorUpdatingIngressStatus,
-			err,
-			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
-		)
-		c.MetricStore.IncErrorCount(e.Code)
-		return e
+		loadBalancerIngresses := []v1.LoadBalancerIngress{}
+		if newIP != "" {
+			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+				IP: string(newIP),
+			})
+		}
+		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+		if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+			e := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrorUpdatingIngressStatus,
+				err,
+				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+			)
+			c.MetricStore.IncErrorCount(e.Code)
+			return e
+		}
+	} else {
+		ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+		ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+		if err != nil {
+			e := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrorUpdatingIngressStatus,
+				err,
+				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+			)
+			c.MetricStore.IncErrorCount(e.Code)
+			return e
+		}
+
+		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+			existingIP := lbi.IP
+			if existingIP == string(newIP) {
+				glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+				return nil
+			}
+		}
+
+		loadBalancerIngresses := []v1.LoadBalancerIngress{}
+		if newIP != "" {
+			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+				IP: string(newIP),
+			})
+		}
+		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+		if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+			e := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrorUpdatingIngressStatus,
+				err,
+				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+			)
+			c.MetricStore.IncErrorCount(e.Code)
+			return e
+		}
 	}
 
 	return nil
 }
 
 // IsIngressApplicationGateway checks if applicaiton gateway annotation is present on the ingress
-func IsIngressApplicationGateway(ingress *v1beta1.Ingress) bool {
+func IsIngressApplicationGateway(ingress *networking.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val
 }
 
-func hasHTTPRule(ingress *v1beta1.Ingress) bool {
+func hasHTTPRule(ingress *networking.Ingress) bool {
 	for _, rule := range ingress.Spec.Rules {
 		if rule.HTTP != nil {
 			return true

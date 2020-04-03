@@ -13,7 +13,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -50,7 +50,7 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 	return &sslCertificates
 }
 
-func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress) map[secretIdentifier]*string {
+func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *networking.Ingress) map[secretIdentifier]*string {
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {
@@ -74,7 +74,7 @@ func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *v1beta1.Ingress)
 	return secretIDCertificateMap
 }
 
-func (c *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
+func (c *appGwConfigBuilder) getCertificate(ingress *networking.Ingress, hostname string, hostnameSecretIDMap map[string]secretIdentifier) (*string, *secretIdentifier) {
 	if hostnameSecretIDMap == nil {
 		return nil, nil
 	}
@@ -96,7 +96,7 @@ func (c *appGwConfigBuilder) getCertificate(ingress *v1beta1.Ingress, hostname s
 	return cert, &secID
 }
 
-func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[string]secretIdentifier {
+func (c *appGwConfigBuilder) newHostToSecretMap(ingress *networking.Ingress) map[string]secretIdentifier {
 	hostToSecretMap := make(map[string]secretIdentifier)
 	for _, tls := range ingress.Spec.TLS {
 		if len(tls.SecretName) == 0 {

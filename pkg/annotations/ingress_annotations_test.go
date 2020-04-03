@@ -13,11 +13,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var ingress = v1beta1.Ingress{
+var ingress = networking.Ingress{
 	ObjectMeta: v1.ObjectMeta{
 		Annotations: map[string]string{},
 	},
@@ -52,7 +52,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"errorKey":                                                   "234error!!",
 	}
 
-	ing := &v1beta1.Ingress{
+	ing := &networking.Ingress{
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: annotations,
 		},
@@ -60,7 +60,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test IsCookieBasedAffinity", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := IsCookieBasedAffinity(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(false))
@@ -74,7 +74,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test appgwSslCertificate", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := GetAppGwSslCertificate(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
@@ -88,7 +88,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test appgwTrustedRootCertificate", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := GetAppGwTrustedRootCertificate(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
@@ -102,7 +102,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test ConnectionDrainingTimeout", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := ConnectionDrainingTimeout(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(int32(0)))
@@ -116,7 +116,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test IsConnectionDraining", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := IsConnectionDraining(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(false))
@@ -130,7 +130,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test RequestTimeout", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := RequestTimeout(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(int32(0)))
@@ -144,7 +144,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test BackendPathPrefix", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := BackendPathPrefix(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
@@ -158,7 +158,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test BackendHostName", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := BackendHostName(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
@@ -172,7 +172,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test IsSslRedirect", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := IsSslRedirect(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(false))
@@ -205,7 +205,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test IsApplicationGatewayIngress", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := IsApplicationGatewayIngress(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(false))
@@ -219,7 +219,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test UsePrivateIP", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			actual, err := UsePrivateIP(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(false))
@@ -233,14 +233,14 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test GetHostNameExtensions", func() {
 		It("returns error when ingress has no annotations", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			hostnames, err := GetHostNameExtensions(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(hostnames).To(BeNil())
 		})
 
 		It("parses the hostname-extension correctly at correct delimiter", func() {
-			ing := &v1beta1.Ingress{}
+			ing := &networking.Ingress{}
 			ing.Annotations = map[string]string{
 				"appgw.ingress.kubernetes.io/hostname-extension": " www.bye.com ,  www.b*.com ",
 			}

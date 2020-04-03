@@ -13,7 +13,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -120,7 +120,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	return requestRoutingRules, pathMap
 }
 
-func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
+func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
 	if ingress.Spec.Backend == nil {
 		return
@@ -216,7 +216,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	return urlPathMaps
 }
 
-func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *n.ApplicationGatewayURLPathMap {
+func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) *n.ApplicationGatewayURLPathMap {
 	// initialize a path map for this listener if doesn't exists
 	pathMapName := generateURLPathMapName(listenerID)
 	pathMap := n.ApplicationGatewayURLPathMap{
@@ -242,7 +242,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	return &pathMap
 }
 
-func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) (*string, *string, *string) {
+func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
@@ -258,8 +258,8 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		glog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
 
-	var defRule *v1beta1.IngressRule
-	var defPath *v1beta1.HTTPIngressPath
+	var defRule *networking.IngressRule
+	var defPath *networking.HTTPIngressPath
 	defBackend := ingress.Spec.Backend
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
@@ -287,7 +287,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
 }
 
-func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *[]n.ApplicationGatewayPathRule {
+func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) *[]n.ApplicationGatewayPathRule {
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)

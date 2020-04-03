@@ -39,7 +39,7 @@ Now, the `guestbook` application has been deployed.
 In order to expose the guestbook application we will using the following ingress resource:
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: guestbook
@@ -85,7 +85,7 @@ Without specifying hostname, the guestbook service will be available on all the 
 1. Define the following ingress. In the ingress, specify the name of the secret in the `secretName` section.
 
     ```yaml
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1beta1
     kind: Ingress
     metadata:
       name: guestbook
@@ -123,7 +123,7 @@ By specifying hostname, the guestbook service will only be available on the spec
     In the ingress, specify the name of the secret in the `secretName` section and replace the hostname in the `hosts` section accordingly.
 
     ```yaml
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1beta1
     kind: Ingress
     metadata:
       name: guestbook

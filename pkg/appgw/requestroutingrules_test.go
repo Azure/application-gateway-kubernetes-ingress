@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
@@ -40,7 +40,7 @@ var _ = Describe("Test routing rules generations", func() {
 		testService.Name = "test"
 		testBackend := tests.NewIngressBackendFixture("test", 80)
 		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
-		ingressPathBased2.Spec.Rules = []v1beta1.IngressRule{
+		ingressPathBased2.Spec.Rules = []networking.IngressRule{
 			testRule,
 		}
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(testEndpoint)
@@ -48,7 +48,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased2)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingressPathBased1, ingressPathBased2},
+			IngressList:           []*networking.Ingress{ingressPathBased1, ingressPathBased2},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -118,7 +118,7 @@ var _ = Describe("Test routing rules generations", func() {
 		backendBasic := tests.NewIngressBackendFixture(tests.ServiceName, 80)
 		ruleBasic := tests.NewIngressRuleFixture(tests.Host, "", *backendBasic)
 		pathBasic := &ruleBasic.HTTP.Paths[0]
-		ingressBasic.Spec.Rules = []v1beta1.IngressRule{
+		ingressBasic.Spec.Rules = []networking.IngressRule{
 			ruleBasic,
 		}
 
@@ -128,7 +128,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressBasic)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingressPathBased, ingressBasic},
+			IngressList:           []*networking.Ingress{ingressPathBased, ingressBasic},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -194,7 +194,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{ingress},
+			IngressList: []*networking.Ingress{ingress},
 			ServiceList: []*v1.Service{service},
 		}
 
@@ -252,7 +252,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -297,7 +297,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),

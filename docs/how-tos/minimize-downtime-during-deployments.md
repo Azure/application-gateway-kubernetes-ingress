@@ -68,7 +68,7 @@ The addition of the `preStop` container life cycle hook will:
 2. Add [connection draining annotation](https://docs.microsoft.com/bs-latn-ba/azure/application-gateway/ingress-controller-annotations#connection-draining) to the Ingress read by AGIC to allow for in-flight connections to complete. Example:
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
  name: websocket-ingress

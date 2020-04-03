@@ -44,7 +44,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: test-agic-app-ingress
@@ -164,7 +164,7 @@ The following must be in place for AGIC to function as expected:
      ```bash
      delyan@Azure:~$ kubectl get ingress aspnetapp -o yaml
 
-     apiVersion: extensions/v1beta1
+     apiVersion: networking.k8s.io/v1beta1
      kind: Ingress
      metadata:
        annotations:

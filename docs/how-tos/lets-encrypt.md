@@ -103,7 +103,7 @@ Follow the steps below to install [cert-manager](https://docs.cert-manager.io) o
 
     ```bash
     kubectl apply -f - <<EOF
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1beta1
     kind: Ingress
     metadata:
     name: guestbook-letsencrypt-staging

@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
@@ -22,7 +22,7 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
-	ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+	ingressList := []*networking.Ingress{tests.NewIngressFixture()}
 	serviceList := []*v1.Service{tests.NewServiceFixture()}
 
 	Context("create probes", func() {
@@ -175,7 +175,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Ingress: fixtures.GetIngress(),
 			Rule:    nil,
 			Path:    nil,
-			Backend: &v1beta1.IngressBackend{},
+			Backend: &networking.IngressBackend{},
 		}
 		pb := cb.generateHealthProbe(be)
 		It("should return nil and not crash", func() {

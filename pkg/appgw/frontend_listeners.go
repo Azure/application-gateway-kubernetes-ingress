@@ -11,7 +11,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -228,7 +228,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	return listenersByID
 }
 
-func attachFirewallPolicy(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, azConfig *listenerAzConfig) {
+func attachFirewallPolicy(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, azConfig *listenerAzConfig) {
 	if ingress != nil {
 		if policy, err := annotations.WAFPolicy(ingress); err == nil && policy != "" {
 			azConfig.FirewallPolicy = policy

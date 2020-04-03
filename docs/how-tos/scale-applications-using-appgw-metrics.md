@@ -89,7 +89,7 @@ metadata:
   name: deployment-scaler
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1beta1
     kind: Deployment
     name: aspnet # replace with your deployment's name
   minReplicas: 1

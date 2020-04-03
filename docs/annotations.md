@@ -34,7 +34,7 @@ appgw.ingress.kubernetes.io/backend-path-prefix: <path prefix>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -66,7 +66,7 @@ appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -99,7 +99,7 @@ appgw.ingress.kubernetes.io/backend-protocol: "https"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -134,7 +134,7 @@ appgw.ingress.kubernetes.io/ssl-redirect: "true"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-redirect
@@ -171,7 +171,7 @@ appgw.ingress.kubernetes.io/connection-draining-timeout: "60"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-drain
@@ -203,7 +203,7 @@ appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-affinity
@@ -234,7 +234,7 @@ appgw.ingress.kubernetes.io/request-timeout: "20"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -268,7 +268,7 @@ appgw.ingress.kubernetes.io/use-private-ip: "true"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -311,7 +311,7 @@ appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGr
 ### Example
 The example below will apply the WAF policy 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: ad-server-ingress

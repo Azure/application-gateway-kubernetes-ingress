@@ -8,7 +8,7 @@ package tests
 import (
 	"testing"
 
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -101,7 +101,7 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test NewIngressRuleFixture", func() {
 		It("should work", func() {
-			actual := NewIngressRuleFixture("host", "urlPath", v1beta1.IngressBackend{})
+			actual := NewIngressRuleFixture("host", "urlPath", networking.IngressBackend{})
 			Expect(actual.Host).To(Equal("host"))
 		})
 	})

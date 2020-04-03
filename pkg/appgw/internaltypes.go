@@ -19,7 +19,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -47,10 +47,10 @@ const (
 
 type backendIdentifier struct {
 	serviceIdentifier
-	Ingress *v1beta1.Ingress
-	Rule    *v1beta1.IngressRule
-	Path    *v1beta1.HTTPIngressPath
-	Backend *v1beta1.IngressBackend
+	Ingress *networking.Ingress
+	Rule    *networking.IngressRule
+	Path    *networking.HTTPIngressPath
+	Backend *networking.IngressBackend
 }
 
 type serviceBackendPortPair struct {
@@ -130,7 +130,7 @@ func generateHTTPSettingsName(serviceName string, servicePort string, backendPor
 	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPort, ingress))
 }
 
-func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
+func generateProbeName(serviceName string, servicePort string, ingress *networking.Ingress) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%v-%v-%s", agPrefix, prefixProbe, ingress.Namespace, serviceName, servicePort, ingress.Name))
 }
 

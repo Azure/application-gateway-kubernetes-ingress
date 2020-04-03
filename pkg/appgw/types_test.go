@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -22,7 +22,7 @@ var _ = Describe("Test ConfigBuilderContext", func() {
 	Context("test InIngressList", func() {
 		It("makes sure that ingress with different name or namespace is not true", func() {
 			cbCtx = &ConfigBuilderContext{
-				IngressList: []*v1beta1.Ingress{
+				IngressList: []*networking.Ingress{
 					&ingress1,
 					&ingress2,
 				},

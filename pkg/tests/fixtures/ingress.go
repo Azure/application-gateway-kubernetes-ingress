@@ -1,7 +1,7 @@
 package fixtures
 
 import (
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -10,18 +10,18 @@ import (
 )
 
 // GetIngress creates an Ingress struct.
-func GetIngress() *v1beta1.Ingress {
-	return &v1beta1.Ingress{
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+func GetIngress() *networking.Ingress {
+	return &networking.Ingress{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
 					Host: "foo.baz",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/",
-									Backend: v1beta1.IngressBackend{
+									Backend: networking.IngressBackend{
 										ServiceName: tests.ServiceName,
 										ServicePort: intstr.IntOrString{
 											Type:   intstr.Int,
@@ -34,7 +34,7 @@ func GetIngress() *v1beta1.Ingress {
 					},
 				},
 			},
-			TLS: []v1beta1.IngressTLS{
+			TLS: []networking.IngressTLS{
 				{
 					Hosts: []string{
 						"www.contoso.com",

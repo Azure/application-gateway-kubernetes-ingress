@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -37,7 +37,7 @@ var _ = Describe("process function tests", func() {
 	var k8sClient kubernetes.Interface
 	var ctxt *k8scontext.Context
 	var stopChannel chan struct{}
-	var ingress *v1beta1.Ingress
+	var ingress *networking.Ingress
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tests.Namespace,
@@ -63,7 +63,7 @@ var _ = Describe("process function tests", func() {
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", tests.Name, err)
 
 		// create ingress in namespace
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingress)
+		_, err = k8sClient.NetworkingV1beta1().Ingresses(tests.Namespace).Create(ingress)
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
@@ -80,7 +80,7 @@ var _ = Describe("process function tests", func() {
 			recorder: record.NewFakeRecorder(100),
 		}
 		cbCtx = &appgw.ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingress,
 			},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
@@ -97,7 +97,7 @@ var _ = Describe("process function tests", func() {
 	Context("test updateIngressStatus", func() {
 		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.NetworkingV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(publicIP),
@@ -107,12 +107,12 @@ var _ = Describe("process function tests", func() {
 
 		It("ensure that updateIngressStatus adds private ipAddress when annotation is present", func() {
 			ingress.Annotations[annotations.UsePrivateIPKey] = "true"
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
+			updatedIngress, _ := k8sClient.NetworkingV1beta1().Ingresses(ingress.Namespace).Update(ingress)
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())
 
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 
-			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ = k8sClient.NetworkingV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(privateIP),
@@ -125,7 +125,7 @@ var _ = Describe("process function tests", func() {
 		It("ensure that ResetAllIngress sets removes the loadbalancer from ingress", func() {
 			// Setup Ip Address first
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.NetworkingV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(publicIP),
@@ -133,7 +133,7 @@ var _ = Describe("process function tests", func() {
 
 			// Reset should clear it
 			controller.ResetAllIngress(&appGw, cbCtx)
-			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ = k8sClient.NetworkingV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
 		})
 	})
