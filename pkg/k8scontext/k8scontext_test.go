@@ -92,6 +92,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
+		IsNetworkingV1Beta1PackageSupported = true
 		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")

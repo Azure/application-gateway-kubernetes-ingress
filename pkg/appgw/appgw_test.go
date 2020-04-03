@@ -450,7 +450,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		istioCrdClient := istio_fake.NewSimpleClientset()
 
 		// Create a `k8scontext` to start listiening to ingress resources.
-
+		k8scontext.IsNetworkingV1Beta1PackageSupported = true
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 

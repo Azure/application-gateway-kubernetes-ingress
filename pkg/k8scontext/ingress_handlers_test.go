@@ -51,6 +51,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 		_, err = k8sClient.CoreV1().Secrets("ns1").Create(secret)
 		Expect(err).To(BeNil())
 
+		IsNetworkingV1Beta1PackageSupported = true
 		context = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
 			context: context,

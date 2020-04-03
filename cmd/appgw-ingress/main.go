@@ -87,6 +87,7 @@ func main() {
 
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
+	k8scontext.IsNetworkingV1Beta1PackageSupported, _ = k8scontext.SupportsNetworkingPackage(kubeClient)
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	recorder := getEventRecorder(kubeClient)

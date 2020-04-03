@@ -226,6 +226,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
+	k8scontext.IsNetworkingV1Beta1PackageSupported = true
 	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 	secret := tests.NewSecretTestFixture()

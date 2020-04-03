@@ -457,6 +457,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			tests.Namespace,
 			tests.OtherNamespace,
 		}
+		k8scontext.IsNetworkingV1Beta1PackageSupported = true
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, namespaces, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)

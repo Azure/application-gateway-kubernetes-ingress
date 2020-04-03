@@ -46,7 +46,6 @@ var namespacesToIgnore = map[string]interface{}{
 
 // NewContext creates a context based on a Kubernetes client instance.
 func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
-	supportsNetworkingV1Beta1, _ := supportsNetworkingPackage(kubeClient)
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
@@ -63,7 +62,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
-	if supportsNetworkingV1Beta1 {
+	if IsNetworkingV1Beta1PackageSupported {
 		informerCollection.Ingress = informerFactory.Networking().V1beta1().Ingresses().Informer()
 	} else {
 		informerCollection.Ingress = informerFactory.Extensions().V1beta1().Ingresses().Informer()
@@ -81,10 +80,9 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	context := &Context{
-		kubeClient:                kubeClient,
-		crdClient:                 crdClient,
-		istioCrdClient:            istioCrdClient,
-		supportsNetworkingV1Beta1: supportsNetworkingV1Beta1,
+		kubeClient:     kubeClient,
+		crdClient:      crdClient,
+		istioCrdClient: istioCrdClient,
 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
@@ -471,7 +469,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
-	if c.supportsNetworkingV1Beta1 {
+	if IsNetworkingV1Beta1PackageSupported {
 		ingressClient := c.kubeClient.NetworkingV1beta1().Ingresses(ingressToUpdate.Namespace)
 		ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
 		if err != nil {

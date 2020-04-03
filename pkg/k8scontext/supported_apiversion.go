@@ -14,7 +14,12 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-var runtimeScheme = k8sruntime.NewScheme()
+var (
+	runtimeScheme = k8sruntime.NewScheme()
+
+	// IsNetworkingV1Beta1PackageSupported is flag that indicates whether networking/v1beta ingress should be used instead.
+	IsNetworkingV1Beta1PackageSupported bool
+)
 
 func init() {
 	extensionsv1beta1.AddToScheme(runtimeScheme)
@@ -51,9 +56,9 @@ func toIngress(obj interface{}) (*networkingv1beta1.Ingress, bool) {
 	return nil, false
 }
 
-// supportsNetworkingPackage checks if the package "k8s.io/api/networking/v1beta1"
+// SupportsNetworkingPackage checks if the package "k8s.io/api/networking/v1beta1"
 // is available or not and if Ingress V1 is supported (k8s >= v1.18.0)
-func supportsNetworkingPackage(client clientset.Interface) (bool, bool) {
+func SupportsNetworkingPackage(client clientset.Interface) (bool, bool) {
 	// check kubernetes version to use new ingress package or not
 	version114, _ := version.ParseGeneric("v1.14.0")
 	version118, _ := version.ParseGeneric("v1.18.0")

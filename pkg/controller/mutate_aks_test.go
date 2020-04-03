@@ -57,6 +57,7 @@ var _ = Describe("process function tests", func() {
 		ingress = tests.NewIngressFixture()
 
 		// Create a `k8scontext` to start listening to ingress resources.
+		k8scontext.IsNetworkingV1Beta1PackageSupported = true
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(ns)

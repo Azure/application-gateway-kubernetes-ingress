@@ -49,6 +49,7 @@ var _ = Describe("test NewAppGwIngressController", func() {
 			crdClient := fake.NewSimpleClientset()
 			istioCrdClient := istioFake.NewSimpleClientset()
 			// Create a `k8scontext` to start listening to ingress resources.
+			k8scontext.IsNetworkingV1Beta1PackageSupported = true
 			k8sContext := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 			azClient := azure.NewFakeAzClient()
