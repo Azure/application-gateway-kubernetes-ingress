@@ -96,6 +96,10 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Host = hostName
 	}
 
+	if hostName, err := annotations.BackendHostName(backendID.Ingress); err == nil {
+		probe.Host = to.StringPtr(hostName)
+	}
+
 	pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress)
 	if err == nil {
 		probe.Path = to.StringPtr(pathPrefix)

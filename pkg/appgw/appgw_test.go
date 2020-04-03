@@ -726,9 +726,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Ingress Controller Annotations", func() {
-		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
+		BeforeEach(func() {
 			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
-			Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
+			Ω(err).ToNot(HaveOccurred(), "Unable to get ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
 			ingress.Annotations[annotations.BackendPathPrefixKey] = "/test"
@@ -742,6 +742,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
 			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
+			pod, err := k8sClient.CoreV1().Pods(ingressNS).Get(serviceName, metav1.GetOptions{})
+			Ω(err).ToNot(HaveOccurred(), "Unable to get pod resource due to: %v", err)
+
+			// remove the probe to see the effect of annotations on probe
+			pod.Spec.Containers[0].ReadinessProbe = nil
+			pod.Spec.Containers[0].LivenessProbe = nil
+
+			// Update the pod.
+			_, err = k8sClient.CoreV1().Pods(ingressNS).Update(pod)
+			Ω(err).ToNot(HaveOccurred(), "Unable to update pod resource due to: %v", err)
+
 			// Start the informers. This will sync the cache with the latest ingress.
 			err = ctxt.Run(stopChannel, true, environment.GetFakeEnv())
 			Ω(err).ToNot(HaveOccurred())
@@ -749,20 +760,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Wait for the controller to receive an ingress update.
 			ingressEvent()
 
-			// Method to test all the ingress that have been added to the K8s context.
-			annotationIngress := func() []*v1beta1.Ingress {
-				// Get all the ingresses
-				ingressList := ctxt.ListHTTPIngresses()
-				// There should be only one ingress
-				Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
-				// Make sure it is the ingress we stored.
-				Expect(ingressList[0]).To(Equal(ingress))
-
-				return ingressList
-			}
-
 			// Get all the ingresses
-			ingressList := annotationIngress()
+			ingressList := ctxt.ListHTTPIngresses()
+			// There should be only one ingress
+			Expect(len(ingressList)).To(Equal(1), "Expected only one ingress resource but got: %d", len(ingressList))
+			// Make sure it is the ingress we stored.
+			Expect(ingressList[0]).To(Equal(ingress))
+		})
+
+		It("Should be able to create Application Gateway Configuration from Ingress with all annotations.", func() {
 
 			annotationsHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
@@ -799,10 +805,38 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
 
+			annotationHealthProbesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
+				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
+				probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress)
+				probe := &n.ApplicationGatewayProbe{
+					Name: &probeName,
+					ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
+					ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
+						Protocol:                            n.HTTP,
+						Host:                                to.StringPtr("www.backend.com"),
+						Path:                                to.StringPtr("/test"),
+						Interval:                            to.Int32Ptr(30),
+						UnhealthyThreshold:                  to.Int32Ptr(3),
+						Timeout:                             to.Int32Ptr(30),
+						Match:                               &n.ApplicationGatewayProbeHealthResponseMatch{},
+						PickHostNameFromBackendHTTPSettings: to.BoolPtr(false),
+						MinServers:                          to.Int32Ptr(0),
+					},
+				}
+
+				probes := *appGW.Probes
+				Expect(len(probes)).To(Equal(3))
+
+				// Test the default health probe.
+				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.HTTP)))
+				// Test the ingress health probe that we installed.
+				Expect(probes).To(ContainElement(*probe))
+			}
+			ingressList := ctxt.ListHTTPIngresses()
 			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
 					total:   2,
-					checker: defaultHealthProbesChecker,
+					checker: annotationHealthProbesChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
 					total:   2,
