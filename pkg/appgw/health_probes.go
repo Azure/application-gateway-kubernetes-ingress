@@ -126,6 +126,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
 		}
+		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTP {
+			probe.Protocol = n.HTTP
+		}
 		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
 			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
 		}
