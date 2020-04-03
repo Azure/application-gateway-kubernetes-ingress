@@ -165,6 +165,7 @@ When the annotation is present with a certificate name and the certificate is pr
 
 > **Note**
 * Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
+* If a user wants different certs with different hosts, they would need to define different ingress resources.
 
 ### Use Azure CLI to install certificate to Application Gateway
 * Configure from a local PFX certificate file
