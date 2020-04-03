@@ -7,7 +7,9 @@ This documents assumes you already have the following Azure tools and resources 
 
 Please use [Greenfeild Deployment](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md) to install nonexistents.
 
-## Create a certificate and configiure the certificate to AppGw
+AGIC version: 1.2.0-rc1
+
+## Create a certificate and configure the certificate to AppGw
 The certificate below should only be used for testing purpose.
 ```bash
 appgwName=""
@@ -15,23 +17,23 @@ resgp=""
 
 # generate certificate for testing
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -out azure-cli-app-tls.crt \
-  -keyout azure-cli-app-tls.key \
-  -subj "/CN=azure-cli-app"
+  -out test-cert.crt \
+  -keyout test-cert.key \
+  -subj "/CN=test"
 
 openssl pkcs12 -export \
-  -in azure-cli-tls.crt \
-  -inkey sample-app-tls.key \
-  -passout pass: -out azure-cli-cert.pfx
-
-SecretValue=$(cat azure-cli-cert.pfx | base64)
+  -in test-cert.crt \
+  -inkey test-cert.key \
+  -passout pass:test \
+  -out test.pfx
 
 # configure certificate to app gateway
 az network application-gateway ssl-cert create \
   --resource-group $resgp \
   --gateway-name $appgwName \
   -n mysslcert \
-  --data $SecretValue
+  --cert-file test-cert.pfx \
+  --cert-password "test"
 ```
 
 ## Configure certificate from Key Vault to AppGw
@@ -50,20 +52,35 @@ az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
 # One time operation, create user-assigned managed identity
 az identity create -n appgw-id -g $resgp -l $location
 
-# Assign the identity to Application Gateway
-az network application-gateway identity assign --gateway-name $appgwName --resource-group $resgp --identity $identityID
+# One time operation, assign the identity to Application Gateway
+az network application-gateway identity assign \
+  --gateway-name $appgwName \
+  --resource-group $resgp \
+  --identity $identityID
 
-# Assign the identity GET secret access to Azure Key Vault
+# One time operation, assign the identity GET secret access to Azure Key Vault
 identityID=$(az identity show -n appgw-id -g $resgp -o tsv --query "id")
 identityPrincipal=$(az identity show -n appgw-id -g $resgp -o tsv --query "objectId")
-az keyvault set-policy -n $vaultName -g $resgp --object-id $identityPrincipal  --secret-permissions get
+az keyvault set-policy \
+-n $vaultName \
+-g $resgp \
+--object-id $identityPrincipal \
+--secret-permissions get
 
-# Create a cert on keyvault and add unversioned secret id to Application Gateway
-az keyvault certificate create --vault-name $vaultName -n mycert -p "$(az keyvault certificate get-default-policy)"
+# For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway
+az keyvault certificate create \
+--vault-name $vaultName \
+-n mycert \
+-p "$(az keyvault certificate get-default-policy)"
 versionedSecretId=$(az keyvault certificate show -n mycert --vault-name $vaultName --query "sid" -o tsv)
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
 
-az network application-gateway ssl-cert create -n mykvsslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId # ssl certificate with name "mykvsslcert" will be configured on AppGw
+# For each new certificate, Add the certificate to AppGw
+az network application-gateway ssl-cert create \
+-n mykvsslcert \
+--gateway-name $appgwName \
+--resource-group $resgp \
+--key-vault-secret-id $unversionedSecretId # ssl certificate with name "mykvsslcert" will be configured on AppGw
 ```
 
 ## Testing the key vault certificate on Ingress
