@@ -22,7 +22,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 			continue
 		}
 
-		_, ruleListeners := c.processIngressRule(rule, ingress, env)
+		_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
 		for k, v := range ruleListeners {
 			listeners[k] = v
 		}
@@ -30,7 +30,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	return listeners
 }
 
-func (c *appGwConfigBuilder) processIngressRule(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[Port]interface{})
 
 	// certificate from ingress TLS spec

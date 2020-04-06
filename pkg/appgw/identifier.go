@@ -76,6 +76,10 @@ func (agw Identifier) subnetID(vnetName string, subnetName string) string {
 	return agw.resourceID("Microsoft.Network", "virtualNetworks", resourcePath)
 }
 
+func (agw Identifier) wafPolicyID(wafPolicyName string) string {
+	return agw.resourceID("Microsoft.Network", "ApplicationGatewayWebApplicationFirewallPolicies", wafPolicyName)
+}
+
 func (agw Identifier) publicIPID(publicIPName string) string {
 	return agw.resourceID("Microsoft.Network", "publicIPAddresses", publicIPName)
 }

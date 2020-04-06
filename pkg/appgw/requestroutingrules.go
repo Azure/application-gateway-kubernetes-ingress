@@ -163,7 +163,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				continue
 			}
 
-			_, azListenerConfig := c.processIngressRule(rule, ingress, cbCtx.EnvVariables)
+			_, azListenerConfig := c.processIngressRuleWithTLS(rule, ingress, cbCtx.EnvVariables)
 			for listenerID, listenerAzConfig := range azListenerConfig {
 				if _, exists := urlPathMaps[listenerID]; !exists {
 					urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{

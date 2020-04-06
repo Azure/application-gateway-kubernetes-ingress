@@ -444,4 +444,72 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			Expect(*listeners).To(ContainElement(expectedListener443))
 		})
 	})
+
+	Context("create a new App Gateway with annotated waf policy", func() {
+		It("should create listener with waf policy attached when TLS is enabled by Ingress TLS Spec", func() {
+			wafPolicyID := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/testwafpolicy1"
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			ing := tests.NewIngressFixture()
+			ing.Annotations[annotations.FirewallPolicy] = wafPolicyID
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ing,
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			listeners, _ := cb.getListeners(cbCtx)
+
+			expectedListener443.FirewallPolicy = resourceRef(wafPolicyID)
+			Expect(*listeners).To(ContainElement(expectedListener443))
+		})
+
+		It("should create listener with waf policy attached when TLS is enabled by annotation", func() {
+			wafPolicyID := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/testwafpolicy2"
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			ing := tests.NewIngressFixture()
+			ing.Spec.TLS = nil
+			ing.Annotations[annotations.AppGwSslCertificate] = "appgw-installed-cert"
+			ing.Annotations[annotations.FirewallPolicy] = wafPolicyID
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ing,
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			listeners, _ := cb.getListeners(cbCtx)
+			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/appgw-installed-cert")
+			expectedListener443.FirewallPolicy = resourceRef(wafPolicyID)
+			Expect(*listeners).To(ContainElement(expectedListener443))
+		})
+
+		It("should create listener with waf policy attached when TLS is disabled", func() {
+			wafPolicyID := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/testwafpolicy3"
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			ing := tests.NewIngressFixture()
+			ing.Spec.TLS = nil
+			ing.Annotations[annotations.FirewallPolicy] = wafPolicyID
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ing,
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			listeners, _ := cb.getListeners(cbCtx)
+
+			expectedListener80.FirewallPolicy = resourceRef(wafPolicyID)
+			Expect(*listeners).To(ContainElement(expectedListener80))
+		})
+	})
 })
