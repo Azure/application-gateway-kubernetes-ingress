@@ -117,8 +117,6 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 		policy, err := annotations.WAFPolicy(ingress)
 		if len(policy) > 0 {
 			glog.V(5).Infof("Found WAF policy: %s", policy)
-		} else {
-			glog.Error("WAF policy is empty, check your annotation.")
 		}
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
