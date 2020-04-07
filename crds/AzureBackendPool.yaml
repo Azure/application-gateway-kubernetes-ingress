@@ -1,0 +1,38 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: azurebackendpools.appgw.ingress.azure.io
+spec:
+  group: appgw.ingress.azure.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                backendPoolInfo:
+                  description: "Structure storing lastest information about backend pool"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      backendPoolID:
+                        description: "Subresource ID of the backend pool of the Application gateway"
+                        type: string
+                      ipaddresses:
+                        description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
+                        type: array
+                        items:
+                          type: string
+  scope: Cluster
+  names:
+    plural: azurebackendpools
+    singular: azurebackendpool
+    kind: AzureBackendPool
+    shortNames:
+    - azbp
