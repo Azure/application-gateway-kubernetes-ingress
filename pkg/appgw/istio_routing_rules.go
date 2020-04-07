@@ -59,10 +59,11 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 				if !found {
 					continue
 				}
+				pathMapName := generateURLPathMapName(listenerID)
 				pathMap := n.ApplicationGatewayURLPathMap{
 					Etag: to.StringPtr("*"),
-					Name: to.StringPtr(generateURLPathMapName(listenerID)),
-					ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
+					Name: to.StringPtr(pathMapName),
+					ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 					ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 						DefaultBackendAddressPool:  &n.SubResource{ID: defaultAddressPoolID},
 						DefaultBackendHTTPSettings: &n.SubResource{ID: defaultHTTPSettingsID},
@@ -72,9 +73,11 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 
 				pathRuleIdx := fmt.Sprintf("%d-%d", virtSvcIdx, matchIdx)
 
+				pathRuleName := generatePathRuleName(virtSvc.Namespace, virtSvc.Name, pathRuleIdx)
 				pathRule := n.ApplicationGatewayPathRule{
 					Etag: to.StringPtr("*"),
-					Name: to.StringPtr(generatePathRuleName(virtSvc.Namespace, virtSvc.Name, pathRuleIdx)),
+					Name: to.StringPtr(pathRuleName),
+					ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 					ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 						Paths: &[]string{
 							match.URI.Prefix,
@@ -98,9 +101,11 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
+		pathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
-			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			Name: to.StringPtr(pathMapName),
+			ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},

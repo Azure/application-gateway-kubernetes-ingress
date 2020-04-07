@@ -78,7 +78,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(routingRuleName),
-			ID:   to.StringPtr(c.appGwIdentifier.requestRoutingRuleID(generateRequestRoutingRuleName(listenerID))),
+			ID:   to.StringPtr(c.appGwIdentifier.requestRoutingRuleID(routingRuleName)),
 			ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
@@ -135,9 +135,11 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
+		pathMapName := generateURLPathMapName(listenerID)
 		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
-			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			Name: to.StringPtr(pathMapName),
+			ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
@@ -166,10 +168,11 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 			_, azListenerConfig := c.processIngressRuleWithTLS(rule, ingress, cbCtx.EnvVariables)
 			for listenerID, listenerAzConfig := range azListenerConfig {
 				if _, exists := urlPathMaps[listenerID]; !exists {
+					pathMapName := generateURLPathMapName(listenerID)
 					urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 						Etag: to.StringPtr("*"),
-						Name: to.StringPtr(generateURLPathMapName(listenerID)),
-						ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
+						Name: to.StringPtr(pathMapName),
+						ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 						ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 							DefaultBackendAddressPool:  &n.SubResource{ID: cbCtx.DefaultAddressPoolID},
 							DefaultBackendHTTPSettings: &n.SubResource{ID: cbCtx.DefaultHTTPSettingsID},
@@ -189,9 +192,11 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier()
+		pathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
-			Name: to.StringPtr(generateURLPathMapName(listenerID)),
+			Name: to.StringPtr(pathMapName),
+			ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 			ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 				DefaultBackendAddressPool:  &n.SubResource{ID: &defaultAddressPoolID},
 				DefaultBackendHTTPSettings: &n.SubResource{ID: &defaultHTTPSettingsID},
@@ -213,10 +218,11 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 
 func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *n.ApplicationGatewayURLPathMap {
 	// initialize a path map for this listener if doesn't exists
+	pathMapName := generateURLPathMapName(listenerID)
 	pathMap := n.ApplicationGatewayURLPathMap{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(generateURLPathMapName(listenerID)),
-		ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(generateURLPathMapName(listenerID))),
+		Name: to.StringPtr(pathMapName),
+		ID:   to.StringPtr(c.appGwIdentifier.urlPathMapID(pathMapName)),
 		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{},
 	}
 
@@ -291,9 +297,12 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			continue
 		}
 
+		pathMapName := generateURLPathMapName(listenerID)
+		pathRuleName := generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))
 		pathRule := n.ApplicationGatewayPathRule{
 			Etag: to.StringPtr("*"),
-			Name: to.StringPtr(generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))),
+			Name: to.StringPtr(pathRuleName),
+			ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 			ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 				Paths: &[]string{path.Path},
 			},

@@ -78,6 +78,27 @@ var _ = Describe("test helpers", func() {
 		})
 	})
 
+	Context("ensure appGw works as expected", func() {
+		It("should back references", func() {
+			appGw := &n.ApplicationGateway{
+				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
+					RedirectConfigurations: &[]n.ApplicationGatewayRedirectConfiguration{
+						n.ApplicationGatewayRedirectConfiguration{
+							ApplicationGatewayRedirectConfigurationPropertiesFormat: &n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
+								RequestRoutingRules: &[]n.SubResource{n.SubResource{ID: to.StringPtr("id")}},
+							},
+						},
+					},
+				},
+			}
+
+			out := resetBackReference(appGw)
+			Expect((*out.RedirectConfigurations)[0].RequestRoutingRules).To(BeNil())
+			Expect((*out.RedirectConfigurations)[0].URLPathMaps).To(BeNil())
+			Expect((*out.RedirectConfigurations)[0].PathRules).To(BeNil())
+		})
+	})
+
 	Context("ensure isMap works as expected", func() {
 		It("should deal with nil values", func() {
 			Expect(isMap(nil)).To(BeFalse())

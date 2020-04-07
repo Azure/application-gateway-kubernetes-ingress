@@ -163,9 +163,11 @@ The SSL certificate [can be configured to Application Gateway](https://docs.micr
 When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
 `appgw-ssl-certificate` annotation can also be used together with `ssl-redirect` annotation in case of SSL redirect.
 
+Please refer to [appgw-ssl-certificate feature](features/appgw-ssl-certificate.md) for more details.
+
 > **Note**
 * Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
-* If a user wants different certs with different hosts, they would need to define different ingress resources.
+* If a user wants different certs with different hosts(multi tls certificate termination), they would need to define different ingress resources.
 
 ### Use Azure CLI to install certificate to Application Gateway
 * Configure from a local PFX certificate file
@@ -180,6 +182,7 @@ versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
 az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId
 ```
+To use PowerShell, please refer to (Configure Key Vault - PowerShell)[https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps].
 
 ### Usage
 

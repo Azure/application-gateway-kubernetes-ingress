@@ -281,7 +281,7 @@
             }
         },
         "kubernetesVersion": {
-            "defaultValue": "1.15.5",
+            "defaultValue": "1.15.10",
             "type": "string",
             "metadata": {
                 "description": "The version of Kubernetes."
