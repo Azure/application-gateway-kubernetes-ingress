@@ -14,6 +14,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/backend-hostname](#backend-hostname) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
+| [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | |
@@ -147,6 +148,62 @@ spec:
    - hosts:
      - www.contoso.com
      secretName: testsecret-tls
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80
+```
+
+## AppGw SSL Certificate
+
+The SSL certificate [can be configured to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create) either from a local PFX cerficate file or a reference to a Azure Key Vault unversioned secret Id.
+When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
+`appgw-ssl-certificate` annotation can also be used together with `ssl-redirect` annotation in case of SSL redirect.
+
+Please refer to [appgw-ssl-certificate feature](features/appgw-ssl-certificate.md) for more details.
+
+> **Note**
+* Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
+* If a user wants different certs with different hosts(multi tls certificate termination), they would need to define different ingress resources.
+
+### Use Azure CLI to install certificate to Application Gateway
+* Configure from a local PFX certificate file
+```bash
+az network application-gateway ssl-cert create -g $resgp  --gateway-name $appgwName -n mysslcert --cert-file \path\to\cert\file --cert-password Abc123
+```
+
+* Configure from a reference to a Key Vault unversioned secret id
+```bash
+az keyvault certificate create --vault-name $vaultName -n cert1 -p "$(az keyvault certificate get-default-policy)"
+versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName --query "sid" -o tsv)
+unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
+az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId
+```
+To use PowerShell, please refer to (Configure Key Vault - PowerShell)[https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps
+].
+
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-certificate
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
+spec:
   rules:
   - host: www.contoso.com
     http:
