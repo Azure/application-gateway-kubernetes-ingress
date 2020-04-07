@@ -132,10 +132,11 @@ func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[st
 }
 
 func (c *appGwConfigBuilder) newCert(secretID secretIdentifier, cert *string) n.ApplicationGatewaySslCertificate {
+	sslCertName := secretID.secretFullName()
 	return n.ApplicationGatewaySslCertificate{
 		Etag: to.StringPtr("*"),
-		Name: to.StringPtr(secretID.secretFullName()),
-		ID:   to.StringPtr(c.appGwIdentifier.sslCertificateID(secretID.secretFullName())),
+		Name: to.StringPtr(sslCertName),
+		ID:   to.StringPtr(c.appGwIdentifier.sslCertificateID(sslCertName)),
 		ApplicationGatewaySslCertificatePropertiesFormat: &n.ApplicationGatewaySslCertificatePropertiesFormat{
 			Data:     cert,
 			Password: to.StringPtr("msazure"),

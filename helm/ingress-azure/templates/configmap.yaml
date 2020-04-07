@@ -74,6 +74,6 @@ data:
 {{- end }}
 {{- end }}
 
-{{- if .Values.reconcilePeriodSeconds -}}
+{{- if .Values.reconcilePeriodSeconds }}
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
