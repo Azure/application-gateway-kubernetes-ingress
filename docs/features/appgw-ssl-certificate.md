@@ -50,7 +50,10 @@ agicIdentityPrincipalId=""
 az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
 
 # One time operation, create user-assigned managed identity
-az identity create -n appgw-id -g $resgp -l $location
+identityID=$(az identity show -n appgw-id -g $resgp -o tsv --query "id")
+
+# One time operation, assign AGIC identity to have operator access over AppGw identity
+az role assignment create --role "Managed Identity Operator" --assignee $agicIdentityPrincipalId --scope $identityID
 
 # One time operation, assign the identity to Application Gateway
 az network application-gateway identity assign \
@@ -59,7 +62,6 @@ az network application-gateway identity assign \
   --identity $identityID
 
 # One time operation, assign the identity GET secret access to Azure Key Vault
-identityID=$(az identity show -n appgw-id -g $resgp -o tsv --query "id")
 identityPrincipal=$(az identity show -n appgw-id -g $resgp -o tsv --query "objectId")
 az keyvault set-policy \
 -n $vaultName \
