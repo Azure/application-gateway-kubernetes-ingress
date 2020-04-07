@@ -214,8 +214,8 @@ spec:
 ```
 
 ## AppGW Trusted Root Certificate
-Users can now [configure their own root certificate to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest) to be trusted via AGIC.
-The annotaton `appgw-trusted-root-certificate` shall be used together with annotation `backend-protocol` to indicate end-to-end ssl encryption, mulitple root certificates, seperated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2"
+Users now can [configure their own root certificates to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest) to be trusted via AGIC.
+The annotaton `appgw-trusted-root-certificate` shall be used together with annotation `backend-protocol` to indicate end-to-end ssl encryption, mulitple root certificates, seperated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".
 
 ### Use Azure CLI to install your root certificate to Application Gateway
 * Create your public root certificate for testing
@@ -225,13 +225,16 @@ openssl req -new -sha256 -key test.key -out test.csr
 openssl x509 -req -sha256 -days 365 -in test.csr -signkey test.key -out test.crt
 ```
 
-* Rename test.crt to test.cer
-
 * Configure your root certificate to Application Gateway
 ```bash
+# Rename test.crt to test.cer
+mv test.crt test.cer
+
+# Configure the root certificate to your Application Gateway
 az network application-gateway root-cert create --cert-file test.cer  --gateway-name $appgwName  --name name-of-my-root-cert1 --resource-group $resgp
 ```
-* Repeat the steps above if to configure multiple trusted root certificates
+
+* Repeat the steps above if you want to configure multiple trusted root certificates
 
 ### Usage
 
