@@ -34,6 +34,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 )
 
 const (
@@ -78,6 +79,12 @@ func main() {
 	}
 
 	env.Consolidate(cpConfig)
+
+	// adjust ingress class value if overridden by environment variable
+	if env.IngressClass != "" {
+		annotations.ApplicationGatewayIngressClass = env.IngressClass
+	}
+	
 
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212

@@ -87,6 +87,9 @@ const (
 
 	// ReconcilePeriodSecondsVarName is an environment variable to control reconcile period for the AGIC.
 	ReconcilePeriodSecondsVarName = "RECONCILE_PERIOD_SECONDS"
+
+	// IngressClass is an environment variable
+	IngressClass = "INGRESS_CLASS"
 )
 
 var (
@@ -105,6 +108,7 @@ type EnvVariables struct {
 	AppGwResourceID             string
 	AppGwSubnetID               string
 	AuthLocation                string
+	IngressClass               string
 	WatchNamespace              string
 	UsePrivateIP                string
 	VerbosityLevel              string
@@ -161,6 +165,7 @@ func GetEnv() EnvVariables {
 		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
+		IngressClass:				 os.Getenv(IngressClass),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:                os.Getenv(UsePrivateIPVarName),
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),

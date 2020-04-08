@@ -204,6 +204,11 @@ var _ = Describe("Test ingress annotation functions", func() {
 	})
 
 	Context("test IsApplicationGatewayIngress", func() {
+
+		BeforeEach(func(){
+			ApplicationGatewayIngressClass = DefApplicationGatewayIngressClass
+		})
+
 		It("returns error when ingress has no annotations", func() {
 			ing := &v1beta1.Ingress{}
 			actual, err := IsApplicationGatewayIngress(ing)
@@ -214,6 +219,22 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := IsApplicationGatewayIngress(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
+		})
+
+		It("returns true with correct annotation", func() {
+			ing.Annotations[IngressClassKey] = "agis5"
+			ApplicationGatewayIngressClass = "agis5"
+			actual, err := IsApplicationGatewayIngress(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+
+		It("returns true with correct annotation", func() {
+			ing.Annotations[IngressClassKey] = "agis5"
+			actual, err := IsApplicationGatewayIngress(ing)
+			Expect(ApplicationGatewayIngressClass).To(Equal(DefApplicationGatewayIngressClass))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(false))
 		})
 	})
 

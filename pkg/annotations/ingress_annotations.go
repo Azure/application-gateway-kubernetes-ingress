@@ -59,9 +59,8 @@ const (
 	// that this is a gateway meant for the application gateway ingress controller.
 	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
-	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
-	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
-	ApplicationGatewayIngressClass = "azure/application-gateway"
+	//DefApplicationGatewayIngressClass defines the default app gateway ingress value
+	DefApplicationGatewayIngressClass = "azure/application-gateway"
 
 	// FirewallPolicy is the key part of a key/value Ingress annotation.
 	// The value of this is an ID of a Firewall Policy. The Firewall Policy must be already defined in Azure.
@@ -75,6 +74,13 @@ const (
 	// Multiple root certificates seperated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
 )
+
+var (
+	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
+	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
+	ApplicationGatewayIngressClass = DefApplicationGatewayIngressClass
+)
+
 
 // ProtocolEnum is the type for protocol
 type ProtocolEnum int
