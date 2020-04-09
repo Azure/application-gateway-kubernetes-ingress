@@ -18,7 +18,7 @@ type AzureBackendPool struct {
 
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-    // +optional
+	// +optional
 	Spec AzureBackendPoolSpec `json:"spec"`
 }
 
@@ -33,6 +33,7 @@ type AzureBackendPoolSpec struct {
 	backendPoolInfo []BackendPool `json:"backendPoolInfo"`
 }
 
+// BackendPool defines backendpool id and ip addresses
 type BackendPool struct {
 	backendPoolID string   `json:"backendPoolID"`
 	ipAddresses   []string `json:"ipAddresses,omitempty"`
