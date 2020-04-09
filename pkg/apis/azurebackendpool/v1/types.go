@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +genclient:nonNamespaced
+// +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // AzureBackendPool is the resource AGIC is watching on for any backend IPs change
@@ -18,7 +18,7 @@ type AzureBackendPool struct {
 
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
+    // +optional
 	Spec AzureBackendPoolSpec `json:"spec"`
 }
 
@@ -29,18 +29,18 @@ type AzureBackendPoolSpec struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// IP address of the prohibited target; Could be the public or private address attached to the Application Gateway
-	backendPoolInfo []BackendPoolInfo `json:"backendPoolInfo"`
+	// backend pool info including id and ip addresses
+	backendPoolInfo []BackendPool `json:"backendPoolInfo"`
 }
 
-type BackendPoolInfo struct {
+type BackendPool struct {
 	backendPoolID string   `json:"backendPoolID"`
 	ipAddresses   []string `json:"ipAddresses,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// AzureBackendPoolList is the list of prohibited targets
+// AzureBackendPoolList is the list of backend pool
 type AzureBackendPoolList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
