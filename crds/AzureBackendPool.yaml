@@ -29,7 +29,7 @@ spec:
                         type: array
                         items:
                           type: string
-  scope: Cluster
+  scope: Namespaced
   names:
     plural: azurebackendpools
     singular: azurebackendpool

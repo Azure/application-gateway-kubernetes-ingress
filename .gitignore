@@ -52,6 +52,3 @@ coverage.txt
 
 # Mkdocs
 site/
-
-# Code Generator
-code-generator/

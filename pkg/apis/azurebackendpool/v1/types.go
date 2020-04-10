@@ -29,14 +29,14 @@ type AzureBackendPoolSpec struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// backend pool info including id and ip addresses
-	backendPoolInfo []BackendPool `json:"backendPoolInfo"`
+	// BackendPoolInfo includes backendend id and ip addresses
+	BackendPoolInfo []BackendPool `json:"backendPoolInfo"`
 }
 
 // BackendPool defines backendpool id and ip addresses
 type BackendPool struct {
-	backendPoolID string   `json:"backendPoolID"`
-	ipAddresses   []string `json:"ipAddresses,omitempty"`
+	BackendPoolID string   `json:"backendPoolID"`
+	IPAddresses   []string `json:"ipAddresses,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

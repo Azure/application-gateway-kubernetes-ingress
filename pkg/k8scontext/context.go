@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	backendpoolv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -338,6 +339,27 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 
 	return targets
+}
+
+// ListAzureBackendPools returns a list of AKS backend pools
+func (c *Context) ListAzureBackendPools() []*backendpoolv1.AzureBackendPool {
+	var backendPools []*backendpoolv1.AzureBackendPool
+	for _, obj := range c.Caches.AzureBackendPool.List() {
+		backendPool := obj.(*backendpoolv1.AzureBackendPool)
+		if _, exists := c.namespaces[backendPool.Namespace]; len(c.namespaces) > 0 && !exists {
+			continue
+		}
+		backendPools = append(backendPools, backendPool)
+	}
+
+	var backendPoolWatched []string
+	for _, backendPool := range backendPools {
+		backendPoolWatched = append(backendPoolWatched, fmt.Sprintf("%s/%s", backendPool.Namespace, backendPool.Name))
+	}
+
+	glog.V(5).Infof("AzureBackendPools: %+v", strings.Join(backendPoolWatched, ","))
+
+	return backendPools
 }
 
 // GetService returns the service identified by the key.

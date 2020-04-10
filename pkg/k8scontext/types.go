@@ -35,6 +35,7 @@ type CacheCollection struct {
 	Namespaces                   cache.Store
 	AzureIngressManagedLocation  cache.Store
 	AzureIngressProhibitedTarget cache.Store
+	AzureBackendPool             cache.Store
 	IstioGateway                 cache.Store
 	IstioVirtualService          cache.Store
 }

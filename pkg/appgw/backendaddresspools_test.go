@@ -238,7 +238,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 					Etag: to.StringPtr("*"),
 					Type: nil,
 					ID: to.StringPtr("/subscriptions/--subscription--/resourceGroups/--resource-group--" +
-						"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" + 
+						"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 						"/urlPathMaps/url-6d1d6d2bd4405b8228172c2ef8a065fb"),
 				},
 			}
