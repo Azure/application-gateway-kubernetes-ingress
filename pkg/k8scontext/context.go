@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -59,6 +60,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressProhibitedTarget: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureBackendPool:             crdInformerFactory.Azurebackendpools().V1().AzureBackendPools().Informer(),
 
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
@@ -71,6 +73,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:                       informerCollection.Secret.GetStore(),
 		Service:                      informerCollection.Service.GetStore(),
 		AzureIngressProhibitedTarget: informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		AzureBackendPool:             informerCollection.AzureBackendPool.GetStore(),
 		IstioGateway:                 informerCollection.IstioGateway.GetStore(),
 		IstioVirtualService:          informerCollection.IstioVirtualService.GetStore(),
 	}
@@ -122,6 +125,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
+	informerCollection.AzureBackendPool.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -141,6 +145,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.AzureBackendPool:             nil,
 		c.informers.IstioGateway:                 nil,
 		c.informers.IstioVirtualService:          nil,
 	}
@@ -192,7 +197,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 // GetAGICPod returns the pod with specified name and namespace
 func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
-	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(envVariables.AGICPodName, metav1.GetOptions{})
+	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(context.TODO(), envVariables.AGICPodName, metav1.GetOptions{})
 	if err != nil {
 		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: ", err)
 		return nil
@@ -454,7 +459,7 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 // GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
 // This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
 func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
-	nodes, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := c.kubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerError(
 			controllererrors.ErrorFetchingNodes,
@@ -487,7 +492,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPAddress) error {
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
-	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorUpdatingIngressStatus,
@@ -514,7 +519,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 	}
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
-	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorUpdatingIngressStatus,
 			err,

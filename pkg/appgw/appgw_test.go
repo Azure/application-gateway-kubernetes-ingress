@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -422,25 +423,25 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
-		_, err = k8sClient.CoreV1().Nodes().Create(node)
+		_, err = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create node resource due to: %v", err)
 
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 		// Create the service.
-		_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+		_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 		// Create the endpoints associated with this service.
-		_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+		_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(context.TODO(), endpoints, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 		// Create the pods associated with this service.
-		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+		_, err = k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create pods resource due to: %v", err)
 
 		// Create a mock CRD Client
@@ -511,12 +512,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	Context("Tests Ingress Controller when Service doesn't exists", func() {
 		It("Should be able to create Application Gateway Configuration from Ingress with empty backend pool.", func() {
 			// Delete the service
-			options := &metav1.DeleteOptions{}
-			err := k8sClient.CoreV1().Services(ingressNS).Delete(serviceName, options)
+			options := metav1.DeleteOptions{}
+			ctx := context.TODO()
+			err := k8sClient.CoreV1().Services(ingressNS).Delete(ctx, serviceName, options)
 			Ω(err).ToNot(HaveOccurred(), "Unable to delete service resource due to: %v", err)
 
 			// Delete the Endpoint
-			err = k8sClient.CoreV1().Endpoints(ingressNS).Delete(serviceName, options)
+			err = k8sClient.CoreV1().Endpoints(ingressNS).Delete(ctx, serviceName, options)
 			Ω(err).ToNot(HaveOccurred(), "Unable to delete endpoint resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -614,7 +616,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressSecret.Data["tls.crt"] = cert
 
 			// Create a secret in Kubernetes.
-			_, err = k8sClient.CoreV1().Secrets(ingressNS).Create(ingressSecret)
+			_, err = k8sClient.CoreV1().Secrets(ingressNS).Create(context.TODO(), ingressSecret, metav1.CreateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to create the secret object in K8s: %v", err)
 
 			// 2. Update the ingress TLS spec with a secret from the k8s secret store.
@@ -625,13 +627,13 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			// Currently, when TLS spec is specified for an ingress the expectation is that we will not have any HTTP listeners configured for that ingress.
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
-			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -727,7 +729,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Ingress Controller Annotations", func() {
 		BeforeEach(func() {
-			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to get ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
@@ -739,10 +741,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
-			pod, err := k8sClient.CoreV1().Pods(ingressNS).Get(serviceName, metav1.GetOptions{})
+			pod, err := k8sClient.CoreV1().Pods(ingressNS).Get(context.TODO(), serviceName, metav1.GetOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to get pod resource due to: %v", err)
 
 			// remove the probe to see the effect of annotations on probe
@@ -750,7 +752,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			pod.Spec.Containers[0].LivenessProbe = nil
 
 			// Update the pod.
-			_, err = k8sClient.CoreV1().Pods(ingressNS).Update(pod)
+			_, err = k8sClient.CoreV1().Pods(ingressNS).Update(context.TODO(), pod, metav1.UpdateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to update pod resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.

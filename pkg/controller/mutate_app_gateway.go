@@ -64,8 +64,11 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
+	// Test Code for CRD
 	// backendPools := c.k8sContext.ListAzureBackendPools()
 	// glog.V(3).Infof("Found %d backend pool", len(backendPools))
+	// ingresses := c.k8sContext.ListHTTPIngresses()
+	// glog.V(3).Infof("Found %d ingress", len(ingresses))
 
 	// Prepare k8s resources Phase //
 	// --------------------------- //
