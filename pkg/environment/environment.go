@@ -165,7 +165,7 @@ func GetEnv() EnvVariables {
 		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
-		IngressClass:				 os.Getenv(IngressClass),
+		IngressClass:                os.Getenv(IngressClass),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:                os.Getenv(UsePrivateIPVarName),
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
