@@ -37,9 +37,9 @@ type FakeAzureIngressProhibitedTargets struct {
 	ns   string
 }
 
-var azureingressprohibitedtargetsResource = schema.GroupVersionResource{Group: "azureingressprohibitedtargets.appgw.ingress.k8s.io", Version: "v1", Resource: "azureingressprohibitedtargets"}
+var azureingressprohibitedtargetsResource = schema.GroupVersionResource{Group: "azureingressprohibitedtargets.appgw.ingress.azure.io", Version: "v1", Resource: "azureingressprohibitedtargets"}
 
-var azureingressprohibitedtargetsKind = schema.GroupVersionKind{Group: "azureingressprohibitedtargets.appgw.ingress.k8s.io", Version: "v1", Kind: "AzureIngressProhibitedTarget"}
+var azureingressprohibitedtargetsKind = schema.GroupVersionKind{Group: "azureingressprohibitedtargets.appgw.ingress.azure.io", Version: "v1", Kind: "AzureIngressProhibitedTarget"}
 
 // Get takes name of the azureIngressProhibitedTarget, and returns the corresponding azureIngressProhibitedTarget object, and an error if there is any.
 func (c *FakeAzureIngressProhibitedTargets) Get(ctx context.Context, name string, options v1.GetOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {

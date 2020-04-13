@@ -21,7 +21,3 @@ package v1
 // AzureBackendPoolListerExpansion allows custom methods to be added to
 // AzureBackendPoolLister.
 type AzureBackendPoolListerExpansion interface{}
-
-// AzureBackendPoolNamespaceListerExpansion allows custom methods to be added to
-// AzureBackendPoolNamespaceLister.
-type AzureBackendPoolNamespaceListerExpansion interface{}

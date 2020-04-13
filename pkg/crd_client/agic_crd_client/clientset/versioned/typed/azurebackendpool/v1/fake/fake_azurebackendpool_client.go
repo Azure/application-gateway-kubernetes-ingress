@@ -29,8 +29,8 @@ type FakeAzurebackendpoolsV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAzurebackendpoolsV1) AzureBackendPools(namespace string) v1.AzureBackendPoolInterface {
-	return &FakeAzureBackendPools{c, namespace}
+func (c *FakeAzurebackendpoolsV1) AzureBackendPools() v1.AzureBackendPoolInterface {
+	return &FakeAzureBackendPools{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

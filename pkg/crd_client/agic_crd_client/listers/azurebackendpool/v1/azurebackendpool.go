@@ -32,8 +32,9 @@ type AzureBackendPoolLister interface {
 	// List lists all AzureBackendPools in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.AzureBackendPool, err error)
-	// AzureBackendPools returns an object that can list and get AzureBackendPools.
-	AzureBackendPools(namespace string) AzureBackendPoolNamespaceLister
+	// Get retrieves the AzureBackendPool from the index for a given name.
+	// Objects returned here must be treated as read-only.
+	Get(name string) (*v1.AzureBackendPool, error)
 	AzureBackendPoolListerExpansion
 }
 
@@ -55,41 +56,9 @@ func (s *azureBackendPoolLister) List(selector labels.Selector) (ret []*v1.Azure
 	return ret, err
 }
 
-// AzureBackendPools returns an object that can list and get AzureBackendPools.
-func (s *azureBackendPoolLister) AzureBackendPools(namespace string) AzureBackendPoolNamespaceLister {
-	return azureBackendPoolNamespaceLister{indexer: s.indexer, namespace: namespace}
-}
-
-// AzureBackendPoolNamespaceLister helps list and get AzureBackendPools.
-// All objects returned here must be treated as read-only.
-type AzureBackendPoolNamespaceLister interface {
-	// List lists all AzureBackendPools in the indexer for a given namespace.
-	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1.AzureBackendPool, err error)
-	// Get retrieves the AzureBackendPool from the indexer for a given namespace and name.
-	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1.AzureBackendPool, error)
-	AzureBackendPoolNamespaceListerExpansion
-}
-
-// azureBackendPoolNamespaceLister implements the AzureBackendPoolNamespaceLister
-// interface.
-type azureBackendPoolNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all AzureBackendPools in the indexer for a given namespace.
-func (s azureBackendPoolNamespaceLister) List(selector labels.Selector) (ret []*v1.AzureBackendPool, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1.AzureBackendPool))
-	})
-	return ret, err
-}
-
-// Get retrieves the AzureBackendPool from the indexer for a given namespace and name.
-func (s azureBackendPoolNamespaceLister) Get(name string) (*v1.AzureBackendPool, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
+// Get retrieves the AzureBackendPool from the index for a given name.
+func (s *azureBackendPoolLister) Get(name string) (*v1.AzureBackendPool, error) {
+	obj, exists, err := s.indexer.GetByKey(name)
 	if err != nil {
 		return nil, err
 	}

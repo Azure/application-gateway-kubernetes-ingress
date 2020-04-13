@@ -58,7 +58,7 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	case v1.SchemeGroupVersion.WithResource("azurebackendpools"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azurebackendpools().V1().AzureBackendPools().Informer()}, nil
 
-		// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
+		// Group=azureingressprohibitedtargets.appgw.ingress.azure.io, Version=v1
 	case azureingressprohibitedtargetv1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer()}, nil
 
