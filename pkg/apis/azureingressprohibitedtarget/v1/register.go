@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen=package,register
-// +groupName=azureingressprohibitedtargets.appgw.ingress.k8s.io
+// +groupName=azureingressprohibitedtargets.appgw.ingress.azure.io
 
 // Package v1 contains API Schema definitions for the AzureIngressProhibitedTarget v1 API group
 package v1
@@ -18,7 +18,7 @@ import (
 var (
 	// SchemeGroupVersion is group version used to register these objects
 	SchemeGroupVersion = schema.GroupVersion{
-		Group:   "appgw.ingress.k8s.io",
+		Group:   "appgw.ingress.azure.io",
 		Version: "v1",
 	}
 

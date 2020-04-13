@@ -34,7 +34,7 @@ import (
 // AzureBackendPoolsGetter has a method to return a AzureBackendPoolInterface.
 // A group's client should implement this interface.
 type AzureBackendPoolsGetter interface {
-	AzureBackendPools(namespace string) AzureBackendPoolInterface
+	AzureBackendPools() AzureBackendPoolInterface
 }
 
 // AzureBackendPoolInterface has methods to work with AzureBackendPool resources.
@@ -53,14 +53,12 @@ type AzureBackendPoolInterface interface {
 // azureBackendPools implements AzureBackendPoolInterface
 type azureBackendPools struct {
 	client rest.Interface
-	ns     string
 }
 
 // newAzureBackendPools returns a AzureBackendPools
-func newAzureBackendPools(c *AzurebackendpoolsV1Client, namespace string) *azureBackendPools {
+func newAzureBackendPools(c *AzurebackendpoolsV1Client) *azureBackendPools {
 	return &azureBackendPools{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -68,7 +66,6 @@ func newAzureBackendPools(c *AzurebackendpoolsV1Client, namespace string) *azure
 func (c *azureBackendPools) Get(ctx context.Context, name string, options metav1.GetOptions) (result *v1.AzureBackendPool, err error) {
 	result = &v1.AzureBackendPool{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -85,7 +82,6 @@ func (c *azureBackendPools) List(ctx context.Context, opts metav1.ListOptions) (
 	}
 	result = &v1.AzureBackendPoolList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -102,7 +98,6 @@ func (c *azureBackendPools) Watch(ctx context.Context, opts metav1.ListOptions) 
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -113,7 +108,6 @@ func (c *azureBackendPools) Watch(ctx context.Context, opts metav1.ListOptions) 
 func (c *azureBackendPools) Create(ctx context.Context, azureBackendPool *v1.AzureBackendPool, opts metav1.CreateOptions) (result *v1.AzureBackendPool, err error) {
 	result = &v1.AzureBackendPool{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(azureBackendPool).
@@ -126,7 +120,6 @@ func (c *azureBackendPools) Create(ctx context.Context, azureBackendPool *v1.Azu
 func (c *azureBackendPools) Update(ctx context.Context, azureBackendPool *v1.AzureBackendPool, opts metav1.UpdateOptions) (result *v1.AzureBackendPool, err error) {
 	result = &v1.AzureBackendPool{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		Name(azureBackendPool.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -139,7 +132,6 @@ func (c *azureBackendPools) Update(ctx context.Context, azureBackendPool *v1.Azu
 // Delete takes name of the azureBackendPool and deletes it. Returns an error if one occurs.
 func (c *azureBackendPools) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		Name(name).
 		Body(&opts).
@@ -154,7 +146,6 @@ func (c *azureBackendPools) DeleteCollection(ctx context.Context, opts metav1.De
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -167,7 +158,6 @@ func (c *azureBackendPools) DeleteCollection(ctx context.Context, opts metav1.De
 func (c *azureBackendPools) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (result *v1.AzureBackendPool, err error) {
 	result = &v1.AzureBackendPool{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("azurebackendpools").
 		Name(name).
 		SubResource(subresources...).

@@ -34,7 +34,6 @@ import (
 // FakeAzureBackendPools implements AzureBackendPoolInterface
 type FakeAzureBackendPools struct {
 	Fake *FakeAzurebackendpoolsV1
-	ns   string
 }
 
 var azurebackendpoolsResource = schema.GroupVersionResource{Group: "azurebackendpools.appgw.ingress.azure.io", Version: "v1", Resource: "azurebackendpools"}
@@ -44,8 +43,7 @@ var azurebackendpoolsKind = schema.GroupVersionKind{Group: "azurebackendpools.ap
 // Get takes name of the azureBackendPool, and returns the corresponding azureBackendPool object, and an error if there is any.
 func (c *FakeAzureBackendPools) Get(ctx context.Context, name string, options v1.GetOptions) (result *azurebackendpoolv1.AzureBackendPool, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(azurebackendpoolsResource, c.ns, name), &azurebackendpoolv1.AzureBackendPool{})
-
+		Invokes(testing.NewRootGetAction(azurebackendpoolsResource, name), &azurebackendpoolv1.AzureBackendPool{})
 	if obj == nil {
 		return nil, err
 	}
@@ -55,8 +53,7 @@ func (c *FakeAzureBackendPools) Get(ctx context.Context, name string, options v1
 // List takes label and field selectors, and returns the list of AzureBackendPools that match those selectors.
 func (c *FakeAzureBackendPools) List(ctx context.Context, opts v1.ListOptions) (result *azurebackendpoolv1.AzureBackendPoolList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(azurebackendpoolsResource, azurebackendpoolsKind, c.ns, opts), &azurebackendpoolv1.AzureBackendPoolList{})
-
+		Invokes(testing.NewRootListAction(azurebackendpoolsResource, azurebackendpoolsKind, opts), &azurebackendpoolv1.AzureBackendPoolList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -77,15 +74,13 @@ func (c *FakeAzureBackendPools) List(ctx context.Context, opts v1.ListOptions) (
 // Watch returns a watch.Interface that watches the requested azureBackendPools.
 func (c *FakeAzureBackendPools) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(azurebackendpoolsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(azurebackendpoolsResource, opts))
 }
 
 // Create takes the representation of a azureBackendPool and creates it.  Returns the server's representation of the azureBackendPool, and an error, if there is any.
 func (c *FakeAzureBackendPools) Create(ctx context.Context, azureBackendPool *azurebackendpoolv1.AzureBackendPool, opts v1.CreateOptions) (result *azurebackendpoolv1.AzureBackendPool, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(azurebackendpoolsResource, c.ns, azureBackendPool), &azurebackendpoolv1.AzureBackendPool{})
-
+		Invokes(testing.NewRootCreateAction(azurebackendpoolsResource, azureBackendPool), &azurebackendpoolv1.AzureBackendPool{})
 	if obj == nil {
 		return nil, err
 	}
@@ -95,8 +90,7 @@ func (c *FakeAzureBackendPools) Create(ctx context.Context, azureBackendPool *az
 // Update takes the representation of a azureBackendPool and updates it. Returns the server's representation of the azureBackendPool, and an error, if there is any.
 func (c *FakeAzureBackendPools) Update(ctx context.Context, azureBackendPool *azurebackendpoolv1.AzureBackendPool, opts v1.UpdateOptions) (result *azurebackendpoolv1.AzureBackendPool, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(azurebackendpoolsResource, c.ns, azureBackendPool), &azurebackendpoolv1.AzureBackendPool{})
-
+		Invokes(testing.NewRootUpdateAction(azurebackendpoolsResource, azureBackendPool), &azurebackendpoolv1.AzureBackendPool{})
 	if obj == nil {
 		return nil, err
 	}
@@ -106,14 +100,13 @@ func (c *FakeAzureBackendPools) Update(ctx context.Context, azureBackendPool *az
 // Delete takes name of the azureBackendPool and deletes it. Returns an error if one occurs.
 func (c *FakeAzureBackendPools) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(azurebackendpoolsResource, c.ns, name), &azurebackendpoolv1.AzureBackendPool{})
-
+		Invokes(testing.NewRootDeleteAction(azurebackendpoolsResource, name), &azurebackendpoolv1.AzureBackendPool{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeAzureBackendPools) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(azurebackendpoolsResource, c.ns, listOpts)
+	action := testing.NewRootDeleteCollectionAction(azurebackendpoolsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &azurebackendpoolv1.AzureBackendPoolList{})
 	return err
@@ -122,8 +115,7 @@ func (c *FakeAzureBackendPools) DeleteCollection(ctx context.Context, opts v1.De
 // Patch applies the patch and returns the patched azureBackendPool.
 func (c *FakeAzureBackendPools) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *azurebackendpoolv1.AzureBackendPool, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(azurebackendpoolsResource, c.ns, name, pt, data, subresources...), &azurebackendpoolv1.AzureBackendPool{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(azurebackendpoolsResource, name, pt, data, subresources...), &azurebackendpoolv1.AzureBackendPool{})
 	if obj == nil {
 		return nil, err
 	}

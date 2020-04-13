@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // AzureBackendPools returns a AzureBackendPoolInformer.
 func (v *version) AzureBackendPools() AzureBackendPoolInformer {
-	return &azureBackendPoolInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+	return &azureBackendPoolInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

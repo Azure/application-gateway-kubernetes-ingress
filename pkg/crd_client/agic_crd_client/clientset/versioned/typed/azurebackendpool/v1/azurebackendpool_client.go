@@ -35,8 +35,8 @@ type AzurebackendpoolsV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AzurebackendpoolsV1Client) AzureBackendPools(namespace string) AzureBackendPoolInterface {
-	return newAzureBackendPools(c, namespace)
+func (c *AzurebackendpoolsV1Client) AzureBackendPools() AzureBackendPoolInterface {
+	return newAzureBackendPools(c)
 }
 
 // NewForConfig creates a new AzurebackendpoolsV1Client for the given config.

@@ -205,6 +205,16 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 	return pod
 }
 
+// GetBackendPool returns backend pool with specified name
+func (c *Context) GetBackendPool(backendPoolName string) *backendpoolv1.AzureBackendPool {
+	azbp, err := c.crdClient.AzurebackendpoolsV1().AzureBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
+	if err != nil {
+		glog.Error("Error fetching Azure backend pool resource, Error: ", err)
+		return nil
+	}
+	return azbp
+}
+
 // ListServices returns a list of all the Services from cache.
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service

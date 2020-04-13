@@ -11,6 +11,7 @@ import (
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +genclient:nonNamespaced
 
 // AzureBackendPool is the resource AGIC is watching on for any backend IPs change
 type AzureBackendPool struct {
