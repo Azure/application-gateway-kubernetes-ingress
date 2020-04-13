@@ -15,6 +15,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | |
+| [appgw.ingress.kubernetes.io/appgw-trusted-root-certificate](#appgw-trusted-root-certificate) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | |
@@ -182,7 +183,8 @@ versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
 az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId
 ```
-To use PowerShell, please refer to (Configure Key Vault - PowerShell)[https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps].
+
+To use PowerShell, please refer to [Configure Key Vault - PowerShell](https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps).
 
 ### Usage
 
@@ -201,6 +203,58 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
+spec:
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80
+```
+
+## AppGW Trusted Root Certificate
+Users now can [configure their own root certificates to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest) to be trusted via AGIC.
+The annotaton `appgw-trusted-root-certificate` shall be used together with annotation `backend-protocol` to indicate end-to-end ssl encryption, mulitple root certificates, seperated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".
+
+### Use Azure CLI to install your root certificate to Application Gateway
+* Create your public root certificate for testing
+```bash
+openssl ecparam -out test.key -name prime256v1 -genkey
+openssl req -new -sha256 -key test.key -out test.csr
+openssl x509 -req -sha256 -days 365 -in test.csr -signkey test.key -out test.crt
+```
+
+* Configure your root certificate to Application Gateway
+```bash
+# Rename test.crt to test.cer
+mv test.crt test.cer
+
+# Configure the root certificate to your Application Gateway
+az network application-gateway root-cert create --cert-file test.cer  --gateway-name $appgwName  --name name-of-my-root-cert1 --resource-group $resgp
+```
+
+* Repeat the steps above if you want to configure multiple trusted root certificates
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/backend-protocol: "https"
+appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-certificate
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"
 spec:
   rules:
   - host: www.contoso.com
