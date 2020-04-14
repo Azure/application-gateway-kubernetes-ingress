@@ -30,7 +30,7 @@ type AzureingressprohibitedtargetsV1Interface interface {
 	AzureIngressProhibitedTargetsGetter
 }
 
-// AzureingressprohibitedtargetsV1Client is used to interact with features provided by the azureingressprohibitedtargets.appgw.ingress.azure.io group.
+// AzureingressprohibitedtargetsV1Client is used to interact with features provided by the azureingressprohibitedtargets.appgw.ingress.k8s.io group.
 type AzureingressprohibitedtargetsV1Client struct {
 	restClient rest.Interface
 }
