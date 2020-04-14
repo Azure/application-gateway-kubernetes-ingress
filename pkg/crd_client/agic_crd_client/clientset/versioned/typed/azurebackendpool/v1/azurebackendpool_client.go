@@ -21,26 +21,26 @@ package v1
 import (
 	rest "k8s.io/client-go/rest"
 
-	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 )
 
-type AzureingressprohibitedtargetsV1Interface interface {
+type AzurebackendpoolsV1Interface interface {
 	RESTClient() rest.Interface
-	AzureIngressProhibitedTargetsGetter
+	AzureBackendPoolsGetter
 }
 
-// AzureingressprohibitedtargetsV1Client is used to interact with features provided by the azureingressprohibitedtargets.appgw.ingress.azure.io group.
-type AzureingressprohibitedtargetsV1Client struct {
+// AzurebackendpoolsV1Client is used to interact with features provided by the azurebackendpools.appgw.ingress.azure.io group.
+type AzurebackendpoolsV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AzureingressprohibitedtargetsV1Client) AzureIngressProhibitedTargets(namespace string) AzureIngressProhibitedTargetInterface {
-	return newAzureIngressProhibitedTargets(c, namespace)
+func (c *AzurebackendpoolsV1Client) AzureBackendPools() AzureBackendPoolInterface {
+	return newAzureBackendPools(c)
 }
 
-// NewForConfig creates a new AzureingressprohibitedtargetsV1Client for the given config.
-func NewForConfig(c *rest.Config) (*AzureingressprohibitedtargetsV1Client, error) {
+// NewForConfig creates a new AzurebackendpoolsV1Client for the given config.
+func NewForConfig(c *rest.Config) (*AzurebackendpoolsV1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -49,12 +49,12 @@ func NewForConfig(c *rest.Config) (*AzureingressprohibitedtargetsV1Client, error
 	if err != nil {
 		return nil, err
 	}
-	return &AzureingressprohibitedtargetsV1Client{client}, nil
+	return &AzurebackendpoolsV1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new AzureingressprohibitedtargetsV1Client for the given config and
+// NewForConfigOrDie creates a new AzurebackendpoolsV1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *AzureingressprohibitedtargetsV1Client {
+func NewForConfigOrDie(c *rest.Config) *AzurebackendpoolsV1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -62,9 +62,9 @@ func NewForConfigOrDie(c *rest.Config) *AzureingressprohibitedtargetsV1Client {
 	return client
 }
 
-// New creates a new AzureingressprohibitedtargetsV1Client for the given RESTClient.
-func New(c rest.Interface) *AzureingressprohibitedtargetsV1Client {
-	return &AzureingressprohibitedtargetsV1Client{c}
+// New creates a new AzurebackendpoolsV1Client for the given RESTClient.
+func New(c rest.Interface) *AzurebackendpoolsV1Client {
+	return &AzurebackendpoolsV1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -82,7 +82,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *AzureingressprohibitedtargetsV1Client) RESTClient() rest.Interface {
+func (c *AzurebackendpoolsV1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

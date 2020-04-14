@@ -24,6 +24,7 @@ import (
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 
+	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
 	azureingressprohibitedtargetv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
@@ -53,7 +54,11 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
+	// Group=azurebackendpools.appgw.ingress.azure.io, Version=v1
+	case v1.SchemeGroupVersion.WithResource("azurebackendpools"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Azurebackendpools().V1().AzureBackendPools().Informer()}, nil
+
+		// Group=azureingressprohibitedtargets.appgw.ingress.azure.io, Version=v1
 	case azureingressprohibitedtargetv1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer()}, nil
 

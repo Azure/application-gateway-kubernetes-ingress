@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	backendpoolv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -197,6 +198,16 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 		return nil
 	}
 	return pod
+}
+
+// GetBackendPool returns backend pool with specified name
+func (c *Context) GetBackendPool(backendPoolName string) *backendpoolv1.AzureBackendPool {
+	azbp, err := c.crdClient.AzurebackendpoolsV1().AzureBackendPools().Get(backendPoolName, metav1.GetOptions{})
+	if err != nil {
+		glog.Error("Error fetching Azure backend pool resource, Error: ", err)
+		return nil
+	}
+	return azbp
 }
 
 // ListServices returns a list of all the Services from cache.
