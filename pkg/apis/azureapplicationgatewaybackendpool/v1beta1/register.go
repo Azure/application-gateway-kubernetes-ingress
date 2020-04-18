@@ -4,10 +4,10 @@
 // --------------------------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen=package,register
-// +groupName=azurebackendpools.appgw.ingress.azure.io
+// +groupName=azureapplicationgatewaybackendpools.appgw.ingress.azure.io
 
-// Package v1 contains API Schema definitions for the AzureBackendPool v1 API group
-package v1
+// Package v1beta1 contains API Schema definitions for the AzureApplicationGatewayBackendPool v1 API group
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +19,7 @@ var (
 	// SchemeGroupVersion is group version used to register these objects
 	SchemeGroupVersion = schema.GroupVersion{
 		Group:   "appgw.ingress.azure.io",
-		Version: "v1",
+		Version: "v1beta1",
 	}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
@@ -42,8 +42,8 @@ func Resource(resource string) schema.GroupResource {
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&AzureBackendPool{},
-		&AzureBackendPoolList{},
+		&AzureApplicationGatewayBackendPool{},
+		&AzureApplicationGatewayBackendPoolList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

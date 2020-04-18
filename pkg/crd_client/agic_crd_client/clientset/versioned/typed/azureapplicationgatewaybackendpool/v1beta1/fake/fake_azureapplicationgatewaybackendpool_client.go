@@ -22,20 +22,20 @@ import (
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 
-	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azurebackendpool/v1"
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 )
 
-type FakeAzurebackendpoolsV1 struct {
+type FakeAzureapplicationgatewaybackendpoolsV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAzurebackendpoolsV1) AzureBackendPools() v1.AzureBackendPoolInterface {
-	return &FakeAzureBackendPools{c}
+func (c *FakeAzureapplicationgatewaybackendpoolsV1beta1) AzureApplicationGatewayBackendPools() v1beta1.AzureApplicationGatewayBackendPoolInterface {
+	return &FakeAzureApplicationGatewayBackendPools{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeAzurebackendpoolsV1) RESTClient() rest.Interface {
+func (c *FakeAzureapplicationgatewaybackendpoolsV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

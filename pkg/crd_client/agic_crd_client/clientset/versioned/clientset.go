@@ -25,13 +25,13 @@ import (
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
 
-	azurebackendpoolsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azurebackendpool/v1"
+	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 )
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	AzurebackendpoolsV1() azurebackendpoolsv1.AzurebackendpoolsV1Interface
+	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
 }
 
@@ -39,13 +39,13 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	azurebackendpoolsV1             *azurebackendpoolsv1.AzurebackendpoolsV1Client
-	azureingressprohibitedtargetsV1 *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
+	azureapplicationgatewaybackendpoolsV1beta1 *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
+	azureingressprohibitedtargetsV1            *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
 }
 
-// AzurebackendpoolsV1 retrieves the AzurebackendpoolsV1Client
-func (c *Clientset) AzurebackendpoolsV1() azurebackendpoolsv1.AzurebackendpoolsV1Interface {
-	return c.azurebackendpoolsV1
+// AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
+func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
+	return c.azureapplicationgatewaybackendpoolsV1beta1
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
@@ -74,7 +74,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.azurebackendpoolsV1, err = azurebackendpoolsv1.NewForConfig(&configShallowCopy)
+	cs.azureapplicationgatewaybackendpoolsV1beta1, err = azureapplicationgatewaybackendpoolsv1beta1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.azurebackendpoolsV1 = azurebackendpoolsv1.NewForConfigOrDie(c)
+	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -104,7 +104,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.azurebackendpoolsV1 = azurebackendpoolsv1.New(c)
+	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)

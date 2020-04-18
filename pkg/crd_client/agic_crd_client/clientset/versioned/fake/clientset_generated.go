@@ -26,8 +26,8 @@ import (
 	"k8s.io/client-go/testing"
 
 	clientset "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
-	azurebackendpoolsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azurebackendpool/v1"
-	fakeazurebackendpoolsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azurebackendpool/v1/fake"
+	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
+	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	fakeazureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1/fake"
 )
@@ -79,9 +79,9 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 
 var _ clientset.Interface = &Clientset{}
 
-// AzurebackendpoolsV1 retrieves the AzurebackendpoolsV1Client
-func (c *Clientset) AzurebackendpoolsV1() azurebackendpoolsv1.AzurebackendpoolsV1Interface {
-	return &fakeazurebackendpoolsv1.FakeAzurebackendpoolsV1{Fake: &c.Fake}
+// AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
+func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
+	return &fakeazureapplicationgatewaybackendpoolsv1beta1.FakeAzureapplicationgatewaybackendpoolsV1beta1{Fake: &c.Fake}
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client

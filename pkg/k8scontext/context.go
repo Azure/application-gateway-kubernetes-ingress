@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	backendpoolv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
+	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -201,13 +201,23 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 }
 
 // GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) *backendpoolv1.AzureBackendPool {
-	azbp, err := c.crdClient.AzurebackendpoolsV1().AzureBackendPools().Get(backendPoolName, metav1.GetOptions{})
+func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApplicationGatewayBackendPool {
+	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(backendPoolName, metav1.GetOptions{})
 	if err != nil {
-		glog.Error("Error fetching Azure backend pool resource, Error: ", err)
+		glog.Error("Error fetching Azure application gateway backend pool resource, Error: ", err)
 		return nil
 	}
-	return azbp
+	return azpool
+}
+
+// GetProhibitedTarget returns prohibited target with specified name and namespace
+func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
+	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(targetName, metav1.GetOptions{})
+	if err != nil {
+		glog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
+		return nil
+	}
+	return target
 }
 
 // ListServices returns a list of all the Services from cache.

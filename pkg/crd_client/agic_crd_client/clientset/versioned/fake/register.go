@@ -25,7 +25,7 @@ import (
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	azurebackendpoolsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azurebackendpool/v1"
+	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
@@ -33,7 +33,7 @@ var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 var parameterCodec = runtime.NewParameterCodec(scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
-	azurebackendpoolsv1.AddToScheme,
+	azureapplicationgatewaybackendpoolsv1beta1.AddToScheme,
 	azureingressprohibitedtargetsv1.AddToScheme,
 }
 
