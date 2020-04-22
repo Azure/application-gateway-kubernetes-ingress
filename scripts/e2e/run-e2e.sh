@@ -18,7 +18,11 @@ CleanUp
 test_scripts=$(find . -name run.sh)
 for script in $test_scripts
 do
+    chmod +x $script
+
+    # run the test
     eval $script
+
+    # clean
     CleanUp
-    # clean up namespaces
 done
