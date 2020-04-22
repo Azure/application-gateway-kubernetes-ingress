@@ -1,6 +1,11 @@
 #!/bin/bash
 set -x
-source ./pipeline.env
+
+[[ -z "${version}" ]] && (echo "version is not set"; exit 1)
+[[ -z "${applicationGatewayId}" ]] && (echo "buiapplicationGatewayIdldid is not set"; exit 1)
+[[ -z "${identityResourceId}" ]] && (echo "identityResourceId is not set"; exit 1)
+[[ -z "${identityClientId}" ]] && (echo "identityClientId is not set"; exit 1)
+
 source ./common/utils.sh
 
 # install
