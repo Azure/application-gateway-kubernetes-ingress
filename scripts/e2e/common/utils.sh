@@ -3,7 +3,11 @@ function logError () {
 }
 
 function CleanUp() {
-	kubectl get -o custom-columns=:metadata.name ns | grep -v "default\|kube\|agic" | xargs kubectl delete namespace
+	namspaces=$(kubectl get -o custom-columns=:metadata.name ns | grep -v "default\|kube\|agic")
+    if [[ $namspaces != "" ]]
+    then
+        echo $namspaces | xargs kubectl delete namespace
+    fi
 }
 
 function InstallAGIC() {
