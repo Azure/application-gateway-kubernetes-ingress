@@ -61,7 +61,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		ingress.Spec.TLS = nil
 
 		// !! Action !!
-		listenerConfigs := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
+		listenerConfigs := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables, nil)
 
 		// Verify front end listeners
 		It("should have correct count of frontend listeners", func() {
@@ -201,7 +201,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		}
 
 		// !! Action !!
-		frontendListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
+		frontendListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables, nil)
 
 		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
 

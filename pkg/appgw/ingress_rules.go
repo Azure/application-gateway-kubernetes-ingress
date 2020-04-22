@@ -14,8 +14,14 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables, ingressWafPolicy map[*v1beta1.Ingress]map[string]bool) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
+
+	// if ingress has only backend configured
+	if ingress.Spec.Backend != nil && len(ingress.Spec.Rules) == 0 {
+		return listeners
+	}
+
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
 		if rule.HTTP == nil {
@@ -23,11 +29,28 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 		}
 
 		_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
+
 		for k, v := range ruleListeners {
+			if ingressWafPolicy != nil && ingressWafPolicy[ingress][rule.Host] {
+				c.processIngresswithWafPolicy(&v, ingress, env)
+			}
 			listeners[k] = v
 		}
 	}
+
 	return listeners
+}
+
+func (c *appGwConfigBuilder) processIngresswithWafPolicy(azConfig *listenerAzConfig, ingress *v1beta1.Ingress, env environment.EnvVariables) {
+	policy, _ := annotations.WAFPolicy(ingress)
+	if policy != "" {
+		if env.AttachWAFPolicyToListener {
+			// logging to see if customer configures env.AttachWAFPolicyToListener or not
+			glog.V(5).Info("AttachWAFPolicyToListener is enabled")
+		}
+		glog.V(5).Infof("Found WAF policy: %s in annotation", policy)
+		azConfig.FirewallPolicy = policy
+	}
 }
 
 func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
