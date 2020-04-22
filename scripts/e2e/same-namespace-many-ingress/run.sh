@@ -1,14 +1,15 @@
 #!/bin/bash
+set -x
+source ./common/utils.sh
 
-kubectl delete namespace/thirtyfour
 kubectl create namespace thirtyfour
 
 ## Customer Had issues with 34 ingresses
 ## https://github.com/Azure/application-gateway-kubernetes-ingress/issues/528
 
-for NUMBER in {0..28}; do
+for NUMBER in {0..34}; do
 
-cat <<EOF | KUBECONFIG=$HOME/.kube/config kubectl apply -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -61,50 +62,6 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: ing-$NUMBER
-  namespace: thirtyfour
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/ssl-redirect-XXX: "true"
-spec:
-  tls:
-   - hosts:
-     - ws-$NUMBER.mis.li
-     secretName: testsecret-tls
-  rules:
-    - host: ws-$NUMBER.mis.li
-      http:
-        paths:
-        - path: /igl/oo
-          backend:
-            serviceName: svc-$NUMBER
-            servicePort: pp-$NUMBER
-
-        - path: /igloo
-          backend:
-            serviceName: svc-$NUMBER
-            servicePort: pp-$NUMBER
-
-        - path: /iglxx/
-          backend:
-            serviceName: svc-$NUMBER
-            servicePort: pp-$NUMBER
-
-        - path: /iguana/*
-          backend:
-            serviceName: svc-$NUMBER
-            servicePort: pp-$NUMBER
-
-        - path: /status/*
-          backend:
-            serviceName: svc-$NUMBER
-            servicePort: pp-$NUMBER
-
----
-
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
   annotations:
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
     kubernetes.io/ingress.class: azure/application-gateway
@@ -124,11 +81,11 @@ spec:
       - backend:
           serviceName: svc-$NUMBER
           servicePort: pp-$NUMBER
-        path: /path
+        path: /status*
       - backend:
             serviceName: svc-$NUMBER
             servicePort: pp-$NUMBER
-        path: /path/*
+        path: /redirect-to*
       - backend:
           serviceName: svc-$NUMBER
           servicePort: pp-$NUMBER
@@ -143,11 +100,11 @@ spec:
       - backend:
             serviceName: svc-$NUMBER
             servicePort: pp-$NUMBER
-        path: /path
+        path: /status*
       - backend:
           serviceName: svc-$NUMBER
           servicePort: pp-$NUMBER
-        path: /path/*
+        path: /redirect-to*
       - backend:
           serviceName: svc-$NUMBER
           servicePort: pp-$NUMBER
@@ -174,6 +131,17 @@ metadata:
 type: kubernetes.io/tls
 EOF
 
+publicIp=$(GetIngressIP ing-x-0 thirtyfour)
+for NUMBER in {0..34}; do
+  InvokeCurl http://$publicIp/status/200 200 "Host: ws-$NUMBER-a.mis.li"
+  if [[ $statusCode != 200 ]]
+  then
+	  exit -1
+  fi
 
-
-# kubectl delete namespace/thirtyfour
+  InvokeCurl http://$publicIp/status/200 200 "Host: ws-$NUMBER-b.mis.li"
+  if [[ $statusCode != 200 ]]
+  then
+	  exit -1
+  fi
+done
