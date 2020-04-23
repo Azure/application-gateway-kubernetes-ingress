@@ -28,6 +28,7 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.1.0
+	github.com/prometheus/common v0.6.0
 	github.com/spf13/pflag v1.0.3
 	go.opencensus.io v0.22.0 // indirect
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8 // indirect
@@ -41,7 +42,7 @@ require (
 	k8s.io/api v0.0.0-20190614205929-e4e27c96b39a
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/klog v0.3.3 // indirect
+	k8s.io/klog v0.3.3
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
 )
