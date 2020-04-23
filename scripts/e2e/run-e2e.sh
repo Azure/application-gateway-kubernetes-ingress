@@ -18,13 +18,14 @@ function InstallAGIC() {
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
     helm repo update
 
+    # AAD pod identity is taking time to assign identity. Timeout is set to 60 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
     --set appgw.applicationGatewayID=${applicationGatewayId} \
     --set armAuth.type=aadPodIdentity \
     --set armAuth.identityResourceID=${identityResourceId} \
     --set armAuth.identityClientID=${identityClientId} \
     --set rbac.enabled=true \
-    --timeout 30s \
+    --timeout 60s \
     --wait \
     -n agic \
     --version ${version}
@@ -33,6 +34,5 @@ function InstallAGIC() {
 # install
 InstallAGIC
 
-go get github.com/onsi/ginkgo/ginkgo
-go get github.com/onsi/gomega/...
-ginkgo -v --tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
+# run test
+go test -v --tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
