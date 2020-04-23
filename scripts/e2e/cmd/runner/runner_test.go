@@ -3,14 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+// +build e2e
+
 package runner
 
 import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
 	v1 "k8s.io/api/core/v1"
@@ -19,9 +23,10 @@ import (
 	"k8s.io/klog"
 )
 
-func Test(t *testing.T) {
+func TestMFU(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Run E2E Test suite")
+	junitReporter := reporters.NewJUnitReporter("report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "Run E2E MFU Test suite", []Reporter{junitReporter})
 }
 
 var _ = Describe("Most frequenty run test suite", func() {
@@ -48,8 +53,10 @@ var _ = Describe("Most frequenty run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			err := applyYaml(clientset, namespaceName, "./same-namespace-many-ingress/generated.yaml")
+			err := applyYaml(clientset, namespaceName, "testdata/same-namespace-many-ingress/generated.yaml")
 			Expect(err).To(BeNil())
+
+			time.Sleep(30 * time.Second)
 		})
 
 		It("should have get 200 for each ingress", func() {

@@ -1,11 +1,6 @@
 #!/bin/bash
 set -x
 
-[[ -z "${version}" ]] && (echo "version is not set"; exit 1)
-[[ -z "${applicationGatewayId}" ]] && (echo "buiapplicationGatewayIdldid is not set"; exit 1)
-[[ -z "${identityResourceId}" ]] && (echo "identityResourceId is not set"; exit 1)
-[[ -z "${identityClientId}" ]] && (echo "identityClientId is not set"; exit 1)
-
 function InstallAGIC() {
     [[ -z "${version}" ]] && (echo "version is not set"; exit 1)
     [[ -z "${applicationGatewayId}" ]] && (echo "buiapplicationGatewayIdldid is not set"; exit 1)
@@ -14,10 +9,10 @@ function InstallAGIC() {
 
     echo "Installing BuildId ${version}"
 
-    list=$(helm ls --all --short)
+    list=$(helm ls --all --short -n agic)
     if [[ $list != "" ]]
     then
-        helm delete $list
+        helm delete $list -n agic
     fi
 
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
@@ -29,9 +24,15 @@ function InstallAGIC() {
     --set armAuth.identityResourceID=${identityResourceId} \
     --set armAuth.identityClientID=${identityClientId} \
     --set rbac.enabled=true \
+    --timeout 30s \
+    --wait \
     -n agic \
     --version ${version}
 }
 
 # install
 InstallAGIC
+
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega/...
+ginkgo -v --tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
