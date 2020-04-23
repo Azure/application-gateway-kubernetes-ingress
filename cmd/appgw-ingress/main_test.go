@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+// +build unittest
+
 package main
 
 import (
@@ -13,7 +15,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func TestIt(t *testing.T) {
+func TestMain(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Run All main.go Tests")
 }
