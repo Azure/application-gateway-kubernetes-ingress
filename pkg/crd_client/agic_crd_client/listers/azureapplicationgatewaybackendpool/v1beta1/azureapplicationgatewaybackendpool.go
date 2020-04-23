@@ -19,18 +19,20 @@ limitations under the License.
 package v1beta1
 
 import (
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"
-
-	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 )
 
 // AzureApplicationGatewayBackendPoolLister helps list AzureApplicationGatewayBackendPools.
+// All objects returned here must be treated as read-only.
 type AzureApplicationGatewayBackendPoolLister interface {
 	// List lists all AzureApplicationGatewayBackendPools in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1beta1.AzureApplicationGatewayBackendPool, err error)
 	// Get retrieves the AzureApplicationGatewayBackendPool from the index for a given name.
+	// Objects returned here must be treated as read-only.
 	Get(name string) (*v1beta1.AzureApplicationGatewayBackendPool, error)
 	AzureApplicationGatewayBackendPoolListerExpansion
 }

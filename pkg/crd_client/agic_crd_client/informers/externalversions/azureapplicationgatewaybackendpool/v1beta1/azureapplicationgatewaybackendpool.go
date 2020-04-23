@@ -19,17 +19,17 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	time "time"
-
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	watch "k8s.io/apimachinery/pkg/watch"
-	cache "k8s.io/client-go/tools/cache"
 
 	azureapplicationgatewaybackendpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/internalinterfaces"
 	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/listers/azureapplicationgatewaybackendpool/v1beta1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	watch "k8s.io/apimachinery/pkg/watch"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // AzureApplicationGatewayBackendPoolInformer provides access to a shared informer and lister for
@@ -61,13 +61,13 @@ func NewFilteredAzureApplicationGatewayBackendPoolInformer(client versioned.Inte
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().List(options)
+				return client.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Watch(options)
+				return client.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Watch(context.TODO(), options)
 			},
 		},
 		&azureapplicationgatewaybackendpoolv1beta1.AzureApplicationGatewayBackendPool{},

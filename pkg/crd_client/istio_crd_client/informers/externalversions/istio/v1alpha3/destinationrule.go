@@ -19,17 +19,17 @@ limitations under the License.
 package v1alpha3
 
 import (
+	"context"
 	time "time"
 
+	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
+	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions/internalinterfaces"
+	v1alpha3 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/listers/istio/v1alpha3"
 	istiov1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-
-	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
-	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions/internalinterfaces"
-	v1alpha3 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/listers/istio/v1alpha3"
 )
 
 // DestinationRuleInformer provides access to a shared informer and lister for
@@ -62,13 +62,13 @@ func NewFilteredDestinationRuleInformer(client versioned.Interface, namespace st
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().DestinationRules(namespace).List(options)
+				return client.NetworkingV1alpha3().DestinationRules(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().DestinationRules(namespace).Watch(options)
+				return client.NetworkingV1alpha3().DestinationRules(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&istiov1alpha3.DestinationRule{},

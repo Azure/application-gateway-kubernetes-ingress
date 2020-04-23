@@ -19,17 +19,17 @@ limitations under the License.
 package v1
 
 import (
+	"context"
 	time "time"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	watch "k8s.io/apimachinery/pkg/watch"
-	cache "k8s.io/client-go/tools/cache"
 
 	azureingressprohibitedtargetv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/internalinterfaces"
 	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/listers/azureingressprohibitedtarget/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	watch "k8s.io/apimachinery/pkg/watch"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // AzureIngressProhibitedTargetInformer provides access to a shared informer and lister for
@@ -62,13 +62,13 @@ func NewFilteredAzureIngressProhibitedTargetInformer(client versioned.Interface,
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).List(options)
+				return client.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Watch(options)
+				return client.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{},

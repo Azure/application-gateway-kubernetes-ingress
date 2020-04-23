@@ -19,14 +19,15 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
-
-	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 )
 
 // FakeAzureApplicationGatewayBackendPools implements AzureApplicationGatewayBackendPoolInterface
@@ -39,7 +40,7 @@ var azureapplicationgatewaybackendpoolsResource = schema.GroupVersionResource{Gr
 var azureapplicationgatewaybackendpoolsKind = schema.GroupVersionKind{Group: "azureapplicationgatewaybackendpools.appgw.ingress.azure.io", Version: "v1beta1", Kind: "AzureApplicationGatewayBackendPool"}
 
 // Get takes name of the azureApplicationGatewayBackendPool, and returns the corresponding azureApplicationGatewayBackendPool object, and an error if there is any.
-func (c *FakeAzureApplicationGatewayBackendPools) Get(name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *FakeAzureApplicationGatewayBackendPools) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(azureapplicationgatewaybackendpoolsResource, name), &v1beta1.AzureApplicationGatewayBackendPool{})
 	if obj == nil {
@@ -49,7 +50,7 @@ func (c *FakeAzureApplicationGatewayBackendPools) Get(name string, options v1.Ge
 }
 
 // List takes label and field selectors, and returns the list of AzureApplicationGatewayBackendPools that match those selectors.
-func (c *FakeAzureApplicationGatewayBackendPools) List(opts v1.ListOptions) (result *v1beta1.AzureApplicationGatewayBackendPoolList, err error) {
+func (c *FakeAzureApplicationGatewayBackendPools) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.AzureApplicationGatewayBackendPoolList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(azureapplicationgatewaybackendpoolsResource, azureapplicationgatewaybackendpoolsKind, opts), &v1beta1.AzureApplicationGatewayBackendPoolList{})
 	if obj == nil {
@@ -70,13 +71,13 @@ func (c *FakeAzureApplicationGatewayBackendPools) List(opts v1.ListOptions) (res
 }
 
 // Watch returns a watch.Interface that watches the requested azureApplicationGatewayBackendPools.
-func (c *FakeAzureApplicationGatewayBackendPools) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeAzureApplicationGatewayBackendPools) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(azureapplicationgatewaybackendpoolsResource, opts))
 }
 
 // Create takes the representation of a azureApplicationGatewayBackendPool and creates it.  Returns the server's representation of the azureApplicationGatewayBackendPool, and an error, if there is any.
-func (c *FakeAzureApplicationGatewayBackendPools) Create(azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *FakeAzureApplicationGatewayBackendPools) Create(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.CreateOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(azureapplicationgatewaybackendpoolsResource, azureApplicationGatewayBackendPool), &v1beta1.AzureApplicationGatewayBackendPool{})
 	if obj == nil {
@@ -86,7 +87,7 @@ func (c *FakeAzureApplicationGatewayBackendPools) Create(azureApplicationGateway
 }
 
 // Update takes the representation of a azureApplicationGatewayBackendPool and updates it. Returns the server's representation of the azureApplicationGatewayBackendPool, and an error, if there is any.
-func (c *FakeAzureApplicationGatewayBackendPools) Update(azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *FakeAzureApplicationGatewayBackendPools) Update(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.UpdateOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(azureapplicationgatewaybackendpoolsResource, azureApplicationGatewayBackendPool), &v1beta1.AzureApplicationGatewayBackendPool{})
 	if obj == nil {
@@ -96,22 +97,22 @@ func (c *FakeAzureApplicationGatewayBackendPools) Update(azureApplicationGateway
 }
 
 // Delete takes name of the azureApplicationGatewayBackendPool and deletes it. Returns an error if one occurs.
-func (c *FakeAzureApplicationGatewayBackendPools) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeAzureApplicationGatewayBackendPools) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(azureapplicationgatewaybackendpoolsResource, name), &v1beta1.AzureApplicationGatewayBackendPool{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeAzureApplicationGatewayBackendPools) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(azureapplicationgatewaybackendpoolsResource, listOptions)
+func (c *FakeAzureApplicationGatewayBackendPools) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(azureapplicationgatewaybackendpoolsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.AzureApplicationGatewayBackendPoolList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched azureApplicationGatewayBackendPool.
-func (c *FakeAzureApplicationGatewayBackendPools) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *FakeAzureApplicationGatewayBackendPools) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(azureapplicationgatewaybackendpoolsResource, name, pt, data, subresources...), &v1beta1.AzureApplicationGatewayBackendPool{})
 	if obj == nil {
