@@ -35,4 +35,11 @@ function InstallAGIC() {
 InstallAGIC
 
 # run test
+export GOOS='linux'
+export GO111MODULE='on'
+export GOPATH='$(system.defaultWorkingDirectory)/gopath'
+export GOBIN= '$(GOPATH)/bin'
+export GO_PROJ='github.com/Azure/$(build.repository.name)'
+mkdir -p '$(GOBIN)'
+mkdir -p '$(GOPATH)/pkg'
 go test -v --tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
