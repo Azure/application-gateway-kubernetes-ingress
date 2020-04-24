@@ -49,11 +49,14 @@ var _ = Describe("Most frequenty run test suite", func() {
 					Name: namespaceName,
 				},
 			}
+			klog.Info("Creating namespace ", namespaceName)
 			_, err = clientset.CoreV1().Namespaces().Create(ns)
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			err := applyYaml(clientset, namespaceName, "testdata/same-namespace-many-ingress/generated.yaml")
+			path := "testdata/same-namespace-many-ingress/generated.yaml"
+			klog.Info("Applying yaml ", path)
+			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
 
 			time.Sleep(30 * time.Second)
@@ -73,7 +76,7 @@ var _ = Describe("Most frequenty run test suite", func() {
 			for i := 1; i <= 50; i++ {
 				for _, host := range hosts {
 					hostIndex := host + strconv.Itoa(i)
-					klog.Infof("Trying with host %s ...", hostIndex)
+					klog.Infof("Sending request with host %s ...", hostIndex)
 					err = makeGetRequest(url, hostIndex, 200)
 					Expect(err).To(BeNil())
 				}

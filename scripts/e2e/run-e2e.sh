@@ -9,7 +9,7 @@ function InstallAGIC() {
 
     echo "Installing BuildId ${version}"
 
-    list=$(helm ls --all --short -n agic)
+    list=$(helm ls --all --short -n agic | grep -v agic-${version})
     if [[ $list != "" ]]
     then
         helm delete $list -n agic

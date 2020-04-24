@@ -137,6 +137,7 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 		GracePeriodSeconds: to.Int64Ptr(0),
 	}
 
+	klog.Infof("Deleting namespaces [%+v]...", namespacesToDelete)
 	for _, ns := range namespacesToDelete {
 		if err = clientset.CoreV1().Namespaces().Delete(ns.Name, deleteOptions); err != nil {
 			return err
@@ -204,10 +205,11 @@ func makeGetRequest(url string, host string, statusCode int) error {
 	client := &http.Client{Transport: tr}
 	client.Timeout = 2 * time.Second
 
+	klog.Warning("Sending GET request...")
 	for i := 1; i <= 100; i++ {
 		resp, err := client.Do(req)
 		if err != nil {
-			klog.Warning("Trying again...", i)
+			klog.Warningf("Trying again %d. Err: %+v...", i, err)
 			time.Sleep(time.Second)
 			continue
 		}
@@ -216,7 +218,7 @@ func makeGetRequest(url string, host string, statusCode int) error {
 			return nil
 		}
 
-		klog.Warningf("Got response [%+v]. Trying again %d", resp, i)
+		klog.Warningf("Trying again %d. Got response [%+v].", i, resp)
 		time.Sleep(time.Second)
 	}
 
