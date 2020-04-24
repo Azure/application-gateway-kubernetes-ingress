@@ -209,8 +209,8 @@ func makeGetRequest(url string, host string, statusCode int) error {
 	for i := 1; i <= 100; i++ {
 		resp, err := client.Do(req)
 		if err != nil {
-			klog.Warningf("Trying again %d. Err: %+v...", i, err)
-			time.Sleep(time.Second)
+			klog.Warningf("Trying again %d. Sleeping for 5 seconds. Err: %+v...", i, err)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -218,8 +218,8 @@ func makeGetRequest(url string, host string, statusCode int) error {
 			return nil
 		}
 
-		klog.Warningf("Trying again %d. Got response [%+v].", i, resp)
-		time.Sleep(time.Second)
+		klog.Warningf("Trying again %d. Sleeping for 5 seconds. Got response [%+v].", i, resp)
+		time.Sleep(5 * time.Second)
 	}
 
 	return fmt.Errorf("Unable to get status code %d with url '%s' with host '%s'. Response: [%+v]", statusCode, url, host, resp)
