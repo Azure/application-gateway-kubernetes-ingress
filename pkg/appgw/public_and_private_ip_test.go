@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -220,7 +221,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	k8sClient := testclient.NewSimpleClientset()
 
 	It("should have not failed", func() {
-		_, err := k8sClient.CoreV1().Namespaces().Create(nameSpace)
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), nameSpace, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -244,31 +245,31 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ctxtSecret := ctxt.GetSecret(secKey)
 	It("should have found the secret", func() { Expect(ctxtSecret).To(Equal(secret)) })
 
-	_, err = k8sClient.CoreV1().Nodes().Create(node)
+	_, err = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingressPublicIP)
+	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingressPublicIP, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingressPublicIP)
+	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingressPublicIP, metav1.UpdateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingressPrivateIP)
+	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingressPrivateIP, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingressPrivateIP)
+	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingressPrivateIP, metav1.UpdateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err) })
 
-	_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+	_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+	_, err = k8sClient.CoreV1().Endpoints(ingressNS).Create(context.TODO(), endpoints, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
+	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod1, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod2)
+	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod2, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
 	appGwy := &n.ApplicationGateway{

@@ -19,6 +19,7 @@ limitations under the License.
 package v1alpha3
 
 import (
+	"context"
 	time "time"
 
 	istiov1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
@@ -62,13 +63,13 @@ func NewFilteredGatewayInformer(client versioned.Interface, namespace string, re
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().Gateways(namespace).List(options)
+				return client.NetworkingV1alpha3().Gateways(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().Gateways(namespace).Watch(options)
+				return client.NetworkingV1alpha3().Gateways(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&istiov1alpha3.Gateway{},

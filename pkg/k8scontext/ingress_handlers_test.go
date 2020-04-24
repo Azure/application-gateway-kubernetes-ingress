@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"time"
 
 	"github.com/onsi/ginkgo"
@@ -24,42 +25,42 @@ import (
 
 var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 	var k8sClient kubernetes.Interface
-	var context *Context
+	var ctx *Context
 	var h handlers
 
 	ginkgo.BeforeEach(func() {
 		k8sClient = testclient.NewSimpleClientset()
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err = k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns1",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
 		secret := tests.NewSecretTestFixture()
 		secret.Namespace = ""
-		_, err = k8sClient.CoreV1().Secrets("ns").Create(secret)
+		_, err = k8sClient.CoreV1().Secrets("ns").Create(context.TODO(), secret, metav1.CreateOptions{})
 		Expect(err).To(BeNil())
-		_, err = k8sClient.CoreV1().Secrets("ns1").Create(secret)
+		_, err = k8sClient.CoreV1().Secrets("ns1").Create(context.TODO(), secret, metav1.CreateOptions{})
 		Expect(err).To(BeNil())
 
-		context = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctx = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
-			context: context,
+			context: ctx,
 		}
 	})
 
 	ginkgo.Context("Test ingress handlers", func() {
 		ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
-			Expect(context.namespaces).ToNot(BeNil())
+			Expect(ctx.namespaces).ToNot(BeNil())
 			ing := fixtures.GetIngress()
 			ing.Namespace = "ns"
 			h.ingressAdd(ing)
@@ -71,7 +72,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 		})
 
 		ginkgo.It("should not add events for namespace ns1 not in the namespaces list", func() {
-			Expect(context.namespaces).ToNot(BeNil())
+			Expect(ctx.namespaces).ToNot(BeNil())
 			ing := fixtures.GetIngress()
 			ing.Namespace = "ns1"
 			h.ingressAdd(ing)

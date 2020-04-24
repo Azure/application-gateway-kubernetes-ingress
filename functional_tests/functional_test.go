@@ -8,6 +8,7 @@
 package functests
 
 import (
+	"context"
 	"flag"
 	"testing"
 	"time"
@@ -437,21 +438,21 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		// Create the mock K8s client.
 		k8sClient := testclient.NewSimpleClientset()
-		_, _ = k8sClient.CoreV1().Namespaces().Create(ns)
-		_, _ = k8sClient.CoreV1().Nodes().Create(node)
-		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingress)
-		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(service)
-		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(serviceA)
-		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(serviceB)
-		_, _ = k8sClient.CoreV1().Services(tests.OtherNamespace).Create(serviceC)
-		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpoints)
-		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpointsA)
-		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(endpointsB)
-		_, _ = k8sClient.CoreV1().Endpoints(tests.OtherNamespace).Create(endpointsC)
-		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(pod)
-		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(podB)
-		_, _ = k8sClient.CoreV1().Pods(tests.OtherNamespace).Create(podC)
-		_, _ = k8sClient.CoreV1().Secrets(tests.Namespace).Create(ingressSecret)
+		_, _ = k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
+		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(context.TODO(), ingress, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), service, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceA, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Services(tests.OtherNamespace).Create(context.TODO(), serviceC, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpoints, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpointsA, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpointsB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Endpoints(tests.OtherNamespace).Create(context.TODO(), endpointsC, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(context.TODO(), pod, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(context.TODO(), podB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Pods(tests.OtherNamespace).Create(context.TODO(), podC, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Secrets(tests.Namespace).Create(context.TODO(), ingressSecret, metav1.CreateOptions{})
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
