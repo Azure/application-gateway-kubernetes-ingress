@@ -7,10 +7,8 @@ package appgw
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"strings"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -298,247 +296,17 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			jsonBlob, err := appGW.MarshalJSON()
 			Expect(err).ToNot(HaveOccurred())
 
-			var into map[string]interface{}
-			err = json.Unmarshal(jsonBlob, &into)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(appGW.HTTPListeners).ToNot(BeNil())
 
-			a := (into["properties"]).(map[string]interface{})
-			b := (a["sslCertificates"]).([]interface{})
-			c := (b[0]).(map[string]interface{})
-			d := (c["properties"]).(map[string]interface{})
-			d["data"] = "hhh"
-
-			jsonBlob, err = json.MarshalIndent(into, "--", "    ")
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonTxt := string(jsonBlob)
-
-			expected := `{
---    "properties": {
---        "backendAddressPools": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
---                "name": "defaultaddresspool",
---                "properties": {
---                    "backendAddresses": []
---                }
---            }
---        ],
---        "backendHttpSettingsCollection": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource",
---                "name": "bp---namespace-----service-name---443-443-external-ingress-resource",
---                "properties": {
---                    "cookieBasedAffinity": "Disabled",
---                    "pickHostNameFromBackendAddress": false,
---                    "port": 443,
---                    "probe": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
---                    },
---                    "protocol": "Http",
---                    "requestTimeout": 30
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80-internal-ingress-resource",
---                "name": "bp---namespace-----service-name---80-80-internal-ingress-resource",
---                "properties": {
---                    "cookieBasedAffinity": "Disabled",
---                    "pickHostNameFromBackendAddress": false,
---                    "port": 80,
---                    "probe": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
---                    },
---                    "protocol": "Http",
---                    "requestTimeout": 30
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
---                "name": "defaulthttpsetting",
---                "properties": {
---                    "cookieBasedAffinity": "Disabled",
---                    "pickHostNameFromBackendAddress": false,
---                    "port": 80,
---                    "probe": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
---                    },
---                    "protocol": "Http",
---                    "requestTimeout": 30
---                }
---            }
---        ],
---        "frontendIPConfigurations": [
---            {
---                "id": "--front-end-ip-id-1--",
---                "name": "xx3",
---                "properties": {
---                    "publicIPAddress": {
---                        "id": "xyz"
---                    }
---                }
---            },
---            {
---                "id": "--front-end-ip-id-2--",
---                "name": "yy3",
---                "properties": {
---                    "privateIPAddress": "abc"
---                }
---            }
---        ],
---        "frontendPorts": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443",
---                "name": "fp-443",
---                "properties": {
---                    "port": 443
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80",
---                "name": "fp-80",
---                "properties": {
---                    "port": 80
---                }
---            }
---        ],
---        "httpListeners": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-8b237668c03a7c9ad070511906fb4dc8",
---                "name": "fl-8b237668c03a7c9ad070511906fb4dc8",
---                "properties": {
---                    "frontendIPConfiguration": {
---                        "id": "--front-end-ip-id-1--"
---                    },
---                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
---                    },
---                    "hostnames": [],
---                    "protocol": "Https",
---                    "requireServerNameIndication": false,
---                    "sslCertificate": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
---                    }
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-eeaf0e75278df30f10d163ad64541e15",
---                "name": "fl-eeaf0e75278df30f10d163ad64541e15",
---                "properties": {
---                    "frontendIPConfiguration": {
---                        "id": "--front-end-ip-id-2--"
---                    },
---                    "frontendPort": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
---                    },
---                    "hostnames": [],
---                    "protocol": "Http",
---                    "requireServerNameIndication": false
---                }
---            }
---        ],
---        "probes": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
---                "name": "defaultprobe-Http",
---                "properties": {
---                    "host": "localhost",
---                    "interval": 30,
---                    "match": {},
---                    "minServers": 0,
---                    "path": "/",
---                    "pickHostNameFromBackendHttpSettings": false,
---                    "protocol": "Http",
---                    "timeout": 30,
---                    "unhealthyThreshold": 3
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
---                "name": "defaultprobe-Https",
---                "properties": {
---                    "host": "localhost",
---                    "interval": 30,
---                    "match": {},
---                    "minServers": 0,
---                    "path": "/",
---                    "pickHostNameFromBackendHttpSettings": false,
---                    "protocol": "Https",
---                    "timeout": 30,
---                    "unhealthyThreshold": 3
---                }
---            }
---        ],
---        "redirectConfigurations": [],
---        "requestRoutingRules": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-8b237668c03a7c9ad070511906fb4dc8",
---                "name": "rr-8b237668c03a7c9ad070511906fb4dc8",
---                "properties": {
---                    "backendAddressPool": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
---                    },
---                    "backendHttpSettings": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---443-443-external-ingress-resource"
---                    },
---                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-8b237668c03a7c9ad070511906fb4dc8"
---                    },
---                    "ruleType": "Basic"
---                }
---            },
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-eeaf0e75278df30f10d163ad64541e15",
---                "name": "rr-eeaf0e75278df30f10d163ad64541e15",
---                "properties": {
---                    "backendAddressPool": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
---                    },
---                    "backendHttpSettings": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace-----service-name---80-80-internal-ingress-resource"
---                    },
---                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-eeaf0e75278df30f10d163ad64541e15"
---                    },
---                    "ruleType": "Basic"
---                }
---            }
---        ],
---        "sku": {
---            "capacity": 3,
---            "name": "Standard_v2",
---            "tier": "Standard_v2"
---        },
---        "sslCertificates": [
---            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
---                "name": "--namespace-----the-name-of-the-secret--",
---                "properties": {
---                    "data": "hhh",
---                    "password": "msazure"
---                }
---            }
---        ],
---        "urlPathMaps": []
---    },
---    "tags": {
---        "ingress-for-aks-cluster-id": "/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname",
---        "last-updated-by-k8s-ingress": "2009-11-17 20:34:58.651387237 +0000 UTC",
---        "managed-by-k8s-ingress": "a/b/c"
---    }
---}`
-
-			linesAct := strings.Split(jsonTxt, "\n")
-			linesExp := strings.Split(expected, "\n")
-
-			Expect(len(linesAct)).To(Equal(len(linesExp)), fmt.Sprintf("Line counts are different: actual=%d vs expected=%d\nActual:%s\nExpected:%s", len(linesAct), len(linesExp), jsonTxt, expected))
-
-			for idx, line := range linesAct {
-				curatedLineAct := strings.Trim(line, " ")
-				curatedLineExp := strings.Trim(linesExp[idx], " ")
-				Expect(curatedLineAct).To(Equal(curatedLineExp), fmt.Sprintf("Lines at index %d are different:\n%s\nvs expected:\n%s\nActual JSON:\n%s\n", idx, curatedLineAct, curatedLineExp, jsonTxt))
+			foundPrivateIPListener := false
+			for _, listener := range *appGW.HTTPListeners {
+				if *listener.FrontendPort.ID == "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80" {
+					foundPrivateIPListener = true
+					Expect(*listener.FrontendIPConfiguration.ID).To(Equal("--front-end-ip-id-2--"), fmt.Sprintf("Expecting to find private IP frontend configuration attached here."))
+				}
 			}
 
+			Expect(foundPrivateIPListener).To(BeTrue(), fmt.Sprintf("Expecting to find a listener using private IP. Actual JSON:\n%s\n", string(jsonBlob)))
 		})
 	})
 })

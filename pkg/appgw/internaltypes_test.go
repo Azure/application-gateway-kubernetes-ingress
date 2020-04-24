@@ -21,7 +21,7 @@ var _ = Describe("Test internal types", func() {
 	veryLongString := "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZAB"
 	targetListener := listenerIdentifier{
 		FrontendPort: Port(8080),
-		HostName:     "foo.baz",
+		HostNames:    [5]string{"foo.baz"},
 	}
 	targetListenerHashCode := utils.GetHashCode(targetListener)
 
@@ -33,7 +33,7 @@ var _ = Describe("Test internal types", func() {
 		ingress.Name = "INGR"
 		fel := listenerIdentifier{
 			FrontendPort: Port(9898),
-			HostName:     tests.Host,
+			HostNames:    [5]string{tests.Host},
 		}
 		felHashCode := utils.GetHashCode(fel)
 
@@ -168,7 +168,7 @@ var _ = Describe("Test internal types", func() {
 		port := Port(88)
 		felID := listenerIdentifier{
 			FrontendPort: port,
-			HostName:     namespace,
+			HostNames:    [5]string{namespace},
 		}
 		names := []string{
 			getResourceKey(namespace, name),
@@ -231,7 +231,6 @@ var _ = Describe("Test internal types", func() {
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
-				HostName:     "www.test.com",
 				HostNames:    hostnameValues,
 			}
 			actualHostName := listenerID.getHostNames()
@@ -256,7 +255,6 @@ var _ = Describe("Test internal types", func() {
 			}
 			hostnames := []string{"www.test.com", "www.t*.com"}
 			listenerID.setHostNames(hostnames)
-			Expect(listenerID.HostName).To(Equal("www.test.com"))
 			Expect(listenerID.HostNames[0]).To(Equal("www.test.com"))
 			Expect(listenerID.HostNames[1]).To(Equal("www.t*.com"))
 			Expect(listenerID.HostNames[2]).To(Equal(""))
