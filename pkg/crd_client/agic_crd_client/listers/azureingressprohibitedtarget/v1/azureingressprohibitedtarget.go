@@ -27,8 +27,10 @@ import (
 )
 
 // AzureIngressProhibitedTargetLister helps list AzureIngressProhibitedTargets.
+// All objects returned here must be treated as read-only.
 type AzureIngressProhibitedTargetLister interface {
 	// List lists all AzureIngressProhibitedTargets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.AzureIngressProhibitedTarget, err error)
 	// AzureIngressProhibitedTargets returns an object that can list and get AzureIngressProhibitedTargets.
 	AzureIngressProhibitedTargets(namespace string) AzureIngressProhibitedTargetNamespaceLister
@@ -59,10 +61,13 @@ func (s *azureIngressProhibitedTargetLister) AzureIngressProhibitedTargets(names
 }
 
 // AzureIngressProhibitedTargetNamespaceLister helps list and get AzureIngressProhibitedTargets.
+// All objects returned here must be treated as read-only.
 type AzureIngressProhibitedTargetNamespaceLister interface {
 	// List lists all AzureIngressProhibitedTargets in the indexer for a given namespace.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1.AzureIngressProhibitedTarget, err error)
 	// Get retrieves the AzureIngressProhibitedTarget from the indexer for a given namespace and name.
+	// Objects returned here must be treated as read-only.
 	Get(name string) (*v1.AzureIngressProhibitedTarget, error)
 	AzureIngressProhibitedTargetNamespaceListerExpansion
 }

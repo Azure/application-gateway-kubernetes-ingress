@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -40,7 +42,7 @@ var azureingressprohibitedtargetsResource = schema.GroupVersionResource{Group: "
 var azureingressprohibitedtargetsKind = schema.GroupVersionKind{Group: "azureingressprohibitedtargets.appgw.ingress.k8s.io", Version: "v1", Kind: "AzureIngressProhibitedTarget"}
 
 // Get takes name of the azureIngressProhibitedTarget, and returns the corresponding azureIngressProhibitedTarget object, and an error if there is any.
-func (c *FakeAzureIngressProhibitedTargets) Get(name string, options v1.GetOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
+func (c *FakeAzureIngressProhibitedTargets) Get(ctx context.Context, name string, options v1.GetOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(azureingressprohibitedtargetsResource, c.ns, name), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 
@@ -51,7 +53,7 @@ func (c *FakeAzureIngressProhibitedTargets) Get(name string, options v1.GetOptio
 }
 
 // List takes label and field selectors, and returns the list of AzureIngressProhibitedTargets that match those selectors.
-func (c *FakeAzureIngressProhibitedTargets) List(opts v1.ListOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTargetList, err error) {
+func (c *FakeAzureIngressProhibitedTargets) List(ctx context.Context, opts v1.ListOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTargetList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(azureingressprohibitedtargetsResource, azureingressprohibitedtargetsKind, c.ns, opts), &azureingressprohibitedtargetv1.AzureIngressProhibitedTargetList{})
 
@@ -73,14 +75,14 @@ func (c *FakeAzureIngressProhibitedTargets) List(opts v1.ListOptions) (result *a
 }
 
 // Watch returns a watch.Interface that watches the requested azureIngressProhibitedTargets.
-func (c *FakeAzureIngressProhibitedTargets) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeAzureIngressProhibitedTargets) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(azureingressprohibitedtargetsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a azureIngressProhibitedTarget and creates it.  Returns the server's representation of the azureIngressProhibitedTarget, and an error, if there is any.
-func (c *FakeAzureIngressProhibitedTargets) Create(azureIngressProhibitedTarget *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
+func (c *FakeAzureIngressProhibitedTargets) Create(ctx context.Context, azureIngressProhibitedTarget *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, opts v1.CreateOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(azureingressprohibitedtargetsResource, c.ns, azureIngressProhibitedTarget), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 
@@ -91,7 +93,7 @@ func (c *FakeAzureIngressProhibitedTargets) Create(azureIngressProhibitedTarget 
 }
 
 // Update takes the representation of a azureIngressProhibitedTarget and updates it. Returns the server's representation of the azureIngressProhibitedTarget, and an error, if there is any.
-func (c *FakeAzureIngressProhibitedTargets) Update(azureIngressProhibitedTarget *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
+func (c *FakeAzureIngressProhibitedTargets) Update(ctx context.Context, azureIngressProhibitedTarget *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, opts v1.UpdateOptions) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(azureingressprohibitedtargetsResource, c.ns, azureIngressProhibitedTarget), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 
@@ -102,7 +104,7 @@ func (c *FakeAzureIngressProhibitedTargets) Update(azureIngressProhibitedTarget 
 }
 
 // Delete takes name of the azureIngressProhibitedTarget and deletes it. Returns an error if one occurs.
-func (c *FakeAzureIngressProhibitedTargets) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeAzureIngressProhibitedTargets) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(azureingressprohibitedtargetsResource, c.ns, name), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 
@@ -110,15 +112,15 @@ func (c *FakeAzureIngressProhibitedTargets) Delete(name string, options *v1.Dele
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeAzureIngressProhibitedTargets) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(azureingressprohibitedtargetsResource, c.ns, listOptions)
+func (c *FakeAzureIngressProhibitedTargets) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(azureingressprohibitedtargetsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &azureingressprohibitedtargetv1.AzureIngressProhibitedTargetList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched azureIngressProhibitedTarget.
-func (c *FakeAzureIngressProhibitedTargets) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
+func (c *FakeAzureIngressProhibitedTargets) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *azureingressprohibitedtargetv1.AzureIngressProhibitedTarget, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(azureingressprohibitedtargetsResource, c.ns, name, pt, data, subresources...), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 

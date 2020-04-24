@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"context"
 	"time"
 
 	"k8s.io/client-go/tools/record"
@@ -59,11 +60,11 @@ var _ = Describe("process function tests", func() {
 		// Create a `k8scontext` to start listening to ingress resources.
 		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{tests.Namespace}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		Expect(err).Should(BeNil(), "Unable to create the namespace %s: %v", tests.Name, err)
 
 		// create ingress in namespace
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(tests.Namespace).Create(context.TODO(), ingress, metav1.CreateOptions{})
 		Expect(err).Should(BeNil(), "Unabled to create ingress resource due to: %v", err)
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
@@ -97,7 +98,7 @@ var _ = Describe("process function tests", func() {
 	Context("test updateIngressStatus", func() {
 		It("ensure that updateIngressStatus adds ipAddress to ingress", func() {
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(publicIP),
@@ -107,12 +108,12 @@ var _ = Describe("process function tests", func() {
 
 		It("ensure that updateIngressStatus adds private ipAddress when annotation is present", func() {
 			ingress.Annotations[annotations.UsePrivateIPKey] = "true"
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress)
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Expect(annotations.UsePrivateIP(updatedIngress)).To(BeTrue())
 
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
 
-			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(privateIP),
@@ -125,7 +126,7 @@ var _ = Describe("process function tests", func() {
 		It("ensure that ResetAllIngress sets removes the loadbalancer from ingress", func() {
 			// Setup Ip Address first
 			controller.updateIngressStatus(&appGw, cbCtx, ingress, ips)
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(publicIP),
@@ -133,7 +134,7 @@ var _ = Describe("process function tests", func() {
 
 			// Reset should clear it
 			controller.ResetAllIngress(&appGw, cbCtx)
-			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(len(updatedIngress.Status.LoadBalancer.Ingress)).To(Equal(0))
 		})
 	})

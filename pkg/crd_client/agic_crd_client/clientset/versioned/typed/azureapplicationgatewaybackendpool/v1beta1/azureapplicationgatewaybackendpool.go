@@ -19,6 +19,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,14 +39,14 @@ type AzureApplicationGatewayBackendPoolsGetter interface {
 
 // AzureApplicationGatewayBackendPoolInterface has methods to work with AzureApplicationGatewayBackendPool resources.
 type AzureApplicationGatewayBackendPoolInterface interface {
-	Create(*v1beta1.AzureApplicationGatewayBackendPool) (*v1beta1.AzureApplicationGatewayBackendPool, error)
-	Update(*v1beta1.AzureApplicationGatewayBackendPool) (*v1beta1.AzureApplicationGatewayBackendPool, error)
-	Delete(name string, options *v1.DeleteOptions) error
-	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*v1beta1.AzureApplicationGatewayBackendPool, error)
-	List(opts v1.ListOptions) (*v1beta1.AzureApplicationGatewayBackendPoolList, error)
-	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error)
+	Create(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.CreateOptions) (*v1beta1.AzureApplicationGatewayBackendPool, error)
+	Update(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.UpdateOptions) (*v1beta1.AzureApplicationGatewayBackendPool, error)
+	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
+	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.AzureApplicationGatewayBackendPool, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.AzureApplicationGatewayBackendPoolList, error)
+	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error)
 	AzureApplicationGatewayBackendPoolExpansion
 }
 
@@ -62,19 +63,19 @@ func newAzureApplicationGatewayBackendPools(c *Azureapplicationgatewaybackendpoo
 }
 
 // Get takes name of the azureApplicationGatewayBackendPool, and returns the corresponding azureApplicationGatewayBackendPool object, and an error if there is any.
-func (c *azureApplicationGatewayBackendPools) Get(name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *azureApplicationGatewayBackendPools) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	result = &v1beta1.AzureApplicationGatewayBackendPool{}
 	err = c.client.Get().
 		Resource("azureapplicationgatewaybackendpools").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // List takes label and field selectors, and returns the list of AzureApplicationGatewayBackendPools that match those selectors.
-func (c *azureApplicationGatewayBackendPools) List(opts v1.ListOptions) (result *v1beta1.AzureApplicationGatewayBackendPoolList, err error) {
+func (c *azureApplicationGatewayBackendPools) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.AzureApplicationGatewayBackendPoolList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -84,13 +85,13 @@ func (c *azureApplicationGatewayBackendPools) List(opts v1.ListOptions) (result 
 		Resource("azureapplicationgatewaybackendpools").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Watch returns a watch.Interface that watches the requested azureApplicationGatewayBackendPools.
-func (c *azureApplicationGatewayBackendPools) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *azureApplicationGatewayBackendPools) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -100,66 +101,69 @@ func (c *azureApplicationGatewayBackendPools) Watch(opts v1.ListOptions) (watch.
 		Resource("azureapplicationgatewaybackendpools").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch()
+		Watch(ctx)
 }
 
 // Create takes the representation of a azureApplicationGatewayBackendPool and creates it.  Returns the server's representation of the azureApplicationGatewayBackendPool, and an error, if there is any.
-func (c *azureApplicationGatewayBackendPools) Create(azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *azureApplicationGatewayBackendPools) Create(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.CreateOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	result = &v1beta1.AzureApplicationGatewayBackendPool{}
 	err = c.client.Post().
 		Resource("azureapplicationgatewaybackendpools").
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(azureApplicationGatewayBackendPool).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Update takes the representation of a azureApplicationGatewayBackendPool and updates it. Returns the server's representation of the azureApplicationGatewayBackendPool, and an error, if there is any.
-func (c *azureApplicationGatewayBackendPools) Update(azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *azureApplicationGatewayBackendPools) Update(ctx context.Context, azureApplicationGatewayBackendPool *v1beta1.AzureApplicationGatewayBackendPool, opts v1.UpdateOptions) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	result = &v1beta1.AzureApplicationGatewayBackendPool{}
 	err = c.client.Put().
 		Resource("azureapplicationgatewaybackendpools").
 		Name(azureApplicationGatewayBackendPool.Name).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(azureApplicationGatewayBackendPool).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Delete takes name of the azureApplicationGatewayBackendPool and deletes it. Returns an error if one occurs.
-func (c *azureApplicationGatewayBackendPools) Delete(name string, options *v1.DeleteOptions) error {
+func (c *azureApplicationGatewayBackendPools) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Resource("azureapplicationgatewaybackendpools").
 		Name(name).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *azureApplicationGatewayBackendPools) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *azureApplicationGatewayBackendPools) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
-	if listOptions.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
+	if listOpts.TimeoutSeconds != nil {
+		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Resource("azureapplicationgatewaybackendpools").
-		VersionedParams(&listOptions, scheme.ParameterCodec).
+		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // Patch applies the patch and returns the patched azureApplicationGatewayBackendPool.
-func (c *azureApplicationGatewayBackendPools) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
+func (c *azureApplicationGatewayBackendPools) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.AzureApplicationGatewayBackendPool, err error) {
 	result = &v1beta1.AzureApplicationGatewayBackendPool{}
 	err = c.client.Patch(pt).
 		Resource("azureapplicationgatewaybackendpools").
-		SubResource(subresources...).
 		Name(name).
+		SubResource(subresources...).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(data).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }

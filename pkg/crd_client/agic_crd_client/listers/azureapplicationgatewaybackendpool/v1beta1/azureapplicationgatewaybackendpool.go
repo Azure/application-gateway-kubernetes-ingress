@@ -27,10 +27,13 @@ import (
 )
 
 // AzureApplicationGatewayBackendPoolLister helps list AzureApplicationGatewayBackendPools.
+// All objects returned here must be treated as read-only.
 type AzureApplicationGatewayBackendPoolLister interface {
 	// List lists all AzureApplicationGatewayBackendPools in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*v1beta1.AzureApplicationGatewayBackendPool, err error)
 	// Get retrieves the AzureApplicationGatewayBackendPool from the index for a given name.
+	// Objects returned here must be treated as read-only.
 	Get(name string) (*v1beta1.AzureApplicationGatewayBackendPool, error)
 	AzureApplicationGatewayBackendPoolListerExpansion
 }

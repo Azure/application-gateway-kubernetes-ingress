@@ -5,8 +5,8 @@ set -auexo pipefail
 # This script requres a checkout of https://github.com/kubernetes/code-generator in ../
 # For more information read https://blog.openshift.com/kubernetes-deep-dive-code-generation-customresources/
 
-echo -e "Cleanup previously generated code..."
-rm -rf pkg/client $(find ./pkg -name 'zz_*.go')
+# echo -e "Cleanup previously generated code..."
+# rm -rf pkg/client $(find ./pkg -name 'zz_*.go')
 
 echo -e "Generate CRD..."
 ../code-generator/generate-groups.sh \
@@ -16,9 +16,9 @@ echo -e "Generate CRD..."
     "azureapplicationgatewaybackendpool:v1beta1 azureingressprohibitedtarget:v1" \
     --go-header-file ../code-generator/hack/boilerplate.go.txt
 
-go get github.com/knative/pkg/apis/istio/v1alpha3
+# go get github.com/knative/pkg/apis/istio/v1alpha3
 
-go mod vendor
+# go mod vendor
 
 echo -e "Generate Istio CRDs..."
 ../code-generator/generate-groups.sh \
