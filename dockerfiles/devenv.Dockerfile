@@ -10,7 +10,7 @@ RUN tar -C /tmp/ -zxvf /tmp/helm-v2.13.1-linux-amd64.tar.gz \
     && helm init --client-only
 
 # install golang
-ENV GO_VERSION 1.12
+ENV GO_VERSION 1.13
 RUN wget -q https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && rm go${GO_VERSION}.linux-amd64.tar.gz
 
