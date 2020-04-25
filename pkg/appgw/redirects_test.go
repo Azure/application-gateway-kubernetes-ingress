@@ -71,7 +71,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 			ID:   to.StringPtr(cb.appGwIdentifier.redirectConfigurationID("sslr-" + listenerID2Name)),
 		}
 
-		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables, nil)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).ToNot(BeNil())
@@ -102,7 +102,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
-		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables, nil)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).To(BeNil())
@@ -130,7 +130,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		actualRedirects := cb.getRedirectConfigurations(&cbCtx)
 
 		// Run this to link the listeners and the redirect config
-		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables, nil)
+		actualListeners := cb.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 
 		It("test was setup correctly", func() {
 			Expect(ingress.Spec.TLS).ToNot(BeNil())

@@ -11,7 +11,6 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
-	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -111,12 +110,16 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 		return *c.mem.listenerConfigs
 	}
 
-	ingressWafPolicy := c.applyWafPolicyToListener(cbCtx)
+	if cbCtx.EnvVariables.AttachWAFPolicyToListener {
+		// logging to see if customer configures env.AttachWAFPolicyToListener or not
+		glog.V(5).Info("env.AttachWAFPolicyToListener is enabled")
+	}
+
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
 		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
-		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables, ingressWafPolicy)
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
 		}
@@ -141,32 +144,6 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 
 	c.mem.listenerConfigs = &allListeners
 	return allListeners
-}
-
-// applyWafPolicyToListener returns if we need to apply waf policy to a listener
-func (c *appGwConfigBuilder) applyWafPolicyToListener(cbCtx *ConfigBuilderContext) map[*v1beta1.Ingress]map[string]bool {
-	IngressApplyWafPolicytoListener := make(map[*v1beta1.Ingress]map[string]bool)
-	slash := "/"
-	slashStar := "/*"
-	for _, ingress := range cbCtx.IngressList {
-		// initialize
-		IngressApplyWafPolicytoListener[ingress] = map[string]bool{}
-
-		for ruleIdx := range ingress.Spec.Rules {
-			rule := &ingress.Spec.Rules[ruleIdx]
-			IngressApplyWafPolicytoListener[ingress][rule.Host] = true
-			for pathIdx := range rule.HTTP.Paths {
-				path := &rule.HTTP.Paths[pathIdx]
-				// if path is specified, apply waf policy to the pathRule, otherwise apply to listener, listener is per ingress host
-				if len(path.Path) != 0 && (path.Path != slash || path.Path != slashStar) {
-					IngressApplyWafPolicytoListener[ingress][rule.Host] = false
-					// go to next ingress if satisfied to apply waf policy to a listener
-					break
-				}
-			}
-		}
-	}
-	return IngressApplyWafPolicytoListener
 }
 
 func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, portsByNumber map[Port]n.ApplicationGatewayFrontendPort) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {

@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables, ingressWafPolicy map[*v1beta1.Ingress]map[string]bool) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
 	// if ingress has only backend configured
@@ -22,17 +22,24 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 		return listeners
 	}
 
+	// process ingress rules with TLS and Waf policy
+	policy, _ := annotations.WAFPolicy(ingress)
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
 		if rule.HTTP == nil {
 			continue
 		}
-
 		_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
 
+		applyToListener := false
+		if policy != "" {
+			applyToListener = c.applyToListener(rule)
+		}
+
 		for k, v := range ruleListeners {
-			if ingressWafPolicy != nil && ingressWafPolicy[ingress][rule.Host] {
-				c.processIngresswithWafPolicy(&v, ingress, env)
+			if applyToListener {
+				glog.V(3).Infof("Attach WAF policy: %s to listener: %s", policy, generateListenerName(k))
+				v.FirewallPolicy = policy
 			}
 			listeners[k] = v
 		}
@@ -41,16 +48,16 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	return listeners
 }
 
-func (c *appGwConfigBuilder) processIngresswithWafPolicy(azConfig *listenerAzConfig, ingress *v1beta1.Ingress, env environment.EnvVariables) {
-	policy, _ := annotations.WAFPolicy(ingress)
-	if policy != "" {
-		if env.AttachWAFPolicyToListener {
-			// logging to see if customer configures env.AttachWAFPolicyToListener or not
-			glog.V(5).Info("AttachWAFPolicyToListener is enabled")
+func (c *appGwConfigBuilder) applyToListener(rule *v1beta1.IngressRule) bool {
+	for pathIdx := range rule.HTTP.Paths {
+		path := &rule.HTTP.Paths[pathIdx]
+		// if path is specified, apply waf policy to the pathRule, otherwise apply to a listener, listener is per ingress host
+		if len(path.Path) != 0 && path.Path != "/" && path.Path != "/*" {
+			// apply to path rule instead of listener
+			return false
 		}
-		glog.V(5).Infof("Found WAF policy: %s in annotation", policy)
-		azConfig.FirewallPolicy = policy
 	}
+	return true
 }
 
 func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
