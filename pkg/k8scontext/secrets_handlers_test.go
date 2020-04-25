@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
@@ -26,29 +27,29 @@ import (
 
 var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 	var k8sClient kubernetes.Interface
-	var context *Context
+	var ctx *Context
 	var h handlers
 
 	ginkgo.BeforeEach(func() {
 		k8sClient = testclient.NewSimpleClientset()
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err = k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns1",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		context = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctx = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
-			context: context,
+			context: ctx,
 		}
 	})
 
@@ -56,7 +57,7 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 		ginkgo.It("add, delete, update secrets from cache for allowed namespace ns", func() {
 			secret := tests.NewSecretTestFixture()
 			secret.Namespace = "ns"
-			context.ingressSecretsMap.Insert("ingress", utils.GetResourceKey(secret.Namespace, secret.Name))
+			ctx.ingressSecretsMap.Insert("ingress", utils.GetResourceKey(secret.Namespace, secret.Name))
 
 			h.secretAdd(secret)
 			Expect(len(h.context.Work)).To(Equal(1))
@@ -69,7 +70,7 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 		ginkgo.It("should not add secrets for namespace ns1 not in the namespaces list", func() {
 			secret := tests.NewSecretTestFixture()
 			secret.Namespace = "ns1"
-			context.ingressSecretsMap.Insert("ingress", utils.GetResourceKey(secret.Namespace, secret.Name))
+			ctx.ingressSecretsMap.Insert("ingress", utils.GetResourceKey(secret.Namespace, secret.Name))
 
 			h.secretAdd(secret)
 			Expect(len(h.context.Work)).To(Equal(0))

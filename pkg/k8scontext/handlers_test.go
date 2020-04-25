@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
@@ -26,36 +27,36 @@ import (
 
 var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 	var k8sClient kubernetes.Interface
-	var context *Context
+	var ctx *Context
 	var h handlers
 
 	ginkgo.BeforeEach(func() {
 		k8sClient = testclient.NewSimpleClientset()
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		_, err = k8sClient.CoreV1().Namespaces().Create(&v1.Namespace{
+		_, err = k8sClient.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ns1",
 			},
-		})
+		}, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		context = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctx = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
-			context: context,
+			context: ctx,
 		}
 	})
 
 	ginkgo.Context("Test general handlers", func() {
 		ginkgo.It("add, delete, update pods from cache for allowed namespace ns", func() {
 			pod := tests.NewPodTestFixture("ns", "pod")
-			context.ingressSecretsMap.Insert("ns/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
+			ctx.ingressSecretsMap.Insert("ns/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
 
 			h.addFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(1))
@@ -67,7 +68,7 @@ var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 
 		ginkgo.It("should not add pods for namespace ns1 not in the namespaces list", func() {
 			pod := tests.NewPodTestFixture("ns1", "pod")
-			context.ingressSecretsMap.Insert("ns1/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
+			ctx.ingressSecretsMap.Insert("ns1/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
 
 			h.addFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(0))
