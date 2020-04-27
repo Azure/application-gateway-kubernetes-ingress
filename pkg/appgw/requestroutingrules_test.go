@@ -233,6 +233,84 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
+	Context("test waf policy is configured in rule path", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		secret := tests.NewSecretTestFixture()
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressFixture()
+		ingress.Annotations[annotations.FirewallPolicy] = "/sub/waf"
+
+		It("should have ingress with TLS and redirect", func() {
+			Expect(len(ingress.Spec.TLS) != 0).To(BeTrue())
+			Expect(len(ingress.Spec.TLS[0].SecretName) != 0).To(BeTrue())
+			Expect(ingress.Annotations[annotations.SslRedirectKey]).To(Equal("true"))
+		})
+
+		_ = configBuilder.k8sContext.Caches.Secret.Add(secret)
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+
+		// !! Action !! -- will mutate pathMap struct
+		pathMap := configBuilder.getPathMaps(cbCtx)
+
+		rule := &ingress.Spec.Rules[0]
+		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		It("has waf policy in pathRule", func() {
+			prs := pathMap[listenerID].ApplicationGatewayURLPathMapPropertiesFormat
+			for _, r := range *prs.PathRules {
+				Expect(r.FirewallPolicy.ID).To(Equal(to.StringPtr("/sub/waf")))
+			}
+		})
+	})
+
+	Context("test waf policy is not configured in rule path", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		secret := tests.NewSecretTestFixture()
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
+		ingress.Annotations[annotations.FirewallPolicy] = "/sub/waf"
+
+		_ = configBuilder.k8sContext.Caches.Secret.Add(secret)
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+
+		// !! Action !! -- will mutate pathMap struct
+		pathMap := configBuilder.getPathMaps(cbCtx)
+
+		rule := &ingress.Spec.Rules[0]
+		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		It("has no waf policy in pathRule", func() {
+			prs := pathMap[listenerID].ApplicationGatewayURLPathMapPropertiesFormat
+			Expect(prs.PathRules).To(BeNil())
+		})
+	})
+
 	Context("test ssl redirect is configured correctly when a basic rule is created", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		secret := tests.NewSecretTestFixture()
