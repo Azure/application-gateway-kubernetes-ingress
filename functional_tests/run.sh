@@ -2,4 +2,4 @@
 
 set -auexo pipefail
 
-go test -v $(go list ./... | grep 'application-gateway'); echo $?
+go test -v -tags unittest $(go list ./... | grep 'application-gateway'); echo $?

@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -192,12 +193,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		// Create the mock K8s client.
 		k8sClient := testclient.NewSimpleClientset()
-		_, _ = k8sClient.CoreV1().Namespaces().Create(ns)
-		_, _ = k8sClient.CoreV1().Nodes().Create(node)
-		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
-		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(service)
-		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
-		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+		ctx := context.TODO()
+		options := metav1.CreateOptions{}
+		_, _ = k8sClient.CoreV1().Namespaces().Create(ctx, ns, options)
+		_, _ = k8sClient.CoreV1().Nodes().Create(ctx, node, options)
+		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ctx, ingress, options)
+		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(ctx, service, options)
+		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(ctx, endpoints, options)
+		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(ctx, pod, options)
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()

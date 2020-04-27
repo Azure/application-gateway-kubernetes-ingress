@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"sort"
 	"strconv"
@@ -28,7 +29,7 @@ import (
 func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) error {
 	var nonExistent []string
 	for _, ns := range namespaces {
-		if _, err := kubeClient.CoreV1().Namespaces().Get(ns, metav1.GetOptions{}); err != nil {
+		if _, err := kubeClient.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{}); err != nil {
 			nonExistent = append(nonExistent, ns)
 		}
 	}

@@ -35,6 +35,8 @@ const (
 	URLPath1                = "/api1"
 	URLPath2                = "/api2"
 	URLPath3                = "/api3"
+	URLPath4                = "/"
+	URLPath5                = "/*"
 	HealthPath              = "/healthz"
 	ContainerName           = "--container-name--"
 	ContainerPort           = int32(9876)
@@ -163,6 +165,44 @@ func NewIngressFixture() *v1beta1.Ingress {
 			Rules: []v1beta1.IngressRule{
 				NewIngressRuleFixture(Host, URLPath1, *be80),
 				NewIngressRuleFixture(Host, URLPath2, *be443),
+			},
+			TLS: []v1beta1.IngressTLS{
+				{
+					Hosts: []string{
+						"www.contoso.com",
+						"ftp.contoso.com",
+						Host,
+						"",
+					},
+					SecretName: NameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: NameOfSecret,
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.SslRedirectKey:  "true",
+			},
+			Namespace: Namespace,
+			Name:      Name,
+		},
+	}
+}
+
+// NewIngressFixtureSingleSlashPath makes a new Ingress with "/" and "/*" as ingress rule path for testing
+func NewIngressFixtureSingleSlashPath() *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(ServiceName, 80)
+	be443 := NewIngressBackendFixture(ServiceName, 443)
+
+	return &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				NewIngressRuleFixture(Host, URLPath4, *be80),
+				NewIngressRuleFixture(Host, URLPath5, *be443),
 			},
 			TLS: []v1beta1.IngressTLS{
 				{

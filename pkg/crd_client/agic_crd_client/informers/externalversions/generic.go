@@ -24,7 +24,8 @@ import (
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 
-	azureingressprohibitedtargetv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
 // GenericInformer is type of SharedIndexInformer which will locate and delegate to other
@@ -53,8 +54,12 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
-	case azureingressprohibitedtargetv1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
+	// Group=azureapplicationgatewaybackendpools.appgw.ingress.azure.io, Version=v1beta1
+	case v1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewaybackendpools"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer()}, nil
+
+		// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
+	case v1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer()}, nil
 
 	}
