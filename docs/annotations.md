@@ -183,8 +183,8 @@ versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
 az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId
 ```
-To use PowerShell, please refer to [Configure Key Vault - PowerShell](https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps).
 
+To use PowerShell, please refer to [Configure Key Vault - PowerShell](https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps).
 
 ### Usage
 
