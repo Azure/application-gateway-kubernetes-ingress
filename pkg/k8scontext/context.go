@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -192,7 +193,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 // GetAGICPod returns the pod with specified name and namespace
 func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
-	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(envVariables.AGICPodName, metav1.GetOptions{})
+	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(context.TODO(), envVariables.AGICPodName, metav1.GetOptions{})
 	if err != nil {
 		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: ", err)
 		return nil
@@ -202,7 +203,7 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 
 // GetBackendPool returns backend pool with specified name
 func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApplicationGatewayBackendPool {
-	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(backendPoolName, metav1.GetOptions{})
+	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
 	if err != nil {
 		glog.Error("Error fetching Azure application gateway backend pool resource, Error: ", err)
 		return nil
@@ -212,7 +213,7 @@ func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApp
 
 // GetProhibitedTarget returns prohibited target with specified name and namespace
 func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
-	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(targetName, metav1.GetOptions{})
+	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
 	if err != nil {
 		glog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
 		return nil
@@ -453,7 +454,7 @@ func (c *Context) GetGateways() []*v1alpha3.Gateway {
 // GetInfrastructureResourceGroupID returns the subscription and resource group name of the underling infrastructure.
 // This uses ProviderID which is ID of the node assigned by the cloud provider in the format: <ProviderName>://<ProviderSpecificNodeID>
 func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azure.ResourceGroup, error) {
-	nodes, err := c.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := c.kubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerError(
 			controllererrors.ErrorFetchingNodes,
@@ -486,7 +487,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPAddress) error {
 	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
-	ingress, err := ingressClient.Get(ingressToUpdate.Name, metav1.GetOptions{})
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorUpdatingIngressStatus,
@@ -513,7 +514,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 	}
 	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
 
-	if _, err := ingressClient.UpdateStatus(ingress); err != nil {
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorUpdatingIngressStatus,
 			err,

@@ -19,6 +19,7 @@ limitations under the License.
 package v1alpha3
 
 import (
+	"context"
 	time "time"
 
 	istiov1alpha3 "github.com/knative/pkg/apis/istio/v1alpha3"
@@ -62,13 +63,13 @@ func NewFilteredVirtualServiceInformer(client versioned.Interface, namespace str
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().VirtualServices(namespace).List(options)
+				return client.NetworkingV1alpha3().VirtualServices(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.NetworkingV1alpha3().VirtualServices(namespace).Watch(options)
+				return client.NetworkingV1alpha3().VirtualServices(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&istiov1alpha3.VirtualService{},

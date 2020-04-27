@@ -6,6 +6,7 @@
 package k8scontext
 
 import (
+	"context"
 	"flag"
 	"reflect"
 	"time"
@@ -84,11 +85,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istioFake.NewSimpleClientset()
 
-		_, err := k8sClient.CoreV1().Namespaces().Create(ns)
+		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
 		// create ingress in namespace
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ingress)
+		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
@@ -104,7 +105,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 	ginkgo.Context("Checking if we are able to listen to Ingress Resources", func() {
 		ginkgo.It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unabled to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -127,11 +128,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		ginkgo.It("Should be able to follow modifications to the Ingress Resource.", func() {
 			ingress.Spec.Rules[0].Host = "hellow-1.com"
 
-			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(ingress)
+			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -153,11 +154,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 
 		ginkgo.It("Should be able to follow deletion of the Ingress Resource.", func() {
-			err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Delete(ingressName, nil)
+			err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Delete(context.TODO(), ingressName, metav1.DeleteOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to delete ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(0), "Expected to have no ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -184,11 +185,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
 			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(nonAppGWIngress)
+			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), nonAppGWIngress, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(metav1.ListOptions{})
+			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(2), "Expected to have 2 ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -210,7 +211,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 
 		ginkgo.It("Should be able to follow add of the Pod Resource.", func() {
-			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			podObj1 := tests.NewPodTestFixture(ingressNS, "pod2")
@@ -220,11 +221,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 				"app":   "pod2",
 				"extra": "random",
 			}
-			_, err = k8sClient.CoreV1().Pods(ingressNS).Create(pod1)
+			_, err = k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod1, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// Retrieve the Pods to make sure it was updated.
-			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(metav1.ListOptions{})
+			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(podList).ToNot(BeNil())
 			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
 
@@ -289,14 +290,14 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			Expect(runErr).ToNot(HaveOccurred())
 
 			// create a POD with labels
-			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
-			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
@@ -318,14 +319,14 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			pod.Labels = map[string]string{
 				"random": "random",
 			}
-			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(pod)
+			_, err := k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create pod resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
-			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
@@ -349,14 +350,14 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			endpoints.Namespace = ingressNS
 
 			// create a POD with labels
-			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(context.TODO(), endpoints, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
-			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
@@ -379,14 +380,14 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			endpoints.Namespace = ingressNS
 
 			// create a POD with labels
-			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(endpoints)
+			_, err := k8sClient.CoreV1().Endpoints(ingressNS).Create(context.TODO(), endpoints, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create endpoints resource due to: %v", err)
 
 			// create a service with label
 			servicePort := tests.NewServicePortsFixture()
 			service := tests.NewServiceFixture(*servicePort...)
 			service.Namespace = ingressNS
-			_, err = k8sClient.CoreV1().Services(ingressNS).Create(service)
+			_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create service resource due to: %v", err)
 
 			// wait for sync
@@ -406,7 +407,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// add test
 			err := ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
@@ -421,7 +422,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// add again
 			err = ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),

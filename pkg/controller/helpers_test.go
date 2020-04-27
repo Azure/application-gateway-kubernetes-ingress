@@ -83,9 +83,9 @@ var _ = Describe("test helpers", func() {
 			appGw := &n.ApplicationGateway{
 				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{
 					RedirectConfigurations: &[]n.ApplicationGatewayRedirectConfiguration{
-						n.ApplicationGatewayRedirectConfiguration{
+						{
 							ApplicationGatewayRedirectConfigurationPropertiesFormat: &n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
-								RequestRoutingRules: &[]n.SubResource{n.SubResource{ID: to.StringPtr("id")}},
+								RequestRoutingRules: &[]n.SubResource{{ID: to.StringPtr("id")}},
 							},
 						},
 					},
