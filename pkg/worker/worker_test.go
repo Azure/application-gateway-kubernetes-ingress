@@ -60,7 +60,7 @@ var _ = Describe("Worker Test", func() {
 		})
 	})
 
-	Context("Check that worker processes the event coming from ingress with only backend defined", func() {
+	Context("Check that worker processes the event coming from pod status change", func() {
 		It("Should be able to run process func", func() {
 			backChannel := make(chan struct{})
 			processEvent := func(event events.Event) error {

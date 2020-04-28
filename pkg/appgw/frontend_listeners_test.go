@@ -585,7 +585,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			Expect(*listeners).To(ContainElement(expectedListener80))
 		})
 
-		It("should create listener with waf policy attached when single service ingress is presented", func() {
+		It("should create listener with waf policy attached when ingress defined without rules", func() {
 			wafPolicyID := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/testwafpolicy3"
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
