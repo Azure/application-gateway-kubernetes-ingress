@@ -231,6 +231,23 @@ func NewIngressFixtureSingleSlashPath() *v1beta1.Ingress {
 	}
 }
 
+// NewSingleServiceIngressFixture defines single service ingress with only backend spec
+func NewSingleServiceIngressFixture() *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(ServiceName, 80)
+	return &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Backend: be80,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+			},
+			Namespace: Namespace,
+			Name:      Name,
+		},
+	}
+}
+
 // NewServicePortsFixture makes a new service port for testing
 func NewServicePortsFixture() *[]v1.ServicePort {
 	httpPort := v1.ServicePort{

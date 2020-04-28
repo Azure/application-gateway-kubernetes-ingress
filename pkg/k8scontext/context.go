@@ -574,12 +574,19 @@ func (c *Context) listServicesByPodSelector(pod *v1.Pod) []*v1.Service {
 
 func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 	for _, ingress := range c.ListHTTPIngresses() {
-		for _, rule := range ingress.Spec.Rules {
-			for _, path := range rule.HTTP.Paths {
-				// TODO(akshaysngupta) Use service ports
-				if path.Backend.ServiceName == service.Name {
-					return true
+		if len(ingress.Spec.Rules) > 0 {
+			for _, rule := range ingress.Spec.Rules {
+				for _, path := range rule.HTTP.Paths {
+					// TODO(akshaysngupta) Use service ports
+					if path.Backend.ServiceName == service.Name {
+						return true
+					}
 				}
+			}
+		} else {
+			// single service ingress without rules
+			if ingress.Spec.Backend != nil && ingress.Spec.Backend.ServiceName == service.Name {
+				return true
 			}
 		}
 	}

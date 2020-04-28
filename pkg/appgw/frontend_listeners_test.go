@@ -584,5 +584,40 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			expectedListener80.FirewallPolicy = resourceRef(wafPolicyID)
 			Expect(*listeners).To(ContainElement(expectedListener80))
 		})
+
+		It("should create listener with waf policy attached when single service ingress is presented", func() {
+			wafPolicyID := "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/testwafpolicy3"
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			// ingress with single service ingress without rules
+			ing := tests.NewSingleServiceIngressFixture()
+			ing.Annotations[annotations.FirewallPolicy] = wafPolicyID
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ing,
+				},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			listeners, _ := cb.getListeners(cbCtx)
+			_, listenerID80NameWithoutHost := newTestListenerID(Port(80), []string{}, false)
+			expectedListener80WithoutHost := n.ApplicationGatewayHTTPListener{
+				Etag: to.StringPtr("*"),
+				Name: to.StringPtr(listenerID80NameWithoutHost),
+				ID:   to.StringPtr(resPref + "httpListeners/" + listenerID80NameWithoutHost),
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
+					FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
+					Protocol:                    n.ApplicationGatewayProtocol("Http"),
+					HostName:                    nil,
+					RequireServerNameIndication: to.BoolPtr(false),
+					Hostnames:                   &[]string{},
+					FirewallPolicy:              resourceRef(wafPolicyID),
+				},
+			}
+			Expect(*listeners).To(ContainElement(expectedListener80WithoutHost))
+		})
 	})
 })

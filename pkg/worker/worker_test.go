@@ -60,6 +60,38 @@ var _ = Describe("Worker Test", func() {
 		})
 	})
 
+	Context("Check that worker processes the event coming from ingress with only backend defined", func() {
+		It("Should be able to run process func", func() {
+			backChannel := make(chan struct{})
+			processEvent := func(event events.Event) error {
+				backChannel <- struct{}{}
+				return nil
+			}
+			eventProcessor := NewFakeProcessor(processEvent)
+			worker := Worker{
+				EventProcessor: eventProcessor,
+			}
+			go worker.Run(work, stopChannel)
+
+			pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+			work <- events.Event{
+				Type:  events.Create,
+				Value: pod,
+			}
+
+			processCalled := false
+			select {
+			case <-backChannel:
+				processCalled = true
+				break
+			case <-time.After(1 * time.Second):
+				processCalled = false
+			}
+
+			Expect(processCalled).To(Equal(true), "Worker was not able to call process function within timeout")
+		})
+	})
+
 	Context("Verify that drainChan works", func() {
 		It("Should drain the channel and return the last element", func() {
 			buffSize := 10
