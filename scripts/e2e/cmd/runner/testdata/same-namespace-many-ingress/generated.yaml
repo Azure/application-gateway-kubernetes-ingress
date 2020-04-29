@@ -1,0 +1,4610 @@
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+data:
+  tls.crt: QmFnIEF0dHJpYnV0ZXMKICAgIGxvY2FsS2V5SUQ6IDAxIDAwIDAwIDAwIAogICAgMS4zLjYuMS40LjEuMzExLjE3LjMuNzE6IDREIDAwIDQ5IDAwIDRFIDAwIDQ5IDAwIDRFIDAwIDU0IDAwIDJEIDAwIDQ4IDAwIDU0IDAwIDUyIDAwIDM2IDAwIDU2IDAwIDU0IDAwIDM2IDAwIDJFIDAwIDZFIDAwIDZGIDAwIDcyIDAwIDc0IDAwIDY4IDAwIDYxIDAwIDZEIDAwIDY1IDAwIDcyIDAwIDY5IDAwIDYzIDAwIDYxIDAwIDJFIDAwIDYzIDAwIDZGIDAwIDcyIDAwIDcwIDAwIDJFIDAwIDZEIDAwIDY5IDAwIDYzIDAwIDcyIDAwIDZGIDAwIDczIDAwIDZGIDAwIDY2IDAwIDc0IDAwIDJFIDAwIDYzIDAwIDZGIDAwIDZEIDAwIDAwIDAwIApzdWJqZWN0PS9DTj13cy5taXMubGkKaXNzdWVyPS9DTj13cy5taXMubGkKLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURHRENDQWdDZ0F3SUJBZ0lRTW5jcWFhK2ovNmREVjl5TFFOWExWVEFOQmdrcWhraUc5dzBCQVFzRkFEQVUKTVJJd0VBWURWUVFEREFsM2N5NXRhWE11Ykdrd0hoY05NVGt3TlRFNE1ETTBOekEyV2hjTk1qQXdOVEU0TURRdwpOekEyV2pBVU1SSXdFQVlEVlFRRERBbDNjeTV0YVhNdWJHa3dnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCCkR3QXdnZ0VLQW9JQkFRQ2xXVGNIU1gwWkQ3eHBsdFpkNDh4QXJZQ1NkMUZiVjF4L3BNVHJMT2RIQ0NSRnVKRnkKM2xoZVV3OGdXQjRSL3hiUE9IdURkNlUwMzA3UWxqUzdvWnJBOGIzbGhDakgwYnVVY1MwMUZyMmxyaUp2QVA4TQpIQys4SytZODRhZzYwcnNnblNRTVA1ZDBYU1RQWXQ3SHk2eldsUWNNU2U2bFh1aDIwdmUyaWk2RDdaZWhVMkF1CmZtWmJNSWFxeU9LREd5YzBGb25iM1RQNVdXdnJqV1p3aEVUeVVxdFZ4LzZ6QURDemxMc1lDZmZZVE1SL2t6WVAKYldIMDh3WWYwVk5hM1ZrVWpHeW9EbEFzQ1pzMHdwc0E5d3hydE9NTElYNFF0MW1rdFcxTGpzNlhOREcvVTBNOQp2RkZQUUlpY0tWc2tkcTFVd1Z1YW16bXJ0cXh4RlVlR0VWeXhBZ01CQUFHalpqQmtNQTRHQTFVZER3RUIvd1FFCkF3SUZvREFkQmdOVkhTVUVGakFVQmdnckJnRUZCUWNEQWdZSUt3WUJCUVVIQXdFd0ZBWURWUjBSQkEwd0M0SUoKZDNNdWJXbHpMbXhwTUIwR0ExVWREZ1FXQkJRTERrWXQ2SEJlYjVIczhwL0ZnakpScDliR3FEQU5CZ2txaGtpRwo5dzBCQVFzRkFBT0NBUUVBbGYyVjJPZWZCMTZwR1lEMFR6RTNzZG8yV1UwWE03cncrRGp5aE94NTM4NGdIVGU0CjliMThkaTM2eFFsMkJZdTdZQlFoK3pmU05DbUFJbkhZc3dOUDF3U1FxV1daT2Q1eS96YVRJZkJ0MTArQkFSUXQKWlN3eDgrN3RnemxLYlp4R3hBRUhtUXN1WUVoaGRVWWtZNlNuc2lMQzU0aUsxR2ZyMFdLZHNtQVRKNkVaVVZXZAoxaHVNWVBnL3g1QmU2dWIyMk9jOFk5WXF2NGIrbGx3OFV3OWYzZWZyRVRsdU4xVGhQMHBvUDFEZ0VKY3pocFpPCkxhZGtSUmxnOWd4NHhEYURVSXdvcEhFZnNOT3ErN2pKWTlWVlhHakpaWVg1SmJBNG1GVkJSUWpXWkRBSTF4dlIKUjJaNExkNWZWOHZScHlsdUQ2U25JcDFxeUNka3ZzanFCdEJ5OVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: QmFnIEF0dHJpYnV0ZXMKICAgIE1pY3Jvc29mdCBMb2NhbCBLZXkgc2V0OiA8Tm8gVmFsdWVzPgogICAgbG9jYWxLZXlJRDogMDEgMDAgMDAgMDAgCiAgICBmcmllbmRseU5hbWU6IHRlLTgzMDkwZjk3LWIzOWItNDFmMC05YmYyLTkzNTM0MjhlODdlYQogICAgTWljcm9zb2Z0IENTUCBOYW1lOiBNaWNyb3NvZnQgU29mdHdhcmUgS2V5IFN0b3JhZ2UgUHJvdmlkZXIKS2V5IEF0dHJpYnV0ZXMKICAgIFg1MDl2MyBLZXkgVXNhZ2U6IDkwIAotLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS0KTUlJRXZRSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2N3Z2dTakFnRUFBb0lCQVFDbFdUY0hTWDBaRDd4cApsdFpkNDh4QXJZQ1NkMUZiVjF4L3BNVHJMT2RIQ0NSRnVKRnkzbGhlVXc4Z1dCNFIveGJQT0h1RGQ2VTAzMDdRCmxqUzdvWnJBOGIzbGhDakgwYnVVY1MwMUZyMmxyaUp2QVA4TUhDKzhLK1k4NGFnNjByc2duU1FNUDVkMFhTVFAKWXQ3SHk2eldsUWNNU2U2bFh1aDIwdmUyaWk2RDdaZWhVMkF1Zm1aYk1JYXF5T0tER3ljMEZvbmIzVFA1V1d2cgpqV1p3aEVUeVVxdFZ4LzZ6QURDemxMc1lDZmZZVE1SL2t6WVBiV0gwOHdZZjBWTmEzVmtVakd5b0RsQXNDWnMwCndwc0E5d3hydE9NTElYNFF0MW1rdFcxTGpzNlhOREcvVTBNOXZGRlBRSWljS1Zza2RxMVV3VnVhbXptcnRxeHgKRlVlR0VWeXhBZ01CQUFFQ2dnRUJBSmxFdW9LUnQxa2N3Z3lxV2lrTCtKQlhnOS9BcEhSajVZVVlhY1NKaWhUSQowajZpbUloKzNERUxFdkZyWE94WHBZQU9Ia2UrQnpDY2NvVmRScUpLYVpYQ1A4RlpvU2VnSFIyN1R5bHYyL21SCkViQU5uMTFOWDE0dzN5bStEdC8vNkorUnFoR0VmTkxMYUV5b25GTmRVK2hRbWdqbEcwYkZVL3laRUM5dnBUQjUKOWU5WFl2elBHZDdLQjByK0dMWC9FalpUSURJZDB3SlJrZTB3UURqK284V3NMZTR1cTRKdkU5UWVmNEswVnEyNQpCSjFtKzcrWWxqTGlHaUNuRERMc2pRNGl6K2Q2c2xGc3p0eEc0SDVQbHhjcFFYTlRncVUyd1ZrYjNoNnpsUHN4CkthRE9Odms4NU5kdlU2QlJiaGJjTVI4cHhtUXM5K1BTU05NWHlLMWRXOVVDZ1lFQXpwWnI0UzAyUEpiSVpBcmkKU1F2Zm9pUU5KN1QycjlNNzNFc0FsM0t0a0laTHZFYTRvZjZJNXVYZGVOUmtGMkMvSk5kcCtsUEZpbDAwdk5TbQoyWHlUTFVERXdUL1k0WEJ1L2U2ZUVjVFYzUXFsS1FvRHMxQXgrOFdkQ2llMWd2WHR4dVVtRmVxcUwvWi9PM1dPCis0cHZ1eHpDT0hyd3I4MEpBSHRjUGtkY2xpY0NnWUVBek9XdUhLS21pdWtEeHV3ZWJia3hJSVNIV3pvcjJHemcKSTl1V21hMnQ3U0VZMlhibWZ0YWhrQW5iaVBpYjJxc1BDazhNU2wvYi9PR0kwbzBEbkVKbmUvcmpFc3crYU10eApyNm51eTR6L1FwdmtlWitxbDZMNmpJYWgvZ1JidjB0Vk9ONlJkSzNscEYrRWwrV24yajRGTmNYWnpYQjhjdmVoCkRtcGtCdDRhVldjQ2dZQTVEaW8xUW50Y09IaVh5TG0rV3Qwa3RyZzdZeXRPWEJTSVB0Nm05VEVpWFRURmh2S3YKS3RFOGsvZWF5MjNwVnZyemZkcnpHL2ZPd3ZjeHY3bGxENWJHUk1FU2JrUEQzMzJIL0VNRHZVMGpnekVpS0hYbApMQnpoNEM0REEveUpjc3A4eUFUQXdOTEg5RmduWDh4aGhGWmZZdzN3ODJOTjZsNjJGMXZlaDI3MnVRS0JnRXkxCkE4eldtNURQa1Vsc1ppdmZzK09mbWVqdVN6SFgrTVdUMUxxdHlicEh0THpkQlllZ3BKVi9DMEFwQ25mL3FEN00KdnlZczR2ZTJHM252cnRWV0N0WGdaQmhLZkdiUkd6dVBXOFc2Z0dtWVlSMmpSOE5ERVplQVk2N3NSTWpGMUI3WgpQQTA1ZVFwamRBbEZ3ZVF6YWRIcXd4SmxOVUg1TU1OcjB3eTdJNUtyQW9HQVZVVDFmSVA5SWs5NGp6YkU5bU96CkRaRWRqTFVReHUxZ3A4ZTExOVdtWVZ6SkRpaVN3dXdvY3ViUEVFaE1YOFJSN1dHRkhXUzdEVUx3RlU5TWQxL08KQ1dkTmZiNjJpZ2FiOGh1NUtOb1BhVWVUMVIrWnQ4azdDbGpDRUR3bnNKbzROT05JMHBIU1RFRVVPSUREZ1JhMApjam9OUUlDUXI5NlZ3V29PVFJjbTRRND0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=
+kind: Secret
+metadata:
+  name: testsecret-tls
+type: kubernetes.io/tls
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-1
+spec:
+  selector:
+    app: app-1
+  ports:
+  - name: pp-1
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-2
+spec:
+  selector:
+    app: app-2
+  ports:
+  - name: pp-2
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-3
+spec:
+  selector:
+    app: app-3
+  ports:
+  - name: pp-3
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-4
+spec:
+  selector:
+    app: app-4
+  ports:
+  - name: pp-4
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-5
+spec:
+  selector:
+    app: app-5
+  ports:
+  - name: pp-5
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-6
+spec:
+  selector:
+    app: app-6
+  ports:
+  - name: pp-6
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-7
+spec:
+  selector:
+    app: app-7
+  ports:
+  - name: pp-7
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-8
+spec:
+  selector:
+    app: app-8
+  ports:
+  - name: pp-8
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-9
+spec:
+  selector:
+    app: app-9
+  ports:
+  - name: pp-9
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-10
+spec:
+  selector:
+    app: app-10
+  ports:
+  - name: pp-10
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-11
+spec:
+  selector:
+    app: app-11
+  ports:
+  - name: pp-11
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-12
+spec:
+  selector:
+    app: app-12
+  ports:
+  - name: pp-12
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-13
+spec:
+  selector:
+    app: app-13
+  ports:
+  - name: pp-13
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-14
+spec:
+  selector:
+    app: app-14
+  ports:
+  - name: pp-14
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-15
+spec:
+  selector:
+    app: app-15
+  ports:
+  - name: pp-15
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-16
+spec:
+  selector:
+    app: app-16
+  ports:
+  - name: pp-16
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-17
+spec:
+  selector:
+    app: app-17
+  ports:
+  - name: pp-17
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-18
+spec:
+  selector:
+    app: app-18
+  ports:
+  - name: pp-18
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-19
+spec:
+  selector:
+    app: app-19
+  ports:
+  - name: pp-19
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-20
+spec:
+  selector:
+    app: app-20
+  ports:
+  - name: pp-20
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-21
+spec:
+  selector:
+    app: app-21
+  ports:
+  - name: pp-21
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-22
+spec:
+  selector:
+    app: app-22
+  ports:
+  - name: pp-22
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-23
+spec:
+  selector:
+    app: app-23
+  ports:
+  - name: pp-23
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-24
+spec:
+  selector:
+    app: app-24
+  ports:
+  - name: pp-24
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-25
+spec:
+  selector:
+    app: app-25
+  ports:
+  - name: pp-25
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-26
+spec:
+  selector:
+    app: app-26
+  ports:
+  - name: pp-26
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-27
+spec:
+  selector:
+    app: app-27
+  ports:
+  - name: pp-27
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-28
+spec:
+  selector:
+    app: app-28
+  ports:
+  - name: pp-28
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-29
+spec:
+  selector:
+    app: app-29
+  ports:
+  - name: pp-29
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-30
+spec:
+  selector:
+    app: app-30
+  ports:
+  - name: pp-30
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-31
+spec:
+  selector:
+    app: app-31
+  ports:
+  - name: pp-31
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-32
+spec:
+  selector:
+    app: app-32
+  ports:
+  - name: pp-32
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-33
+spec:
+  selector:
+    app: app-33
+  ports:
+  - name: pp-33
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-34
+spec:
+  selector:
+    app: app-34
+  ports:
+  - name: pp-34
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-35
+spec:
+  selector:
+    app: app-35
+  ports:
+  - name: pp-35
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-36
+spec:
+  selector:
+    app: app-36
+  ports:
+  - name: pp-36
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-37
+spec:
+  selector:
+    app: app-37
+  ports:
+  - name: pp-37
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-38
+spec:
+  selector:
+    app: app-38
+  ports:
+  - name: pp-38
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-39
+spec:
+  selector:
+    app: app-39
+  ports:
+  - name: pp-39
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-40
+spec:
+  selector:
+    app: app-40
+  ports:
+  - name: pp-40
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-41
+spec:
+  selector:
+    app: app-41
+  ports:
+  - name: pp-41
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-42
+spec:
+  selector:
+    app: app-42
+  ports:
+  - name: pp-42
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-43
+spec:
+  selector:
+    app: app-43
+  ports:
+  - name: pp-43
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-44
+spec:
+  selector:
+    app: app-44
+  ports:
+  - name: pp-44
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-45
+spec:
+  selector:
+    app: app-45
+  ports:
+  - name: pp-45
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-46
+spec:
+  selector:
+    app: app-46
+  ports:
+  - name: pp-46
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-47
+spec:
+  selector:
+    app: app-47
+  ports:
+  - name: pp-47
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-48
+spec:
+  selector:
+    app: app-48
+  ports:
+  - name: pp-48
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-49
+spec:
+  selector:
+    app: app-49
+  ports:
+  - name: pp-49
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-50
+spec:
+  selector:
+    app: app-50
+  ports:
+  - name: pp-50
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-1
+spec:
+  selector:
+    matchLabels:
+      app: app-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-1
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-2
+spec:
+  selector:
+    matchLabels:
+      app: app-2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-2
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-3
+spec:
+  selector:
+    matchLabels:
+      app: app-3
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-3
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-4
+spec:
+  selector:
+    matchLabels:
+      app: app-4
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-4
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-5
+spec:
+  selector:
+    matchLabels:
+      app: app-5
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-5
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-6
+spec:
+  selector:
+    matchLabels:
+      app: app-6
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-6
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-7
+spec:
+  selector:
+    matchLabels:
+      app: app-7
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-7
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-8
+spec:
+  selector:
+    matchLabels:
+      app: app-8
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-8
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-9
+spec:
+  selector:
+    matchLabels:
+      app: app-9
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-9
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-10
+spec:
+  selector:
+    matchLabels:
+      app: app-10
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-10
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-11
+spec:
+  selector:
+    matchLabels:
+      app: app-11
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-11
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-12
+spec:
+  selector:
+    matchLabels:
+      app: app-12
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-12
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-13
+spec:
+  selector:
+    matchLabels:
+      app: app-13
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-13
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-14
+spec:
+  selector:
+    matchLabels:
+      app: app-14
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-14
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-15
+spec:
+  selector:
+    matchLabels:
+      app: app-15
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-15
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-16
+spec:
+  selector:
+    matchLabels:
+      app: app-16
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-16
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-17
+spec:
+  selector:
+    matchLabels:
+      app: app-17
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-17
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-18
+spec:
+  selector:
+    matchLabels:
+      app: app-18
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-18
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-19
+spec:
+  selector:
+    matchLabels:
+      app: app-19
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-19
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-20
+spec:
+  selector:
+    matchLabels:
+      app: app-20
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-20
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-21
+spec:
+  selector:
+    matchLabels:
+      app: app-21
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-21
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-22
+spec:
+  selector:
+    matchLabels:
+      app: app-22
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-22
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-23
+spec:
+  selector:
+    matchLabels:
+      app: app-23
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-23
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-24
+spec:
+  selector:
+    matchLabels:
+      app: app-24
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-24
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-25
+spec:
+  selector:
+    matchLabels:
+      app: app-25
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-25
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-26
+spec:
+  selector:
+    matchLabels:
+      app: app-26
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-26
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-27
+spec:
+  selector:
+    matchLabels:
+      app: app-27
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-27
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-28
+spec:
+  selector:
+    matchLabels:
+      app: app-28
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-28
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-29
+spec:
+  selector:
+    matchLabels:
+      app: app-29
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-29
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-30
+spec:
+  selector:
+    matchLabels:
+      app: app-30
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-30
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-31
+spec:
+  selector:
+    matchLabels:
+      app: app-31
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-31
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-32
+spec:
+  selector:
+    matchLabels:
+      app: app-32
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-32
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-33
+spec:
+  selector:
+    matchLabels:
+      app: app-33
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-33
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-34
+spec:
+  selector:
+    matchLabels:
+      app: app-34
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-34
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-35
+spec:
+  selector:
+    matchLabels:
+      app: app-35
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-35
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-36
+spec:
+  selector:
+    matchLabels:
+      app: app-36
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-36
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-37
+spec:
+  selector:
+    matchLabels:
+      app: app-37
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-37
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-38
+spec:
+  selector:
+    matchLabels:
+      app: app-38
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-38
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-39
+spec:
+  selector:
+    matchLabels:
+      app: app-39
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-39
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-40
+spec:
+  selector:
+    matchLabels:
+      app: app-40
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-40
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-41
+spec:
+  selector:
+    matchLabels:
+      app: app-41
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-41
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-42
+spec:
+  selector:
+    matchLabels:
+      app: app-42
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-42
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-43
+spec:
+  selector:
+    matchLabels:
+      app: app-43
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-43
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-44
+spec:
+  selector:
+    matchLabels:
+      app: app-44
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-44
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-45
+spec:
+  selector:
+    matchLabels:
+      app: app-45
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-45
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-46
+spec:
+  selector:
+    matchLabels:
+      app: app-46
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-46
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-47
+spec:
+  selector:
+    matchLabels:
+      app: app-47
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-47
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-48
+spec:
+  selector:
+    matchLabels:
+      app: app-48
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-48
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-49
+spec:
+  selector:
+    matchLabels:
+      app: app-49
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-49
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl-50
+spec:
+  selector:
+    matchLabels:
+      app: app-50
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app-50
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-1
+spec:
+  tls:
+   - hosts:
+     - app.1
+     - appa.1
+     - appb.1
+     secretName: testsecret-tls
+  rules:
+  - host: appa.1
+    http:
+      paths:
+      - backend:
+          serviceName: svc-1
+          servicePort: pp-1
+        path: /status*
+      - backend:
+            serviceName: svc-1
+            servicePort: pp-1
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-1
+          servicePort: pp-1
+        path: /path
+      - backend:
+            serviceName: svc-1
+            servicePort: pp-1
+        path: /path/*
+  - host: appb.1
+    http:
+      paths:
+      - backend:
+            serviceName: svc-1
+            servicePort: pp-1
+        path: /status*
+      - backend:
+          serviceName: svc-1
+          servicePort: pp-1
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-2
+spec:
+  tls:
+   - hosts:
+     - app.2
+     - appa.2
+     - appb.2
+     secretName: testsecret-tls
+  rules:
+  - host: appa.2
+    http:
+      paths:
+      - backend:
+          serviceName: svc-2
+          servicePort: pp-2
+        path: /status*
+      - backend:
+            serviceName: svc-2
+            servicePort: pp-2
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-2
+          servicePort: pp-2
+        path: /path
+      - backend:
+            serviceName: svc-2
+            servicePort: pp-2
+        path: /path/*
+  - host: appb.2
+    http:
+      paths:
+      - backend:
+            serviceName: svc-2
+            servicePort: pp-2
+        path: /status*
+      - backend:
+          serviceName: svc-2
+          servicePort: pp-2
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-3
+spec:
+  tls:
+   - hosts:
+     - app.3
+     - appa.3
+     - appb.3
+     secretName: testsecret-tls
+  rules:
+  - host: appa.3
+    http:
+      paths:
+      - backend:
+          serviceName: svc-3
+          servicePort: pp-3
+        path: /status*
+      - backend:
+            serviceName: svc-3
+            servicePort: pp-3
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-3
+          servicePort: pp-3
+        path: /path
+      - backend:
+            serviceName: svc-3
+            servicePort: pp-3
+        path: /path/*
+  - host: appb.3
+    http:
+      paths:
+      - backend:
+            serviceName: svc-3
+            servicePort: pp-3
+        path: /status*
+      - backend:
+          serviceName: svc-3
+          servicePort: pp-3
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-4
+spec:
+  tls:
+   - hosts:
+     - app.4
+     - appa.4
+     - appb.4
+     secretName: testsecret-tls
+  rules:
+  - host: appa.4
+    http:
+      paths:
+      - backend:
+          serviceName: svc-4
+          servicePort: pp-4
+        path: /status*
+      - backend:
+            serviceName: svc-4
+            servicePort: pp-4
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-4
+          servicePort: pp-4
+        path: /path
+      - backend:
+            serviceName: svc-4
+            servicePort: pp-4
+        path: /path/*
+  - host: appb.4
+    http:
+      paths:
+      - backend:
+            serviceName: svc-4
+            servicePort: pp-4
+        path: /status*
+      - backend:
+          serviceName: svc-4
+          servicePort: pp-4
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-5
+spec:
+  tls:
+   - hosts:
+     - app.5
+     - appa.5
+     - appb.5
+     secretName: testsecret-tls
+  rules:
+  - host: appa.5
+    http:
+      paths:
+      - backend:
+          serviceName: svc-5
+          servicePort: pp-5
+        path: /status*
+      - backend:
+            serviceName: svc-5
+            servicePort: pp-5
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-5
+          servicePort: pp-5
+        path: /path
+      - backend:
+            serviceName: svc-5
+            servicePort: pp-5
+        path: /path/*
+  - host: appb.5
+    http:
+      paths:
+      - backend:
+            serviceName: svc-5
+            servicePort: pp-5
+        path: /status*
+      - backend:
+          serviceName: svc-5
+          servicePort: pp-5
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-6
+spec:
+  tls:
+   - hosts:
+     - app.6
+     - appa.6
+     - appb.6
+     secretName: testsecret-tls
+  rules:
+  - host: appa.6
+    http:
+      paths:
+      - backend:
+          serviceName: svc-6
+          servicePort: pp-6
+        path: /status*
+      - backend:
+            serviceName: svc-6
+            servicePort: pp-6
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-6
+          servicePort: pp-6
+        path: /path
+      - backend:
+            serviceName: svc-6
+            servicePort: pp-6
+        path: /path/*
+  - host: appb.6
+    http:
+      paths:
+      - backend:
+            serviceName: svc-6
+            servicePort: pp-6
+        path: /status*
+      - backend:
+          serviceName: svc-6
+          servicePort: pp-6
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-7
+spec:
+  tls:
+   - hosts:
+     - app.7
+     - appa.7
+     - appb.7
+     secretName: testsecret-tls
+  rules:
+  - host: appa.7
+    http:
+      paths:
+      - backend:
+          serviceName: svc-7
+          servicePort: pp-7
+        path: /status*
+      - backend:
+            serviceName: svc-7
+            servicePort: pp-7
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-7
+          servicePort: pp-7
+        path: /path
+      - backend:
+            serviceName: svc-7
+            servicePort: pp-7
+        path: /path/*
+  - host: appb.7
+    http:
+      paths:
+      - backend:
+            serviceName: svc-7
+            servicePort: pp-7
+        path: /status*
+      - backend:
+          serviceName: svc-7
+          servicePort: pp-7
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-8
+spec:
+  tls:
+   - hosts:
+     - app.8
+     - appa.8
+     - appb.8
+     secretName: testsecret-tls
+  rules:
+  - host: appa.8
+    http:
+      paths:
+      - backend:
+          serviceName: svc-8
+          servicePort: pp-8
+        path: /status*
+      - backend:
+            serviceName: svc-8
+            servicePort: pp-8
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-8
+          servicePort: pp-8
+        path: /path
+      - backend:
+            serviceName: svc-8
+            servicePort: pp-8
+        path: /path/*
+  - host: appb.8
+    http:
+      paths:
+      - backend:
+            serviceName: svc-8
+            servicePort: pp-8
+        path: /status*
+      - backend:
+          serviceName: svc-8
+          servicePort: pp-8
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-9
+spec:
+  tls:
+   - hosts:
+     - app.9
+     - appa.9
+     - appb.9
+     secretName: testsecret-tls
+  rules:
+  - host: appa.9
+    http:
+      paths:
+      - backend:
+          serviceName: svc-9
+          servicePort: pp-9
+        path: /status*
+      - backend:
+            serviceName: svc-9
+            servicePort: pp-9
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-9
+          servicePort: pp-9
+        path: /path
+      - backend:
+            serviceName: svc-9
+            servicePort: pp-9
+        path: /path/*
+  - host: appb.9
+    http:
+      paths:
+      - backend:
+            serviceName: svc-9
+            servicePort: pp-9
+        path: /status*
+      - backend:
+          serviceName: svc-9
+          servicePort: pp-9
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-10
+spec:
+  tls:
+   - hosts:
+     - app.10
+     - appa.10
+     - appb.10
+     secretName: testsecret-tls
+  rules:
+  - host: appa.10
+    http:
+      paths:
+      - backend:
+          serviceName: svc-10
+          servicePort: pp-10
+        path: /status*
+      - backend:
+            serviceName: svc-10
+            servicePort: pp-10
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-10
+          servicePort: pp-10
+        path: /path
+      - backend:
+            serviceName: svc-10
+            servicePort: pp-10
+        path: /path/*
+  - host: appb.10
+    http:
+      paths:
+      - backend:
+            serviceName: svc-10
+            servicePort: pp-10
+        path: /status*
+      - backend:
+          serviceName: svc-10
+          servicePort: pp-10
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-11
+spec:
+  tls:
+   - hosts:
+     - app.11
+     - appa.11
+     - appb.11
+     secretName: testsecret-tls
+  rules:
+  - host: appa.11
+    http:
+      paths:
+      - backend:
+          serviceName: svc-11
+          servicePort: pp-11
+        path: /status*
+      - backend:
+            serviceName: svc-11
+            servicePort: pp-11
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-11
+          servicePort: pp-11
+        path: /path
+      - backend:
+            serviceName: svc-11
+            servicePort: pp-11
+        path: /path/*
+  - host: appb.11
+    http:
+      paths:
+      - backend:
+            serviceName: svc-11
+            servicePort: pp-11
+        path: /status*
+      - backend:
+          serviceName: svc-11
+          servicePort: pp-11
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-12
+spec:
+  tls:
+   - hosts:
+     - app.12
+     - appa.12
+     - appb.12
+     secretName: testsecret-tls
+  rules:
+  - host: appa.12
+    http:
+      paths:
+      - backend:
+          serviceName: svc-12
+          servicePort: pp-12
+        path: /status*
+      - backend:
+            serviceName: svc-12
+            servicePort: pp-12
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-12
+          servicePort: pp-12
+        path: /path
+      - backend:
+            serviceName: svc-12
+            servicePort: pp-12
+        path: /path/*
+  - host: appb.12
+    http:
+      paths:
+      - backend:
+            serviceName: svc-12
+            servicePort: pp-12
+        path: /status*
+      - backend:
+          serviceName: svc-12
+          servicePort: pp-12
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-13
+spec:
+  tls:
+   - hosts:
+     - app.13
+     - appa.13
+     - appb.13
+     secretName: testsecret-tls
+  rules:
+  - host: appa.13
+    http:
+      paths:
+      - backend:
+          serviceName: svc-13
+          servicePort: pp-13
+        path: /status*
+      - backend:
+            serviceName: svc-13
+            servicePort: pp-13
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-13
+          servicePort: pp-13
+        path: /path
+      - backend:
+            serviceName: svc-13
+            servicePort: pp-13
+        path: /path/*
+  - host: appb.13
+    http:
+      paths:
+      - backend:
+            serviceName: svc-13
+            servicePort: pp-13
+        path: /status*
+      - backend:
+          serviceName: svc-13
+          servicePort: pp-13
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-14
+spec:
+  tls:
+   - hosts:
+     - app.14
+     - appa.14
+     - appb.14
+     secretName: testsecret-tls
+  rules:
+  - host: appa.14
+    http:
+      paths:
+      - backend:
+          serviceName: svc-14
+          servicePort: pp-14
+        path: /status*
+      - backend:
+            serviceName: svc-14
+            servicePort: pp-14
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-14
+          servicePort: pp-14
+        path: /path
+      - backend:
+            serviceName: svc-14
+            servicePort: pp-14
+        path: /path/*
+  - host: appb.14
+    http:
+      paths:
+      - backend:
+            serviceName: svc-14
+            servicePort: pp-14
+        path: /status*
+      - backend:
+          serviceName: svc-14
+          servicePort: pp-14
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-15
+spec:
+  tls:
+   - hosts:
+     - app.15
+     - appa.15
+     - appb.15
+     secretName: testsecret-tls
+  rules:
+  - host: appa.15
+    http:
+      paths:
+      - backend:
+          serviceName: svc-15
+          servicePort: pp-15
+        path: /status*
+      - backend:
+            serviceName: svc-15
+            servicePort: pp-15
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-15
+          servicePort: pp-15
+        path: /path
+      - backend:
+            serviceName: svc-15
+            servicePort: pp-15
+        path: /path/*
+  - host: appb.15
+    http:
+      paths:
+      - backend:
+            serviceName: svc-15
+            servicePort: pp-15
+        path: /status*
+      - backend:
+          serviceName: svc-15
+          servicePort: pp-15
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-16
+spec:
+  tls:
+   - hosts:
+     - app.16
+     - appa.16
+     - appb.16
+     secretName: testsecret-tls
+  rules:
+  - host: appa.16
+    http:
+      paths:
+      - backend:
+          serviceName: svc-16
+          servicePort: pp-16
+        path: /status*
+      - backend:
+            serviceName: svc-16
+            servicePort: pp-16
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-16
+          servicePort: pp-16
+        path: /path
+      - backend:
+            serviceName: svc-16
+            servicePort: pp-16
+        path: /path/*
+  - host: appb.16
+    http:
+      paths:
+      - backend:
+            serviceName: svc-16
+            servicePort: pp-16
+        path: /status*
+      - backend:
+          serviceName: svc-16
+          servicePort: pp-16
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-17
+spec:
+  tls:
+   - hosts:
+     - app.17
+     - appa.17
+     - appb.17
+     secretName: testsecret-tls
+  rules:
+  - host: appa.17
+    http:
+      paths:
+      - backend:
+          serviceName: svc-17
+          servicePort: pp-17
+        path: /status*
+      - backend:
+            serviceName: svc-17
+            servicePort: pp-17
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-17
+          servicePort: pp-17
+        path: /path
+      - backend:
+            serviceName: svc-17
+            servicePort: pp-17
+        path: /path/*
+  - host: appb.17
+    http:
+      paths:
+      - backend:
+            serviceName: svc-17
+            servicePort: pp-17
+        path: /status*
+      - backend:
+          serviceName: svc-17
+          servicePort: pp-17
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-18
+spec:
+  tls:
+   - hosts:
+     - app.18
+     - appa.18
+     - appb.18
+     secretName: testsecret-tls
+  rules:
+  - host: appa.18
+    http:
+      paths:
+      - backend:
+          serviceName: svc-18
+          servicePort: pp-18
+        path: /status*
+      - backend:
+            serviceName: svc-18
+            servicePort: pp-18
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-18
+          servicePort: pp-18
+        path: /path
+      - backend:
+            serviceName: svc-18
+            servicePort: pp-18
+        path: /path/*
+  - host: appb.18
+    http:
+      paths:
+      - backend:
+            serviceName: svc-18
+            servicePort: pp-18
+        path: /status*
+      - backend:
+          serviceName: svc-18
+          servicePort: pp-18
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-19
+spec:
+  tls:
+   - hosts:
+     - app.19
+     - appa.19
+     - appb.19
+     secretName: testsecret-tls
+  rules:
+  - host: appa.19
+    http:
+      paths:
+      - backend:
+          serviceName: svc-19
+          servicePort: pp-19
+        path: /status*
+      - backend:
+            serviceName: svc-19
+            servicePort: pp-19
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-19
+          servicePort: pp-19
+        path: /path
+      - backend:
+            serviceName: svc-19
+            servicePort: pp-19
+        path: /path/*
+  - host: appb.19
+    http:
+      paths:
+      - backend:
+            serviceName: svc-19
+            servicePort: pp-19
+        path: /status*
+      - backend:
+          serviceName: svc-19
+          servicePort: pp-19
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-20
+spec:
+  tls:
+   - hosts:
+     - app.20
+     - appa.20
+     - appb.20
+     secretName: testsecret-tls
+  rules:
+  - host: appa.20
+    http:
+      paths:
+      - backend:
+          serviceName: svc-20
+          servicePort: pp-20
+        path: /status*
+      - backend:
+            serviceName: svc-20
+            servicePort: pp-20
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-20
+          servicePort: pp-20
+        path: /path
+      - backend:
+            serviceName: svc-20
+            servicePort: pp-20
+        path: /path/*
+  - host: appb.20
+    http:
+      paths:
+      - backend:
+            serviceName: svc-20
+            servicePort: pp-20
+        path: /status*
+      - backend:
+          serviceName: svc-20
+          servicePort: pp-20
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-21
+spec:
+  tls:
+   - hosts:
+     - app.21
+     - appa.21
+     - appb.21
+     secretName: testsecret-tls
+  rules:
+  - host: appa.21
+    http:
+      paths:
+      - backend:
+          serviceName: svc-21
+          servicePort: pp-21
+        path: /status*
+      - backend:
+            serviceName: svc-21
+            servicePort: pp-21
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-21
+          servicePort: pp-21
+        path: /path
+      - backend:
+            serviceName: svc-21
+            servicePort: pp-21
+        path: /path/*
+  - host: appb.21
+    http:
+      paths:
+      - backend:
+            serviceName: svc-21
+            servicePort: pp-21
+        path: /status*
+      - backend:
+          serviceName: svc-21
+          servicePort: pp-21
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-22
+spec:
+  tls:
+   - hosts:
+     - app.22
+     - appa.22
+     - appb.22
+     secretName: testsecret-tls
+  rules:
+  - host: appa.22
+    http:
+      paths:
+      - backend:
+          serviceName: svc-22
+          servicePort: pp-22
+        path: /status*
+      - backend:
+            serviceName: svc-22
+            servicePort: pp-22
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-22
+          servicePort: pp-22
+        path: /path
+      - backend:
+            serviceName: svc-22
+            servicePort: pp-22
+        path: /path/*
+  - host: appb.22
+    http:
+      paths:
+      - backend:
+            serviceName: svc-22
+            servicePort: pp-22
+        path: /status*
+      - backend:
+          serviceName: svc-22
+          servicePort: pp-22
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-23
+spec:
+  tls:
+   - hosts:
+     - app.23
+     - appa.23
+     - appb.23
+     secretName: testsecret-tls
+  rules:
+  - host: appa.23
+    http:
+      paths:
+      - backend:
+          serviceName: svc-23
+          servicePort: pp-23
+        path: /status*
+      - backend:
+            serviceName: svc-23
+            servicePort: pp-23
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-23
+          servicePort: pp-23
+        path: /path
+      - backend:
+            serviceName: svc-23
+            servicePort: pp-23
+        path: /path/*
+  - host: appb.23
+    http:
+      paths:
+      - backend:
+            serviceName: svc-23
+            servicePort: pp-23
+        path: /status*
+      - backend:
+          serviceName: svc-23
+          servicePort: pp-23
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-24
+spec:
+  tls:
+   - hosts:
+     - app.24
+     - appa.24
+     - appb.24
+     secretName: testsecret-tls
+  rules:
+  - host: appa.24
+    http:
+      paths:
+      - backend:
+          serviceName: svc-24
+          servicePort: pp-24
+        path: /status*
+      - backend:
+            serviceName: svc-24
+            servicePort: pp-24
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-24
+          servicePort: pp-24
+        path: /path
+      - backend:
+            serviceName: svc-24
+            servicePort: pp-24
+        path: /path/*
+  - host: appb.24
+    http:
+      paths:
+      - backend:
+            serviceName: svc-24
+            servicePort: pp-24
+        path: /status*
+      - backend:
+          serviceName: svc-24
+          servicePort: pp-24
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-25
+spec:
+  tls:
+   - hosts:
+     - app.25
+     - appa.25
+     - appb.25
+     secretName: testsecret-tls
+  rules:
+  - host: appa.25
+    http:
+      paths:
+      - backend:
+          serviceName: svc-25
+          servicePort: pp-25
+        path: /status*
+      - backend:
+            serviceName: svc-25
+            servicePort: pp-25
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-25
+          servicePort: pp-25
+        path: /path
+      - backend:
+            serviceName: svc-25
+            servicePort: pp-25
+        path: /path/*
+  - host: appb.25
+    http:
+      paths:
+      - backend:
+            serviceName: svc-25
+            servicePort: pp-25
+        path: /status*
+      - backend:
+          serviceName: svc-25
+          servicePort: pp-25
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-26
+spec:
+  tls:
+   - hosts:
+     - app.26
+     - appa.26
+     - appb.26
+     secretName: testsecret-tls
+  rules:
+  - host: appa.26
+    http:
+      paths:
+      - backend:
+          serviceName: svc-26
+          servicePort: pp-26
+        path: /status*
+      - backend:
+            serviceName: svc-26
+            servicePort: pp-26
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-26
+          servicePort: pp-26
+        path: /path
+      - backend:
+            serviceName: svc-26
+            servicePort: pp-26
+        path: /path/*
+  - host: appb.26
+    http:
+      paths:
+      - backend:
+            serviceName: svc-26
+            servicePort: pp-26
+        path: /status*
+      - backend:
+          serviceName: svc-26
+          servicePort: pp-26
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-27
+spec:
+  tls:
+   - hosts:
+     - app.27
+     - appa.27
+     - appb.27
+     secretName: testsecret-tls
+  rules:
+  - host: appa.27
+    http:
+      paths:
+      - backend:
+          serviceName: svc-27
+          servicePort: pp-27
+        path: /status*
+      - backend:
+            serviceName: svc-27
+            servicePort: pp-27
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-27
+          servicePort: pp-27
+        path: /path
+      - backend:
+            serviceName: svc-27
+            servicePort: pp-27
+        path: /path/*
+  - host: appb.27
+    http:
+      paths:
+      - backend:
+            serviceName: svc-27
+            servicePort: pp-27
+        path: /status*
+      - backend:
+          serviceName: svc-27
+          servicePort: pp-27
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-28
+spec:
+  tls:
+   - hosts:
+     - app.28
+     - appa.28
+     - appb.28
+     secretName: testsecret-tls
+  rules:
+  - host: appa.28
+    http:
+      paths:
+      - backend:
+          serviceName: svc-28
+          servicePort: pp-28
+        path: /status*
+      - backend:
+            serviceName: svc-28
+            servicePort: pp-28
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-28
+          servicePort: pp-28
+        path: /path
+      - backend:
+            serviceName: svc-28
+            servicePort: pp-28
+        path: /path/*
+  - host: appb.28
+    http:
+      paths:
+      - backend:
+            serviceName: svc-28
+            servicePort: pp-28
+        path: /status*
+      - backend:
+          serviceName: svc-28
+          servicePort: pp-28
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-29
+spec:
+  tls:
+   - hosts:
+     - app.29
+     - appa.29
+     - appb.29
+     secretName: testsecret-tls
+  rules:
+  - host: appa.29
+    http:
+      paths:
+      - backend:
+          serviceName: svc-29
+          servicePort: pp-29
+        path: /status*
+      - backend:
+            serviceName: svc-29
+            servicePort: pp-29
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-29
+          servicePort: pp-29
+        path: /path
+      - backend:
+            serviceName: svc-29
+            servicePort: pp-29
+        path: /path/*
+  - host: appb.29
+    http:
+      paths:
+      - backend:
+            serviceName: svc-29
+            servicePort: pp-29
+        path: /status*
+      - backend:
+          serviceName: svc-29
+          servicePort: pp-29
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-30
+spec:
+  tls:
+   - hosts:
+     - app.30
+     - appa.30
+     - appb.30
+     secretName: testsecret-tls
+  rules:
+  - host: appa.30
+    http:
+      paths:
+      - backend:
+          serviceName: svc-30
+          servicePort: pp-30
+        path: /status*
+      - backend:
+            serviceName: svc-30
+            servicePort: pp-30
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-30
+          servicePort: pp-30
+        path: /path
+      - backend:
+            serviceName: svc-30
+            servicePort: pp-30
+        path: /path/*
+  - host: appb.30
+    http:
+      paths:
+      - backend:
+            serviceName: svc-30
+            servicePort: pp-30
+        path: /status*
+      - backend:
+          serviceName: svc-30
+          servicePort: pp-30
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-31
+spec:
+  tls:
+   - hosts:
+     - app.31
+     - appa.31
+     - appb.31
+     secretName: testsecret-tls
+  rules:
+  - host: appa.31
+    http:
+      paths:
+      - backend:
+          serviceName: svc-31
+          servicePort: pp-31
+        path: /status*
+      - backend:
+            serviceName: svc-31
+            servicePort: pp-31
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-31
+          servicePort: pp-31
+        path: /path
+      - backend:
+            serviceName: svc-31
+            servicePort: pp-31
+        path: /path/*
+  - host: appb.31
+    http:
+      paths:
+      - backend:
+            serviceName: svc-31
+            servicePort: pp-31
+        path: /status*
+      - backend:
+          serviceName: svc-31
+          servicePort: pp-31
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-32
+spec:
+  tls:
+   - hosts:
+     - app.32
+     - appa.32
+     - appb.32
+     secretName: testsecret-tls
+  rules:
+  - host: appa.32
+    http:
+      paths:
+      - backend:
+          serviceName: svc-32
+          servicePort: pp-32
+        path: /status*
+      - backend:
+            serviceName: svc-32
+            servicePort: pp-32
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-32
+          servicePort: pp-32
+        path: /path
+      - backend:
+            serviceName: svc-32
+            servicePort: pp-32
+        path: /path/*
+  - host: appb.32
+    http:
+      paths:
+      - backend:
+            serviceName: svc-32
+            servicePort: pp-32
+        path: /status*
+      - backend:
+          serviceName: svc-32
+          servicePort: pp-32
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-33
+spec:
+  tls:
+   - hosts:
+     - app.33
+     - appa.33
+     - appb.33
+     secretName: testsecret-tls
+  rules:
+  - host: appa.33
+    http:
+      paths:
+      - backend:
+          serviceName: svc-33
+          servicePort: pp-33
+        path: /status*
+      - backend:
+            serviceName: svc-33
+            servicePort: pp-33
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-33
+          servicePort: pp-33
+        path: /path
+      - backend:
+            serviceName: svc-33
+            servicePort: pp-33
+        path: /path/*
+  - host: appb.33
+    http:
+      paths:
+      - backend:
+            serviceName: svc-33
+            servicePort: pp-33
+        path: /status*
+      - backend:
+          serviceName: svc-33
+          servicePort: pp-33
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-34
+spec:
+  tls:
+   - hosts:
+     - app.34
+     - appa.34
+     - appb.34
+     secretName: testsecret-tls
+  rules:
+  - host: appa.34
+    http:
+      paths:
+      - backend:
+          serviceName: svc-34
+          servicePort: pp-34
+        path: /status*
+      - backend:
+            serviceName: svc-34
+            servicePort: pp-34
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-34
+          servicePort: pp-34
+        path: /path
+      - backend:
+            serviceName: svc-34
+            servicePort: pp-34
+        path: /path/*
+  - host: appb.34
+    http:
+      paths:
+      - backend:
+            serviceName: svc-34
+            servicePort: pp-34
+        path: /status*
+      - backend:
+          serviceName: svc-34
+          servicePort: pp-34
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-35
+spec:
+  tls:
+   - hosts:
+     - app.35
+     - appa.35
+     - appb.35
+     secretName: testsecret-tls
+  rules:
+  - host: appa.35
+    http:
+      paths:
+      - backend:
+          serviceName: svc-35
+          servicePort: pp-35
+        path: /status*
+      - backend:
+            serviceName: svc-35
+            servicePort: pp-35
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-35
+          servicePort: pp-35
+        path: /path
+      - backend:
+            serviceName: svc-35
+            servicePort: pp-35
+        path: /path/*
+  - host: appb.35
+    http:
+      paths:
+      - backend:
+            serviceName: svc-35
+            servicePort: pp-35
+        path: /status*
+      - backend:
+          serviceName: svc-35
+          servicePort: pp-35
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-36
+spec:
+  tls:
+   - hosts:
+     - app.36
+     - appa.36
+     - appb.36
+     secretName: testsecret-tls
+  rules:
+  - host: appa.36
+    http:
+      paths:
+      - backend:
+          serviceName: svc-36
+          servicePort: pp-36
+        path: /status*
+      - backend:
+            serviceName: svc-36
+            servicePort: pp-36
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-36
+          servicePort: pp-36
+        path: /path
+      - backend:
+            serviceName: svc-36
+            servicePort: pp-36
+        path: /path/*
+  - host: appb.36
+    http:
+      paths:
+      - backend:
+            serviceName: svc-36
+            servicePort: pp-36
+        path: /status*
+      - backend:
+          serviceName: svc-36
+          servicePort: pp-36
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-37
+spec:
+  tls:
+   - hosts:
+     - app.37
+     - appa.37
+     - appb.37
+     secretName: testsecret-tls
+  rules:
+  - host: appa.37
+    http:
+      paths:
+      - backend:
+          serviceName: svc-37
+          servicePort: pp-37
+        path: /status*
+      - backend:
+            serviceName: svc-37
+            servicePort: pp-37
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-37
+          servicePort: pp-37
+        path: /path
+      - backend:
+            serviceName: svc-37
+            servicePort: pp-37
+        path: /path/*
+  - host: appb.37
+    http:
+      paths:
+      - backend:
+            serviceName: svc-37
+            servicePort: pp-37
+        path: /status*
+      - backend:
+          serviceName: svc-37
+          servicePort: pp-37
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-38
+spec:
+  tls:
+   - hosts:
+     - app.38
+     - appa.38
+     - appb.38
+     secretName: testsecret-tls
+  rules:
+  - host: appa.38
+    http:
+      paths:
+      - backend:
+          serviceName: svc-38
+          servicePort: pp-38
+        path: /status*
+      - backend:
+            serviceName: svc-38
+            servicePort: pp-38
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-38
+          servicePort: pp-38
+        path: /path
+      - backend:
+            serviceName: svc-38
+            servicePort: pp-38
+        path: /path/*
+  - host: appb.38
+    http:
+      paths:
+      - backend:
+            serviceName: svc-38
+            servicePort: pp-38
+        path: /status*
+      - backend:
+          serviceName: svc-38
+          servicePort: pp-38
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-39
+spec:
+  tls:
+   - hosts:
+     - app.39
+     - appa.39
+     - appb.39
+     secretName: testsecret-tls
+  rules:
+  - host: appa.39
+    http:
+      paths:
+      - backend:
+          serviceName: svc-39
+          servicePort: pp-39
+        path: /status*
+      - backend:
+            serviceName: svc-39
+            servicePort: pp-39
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-39
+          servicePort: pp-39
+        path: /path
+      - backend:
+            serviceName: svc-39
+            servicePort: pp-39
+        path: /path/*
+  - host: appb.39
+    http:
+      paths:
+      - backend:
+            serviceName: svc-39
+            servicePort: pp-39
+        path: /status*
+      - backend:
+          serviceName: svc-39
+          servicePort: pp-39
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-40
+spec:
+  tls:
+   - hosts:
+     - app.40
+     - appa.40
+     - appb.40
+     secretName: testsecret-tls
+  rules:
+  - host: appa.40
+    http:
+      paths:
+      - backend:
+          serviceName: svc-40
+          servicePort: pp-40
+        path: /status*
+      - backend:
+            serviceName: svc-40
+            servicePort: pp-40
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-40
+          servicePort: pp-40
+        path: /path
+      - backend:
+            serviceName: svc-40
+            servicePort: pp-40
+        path: /path/*
+  - host: appb.40
+    http:
+      paths:
+      - backend:
+            serviceName: svc-40
+            servicePort: pp-40
+        path: /status*
+      - backend:
+          serviceName: svc-40
+          servicePort: pp-40
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-41
+spec:
+  tls:
+   - hosts:
+     - app.41
+     - appa.41
+     - appb.41
+     secretName: testsecret-tls
+  rules:
+  - host: appa.41
+    http:
+      paths:
+      - backend:
+          serviceName: svc-41
+          servicePort: pp-41
+        path: /status*
+      - backend:
+            serviceName: svc-41
+            servicePort: pp-41
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-41
+          servicePort: pp-41
+        path: /path
+      - backend:
+            serviceName: svc-41
+            servicePort: pp-41
+        path: /path/*
+  - host: appb.41
+    http:
+      paths:
+      - backend:
+            serviceName: svc-41
+            servicePort: pp-41
+        path: /status*
+      - backend:
+          serviceName: svc-41
+          servicePort: pp-41
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-42
+spec:
+  tls:
+   - hosts:
+     - app.42
+     - appa.42
+     - appb.42
+     secretName: testsecret-tls
+  rules:
+  - host: appa.42
+    http:
+      paths:
+      - backend:
+          serviceName: svc-42
+          servicePort: pp-42
+        path: /status*
+      - backend:
+            serviceName: svc-42
+            servicePort: pp-42
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-42
+          servicePort: pp-42
+        path: /path
+      - backend:
+            serviceName: svc-42
+            servicePort: pp-42
+        path: /path/*
+  - host: appb.42
+    http:
+      paths:
+      - backend:
+            serviceName: svc-42
+            servicePort: pp-42
+        path: /status*
+      - backend:
+          serviceName: svc-42
+          servicePort: pp-42
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-43
+spec:
+  tls:
+   - hosts:
+     - app.43
+     - appa.43
+     - appb.43
+     secretName: testsecret-tls
+  rules:
+  - host: appa.43
+    http:
+      paths:
+      - backend:
+          serviceName: svc-43
+          servicePort: pp-43
+        path: /status*
+      - backend:
+            serviceName: svc-43
+            servicePort: pp-43
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-43
+          servicePort: pp-43
+        path: /path
+      - backend:
+            serviceName: svc-43
+            servicePort: pp-43
+        path: /path/*
+  - host: appb.43
+    http:
+      paths:
+      - backend:
+            serviceName: svc-43
+            servicePort: pp-43
+        path: /status*
+      - backend:
+          serviceName: svc-43
+          servicePort: pp-43
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-44
+spec:
+  tls:
+   - hosts:
+     - app.44
+     - appa.44
+     - appb.44
+     secretName: testsecret-tls
+  rules:
+  - host: appa.44
+    http:
+      paths:
+      - backend:
+          serviceName: svc-44
+          servicePort: pp-44
+        path: /status*
+      - backend:
+            serviceName: svc-44
+            servicePort: pp-44
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-44
+          servicePort: pp-44
+        path: /path
+      - backend:
+            serviceName: svc-44
+            servicePort: pp-44
+        path: /path/*
+  - host: appb.44
+    http:
+      paths:
+      - backend:
+            serviceName: svc-44
+            servicePort: pp-44
+        path: /status*
+      - backend:
+          serviceName: svc-44
+          servicePort: pp-44
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-45
+spec:
+  tls:
+   - hosts:
+     - app.45
+     - appa.45
+     - appb.45
+     secretName: testsecret-tls
+  rules:
+  - host: appa.45
+    http:
+      paths:
+      - backend:
+          serviceName: svc-45
+          servicePort: pp-45
+        path: /status*
+      - backend:
+            serviceName: svc-45
+            servicePort: pp-45
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-45
+          servicePort: pp-45
+        path: /path
+      - backend:
+            serviceName: svc-45
+            servicePort: pp-45
+        path: /path/*
+  - host: appb.45
+    http:
+      paths:
+      - backend:
+            serviceName: svc-45
+            servicePort: pp-45
+        path: /status*
+      - backend:
+          serviceName: svc-45
+          servicePort: pp-45
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-46
+spec:
+  tls:
+   - hosts:
+     - app.46
+     - appa.46
+     - appb.46
+     secretName: testsecret-tls
+  rules:
+  - host: appa.46
+    http:
+      paths:
+      - backend:
+          serviceName: svc-46
+          servicePort: pp-46
+        path: /status*
+      - backend:
+            serviceName: svc-46
+            servicePort: pp-46
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-46
+          servicePort: pp-46
+        path: /path
+      - backend:
+            serviceName: svc-46
+            servicePort: pp-46
+        path: /path/*
+  - host: appb.46
+    http:
+      paths:
+      - backend:
+            serviceName: svc-46
+            servicePort: pp-46
+        path: /status*
+      - backend:
+          serviceName: svc-46
+          servicePort: pp-46
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-47
+spec:
+  tls:
+   - hosts:
+     - app.47
+     - appa.47
+     - appb.47
+     secretName: testsecret-tls
+  rules:
+  - host: appa.47
+    http:
+      paths:
+      - backend:
+          serviceName: svc-47
+          servicePort: pp-47
+        path: /status*
+      - backend:
+            serviceName: svc-47
+            servicePort: pp-47
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-47
+          servicePort: pp-47
+        path: /path
+      - backend:
+            serviceName: svc-47
+            servicePort: pp-47
+        path: /path/*
+  - host: appb.47
+    http:
+      paths:
+      - backend:
+            serviceName: svc-47
+            servicePort: pp-47
+        path: /status*
+      - backend:
+          serviceName: svc-47
+          servicePort: pp-47
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-48
+spec:
+  tls:
+   - hosts:
+     - app.48
+     - appa.48
+     - appb.48
+     secretName: testsecret-tls
+  rules:
+  - host: appa.48
+    http:
+      paths:
+      - backend:
+          serviceName: svc-48
+          servicePort: pp-48
+        path: /status*
+      - backend:
+            serviceName: svc-48
+            servicePort: pp-48
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-48
+          servicePort: pp-48
+        path: /path
+      - backend:
+            serviceName: svc-48
+            servicePort: pp-48
+        path: /path/*
+  - host: appb.48
+    http:
+      paths:
+      - backend:
+            serviceName: svc-48
+            servicePort: pp-48
+        path: /status*
+      - backend:
+          serviceName: svc-48
+          servicePort: pp-48
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-49
+spec:
+  tls:
+   - hosts:
+     - app.49
+     - appa.49
+     - appb.49
+     secretName: testsecret-tls
+  rules:
+  - host: appa.49
+    http:
+      paths:
+      - backend:
+          serviceName: svc-49
+          servicePort: pp-49
+        path: /status*
+      - backend:
+            serviceName: svc-49
+            servicePort: pp-49
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-49
+          servicePort: pp-49
+        path: /path
+      - backend:
+            serviceName: svc-49
+            servicePort: pp-49
+        path: /path/*
+  - host: appb.49
+    http:
+      paths:
+      - backend:
+            serviceName: svc-49
+            servicePort: pp-49
+        path: /status*
+      - backend:
+          serviceName: svc-49
+          servicePort: pp-49
+        path: /redirect-to*
+---
+# Source: sample-http-bin-app/templates/app.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: ing-50
+spec:
+  tls:
+   - hosts:
+     - app.50
+     - appa.50
+     - appb.50
+     secretName: testsecret-tls
+  rules:
+  - host: appa.50
+    http:
+      paths:
+      - backend:
+          serviceName: svc-50
+          servicePort: pp-50
+        path: /status*
+      - backend:
+            serviceName: svc-50
+            servicePort: pp-50
+        path: /redirect-to*
+      - backend:
+          serviceName: svc-50
+          servicePort: pp-50
+        path: /path
+      - backend:
+            serviceName: svc-50
+            servicePort: pp-50
+        path: /path/*
+  - host: appb.50
+    http:
+      paths:
+      - backend:
+            serviceName: svc-50
+            servicePort: pp-50
+        path: /status*
+      - backend:
+          serviceName: svc-50
+          servicePort: pp-50
+        path: /redirect-to*
