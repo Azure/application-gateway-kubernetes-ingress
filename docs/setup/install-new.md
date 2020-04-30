@@ -145,8 +145,8 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 
   [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
    1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
-   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
-   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
+   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controller) component
+   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identity) component
 
 
   To install AAD Pod Identity to your cluster:
@@ -154,12 +154,20 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
    - *RBAC enabled* AKS cluster
 
   ```bash
+  # Use AAD Pod Identity v1.5.5 when using AGIC <= 1.2.0-rc1 issue: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/828
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+
+  # To install from AAD Pod identity master branch, use the following
   kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
+  # Use AAD Pod Identity v1.5.5 when using AGIC <= 1.2.0-rc1 issue: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/828
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+
+  # To install from AAD Pod identity master branch, use the following
   kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
   ```
 
