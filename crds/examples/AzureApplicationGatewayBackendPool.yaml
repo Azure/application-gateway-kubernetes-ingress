@@ -1,4 +1,4 @@
-apiVersion: appgw.ingress.azure.io/v1
+apiVersion: appgw.ingress.azure.io/v1beta1
 kind: AzureApplicationGatewayBackendPool
 metadata:
   name: subscription-resourcegroup-gatewayname
@@ -10,4 +10,4 @@ spec:
         - ipAddress: 10.0.1.11
     - name: "backendPoolName2"
       backendAddresses:
-        - ipAdress: 10.1.1.12
+        - ipAddress: 10.1.1.12
