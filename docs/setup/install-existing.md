@@ -50,7 +50,7 @@ AKS. It binds Azure Active Directory identities to your Kubernetes pods. Identit
 Kubernetes pod to be able to communicate with other Azure components. In the particular case here we need authorization
 for the AGIC pod to make HTTP requests to [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
-Follow the [AAD Pod Identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to add this component to your AKS.
+Follow the [AAD Pod Identity installation instructions](https://github.com/Azure/aad-pod-identity#demo) to add this component to your AKS.
 
 Next we need to create an Azure identity and give it permissions ARM.
 Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
