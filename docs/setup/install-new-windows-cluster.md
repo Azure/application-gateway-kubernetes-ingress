@@ -298,7 +298,7 @@ Values:
       --version 1.0.0
     ```
 
-    >Note: Use atleast version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
 ### Install a Sample App
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
