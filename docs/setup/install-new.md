@@ -227,8 +227,13 @@ Values:
 4. Install the Application Gateway ingress controller package:
 
     ```bash
-    helm install ingress-azure -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
+    helm install ingress-azure \
+      -f helm-config.yaml \
+      application-gateway-kubernetes-ingress/ingress-azure \
+      --version 1.0.0
     ```
+
+    >Note: Use `--version 1.2.0-rc1` when installing on k8s version >= 1.16
 
 ### Install a Sample App
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
