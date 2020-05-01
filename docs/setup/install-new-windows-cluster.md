@@ -210,21 +210,13 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
    - *RBAC enabled* AKS cluster
 
   ```bash
-  # Use AAD Pod Identity v1.5.5 when using AGIC <= 1.2.0-rc1 issue: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/828
   kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
-
-  # To install from AAD Pod identity master branch, use the following
-  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  # Use AAD Pod Identity v1.5.5 when using AGIC <= 1.2.0-rc1 issue: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/828
   kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
-
-  # To install from AAD Pod identity master branch, use the following
-  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
   ```
 
 ### Install Helm
