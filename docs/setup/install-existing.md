@@ -147,8 +147,13 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install ingress-azure -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
+    helm install ingress-azure \
+      -f helm-config.yaml \
+      application-gateway-kubernetes-ingress/ingress-azure \
+      --version 1.0.0
     ```
+
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
     Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
     ```bash
@@ -165,8 +170,10 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
          --set rbac.enabled=true \
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
-         --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io
+         --version 1.0.0
     ```
+
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
 1. Check the log of the newly created pod to verify if it started properly
 

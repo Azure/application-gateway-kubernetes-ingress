@@ -1,5 +1,3 @@
-replicaCount: 1
-
 # Verbosity level of the App Gateway Ingress Controller
 verbosityLevel: 3
 
