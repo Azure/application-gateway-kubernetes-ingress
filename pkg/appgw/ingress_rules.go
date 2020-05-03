@@ -18,31 +18,43 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
 	// if ingress has only backend configured
-	if ingress.Spec.Backend != nil && len(ingress.Spec.Rules) == 0 {
+	if ingress.Spec.Backend != nil && ingress.Spec.TLS == nil && len(ingress.Spec.Rules) == 0 {
+		glog.V(3).Infof("Only default backend defined for the ingress %s/%s", ingress.Namespace, ingress.Name)
 		return listeners
 	}
 
 	// process ingress rules with TLS and Waf policy
 	policy, _ := annotations.WAFPolicy(ingress)
+	if len(ingress.Spec.Rules) == 0 {
+		glog.V(3).Infof("No rules defined for the ingress %s/%s", ingress.Namespace, ingress.Name)
+		listeners = c.collectListener(ingress, nil, env, policy)
+	}
+
 	for ruleIdx := range ingress.Spec.Rules {
 		rule := &ingress.Spec.Rules[ruleIdx]
 		if rule.HTTP == nil {
 			continue
 		}
-		_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
+		listeners = c.collectListener(ingress, rule, env, policy)
+	}
 
-		applyToListener := false
-		if policy != "" {
-			applyToListener = c.applyToListener(rule)
-		}
+	return listeners
+}
 
-		for k, v := range ruleListeners {
-			if applyToListener {
-				glog.V(3).Infof("Attach WAF policy: %s to listener: %s", policy, generateListenerName(k))
-				v.FirewallPolicy = policy
-			}
-			listeners[k] = v
+func (c *appGwConfigBuilder) collectListener(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, env environment.EnvVariables, wafPolicy string) map[listenerIdentifier]listenerAzConfig {
+	listeners := make(map[listenerIdentifier]listenerAzConfig)
+	_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
+	applyToListener := false
+	if wafPolicy != "" {
+		applyToListener = c.applyToListener(rule)
+	}
+
+	for k, v := range ruleListeners {
+		if applyToListener {
+			glog.V(3).Infof("Attach WAF policy: %s to listener: %s", wafPolicy, generateListenerName(k))
+			v.FirewallPolicy = wafPolicy
 		}
+		listeners[k] = v
 	}
 
 	return listeners
@@ -78,7 +90,12 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 		glog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
-	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
+	ruleHost := ""
+	if rule != nil {
+		ruleHost = rule.Host
+	}
+
+	cert, secID := c.getCertificate(ingress, ruleHost, ingressHostnameSecretIDMap)
 	hasTLS := (cert != nil || len(appgwCertName) > 0)
 
 	sslRedirect, _ := annotations.IsSslRedirect(ingress)

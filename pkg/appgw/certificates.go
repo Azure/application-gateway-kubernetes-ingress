@@ -115,7 +115,7 @@ func (c *appGwConfigBuilder) newHostToSecretMap(ingress *v1beta1.Ingress) map[st
 		}
 
 		// default secret
-		if len(tls.Hosts) == 0 {
+		if len(tls.Hosts) == 0 || len(ingress.Spec.Rules) == 0 {
 			hostToSecretMap[""] = tlsSecret
 		}
 
