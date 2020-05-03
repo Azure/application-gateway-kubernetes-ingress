@@ -56,6 +56,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceNameA := "hello-world-a"
 	serviceNameB := "hello-world-b"
 	serviceNameC := "hello-world-c"
+	serviceNameZ := "hello-world-z"
 
 	// Frontend and Backend port.
 	servicePort := Port(80)
@@ -610,6 +611,133 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				Name:      tests.Name,
 			},
 		}
+
+		ingressWithDefaultBackend := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						Host: tests.Host,
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/A/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				TLS: []v1beta1.IngressTLS{
+					{
+						Hosts: []string{
+							tests.Host,
+						},
+						SecretName: tests.NameOfSecret,
+					},
+				},
+				Backend: &v1beta1.IngressBackend{
+					ServiceName: serviceNameB,
+					ServicePort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 80,
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
+			},
+		}
+
+		ingressWithDefaultBackendNoMatchedRule := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/Z/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameZ,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Backend: &v1beta1.IngressBackend{
+					ServiceName: serviceNameB,
+					ServicePort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 80,
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
+			},
+		}
+
+		ginkgo.It("One Ingress Resources with backend defined and no matched rules", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressWithDefaultBackendNoMatchedRule,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "one_ingress_backend_as_default_backend_only.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("One Ingress Resources with backend defined and tls enabled", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressWithDefaultBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "one_ingress_backend_as_default_backend_tls_enabled.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("One Ingress Resources with backend defined but tls disabled", func() {
+			ingressWithDefaultBackend.Spec.TLS = nil
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressWithDefaultBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "one_ingress_backend_as_default_backend_tls_disabled.json", stopChannel, ctxt, configBuilder)
+		})
 
 		ginkgo.It("THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
