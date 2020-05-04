@@ -88,4 +88,69 @@ var _ = Describe("Most frequenty run test suite", func() {
 			cleanUp(clientset)
 		})
 	})
+
+	Context("wildcard hostname tests", func() {
+		var clientset *kubernetes.Clientset
+		var err error
+		var namespaceName string
+		var url string
+
+		BeforeEach(func() {
+			clientset, err = getClient()
+			Expect(err).To(BeNil())
+
+			// clear all namespaces
+			cleanUp(clientset)
+
+			// create namespace
+			namespaceName = "e2e-wildcard"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			// create objects in the yaml
+			path := "testdata/wildcard/app.yaml"
+			klog.Info("Applying yaml ", path)
+			err := applyYaml(clientset, namespaceName, path)
+			Expect(err).To(BeNil())
+
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, err := getPublicIP(clientset, namespaceName)
+			Expect(err).To(BeNil())
+			Expect(publicIP).ToNot(Equal(""))
+
+			url = fmt.Sprintf("https://%s/status/200", publicIP)
+		})
+
+		It("should get correct status code for following hostnames", func() {
+			// simple hostname
+			err = makeGetRequest(url, "www.extended.com", 200)
+			Expect(err).To(BeNil())
+
+			// wilcard host name on multiple hostnames wildcard listener
+			err = makeGetRequest(url, "app.extended.com", 200)
+			Expect(err).To(BeNil())
+
+			// simple hostname with 1 host name which is wildcard hostname
+			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200)
+			Expect(err).To(BeNil())
+
+			// return 404 for random hostname
+			err = makeGetRequest(url, "random.com", 404)
+			Expect(err).To(BeNil())
+		})
+
+		AfterEach(func() {
+			// clear all namespaces
+			cleanUp(clientset)
+		})
+	})
 })

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -x
 
 function InstallAGIC() {
     [[ -z "${version}" ]] && (echo "version is not set"; exit 1)
