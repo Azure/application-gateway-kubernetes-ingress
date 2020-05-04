@@ -1,0 +1,20 @@
+schedules:
+- cron: "0 10 * * *"
+  displayName: Daily at 10 am build
+  branches:
+    include:
+    - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  GOPATH: '$(system.defaultWorkingDirectory)/gopath'
+  GOBIN:  '$(GOPATH)/bin'
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)'
+  GOOS: 'linux'
+  GO111MODULE: 'on'
+  GO_PROJ: 'github.com/Azure/$(build.repository.name)'
+
+steps:
+- template: build.yml
