@@ -52,7 +52,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 				// TODO(delqn)
 				listenerID := listenerIdentifier{
 					FrontendPort: 80,
-					HostName:     virtSvc.Spec.Hosts[0], // TODO(delqn),
+					HostNames:    [5]string{virtSvc.Spec.Hosts[0]}, // TODO(delqn),
 				}
 				pool, found := backendByDestination[dst]
 
