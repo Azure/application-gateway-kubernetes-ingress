@@ -50,7 +50,19 @@ AKS. It binds Azure Active Directory identities to your Kubernetes pods. Identit
 Kubernetes pod to be able to communicate with other Azure components. In the particular case here we need authorization
 for the AGIC pod to make HTTP requests to [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
-Follow the [AAD Pod Identity installation instructions](https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra) to add this component to your AKS.
+To install AAD Pod Identity to your cluster:
+
+   - *RBAC enabled* AKS cluster
+
+  ```bash
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+  ```
+
+   - *RBAC disabled* AKS cluster
+
+  ```bash
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+  ```
 
 Next we need to create an Azure identity and give it permissions ARM.
 Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
@@ -135,8 +147,13 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
     ```bash
-    helm install ingress-azure -f <helm-config.yaml> application-gateway-kubernetes-ingress/ingress-azure
+    helm install ingress-azure \
+      -f helm-config.yaml \
+      application-gateway-kubernetes-ingress/ingress-azure \
+      --version 1.0.0
     ```
+
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
     Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
     ```bash
@@ -153,8 +170,10 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
          --set rbac.enabled=true \
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
-         --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io
+         --version 1.0.0
     ```
+
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
 1. Check the log of the newly created pod to verify if it started properly
 
