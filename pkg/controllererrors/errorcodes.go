@@ -59,9 +59,9 @@ const (
 	ErrorInvalidContent    ErrorCode = "ErrorInvalidContent"
 
 	// azure package
+	ErrorGetApplicationGatewayError ErrorCode = "ErrorGetApplicationGatewayError"
 	ErrorApplicationGatewayNotFound ErrorCode = "ErrorApplicationGatewayNotFound"
 	ErrorSubnetNotFound             ErrorCode = "ErrorSubnetNotFound"
-	ErrGetArmAuth                   ErrorCode = "ErrorGetArmAuth"
 	ErrorMissingResourceGroup       ErrorCode = "ErrorMissingResourceGroup"
 
 	// main package

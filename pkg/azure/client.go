@@ -128,16 +128,18 @@ func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
 
 			// Reasons for 403 errors
 			if response.Response.Response != nil && response.Response.StatusCode == 403 {
-				glog.Error("Possible reasons:" +
-					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity;" +
-					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config;" +
-					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;")
+				glog.Error("Following might be potential reasons:\n" +
+					" AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity\n" +
+					" 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config\n" +
+					" AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group\n" +
+					" Please check the AAD Pod Identity mni and nmi pod logs to find potential issues.")
 			}
 
 			if response.Response.Response != nil && response.Response.StatusCode == 404 {
-				err := controllererrors.NewError(
+				err := controllererrors.NewErrorWithInnerError(
 					controllererrors.ErrorApplicationGatewayNotFound,
-					"Got 404 NOT FOUND status code on getting Application Gateway from ARM.",
+					err,
+					"received 404 NOT FOUND status code on getting Application Gateway from ARM.",
 				)
 				glog.Error(err.Error())
 				return utils.Retriable(false), err
@@ -145,13 +147,13 @@ func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
 
 			if response.Response.Response != nil && response.Response.StatusCode != 200 {
 				// for example, getting 401. This is not expected as we are getting a token before making the call.
-				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
+				glog.Error("unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
 			}
 
 			err := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrGetArmAuth,
+				controllererrors.ErrorGetApplicationGatewayError,
 				err,
-				"Failed fetching config for App Gateway instance. Will retry in %v.", retryPause,
+				"failed fetching config for App Gateway instance. Will retry in %v.", retryPause,
 			)
 			glog.Errorf(err.Error())
 			return utils.Retriable(true), err
