@@ -96,6 +96,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Host = hostName
 	}
 
+	// probe the host if specified by annotation
 	if hostName, err := annotations.BackendHostName(backendID.Ingress); err == nil {
 		probe.Host = to.StringPtr(hostName)
 	}
@@ -112,6 +113,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Protocol = n.HTTPS
 	}
 
+	// use probe from service container readiness/liveness probe if defined
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {

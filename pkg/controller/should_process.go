@@ -28,7 +28,6 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 			// Ignore AAD Pod Identity
 			return false, nil
 		}
-
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
 		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), to.StringPtr(reason)

@@ -60,6 +60,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressProhibitedTarget: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureAppGwBackendPool:        crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
 
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
@@ -72,6 +73,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:                       informerCollection.Secret.GetStore(),
 		Service:                      informerCollection.Service.GetStore(),
 		AzureIngressProhibitedTarget: informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		AzureAppGwBackendPool:        informerCollection.AzureAppGwBackendPool.GetStore(),
 		IstioGateway:                 informerCollection.IstioGateway.GetStore(),
 		IstioVirtualService:          informerCollection.IstioVirtualService.GetStore(),
 	}
@@ -123,6 +125,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
+	informerCollection.AzureAppGwBackendPool.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -304,7 +307,7 @@ func (c *Context) IsPodReferencedByAnyIngress(pod *v1.Pod) bool {
 	return false
 }
 
-// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. a Endpoint is used by an ingress
+// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. an Endpoint is used by an ingress
 func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool {
 	service := c.GetService(fmt.Sprintf("%v/%v", endpoints.Namespace, endpoints.Name))
 	return service != nil && c.isServiceReferencedByAnyIngress(service)

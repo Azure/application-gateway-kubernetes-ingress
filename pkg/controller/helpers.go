@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -173,4 +174,66 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 		deleteKey(&m, keyToDelete)
 	}
 	return json.Marshal(m)
+}
+
+// compare generated BackendAddressPools with cached one
+func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, cached *[]n.ApplicationGatewayBackendAddressPool) bool {
+	// no cache at first time, fallback to slow update
+	if cached == nil {
+		return false
+	}
+
+	backendIDtoIPAddressesMap := make(map[string][]string)
+	for _, gbap := range *generated {
+		backendNameG := gbap.Name
+		glog.V(9).Infof("new: find backend pool name: [%s]", *backendNameG)
+		ips := make([]string, len(*gbap.BackendAddresses))
+		for i, ip := range *gbap.BackendAddresses {
+			ips[i] = *ip.IPAddress
+		}
+		sort.Strings(ips)
+		backendIDtoIPAddressesMap[*backendNameG] = ips
+	}
+
+	for _, cbap := range *cached {
+		backendNameC := cbap.Name
+		if ipAddresses, exists := backendIDtoIPAddressesMap[*backendNameC]; exists {
+			glog.V(9).Infof("existing: find backend pool name: %s", *backendNameC)
+
+			ips := make([]string, len(*cbap.BackendAddresses))
+			for i, ip := range *cbap.BackendAddresses {
+				ips[i] = *ip.IPAddress
+			}
+			sort.Strings(ips)
+			if !equal(ipAddresses, ips) {
+				glog.V(5).Infof("new: backend address pool: [%s], ip: %v", *backendNameC, ipAddresses)
+				glog.V(5).Infof("existing: backend address pool: [%s] ip: %v", *backendNameC, ips)
+				return true
+			}
+		} else {
+			glog.V(3).Infof("existing: not find backend pool name: [%s]", *backendNameC)
+			return true
+		}
+	}
+
+	return false
+}
+
+// compare two string slices
+func equal(a, b []string) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }

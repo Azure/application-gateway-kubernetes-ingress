@@ -63,7 +63,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
-
+	existingBackendAddressPools := *appGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 	// Prepare k8s resources Phase //
 	// --------------------------- //
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
@@ -152,6 +152,28 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 
 	// Post Compare Phase //
 	// ------------------ //
+
+	generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
+	if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
+		glog.V(3).Info("Backend address pool is updated")
+		// (TO-DO): a global flag to enable or disable the fast path, the flag shall be removed once we start to migrate
+		// Endpoint event has been verified at this point
+		if _, yes := event.Value.(*v1.Endpoints); !yes {
+			// if the event is not Endpoint event, backendPool change will not be applied
+			glog.V(3).Info("Not endpoint event, skip to apply backend address pool changes")
+			generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools = &existingBackendAddressPools
+		} else {
+			// otherwise, we start to update our CRD
+			glog.V(3).Info("Endpoint event identified, start to update backend address pool")
+			// (TO-DO): update CRD
+
+			// fallback to slow path to apply
+			appGw.ApplicationGatewayPropertiesFormat.BackendAddressPools = generatedBackendAddressPools
+		}
+	} else {
+		glog.V(3).Info("Backend address pool has not changed")
+	}
+
 	// if this is not a reconciliation task
 	// then compare the generated state with cached state
 	if event.Type != events.PeriodicReconcile {
@@ -168,6 +190,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	defer glog.V(3).Info("END AppGateway deployment")
 
 	deploymentStart := time.Now()
+
 	// Initiate deployment
 	err = c.azClient.UpdateGateway(generatedAppGw)
 	if err != nil {
