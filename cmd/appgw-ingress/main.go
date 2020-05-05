@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -135,7 +136,8 @@ func main() {
 	}
 
 	if _, err = azClient.GetGateway(); err != nil {
-		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
+		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) &&
+			env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
 			} else if cpConfig != nil {

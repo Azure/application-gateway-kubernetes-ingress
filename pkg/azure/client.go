@@ -8,7 +8,6 @@ package azure
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -18,9 +17,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
-
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
 const (
@@ -136,8 +135,12 @@ func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
 			}
 
 			if response.Response.Response != nil && response.Response.StatusCode == 404 {
-				glog.Error("Got 404 NOT FOUND status code on getting Application Gateway from ARM.")
-				return utils.Retriable(false), ErrAppGatewayNotFound
+				err := controllererrors.NewError(
+					controllererrors.ErrorApplicationGatewayNotFound,
+					"Got 404 NOT FOUND status code on getting Application Gateway from ARM.",
+				)
+				glog.Error(err.Error())
+				return utils.Retriable(false), err
 			}
 
 			if response.Response.Response != nil && response.Response.StatusCode != 200 {
@@ -145,11 +148,16 @@ func (az *azClient) GetGateway() (response n.ApplicationGateway, err error) {
 				glog.Error("Unexpected ARM status code on GET existing App Gateway config: ", response.Response.StatusCode)
 			}
 
-			glog.Errorf("Failed fetching config for App Gateway instance. Will retry in %v. Error: %s", retryPause, err)
-			return utils.Retriable(true), ErrGetArmAuth
+			err := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrGetArmAuth,
+				err,
+				"Failed fetching config for App Gateway instance. Will retry in %v.", retryPause,
+			)
+			glog.Errorf(err.Error())
+			return utils.Retriable(true), err
 		})
 
-	if err != nil && err != ErrAppGatewayNotFound {
+	if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) {
 		glog.Errorf("Tried %d times to authenticate with ARM; Error: %s", retryCount, err)
 	}
 	return
@@ -323,7 +331,10 @@ func (az *azClient) findSubnet(vnet n.VirtualNetwork, subnetName ResourceName, s
 			return subnet, nil
 		}
 	}
-	err = errors.New("Unable to find subnet with matching subnetName and subnetPrefix")
+	err = controllererrors.NewErrorf(
+		controllererrors.ErrorSubnetNotFound,
+		"Unable to find subnet with matching subnetName %s and subnetPrefix %s in virtual network %s", subnetName, subnetPrefix, *vnet.ID,
+	)
 	return
 }
 

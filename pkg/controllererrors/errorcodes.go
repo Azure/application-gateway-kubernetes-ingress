@@ -39,4 +39,31 @@ const (
 	ErrorCreatingFile                   ErrorCode = "ErrorCreatingFile"
 	ErrorWritingToFile                  ErrorCode = "ErrorWritingToFile"
 	ErrorExportingWithOpenSSL           ErrorCode = "ErrorExportingWithOpenSSL"
+
+	// brownfield package
+	ErrorListenerLookup ErrorCode = "ErrorListenerLookup"
+
+	// environment package
+	ErrorMissingApplicationGatewayNameOrApplicationGatewayID ErrorCode = "ErrorMissingApplicationGatewayNameOrApplicationGatewayID"
+	ErrorMissingApplicationGatewayName                       ErrorCode = "ErrorMissingApplicationGatewayName"
+	ErrorNotAllowedApplicationGatewayID                      ErrorCode = "ErrorNotAllowedApplicationGatewayID"
+	ErrorMissingSubnetInfo                                   ErrorCode = "ErrorMissingSubnetInfo"
+	ErrorInvalidReconcilePeriod                              ErrorCode = "ErrorInvalidReconcilePeriod"
+
+	// controller package
+	ErrorFetchingAppGatewayConfig  ErrorCode = "ErrorFetchingAppGatewayConfig"
+	ErrorDeployingAppGatewayConfig ErrorCode = "ErrorDeployingAppGatewayConfig"
+
+	// annotations package
+	ErrorMissingAnnotation ErrorCode = "ErrorMissingAnnotation"
+	ErrorInvalidContent    ErrorCode = "ErrorInvalidContent"
+
+	// azure package
+	ErrorApplicationGatewayNotFound ErrorCode = "ErrorApplicationGatewayNotFound"
+	ErrorSubnetNotFound             ErrorCode = "ErrorSubnetNotFound"
+	ErrGetArmAuth                   ErrorCode = "ErrorGetArmAuth"
+	ErrorMissingResourceGroup       ErrorCode = "ErrorMissingResourceGroup"
+
+	// main package
+	ErrorNoSuchNamespace ErrorCode = "ErrorNoSuchNamespace"
 )

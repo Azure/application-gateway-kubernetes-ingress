@@ -18,6 +18,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
@@ -32,12 +33,16 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 	appGw, err := c.azClient.GetGateway()
 	c.MetricStore.IncArmAPICallCounter()
 	if err != nil {
-		errorLine := fmt.Sprintf("unable to get specified AppGateway [%v], check AppGateway identifier, error=[%v]", c.appGwIdentifier.AppGwName, err)
-		glog.Errorf(errorLine)
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingAppGatewayConfig,
+			err,
+			"unable to get specified AppGateway [%v], check AppGateway identifier", c.appGwIdentifier.AppGwName,
+		)
+		glog.Errorf(e.Error())
 		if c.agicPod != nil {
-			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, errorLine)
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, e.Error())
 		}
-		return nil, nil, ErrFetchingAppGatewayConfig
+		return nil, nil, e
 	}
 
 	cbCtx := &appgw.ConfigBuilderContext{
@@ -167,34 +172,16 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	glog.V(3).Info("BEGIN AppGateway deployment")
 	defer glog.V(3).Info("END AppGateway deployment")
 
-	deploymentStart := time.Now()
+	configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
+	glog.V(5).Info(string(configJSON))
+
 	// Initiate deployment
 	err = c.azClient.UpdateGateway(generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
-		glogIt := glog.Errorf
-		if cbCtx.EnvVariables.EnablePanicOnPutError {
-			glogIt = glog.Fatalf
-		}
-		errorLine := fmt.Sprintf("Failed applying App Gwy configuration:\n%s\n\nerror: %s", string(configJSON), err)
-		glogIt(errorLine)
-		if c.agicPod != nil {
-			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
-		}
-		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
-	// Wait until deployment finshes and save the error message
-	configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
-	glog.V(5).Info(string(configJSON))
-
-	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
-	duration := time.Now().Sub(deploymentStart)
-	glog.V(1).Infof("Applied App Gateway config in %+v", duration.String())
-
-	c.MetricStore.SetUpdateLatencySec(duration)
 	// ----------------- //
 
 	// Cache Phase //
@@ -202,20 +189,16 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
-		errorLine := fmt.Sprint("Unable to deploy App Gateway config.", err)
-		glog.Warning(errorLine)
-		if c.agicPod != nil {
-			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, errorLine)
-		}
-		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
-		return ErrDeployingAppGatewayConfig
+		return controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorDeployingAppGatewayConfig,
+			err,
+			"unable to get specified AppGateway %s", c.appGwIdentifier.AppGwName,
+		)
 	}
 
 	glog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(appGw)
 	// ----------- //
-
-	c.MetricStore.IncArmAPIUpdateCallSuccessCounter()
 
 	return nil
 }
