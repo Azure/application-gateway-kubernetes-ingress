@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
@@ -18,6 +19,7 @@ const minTimeBetweenUpdates = 1 * time.Second
 
 func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 	lastEvent := defaultEvent
+
 	glog.V(9).Infof("Draining %d events from work channel", len(ch))
 	for {
 		select {
@@ -26,6 +28,37 @@ func drainChan(ch chan events.Event, defaultEvent events.Event) events.Event {
 			// we will skip the reconcile event as we should focus on k8s related events
 			if event.Type != events.PeriodicReconcile {
 				lastEvent = event
+			}
+
+			if _, endPointEvent := event.Value.(*v1.Endpoints); endPointEvent {
+				glog.V(9).Info("############### endpoint event detected ###############")
+				// stop drainning after feeding endpoint event back to the buffered channel
+				// feeding back here is meant to not lose any endpoint events, e.g. endpoints events coming right after pod events
+				// side effect is to have extra polls from appgw
+				ch <- event
+				return lastEvent
+			}
+		default:
+			return lastEvent
+		}
+	}
+}
+
+func feedEndpointEvent(ch chan events.Event, defaultEvent events.Event) events.Event {
+	lastEvent := defaultEvent
+	glog.V(9).Infof("Draining %d events from work channel", len(ch))
+	for {
+		select {
+		case event := <-ch:
+			// if there are more event in the queue
+			// we will skip the reconcile event as we should focus on k8s related events
+			if event.Type != events.PeriodicReconcile {
+				lastEvent = event
+			}
+
+			if _, yes := event.Value.(*v1.Endpoints); yes {
+				ch <- event
+				return lastEvent
 			}
 		default:
 			return lastEvent

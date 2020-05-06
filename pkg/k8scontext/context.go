@@ -205,23 +205,31 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 }
 
 // GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApplicationGatewayBackendPool {
-	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
-	if err != nil {
-		glog.Error("Error fetching Azure application gateway backend pool resource, Error: ", err)
-		return nil
-	}
-	return azpool
-}
+func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	target, exist, err := c.Caches.AzureAppGwBackendPool.Get(fmt.Sprintf("%v", backendPoolName))
 
-// GetProhibitedTarget returns prohibited target with specified name and namespace
-func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
-	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
-	if err != nil {
-		glog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
-		return nil
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			"AzureApplicationGatewayBackendPool: %s not found",
+			backendPoolName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
 	}
-	return target
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			err,
+			"Error fetching AzureApplicationGatewayBackendPool: %s from store",
+			backendPoolName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return target.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
 }
 
 // ListServices returns a list of all the Services from cache.

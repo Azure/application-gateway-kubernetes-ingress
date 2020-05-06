@@ -156,7 +156,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 	if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
 		glog.V(3).Info("Backend address pool is updated")
-		// (TO-DO): a global flag to enable or disable the fast path, the flag shall be removed once we start to migrate
+		// (TO-DO): a global flag to enable or disable the fast path, the flag shall be removed once we start to migrate to fast update
 		// Endpoint event has been verified at this point
 		if _, yes := event.Value.(*v1.Endpoints); !yes {
 			// if the event is not Endpoint event, backendPool change will not be applied
@@ -166,12 +166,24 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 			// otherwise, we start to update our CRD
 			glog.V(3).Info("Endpoint event identified, start to update backend address pool")
 			// (TO-DO): update CRD
+			// Get crd object
+			backendPool, err := c.k8sContext.GetBackendPool("subscription-resourcegroup-gatewayname")
+			if err == nil {
+				glog.V(3).Infof("Find backend address pool: %s", backendPool.Name)
+				for _, obj := range backendPool.Spec.BackendAddressPools {
+					var ips []string
+					for _, address := range obj.BackendAddresses {
+						ips = append(ips, address.IPAddress)
+					}
+					glog.V(3).Infof("-------------------- Address pool id: %s, ip: %s", obj.Name, strings.Join(ips, ","))
+				}
+			}
 
-			// fallback to slow path to apply
+			// fallback to slow update to apply in case of failure
 			appGw.ApplicationGatewayPropertiesFormat.BackendAddressPools = generatedBackendAddressPools
 		}
 	} else {
-		glog.V(3).Info("Backend address pool has not changed")
+		glog.V(3).Info("Backend address pool has NOT been changed!")
 	}
 
 	// if this is not a reconciliation task

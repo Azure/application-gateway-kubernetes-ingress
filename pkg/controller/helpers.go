@@ -177,16 +177,15 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 }
 
 // compare generated BackendAddressPools with cached one
-func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, cached *[]n.ApplicationGatewayBackendAddressPool) bool {
-	// no cache at first time, fallback to slow update
-	if cached == nil {
+func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, existing *[]n.ApplicationGatewayBackendAddressPool) bool {
+	if existing == nil {
 		return false
 	}
 
 	backendIDtoIPAddressesMap := make(map[string][]string)
 	for _, gbap := range *generated {
 		backendNameG := gbap.Name
-		glog.V(9).Infof("new: find backend pool name: [%s]", *backendNameG)
+		glog.V(9).Infof("New: find backend pool name: [%s]", *backendNameG)
 		ips := make([]string, len(*gbap.BackendAddresses))
 		for i, ip := range *gbap.BackendAddresses {
 			ips[i] = *ip.IPAddress
@@ -195,10 +194,10 @@ func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, cached 
 		backendIDtoIPAddressesMap[*backendNameG] = ips
 	}
 
-	for _, cbap := range *cached {
+	for _, cbap := range *existing {
 		backendNameC := cbap.Name
 		if ipAddresses, exists := backendIDtoIPAddressesMap[*backendNameC]; exists {
-			glog.V(9).Infof("existing: find backend pool name: %s", *backendNameC)
+			glog.V(9).Infof("Existing: find backend pool name: %s", *backendNameC)
 
 			ips := make([]string, len(*cbap.BackendAddresses))
 			for i, ip := range *cbap.BackendAddresses {
@@ -206,12 +205,12 @@ func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, cached 
 			}
 			sort.Strings(ips)
 			if !equal(ipAddresses, ips) {
-				glog.V(5).Infof("new: backend address pool: [%s], ip: %v", *backendNameC, ipAddresses)
-				glog.V(5).Infof("existing: backend address pool: [%s] ip: %v", *backendNameC, ips)
+				glog.V(5).Infof("New: backend address pool ip: %v", ipAddresses)
+				glog.V(5).Infof("Existing: backend address pool ip: %v", ips)
 				return true
 			}
 		} else {
-			glog.V(3).Infof("existing: not find backend pool name: [%s]", *backendNameC)
+			glog.V(3).Infof("Existing: NOT find backend pool name: [%s]", *backendNameC)
 			return true
 		}
 	}
