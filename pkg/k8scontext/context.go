@@ -377,7 +377,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 
 	service := serviceInterface.(*v1.Service)
 	if service != nil {
-		glog.V(3).Infof("find service %s/%s", service.Namespace, service.Name)
+		glog.V(5).Infof("Found service %s/%s", service.Namespace, service.Name)
 	}
 
 	return service
