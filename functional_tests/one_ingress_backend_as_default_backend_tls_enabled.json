@@ -116,8 +116,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-950a9745af0d536446186fd9e5580648",
-                "name": "fl-950a9745af0d536446186fd9e5580648",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-a84cb4c909bbf63a60deb5a49544b186",
+                "name": "fl-a84cb4c909bbf63a60deb5a49544b186",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-1--"
@@ -125,8 +125,9 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
                     },
-                    "hostName": "bye.com",
-                    "hostnames": [],
+                    "hostnames": [
+                        "bye.com"
+                    ],
                     "protocol": "Https",
                     "requireServerNameIndication": false,
                     "sslCertificate": {
@@ -185,15 +186,15 @@
         "redirectConfigurations": [],
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-950a9745af0d536446186fd9e5580648",
-                "name": "rr-950a9745af0d536446186fd9e5580648",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-a84cb4c909bbf63a60deb5a49544b186",
+                "name": "rr-a84cb4c909bbf63a60deb5a49544b186",
                 "properties": {
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-950a9745af0d536446186fd9e5580648"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-a84cb4c909bbf63a60deb5a49544b186"
                     },
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-950a9745af0d536446186fd9e5580648"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-a84cb4c909bbf63a60deb5a49544b186"
                     }
                 }
             }
@@ -215,8 +216,8 @@
         ],
         "urlPathMaps": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-950a9745af0d536446186fd9e5580648",
-                "name": "url-950a9745af0d536446186fd9e5580648",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-a84cb4c909bbf63a60deb5a49544b186",
+                "name": "url-a84cb4c909bbf63a60deb5a49544b186",
                 "properties": {
                     "defaultBackendAddressPool": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
@@ -226,7 +227,7 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-950a9745af0d536446186fd9e5580648/pathRules/pr---namespace-----name---0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-a84cb4c909bbf63a60deb5a49544b186/pathRules/pr---namespace-----name---0",
                             "name": "pr---namespace-----name---0",
                             "properties": {
                                 "backendAddressPool": {
