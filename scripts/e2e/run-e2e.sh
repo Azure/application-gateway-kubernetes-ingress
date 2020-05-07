@@ -1,5 +1,13 @@
 #!/bin/bash
-set -x
+set -ex
+
+function DeleteOtherAGICVersions() {
+    list=$(helm ls --all --short -n agic | grep -v agic-${version})
+    if [[ $list != "" ]]
+    then
+        helm delete $list -n agic
+    fi
+}
 
 function InstallAGIC() {
     [[ -z "${version}" ]] && (echo "version is not set"; exit 1)
@@ -7,13 +15,9 @@ function InstallAGIC() {
     [[ -z "${identityResourceId}" ]] && (echo "identityResourceId is not set"; exit 1)
     [[ -z "${identityClientId}" ]] && (echo "identityClientId is not set"; exit 1)
 
-    echo "Installing BuildId ${version}"
+    DeleteOtherAGICVersions || true
 
-    list=$(helm ls --all --short -n agic | grep -v agic-${version})
-    if [[ $list != "" ]]
-    then
-        helm delete $list -n agic
-    fi
+    echo "Installing BuildId ${version}"
 
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
     helm repo update
