@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 // SubscriptionID is the subscription of the resource in the resourceID
@@ -61,9 +63,12 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 
 	split := strings.Split(string(resourceGroup), "_")
 	if len(split) != 4 || strings.ToUpper(split[0]) != "MC" {
-		logLine := fmt.Sprintf("infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup))
-		glog.Warning(logLine)
-		return "", ErrMissingResourceGroup
+		err := controllererrors.NewErrorf(
+			controllererrors.ErrorMissingResourceGroup,
+			"infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup),
+		)
+		glog.V(5).Info(err.Error())
+		return "", err
 	}
 
 	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s", subscriptionID, split[1], split[2]), nil
