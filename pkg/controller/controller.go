@@ -148,7 +148,7 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	c.MetricStore.SetUpdateLatencySec(duration)
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
-	glog.V(1).Infof("Applied App Gateway config in %+v", duration)
+	glog.V(1).Infof("Completed last event loop run in: %+v", duration)
 
 	return nil
 }
