@@ -61,3 +61,12 @@ func (e *Error) Error() string {
 
 	return fmt.Sprintf("Code: %s, Message: %s", e.Code, e.Message)
 }
+
+// IsErrorCode matches error code to the error
+func IsErrorCode(err error, code ErrorCode) bool {
+	if e, ok := err.(*Error); ok {
+		return e.Code == code
+	}
+
+	return false
+}
