@@ -731,6 +731,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.IngressClassKey:             annotations.ApplicationGatewayIngressClass,
 					annotations.AppGwTrustedRootCertificate: "root-cert",
 					annotations.BackendProtocolKey:          "https",
+					annotations.FirewallPolicy:              "waf-policy",
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name,
@@ -819,7 +820,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "one_ingress_backend_as_default_backend_tls_disabled.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("One Ingress Resources with default https backend defined for e2e ssl encryption", func() {
+		ginkgo.It("One Ingress Resources with default https backend for e2e ssl encryption and waf", func() {
 			ingressWithDefaultBackend.Spec.TLS = nil
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
