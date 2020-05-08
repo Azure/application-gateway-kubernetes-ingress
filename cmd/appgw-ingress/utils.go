@@ -48,6 +48,12 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 func getNamespacesToWatch(namespaceEnvVar string) []string {
 	// Returning an empty array effectively switches Ingress Controller
 	// in a mode of observing all accessible namespaces.
+	if len(namespaceEnvVar) != 0 {
+		glog.V(3).Infof("AGIC watchs namespace: %s", namespaceEnvVar)
+	} else {
+		glog.V(3).Infof("AGIC watchs all namespaces ")
+	}
+
 	if namespaceEnvVar == "" {
 		return []string{}
 	}

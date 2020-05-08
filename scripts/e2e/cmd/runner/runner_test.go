@@ -29,8 +29,8 @@ func TestMFU(t *testing.T) {
 	RunSpecsWithDefaultAndCustomReporters(t, "Run E2E MFU Test suite", []Reporter{junitReporter})
 }
 
-var _ = Describe("Most frequenty run test suite", func() {
-	Context("one namespace many ingresses", func() {
+var _ = Describe("Most frequently run test suite", func() {
+	Context("one namespace one ingress: ssl-redirect-to-https-backend", func() {
 		var clientset *kubernetes.Clientset
 		var namespaceName string
 		var err error
@@ -43,7 +43,7 @@ var _ = Describe("Most frequenty run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-manyingresses"
+			namespaceName = "e2e-1n1i-ssl"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -54,7 +54,71 @@ var _ = Describe("Most frequenty run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/same-namespace-many-ingress/generated.yaml"
+			path := "testdata/one-namespace-one-ingress/ssl-redirect-to-https-backend/app.yaml"
+			klog.Info("Applying yaml ", path)
+			err := applyYaml(clientset, namespaceName, path)
+			Expect(err).To(BeNil())
+
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, err := getPublicIP(clientset, namespaceName)
+			Expect(err).To(BeNil())
+			Expect(publicIP).ToNot(Equal(""))
+
+			url = fmt.Sprintf("https://%s/status/200", publicIP)
+		})
+
+		It("should get correct status code for following hostnames", func() {
+			// simple hostname
+			err = makeGetRequest(url, "www.extended.com", 200)
+			Expect(err).To(BeNil())
+
+			// wilcard host name on multiple hostnames wildcard listener
+			err = makeGetRequest(url, "app.extended.com", 200)
+			Expect(err).To(BeNil())
+
+			// simple hostname with 1 host name which is wildcard hostname
+			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200)
+			Expect(err).To(BeNil())
+
+			// return 404 for random hostname
+			err = makeGetRequest(url, "random.com", 404)
+			Expect(err).To(BeNil())
+		})
+
+		AfterEach(func() {
+			// clear all namespaces
+			cleanUp(clientset)
+		})
+	})
+
+	Context("one namespace many ingresses: thirty-four-ingresses-with-services", func() {
+		var clientset *kubernetes.Clientset
+		var namespaceName string
+		var err error
+
+		BeforeEach(func() {
+			clientset, err = getClient()
+			Expect(err).To(BeNil())
+
+			// clear all namespaces
+			cleanUp(clientset)
+
+			// create namespace
+			namespaceName = "e2e-1nmi-thirty-four"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			// create objects in the yaml
+			path := "testdata/one-namespace-many-ingresses/thirty-four-ingresses-with-services/generated.yaml"
 			klog.Info("Applying yaml ", path)
 			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
@@ -89,7 +153,7 @@ var _ = Describe("Most frequenty run test suite", func() {
 		})
 	})
 
-	Context("wildcard hostname tests", func() {
+	Context("one namespace many ingresses: hostname-with-wildcard", func() {
 		var clientset *kubernetes.Clientset
 		var err error
 		var namespaceName string
@@ -103,7 +167,7 @@ var _ = Describe("Most frequenty run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-wildcard"
+			namespaceName = "e2e-1nmi-wildcard"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -114,7 +178,7 @@ var _ = Describe("Most frequenty run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/wildcard/app.yaml"
+			path := "testdata/one-namespace-many-ingresses/hostname-with-wildcard/app.yaml"
 			klog.Info("Applying yaml ", path)
 			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
