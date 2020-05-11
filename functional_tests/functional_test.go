@@ -778,7 +778,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Make sure ingress default backend is used as default
-		// The no matched rule backend in this case will still be used in urlPathMaps
+		// No paired backend in this case will still be in urlPathMaps
 		ginkgo.It("One Ingress Resources with default backend defined and no matched rules", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{

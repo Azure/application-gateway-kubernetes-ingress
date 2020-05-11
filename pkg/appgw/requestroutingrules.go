@@ -141,6 +141,14 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(*noRulesIngressHTTPSettings.Name)
 
 		listenerID := defaultFrontendListenerIdentifier()
+		var hostnames []string
+		if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
+			if extendedHostNames != nil {
+				hostnames = append(hostnames, extendedHostNames...)
+			}
+		}
+		listenerID.setHostNames(hostnames)
+
 		pathMapName := generateURLPathMapName(listenerID)
 		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
@@ -164,7 +172,6 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 			c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
 		}
 
-		//noMatchedService := true
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
 			// skip no http rule
@@ -172,24 +179,6 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				continue
 			}
 
-			// when rule backend defined but not matched
-			// potentialServices := make([]*v1.Service, 0, len(rule.HTTP.Paths))
-			// for pathIdx := range rule.HTTP.Paths {
-			// 	path := &rule.HTTP.Paths[pathIdx]
-			// 	backendID := generateBackendID(ingress, rule, path, &path.Backend)
-			// 	service := c.k8sContext.GetService(backendID.serviceKey())
-			// 	if service != nil {
-			// 		potentialServices = append(potentialServices, service)
-			// 	} else {
-			// 		glog.V(3).Infof("no matched service found for backend %s defined in ingress %s/%s", backendID.Name, ingress.Namespace, ingress.Name)
-			// 	}
-			// }
-			// if find no paired service, check the next rule if any
-			// if len(potentialServices) == 0 {
-			// 	continue
-			// }
-
-			//noMatchedService = false
 			_, azListenerConfig := c.processIngressRuleWithTLS(rule, ingress, cbCtx.EnvVariables)
 			for listenerID, listenerAzConfig := range azListenerConfig {
 				if _, exists := urlPathMaps[listenerID]; !exists {
@@ -209,12 +198,6 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap, cbCtx)
 			}
 		}
-
-		// if find no matched backend, we treat it same as no rules ingress
-		// if noMatchedService {
-		// 	glog.V(3).Info("no matched service found for *all* rules, switch to default backend.")
-		// 	c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
-		// }
 	}
 
 	// if no url pathmaps were created, then add a default path map since this will be translated to

@@ -17,12 +17,6 @@ import (
 func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
-	// if ingress has only backend configured
-	if ingress.Spec.Backend != nil && ingress.Spec.TLS == nil && len(ingress.Spec.Rules) == 0 {
-		glog.V(3).Infof("Only default backend defined for the ingress %s/%s", ingress.Namespace, ingress.Name)
-		return listeners
-	}
-
 	// process ingress rules with TLS and Waf policy
 	policy, _ := annotations.WAFPolicy(ingress)
 	if len(ingress.Spec.Rules) == 0 {
@@ -46,7 +40,7 @@ func (c *appGwConfigBuilder) collectListener(ingress *v1beta1.Ingress, rule *v1b
 	_, ruleListeners := c.processIngressRuleWithTLS(rule, ingress, env)
 	apply := false
 	if wafPolicy != "" {
-		apply = c.applyToListener(rule)
+		apply = c.applyWAFPolicyToListener(rule)
 	}
 
 	for k, v := range ruleListeners {
@@ -60,14 +54,14 @@ func (c *appGwConfigBuilder) collectListener(ingress *v1beta1.Ingress, rule *v1b
 	return listeners
 }
 
-func (c *appGwConfigBuilder) applyToListener(rule *v1beta1.IngressRule) bool {
+func (c *appGwConfigBuilder) applyWAFPolicyToListener(rule *v1beta1.IngressRule) bool {
 	if rule == nil {
 		return true
 	}
 
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
-		// if path is specified, apply waf policy to the pathRule, otherwise apply to a listener, listener is per ingress host
+		// if path is specified, apply WAF policy to the pathRule, otherwise apply to a listener only, listener is per ingress host
 		if len(path.Path) != 0 && path.Path != "/" && path.Path != "/*" {
 			// apply to path rule instead of listener
 			return false
