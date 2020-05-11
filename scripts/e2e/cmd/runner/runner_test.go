@@ -26,11 +26,11 @@ import (
 func TestMFU(t *testing.T) {
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter("report.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Run E2E MFU Test suite", []Reporter{junitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "Run E2E MFU Test Suite", []Reporter{junitReporter})
 }
 
 var _ = Describe("Most frequently run test suite", func() {
-	Context("one namespace one ingress: ssl-redirect-to-https-backend", func() {
+	Context("one namespace one ingress: ssl-redirect", func() {
 		var clientset *kubernetes.Clientset
 		var namespaceName string
 		var err error
@@ -43,7 +43,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-1n1i-ssl"
+			namespaceName = "1n1i-ssl-redirect"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -67,24 +67,17 @@ var _ = Describe("Most frequently run test suite", func() {
 			Expect(err).To(BeNil())
 			Expect(publicIP).ToNot(Equal(""))
 
-			url = fmt.Sprintf("https://%s/status/200", publicIP)
+			urlHttp = fmt.Sprintf("http://%s/status/200", publicIP)
+			urlHttps = fmt.Sprintf("https://%s/status/200", publicIP)
 		})
 
 		It("should get correct status code for following hostnames", func() {
-			// simple hostname
-			err = makeGetRequest(url, "www.extended.com", 200)
+			// http get to return 200 ok
+			err = makeGetRequest(urlHttp, "", 200, true)
 			Expect(err).To(BeNil())
 
-			// wilcard host name on multiple hostnames wildcard listener
-			err = makeGetRequest(url, "app.extended.com", 200)
-			Expect(err).To(BeNil())
-
-			// simple hostname with 1 host name which is wildcard hostname
-			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200)
-			Expect(err).To(BeNil())
-
-			// return 404 for random hostname
-			err = makeGetRequest(url, "random.com", 404)
+			// https get to return 200 ok
+			err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
 		})
 
@@ -107,7 +100,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-1nmi-thirty-four"
+			namespaceName = "1nmi-thirty-four"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -141,7 +134,7 @@ var _ = Describe("Most frequently run test suite", func() {
 				for _, host := range hosts {
 					hostIndex := host + strconv.Itoa(i)
 					klog.Infof("Sending request with host %s ...", hostIndex)
-					err = makeGetRequest(url, hostIndex, 200)
+					err = makeGetRequest(url, hostIndex, 200, true)
 					Expect(err).To(BeNil())
 				}
 			}
@@ -167,7 +160,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-1nmi-wildcard"
+			namespaceName = "1nmi-wildcard"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -196,19 +189,19 @@ var _ = Describe("Most frequently run test suite", func() {
 
 		It("should get correct status code for following hostnames", func() {
 			// simple hostname
-			err = makeGetRequest(url, "www.extended.com", 200)
+			err = makeGetRequest(url, "www.extended.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// wilcard host name on multiple hostnames wildcard listener
-			err = makeGetRequest(url, "app.extended.com", 200)
+			err = makeGetRequest(url, "app.extended.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// simple hostname with 1 host name which is wildcard hostname
-			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200)
+			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200, true)
 			Expect(err).To(BeNil())
 
 			// return 404 for random hostname
-			err = makeGetRequest(url, "random.com", 404)
+			err = makeGetRequest(url, "random.com", 404, true)
 			Expect(err).To(BeNil())
 		})
 

@@ -2,27 +2,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websocket-deployment
+  name: ssl-redirect-deployment
 spec:
   selector:
     matchLabels:
-      app: ws-app
+      app: ssl-redirect
   replicas: 2
   template:
     metadata:
       labels:
-        app: ws-app
+        app: ssl-redirect
     spec:
       containers:
-        - name: websocket-app
+        - name: httpbin
           imagePullPolicy: Always
           image: docker.io/kennethreitz/httpbin
           ports:
-            - containerPort: 443
+            - containerPort: 80
           livenessProbe:
             httpGet:
               path: /status/200
-              port: 443
+              port: 80
             initialDelaySeconds: 3
             periodSeconds: 3
       imagePullSecrets:
@@ -31,39 +31,35 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: websocket-service
+  name: ssl-redirect-service
 spec:
   selector:
-    app: ws-app
+    app: ssl-redirect
   ports:
   - protocol: TCP
-    port: 443
-    targetPort: 443
+    port: 80
+    targetPort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: websocket-ingress
+  name: ssl-redirect-ingress
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
-    appgw.ingress.kubernetes.io/backend-protocol: "https"
 spec:
   tls:
-   - hosts:
-     - ws.mis.li
-     secretName: testsecret-tls
+    - secretName: testsecret-tls
   backend:
-    serviceName: websocket-service
-    servicePort: 443
+    serviceName: ssl-redirect-service
+    servicePort: 80
   rules:
-    - host: ws.mis.li
-      http:
+    - http:
         paths:
-        - path: /igloo
+        - path: /status*
           backend:
-            serviceName: websocket-service
-            servicePort: 443
+            serviceName: ssl-redirect-service
+            servicePort: 80
 ---
 apiVersion: v1
 data:

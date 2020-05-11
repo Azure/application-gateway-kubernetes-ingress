@@ -190,17 +190,19 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 	return "", fmt.Errorf("Timed out while finding ingress IP in namespace %s", namespaceName)
 }
 
-func makeGetRequest(url string, host string, statusCode int) error {
+func makeGetRequest(url string, host string, statusCode int, inSecure bool) error {
 	var resp *http.Response
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
 	}
 
-	req.Host = host
+	if len(host) > 0 {
+		req.Host = host
+	}
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: inSecure},
 	}
 	client := &http.Client{Transport: tr}
 	client.Timeout = 2 * time.Second
