@@ -24,6 +24,7 @@ spec:
         {{- end }}
         {{- end }}
       annotations:
+        checksum/config: {{ print .Values | sha256sum }}
         prometheus.io/scrape: "true"
         prometheus.io/port: {{ .Values.kubernetes.httpServicePort | quote}}
     spec:
