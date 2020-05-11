@@ -49,9 +49,9 @@ func getNamespacesToWatch(namespaceEnvVar string) []string {
 	// Returning an empty array effectively switches Ingress Controller
 	// in a mode of observing all accessible namespaces.
 	if len(namespaceEnvVar) != 0 {
-		glog.V(3).Infof("AGIC watchs namespace: %s", namespaceEnvVar)
+		glog.V(3).Infof("AGIC watches namespace: %s", namespaceEnvVar)
 	} else {
-		glog.V(3).Infof("AGIC watchs all namespaces ")
+		glog.V(3).Infof("AGIC watches all namespaces")
 	}
 
 	if namespaceEnvVar == "" {

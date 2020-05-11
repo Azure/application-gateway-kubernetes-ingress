@@ -71,7 +71,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			urlHttps = fmt.Sprintf("https://%s/status/200", publicIP)
 		})
 
-		It("should get correct status code for following hostnames", func() {
+		It("should get 200 ok for both http and https request", func() {
 			// http get to return 200 ok
 			err = makeGetRequest(urlHttp, "", 200, true)
 			Expect(err).To(BeNil())
@@ -87,7 +87,7 @@ var _ = Describe("Most frequently run test suite", func() {
 		})
 	})
 
-	Context("one namespace many ingresses: thirty-four-ingresses-with-services", func() {
+	Context("one namespace many ingresses: fifty-ingresses-with-services", func() {
 		var clientset *kubernetes.Clientset
 		var namespaceName string
 		var err error
@@ -100,7 +100,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "1nmi-thirty-four"
+			namespaceName = "1nmi-fifty-ingresses"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -111,7 +111,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-many-ingresses/thirty-four-ingresses-with-services/generated.yaml"
+			path := "testdata/one-namespace-many-ingresses/fifty-ingresses-with-services/generated.yaml"
 			klog.Info("Applying yaml ", path)
 			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
