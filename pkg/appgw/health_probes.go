@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
 		}
-		glog.V(5).Infof("Created probe %s for ingress %s/%s and service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
+		glog.V(5).Infof("Created probe %s for ingress %s/%s at service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 	}
 
 	c.mem.probesByName = &healthProbeCollection
@@ -126,8 +126,13 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
 		}
+		// httpGet schema is default to Http if not specified, double check with the port in case for Https
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTP {
-			probe.Protocol = n.HTTP
+			if k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal == 443 {
+				probe.Protocol = n.HTTPS
+			} else {
+				probe.Protocol = n.HTTP
+			}
 		}
 		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
 			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
