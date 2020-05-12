@@ -9,6 +9,7 @@ package runner
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"testing"
 	"time"
@@ -36,6 +37,7 @@ var _ = Describe("Most frequently run test suite", func() {
 		var urlHttp string
 		var urlHttps string
 		var err error
+		var resp *http.Response
 
 		BeforeEach(func() {
 			clientset, err = getClient()
@@ -73,13 +75,15 @@ var _ = Describe("Most frequently run test suite", func() {
 			urlHttps = fmt.Sprintf("https://%s/status/200", publicIP)
 		})
 
-		It("should get 200 ok for both http and https request", func() {
+		It("should get correct status code for both http and https request", func() {
 			// http get to return 200 ok
-			err = makeGetRequest(urlHttp, "", 200, true)
+			resp, err = makeGetRequest(urlHttp, "", 301, true)
 			Expect(err).To(BeNil())
-
+			redirectLocation := resp.Header.Get("Location")
+			klog.Infof("redirect location: %s", redirectLocation)
+			Expect(redirectLocation).To(Equal(urlHttps))
 			// https get to return 200 ok
-			err = makeGetRequest(urlHttps, "", 200, true)
+			_, err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
 		})
 
@@ -136,7 +140,7 @@ var _ = Describe("Most frequently run test suite", func() {
 				for _, host := range hosts {
 					hostIndex := host + strconv.Itoa(i)
 					klog.Infof("Sending request with host %s ...", hostIndex)
-					err = makeGetRequest(url, hostIndex, 200, true)
+					_, err = makeGetRequest(url, hostIndex, 200, true)
 					Expect(err).To(BeNil())
 				}
 			}
@@ -191,19 +195,19 @@ var _ = Describe("Most frequently run test suite", func() {
 
 		It("should get correct status code for following hostnames", func() {
 			// simple hostname
-			err = makeGetRequest(url, "www.extended.com", 200, true)
+			_, err = makeGetRequest(url, "www.extended.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// wilcard host name on multiple hostnames wildcard listener
-			err = makeGetRequest(url, "app.extended.com", 200, true)
+			_, err = makeGetRequest(url, "app.extended.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// simple hostname with 1 host name which is wildcard hostname
-			err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200, true)
+			_, err = makeGetRequest(url, "www.singlequestionmarkhost.uk", 200, true)
 			Expect(err).To(BeNil())
 
 			// return 404 for random hostname
-			err = makeGetRequest(url, "random.com", 404, true)
+			_, err = makeGetRequest(url, "random.com", 404, true)
 			Expect(err).To(BeNil())
 		})
 
