@@ -29,7 +29,7 @@ function InstallAGIC() {
     --set armAuth.identityResourceID=${identityResourceId} \
     --set armAuth.identityClientID=${identityClientId} \
     --set rbac.enabled=true \
-    --timeout 60s \
+    --timeout 120s \
     --wait \
     -n agic \
     --version ${version}
