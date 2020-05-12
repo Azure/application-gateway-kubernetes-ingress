@@ -33,6 +33,8 @@ var _ = Describe("Most frequently run test suite", func() {
 	Context("one namespace one ingress: ssl-redirect", func() {
 		var clientset *kubernetes.Clientset
 		var namespaceName string
+		var urlHttp string
+		var urlHttps string
 		var err error
 
 		BeforeEach(func() {
@@ -43,7 +45,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "1n1i-ssl-redirect"
+			namespaceName = "e2e-1n1i-ssl-redirect"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -54,7 +56,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-one-ingress/ssl-redirect-to-https-backend/app.yaml"
+			path := "testdata/one-namespace-one-ingress/ssl-redirect/app.yaml"
 			klog.Info("Applying yaml ", path)
 			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
@@ -100,7 +102,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "1nmi-fifty-ingresses"
+			namespaceName = "e2e-1nmi-fifty-ingresses"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -160,7 +162,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "1nmi-wildcard"
+			namespaceName = "e2e-1nmi-wildcard"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
