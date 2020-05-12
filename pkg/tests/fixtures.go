@@ -26,6 +26,7 @@ const (
 	Namespace               = "--namespace--"
 	OtherNamespace          = "--other-namespace--"
 	Name                    = "--name--"
+	OtherName               = "--other-name--"
 	Host                    = "bye.com"
 	OtherHost               = "--some-other-hostname--"
 	HostUnassociated        = "---some-host-without-routing-rules---"

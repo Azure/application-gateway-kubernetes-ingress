@@ -708,6 +708,47 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
+		ingressHttps := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				TLS: []v1beta1.IngressTLS{
+					{
+						Hosts: []string{
+							tests.OtherHost,
+						},
+						SecretName: tests.NameOfSecret,
+					},
+				},
+				Rules: []v1beta1.IngressRule{
+					{
+						Host: tests.OtherHost,
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/C/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameC,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 443,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.OtherName,
+			},
+		}
+
 		ingressWithDefaultHttpsBackend := &v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				TLS: []v1beta1.IngressTLS{
@@ -779,7 +820,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		// Make sure ingress default backend is used as default
 		// No paired backend in this case will still be in urlPathMaps
-		ginkgo.It("One Ingress Resources with default backend defined and no matched rules", func() {
+		ginkgo.It("One Ingress Resource with default backend defined and no matched rules", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingressWithDefaultBackendNoMatchedRule,
@@ -793,7 +834,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 
 		// Make sure ingress default backend is used as default when tls is enabled
-		ginkgo.It("One Ingress Resources with default backend defined and tls enabled", func() {
+		ginkgo.It("One Ingress Resource with default backend defined and tls enabled", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					ingressWithDefaultBackend,
@@ -806,7 +847,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "one_ingress_backend_as_default_backend_tls_enabled.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("One Ingress Resources with default backend defined but tls disabled", func() {
+		ginkgo.It("One Ingress Resource with default backend defined but tls disabled", func() {
 			ingressWithDefaultBackend.Spec.TLS = nil
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
@@ -820,7 +861,23 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "one_ingress_backend_as_default_backend_tls_disabled.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("One Ingress Resources with default https backend for e2e ssl encryption and waf", func() {
+		// two ingresses within same namespace, one with default backend defined
+		ginkgo.It("Two Ingress Resources with default backend defined", func() {
+			ingressWithDefaultBackend.Spec.TLS = nil
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressWithDefaultBackend,
+					ingressHttps,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "two_ingresses_backend_as_default_backend.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("One Ingress Resource with default https backend for e2e ssl encryption and waf", func() {
 			ingressWithDefaultBackend.Spec.TLS = nil
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
