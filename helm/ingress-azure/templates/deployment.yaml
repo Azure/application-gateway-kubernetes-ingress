@@ -20,7 +20,7 @@ spec:
         release: {{ .Release.Name }}
         {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "aadPodIdentity"}}
-        aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+        aadpodidbinding: {{ .Values.armAuth.identityClientID }}
         {{- end }}
         {{- end }}
       annotations:
