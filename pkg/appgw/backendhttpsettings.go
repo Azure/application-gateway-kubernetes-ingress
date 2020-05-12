@@ -221,6 +221,9 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		},
 	}
 
+	if port == 443 {
+		httpSettings.Protocol = n.HTTPS
+	}
 	_, probesMap := c.newProbesMap(cbCtx)
 
 	if probesMap[backendID] != nil {

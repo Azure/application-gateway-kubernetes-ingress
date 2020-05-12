@@ -725,9 +725,9 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 							HTTP: &v1beta1.HTTPIngressRuleValue{
 								Paths: []v1beta1.HTTPIngressPath{
 									{
-										Path: "/C/",
+										Path: "/D/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameC,
+											ServiceName: serviceNameD,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 443,
