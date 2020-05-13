@@ -29,7 +29,7 @@ function InstallAGIC() {
     --set armAuth.identityResourceID=${identityResourceId} \
     --set armAuth.identityClientID=${identityClientId} \
     --set rbac.enabled=true \
-    --timeout 60s \
+    --timeout 120s \
     --wait \
     -n agic \
     --version ${version}
@@ -39,5 +39,5 @@ function InstallAGIC() {
 InstallAGIC
 
 # run test
-go mod init
+go mod init || true
 go test -v -timeout 60m -tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
