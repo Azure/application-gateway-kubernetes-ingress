@@ -365,18 +365,21 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
-
 	if err != nil {
 		glog.V(3).Infof("unable to get service from store, error occurred %s", err)
 		return nil
 	}
 
 	if !exist {
-		glog.V(9).Infof("Service %s does not exist", serviceKey)
+		glog.V(3).Infof("Service %s does not exist", serviceKey)
 		return nil
 	}
 
 	service := serviceInterface.(*v1.Service)
+	if service != nil {
+		glog.V(5).Infof("Found service %s/%s", service.Namespace, service.Name)
+	}
+
 	return service
 }
 
@@ -581,6 +584,10 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 					return true
 				}
 			}
+		}
+		// single service ingress without rules
+		if ingress.Spec.Backend != nil && ingress.Spec.Backend.ServiceName == service.Name {
+			return true
 		}
 	}
 

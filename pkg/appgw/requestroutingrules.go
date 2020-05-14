@@ -130,11 +130,25 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 	if err != nil {
 		glog.Error("Error fetching Backends and Settings: ", err)
 	}
+
+	noRulesIngressHTTPSettings := c.generateHTTPSettings(backendID, serviceBackendPairMap[backendID].BackendPort, cbCtx)
+
+	// Thre are no Rules, create urlPathMap with no pathRules
 	if serviceBackendPair, exists := serviceBackendPairMap[backendID]; exists {
 		poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
-		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
+		//create default HttpSettings from ingress default backend
+		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(*noRulesIngressHTTPSettings.Name)
+
 		listenerID := defaultFrontendListenerIdentifier()
+		var hostnames []string
+		if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
+			if extendedHostNames != nil {
+				hostnames = append(hostnames, extendedHostNames...)
+			}
+		}
+		listenerID.setHostNames(hostnames)
+
 		pathMapName := generateURLPathMapName(listenerID)
 		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),

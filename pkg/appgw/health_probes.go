@@ -57,7 +57,6 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
-
 		if probe != nil {
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe

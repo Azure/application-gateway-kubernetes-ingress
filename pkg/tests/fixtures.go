@@ -27,6 +27,7 @@ const (
 	OtherNamespace               = "--other-namespace--"
 	HTTPSBackendNamespace        = "--https-backend-namespace--"
 	Name                         = "--name--"
+	OtherName                    = "--other-name--"
 	Host                         = "bye.com"
 	OtherHost                    = "--some-other-hostname--"
 	HostUnassociated             = "---some-host-without-routing-rules---"
@@ -227,6 +228,23 @@ func NewIngressFixtureSingleSlashPath() *v1beta1.Ingress {
 			Annotations: map[string]string{
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				annotations.SslRedirectKey:  "true",
+			},
+			Namespace: Namespace,
+			Name:      Name,
+		},
+	}
+}
+
+// NewSingleServiceIngressFixture defines single service ingress with only backend spec
+func NewSingleServiceIngressFixture() *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(ServiceName, 80)
+	return &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Backend: be80,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 			Namespace: Namespace,
 			Name:      Name,
