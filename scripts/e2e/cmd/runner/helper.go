@@ -190,19 +190,27 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 	return "", fmt.Errorf("Timed out while finding ingress IP in namespace %s", namespaceName)
 }
 
-func makeGetRequest(url string, host string, statusCode int) error {
+func makeGetRequest(url string, host string, statusCode int, inSecure bool) (*http.Response, error) {
 	var resp *http.Response
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	req.Host = host
+	if len(host) > 0 {
+		req.Host = host
+	}
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: inSecure},
 	}
-	client := &http.Client{Transport: tr}
+
+	client := &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	client.Timeout = 2 * time.Second
 
 	klog.Warning("Sending GET request...")
@@ -215,12 +223,12 @@ func makeGetRequest(url string, host string, statusCode int) error {
 		}
 
 		if resp.StatusCode == statusCode {
-			return nil
+			return resp, nil
 		}
 
 		klog.Warningf("Trying again %d. Sleeping for 5 seconds. Got response [%+v].", i, resp)
 		time.Sleep(5 * time.Second)
 	}
 
-	return fmt.Errorf("Unable to get status code %d with url '%s' with host '%s'. Response: [%+v]", statusCode, url, host, resp)
+	return nil, fmt.Errorf("Unable to get status code %d with url '%s' with host '%s'. Response: [%+v]", statusCode, url, host, resp)
 }

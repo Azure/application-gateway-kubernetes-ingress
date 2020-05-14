@@ -23,36 +23,39 @@ import (
 
 // constant values to be used for testing
 const (
-	Namespace               = "--namespace--"
-	OtherNamespace          = "--other-namespace--"
-	Name                    = "--name--"
-	OtherName               = "--other-name--"
-	Host                    = "bye.com"
-	OtherHost               = "--some-other-hostname--"
-	HostUnassociated        = "---some-host-without-routing-rules---"
-	NameOfSecret            = "--the-name-of-the-secret--"
-	ServiceName             = "--service-name--"
-	NodeName                = "--node-name--"
-	URLPath1                = "/api1"
-	URLPath2                = "/api2"
-	URLPath3                = "/api3"
-	URLPath4                = "/"
-	URLPath5                = "/*"
-	HealthPath              = "/healthz"
-	ContainerName           = "--container-name--"
-	ContainerPort           = int32(9876)
-	ContainerHealthPortName = "--container-health-port-name--"
-	ContainerHealthPort     = int32(9090)
-	ServicePort             = "service-port"
-	SelectorKey             = "app"
-	SelectorValue           = "frontend"
-	Subscription            = "--subscription--"
-	ResourceGroup           = "--resource-group--"
-	AppGwName               = "--app-gw-name--"
-	PublicIPID              = "--front-end-ip-id-1--"
-	PrivateIPID             = "--front-end-ip-id-2--"
-	ServiceHTTPPort         = "--service-http-port--"
-	ServiceHTTPSPort        = "--service-https-port--"
+	Namespace                    = "--namespace--"
+	OtherNamespace               = "--other-namespace--"
+	HTTPSBackendNamespace        = "--https-backend-namespace--"
+	Name                         = "--name--"
+	OtherName                    = "--other-name--"
+	Host                         = "bye.com"
+	OtherHost                    = "--some-other-hostname--"
+	HostUnassociated             = "---some-host-without-routing-rules---"
+	NameOfSecret                 = "--the-name-of-the-secret--"
+	ServiceName                  = "--service-name--"
+	NodeName                     = "--node-name--"
+	URLPath1                     = "/api1"
+	URLPath2                     = "/api2"
+	URLPath3                     = "/api3"
+	URLPath4                     = "/"
+	URLPath5                     = "/*"
+	HealthPath                   = "/healthz"
+	ContainerName                = "--container-name--"
+	ContainerPort                = int32(9876)
+	ContainerHealthPortName      = "--container-health-port-name--"
+	ContainerHealthHTTPSPortName = "--container-health-https-port-name--"
+	ContainerHealthHTTPSPort     = int32(443)
+	ContainerHealthPort          = int32(9090)
+	ServicePort                  = "service-port"
+	SelectorKey                  = "app"
+	SelectorValue                = "frontend"
+	Subscription                 = "--subscription--"
+	ResourceGroup                = "--resource-group--"
+	AppGwName                    = "--app-gw-name--"
+	PublicIPID                   = "--front-end-ip-id-1--"
+	PrivateIPID                  = "--front-end-ip-id-2--"
+	ServiceHTTPPort              = "--service-http-port--"
+	ServiceHTTPSPort             = "--service-https-port--"
 )
 
 // GetIngress creates an Ingress test fixture.
@@ -329,6 +332,53 @@ func NewProbeFixture(containerName string) *v1.Probe {
 					StrVal: ContainerHealthPortName,
 				},
 				Scheme: v1.URISchemeHTTP,
+			},
+		},
+	}
+}
+
+// NewHTTPSProbeFixture makes a new probe for testing port 443
+func NewHTTPSProbeFixture(containerName string) *v1.Probe {
+	return &v1.Probe{
+		TimeoutSeconds:   5,
+		FailureThreshold: 3,
+		PeriodSeconds:    20,
+		Handler: v1.Handler{
+			HTTPGet: &v1.HTTPGetAction{
+				Path: HealthPath,
+				Port: intstr.IntOrString{
+					Type:   intstr.String,
+					StrVal: ContainerHealthHTTPSPortName,
+				},
+			},
+		},
+	}
+}
+
+// NewPodHTTPSFixture makes a new pod serving at port 443
+func NewPodHTTPSFixture(serviceName string, ingressNamespace string, containerName string, containerPort int32) *v1.Pod {
+	return &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: ingressNamespace,
+			Labels: map[string]string{
+				SelectorKey: SelectorValue,
+			},
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  serviceName,
+					Image: "image",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          ContainerHealthHTTPSPortName,
+							ContainerPort: ContainerHealthHTTPSPort,
+						},
+					},
+					ReadinessProbe: NewHTTPSProbeFixture(containerName),
+					LivenessProbe:  NewHTTPSProbeFixture(containerName),
+				},
 			},
 		},
 	}
