@@ -41,9 +41,17 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		// based on backend protocol annotation and then test against expected backend http settings.
 		checkBackendProtocolAnnotation := func(annotationValue string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
 			// Setup
-			ingress.Annotations[annotations.BackendProtocolKey] = annotationValue
-			_ = configBuilder.k8sContext.Caches.Ingress.Update(ingress)
-			Expect(annotations.BackendProtocol(ingress)).To(Equal(protocolEnum))
+			if len(annotationValue) > 0 {
+				ingress.Annotations[annotations.BackendProtocolKey] = annotationValue
+				_ = configBuilder.k8sContext.Caches.Ingress.Update(ingress)
+				Expect(annotations.BackendProtocol(ingress)).To(Equal(protocolEnum))
+			} else {
+				// disable ssl-redirect
+				newAnnotation := map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				}
+				ingress.SetAnnotations(newAnnotation)
+			}
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList:           []*v1beta1.Ingress{ingress},
@@ -75,6 +83,10 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 		It("should have all backend http settings with http", func() {
 			checkBackendProtocolAnnotation("HttP", annotations.HTTP, n.HTTP)
+		})
+
+		It("should have all but default backend http settings with https without backend protocol defined", func() {
+			checkBackendProtocolAnnotation("", 0, n.HTTPS)
 		})
 	})
 

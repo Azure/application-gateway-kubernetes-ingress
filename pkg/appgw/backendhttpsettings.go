@@ -220,7 +220,6 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
-
 	_, probesMap := c.newProbesMap(cbCtx)
 
 	if probesMap[backendID] != nil {
@@ -286,6 +285,11 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	// when ingress is defined with backend at port 443 but without annotation backend-protocol set to https.
+	if int32(port) == 443 {
+		httpSettings.Protocol = n.HTTPS
 	}
 
 	// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
