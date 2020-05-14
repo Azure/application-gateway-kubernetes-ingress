@@ -107,7 +107,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	if backendID.Backend.ServicePort.IntVal == 443 {
+	if backendID.Backend.ServicePort.String() == "443" {
 		probe.Protocol = n.HTTPS
 	}
 
