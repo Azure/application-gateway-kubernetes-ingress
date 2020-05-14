@@ -729,6 +729,26 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "one_ingress_https_backend.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("Https Backend Ingress Resources without backend-protocol specified", func() {
+			newAnnotation := map[string]string{
+				annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+				annotations.AppGwSslCertificate: "ssl-certificate",
+			}
+
+			ingressHttpsBackend.SetAnnotations(newAnnotation)
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressHttpsBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			// protocol of httpSettings, probe should be https when backend port is at 443
+			check(cbCtx, "one_ingress_https_backend_without_backend_protocol.json", stopChannel, ctxt, configBuilder)
+		})
+
 		ginkgo.It("ONE Ingress Resources with / (nothing) path", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{

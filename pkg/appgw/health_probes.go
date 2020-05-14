@@ -107,9 +107,16 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	// backend protocol "https" now supports to use certificate signed by well-known root certificate as well as trusted self-signed certificate
-	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+	if backendID.Backend.ServicePort.IntVal == 443 {
 		probe.Protocol = n.HTTPS
+	}
+
+	// backend protocol take precedence over port
+	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
+	if err == nil && backendProtocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	} else if err == nil && backendProtocol == annotations.HTTP {
+		probe.Protocol = n.HTTP
 	}
 
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
