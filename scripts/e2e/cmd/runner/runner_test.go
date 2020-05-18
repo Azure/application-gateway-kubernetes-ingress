@@ -31,7 +31,7 @@ func TestMFU(t *testing.T) {
 }
 
 var _ = Describe("Most frequently run test suite", func() {
-	Context("one namespace one ingress: ssl-redirect", func() {
+	Context("one namespace one ingress: ssl-e2e-redirect", func() {
 		var clientset *kubernetes.Clientset
 		var namespaceName string
 		var urlHttp string
@@ -47,7 +47,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			cleanUp(clientset)
 
 			// create namespace
-			namespaceName = "e2e-1n1i-ssl-redirect"
+			namespaceName = "e2e-1n1i-ssl-e2e-redirect"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -58,7 +58,7 @@ var _ = Describe("Most frequently run test suite", func() {
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-one-ingress/ssl-redirect/app.yaml"
+			path := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml ", path)
 			err := applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
@@ -71,8 +71,8 @@ var _ = Describe("Most frequently run test suite", func() {
 			Expect(err).To(BeNil())
 			Expect(publicIP).ToNot(Equal(""))
 
-			urlHttp = fmt.Sprintf("http://%s/status/200", publicIP)
-			urlHttps = fmt.Sprintf("https://%s/status/200", publicIP)
+			urlHttp = fmt.Sprintf("http://%s/index.html", publicIP)
+			urlHttps = fmt.Sprintf("https://%s/index.html", publicIP)
 		})
 
 		It("should get correct status code for both http and https request", func() {
