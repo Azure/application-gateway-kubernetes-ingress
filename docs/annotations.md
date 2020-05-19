@@ -395,8 +395,7 @@ spec:
           servicePort: 80
 ```
 
-
-## Attach firewall policy to a host and path
+## Azure Waf Policy For Path
 This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.
 
@@ -410,6 +409,8 @@ The URI would have the following format:
 ```bash
 /subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
 ```
+> **Note**
+1) Waf policy will only be applied to a listener if ingress rule path is not set or set to "/" or "/*"
 
 ### Usage
 
