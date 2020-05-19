@@ -84,7 +84,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 	return retVal, nil
 }
 
-func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string) error {
+func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string, hosts []string) error {
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
 	if err != nil {
@@ -93,24 +93,54 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 
 	for _, objs := range fileObjects {
 		if secret, ok := objs.(*v1.Secret); ok {
-			if _, err := clientset.CoreV1().Secrets(namespaceName).Create(secret); err != nil {
-				return err
+			nm := secret.Namespace
+			if len(nm) == 0 {
+				if _, err := clientset.CoreV1().Secrets(namespaceName).Create(secret); err != nil {
+					return err
+				}
+			} else {
+				if _, err := clientset.CoreV1().Secrets(nm).Create(secret); err != nil {
+					return err
+				}
 			}
 		}
 		if ingress, ok := objs.(*v1beta1.Ingress); ok {
-			if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Create(ingress); err != nil {
-				return err
+			nm := ingress.Namespace
+			if len(nm) == 0 {
+				if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Create(ingress); err != nil {
+					return err
+				}
+			} else {
+				if _, err := clientset.ExtensionsV1beta1().Ingresses(nm).Create(ingress); err != nil {
+					return err
+				}
 			}
 		}
 		if service, ok := objs.(*v1.Service); ok {
-			if _, err := clientset.CoreV1().Services(namespaceName).Create(service); err != nil {
-				return err
+			nm := service.Namespace
+			if len(nm) == 0 {
+				if _, err := clientset.CoreV1().Services(namespaceName).Create(service); err != nil {
+					return err
+				}
+			} else {
+				if _, err := clientset.CoreV1().Services(nm).Create(service); err != nil {
+					return err
+				}
 			}
+
 		}
 		if deployment, ok := objs.(*appsv1.Deployment); ok {
-			if _, err := clientset.AppsV1().Deployments(namespaceName).Create(deployment); err != nil {
-				return err
+			nm := deployment.Namespace
+			if len(nm) == 0 {
+				if _, err := clientset.AppsV1().Deployments(namespaceName).Create(deployment); err != nil {
+					return err
+				}
+			} else {
+				if _, err := clientset.AppsV1().Deployments(nm).Create(deployment); err != nil {
+					return err
+				}
 			}
+
 		}
 	}
 	return nil
