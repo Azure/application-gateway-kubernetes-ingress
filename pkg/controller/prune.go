@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
@@ -58,7 +59,7 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, err := annotations.UsePrivateIP(ingress)
-		if err != nil && annotations.IsInvalidContent(err) {
+		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
 			glog.Errorf("Ingress %s/%s has invalid value for annotation %s", ingress.Namespace, ingress.Name, annotations.UsePrivateIPKey)
 		}
 
@@ -89,7 +90,7 @@ func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGatewa
 	for _, ingress := range ingressList {
 		annotatedSslCertificate, err := annotations.GetAppGwSslCertificate(ingress)
 		// if annotation is not specified, add the ingress and go check next
-		if err != nil && annotations.IsMissingAnnotations(err) {
+		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 			prunedIngresses = append(prunedIngresses, ingress)
 			continue
 		}
@@ -122,7 +123,7 @@ func pruneNoTrustedRootCertificate(c *AppGwIngressController, appGw *n.Applicati
 		installed := true
 		trustedRootCertificates, err := annotations.GetAppGwTrustedRootCertificate(ingress)
 		// if annotation is not specified
-		if err != nil && annotations.IsMissingAnnotations(err) {
+		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 			prunedIngresses = append(prunedIngresses, ingress)
 			continue
 		}

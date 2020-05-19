@@ -60,7 +60,6 @@ type serviceBackendPortPair struct {
 
 type listenerIdentifier struct {
 	FrontendPort Port
-	HostName     string
 	HostNames    [MaxAllowedHostnames]string
 	UsePrivateIP bool
 }
@@ -230,17 +229,12 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 func defaultFrontendListenerIdentifier() listenerIdentifier {
 	return listenerIdentifier{
 		FrontendPort: Port(80),
-		HostName:     "",
 	}
 }
 
 func (listenerID *listenerIdentifier) setHostNames(hostnames []string) {
-	listenerID.HostName = ""
 	hostnameCount := int(math.Min(float64(len(hostnames)), float64(MaxAllowedHostnames)))
 	for i := 0; i < hostnameCount; i++ {
-		if listenerID.HostName == "" {
-			listenerID.HostName = hostnames[i]
-		}
 		listenerID.HostNames[i] = hostnames[i]
 	}
 }

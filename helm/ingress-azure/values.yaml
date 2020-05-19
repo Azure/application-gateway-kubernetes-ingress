@@ -2,8 +2,6 @@
 # This file contains the default values for a chart.
 # These values may be overridden during helm install or helm upgrade.
 
-replicaCount: 1
-
 # Verbosity level of the App Gateway Ingress Controller
 verbosityLevel: 3
 

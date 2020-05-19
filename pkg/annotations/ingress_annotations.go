@@ -11,6 +11,8 @@ import (
 
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 const (
@@ -111,7 +113,9 @@ func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
 	if ok {
 		return val == ApplicationGatewayIngressClass, nil
 	}
-	return false, ErrMissingAnnotations
+	return false, controllererrors.NewError(
+		controllererrors.ErrorMissingAnnotation,
+		"appgw.ingress.istio.io/v1alpha3 not set")
 }
 
 // IsSslRedirect for HTTP end points.
@@ -175,7 +179,9 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 		return protocolEnum, nil
 	}
 
-	return HTTP, NewInvalidAnnotationContent(BackendProtocolKey, protocol)
+	return HTTP, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+		"annotation %v does not contain a valid value (%v)", BackendProtocolKey, protocol,
+	)
 }
 
 // GetHostNameExtensions from a given ingress
@@ -204,16 +210,24 @@ func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
 		if boolVal, err := strconv.ParseBool(val); err == nil {
 			return boolVal, nil
 		}
-		return false, NewInvalidAnnotationContent(name, val)
+		return false, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+			"annotation %v does not contain a valid value (%v)", name, val,
+		)
 	}
-	return false, ErrMissingAnnotations
+	return false, controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }
 
 func parseString(ing *v1beta1.Ingress, name string) (string, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		return val, nil
 	}
-	return "", ErrMissingAnnotations
+	return "", controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }
 
 func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
@@ -221,8 +235,13 @@ func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
 		if intVal, err := strconv.Atoi(val); err == nil {
 			return int32(intVal), nil
 		}
-		return 0, NewInvalidAnnotationContent(name, val)
+		return 0, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+			"annotation %v does not contain a valid value (%v)", name, val,
+		)
 	}
 
-	return 0, ErrMissingAnnotations
+	return 0, controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }

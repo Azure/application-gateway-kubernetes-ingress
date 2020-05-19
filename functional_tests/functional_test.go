@@ -57,10 +57,14 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	serviceNameB := "hello-world-b"
 	serviceNameC := "hello-world-c"
 
+	serviceNameHttps := "hello-world-https"
+
 	// Frontend and Backend port.
 	servicePort := Port(80)
 	backendName := "http"
 	backendPort := Port(1356)
+	httpsBackendName := "https"
+	httpsServicePort := Port(443)
 
 	// Create the "test-ingress-controller" namespace.
 	// We will create all our resources under this namespace.
@@ -318,10 +322,32 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	serviceHttps := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceNameHttps,
+			Namespace: tests.HTTPSBackendNamespace,
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					Name: "serviceHttpsPort",
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: httpsBackendName,
+					},
+					Protocol: v1.ProtocolTCP,
+					Port:     int32(httpsServicePort),
+				},
+			},
+			Selector: map[string]string{"app": "frontend"},
+		},
+	}
+
 	serviceList := []*v1.Service{
 		service,
 		serviceA,
 		serviceB,
+		serviceHttps,
 	}
 
 	// Ideally we should be creating the `pods` resource instead of the `endpoints` resource
@@ -420,9 +446,33 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
+	endpointsHttps := &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceNameHttps,
+			Namespace: tests.HTTPSBackendNamespace,
+		},
+		Subsets: []v1.EndpointSubset{
+			{
+				Addresses: []v1.EndpointAddress{
+					{IP: "11.21.21.21"},
+					{IP: "11.21.21.22"},
+					{IP: "11.21.21.23"},
+				},
+				Ports: []v1.EndpointPort{
+					{
+						Name:     "serviceHttpsPort",
+						Port:     int32(httpsServicePort),
+						Protocol: v1.ProtocolTCP,
+					},
+				},
+			},
+		},
+	}
+
 	pod := tests.NewPodFixture(serviceName, tests.Namespace, backendName, int32(backendPort))
 	podB := tests.NewPodFixture(serviceNameB, tests.Namespace, backendName, int32(backendPort))
 	podC := tests.NewPodFixture(serviceNameC, tests.OtherNamespace, backendName, int32(backendPort))
+	podHttps := tests.NewPodHTTPSFixture(serviceNameHttps, tests.HTTPSBackendNamespace, httpsBackendName, int32(httpsServicePort))
 
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 	_ = flag.Set("v", "3")
@@ -444,13 +494,16 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), service, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceA, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Services(tests.HTTPSBackendNamespace).Create(context.TODO(), serviceHttps, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.OtherNamespace).Create(context.TODO(), serviceC, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpoints, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpointsA, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Endpoints(tests.Namespace).Create(context.TODO(), endpointsB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Endpoints(tests.HTTPSBackendNamespace).Create(context.TODO(), endpointsHttps, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Endpoints(tests.OtherNamespace).Create(context.TODO(), endpointsC, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(context.TODO(), pod, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Pods(tests.Namespace).Create(context.TODO(), podB, metav1.CreateOptions{})
+		_, _ = k8sClient.CoreV1().Pods(tests.HTTPSBackendNamespace).Create(context.TODO(), podHttps, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Pods(tests.OtherNamespace).Create(context.TODO(), podC, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Secrets(tests.Namespace).Create(context.TODO(), ingressSecret, metav1.CreateOptions{})
 
@@ -544,6 +597,43 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
+		ingressHttpsBackend := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/A/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameHttps,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 443,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey:             annotations.ApplicationGatewayIngressClass,
+					annotations.AppGwSslCertificate:         "ssl-certificate",
+					annotations.BackendProtocolKey:          "https",
+					annotations.AppGwTrustedRootCertificate: "root-certificate",
+					annotations.SslRedirectKey:              "true",
+				},
+				Namespace: tests.HTTPSBackendNamespace,
+				Name:      tests.Name,
+			},
+		}
+
 		ingressBWithExtendedHostName := &v1beta1.Ingress{
 			Spec: v1beta1.IngressSpec{
 				Rules: []v1beta1.IngressRule{
@@ -611,6 +701,49 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
+		ingressSlashNothingSlashSomething := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameB,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+									{
+										Path: "/A",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
+			},
+		}
+
 		ginkgo.It("THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
@@ -624,6 +757,39 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "three_ingresses.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Https Backend Ingress Resources", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressHttpsBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "one_ingress_https_backend.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Https Backend Ingress Resources without backend-protocol specified", func() {
+			newAnnotation := map[string]string{
+				annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+				annotations.AppGwSslCertificate: "ssl-certificate",
+			}
+
+			ingressHttpsBackend.SetAnnotations(newAnnotation)
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressHttpsBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			// protocol of httpSettings, probe should be https when backend port is at 443
+			check(cbCtx, "one_ingress_https_backend_without_backend_protocol.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("ONE Ingress Resources with / (nothing) path", func() {
@@ -728,7 +894,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 
 		ginkgo.It("WAF Annotation", func() {
-			annotatedIngress := ingressB
+			annotatedIngress := ingressSlashNothingSlashSomething
 			annotatedIngress.Annotations[annotations.FirewallPolicy] = "/some/policy/here"
 
 			cbCtx := &ConfigBuilderContext{
@@ -740,6 +906,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
 					Port(80): fixtures.GetDefaultPort(),
 				},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
 		})
