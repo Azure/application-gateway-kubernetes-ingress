@@ -148,7 +148,11 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
 		}
 		if k8sProbeForServiceContainer.FailureThreshold != 0 {
-			probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			if k8sProbeForServiceContainer.FailureThreshold > 20 {
+				probe.UnhealthyThreshold = to.Int32Ptr(20)
+			} else {
+				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			}
 		}
 	}
 
