@@ -59,7 +59,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 		return nil, err
 	}
 
-	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret)`)
+	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap)`)
 	fileAsString := string(fileR[:])
 	sepYamlfiles := strings.Split(fileAsString, "---")
 	retVal := make([]runtime.Object, 0, len(sepYamlfiles))
@@ -141,6 +141,11 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 				}
 			}
 
+		}
+		if cm, ok := objs.(*v1.ConfigMap); ok {
+			if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Create(cm); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -253,6 +258,7 @@ func makeGetRequest(url string, host string, statusCode int, inSecure bool) (*ht
 		}
 
 		if resp.StatusCode == statusCode {
+			klog.Infof("Got expected status code %d with url '%s' with host '%s'. Response: [%+v]", statusCode, url, host, resp)
 			return resp, nil
 		}
 
