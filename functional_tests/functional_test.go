@@ -701,6 +701,49 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
+		ingressSlashNothingSlashSomething := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						// This one has no host
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameB,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+									{
+										Path: "/A",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
+			},
+		}
+
 		ginkgo.It("THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
@@ -727,6 +770,26 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "one_ingress_https_backend.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Https Backend Ingress Resources without backend-protocol specified", func() {
+			newAnnotation := map[string]string{
+				annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+				annotations.AppGwSslCertificate: "ssl-certificate",
+			}
+
+			ingressHttpsBackend.SetAnnotations(newAnnotation)
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressHttpsBackend,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			// protocol of httpSettings, probe should be https when backend port is at 443
+			check(cbCtx, "one_ingress_https_backend_without_backend_protocol.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("ONE Ingress Resources with / (nothing) path", func() {
@@ -831,7 +894,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 
 		ginkgo.It("WAF Annotation", func() {
-			annotatedIngress := ingressB
+			annotatedIngress := ingressSlashNothingSlashSomething
 			annotatedIngress.Annotations[annotations.FirewallPolicy] = "/some/policy/here"
 
 			cbCtx := &ConfigBuilderContext{
@@ -843,6 +906,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
 					Port(80): fixtures.GetDefaultPort(),
 				},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
 		})

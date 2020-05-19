@@ -220,7 +220,6 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
-
 	_, probesMap := c.newProbesMap(cbCtx)
 
 	if probesMap[backendID] != nil {
@@ -267,8 +266,17 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
-	if backendProtocol, err := annotations.BackendProtocol(backendID.Ingress); err == nil && backendProtocol == annotations.HTTPS {
+	// when ingress is defined with backend at port 443 but without annotation backend-protocol set to https.
+	if int32(port) == 443 {
 		httpSettings.Protocol = n.HTTPS
+	}
+
+	// backend protocol take precedence over port
+	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
+	if err == nil && backendProtocol == annotations.HTTPS {
+		httpSettings.Protocol = n.HTTPS
+	} else if err == nil && backendProtocol == annotations.HTTP {
+		httpSettings.Protocol = n.HTTP
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
