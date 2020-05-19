@@ -77,3 +77,7 @@ data:
 {{- if .Values.reconcilePeriodSeconds }}
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
+
+{{- if .Values.kubernetes.ingressClass}}
+  INGRESS_CLASS: "{{ .Values.kubernetes.ingressClass }}"
+{{- end}}
