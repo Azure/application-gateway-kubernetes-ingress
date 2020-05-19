@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
@@ -34,8 +35,12 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 		}
 	}
 	if len(nonExistent) > 0 {
-		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
-		return ErrNoSuchNamespace
+		err := controllererrors.NewErrorf(
+			controllererrors.ErrorNoSuchNamespace,
+			"error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","),
+		)
+		glog.Errorf(err.Error())
+		return err
 	}
 	return nil
 }

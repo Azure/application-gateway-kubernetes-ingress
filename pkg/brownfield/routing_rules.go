@@ -11,6 +11,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -152,9 +153,12 @@ func indexRulesByName(rules []n.ApplicationGatewayRequestRoutingRule) rulesByNam
 func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayRequestRoutingRule) (string, error) {
 	listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))
 	if listener, found := er.getListenersByName()[listenerName]; !found {
-		glog.Errorf("[brownfield] Could not find listener %s in index", listenerName)
-		// TODO(draychev): move this error into a top-level file
-		return "", ErrListenerLookup
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorGeneratingListeners,
+			"[brownfield] Could not find listener %s in index", listenerName,
+		)
+		glog.Errorf(e.Error())
+		return "", e
 	} else if listener.HostName != nil {
 		return *listener.HostName, nil
 	}

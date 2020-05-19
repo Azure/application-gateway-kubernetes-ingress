@@ -17,6 +17,8 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/api/extensions/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 var ingress = v1beta1.Ingress{
@@ -304,8 +306,8 @@ func TestParseBoolInvalid(t *testing.T) {
 	value := "nope"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseBool(&ingress, key)
-	if !IsInvalidContent(err) {
-		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
+	if !controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
+		t.Error(fmt.Sprintf(Error, controllererrors.ErrorInvalidContent, parsedVal, err))
 	}
 }
 
@@ -313,8 +315,8 @@ func TestParseBoolMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseBool(&ingress, key)
-	if !IsMissingAnnotations(err) || parsedVal {
-		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
+	if !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) || parsedVal {
+		t.Error(fmt.Sprintf(Error, controllererrors.ErrorMissingAnnotation, parsedVal, err))
 	}
 }
 
@@ -333,8 +335,8 @@ func TestParseInt32Invalid(t *testing.T) {
 	value := "20asd"
 	ingress.Annotations[key] = value
 	parsedVal, err := parseInt32(&ingress, key)
-	if !IsInvalidContent(err) {
-		t.Error(fmt.Sprintf(Error, err, parsedVal, err))
+	if !controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
+		t.Error(fmt.Sprintf(Error, controllererrors.ErrorInvalidContent, parsedVal, err))
 	}
 }
 
@@ -342,8 +344,8 @@ func TestParseInt32MissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseInt32(&ingress, key)
-	if !IsMissingAnnotations(err) || parsedVal != 0 {
-		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
+	if !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) || parsedVal != 0 {
+		t.Error(fmt.Sprintf(Error, controllererrors.ErrorMissingAnnotation, parsedVal, err))
 	}
 }
 
@@ -361,7 +363,7 @@ func TestParseStringMissingKey(t *testing.T) {
 	key := "key"
 	delete(ingress.Annotations, key)
 	parsedVal, err := parseString(&ingress, key)
-	if !IsMissingAnnotations(err) {
-		t.Error(fmt.Sprintf(Error, ErrMissingAnnotations, parsedVal, err))
+	if !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		t.Error(fmt.Sprintf(Error, controllererrors.ErrorMissingAnnotation, parsedVal, err))
 	}
 }

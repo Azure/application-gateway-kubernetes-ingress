@@ -14,6 +14,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 func TestEnvironment(t *testing.T) {
@@ -98,7 +100,8 @@ var _ = Describe("Environment", func() {
 				env := EnvVariables{
 					EnableDeployAppGateway: false,
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorMissingApplicationGatewayNameOrApplicationGatewayID))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorMissingApplicationGatewayNameOrApplicationGatewayID)).To(BeTrue())
 			})
 
 			It("should allow passing applicationGatewayID when APPGW_ENABLE_DEPLOY is FALSE", func() {
@@ -123,7 +126,8 @@ var _ = Describe("Environment", func() {
 				env := EnvVariables{
 					EnableDeployAppGateway: true,
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorMissingApplicationgatewayName))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorMissingApplicationGatewayName)).To(BeTrue())
 			})
 
 			It("should throw error when applicationGatewayID is provided when APPGW_ENABLE_DEPLOY is TRUE", func() {
@@ -131,7 +135,8 @@ var _ = Describe("Environment", func() {
 					AppGwResourceID:        "id",
 					EnableDeployAppGateway: true,
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorNotAllowedApplicationgatewayID))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorNotAllowedApplicationGatewayID)).To(BeTrue())
 			})
 
 			It("should throw error when subnet info is missing when APPGW_ENABLE_DEPLOY is TRUE", func() {
@@ -139,7 +144,8 @@ var _ = Describe("Environment", func() {
 					AppGwName:              "name",
 					EnableDeployAppGateway: true,
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorMissingSubnetInfo))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorMissingSubnetInfo)).To(BeTrue())
 			})
 
 			It("should allow passing applicationGatewayName when APPGW_ENABLE_DEPLOY is TRUE", func() {
@@ -169,7 +175,8 @@ var _ = Describe("Environment", func() {
 
 					ReconcilePeriodSeconds: "string",
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorInvalidReconcilePeriod)).To(BeTrue())
 			})
 
 			It("should not error when input is in range in RECONCILE_PERIOD_SECONDS", func() {
@@ -192,10 +199,12 @@ var _ = Describe("Environment", func() {
 
 					ReconcilePeriodSeconds: "29",
 				}
-				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorInvalidReconcilePeriod)).To(BeTrue())
 
 				env.ReconcilePeriodSeconds = "301"
-				Expect(ValidateEnv(env)).To(Equal(ErrorInvalidReconcilePeriod))
+				Expect(controllererrors.IsErrorCode(ValidateEnv(env),
+					controllererrors.ErrorInvalidReconcilePeriod)).To(BeTrue())
 			})
 		})
 

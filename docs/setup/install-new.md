@@ -145,8 +145,8 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 
   [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
    1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
-   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controllermic) component
-   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identitynmi) component
+   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controller) component
+   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identity) component
 
 
   To install AAD Pod Identity to your cluster:
@@ -154,13 +154,13 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
    - *RBAC enabled* AKS cluster
 
   ```bash
-  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
   ```
 
 ### Install Helm
@@ -227,8 +227,13 @@ Values:
 4. Install the Application Gateway ingress controller package:
 
     ```bash
-    helm install ingress-azure -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure
+    helm install ingress-azure \
+      -f helm-config.yaml \
+      application-gateway-kubernetes-ingress/ingress-azure \
+      --version 1.0.0
     ```
+
+    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
 ### Install a Sample App
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
