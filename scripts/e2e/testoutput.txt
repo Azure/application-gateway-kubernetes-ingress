@@ -1,2 +1,0 @@
-FAIL	github.com/Azure/application-gateway-kubernetes-ingress/cmd/runner [build failed]
-FAIL

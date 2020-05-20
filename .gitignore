@@ -52,3 +52,7 @@ coverage.txt
 
 # Mkdocs
 site/
+
+# e2e
+testoutput.txt 
+report.xml
