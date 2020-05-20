@@ -80,6 +80,9 @@ func main() {
 
 	env.Consolidate(cpConfig)
 
+	// adjust ingress class value if overridden by environment variable
+	setIngressClass(env.IngressClass)
+
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
 	_ = flag.CommandLine.Parse([]string{})

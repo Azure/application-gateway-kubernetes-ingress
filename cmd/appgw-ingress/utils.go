@@ -111,3 +111,10 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
 }
+
+func setIngressClass(customIngressClass string){
+	if customIngressClass != "" {
+		annotations.ApplicationGatewayIngressClass = customIngressClass
+	}
+	
+}
