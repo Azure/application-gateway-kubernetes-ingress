@@ -2,179 +2,179 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: zagora-deployment
-    namespace: ns-x
+  name: zagora-deployment
+  namespace: e2e-ns-x
 spec:
-    selector:
+  selector:
     matchLabels:
-        app: ws-app
-    replicas: 2
-    template:
+      app: ws-app
+  replicas: 2
+  template:
     metadata:
-        labels:
+      labels:
         app: ws-app
     spec:
-        containers:
+      containers:
         - name: zagora-app
-            imagePullPolicy: Always
-            image: docker.io/kennethreitz/httpbin
-            ports:
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
             - containerPort: 80
-            livenessProbe:
+          livenessProbe:
             httpGet:
-                path: /status/200
-                port: 80
+              path: /status/200
+              port: 80
             initialDelaySeconds: 3
             periodSeconds: 3
-        imagePullSecrets:
+      imagePullSecrets:
         - name: acr-creds
 ---
 apiVersion: v1
 kind: Service
 metadata:
-    name: zagora-service
-    namespace: ns-x
+  name: zagora-service
+  namespace: e2e-ns-x
 spec:
-    selector:
+  selector:
     app: ws-app
-    ports:
-    - protocol: TCP
+  ports:
+  - protocol: TCP
     port: 80
     targetPort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-    name: zagora-ingress
-    namespace: ns-x
-    annotations:
+  name: zagora-ingress
+  namespace: e2e-ns-x
+  annotations:
     kubernetes.io/ingress.class: azure/application-gateway
 spec:
-    rules:
-    - host: ws-ns-x.mis.li
-        http:
+  rules:
+    - host: ws-e2e-ns-x.mis.li
+      http:
         paths:
         - path: /*
-            backend:
+          backend:
             serviceName: zagora-service
             servicePort: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: zagora-deployment
-    namespace: ns-y
+  name: zagora-deployment
+  namespace: e2e-ns-y
 spec:
-    selector:
+  selector:
     matchLabels:
-        app: ws-app
-    replicas: 2
-    template:
+      app: ws-app
+  replicas: 2
+  template:
     metadata:
-        labels:
+      labels:
         app: ws-app
     spec:
-        containers:
+      containers:
         - name: zagora-app
-            imagePullPolicy: Always
-            image: docker.io/kennethreitz/httpbin
-            ports:
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
             - containerPort: 80
-            livenessProbe:
+          livenessProbe:
             httpGet:
-                path: /status/200
-                port: 80
+              path: /status/200
+              port: 80
             initialDelaySeconds: 3
             periodSeconds: 3
-        imagePullSecrets:
+      imagePullSecrets:
         - name: acr-creds
 ---
 apiVersion: v1
 kind: Service
 metadata:
-    name: zagora-service
-    namespace: ns-y
+  name: zagora-service
+  namespace: e2e-ns-y
 spec:
-    selector:
+  selector:
     app: ws-app
-    ports:
-    - protocol: TCP
+  ports:
+  - protocol: TCP
     port: 80
     targetPort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-    name: zagora-ingress
-    namespace: ns-y
-    annotations:
+  name: zagora-ingress
+  namespace: e2e-ns-y
+  annotations:
     kubernetes.io/ingress.class: azure/application-gateway
 spec:
-    rules:
-    - host: ws-ns-y.mis.li
-        http:
+  rules:
+    - host: ws-e2e-ns-y.mis.li
+      http:
         paths:
         - path: /*
-            backend:
+          backend:
             serviceName: zagora-service
             servicePort: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: zagora-deployment
-    namespace: ns-z
+  name: zagora-deployment
+  namespace: e2e-ns-z
 spec:
-    selector:
+  selector:
     matchLabels:
-        app: ws-app
-    replicas: 2
-    template:
+      app: ws-app
+  replicas: 2
+  template:
     metadata:
-        labels:
+      labels:
         app: ws-app
     spec:
-        containers:
+      containers:
         - name: zagora-app
-            imagePullPolicy: Always
-            image: docker.io/kennethreitz/httpbin
-            ports:
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
             - containerPort: 80
-            livenessProbe:
+          livenessProbe:
             httpGet:
-                path: /status/200
-                port: 80
+              path: /status/200
+              port: 80
             initialDelaySeconds: 3
             periodSeconds: 3
-        imagePullSecrets:
+      imagePullSecrets:
         - name: acr-creds
 ---
 apiVersion: v1
 kind: Service
 metadata:
-    name: zagora-service
-    namespace: ns-z
+  name: zagora-service
+  namespace: e2e-ns-z
 spec:
-    selector:
+  selector:
     app: ws-app
-    ports:
-    - protocol: TCP
+  ports:
+  - protocol: TCP
     port: 80
     targetPort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-    name: zagora-ingress
-    namespace: ns-z
-    annotations:
+  name: zagora-ingress
+  namespace: e2e-ns-z
+  annotations:
     kubernetes.io/ingress.class: azure/application-gateway
 spec:
-    rules:
-    - host: ws-ns-z.mis.li
-        http:
+  rules:
+    - host: ws-e2e-ns-z.mis.li
+      http:
         paths:
         - path: /*
-            backend:
+          backend:
             serviceName: zagora-service
             servicePort: 80
