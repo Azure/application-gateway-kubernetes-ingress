@@ -17,6 +17,8 @@ function InstallAGIC() {
 
     DeleteOtherAGICVersions || true
 
+    kubectl create namespace agic || true
+
     echo "Installing BuildId ${version}"
 
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
