@@ -75,6 +75,10 @@
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
                 <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
@@ -157,7 +161,7 @@
             <div class="section">
               
                 <h1 id="automate-dns-updates">Automate DNS updates</h1>
-<p>When a hostname is specified in the Kubernetes Ingress resource's rules, it can be used to automaticall create DNS records for the given domain and App Gateway's IP address.
+<p>When a hostname is specified in the Kubernetes Ingress resource's rules, it can be used to automatically create DNS records for the given domain and App Gateway's IP address.
 To achieve this the <a href="https://github.com/kubernetes-sigs/external-dns">ExternalDNS</a> Kubernetes app is required. ExternalDNS in installable via a <a href="https://github.com/kubernetes-incubator/external-dns">Helm chart</a>. The <a href="https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/azure.md">following document</a> provides a tutorial on setting up ExternalDNS with an Azure DNS.</p>
 <p>Below is a sample Ingress resource, annotated with
 <code>kubernetes.io/ingress.class: azure/application-gateway</code>, which configures <code>aplpha.contoso.com</code>.</p>

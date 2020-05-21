@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Websockets - Application Gateway Ingress Controller</title>
+  <title>Agic reconcile - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../../css/theme.css" />
@@ -19,8 +19,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Websockets";
-    var mkdocs_page_input_path = "how-tos/websockets.md";
+    var mkdocs_page_name = "Agic reconcile";
+    var mkdocs_page_input_path = "features/agic-reconcile.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -74,39 +74,37 @@
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Agic reconcile</a>
+    <ul class="current">
+    </ul>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../appgw-ssl-certificate/">Appgw ssl certificate</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../cookie-affinity/">Cookie affinity</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../multiple-namespaces/">Multiple Namespace Support</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../private-ip/">Using Private IP for internal routing</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../probes/">Probes</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
                     </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Websockets</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#websocket-health-probes">WebSocket Health Probes</a>
-    </li>
-    </ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
                     </li>
                 </ul>
                 <ul>
@@ -145,14 +143,14 @@
     
       
         
-          <li>How tos &raquo;</li>
+          <li>Features &raquo;</li>
         
       
     
-    <li>Websockets</li>
+    <li>Agic reconcile</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/how-tos/websockets.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/agic-reconcile.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
       
     </li>
   </ul>
@@ -162,77 +160,22 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="expose-a-websocket-server">Expose a WebSocket server</h2>
-<p>As outlined in the Application Gateway v2 documentation - it <a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview#websocket-and-http2-traffic">provides native support for the WebSocket and HTTP/2 protocols</a>. Please note, that for both Application Gateway and the Kubernetes Ingress - there is no user-configurable setting to selectively enable or disable WebSocket support.</p>
-<p>The Kubernetes deployment YAML below shows the minimum configuration used to deploy a WebSocket server, which is the same as deploying a regular web server:
-<pre class="highlight"><code class="language-yaml">apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: websocket-server
-spec:
-  selector:
-    matchLabels:
-      app: ws-app
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: ws-app
-    spec:
-      containers:
-        - name: websocket-app
-          imagePullPolicy: Always
-          image: your-container-repo.azurecr.io/websockets-app
-          ports:
-            - containerPort: 8888
-      imagePullSecrets:
-        - name: azure-container-registry-credentials
+                <h2 id="reconcile-scenario">Reconcile scenario</h2>
+<p>When an Application Gateway is deployed through ARM template, a requirement is that the gateway configuration should contain a probe, listener, rule, backend pool and backend http setting. When such a template is re-deployed with minor changes (for example to WAF rules) on Gateway that is being controlled by AGIC, all the AGIC written rules are removed. Given such change on Application Gateway doesn’t trigger any events on AGIC, AGIC doesn’t reconcile the gateway back to the expected state. </p>
+<h2 id="solution">Solution</h2>
+<p>To address the problem above, AGIC periodically checks if the latest gateway configuration is different from what it cached, and reconcile if needed to make gateway configuration is eventual correct.</p>
+<h2 id="how-to-configure-reconcile">How to configure reconcile</h2>
+<p>There are two ways to configure AGIC reconcile via helm, and to use the new feature, make sure the AGIC version is at least at 1.2.0-rc1</p>
+<h3 id="configure-inside-helm-valuesyaml">Configure inside helm values.yaml</h3>
+<p><code>reconcilePeriodSeconds: 30</code>, it means AGIC checks the reconciling in every 30 seconds</p>
+<h3 id="configure-from-helm-command-line">Configure from helm command line</h3>
+<p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3
+<pre class="highlight"><code class="language-bash"># helm fresh install
+helm intall &lt;releaseName&gt; -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --version 1.2.0-rc1 --set reconcilePeriodSeconds=30 
 
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: websocket-app-service
-spec:
-  selector:
-    app: ws-app
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8888
-
----
-
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: websocket-repeater
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: ws.contoso.com
-      http:
-        paths:
-          - backend:
-              serviceName: websocket-app-service
-              servicePort: 80</code></pre></p>
-<p>Given that all the prerequisites are fulfilled, and you have an App Gateway controlled by a K8s Ingress in your AKS, the deployment above would result in a WebSockets server exposed on port 80 of your App Gateway's public IP and the <code>ws.contoso.com</code> domain.</p>
-<p>The following cURL command would test the WebSocket server deployment:
-<pre class="highlight"><code class="language-sh">curl -i -N -H "Connection: Upgrade" \
-        -H "Upgrade: websocket" \
-        -H "Origin: http://localhost" \
-        -H "Host: ws.contoso.com" \
-        -H "Sec-Websocket-Version: 13" \
-        -H "Sec-WebSocket-Key: 123" \
-        http://1.2.3.4:80/ws</code></pre></p>
-<h5 id="websocket-health-probes">WebSocket Health Probes</h5>
-<p>If your deployment does not explicitly define health probes, App Gateway would attempt an  HTTP GET on your WebSocket server endpoint.
-Depending on the server implementation (<a href="https://github.com/gorilla/websocket/blob/master/examples/chat/main.go">here is one we love</a>) WebSocket specific headers may be required (<code>Sec-Websocket-Version</code> for instance).
-Since App Gateway does not add WebSocket headers, the App Gateway's health probe response from your WebSocket server will most likely be <code>400 Bad Request</code>.
-As a result App Gateway will mark your pods as unhealthy, which will eventually result in a <code>502 Bad Gateway</code> for the consumers of the WebSocket server.
-To avoid this you may need to add an HTTP GET handler for a health check to your server (<code>/health</code> for instance, which returns <code>200 OK</code>).</p>
+# help upgrade
+# --reuse-values, when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f.
+helm upgrade &lt;releaseName&gt; application-gateway-kubernetes-ingress/ingress-azure --reuse-values --version 1.2.0-rc1 --set reconcilePeriodSeconds=30</code></pre></p>
               
             </div>
           </div>
@@ -240,10 +183,10 @@ To avoid this you may need to add an HTTP GET handler for a health check to your
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../../faq/" class="btn btn-neutral float-right" title="Frequrently Asked Questions: [WIP]">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../appgw-ssl-certificate/" class="btn btn-neutral float-right" title="Appgw ssl certificate">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../scale-applications-using-appgw-metrics/" class="btn btn-neutral" title="Scale your Applications using Application Gateway Metrics (Beta)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../annotations/" class="btn btn-neutral" title="Annotations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -269,10 +212,10 @@ To avoid this you may need to add an HTTP GET handler for a health check to your
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../scale-applications-using-appgw-metrics/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../../annotations/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../../faq/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../appgw-ssl-certificate/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

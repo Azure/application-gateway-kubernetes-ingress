@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Cookie affinity - Application Gateway Ingress Controller</title>
+  <title>Appgw ssl certificate - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../../css/theme.css" />
@@ -19,8 +19,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Cookie affinity";
-    var mkdocs_page_input_path = "features/cookie-affinity.md";
+    var mkdocs_page_name = "Appgw ssl certificate";
+    var mkdocs_page_input_path = "features/appgw-ssl-certificate.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -77,13 +77,11 @@
                 <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="../agic-reconcile/">Agic reconcile</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Cookie affinity</a>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Appgw ssl certificate</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#example">Example</a>
-    </li>
     </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../cookie-affinity/">Cookie affinity</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../multiple-namespaces/">Multiple Namespace Support</a>
                     </li>
@@ -149,10 +147,10 @@
         
       
     
-    <li>Cookie affinity</li>
+    <li>Appgw ssl certificate</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/cookie-affinity.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/appgw-ssl-certificate.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
       
     </li>
   </ul>
@@ -162,23 +160,137 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="enable-cookie-based-affinity">Enable Cookie based Affinity</h2>
-<p>As outlined in the <a href="https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-components#http-settings">Azure Application Gateway Documentation</a>, Application Gateway supports cookie based affinity enabling which it can direct subsequent traffic from a user session to the same server for processing.</p>
-<h3 id="example">Example</h3>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+                <h3 id="prerequisites">Prerequisites</h3>
+<p>This documents assumes you already have the following Azure tools and resources installed:
+- <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">AKS</a> with <a href="https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni">Advanced Networking</a> enabled
+- <a href="https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant">App Gateway v2</a> in the same virtual network as AKS
+- <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster
+- <a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</p>
+<p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfeild Deployment</a> to install nonexistents.</p>
+<p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc1
+<pre class="highlight"><code class="language-bash">helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc1 --generate-name</code></pre></p>
+<h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
+<p>The certificate below should only be used for testing purpose.
+<pre class="highlight"><code class="language-bash">appgwName=""
+resgp=""
+
+# generate certificate for testing
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -out test-cert.crt \
+  -keyout test-cert.key \
+  -subj "/CN=test"
+
+openssl pkcs12 -export \
+  -in test-cert.crt \
+  -inkey test-cert.key \
+  -passout pass:test \
+  -out test.pfx
+
+# configure certificate to app gateway
+az network application-gateway ssl-cert create \
+  --resource-group $resgp \
+  --gateway-name $appgwName \
+  -n mysslcert \
+  --cert-file test-cert.pfx \
+  --cert-password "test"</code></pre></p>
+<h2 id="configure-certificate-from-key-vault-to-appgw">Configure certificate from Key Vault to AppGw</h2>
+<p>To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault. </p>
+<pre class="highlight"><code class="language-bash"># Configure your resources
+appgwName=""
+resgp=""
+vaultName=""
+location=""
+agicIdentityPrincipalId=""
+
+# One time operation, create Azure key vault and certificate (can done through portal as well)
+az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
+
+# One time operation, create user-assigned managed identity
+az identity create -n appgw-id -g $resgp -l $location
+identityID=$(az identity show -n appgw-id -g $resgp -o tsv --query "id")
+identityPrincipal=$(az identity show -n appgw-id -g $resgp -o tsv --query "principalId")
+
+# One time operation, assign AGIC identity to have operator access over AppGw identity
+az role assignment create --role "Managed Identity Operator" --assignee $agicIdentityPrincipalId --scope $identityID
+
+# One time operation, assign the identity to Application Gateway
+az network application-gateway identity assign \
+  --gateway-name $appgwName \
+  --resource-group $resgp \
+  --identity $identityID
+
+# One time operation, assign the identity GET secret access to Azure Key Vault
+az keyvault set-policy \
+-n $vaultName \
+-g $resgp \
+--object-id $identityPrincipal \
+--secret-permissions get
+
+# For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway
+az keyvault certificate create \
+--vault-name $vaultName \
+-n mycert \
+-p "$(az keyvault certificate get-default-policy)"
+versionedSecretId=$(az keyvault certificate show -n mycert --vault-name $vaultName --query "sid" -o tsv)
+unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
+
+# For each new certificate, Add the certificate to AppGw
+az network application-gateway ssl-cert create \
+-n mykvsslcert \
+--gateway-name $appgwName \
+--resource-group $resgp \
+--key-vault-secret-id $unversionedSecretId # ssl certificate with name "mykvsslcert" will be configured on AppGw</code></pre>
+
+<h2 id="testing-the-key-vault-certificate-on-ingress">Testing the key vault certificate on Ingress</h2>
+<p>Since we have certificate from Key Vault configured in Application Gateway, we can then add the new annotation <code>appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</code> in Kubernetes ingress to enable the feature.</p>
+<pre class="highlight"><code class="language-bash"># install an app
+cat &lt;&lt; EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aspnetapp
+  labels:
+    app: aspnetapp
+spec:
+  containers:
+  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+    name: aspnetapp-image
+    ports:
+    - containerPort: 80
+      protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: aspnetapp
+spec:
+  selector:
+    app: aspnetapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: guestbook
+  name: aspnetapp
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert
 spec:
   rules:
   - http:
       paths:
-      - backend:
-          serviceName: frontend
-          servicePort: 80</code></pre>
+      - path: /
+        backend:
+          serviceName: aspnetapp
+          servicePort: 80
+EOF</code></pre>
               
             </div>
           </div>
@@ -186,10 +298,10 @@ spec:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../multiple-namespaces/" class="btn btn-neutral float-right" title="Multiple Namespace Support">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../cookie-affinity/" class="btn btn-neutral float-right" title="Cookie affinity">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../appgw-ssl-certificate/" class="btn btn-neutral" title="Appgw ssl certificate"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../agic-reconcile/" class="btn btn-neutral" title="Agic reconcile"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -215,10 +327,10 @@ spec:
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../appgw-ssl-certificate/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../agic-reconcile/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../multiple-namespaces/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../cookie-affinity/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

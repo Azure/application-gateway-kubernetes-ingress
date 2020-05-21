@@ -108,23 +108,27 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#connection-draining">Connection Draining</a>
+    <li class="toctree-l2"><a class="reference internal" href="#appgw-ssl-certificate">AppGw SSL Certificate</a>
         <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#use-azure-cli-to-install-certificate-to-application-gateway">Use Azure CLI to install certificate to Application Gateway</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#usage_4">Usage</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#example_4">Example</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#cookie-based-affinity">Cookie Based Affinity</a>
+    <li class="toctree-l2"><a class="reference internal" href="#appgw-trusted-root-certificate">AppGW Trusted Root Certificate</a>
         <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#use-azure-cli-to-install-your-root-certificate-to-application-gateway">Use Azure CLI to install your root certificate to Application Gateway</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#usage_5">Usage</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#example_5">Example</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#request-timeout">Request Timeout</a>
+    <li class="toctree-l2"><a class="reference internal" href="#connection-draining">Connection Draining</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#usage_6">Usage</a>
     </li>
@@ -132,7 +136,7 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#use-private-ip">Use Private IP</a>
+    <li class="toctree-l2"><a class="reference internal" href="#cookie-based-affinity">Cookie Based Affinity</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#usage_7">Usage</a>
     </li>
@@ -140,11 +144,27 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#attach-firewall-policy-to-a-host-and-path">Attach firewall policy to a host and path</a>
+    <li class="toctree-l2"><a class="reference internal" href="#request-timeout">Request Timeout</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#usage_8">Usage</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#example_8">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#use-private-ip">Use Private IP</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_9">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_9">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#azure-waf-policy-for-path">Azure Waf Policy For Path</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_10">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_10">Example</a>
     </li>
         </ul>
     </li>
@@ -153,6 +173,10 @@
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
                 <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
                     <li class="toctree-l1"><a class="reference internal" href="../features/cookie-affinity/">Cookie affinity</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
@@ -265,6 +289,18 @@
 <td><a href="#ssl-redirect">appgw.ingress.kubernetes.io/ssl-redirect</a></td>
 <td><code>bool</code></td>
 <td><code>false</code></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="#appgw-ssl-certificate">appgw.ingress.kubernetes.io/appgw-ssl-certificate</a></td>
+<td><code>string</code></td>
+<td><code>nil</code></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="#appgw-trusted-root-certificate">appgw.ingress.kubernetes.io/appgw-trusted-root-certificate</a></td>
+<td><code>string</code></td>
+<td><code>nil</code></td>
 <td></td>
 </tr>
 <tr>
@@ -411,14 +447,106 @@ spec:
           serviceName: websocket-repeater
           servicePort: 80</code></pre>
 
+<h2 id="appgw-ssl-certificate">AppGw SSL Certificate</h2>
+<p>The SSL certificate <a href="https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create">can be configured to Application Gateway</a> either from a local PFX cerficate file or a reference to a Azure Key Vault unversioned secret Id.
+When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
+<code>appgw-ssl-certificate</code> annotation can also be used together with <code>ssl-redirect</code> annotation in case of SSL redirect.</p>
+<p>Please refer to <a href="../features/appgw-ssl-certificate/">appgw-ssl-certificate feature</a> for more details.</p>
+<blockquote>
+<p><strong>Note</strong>
+* Annotation "appgw-ssl-certificate" will be ignored when TLS Spec is defined in ingress at the same time.
+* If a user wants different certs with different hosts(multi tls certificate termination), they would need to define different ingress resources.</p>
+</blockquote>
+<h3 id="use-azure-cli-to-install-certificate-to-application-gateway">Use Azure CLI to install certificate to Application Gateway</h3>
+<ul>
+<li>
+<p>Configure from a local PFX certificate file
+<pre class="highlight"><code class="language-bash">az network application-gateway ssl-cert create -g $resgp  --gateway-name $appgwName -n mysslcert --cert-file \path\to\cert\file --cert-password Abc123</code></pre></p>
+</li>
+<li>
+<p>Configure from a reference to a Key Vault unversioned secret id
+<pre class="highlight"><code class="language-bash">az keyvault certificate create --vault-name $vaultName -n cert1 -p "$(az keyvault certificate get-default-policy)"
+versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName --query "sid" -o tsv)
+unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
+az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId</code></pre></p>
+</li>
+</ul>
+<p>To use PowerShell, please refer to <a href="https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps">Configure Key Vault - PowerShell</a>.</p>
+<h3 id="usage_4">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"</code></pre>
+
+<h3 id="example_4">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-certificate
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
+spec:
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80</code></pre>
+
+<h2 id="appgw-trusted-root-certificate">AppGW Trusted Root Certificate</h2>
+<p>Users now can <a href="https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest">configure their own root certificates to Application Gateway</a> to be trusted via AGIC.
+The annotaton <code>appgw-trusted-root-certificate</code> shall be used together with annotation <code>backend-protocol</code> to indicate end-to-end ssl encryption, mulitple root certificates, seperated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".</p>
+<h3 id="use-azure-cli-to-install-your-root-certificate-to-application-gateway">Use Azure CLI to install your root certificate to Application Gateway</h3>
+<ul>
+<li>
+<p>Create your public root certificate for testing
+<pre class="highlight"><code class="language-bash">openssl ecparam -out test.key -name prime256v1 -genkey
+openssl req -new -sha256 -key test.key -out test.csr
+openssl x509 -req -sha256 -days 365 -in test.csr -signkey test.key -out test.crt</code></pre></p>
+</li>
+<li>
+<p>Configure your root certificate to Application Gateway
+<pre class="highlight"><code class="language-bash"># Rename test.crt to test.cer
+mv test.crt test.cer
+
+# Configure the root certificate to your Application Gateway
+az network application-gateway root-cert create --cert-file test.cer  --gateway-name $appgwName  --name name-of-my-root-cert1 --resource-group $resgp</code></pre></p>
+</li>
+<li>
+<p>Repeat the steps above if you want to configure multiple trusted root certificates</p>
+</li>
+</ul>
+<h3 id="usage_5">Usage</h3>
+<pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/backend-protocol: "https"
+appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"</code></pre>
+
+<h3 id="example_5">Example</h3>
+<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-certificate
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"
+spec:
+  rules:
+  - host: www.contoso.com
+    http:
+      paths:
+      - backend:
+          serviceName: websocket-repeater
+          servicePort: 80</code></pre>
+
 <h2 id="connection-draining">Connection Draining</h2>
 <p><code>connection-draining</code>: This annotation allows to specify whether to enable connection draining.
 <code>connection-draining-timeout</code>: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.</p>
-<h3 id="usage_4">Usage</h3>
+<h3 id="usage_6">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/connection-draining: "true"
 appgw.ingress.kubernetes.io/connection-draining-timeout: "60"</code></pre>
 
-<h3 id="example_4">Example</h3>
+<h3 id="example_6">Example</h3>
 <pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -439,10 +567,10 @@ spec:
 
 <h2 id="cookie-based-affinity">Cookie Based Affinity</h2>
 <p>This annotation allows to specify whether to enable cookie based affinity.</p>
-<h3 id="usage_5">Usage</h3>
+<h3 id="usage_7">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/cookie-based-affinity: "true"</code></pre>
 
-<h3 id="example_5">Example</h3>
+<h3 id="example_7">Example</h3>
 <pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -462,10 +590,10 @@ spec:
 
 <h2 id="request-timeout">Request Timeout</h2>
 <p>This annotation allows to specify the request timeout in seconds after which Application Gateway will fail the request if response is not received.</p>
-<h3 id="usage_6">Usage</h3>
+<h3 id="usage_8">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/request-timeout: "20"</code></pre>
 
-<h3 id="example_6">Example</h3>
+<h3 id="example_8">Example</h3>
 <pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -490,10 +618,10 @@ spec:
 1) App Gateway doesn't support multiple IPs on the same port (example: 80/443). Ingress with annotation <code>appgw.ingress.kubernetes.io/use-private-ip: "false"</code> and another with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> on <code>HTTP</code> will cause AGIC to fail in updating the App Gateway.
 2) For App Gateway that doesn't have a private IP, Ingresses with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> will be ignored. This will reflected in the controller logs and ingress events for those ingresses with <code>NoPrivateIP</code> warning.</p>
 </blockquote>
-<h3 id="usage_7">Usage</h3>
+<h3 id="usage_9">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/use-private-ip: "true"</code></pre>
 
-<h3 id="example_7">Example</h3>
+<h3 id="example_9">Example</h3>
 <pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -511,7 +639,7 @@ spec:
           serviceName: go-server-service
           servicePort: 80</code></pre>
 
-<h2 id="attach-firewall-policy-to-a-host-and-path">Attach firewall policy to a host and path</h2>
+<h2 id="azure-waf-policy-for-path">Azure Waf Policy For Path</h2>
 <p>This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.</p>
 <p>The WAF policy must be created in advance. Example of using <a href="https://portal.azure.com/">Azure Portal</a> to create a policy:
@@ -520,10 +648,14 @@ Ingress resource being annotated.</p>
 <img alt="Creating a WAF policy" src="../images/waf-policy-1.png" /></p>
 <p>The URI would have the following format:
 <pre class="highlight"><code class="language-bash">/subscriptions/&lt;YOUR-SUBSCRIPTION&gt;/resourceGroups/&lt;YOUR-RESOURCE-GROUP&gt;/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/&lt;YOUR-POLICY-NAME&gt;</code></pre></p>
-<h3 id="usage_8">Usage</h3>
+<blockquote>
+<p><strong>Note</strong>
+1) Waf policy will only be applied to a listener if ingress rule path is not set or set to "/" or "/*"</p>
+</blockquote>
+<h3 id="usage_10">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"</code></pre>
 
-<h3 id="example_8">Example</h3>
+<h3 id="example_10">Example</h3>
 <p>The example below will apply the WAF policy 
 <pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
 kind: Ingress
@@ -554,7 +686,7 @@ Note that the WAF policy will be applied to both <code>/ad-server</code> and <co
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../features/cookie-affinity/" class="btn btn-neutral float-right" title="Cookie affinity">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../features/agic-reconcile/" class="btn btn-neutral float-right" title="Agic reconcile">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../tutorial/" class="btn btn-neutral" title="Tutorials"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -586,7 +718,7 @@ Note that the WAF policy will be applied to both <code>/ad-server</code> and <co
         <span><a href="../tutorial/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../features/cookie-affinity/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../features/agic-reconcile/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

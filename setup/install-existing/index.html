@@ -103,6 +103,10 @@
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
                 <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
@@ -226,7 +230,17 @@ these APIs.</p>
 AKS. It binds Azure Active Directory identities to your Kubernetes pods. Identity is required for an application in a
 Kubernetes pod to be able to communicate with other Azure components. In the particular case here we need authorization
 for the AGIC pod to make HTTP requests to <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a>.</p>
-<p>Follow the <a href="https://github.com/Azure/aad-pod-identity#deploy-the-azure-aad-identity-infra">AAD Pod Identity installation instructions</a> to add this component to your AKS.</p>
+<p>To install AAD Pod Identity to your cluster:</p>
+<ul>
+<li><em>RBAC enabled</em> AKS cluster</li>
+</ul>
+<pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml</code></pre>
+
+<ul>
+<li><em>RBAC disabled</em> AKS cluster</li>
+</ul>
+<pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml</code></pre>
+
 <p>Next we need to create an Azure identity and give it permissions ARM.
 Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the following commands and create an identity:</p>
 <ol>
@@ -298,8 +312,14 @@ helm repo update</code></pre>
 </li>
 <li>
 <p>Install Helm chart <code>application-gateway-kubernetes-ingress</code> with the <code>helm-config.yaml</code> configuration from the previous step</p>
-<pre class="highlight"><code class="language-bash">helm install ingress-azure -f &lt;helm-config.yaml&gt; application-gateway-kubernetes-ingress/ingress-azure</code></pre>
+<pre class="highlight"><code class="language-bash">helm install ingress-azure \
+  -f helm-config.yaml \
+  application-gateway-kubernetes-ingress/ingress-azure \
+  --version 1.0.0</code></pre>
 
+<blockquote>
+<p>Note: Use at least version 1.2.0-rc1, e.g. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
+</blockquote>
 <p>Alternatively you can combine the <code>helm-config.yaml</code> and the Helm command in one step:
 <pre class="highlight"><code class="language-bash">helm install ingress-azure application-gateway-kubernetes-ingress/ingress-azure \
      --namespace default \
@@ -314,7 +334,10 @@ helm repo update</code></pre>
      --set rbac.enabled=true \
      --set verbosityLevel=3 \
      --set kubernetes.watchNamespace=default \
-     --set aksClusterConfiguration.apiServerAddress=aks-abcdefg.hcp.westus2.azmk8s.io</code></pre></p>
+     --version 1.0.0</code></pre></p>
+<blockquote>
+<p>Note: Use at least version 1.2.0-rc1, e.g. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
+</blockquote>
 </li>
 <li>
 <p>Check the log of the newly created pod to verify if it started properly</p>

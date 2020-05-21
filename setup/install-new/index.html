@@ -99,6 +99,10 @@
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
                 <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
@@ -303,18 +307,18 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
   <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
 <p><a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> will add the following components to your Kubernetes cluster:
    1. Kubernetes <a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/">CRDs</a>: <code>AzureIdentity</code>, <code>AzureAssignedIdentity</code>, <code>AzureIdentityBinding</code>
-   1. <a href="https://github.com/Azure/aad-pod-identity#managed-identity-controllermic">Managed Identity Controller (MIC)</a> component
-   1. <a href="https://github.com/Azure/aad-pod-identity#node-managed-identitynmi">Node Managed Identity (NMI)</a> component</p>
+   1. <a href="https://github.com/Azure/aad-pod-identity#managed-identity-controller">Managed Identity Controller (MIC)</a> component
+   1. <a href="https://github.com/Azure/aad-pod-identity#node-managed-identity">Node Managed Identity (NMI)</a> component</p>
 <p>To install AAD Pod Identity to your cluster:</p>
 <ul>
 <li><em>RBAC enabled</em> AKS cluster</li>
 </ul>
-<pre class="highlight"><code class="language-bash">kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml</code></pre>
+<pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml</code></pre>
 
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
-<pre class="highlight"><code class="language-bash">kubectl create -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment.yaml</code></pre>
+<pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml</code></pre>
 
 <h3 id="install-helm">Install Helm</h3>
 <p><a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> is a package manager for
@@ -370,8 +374,14 @@ nano helm-config.yaml</code></pre></p>
 <ol>
 <li>
 <p>Install the Application Gateway ingress controller package:</p>
-<pre class="highlight"><code class="language-bash">helm install ingress-azure -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure</code></pre>
+<pre class="highlight"><code class="language-bash">helm install ingress-azure \
+  -f helm-config.yaml \
+  application-gateway-kubernetes-ingress/ingress-azure \
+  --version 1.0.0</code></pre>
 
+<blockquote>
+<p>Note: Use at least version 1.2.0-rc1, e.g. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
+</blockquote>
 </li>
 </ol>
 <h3 id="install-a-sample-app">Install a Sample App</h3>
