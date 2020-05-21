@@ -9,6 +9,8 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+  annotations:	  
+    "helm.sh/hook": crd-install
 spec:
   group: appgw.ingress.k8s.io
   version: v1
