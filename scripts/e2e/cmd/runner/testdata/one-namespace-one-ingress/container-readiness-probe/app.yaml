@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket-deployment
+  namespace: e2e-probe1
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: websocket-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/201
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /status/202
+              port: 80
+              scheme: HTTP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-service
+  namespace: e2e-probe1
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: websocket-ingress
+  namespace: e2e-probe1
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+spec:
+  rules:
+    - host: ws.mis.li.probe
+      http:
+        paths:
+        - path: /good
+          backend:
+            serviceName: websocket-service
+            servicePort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket-deployment
+  namespace: e2e-probe2
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: websocket-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/201
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /status/404
+              port: 80
+              scheme: HTTP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-service
+  namespace: e2e-probe2
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: websocket-ingress
+  namespace: e2e-probe2
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+spec:
+  rules:
+    - host: ws.mis.li.probe
+      http:
+        paths:
+        - path: /bad
+          backend:
+            serviceName: websocket-service
+            servicePort: 80
