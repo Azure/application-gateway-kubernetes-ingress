@@ -1,4 +1,4 @@
-# Helm Configuration Options
+# Helm Values Configuration Options
 
 ## Available options
 
