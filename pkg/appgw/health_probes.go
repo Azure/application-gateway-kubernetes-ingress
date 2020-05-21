@@ -148,7 +148,13 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
 		}
 		if k8sProbeForServiceContainer.FailureThreshold != 0 {
-			probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			// UnhealthyThreshold must be in range of 0 - 20, otherwise Application Gateway will not
+			// accept the configuration and all new pods will not be configured.
+			if k8sProbeForServiceContainer.FailureThreshold > 20 {
+				probe.UnhealthyThreshold = to.Int32Ptr(20)
+			} else {
+				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			}
 		}
 	}
 
