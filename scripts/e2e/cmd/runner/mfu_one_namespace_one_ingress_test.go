@@ -57,7 +57,7 @@ var _ = Describe("MFU", func() {
 
 			urlHttp := fmt.Sprintf("http://%s/index.html", publicIP)
 			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
-			// http get to return 200 ok
+			// http get to return 301
 			resp, err := makeGetRequest(urlHttp, "", 301, true)
 			Expect(err).To(BeNil())
 			redirectLocation := resp.Header.Get("Location")
@@ -97,6 +97,36 @@ var _ = Describe("MFU", func() {
 				_, err = makeGetRequest(url, host, 200, true)
 				Expect(err).To(BeNil())
 			}
+		})
+
+		It("[container-readiness-probe] backend should be removed when health probe is not healthy", func() {
+			// http get to return 200 ok
+			for _, nm := range []string{"e2e-probe1", "e2e-probe2"} {
+				ns := &v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: nm,
+					},
+				}
+				klog.Info("Creating namespace: ", nm)
+				_, err = clientset.CoreV1().Namespaces().Create(ns)
+				Expect(err).To(BeNil())
+			}
+			containerReadinessProbeYamlPath := "testdata/one-namespace-one-ingress/container-readiness-probe/app.yaml"
+			klog.Info("Applying yaml: ", containerReadinessProbeYamlPath)
+			err = applyYaml(clientset, "", containerReadinessProbeYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, "e2e-probe1")
+			Expect(publicIP).ToNot(Equal(""))
+			urlGood := fmt.Sprintf("http://%s/good", publicIP)
+			urlBad := fmt.Sprintf("http://%s/bad", publicIP)
+			_, err = makeGetRequest(urlGood, "ws.mis.li.probe", 200, true)
+			Expect(err).To(BeNil())
+			_, err = makeGetRequest(urlBad, "ws.mis.li.probe", 502, true)
+			Expect(err).To(BeNil())
 		})
 
 		AfterEach(func() {
