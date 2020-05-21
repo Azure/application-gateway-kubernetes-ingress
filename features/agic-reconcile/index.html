@@ -115,6 +115,10 @@
                     <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
                     </li>
                 </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
@@ -160,7 +164,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="reconcile-scenario">Reconcile scenario</h2>
+                <h2 id="reconcile-scenario-beta">Reconcile scenario (BETA)</h2>
 <p>When an Application Gateway is deployed through ARM template, a requirement is that the gateway configuration should contain a probe, listener, rule, backend pool and backend http setting. When such a template is re-deployed with minor changes (for example to WAF rules) on Gateway that is being controlled by AGIC, all the AGIC written rules are removed. Given such change on Application Gateway doesn’t trigger any events on AGIC, AGIC doesn’t reconcile the gateway back to the expected state. </p>
 <h2 id="solution">Solution</h2>
 <p>To address the problem above, AGIC periodically checks if the latest gateway configuration is different from what it cached, and reconcile if needed to make gateway configuration is eventual correct.</p>

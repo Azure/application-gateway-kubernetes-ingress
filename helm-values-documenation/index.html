@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Frequrently Asked Questions: [WIP] - Application Gateway Ingress Controller</title>
+  <title>Helm Values Configuration Options - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../css/theme.css" />
@@ -19,8 +19,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Frequrently Asked Questions: [WIP]";
-    var mkdocs_page_input_path = "faq.md";
+    var mkdocs_page_name = "Helm Values Configuration Options";
+    var mkdocs_page_input_path = "helm-values-documenation.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -105,22 +105,22 @@
                     <li class="toctree-l1"><a class="reference internal" href="../how-tos/websockets/">Websockets</a>
                     </li>
                 </ul>
-                <ul class="current">
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Frequrently Asked Questions: [WIP]</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#what-is-an-ingress-controller">What is an Ingress Controller</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#can-single-ingress-controller-instance-manage-multiple-application-gateway">Can single ingress controller instance manage multiple Application Gateway</a>
-    </li>
-    </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../faq/">Frequrently Asked Questions: [WIP]</a>
                     </li>
                 </ul>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
                     </li>
                 </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Helm Values Configuration Options</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#available-options">Available options</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example">Example</a>
+    </li>
+    </ul>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
@@ -151,10 +151,10 @@
     
       
     
-    <li>Frequrently Asked Questions: [WIP]</li>
+    <li>Helm Values Configuration Options</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/faq.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/helm-values-documenation.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
       
     </li>
   </ul>
@@ -164,17 +164,95 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="frequrently-asked-questions-wip">Frequrently Asked Questions: [WIP]</h1>
-<ul>
-<li><a href="#what-is-an-ingress-controller">What is an Ingress Controller</a></li>
-<li><a href="#can-single-ingress-controller-instance-manage-multiple-application-gateway">Can single ingress controller instance manage multiple Application Gateway</a></li>
-</ul>
-<h2 id="what-is-an-ingress-controller">What is an Ingress Controller</h2>
-<p>Kubernetes allows creation of <code>deployment</code> and <code>service</code> resource to expose a group of pods internally in the cluster. To expose the same service externally, an <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/"><code>Ingress</code></a> resource is defined which provides load balancing, SSL termination and name-based virtual hosting.
-To satify this <code>Ingress</code> resource, an Ingress Controller is required which listens for any changes to <code>Ingress</code> resources and configures the load balancer policies.</p>
-<p>The Application Gateway Ingress Controller allows <a href="https://azure.microsoft.com/en-us/services/application-gateway/">Azure Application Gateway</a> to be used as the ingress for an <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service</a> aka AKS cluster.</p>
-<h2 id="can-single-ingress-controller-instance-manage-multiple-application-gateway">Can single ingress controller instance manage multiple Application Gateway</h2>
-<p>Currently, One instance of Ingress Controller can only be associated to one Application Gateway.</p>
+                <h1 id="helm-values-configuration-options">Helm Values Configuration Options</h1>
+<h2 id="available-options">Available options</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verbosityLevel</code></td>
+<td>3</td>
+<td>Sets the verbosity level of the AGIC logging infrastructure. See <a href="../troubleshooting/#logging-levels">Logging Levels</a> for possible values.</td>
+</tr>
+<tr>
+<td><code>reconcilePeriodSeconds</code></td>
+<td></td>
+<td>Enable periodic reconciliation to checks if the latest gateway configuration is different from what it cached. Range: 30 - 300 seconds. Disabled by default.</td>
+</tr>
+<tr>
+<td><code>appgw.applicationGatewayId</code></td>
+<td></td>
+<td>Resource Id of the Application Gateway. Example: <code>applicationgatewayd0f0</code></td>
+</tr>
+<tr>
+<td><code>appgw.subscriptionId</code></td>
+<td>Default is agent node pool's subscriptionId derived from CloudProvider config</td>
+<td>The Azure Subscription ID in which App Gateway resides. Example: <code>a123b234-a3b4-557d-b2df-a0bc12de1234</code></td>
+</tr>
+<tr>
+<td><code>appgw.resourceGroup</code></td>
+<td>Default is agent node pool's resource group derived from CloudProvider config</td>
+<td>Name of the Azure Resource Group in which App Gateway was created. Example: <code>app-gw-resource-group</code></td>
+</tr>
+<tr>
+<td><code>appgw.name</code></td>
+<td></td>
+<td>Name of the Application Gateway. Example: <code>applicationgatewayd0f0</code></td>
+</tr>
+<tr>
+<td><code>appgw.shared</code></td>
+<td>false</td>
+<td>This boolean flag should be defaulted to <code>false</code>. Set to <code>true</code> should you need a <a href="../setup/install-existing/#multi-cluster--shared-app-gateway">Shared App Gateway</a>.</td>
+</tr>
+<tr>
+<td><code>kubernetes.watchNamespace</code></td>
+<td>Watches all if empty</td>
+<td>Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.</td>
+</tr>
+<tr>
+<td><code>kubernetes.rbac</code></td>
+<td>false</td>
+<td>Specify true if kubernetes cluster is rbac enabled</td>
+</tr>
+<tr>
+<td><code>armAuth.type</code></td>
+<td></td>
+<td>could be <code>aadPodIdentity</code> or <code>servicePrincipal</code></td>
+</tr>
+<tr>
+<td><code>armAuth.identityResourceID</code></td>
+<td></td>
+<td>Resource ID of the Azure Managed Identity</td>
+</tr>
+<tr>
+<td><code>armAuth.identityClientId</code></td>
+<td></td>
+<td>The Client ID of the Identity. See below for more information on Identity</td>
+</tr>
+<tr>
+<td><code>armAuth.secretJSON</code></td>
+<td></td>
+<td>Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>servicePrincipal</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="example">Example</h2>
+<pre class="highlight"><code class="language-yaml">appgw:
+    applicationGatewayID: &lt;application-gateway-resource-id&gt;
+
+armAuth:
+    type: aadPodIdentity
+    identityResourceID: &lt;identityResourceId&gt;
+    identityClientID:  &lt;identityClientId&gt;
+
+rbac:
+    enabled: false</code></pre>
               
             </div>
           </div>
@@ -182,10 +260,10 @@ To satify this <code>Ingress</code> resource, an Ingress Controller is required 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../troubleshooting/" class="btn btn-neutral float-right" title="Troubleshooting">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../developers/build/" class="btn btn-neutral float-right" title="Building the controller">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../how-tos/websockets/" class="btn btn-neutral" title="Websockets"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../troubleshooting/" class="btn btn-neutral" title="Troubleshooting"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -211,10 +289,10 @@ To satify this <code>Ingress</code> resource, an Ingress Controller is required 
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../how-tos/websockets/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../troubleshooting/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../troubleshooting/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../developers/build/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

@@ -131,6 +131,10 @@
                     <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
                     </li>
                 </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../developers/build/">Building the controller</a>
@@ -270,7 +274,11 @@ spec:
 <p>Check the log of the ingress controller for deployment status.</p>
 </li>
 </ol>
-<p>Now the <code>guestbook</code> application will be available on both HTTP and HTTPS.</p>
+<p>Now the <code>guestbook</code> application will be available on HTTPS.</p>
+<p>In order to make the <code>guestbook</code> application available on HTTP, annotate the <code>Ingress</code> with </p>
+<pre class="highlight"><code>  appgw.ingress.kubernetes.io/ssl-redirect: "true"</code></pre>
+
+<p>Only in this case a HTTP Listener is created in Azure which redirects the visitor to the HTTPS version.</p>
 <h3 id="with-specified-hostname">With specified hostname</h3>
 <p>You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
 By specifying hostname, the guestbook service will only be available on the specified host.</p>

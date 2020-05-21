@@ -211,6 +211,10 @@
                     <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting</a>
                     </li>
                 </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../developers/build/">Building the controller</a>
@@ -392,8 +396,7 @@ spec:
 <p>This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: <code>http</code>, <code>https</code></p>
 <blockquote>
 <p><strong>Note</strong>
-1) While self-signed certificates are supported on Application Gateway, currently, AGIC only support <code>https</code> when Pods are using certificate signed by a well-known CA.
-2) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.</p>
+1) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.</p>
 </blockquote>
 <h3 id="usage_2">Usage</h3>
 <pre class="highlight"><code class="language-yaml">appgw.ingress.kubernetes.io/backend-protocol: "https"</code></pre>
