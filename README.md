@@ -18,7 +18,9 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Support for public, private, and hybrid web sites
   - Integrated web application firewall
 
-[Ignite 2019 - AGIC GA announcement](https://myignite.techcommunity.microsoft.com/sessions/82945)
+## Blogs and talks
+- [Application Gateway Ingress Controller for Azure Kubernetes Service](https://azure.microsoft.com/en-us/blog/application-gateway-ingress-controller-for-azure-kubernetes-service/)
+- [Ignite 2019 - AGIC GA announcement](https://myignite.techcommunity.microsoft.com/sessions/82945)
 
 
 ## Setup

@@ -57,8 +57,10 @@ helm install \
 # or 
 
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
+# --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
+  --reuse-values \
   --version 1.2.0-rc2
 ```
