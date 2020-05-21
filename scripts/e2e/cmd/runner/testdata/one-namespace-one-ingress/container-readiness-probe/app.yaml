@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websocket-deployment
+  name: backend-deployment
   namespace: e2e-probe1
 spec:
   selector:
@@ -14,7 +14,7 @@ spec:
         app: ws-app
     spec:
       containers:
-        - name: websocket-app
+        - name: backend-app
           imagePullPolicy: Always
           image: docker.io/kennethreitz/httpbin
           ports:
@@ -37,7 +37,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: websocket-service
+  name: backend-service
   namespace: e2e-probe1
 spec:
   selector:
@@ -52,7 +52,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: websocket-ingress
+  name: backend-ingress
   namespace: e2e-probe1
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
@@ -64,14 +64,14 @@ spec:
         paths:
         - path: /good
           backend:
-            serviceName: websocket-service
+            serviceName: backend-service
             servicePort: 80
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websocket-deployment
+  name: unhealthy-backend-deployment
   namespace: e2e-probe2
 spec:
   selector:
@@ -84,7 +84,7 @@ spec:
         app: ws-app
     spec:
       containers:
-        - name: websocket-app
+        - name: backend-app
           imagePullPolicy: Always
           image: docker.io/kennethreitz/httpbin
           ports:
@@ -107,7 +107,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: websocket-service
+  name: backend-service
   namespace: e2e-probe2
 spec:
   selector:
@@ -122,7 +122,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: websocket-ingress
+  name: backend-ingress
   namespace: e2e-probe2
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
@@ -134,5 +134,5 @@ spec:
         paths:
         - path: /bad
           backend:
-            serviceName: websocket-service
+            serviceName: backend-service
             servicePort: 80
