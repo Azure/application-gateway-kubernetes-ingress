@@ -45,7 +45,3 @@ armAuth:
 # Specify if the cluster is RBAC enabled or not
 rbac:
     enabled: false # true/false
-
-# Specify aks cluster related information. THIS IS BEING DEPRECATED.
-aksClusterConfiguration:
-    apiServerAddress: <aks-api-server-address>
