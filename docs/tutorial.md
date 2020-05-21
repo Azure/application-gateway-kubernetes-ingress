@@ -112,7 +112,15 @@ Without specifying hostname, the guestbook service will be available on all the 
 
 1. Check the log of the ingress controller for deployment status.
 
-Now the `guestbook` application will be available on both HTTP and HTTPS.
+Now the `guestbook` application will be available on HTTPS.
+
+In order to make the `guestbook` application available on HTTP, annotate the `Ingress` with 
+
+```
+  appgw.ingress.kubernetes.io/ssl-redirect: "true"
+```
+
+Only in this case a HTTP Listener is created in Azure which redirects the visitor to the HTTPS version.
 
 ### With specified hostname
 
