@@ -1,0 +1,8 @@
+apiVersion: appgw.ingress.k8s.io/v1
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibit-backend-ns-y
+spec:
+  hostname: blacklist-ns-y.host
+  paths:
+    - /y/*

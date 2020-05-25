@@ -35,10 +35,47 @@ function InstallAGIC() {
     --wait \
     -n agic \
     --version ${version}
+
+    # create namespace for testing shared backend
+    kubectl create namespace test-whitelist-ns-x || true
+    kubectl create namespace test-blacklist-ns-y || true
+    kubectl apply -f test-prohibit-backend.yaml
+
+}
+
+function SetupSharedBackend() {
+    
+    # delete agic with share disabled
+    helm delete agic-${version}
+
+    # install agic with shared enabled
+    helm upgrade --install agic-${version} staging/ingress-azure \
+    --set appgw.applicationGatewayID=${applicationGatewayId} \
+    --set armAuth.type=aadPodIdentity \
+    --set armAuth.identityResourceID=${identityResourceId} \
+    --set armAuth.identityClientID=${identityClientId} \
+    --set rbac.enabled=true \
+    --set appgw.shared=true \
+    --timeout 120s \
+    --wait \
+    -n agic \
+    --version ${version}
+
+    # apply prohibit-blacklist-service
+    kubectl apply -f prohibit-blacklist-service.yaml
+
+    # delete prohibit-all-targets
+    kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
+
+    # whitelist-service should be wiped out, blacklist-service shall be kept
+
 }
 
 # install
 InstallAGIC
+
+# set up shared backend
+SetupSharedBackend
 
 # run test
 go mod init || true
