@@ -24,7 +24,7 @@ function InstallAGIC() {
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
     helm repo update
 
-    # AAD pod identity is taking time to assign identity. Timeout is set to 60 sec
+    # AAD pod identity is taking time to assign identity. Timeout is set to 120 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
     --set appgw.applicationGatewayID=${applicationGatewayId} \
     --set armAuth.type=aadPodIdentity \
@@ -37,6 +37,7 @@ function InstallAGIC() {
     --version ${version}
 
     # create namespace for testing shared backend
+    # one whitelisted service and one blacklisted service
     kubectl create namespace test-whitelist-ns-x || true
     kubectl create namespace test-blacklist-ns-y || true
     kubectl apply -f test-prohibit-backend.yaml
@@ -46,8 +47,9 @@ function InstallAGIC() {
 function SetupSharedBackend() {
     
     # delete agic with share disabled
-    helm delete agic-${version}
+    helm delete agic-${version} -n agic
 
+    helm repo update
     # install agic with shared enabled
     helm upgrade --install agic-${version} staging/ingress-azure \
     --set appgw.applicationGatewayID=${applicationGatewayId} \
