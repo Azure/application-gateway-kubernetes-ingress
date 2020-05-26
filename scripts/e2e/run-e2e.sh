@@ -47,7 +47,7 @@ function InstallAGIC() {
 function SetupSharedBackend() {
     
     # delete agic with share disabled
-    helm delete agic-${version} -n agic
+    helm delete agic-${version} -n agic || true
 
     helm repo update
     # install agic with shared enabled
@@ -69,7 +69,7 @@ function SetupSharedBackend() {
     # delete prohibit-all-targets
     kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
 
-    # whitelist-service should be wiped out, blacklist-service shall be kept
+    # blacklist-service shall be kept after porhibited policy applied
 
 }
 

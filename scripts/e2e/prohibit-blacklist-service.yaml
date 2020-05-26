@@ -3,6 +3,6 @@ kind: AzureIngressProhibitedTarget
 metadata:
   name: prohibit-backend-ns-y
 spec:
-  hostname: blacklist-ns-y.host
+  hostname: brownfield-blacklist-ns-y.host
   paths:
     - /y/*
