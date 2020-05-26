@@ -33,21 +33,21 @@ var _ = Describe("LFU", func() {
 		It("[prohibited-target-test] prohibited service should be available to be accessed", func() {
 			// get ip address for 1 ingress
 			klog.Info("Getting public IP from blacklisted Ingress...")
-			publicIP, _ := getPublicIP(clientset, "test-blacklist-ns-y")
+			publicIP, _ := getPublicIP(clientset, "test-brownfield-ns-y")
 			Expect(publicIP).ToNot(Equal(""))
 
 			// whitlist service will be wiped out by agic
 			url_whitelist := fmt.Sprintf("http://%s/x", publicIP)
-			_, err = makeGetRequest(url, "whitelist-ns-x.host", 404, true)
+			_, err = makeGetRequest(url, "brownfield-ns-x.host", 404, true)
 			Expect(err).To(BeNil())
 
 			// prohibited service will be kept by agic
 			url_blacklist := fmt.Sprintf("http://%s/y", publicIP)
-			_, err = makeGetRequest(url, "blacklist-ns-y.host", 200, true)
+			_, err = makeGetRequest(url, "brownfield-blacklist-ns-y.host", 200, true)
 			Expect(err).To(BeNil())
 
 			// delete namespaces for blacklist testing
-			for _, nm := range []string{"test-whitelist-ns-x", "test-blacklist-ns-y"} {
+			for _, nm := range []string{"test-brownfield-ns-x", "test-brownfield-ns-y"} {
 				klog.Info("Delete namespaces after blacklist testing: ", nm)
 				_, err = clientset.CoreV1().Namespaces().Delete(ns)
 				Expect(err).To(BeNil())
