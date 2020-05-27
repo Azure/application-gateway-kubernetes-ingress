@@ -22,6 +22,7 @@ var _ = Describe("Test blacklist listeners", func() {
 	listener2 := (*appGw.HTTPListeners)[2]
 	listener3 := (*appGw.HTTPListeners)[3]
 	listenerUnassociated := (*appGw.HTTPListeners)[4]
+	listenerWildcard := (*appGw.HTTPListeners)[5]
 
 	Context("Test GetBlacklistedListeners() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted listeners", func() {
@@ -29,10 +30,11 @@ var _ = Describe("Test blacklist listeners", func() {
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedListeners()
 
-			Expect(len(blacklisted)).To(Equal(3))
+			Expect(len(blacklisted)).To(Equal(4))
 			Expect(blacklisted).To(ContainElement(listener1))
 			Expect(blacklisted).To(ContainElement(listener2))
 			Expect(blacklisted).To(ContainElement(listener3))
+			Expect(blacklisted).To(ContainElement(listenerWildcard))
 
 			Expect(len(nonBlacklisted)).To(Equal(2))
 			Expect(nonBlacklisted).To(ContainElement(defaultListener))
@@ -56,10 +58,12 @@ var _ = Describe("Test blacklist listeners", func() {
 			Expect(len(blacklisted)).To(Equal(1))
 			Expect(blacklisted).To(ContainElement(listener2))
 
-			Expect(len(nonBlacklisted)).To(Equal(4))
+			Expect(len(nonBlacklisted)).To(Equal(5))
 			Expect(nonBlacklisted).To(ContainElement(defaultListener))
 			Expect(nonBlacklisted).To(ContainElement(listener1))
 			Expect(nonBlacklisted).To(ContainElement(listener3))
+			Expect(nonBlacklisted).To(ContainElement(listenerUnassociated))
+			Expect(nonBlacklisted).To(ContainElement(listenerWildcard))
 		})
 	})
 
@@ -70,11 +74,12 @@ var _ = Describe("Test blacklist listeners", func() {
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedListeners()
 
-			Expect(len(blacklisted)).To(Equal(4))
+			Expect(len(blacklisted)).To(Equal(5))
 			Expect(blacklisted).To(ContainElement(listener1))
 			Expect(blacklisted).To(ContainElement(listener2))
 			Expect(blacklisted).To(ContainElement(listener3))
 			Expect(blacklisted).To(ContainElement(defaultListener))
+			Expect(blacklisted).To(ContainElement(listenerWildcard))
 
 			Expect(len(nonBlacklisted)).To(Equal(1))
 		})
@@ -92,7 +97,7 @@ var _ = Describe("Test blacklist listeners", func() {
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 			set := er.getBlacklistedListenersSet()
 
-			Expect(len(set)).To(Equal(4))
+			Expect(len(set)).To(Equal(5))
 			_, exists := set[fixtures.HTTPListenerPathBased1]
 			Expect(exists).To(BeTrue())
 			_, exists = set[fixtures.HTTPListenerPathBased2]
@@ -100,6 +105,8 @@ var _ = Describe("Test blacklist listeners", func() {
 			_, exists = set[fixtures.HTTPListenerNameBasic]
 			Expect(exists).To(BeTrue())
 			_, exists = set[fixtures.HTTPListenerUnassociated]
+			Expect(exists).To(BeTrue())
+			_, exists = set[fixtures.HTTPListenerWildcard]
 			Expect(exists).To(BeTrue())
 		})
 	})
@@ -112,8 +119,8 @@ var _ = Describe("Test blacklist listeners", func() {
 			listenersByName := er.getListenersByName()
 			Expect(er.listenersByName).ToNot(BeNil())
 
-			Expect(len(er.listenersByName)).To(Equal(5))
-			Expect(len(listenersByName)).To(Equal(5))
+			Expect(len(er.listenersByName)).To(Equal(6))
+			Expect(len(listenersByName)).To(Equal(6))
 
 			_, exists := listenersByName[fixtures.HTTPListenerPathBased1]
 			Expect(exists).To(BeTrue())
@@ -124,6 +131,8 @@ var _ = Describe("Test blacklist listeners", func() {
 			_, exists = listenersByName[fixtures.DefaultHTTPListenerName]
 			Expect(exists).To(BeTrue())
 			_, exists = listenersByName[fixtures.HTTPListenerUnassociated]
+			Expect(exists).To(BeTrue())
+			_, exists = listenersByName[fixtures.HTTPListenerWildcard]
 			Expect(exists).To(BeTrue())
 		})
 	})

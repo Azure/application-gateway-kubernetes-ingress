@@ -27,6 +27,9 @@ const (
 
 	// HTTPListenerUnassociated is a string constant.
 	HTTPListenerUnassociated = "HTTPListener-Unassociated"
+
+	// HTTPListenerWildcard is a string constant.
+	HTTPListenerWildcard = "HTTPListener-Wildcard"
 )
 
 // GetListenerBasic creates a new struct for use in unit tests.
@@ -95,6 +98,20 @@ func GetListenerUnassociated() *n.ApplicationGatewayHTTPListener {
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
 			Protocol:                    n.HTTP,
 			HostName:                    to.StringPtr(tests.HostUnassociated),
+			RequireServerNameIndication: to.BoolPtr(true),
+		},
+	}
+}
+
+// GetListenerWildcard creates a new listener which is associated to a rule and uses wild card hostnames
+func GetListenerWildcard() *n.ApplicationGatewayHTTPListener {
+	return &n.ApplicationGatewayHTTPListener{
+		Name: to.StringPtr(HTTPListenerWildcard),
+		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
+			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
+			Protocol:                    n.HTTP,
+			Hostnames:                   &[]string{tests.WildcardHost1, tests.WildcardHost2},
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
 	}

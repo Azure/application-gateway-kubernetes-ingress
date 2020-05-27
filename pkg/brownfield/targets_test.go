@@ -24,7 +24,7 @@ var _ = Describe("Test blacklisting targets", func() {
 	Context("test GetTargetBlacklist", func() {
 		blacklist := GetTargetBlacklist(fixtures.GetAzureIngressProhibitedTargets())
 		It("should have produced correct Prohibited Targets list", func() {
-			Expect(len(*blacklist)).To(Equal(4))
+			Expect(len(*blacklist)).To(Equal(5))
 
 			// Targets /fox and /bar are in the blacklist
 			for _, path := range []string{fixtures.PathFox, fixtures.PathBar} {
