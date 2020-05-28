@@ -3,9 +3,14 @@ module github.com/Azure/application-gateway-kubernetes-ingress
 go 1.13
 
 require (
+	github.com/Azure/azure-sdk-for-go v42.3.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
+	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.3.0
+	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-cmp v0.4.0 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/onsi/ginkgo v1.12.0
