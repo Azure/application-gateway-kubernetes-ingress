@@ -24,11 +24,13 @@ func GetAppGateway() n.ApplicationGateway {
 				*GetRequestRoutingRuleBasic(),
 				*GetRequestRoutingRulePathBased1(),
 				*GetRequestRoutingRulePathBased2(),
+				*GetRequestRoutingRulePathBased3(),
 			},
 			URLPathMaps: &[]n.ApplicationGatewayURLPathMap{
 				*GetDefaultURLPathMap(),
 				*GetURLPathMap1(),
 				*GetURLPathMap2(),
+				*GetURLPathMap3(),
 			},
 
 			HTTPListeners: &[]n.ApplicationGatewayHTTPListener{
@@ -37,6 +39,7 @@ func GetAppGateway() n.ApplicationGateway {
 				*GetListenerPathBased1(),
 				*GetListenerPathBased2(),
 				*GetListenerUnassociated(),
+				*GetListenerWildcard(),
 			},
 
 			SslCertificates: &[]n.ApplicationGatewaySslCertificate{
