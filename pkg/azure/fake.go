@@ -26,8 +26,12 @@ type GetPublicIPFunc func(string) (n.PublicIPAddress, error)
 // ApplyRouteTableFunc is a function type
 type ApplyRouteTableFunc func(string, string) error
 
+// CheckAccessFunc is a function type
+type CheckAccessFunc func() (bool, error)
+
 // FakeAzClient is a fake struct for AzClient
 type FakeAzClient struct {
+	CheckAccessFunc
 	GetGatewayFunc
 	UpdateGatewayFunc
 	DeployGatewayFunc
@@ -44,12 +48,48 @@ func NewFakeAzClient() *FakeAzClient {
 func (az *FakeAzClient) SetAuthorizer(authorizer autorest.Authorizer) {
 }
 
+// CheckAccess runs CheckAccessFunc and returns if AGIC has access to the gateway or not
+func (az *FakeAzClient) CheckAccess(string, RoleDefinition) (bool, error) {
+	if az.CheckAccessFunc != nil {
+		return az.CheckAccessFunc()
+	}
+	return true, nil
+}
+
+// WaitForAccess runs CheckAccessFunc in a loop and returns when CheckAccessFunc is true
+func (az *FakeAzClient) WaitForAccess(string, RoleDefinition) {
+	if az.CheckAccessFunc != nil {
+		for {
+			hasAccess, _ := az.CheckAccessFunc()
+			if hasAccess {
+				return
+			}
+		}
+	}
+
+	return
+}
+
 // GetGateway runs GetGatewayFunc and return a gateway
 func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 	if az.GetGatewayFunc != nil {
 		return az.GetGatewayFunc()
 	}
 	return n.ApplicationGateway{}, nil
+}
+
+// WaitForGetAccessOnGateway runs GetGatewayFunc until it returns a gateway
+func (az *FakeAzClient) WaitForGetAccessOnGateway() error {
+	if az.GetGatewayFunc != nil {
+		for {
+			_, err := az.GetGatewayFunc()
+			if err == nil {
+				return nil
+			}
+		}
+	}
+
+	return nil
 }
 
 // UpdateGateway runs UpdateGatewayFunc and return a gateway

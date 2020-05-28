@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -141,6 +143,36 @@ var _ = Describe("Azure", func() {
 				Expect(resourceGp).To(Equal(ResourceGroup("")))
 				Expect(resource).To(Equal(ResourceName("")))
 				Expect(subResource).To(Equal(ResourceName("")))
+			})
+		})
+
+		Context("test CheckRoleAssignmentHasOneOfSuperSetRoles func", func() {
+			It("should return false when none of the role defition match", func() {
+				roleAssignment := a.RoleAssignment{
+					RoleAssignmentPropertiesWithScope: &a.RoleAssignmentPropertiesWithScope{
+						RoleDefinitionID: to.StringPtr("xxxx"),
+					},
+				}
+				Expect(CheckRoleAssignmentHasOneOfSuperSetRoles(roleAssignment, Contributor)).To(BeFalse())
+			})
+
+			It("should return true when input role defition matches", func() {
+				roleAssignment := a.RoleAssignment{
+					RoleAssignmentPropertiesWithScope: &a.RoleAssignmentPropertiesWithScope{
+						RoleDefinitionID: to.StringPtr(string(Contributor)),
+					},
+				}
+				Expect(CheckRoleAssignmentHasOneOfSuperSetRoles(roleAssignment, Contributor)).To(BeTrue())
+			})
+
+			It("should return true when input role defition is super set of the required role", func() {
+				roleAssignment := a.RoleAssignment{
+					RoleAssignmentPropertiesWithScope: &a.RoleAssignmentPropertiesWithScope{
+						RoleDefinitionID: to.StringPtr(string(Owner)),
+					},
+				}
+				Expect(CheckRoleAssignmentHasOneOfSuperSetRoles(roleAssignment, Contributor)).To(BeTrue())
+				Expect(CheckRoleAssignmentHasOneOfSuperSetRoles(roleAssignment, Reader)).To(BeTrue())
 			})
 		})
 	})

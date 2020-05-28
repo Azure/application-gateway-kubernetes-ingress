@@ -19,6 +19,11 @@ type Identifier struct {
 	AppGwName      string
 }
 
+// ResourceID returns resourceID of the gateway
+func (agw Identifier) ResourceID() string {
+	return agw.resourceID("Microsoft.Network", "applicationGateways", agw.AppGwName)
+}
+
 func (agw Identifier) resourceID(provider string, resourceKind string, resourcePath string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/%s/%s/%s",
 		agw.SubscriptionID, agw.ResourceGroup, provider, resourceKind, resourcePath)
