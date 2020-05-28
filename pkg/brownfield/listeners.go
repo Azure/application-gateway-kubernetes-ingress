@@ -6,12 +6,18 @@
 package brownfield
 
 import (
+	"math"
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+)
+
+const (
+	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
+	MaxAllowedHostnames int = 5
 )
 
 type listenersByName map[listenerName]n.ApplicationGatewayHTTPListener
@@ -34,10 +40,17 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 }
 
 type uniqueListenerConfig struct {
-	HostName                string
+	HostNames               [MaxAllowedHostnames]string
 	Protocol                n.ApplicationGatewayProtocol
 	FrontendPortID          string
 	FrontendIPConfiguration string
+}
+
+func (config *uniqueListenerConfig) setHostNames(hostnames []string) {
+	hostnameCount := int(math.Min(float64(len(hostnames)), float64(MaxAllowedHostnames)))
+	for i := 0; i < hostnameCount; i++ {
+		config.HostNames[i] = hostnames[i]
+	}
 }
 
 // MergeListeners merges list of lists of listeners into a single list, maintaining uniqueness.
@@ -49,7 +62,10 @@ func MergeListeners(listenerBuckets ...[]n.ApplicationGatewayHTTPListener) []n.A
 				Protocol: listener.Protocol,
 			}
 			if listener.HostName != nil {
-				listenerConfig.HostName = *listener.HostName
+				listenerConfig.setHostNames([]string{*listener.HostName})
+			}
+			if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
+				listenerConfig.setHostNames(*listener.Hostnames)
 			}
 			if listener.FrontendIPConfiguration != nil && listener.FrontendIPConfiguration.ID != nil {
 				listenerConfig.FrontendIPConfiguration = *listener.FrontendIPConfiguration.ID
@@ -126,11 +142,19 @@ func (er ExistingResources) getBlacklistedListenersSet() map[listenerName]interf
 	blacklistedListenersSet := make(map[listenerName]interface{})
 	prohibitedHostnames := er.getProhibitedHostnames()
 	for _, listener := range er.Listeners {
-		if listener.HostName == nil {
-			continue
+		if listener.HostName != nil {
+			if _, exists := prohibitedHostnames[*listener.HostName]; exists {
+				blacklistedListenersSet[listenerName(*listener.Name)] = nil
+				continue
+			}
 		}
-		if _, exists := prohibitedHostnames[*listener.HostName]; exists {
-			blacklistedListenersSet[listenerName(*listener.Name)] = nil
+		if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
+			for _, hostName := range *listener.Hostnames {
+				if _, exists := prohibitedHostnames[hostName]; exists {
+					blacklistedListenersSet[listenerName(*listener.Name)] = nil
+					continue
+				}
+			}
 		}
 	}
 

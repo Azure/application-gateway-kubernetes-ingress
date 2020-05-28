@@ -20,6 +20,7 @@ var _ = Describe("Test blacklisting path maps", func() {
 	pathMap1 := (*appGw.URLPathMaps)[0]
 	pathMap2 := (*appGw.URLPathMaps)[1]
 	pathMap3 := (*appGw.URLPathMaps)[2]
+	pathMap4 := (*appGw.URLPathMaps)[3]
 
 	Context("Test GetBlacklistedHTTPSettings() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted path maps", func() {
@@ -27,9 +28,10 @@ var _ = Describe("Test blacklisting path maps", func() {
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedPathMaps()
-			Expect(len(blacklisted)).To(Equal(2))
+			Expect(len(blacklisted)).To(Equal(3))
 			Expect(blacklisted).To(ContainElement(pathMap2))
 			Expect(blacklisted).To(ContainElement(pathMap3))
+			Expect(blacklisted).To(ContainElement(pathMap4))
 
 			Expect(len(nonBlacklisted)).To(Equal(1))
 			Expect(nonBlacklisted).To(ContainElement(pathMap1))
@@ -45,9 +47,10 @@ var _ = Describe("Test blacklisting path maps", func() {
 
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedPathMaps()
-			Expect(len(blacklisted)).To(Equal(2))
+			Expect(len(blacklisted)).To(Equal(3))
 			Expect(blacklisted).To(ContainElement(pathMap2))
 			Expect(blacklisted).To(ContainElement(pathMap3))
+			Expect(blacklisted).To(ContainElement(pathMap4))
 
 			// One HTTP Setting is not associated with a listener, so we can't blacklist it.
 			Expect(len(nonBlacklisted)).To(Equal(1))
