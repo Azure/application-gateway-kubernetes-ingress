@@ -171,7 +171,8 @@
 <h2 id="how-to-configure-reconcile">How to configure reconcile</h2>
 <p>There are two ways to configure AGIC reconcile via helm, and to use the new feature, make sure the AGIC version is at least at 1.2.0-rc1</p>
 <h3 id="configure-inside-helm-valuesyaml">Configure inside helm values.yaml</h3>
-<p><code>reconcilePeriodSeconds: 30</code>, it means AGIC checks the reconciling in every 30 seconds</p>
+<p><code>reconcilePeriodSeconds: 30</code>, it means AGIC checks the reconciling in every 30 seconds.
+Acceptable values are between 30 and 300.</p>
 <h3 id="configure-from-helm-command-line">Configure from helm command line</h3>
 <p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3
 <pre class="highlight"><code class="language-bash"># helm fresh install
