@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -58,15 +57,7 @@ var _ = Describe("Azure", func() {
 
 		Context("test getAuthorizer", func() {
 			It("should try and get some authorizer", func() {
-				authorizer, err := getAuthorizer("", false, nil)
-				Ω(authorizer).ToNot(BeNil())
-				Ω(err).ToNot(HaveOccurred())
-			})
-		})
-
-		Context("test getAuthorizerWithRetry", func() {
-			It("should try and get some authorizer", func() {
-				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
+				authorizer, err := getAuthorizer("", false, nil, "AZUREPUBLICCLOUD")
 				Ω(authorizer).ToNot(BeNil())
 				Ω(err).ToNot(HaveOccurred())
 			})

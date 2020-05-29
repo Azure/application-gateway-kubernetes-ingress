@@ -6,35 +6,21 @@
 package azure
 
 import (
-	"time"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/golang/glog"
-
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
-// GetAuthorizerWithRetry return azure.Authorizer
-func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig, maxAuthRetryCount int, retryPause time.Duration) (authorizer autorest.Authorizer, err error) {
-	utils.Retry(maxAuthRetryCount, retryPause,
-		func() (utils.Retriable, error) {
-			// Fetch a new token
-			authorizer, err = getAuthorizer(authLocation, useManagedidentity, cpConfig)
-			return utils.Retriable(true), err
-		})
-	return authorizer, nil
-}
-
-func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (autorest.Authorizer, error) {
+func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig, cloudName string) (autorest.Authorizer, error) {
 	// Authorizer logic:
 	// 1. If User provided authLocation, then use the file.
 	// 2. If User provided a managed identity in ex: helm config, then use Environment
 	// 3. If User provided nothing and CloudProviderConfig has value, then use CloudProviderConfig
 	// 4. Fall back to environment
 	if authLocation != "" {
-		glog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
+		glog.V(1).Infof("Creating authorizer from file referenced by environment variable AZURE_AUTH_LOCATION: %s", authLocation)
 		return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	}
 	if !useManagedidentity && cpConfig != nil {
@@ -44,5 +30,15 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 	}
 
 	glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
-	return auth.NewAuthorizerFromEnvironment()
+	setting, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	setting.Environment, err = azure.EnvironmentFromName(cloudName)
+	if err != nil {
+		return nil, err
+	}
+
+	return setting.GetAuthorizer()
 }
