@@ -129,7 +129,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
-		FIt("[retry access check] should be able to wait for the access to be granted", func() {
+		It("[retry access check] should be able to wait for the access to be granted", func() {
 			klog.Info("Initializing role client")
 			roleClient, err := getRoleClient()
 			Expect(err).To(BeNil())
@@ -140,6 +140,10 @@ var _ = Describe("MFU", func() {
 			err = removeRoleAssignments(roleClient)
 			Expect(err).To(BeNil())
 
+			// wait for 120 seconds
+			klog.Info("Wait for 120 seconds")
+			time.Sleep(120 * time.Second)
+
 			klog.Info("Deleting AAD Pod identity pod")
 			err = deleteAADPodIdentityPods(clientset)
 			Expect(err).To(BeNil())
@@ -149,12 +153,12 @@ var _ = Describe("MFU", func() {
 			err = deleteAGICPod(clientset)
 			Expect(err).To(BeNil())
 
-			// wait for 30 seconds
-			klog.Info("Wait for 60 seconds")
-			time.Sleep(60 * time.Second)
+			// wait for 120 seconds
+			klog.Info("Wait for 120 seconds")
+			time.Sleep(120 * time.Second)
 
 			// add the contributor assignment
-			gatewayID := GetEnv().GetApplicationGatewayResourceID()
+			groupID := GetEnv().GetGroupResourceID()
 			err = addRoleAssignment(roleClient, Contributor, groupID)
 			Expect(err).To(BeNil())
 
@@ -173,10 +177,6 @@ var _ = Describe("MFU", func() {
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
 			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
-
-			// wait for 30 seconds
-			klog.Info("Wait for 30 seconds")
-			time.Sleep(30 * time.Second)
 
 			// get ip address for 1 ingress
 			klog.Info("Getting public IP from Ingress...")

@@ -73,7 +73,7 @@ func getRoleClient() (*a.RoleAssignmentsClient, error) {
 	}
 
 	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
+	authorizer, err := settings.GetAuthorizer()
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +112,11 @@ func addRoleAssignment(roleClient *a.RoleAssignmentsClient, role, scope string) 
 
 func removeRoleAssignments(roleClient *a.RoleAssignmentsClient) error {
 	page, err := roleClient.ListForScope(context.TODO(), GetEnv().GetApplicationGatewayResourceID(), "")
-	klog.Infof("Got role assignments [%+v]", page)
 	if err != nil {
 		return err
 	}
+
+	klog.Infof("Got role assignments [%+v]", page)
 
 	if page.Response().Value != nil {
 		roleAssignmentList := (*page.Response().Value)
@@ -336,8 +337,8 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 
 		ingress := (*ingresses).Items[0]
 		if len(ingress.Status.LoadBalancer.Ingress) == 0 {
-			klog.Warning("Trying again...", i)
-			time.Sleep(time.Second)
+			klog.Warning("Trying again in 5 seconds...", i)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -346,8 +347,8 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 			return publicIP, nil
 		}
 
-		klog.Warning("Trying again...", i)
-		time.Sleep(time.Second)
+		klog.Warning("Trying again in 5 seconds...", i)
+		time.Sleep(5 * time.Second)
 	}
 
 	return "", fmt.Errorf("Timed out while finding ingress IP in namespace %s", namespaceName)
