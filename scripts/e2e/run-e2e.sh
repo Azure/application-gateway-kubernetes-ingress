@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-function DeleteOtherAGICversions() {
+function DeleteOtherAGICVersions() {
     [[ -z "${version}" ]] && (echo "version is not set"; exit 1)
 
     list=$(helm ls --all --short -n agic | grep -v agic-${version})
