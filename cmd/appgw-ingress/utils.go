@@ -16,6 +16,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -23,7 +24,6 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
@@ -112,9 +112,9 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	return envVerbosityInt
 }
 
-func setIngressClass(customIngressClass string){
+func setIngressClass(customIngressClass string) {
 	if customIngressClass != "" {
 		annotations.ApplicationGatewayIngressClass = customIngressClass
 	}
-	
+
 }
