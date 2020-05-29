@@ -83,7 +83,6 @@ var (
 	ApplicationGatewayIngressClass = DefaultIngressClass
 )
 
-
 // ProtocolEnum is the type for protocol
 type ProtocolEnum int
 

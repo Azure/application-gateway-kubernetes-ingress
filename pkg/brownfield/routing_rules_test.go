@@ -21,6 +21,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 	ruleBasic := (*appGw.RequestRoutingRules)[1]
 	rulePathBased1 := (*appGw.RequestRoutingRules)[2]
 	rulePathBased2 := (*appGw.RequestRoutingRules)[3]
+	rulePathBased3 := (*appGw.RequestRoutingRules)[4]
 
 	Context("Test getRoutingRuleToTargetsMap()", func() {
 		It("should create a map of routing rules to targets", func() {
@@ -29,8 +30,8 @@ var _ = Describe("Test blacklist request routing rules", func() {
 
 			ruleToTargets, pathMapToTargets := er.getRuleToTargets()
 
-			Expect(len(ruleToTargets)).To(Equal(3))
-			Expect(len(pathMapToTargets)).To(Equal(2))
+			Expect(len(ruleToTargets)).To(Equal(4))
+			Expect(len(pathMapToTargets)).To(Equal(3))
 
 			targetFoo := Target{Hostname: tests.Host, Path: fixtures.PathFoo}
 			targetBar := Target{Hostname: tests.Host, Path: fixtures.PathBar}
@@ -50,6 +51,16 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetFox))
 			Expect(ruleToTargets[fixtures.RequestRoutingRuleName2]).To(ContainElement(targetOtherHostNoPath))
 
+			targetWildcard1 := Target{Hostname: tests.WildcardHost1, Path: fixtures.PathFox}
+			targetWildcard2 := Target{Hostname: tests.WildcardHost2, Path: fixtures.PathFox}
+			targetWildcard1NoPath := Target{Hostname: tests.WildcardHost1}
+			targetWildcard2NoPath := Target{Hostname: tests.WildcardHost2}
+
+			Expect(len(ruleToTargets[fixtures.RequestRoutingRuleName3])).To(Equal(4))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName3]).To(ContainElement(targetWildcard1))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName3]).To(ContainElement(targetWildcard2))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName3]).To(ContainElement(targetWildcard1NoPath))
+			Expect(ruleToTargets[fixtures.RequestRoutingRuleName3]).To(ContainElement(targetWildcard2NoPath))
 		})
 	})
 
@@ -59,10 +70,11 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			er := NewExistingResources(appGw, prohibitedTargets, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedRoutingRules()
 
-			Expect(len(blacklisted)).To(Equal(3))
+			Expect(len(blacklisted)).To(Equal(4))
 			Expect(blacklisted).To(ContainElement(rulePathBased1))
 			Expect(blacklisted).To(ContainElement(rulePathBased2))
 			Expect(blacklisted).To(ContainElement(ruleBasic))
+			Expect(blacklisted).To(ContainElement(rulePathBased3))
 
 			Expect(len(nonBlacklisted)).To(Equal(1))
 			Expect(nonBlacklisted).To(ContainElement(ruleDefault))
@@ -79,13 +91,14 @@ var _ = Describe("Test blacklist request routing rules", func() {
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedRoutingRules()
 
-			Expect(len(blacklisted)).To(Equal(4))
+			Expect(len(blacklisted)).To(Equal(5))
 			Expect(len(nonBlacklisted)).To(Equal(0))
 
 			Expect(blacklisted).To(ContainElement(ruleBasic))
 			Expect(blacklisted).To(ContainElement(rulePathBased1))
 			Expect(blacklisted).To(ContainElement(rulePathBased2))
 			Expect(blacklisted).To(ContainElement(ruleDefault))
+			Expect(blacklisted).To(ContainElement(rulePathBased3))
 		})
 	})
 })

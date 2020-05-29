@@ -109,7 +109,7 @@ type EnvVariables struct {
 	AppGwResourceID             string
 	AppGwSubnetID               string
 	AuthLocation                string
-	IngressClass               string
+	IngressClass                string
 	WatchNamespace              string
 	UsePrivateIP                string
 	VerbosityLevel              string

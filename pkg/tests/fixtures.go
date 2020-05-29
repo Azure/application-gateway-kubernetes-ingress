@@ -30,6 +30,8 @@ const (
 	Host                         = "bye.com"
 	OtherHost                    = "--some-other-hostname--"
 	HostUnassociated             = "---some-host-without-routing-rules---"
+	WildcardHost1                = "*.hi.com"
+	WildcardHost2                = "hola.com"
 	NameOfSecret                 = "--the-name-of-the-secret--"
 	ServiceName                  = "--service-name--"
 	NodeName                     = "--node-name--"

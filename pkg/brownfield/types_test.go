@@ -44,6 +44,7 @@ var _ = Describe("Test NewExistingResources", func() {
 			expected := map[string]interface{}{
 				"bye.com":                 nil,
 				"--some-other-hostname--": nil,
+				"*.hi.com":                nil,
 			}
 			Expect(actual).To(Equal(expected))
 		})

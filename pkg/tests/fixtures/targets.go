@@ -51,5 +51,10 @@ func GetAzureIngressProhibitedTargets() []*ptv1.AzureIngressProhibitedTarget {
 				},
 			},
 		},
+		{
+			Spec: ptv1.AzureIngressProhibitedTargetSpec{
+				Hostname: tests.WildcardHost1,
+			},
+		},
 	}
 }

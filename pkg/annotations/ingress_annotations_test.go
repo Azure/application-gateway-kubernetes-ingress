@@ -209,7 +209,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 
 	Context("test IsApplicationGatewayIngress", func() {
 
-		BeforeEach(func(){
+		BeforeEach(func() {
 			ApplicationGatewayIngressClass = DefaultIngressClass
 		})
 

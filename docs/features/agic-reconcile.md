@@ -8,7 +8,8 @@ To address the problem above, AGIC periodically checks if the latest gateway con
 There are two ways to configure AGIC reconcile via helm, and to use the new feature, make sure the AGIC version is at least at 1.2.0-rc1
 
 ### Configure inside helm values.yaml
-`reconcilePeriodSeconds: 30`, it means AGIC checks the reconciling in every 30 seconds
+`reconcilePeriodSeconds: 30`, it means AGIC checks the reconciling in every 30 seconds.
+Acceptable values are between 30 and 300.
 
 ### Configure from helm command line
 Configure from helm install command(first time install) and helm upgrade command, helm version is v3
