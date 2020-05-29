@@ -24,6 +24,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
+	agiccrdscheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
@@ -99,6 +100,9 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 		Component: annotations.ApplicationGatewayIngressClass,
 		Host:      hostname,
 	}
+
+	s := scheme.Scheme
+	agiccrdscheme.AddToScheme(s)
 	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
 }
 
@@ -116,5 +120,4 @@ func setIngressClass(customIngressClass string) {
 	if customIngressClass != "" {
 		annotations.ApplicationGatewayIngressClass = customIngressClass
 	}
-
 }
