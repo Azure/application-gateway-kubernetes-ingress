@@ -14,20 +14,20 @@ import (
 )
 
 const (
-	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
-	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
+	// SubscriptionIDVarName is the name of the subscriptionId
+	SubscriptionIDVarName = "subscriptionId"
 
-	// ResourceGroupNameVarName is the name of the APPGW_RESOURCE_GROUP
-	ResourceGroupNameVarName = "APPGW_RESOURCE_GROUP"
+	// ResourceGroupNameVarName is the name of the applicationGatewayResourceGroup
+	ResourceGroupNameVarName = "applicationGatewayResourceGroup"
 
-	// AppGwNameVarName is the name of the APPGW_NAME
-	AppGwNameVarName = "APPGW_NAME"
+	// AppGwNameVarName is the name of the applicationGatewayName
+	AppGwNameVarName = "applicationGatewayName"
 
 	// KubeConfigVarName is the name of the KUBECONFIG
 	KubeConfigVarName = "KUBECONFIG"
 
-	// ObjectIDVarName is tne name of the IDENTITY_OBJECTID
-	ObjectIDVarName = "IDENTITY_OBJECTID"
+	// ObjectIDVarName is tne name of the identityObjectId
+	ObjectIDVarName = "identityObjectId"
 )
 
 // EnvVariables is a struct storing values for environment variables.
