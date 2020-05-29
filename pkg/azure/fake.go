@@ -52,6 +52,20 @@ func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 	return n.ApplicationGateway{}, nil
 }
 
+// WaitForGetAccessOnGateway runs GetGatewayFunc until it returns a gateway
+func (az *FakeAzClient) WaitForGetAccessOnGateway() error {
+	if az.GetGatewayFunc != nil {
+		for {
+			_, err := az.GetGatewayFunc()
+			if err == nil {
+				return nil
+			}
+		}
+	}
+
+	return nil
+}
+
 // UpdateGateway runs UpdateGatewayFunc and return a gateway
 func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
 	if az.UpdateGatewayFunc != nil {

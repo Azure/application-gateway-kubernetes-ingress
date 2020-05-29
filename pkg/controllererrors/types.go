@@ -56,10 +56,10 @@ func NewErrorWithInnerErrorf(code ErrorCode, innerError error, message string, a
 // Error implements error interface to return error
 func (e *Error) Error() string {
 	if e.InnerError != nil {
-		return fmt.Sprintf("Code: %s, Message: %s, InnerError: %s", e.Code, e.Message, e.InnerError.Error())
+		return fmt.Sprintf("Code=\"%s\" Message=\"%s\" InnerError=\"%s\"", e.Code, e.Message, e.InnerError.Error())
 	}
 
-	return fmt.Sprintf("Code: %s, Message: %s", e.Code, e.Message)
+	return fmt.Sprintf("Code=\"%s\" Message=\"%s\"", e.Code, e.Message)
 }
 
 // IsErrorCode matches error code to the error

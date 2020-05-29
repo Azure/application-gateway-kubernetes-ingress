@@ -20,6 +20,9 @@ const (
 	// CloudProviderConfigLocationVarName is an environment variable name. This file is available on azure cluster.
 	CloudProviderConfigLocationVarName = "AZURE_CLOUD_PROVIDER_LOCATION"
 
+	// ClientIDVarName is an environment variable which stores the client id provided through user assigned identity
+	ClientIDVarName = "AZURE_CLIENT_ID"
+
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
 
@@ -101,6 +104,7 @@ var (
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
 	CloudProviderConfigLocation string
+	ClientID                    string
 	SubscriptionID              string
 	ResourceGroupName           string
 	AppGwName                   string
@@ -109,7 +113,7 @@ type EnvVariables struct {
 	AppGwResourceID             string
 	AppGwSubnetID               string
 	AuthLocation                string
-	IngressClass               string
+	IngressClass                string
 	WatchNamespace              string
 	UsePrivateIP                string
 	VerbosityLevel              string
@@ -158,6 +162,7 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 func GetEnv() EnvVariables {
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
+		ClientID:                    os.Getenv(ClientIDVarName),
 		SubscriptionID:              os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:           os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                   os.Getenv(AppGwNameVarName),
