@@ -73,7 +73,7 @@ func getRoleClient() (*a.RoleAssignmentsClient, error) {
 	}
 
 	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	authorizer, err := auth.NewAuthorizerFromFile(settings.Environment.ResourceManagerEndpoint)
+	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err != nil {
 		return nil, err
 	}
