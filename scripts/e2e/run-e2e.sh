@@ -1,21 +1,6 @@
 #!/bin/bash
 set -ex
 
-function SetupRoleAssignments() {
-    [[ -z "${subscriptionId}" ]] && (echo "subscriptionId is not set"; exit 1)
-    [[ -z "${applicationGatewayResourceGroup}" ]] && (echo "applicationGatewayResourceGroup is not set"; exit 1)
-    [[ -z "${applicationGatewayId}" ]] && (echo "applicationGatewayId is not set"; exit 1)
-    [[ -z "${identityClientId}" ]] && (echo "identityClientId is not set"; exit 1)
-
-    echo "Creating reader role assignment for AGIC identity"
-    # az role assignment delete --role Reader --scope /subscriptions/${subscriptionId}/resourceGroups/${applicationGatewayResourceGroup} --assignee ${identityClientId}
-    az role assignment create --role Reader --scope /subscriptions/${subscriptionId}/resourceGroups/${applicationGatewayResourceGroup} --assignee ${identityClientId}
-
-    echo "Creating contributor role assignment for AGIC identity"
-    # az role assignment delete --role Contributor --scope ${applicationGatewayId} --assignee ${identityClientId}
-    az role assignment create --role Contributor --scope ${applicationGatewayId} --assignee ${identityClientId}
-}
-
 function DeleteOtherAGICversions() {
     [[ -z "${version}" ]] && (echo "version is not set"; exit 1)
 
@@ -53,9 +38,6 @@ function InstallAGIC() {
     -n agic \
     --version ${version}
 }
-
-# Setup role assignments in case they got deleted
-SetupRoleAssignments
 
 # install
 InstallAGIC
