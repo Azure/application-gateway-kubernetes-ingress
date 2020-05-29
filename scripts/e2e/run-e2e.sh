@@ -24,6 +24,9 @@ function InstallAGIC() {
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
     helm repo update
 
+    # delete agic if exist
+    helm delete agic-${version} -n agic || true
+
     # AAD pod identity is taking time to assign identity. Timeout is set to 120 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
     --set appgw.applicationGatewayID=${applicationGatewayId} \
