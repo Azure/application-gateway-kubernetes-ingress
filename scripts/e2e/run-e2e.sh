@@ -40,8 +40,7 @@ function InstallAGIC() {
     --version ${version}
 
     # create namespace for testing shared backend
-    kubectl create namespace test-brownfield-ns-x || true
-    kubectl create namespace test-brownfield-ns-y || true
+    kubectl create namespace test-brownfield-ns || true
 
     # apply backends to test both non-prohibited and prohibited target
     kubectl apply -f test-prohibit-backend.yaml
@@ -70,11 +69,12 @@ function SetupSharedBackend() {
     # apply customized prohibited policy for blacklisted backend
     kubectl apply -f prohibit-blacklist-service.yaml
 
+    # get all the prohibited target config
+    kubectl get AzureIngressProhibitedTargets -n agic -o yaml 
+
     # delete default prohibit-all-targets
-    kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
-
     # blacklist-service shall be kept after porhibited policy applied
-
+    kubectl delete AzureIngressProhibitedTarget prohibit-all-targets -n agic
 }
 
 # install
@@ -85,4 +85,5 @@ SetupSharedBackend
 
 # run test
 go mod init || true
-go test -v -timeout 60m -tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
+go test -v -timeout 60m -tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; helm delete agic-${version} -n agic; exit 1; }
+helm delete agic-${version} -n agic

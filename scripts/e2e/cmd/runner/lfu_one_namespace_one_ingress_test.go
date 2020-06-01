@@ -10,9 +10,11 @@ package runner
 import (
 	"fmt"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 )
@@ -33,30 +35,22 @@ var _ = Describe("LFU", func() {
 		It("[prohibited-target-test] prohibited service should be available to be accessed", func() {
 			// get ip address for 1 ingress
 			klog.Info("Getting public IP from blacklisted Ingress...")
-			publicIP, _ := getPublicIP(clientset, "test-brownfield-ns-y")
+			publicIP, _ := getPublicIP(clientset, "test-brownfield-ns")
 			Expect(publicIP).ToNot(Equal(""))
 
-			// whitlist service will be wiped out by agic
-			url_whitelist := fmt.Sprintf("http://%s/x", publicIP)
-			_, err = makeGetRequest(url, "brownfield-ns-x.host", 404, true)
+			//prohibited service will be kept by agic
+			url_blacklist := fmt.Sprintf("http://%s/blacklist", publicIP)
+			_, err = makeGetRequest(url_blacklist, "brownfield-blacklist-ns.host", 200, true)
 			Expect(err).To(BeNil())
 
-			// prohibited service will be kept by agic
-			url_blacklist := fmt.Sprintf("http://%s/y", publicIP)
-			_, err = makeGetRequest(url, "brownfield-blacklist-ns-y.host", 200, true)
-			Expect(err).To(BeNil())
-
-			// delete namespaces for blacklist testing
-			for _, nm := range []string{"test-brownfield-ns-x", "test-brownfield-ns-y"} {
-				klog.Info("Delete namespaces after blacklist testing: ", nm)
-				_, err = clientset.CoreV1().Namespaces().Delete(ns)
-				Expect(err).To(BeNil())
+			//delete namespaces for blacklist testing
+			deleteOptions := &metav1.DeleteOptions{
+				GracePeriodSeconds: to.Int64Ptr(0),
 			}
-		})
 
-		AfterEach(func() {
-			// clear all namespaces
-			cleanUp(clientset)
+			klog.Info("Delete namespaces test-brownfield-ns after blacklist testing...")
+			err = clientset.CoreV1().Namespaces().Delete("test-brownfield-ns", deleteOptions)
+			Expect(err).To(BeNil())
 		})
 	})
 

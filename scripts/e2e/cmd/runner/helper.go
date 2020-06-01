@@ -206,7 +206,7 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 				break
 			}
 
-			klog.Warning("Trying again...", i)
+			klog.Warning("cleanUp: trying again...", i)
 			time.Sleep(time.Second)
 		}
 	}
@@ -237,8 +237,8 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 			return publicIP, nil
 		}
 
-		klog.Warning("Trying again...", i)
-		time.Sleep(time.Second)
+		klog.Warning("getPublicIP: trying again...", i)
+		time.Sleep(5 * time.Second)
 	}
 
 	return "", fmt.Errorf("Timed out while finding ingress IP in namespace %s", namespaceName)

@@ -1,8 +1,9 @@
 apiVersion: appgw.ingress.k8s.io/v1
 kind: AzureIngressProhibitedTarget
 metadata:
-  name: prohibit-backend-ns-y
+  name: prohibit-backend-ns
+  namespace: test-brownfield-ns
 spec:
-  hostname: brownfield-blacklist-ns-y.host
+  hostname: brownfield-blacklist.host
   paths:
-    - /y/*
+    - /blacklist/*

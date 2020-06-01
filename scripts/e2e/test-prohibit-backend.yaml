@@ -2,69 +2,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: brownfield-deployment
-  namespace: test-brownfield-ns-x
-spec:
-  selector:
-    matchLabels:
-      app: ws-app
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: ws-app
-    spec:
-      containers:
-        - name: brownfield-app
-          imagePullPolicy: Always
-          image: docker.io/kennethreitz/httpbin
-          ports:
-            - containerPort: 80
-          livenessProbe:
-            httpGet:
-              path: /status/200
-              port: 80
-            initialDelaySeconds: 3
-            periodSeconds: 3
-      imagePullSecrets:
-        - name: acr-creds
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: brownfield-service
-  namespace: test-brownfield-ns-x
-spec:
-  selector:
-    app: ws-app
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: brownfield-ingress
-  namespace: test-brownfield-ns-x
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
-spec:
-  rules:
-    - host: brownfield-ns-x.host
-      http:
-        paths:
-        - path: /x
-          backend:
-            serviceName: brownfield-service
-            servicePort: 80
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: brownfield-blacklist-deployment
-  namespace: test-brownfield-ns-y
+  namespace: test-brownfield-ns
 spec:
   selector:
     matchLabels:
@@ -94,7 +33,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: brownfield-blacklist-service
-  namespace: test-brownfield-ns-y
+  namespace: test-brownfield-ns
 spec:
   selector:
     app: ws-app
@@ -107,16 +46,16 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: brownfield-blacklist-ingress
-  namespace: test-brownfield-ns-y
+  namespace: test-brownfield-ns
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-path-prefix: "/"
 spec:
   rules:
-    - host: brownfield-blacklist-ns-y.host
+    - host: brownfield-blacklist-ns.host
       http:
         paths:
-        - path: /y
+        - path: /blacklist
           backend:
             serviceName: brownfield-blacklist-service
             servicePort: 80
