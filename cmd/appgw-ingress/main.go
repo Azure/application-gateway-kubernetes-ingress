@@ -138,9 +138,10 @@ func main() {
 		azClient.SetAuthorizer(authorizer)
 	}
 
-	// check if application gateway exists/have get access
-	// When an AAD SP doesn't have access to the app gateway resource group, then AGIC can't read it's role assignments to look for the needed permission.
-	// Instead we perform a simple GET request to check both that the App gateway exists as well as implicitly make sure that AGIC has read access to it.
+	// Check if Application Gateway exists/have get access
+	// If AGIC's service principal or managed identity doesn't have read access to the Application Gateway's resource group,
+	// then AGIC can't read it's role assignments to look for the needed permission.
+	// Instead we perform a simple GET request to check both that the Application Gateway exists as well as implicitly make sure that AGIC has read access to it.
 	err = azClient.WaitForGetAccessOnGateway()
 	if err != nil {
 		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) && env.EnableDeployAppGateway {

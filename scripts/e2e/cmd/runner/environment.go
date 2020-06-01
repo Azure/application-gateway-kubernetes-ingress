@@ -50,8 +50,8 @@ func GetEnv() *EnvVariables {
 	}
 }
 
-// GetGroupResourceID returns group's resource id
-func (env *EnvVariables) GetGroupResourceID() string {
+// GetResourceGroupID returns group's resource id
+func (env *EnvVariables) GetResourceGroupID() string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", env.SubscriptionID, env.ResourceGroupName)
 }
 

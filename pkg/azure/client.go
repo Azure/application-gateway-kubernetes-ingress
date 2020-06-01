@@ -148,15 +148,16 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 						clientID = az.clientID
 					}
 
-					e.Message += fmt.Sprintf(
-						" You can use 'az role assignment create --role Contributor --scope /subscriptions/%s/resourceGroups/%s --assignee %s' to assign permissions.",
+					roleAssignmentCmd := fmt.Sprintf("az role assignment create --role Reader --scope /subscriptions/%s/resourceGroups/%s --assignee %s;"+
+						" az role assignment create --role Contributor --scope /subscriptions/%s/resourceGroups/%s --assignee %s",
 						az.subscriptionID,
 						az.resourceGroupName,
 						clientID,
 					)
 
-					e.Message += fmt.Sprintf(
+					e.Message += fmt.Sprintf(" You can use '%s' to assign permissions."+
 						" AGIC Identity needs atleast has 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
+						roleAssignmentCmd,
 						string(az.appGwName),
 						string(az.resourceGroupName),
 					)

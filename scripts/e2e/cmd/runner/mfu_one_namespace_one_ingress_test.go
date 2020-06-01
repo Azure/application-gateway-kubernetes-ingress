@@ -158,7 +158,7 @@ var _ = Describe("MFU", func() {
 			time.Sleep(120 * time.Second)
 
 			// add the contributor assignment
-			groupID := GetEnv().GetGroupResourceID()
+			groupID := GetEnv().GetResourceGroupID()
 			err = addRoleAssignment(roleClient, Contributor, groupID)
 			Expect(err).To(BeNil())
 
