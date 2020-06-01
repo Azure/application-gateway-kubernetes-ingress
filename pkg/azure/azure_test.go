@@ -124,6 +124,20 @@ var _ = Describe("Azure", func() {
 			})
 		})
 
+		Context("test ApplicationGatewayID func", func() {
+			It("generate correct application gateway ID", func() {
+				expectedGatewayID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/gateway"
+				Expect(ApplicationGatewayID(SubscriptionID("subID"), ResourceGroup("resGp"), ResourceName("gateway"))).To(Equal(expectedGatewayID))
+			})
+		})
+
+		Context("test ResourceGroupID func", func() {
+			It("generate correct resource group ID", func() {
+				expectedGroupID := "/subscriptions/subID/resourceGroups/resGp"
+				Expect(ResourceGroupID(SubscriptionID("subID"), ResourceGroup("resGp"))).To(Equal(expectedGroupID))
+			})
+		})
+
 		Context("test ParseSubResourceID func", func() {
 			It("parses sub resource ID correctly", func() {
 				subResourceID := "/subscriptions/subID/resourceGroups/resGp/providers/Microsoft.Network/applicationGateways/appgw/sslCertificates/cert"

@@ -59,10 +59,12 @@ const (
 	ErrorInvalidContent    ErrorCode = "ErrorInvalidContent"
 
 	// azure package
-	ErrorGetApplicationGatewayError ErrorCode = "ErrorGetApplicationGatewayError"
-	ErrorApplicationGatewayNotFound ErrorCode = "ErrorApplicationGatewayNotFound"
-	ErrorSubnetNotFound             ErrorCode = "ErrorSubnetNotFound"
-	ErrorMissingResourceGroup       ErrorCode = "ErrorMissingResourceGroup"
+	ErrorGetApplicationGatewayError             ErrorCode = "ErrorGetApplicationGatewayError"
+	ErrorApplicationGatewayNotFound             ErrorCode = "ErrorApplicationGatewayNotFound"
+	ErrorApplicationGatewayForbidden            ErrorCode = "ErrorApplicationGatewayForbidden"
+	ErrorApplicationGatewayUnexpectedStatusCode ErrorCode = "ErrorApplicationGatewayUnexpectedStatusCode"
+	ErrorSubnetNotFound                         ErrorCode = "ErrorSubnetNotFound"
+	ErrorMissingResourceGroup                   ErrorCode = "ErrorMissingResourceGroup"
 
 	// main package
 	ErrorNoSuchNamespace ErrorCode = "ErrorNoSuchNamespace"

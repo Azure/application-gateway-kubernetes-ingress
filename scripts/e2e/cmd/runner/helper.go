@@ -6,17 +6,20 @@
 package runner
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"time"
 
+	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -32,12 +35,21 @@ import (
 const (
 	// KubeConfigEnvVar is the environment variable for KUBECONFIG.
 	KubeConfigEnvVar = "KUBECONFIG"
+
+	// AGICNamespace is namespace where AGIC is installed
+	AGICNamespace = "agic"
+
+	// Contributor is the role defintion ID for the corresponding role in AAD
+	Contributor = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+
+	// UserAgent is the user agent used when making Azure requests
+	UserAgent = "ingress-appgw-e2e"
 )
 
 func getClient() (*kubernetes.Clientset, error) {
 	var kubeConfig *rest.Config
 	var err error
-	kubeConfigFile := os.Getenv(KubeConfigEnvVar)
+	kubeConfigFile := GetEnv().KubeConfigFilePath
 	if kubeConfigFile == "" {
 		return nil, fmt.Errorf("KUBECONFIG is not set")
 	}
@@ -52,6 +64,104 @@ func getClient() (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return clientset, nil
+}
+
+func getRoleClient() (*a.RoleAssignmentsClient, error) {
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
+	authorizer, err := settings.GetAuthorizer()
+	if err != nil {
+		return nil, err
+	}
+
+	client.Authorizer = authorizer
+	err = client.AddToUserAgent(UserAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
+func addRoleAssignment(roleClient *a.RoleAssignmentsClient, role, scope string) error {
+	uuidWithHyphen := uuid.New().String()
+	objectID := GetEnv().ObjectID
+	klog.Infof("Tring to create role: %s, scope: %s, objectID: %s, name: %s", role, scope, objectID, uuidWithHyphen)
+	roleID := fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Authorization/roleDefinitions/%s", GetEnv().SubscriptionID, role)
+	assignment, err := roleClient.Create(
+		context.TODO(),
+		scope,
+		uuidWithHyphen,
+		a.RoleAssignmentCreateParameters{
+			RoleAssignmentProperties: &a.RoleAssignmentProperties{
+				PrincipalID:      to.StringPtr(GetEnv().ObjectID),
+				RoleDefinitionID: to.StringPtr(roleID),
+			},
+		})
+	if err != nil {
+		return err
+	}
+
+	klog.Infof("Created role assignment: %s on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Scope, *assignment.PrincipalID)
+	return nil
+}
+
+func removeRoleAssignments(roleClient *a.RoleAssignmentsClient) error {
+	page, err := roleClient.ListForScope(context.TODO(), GetEnv().GetApplicationGatewayResourceID(), "")
+	if err != nil {
+		return err
+	}
+
+	klog.Infof("Got role assignments [%+v]", page)
+
+	if page.Response().Value != nil {
+		roleAssignmentList := (*page.Response().Value)
+		objectID := GetEnv().ObjectID
+		for _, assignment := range roleAssignmentList {
+			if strings.EqualFold(*assignment.PrincipalID, objectID) {
+				klog.Infof("Deleting role assignment: %s on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Scope, *assignment.PrincipalID)
+				_, err := roleClient.Delete(context.TODO(), *assignment.Scope, *assignment.Name)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func deleteAGICPod(clientset *kubernetes.Clientset) error {
+	// k delete -n agic pods -l app=ingress-azure
+	return clientset.CoreV1().Pods(AGICNamespace).DeleteCollection(
+		&metav1.DeleteOptions{},
+		metav1.ListOptions{
+			LabelSelector: "app=ingress-azure",
+		})
+}
+
+func deleteAADPodIdentityPods(clientset *kubernetes.Clientset) error {
+	// k delete -n default pods -l app=mic
+	err := clientset.CoreV1().Pods("default").DeleteCollection(
+		&metav1.DeleteOptions{},
+		metav1.ListOptions{
+			LabelSelector: "app=mic",
+		})
+	if err != nil {
+		return err
+	}
+
+	// k delete -n default pods -l component=nmi
+	err = clientset.CoreV1().Pods("default").DeleteCollection(
+		&metav1.DeleteOptions{},
+		metav1.ListOptions{
+			LabelSelector: "component=nmi",
+		})
+	return err
 }
 
 func parseK8sYaml(fileName string) ([]runtime.Object, error) {
@@ -227,8 +337,8 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 
 		ingress := (*ingresses).Items[0]
 		if len(ingress.Status.LoadBalancer.Ingress) == 0 {
-			klog.Warning("Trying again...", i)
-			time.Sleep(time.Second)
+			klog.Warning("Trying again in 5 seconds...", i)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -237,7 +347,7 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 			return publicIP, nil
 		}
 
-		klog.Warning("getPublicIP: trying again...", i)
+		klog.Warning("getPublicIP: trying again in 5 seconds...", i)
 		time.Sleep(5 * time.Second)
 	}
 

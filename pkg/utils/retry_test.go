@@ -32,7 +32,7 @@ var _ = Describe("Retry", func() {
 						return Retriable(false), err
 					})
 				Expect(counter).To(Equal(1))
-				Expect(err).To(Equal(retryError))
+				Expect(retryError).To(Equal(err))
 			})
 		})
 
@@ -47,7 +47,7 @@ var _ = Describe("Retry", func() {
 						return Retriable(true), err
 					})
 				Expect(counter).To(Equal(retry))
-				Expect(err).To(Equal(retryError))
+				Expect(retryError).To(Equal(err))
 			})
 		})
 
@@ -65,9 +65,43 @@ var _ = Describe("Retry", func() {
 						return Retriable(true), err
 					})
 				Expect(counter).To(Equal(2))
-				Expect(err).To(Equal(retryError))
+				Expect(retryError).To(Equal(err))
 				timeGap := execTimeList[1].Sub(execTimeList[0])
 				Expect(timeGap).To(BeNumerically(">", pause))
+			})
+		})
+
+		Context("Test retry forever", func() {
+			It("when retry count is -1 but should stop when retry false", func() {
+				retry := -1
+				counter := 0
+				err := errors.New("fake")
+				retryError := Retry(retry, time.Duration(0),
+					func() (Retriable, error) {
+						counter++
+						if counter == 11 {
+							return Retriable(false), err
+						}
+						return Retriable(true), err
+					})
+				Expect(counter).To(Equal(11))
+				Expect(retryError).To(Equal(err))
+			})
+
+			It("when retry count is -1 but should stop when err is nil", func() {
+				retry := -1
+				counter := 0
+				err := errors.New("fake")
+				retryError := Retry(retry, time.Duration(0),
+					func() (Retriable, error) {
+						counter++
+						if counter == 11 {
+							return Retriable(true), nil
+						}
+						return Retriable(true), err
+					})
+				Expect(counter).To(Equal(11))
+				Expect(retryError).To(BeNil())
 			})
 		})
 	})

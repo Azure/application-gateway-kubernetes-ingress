@@ -129,6 +129,66 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
+		It("[retry access check] should be able to wait for the access to be granted", func() {
+			klog.Info("Initializing role client")
+			roleClient, err := getRoleClient()
+			Expect(err).To(BeNil())
+
+			// remove role assignment
+			// output=$(az role assignment list --assignee $identityPrincipalId --subscription $subscription --all -o json | jq -r ".[].id") | xargs
+			klog.Info("Removing all role assignments")
+			err = removeRoleAssignments(roleClient)
+			Expect(err).To(BeNil())
+
+			// wait for 120 seconds
+			klog.Info("Wait for 120 seconds")
+			time.Sleep(120 * time.Second)
+
+			klog.Info("Deleting AAD Pod identity pod")
+			err = deleteAADPodIdentityPods(clientset)
+			Expect(err).To(BeNil())
+
+			// delete the AGIC pod. This will create the pod
+			klog.Info("Deleting AGIC pod")
+			err = deleteAGICPod(clientset)
+			Expect(err).To(BeNil())
+
+			// wait for 120 seconds
+			klog.Info("Wait for 120 seconds")
+			time.Sleep(120 * time.Second)
+
+			// add the contributor assignment
+			groupID := GetEnv().GetResourceGroupID()
+			err = addRoleAssignment(roleClient, Contributor, groupID)
+			Expect(err).To(BeNil())
+
+			// install an app
+			namespaceName := "e2e-retry-access-check"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
+			Expect(err).To(BeNil())
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			// check 200 status
+			url := fmt.Sprintf("https://%s/index.html", publicIP)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+		})
+
 		AfterEach(func() {
 			// clear all namespaces
 			cleanUp(clientset)
