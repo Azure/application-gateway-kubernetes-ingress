@@ -55,6 +55,16 @@ func RouteTableID(subscriptionID SubscriptionID, resourceGroup ResourceGroup, ro
 	return ResourceID(subscriptionID, resourceGroup, "Microsoft.Network", "routeTables", string(routeTableName))
 }
 
+// ApplicationGatewayID generates a application gateway resource id
+func ApplicationGatewayID(subscriptionID SubscriptionID, resourceGroup ResourceGroup, applicationGatewayName ResourceName) string {
+	return ResourceID(subscriptionID, resourceGroup, "Microsoft.Network", "applicationGateways", string(applicationGatewayName))
+}
+
+// ResourceGroupID generates a resource group resource id
+func ResourceGroupID(subscriptionID SubscriptionID, resourceGroup ResourceGroup) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, resourceGroup)
+}
+
 // ConvertToClusterResourceGroup converts infra resource group to aks cluster ID
 func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup ResourceGroup, err error) (string, error) {
 	if err != nil {

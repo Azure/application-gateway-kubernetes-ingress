@@ -148,10 +148,13 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 						clientID = az.clientID
 					}
 
-					roleAssignmentCmd := fmt.Sprintf("az role assignment create --role Reader --scope /subscriptions/%s/resourceGroups/%s --assignee %s;"+
-						" az role assignment create --role Contributor --scope /subscriptions/%s/resourceGroups/%s --assignee %s",
-						az.subscriptionID,
-						az.resourceGroupName,
+					groupID := ResourceGroupID(az.subscriptionID, az.resourceGroupName)
+					applicationGatewayID := ApplicationGatewayID(az.subscriptionID, az.resourceGroupName, az.appGwName)
+					roleAssignmentCmd := fmt.Sprintf("az role assignment create --role Reader --scope %s --assignee %s;"+
+						" az role assignment create --role Contributor --scope %s --assignee %s",
+						groupID,
+						clientID,
+						applicationGatewayID,
 						clientID,
 					)
 
