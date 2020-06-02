@@ -316,8 +316,8 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 				break
 			}
 
-			klog.Warning("Trying again...", i)
-			time.Sleep(time.Second)
+			klog.Warning("cleanUp: trying again...", i)
+			time.Sleep(5 * time.Second)
 		}
 	}
 
@@ -347,7 +347,7 @@ func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string,
 			return publicIP, nil
 		}
 
-		klog.Warning("Trying again in 5 seconds...", i)
+		klog.Warning("getPublicIP: trying again in 5 seconds...", i)
 		time.Sleep(5 * time.Second)
 	}
 

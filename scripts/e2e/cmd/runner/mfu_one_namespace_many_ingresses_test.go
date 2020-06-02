@@ -109,7 +109,7 @@ var _ = Describe("MFU", func() {
 			hosts := []string{"appa.", "appb."}
 			url := fmt.Sprintf("https://%s/status/200", publicIP)
 			klog.Infof("Sending get request %s ...", url)
-			for i := 1; i <= 50; i++ {
+			for i := 1; i <= 40; i++ {
 				for _, host := range hosts {
 					hostIndex := host + strconv.Itoa(i)
 					klog.Infof("Sending request with host %s ...", hostIndex)
