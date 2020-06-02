@@ -1,4 +1,4 @@
-{{- range untilStep 1 51 1 }}
+{{- range untilStep 1 41 1 }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

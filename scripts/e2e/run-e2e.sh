@@ -21,13 +21,13 @@ function InstallAGIC() {
 
     kubectl create namespace agic || true
 
+    # clean up brownfield namespace if exist
+    kubectl delete ns test-brownfield-ns || true
+
     echo "Installing BuildId ${version}"
 
     helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
     helm repo update
-
-    # delete agic if exist
-    helm delete agic-${version} -n agic || true
 
     # AAD pod identity is taking time to assign identity. Timeout is set to 120 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
@@ -36,25 +36,17 @@ function InstallAGIC() {
     --set armAuth.identityResourceID=${identityResourceId} \
     --set armAuth.identityClientID=${identityClientId} \
     --set rbac.enabled=true \
+    --set appgw.shared=false \
     --timeout 120s \
     --wait \
     -n agic \
     --version ${version}
 
-    # create namespace for testing shared backend
-    kubectl create namespace test-brownfield-ns || true
-
-    # apply backends to test both non-prohibited and prohibited target
-    kubectl apply -f test-prohibit-backend.yaml
-
+    # apply backends to test prohibited target, wait for 90s to apply appgw config
+    kubectl apply -f test-prohibit-backend.yaml && sleep 90
 }
 
 function SetupSharedBackend() {
-    
-    # delete agic with share disabled
-    helm delete agic-${version} -n agic || true
-
-    helm repo update
     # install agic with shared enabled
     helm upgrade --install agic-${version} staging/ingress-azure \
     --set appgw.applicationGatewayID=${applicationGatewayId} \
@@ -87,5 +79,4 @@ SetupSharedBackend
 
 # run test
 go mod init || true
-go test -v -timeout 60m -tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; helm delete agic-${version} -n agic; exit 1; }
-helm delete agic-${version} -n agic
+go test -v -timeout 60m -tags e2e ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }

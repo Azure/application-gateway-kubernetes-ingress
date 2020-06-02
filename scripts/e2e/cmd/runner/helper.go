@@ -317,7 +317,7 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 			}
 
 			klog.Warning("cleanUp: trying again...", i)
-			time.Sleep(time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}
 
