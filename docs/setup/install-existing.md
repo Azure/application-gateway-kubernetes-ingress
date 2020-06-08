@@ -153,7 +153,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
       --version 1.0.0
     ```
 
-    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
+    >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16
 
     Alternatively you can combine the `helm-config.yaml` and the Helm command in one step:
     ```bash
@@ -173,7 +173,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
          --version 1.0.0
     ```
 
-    >Note: Use at least version 1.2.0-rc1, e.g. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
+    >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16
 
 1. Check the log of the newly created pod to verify if it started properly
 

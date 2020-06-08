@@ -1,13 +1,16 @@
 - [v1.2.0-rc3](#v120-rc3)
   - [Important Note](#important-note)
   - [Fixes](#fixes)
+  - [Known Issues](#known-issues)
 - [v1.2.0-rc2](#v120-rc2)
   - [Important Note](#important-note-1)
   - [Fixes](#fixes-1)
+  - [Known Issues](#known-issues-1)
 - [v1.2.0-rc1](#v120-rc1)
   - [Features](#features)
   - [Fixes](#fixes-2)
-  - [Known Issues](#known-issues)
+  - [Known Issues](#known-issues-1)
+- [How to try](#how-to-try)
 
 # v1.2.0-rc3
 
@@ -17,10 +20,17 @@ In this release, AGIC will use the new `hostnames` property in HTTP Listener in 
 We are working on bringing Azure Portal support for the new property soon. Until those changes arrive, Users will not be able to view the hostname in the listener section on Portal.
 
 ## Fixes:
-* [#867][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867] Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
-* [#876][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/876] Allow using shared feature in both helm 2 and helm 3
-* [#887][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887] Update shared feature code to use new listener's hostnames during blacklist filtering
+* [#867](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867) Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
+* [#876](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/876) Allow using shared feature in both helm 2 and helm 3
+* [#887](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887) Update shared feature code to use new listener's hostnames during blacklist filtering
 * [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme contruction for k8s event recorder
+
+## Known Issues:
+* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
+* When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
+  ```bash
+  Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
+  ```
 
 # v1.2.0-rc2
 
@@ -37,6 +47,13 @@ We are working on bringing Azure Portal support for the new property soon. Until
 * [#850](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/850): helm: update deployment when config changes by using a checksum.
 * Switch from `hostname` to `hostnames` property in HTTP Listener on Application Gateway.
 * helm: remove replica count setting from supported helm values. This will be added back when AGIC will recieve support for leader election.
+
+## Known Issues:
+* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
+* When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
+  ```bash
+  Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
+  ```
 
 # v1.2.0-rc1
 
@@ -63,20 +80,22 @@ We are working on bringing Azure Portal support for the new property soon. Until
 
 ## How to try:
 ```bash
-# use --version 1.2.0-rc2 when installing/upgrading using helm
+# use --version 1.2.0-rc3 when installing/upgrading using helm
+helm repo update
 helm install \
   <release-name> \
   -f helm-config.yaml \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --version 1.2.0-rc2
+  --version 1.2.0-rc3
 
 # or 
 
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
 # --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
+helm repo update
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
   --reuse-values \
-  --version 1.2.0-rc2
+  --version 1.2.0-rc3
 ```
