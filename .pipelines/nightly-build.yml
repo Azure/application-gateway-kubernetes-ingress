@@ -5,6 +5,8 @@ schedules:
     include:
     - master
 
+trigger: none
+
 pr: none
 
 pool:
