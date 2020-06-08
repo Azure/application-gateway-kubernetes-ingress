@@ -19,7 +19,6 @@ variables:
   GOOS: 'linux'
   GO111MODULE: 'on'
   GO_PROJ: 'github.com/Azure/$(build.repository.name)'
-  helm_repo: 'https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging'
 
 steps:
 - template: build.yml
