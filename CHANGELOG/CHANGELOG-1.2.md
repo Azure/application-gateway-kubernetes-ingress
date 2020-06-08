@@ -22,7 +22,7 @@ We are working on bringing Azure Portal support for the new property soon. Until
 ## Fixes:
 * [#867](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867) Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
 * [#876](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/876) Allow using shared feature in both helm 2 and helm 3
-* [#887](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887) Update shared feature code to use new listener's hostnames during blacklist filtering
+* [#887](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887) Update shared feature code to use new listener's hostnames during prohibited list filtering
 * [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme contruction for k8s event recorder
 
 ## Known Issues:
