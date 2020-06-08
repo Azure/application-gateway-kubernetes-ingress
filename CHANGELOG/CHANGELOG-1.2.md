@@ -1,10 +1,26 @@
-- [v1.2.0-rc2](#v120-rc2)
+- [v1.2.0-rc3](#v120-rc3)
   - [Important Note](#important-note)
   - [Fixes](#fixes)
+- [v1.2.0-rc2](#v120-rc2)
+  - [Important Note](#important-note-1)
+  - [Fixes](#fixes-1)
 - [v1.2.0-rc1](#v120-rc1)
   - [Features](#features)
-  - [Fixes](#fixes-1)
+  - [Fixes](#fixes-2)
   - [Known Issues](#known-issues)
+
+# v1.2.0-rc3
+
+#### Important Note
+
+In this release, AGIC will use the new `hostnames` property in HTTP Listener in Application Gateway instead of `hostname`. With this property, We will be able to expose support for Wild Card hostnames with characters like * and ? allowed to match characters.  
+We are working on bringing Azure Portal support for the new property soon. Until those changes arrive, Users will not be able to view the hostname in the listener section on Portal.
+
+## Fixes:
+* [#867][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867] Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
+* [#876][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/876] Allow using shared feature in both helm 2 and helm 3
+* [#887][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887] Update shared feature code to use new listener's hostnames during blacklist filtering
+* [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme contruction for k8s event recorder
 
 # v1.2.0-rc2
 
