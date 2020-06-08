@@ -6,13 +6,18 @@ AGIC(Application Gateway Ingress Controllor) is a pod running in AKS/Kubernetes 
 
 ## Deploy in the same vnet
 AGIC as a pod running in AKS can be deployed in the same network as AppGw, there are two different network connectivities,  kubenet (basic networking) and Azure CNI (advanced networking).
-With kubenet, only the nodes receive an IP address in the virtual network subnet. Pods can't communicate directly with node outside of kubernetes cluster, User Defined Routing (UDR) and IP forwarding is used for connectivity between AGIC and AppGw nodes.
-With CNI, every pod gets an IP address from the node subnet and can be accessed directly with the IP.
+### With kubenet
+only the nodes receive an IP address in the virtual network subnet. route table is needed for connectivity between AGIC and AppGw nodes if it doesn't exist. 
+Note that If your custom subnet doesn’t contain a route table, AKS creates one for you and adds rules to it. If your custom subnet contains a route table when you create your cluster, AKS acknowledges the existing route table during cluster operations and updates rules accordingly for cloud provider operations. more reading can be found [Bring your own subnet and route table with kubenet](https://docs.microsoft.com/en-us/azure/aks/configure-kubenet#bring-your-own-subnet-and-route-table-with-kubenet)
+
+### With CNI
+every pod gets an IP address from the node subnet and can be accessed directly with the IP.
 
 Further readings:
   - [Use kubenet to configure networking](https://docs.microsoft.com/en-us/azure/aks/configure-kubenet)
   - [Use CNI to configure networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni)
   - [Network concept for AKS and Kubernetes](https://docs.microsoft.com/en-us/azure/aks/concepts-network)
+  - [When to decide to use kubenet or CNI](https://docs.microsoft.com/en-us/azure/aks/configure-kubenet#choose-a-network-model-to-use)
 
 
 ## Deploy in the different vnets
