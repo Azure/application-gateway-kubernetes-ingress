@@ -3,19 +3,20 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package main
+// +build e2e
+
+package runner
 
 import (
-	"errors"
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/gomega"
 )
 
-var (
-	// ErrNoSuchNamespace is an error message.
-	ErrNoSuchNamespace = errors.New("namespace does not exist (MAIN001)")
-
-	// ErrFailedGetToken is an error message.
-	ErrFailedGetToken = errors.New("failed obtaining auth token (MAIN002)")
-
-	// ErrGetArmAuth is an error message.
-	ErrGetArmAuth = errors.New("failed arm auth (MAIN003)")
-)
+func TestE2E(t *testing.T) {
+	RegisterFailHandler(Fail)
+	junitReporter := reporters.NewJUnitReporter("report.xml")
+	RunSpecsWithDefaultAndCustomReporters(t, "AGIC-E2E", []Reporter{junitReporter})
+}

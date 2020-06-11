@@ -110,6 +110,8 @@ func (c *AppGwIngressController) Readiness() bool {
 
 // ProcessEvent is the handler for K8 cluster events which are listened by informers.
 func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
+	processEventStart := time.Now()
+
 	appGw, cbCtx, err := c.GetAppGw()
 	if err != nil {
 		glog.Error("Error Retrieving AppGw for k8s event. ", err)
@@ -129,8 +131,24 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	}
 
 	if err := c.MutateAppGateway(event, appGw, cbCtx); err != nil {
-		glog.Error("Error mutating App Gateway config from k8s event. ", err)
+		glogIt := glog.Errorf
+		if cbCtx.EnvVariables.EnablePanicOnPutError {
+			glogIt = glog.Fatalf
+		}
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, err.Error())
+		}
+		glogIt(err.Error())
+		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
+		return err
 	}
+	c.MetricStore.IncArmAPIUpdateCallSuccessCounter()
+
+	duration := time.Now().Sub(processEventStart)
+	c.MetricStore.SetUpdateLatencySec(duration)
+
+	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
+	glog.V(1).Infof("Completed last event loop run in: %+v", duration)
 
 	return nil
 }

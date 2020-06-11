@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -74,10 +75,13 @@ func main() {
 	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
 	cpConfig, err := azure.NewCloudProviderConfig(env.CloudProviderConfigLocation)
 	if err != nil {
-		glog.Info("Unable to load cloud provider config:", env.CloudProviderConfigLocation)
+		glog.Infof("Unable to load cloud provider config '%s'. Error: %s", env.CloudProviderConfigLocation, err.Error())
 	}
 
 	env.Consolidate(cpConfig)
+
+	// adjust ingress class value if overridden by environment variable
+	setIngressClass(env.IngressClass)
 
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
@@ -104,7 +108,7 @@ func main() {
 		glog.Fatal(errorLine)
 	}
 
-	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName))
+	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), env.ClientID)
 	appGwIdentifier := appgw.Identifier{
 		SubscriptionID: env.SubscriptionID,
 		ResourceGroup:  env.ResourceGroupName,
@@ -121,7 +125,7 @@ func main() {
 		env.HTTPServicePort)
 	httpServer.Start()
 
-	glog.V(3).Infof("App Gateway Details: Subscription: %s, Resource Group: %s, Name: %s", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
+	glog.V(3).Infof("Appication Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {
@@ -134,8 +138,13 @@ func main() {
 		azClient.SetAuthorizer(authorizer)
 	}
 
-	if _, err = azClient.GetGateway(); err != nil {
-		if err == azure.ErrAppGatewayNotFound && env.EnableDeployAppGateway {
+	// Check if Application Gateway exists/have get access
+	// If AGIC's service principal or managed identity doesn't have read access to the Application Gateway's resource group,
+	// then AGIC can't read it's role assignments to look for the needed permission.
+	// Instead we perform a simple GET request to check both that the Application Gateway exists as well as implicitly make sure that AGIC has read access to it.
+	err = azClient.WaitForGetAccessOnGateway()
+	if err != nil {
+		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
 				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID)
 			} else if cpConfig != nil {
@@ -143,14 +152,14 @@ func main() {
 			}
 
 			if err != nil {
-				errorLine := fmt.Sprint("Failed in deploying App gateway", err)
+				errorLine := fmt.Sprint("Failed in deploying Application Gateway", err)
 				if agicPod != nil {
 					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
 				}
 				glog.Fatal(errorLine)
 			}
 		} else {
-			errorLine := fmt.Sprint("Failed authenticating with Azure Resource Manager: ", err)
+			errorLine := fmt.Sprint("Failed getting Application Gateway: ", err)
 			if agicPod != nil {
 				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 			}

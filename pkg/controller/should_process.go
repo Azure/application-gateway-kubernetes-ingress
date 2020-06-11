@@ -48,12 +48,13 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 			return false, to.StringPtr(reason)
 		}
 
-		glog.V(5).Info("Triggered by reconciler event")
 		if c.configIsSame(appGw) {
-			reason := "NoOp: current gateway state == cached gateway state"
-			glog.V(5).Info(reason)
+			reason := "Reconciler NoOp: current gateway state == cached gateway state"
+			glog.V(9).Info(reason)
 			return false, to.StringPtr(reason)
 		}
+
+		glog.V(5).Info("Triggered by reconciler event")
 	}
 
 	return true, nil

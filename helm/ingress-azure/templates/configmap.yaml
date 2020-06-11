@@ -70,6 +70,7 @@ data:
 
 {{- if .Values.armAuth -}}
 {{- if eq .Values.armAuth.type "aadPodIdentity"}}
+  AZURE_CLIENT_ID: "{{ .Values.armAuth.identityClientID }}"
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}
 {{- end }}
@@ -77,3 +78,7 @@ data:
 {{- if .Values.reconcilePeriodSeconds }}
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
+
+{{- if .Values.kubernetes.ingressClass}}
+  INGRESS_CLASS: "{{ .Values.kubernetes.ingressClass }}"
+{{- end}}

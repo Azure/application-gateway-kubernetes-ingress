@@ -16,13 +16,15 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
+	agiccrdscheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
@@ -34,8 +36,12 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 		}
 	}
 	if len(nonExistent) > 0 {
-		glog.Errorf("Error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","))
-		return ErrNoSuchNamespace
+		err := controllererrors.NewErrorf(
+			controllererrors.ErrorNoSuchNamespace,
+			"error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","),
+		)
+		glog.Errorf(err.Error())
+		return err
 	}
 	return nil
 }
@@ -94,6 +100,9 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 		Component: annotations.ApplicationGatewayIngressClass,
 		Host:      hostname,
 	}
+
+	s := scheme.Scheme
+	agiccrdscheme.AddToScheme(s)
 	return eventBroadcaster.NewRecorder(scheme.Scheme, source)
 }
 
@@ -105,4 +114,10 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	}
 	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
+}
+
+func setIngressClass(customIngressClass string) {
+	if customIngressClass != "" {
+		annotations.ApplicationGatewayIngressClass = customIngressClass
+	}
 }

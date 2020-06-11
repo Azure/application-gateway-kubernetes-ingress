@@ -11,6 +11,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -149,16 +150,22 @@ func indexRulesByName(rules []n.ApplicationGatewayRequestRoutingRule) rulesByNam
 	return indexed
 }
 
-func (er ExistingResources) getHostNameForRoutingRule(rule n.ApplicationGatewayRequestRoutingRule) (string, error) {
+func (er ExistingResources) getHostNamesForRoutingRule(rule n.ApplicationGatewayRequestRoutingRule) ([]string, error) {
 	listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))
 	if listener, found := er.getListenersByName()[listenerName]; !found {
-		glog.Errorf("[brownfield] Could not find listener %s in index", listenerName)
-		// TODO(draychev): move this error into a top-level file
-		return "", ErrListenerLookup
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorGeneratingListeners,
+			"[brownfield] Could not find listener %s in index", listenerName,
+		)
+		glog.Errorf(e.Error())
+		return []string{""}, e
 	} else if listener.HostName != nil {
-		return *listener.HostName, nil
+		return []string{*listener.HostName}, nil
+	} else if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
+		return *listener.Hostnames, nil
 	}
-	return "", nil
+
+	return []string{""}, nil
 }
 
 // getRuleToTargets creates a map from backend pool to targets this backend pool is responsible for.
@@ -171,17 +178,19 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 		if rule.HTTPListener == nil || rule.HTTPListener.ID == nil {
 			continue
 		}
-		hostName, err := er.getHostNameForRoutingRule(rule)
+		hostNames, err := er.getHostNamesForRoutingRule(rule)
 		if err != nil {
 			glog.Errorf("[brownfield] Could not obtain hostname for rule %s; Skipping rule", ruleName(*rule.Name))
 			continue
 		}
 
-		// Regardless of whether we have a URL PathMap or not. This matches the default backend pool.
-		ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], Target{
-			Hostname: hostName,
-			// Path deliberately omitted
-		})
+		for _, hostName := range hostNames {
+			// Regardless of whether we have a URL PathMap or not. This matches the default backend pool.
+			ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], Target{
+				Hostname: hostName,
+				// Path deliberately omitted
+			})
+		}
 
 		// SSL Redirects do not have BackendAddressPool
 		if rule.URLPathMap != nil {
@@ -193,9 +202,11 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 					continue
 				}
 				for _, path := range *pathRule.Paths {
-					target := Target{hostName, TargetPath(path)}
-					ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], target)
-					pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
+					for _, hostName := range hostNames {
+						target := Target{hostName, TargetPath(path)}
+						ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], target)
+						pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
+					}
 				}
 			}
 		}

@@ -51,13 +51,12 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 func (c *appGwConfigBuilder) applyToListener(rule *v1beta1.IngressRule) bool {
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
-		// if path is specified, apply waf policy to the pathRule, otherwise apply to a listener, listener is per ingress host
-		if len(path.Path) != 0 && path.Path != "/" && path.Path != "/*" {
-			// apply to path rule instead of listener
-			return false
+		// if there is path that is /, /* , empty string, then apply the waf policy to the listener.
+		if len(path.Path) == 0 || path.Path == "/" || path.Path == "/*" {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {

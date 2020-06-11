@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
 		}
-		glog.V(5).Infof("Created probe %s for ingress %s/%s and service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
+		glog.V(5).Infof("Created probe %s for ingress %s/%s at service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 	}
 
 	c.mem.probesByName = &healthProbeCollection
@@ -108,9 +108,16 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	// backend protocol "https" now supports to use certificate signed by well-known root certificate as well as trusted self-signed certificate
-	if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+	if backendID.Backend.ServicePort.String() == "443" {
 		probe.Protocol = n.HTTPS
+	}
+
+	// backend protocol take precedence over port
+	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
+	if err == nil && backendProtocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	} else if err == nil && backendProtocol == annotations.HTTP {
+		probe.Protocol = n.HTTP
 	}
 
 	// use probe from service container readiness/liveness probe if defined
@@ -128,8 +135,13 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.HTTPS
 		}
+		// httpGet schema is default to Http if not specified, double check with the port in case for Https
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTP {
-			probe.Protocol = n.HTTP
+			if k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal == 443 {
+				probe.Protocol = n.HTTPS
+			} else {
+				probe.Protocol = n.HTTP
+			}
 		}
 		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
 			probe.Interval = to.Int32Ptr(k8sProbeForServiceContainer.PeriodSeconds)
@@ -138,7 +150,13 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			probe.Timeout = to.Int32Ptr(k8sProbeForServiceContainer.TimeoutSeconds)
 		}
 		if k8sProbeForServiceContainer.FailureThreshold != 0 {
-			probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			// UnhealthyThreshold must be in range of 0 - 20, otherwise Application Gateway will not
+			// accept the configuration and all new pods will not be configured.
+			if k8sProbeForServiceContainer.FailureThreshold > 20 {
+				probe.UnhealthyThreshold = to.Int32Ptr(20)
+			} else {
+				probe.UnhealthyThreshold = to.Int32Ptr(k8sProbeForServiceContainer.FailureThreshold)
+			}
 		}
 	}
 

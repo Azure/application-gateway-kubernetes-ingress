@@ -103,9 +103,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
-				HostName:                    to.StringPtr(tests.Host),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{},
+				Hostnames:                   &[]string{tests.Host},
 			},
 		}
 
@@ -117,7 +116,6 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
-				HostName:                    nil,
 				Hostnames:                   to.StringSlicePtr([]string{"test.com", "t*.com"}),
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
@@ -131,9 +129,8 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PrivateIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
-				HostName:                    to.StringPtr(tests.Host),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{},
+				Hostnames:                   &[]string{tests.Host},
 			},
 		}
 
@@ -145,10 +142,9 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
-				HostName:                    to.StringPtr(tests.Host),
 				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{},
+				Hostnames:                   &[]string{tests.Host},
 			},
 		}
 
@@ -160,10 +156,9 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PrivateIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
-				HostName:                    to.StringPtr(tests.Host),
 				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{},
+				Hostnames:                   &[]string{tests.Host},
 			},
 		}
 	})
@@ -362,63 +357,6 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			Expect(*ports).To(ContainElement(expectedPort80))
 			Expect(*ports).To(ContainElement(expectedPort443))
-		})
-	})
-
-	Context("create a new App Gateway HTTP Listener for V1 gateway", func() {
-		ing1 := tests.NewIngressFixture()
-		ing2 := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{
-			ing1,
-			ing2,
-		}
-
-		listenerID80WithoutHostname := listenerIdentifier{
-			FrontendPort: Port(80),
-			HostName:     "",
-		}
-
-		cbCtx := &ConfigBuilderContext{
-			IngressList:           ingressList,
-			EnvVariables:          envVariables,
-			DefaultAddressPoolID:  to.StringPtr("xx"),
-			DefaultHTTPSettingsID: to.StringPtr("yy"),
-		}
-
-		certs := newCertsFixture()
-		cb := newConfigBuilderFixture(&certs)
-
-		// V1 gateway
-		cb.appGw.Sku = &n.ApplicationGatewaySku{
-			Name:     n.StandardLarge,
-			Tier:     n.ApplicationGatewayTierStandard,
-			Capacity: to.Int32Ptr(3),
-		}
-
-		It("should create listener with RequireServerNameIndication when (https, hostname) listener", func() {
-			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
-			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Https"), ports)
-			Expect(*listener.RequireServerNameIndication).To(BeTrue())
-		})
-
-		It("should not create listener with RequireServerNameIndication when (https, no hostname) listener", func() {
-			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
-			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Https"), ports)
-			Expect(listener.HostName).To(BeNil())
-			Expect(*listener.RequireServerNameIndication).To(BeFalse())
-		})
-
-		It("should not create listener with RequireServerNameIndication when (http, hostname) listener", func() {
-			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
-			listener, _, _ := cb.newListener(cbCtx, listenerID80, n.ApplicationGatewayProtocol("Http"), ports)
-			Expect(*listener.RequireServerNameIndication).To(BeFalse())
-		})
-
-		It("should not create listener with RequireServerNameIndication when (http, no hostname) listener", func() {
-			ports := make(map[Port]n.ApplicationGatewayFrontendPort)
-			listener, _, _ := cb.newListener(cbCtx, listenerID80WithoutHostname, n.ApplicationGatewayProtocol("Http"), ports)
-			Expect(listener.HostName).To(BeNil())
-			Expect(*listener.RequireServerNameIndication).To(BeFalse())
 		})
 	})
 

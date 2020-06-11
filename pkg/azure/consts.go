@@ -3,11 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-package brownfield
+package azure
 
-import "errors"
+import "time"
 
-var (
-	// ErrListenerLookup is an error.
-	ErrListenerLookup = errors.New("failed looking up listener")
+const (
+	retryPause         = 10 * time.Second
+	retryCount         = 3
+	maxAuthRetryCount  = 10
+	extendedRetryCount = 60
 )

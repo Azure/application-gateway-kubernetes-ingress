@@ -13,11 +13,15 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 const (
 	// CloudProviderConfigLocationVarName is an environment variable name. This file is available on azure cluster.
 	CloudProviderConfigLocationVarName = "AZURE_CLOUD_PROVIDER_LOCATION"
+
+	// ClientIDVarName is an environment variable which stores the client id provided through user assigned identity
+	ClientIDVarName = "AZURE_CLIENT_ID"
 
 	// SubscriptionIDVarName is the name of the APPGW_SUBSCRIPTION_ID
 	SubscriptionIDVarName = "APPGW_SUBSCRIPTION_ID"
@@ -87,6 +91,9 @@ const (
 
 	// ReconcilePeriodSecondsVarName is an environment variable to control reconcile period for the AGIC.
 	ReconcilePeriodSecondsVarName = "RECONCILE_PERIOD_SECONDS"
+
+	// IngressClass is an environment variable
+	IngressClass = "INGRESS_CLASS"
 )
 
 var (
@@ -97,6 +104,7 @@ var (
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
 	CloudProviderConfigLocation string
+	ClientID                    string
 	SubscriptionID              string
 	ResourceGroupName           string
 	AppGwName                   string
@@ -105,6 +113,7 @@ type EnvVariables struct {
 	AppGwResourceID             string
 	AppGwSubnetID               string
 	AuthLocation                string
+	IngressClass                string
 	WatchNamespace              string
 	UsePrivateIP                string
 	VerbosityLevel              string
@@ -153,6 +162,7 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 func GetEnv() EnvVariables {
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
+		ClientID:                    os.Getenv(ClientIDVarName),
 		SubscriptionID:              os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:           os.Getenv(ResourceGroupNameVarName),
 		AppGwName:                   os.Getenv(AppGwNameVarName),
@@ -161,6 +171,7 @@ func GetEnv() EnvVariables {
 		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
+		IngressClass:                os.Getenv(IngressClass),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:                os.Getenv(UsePrivateIPVarName),
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
@@ -186,23 +197,42 @@ func ValidateEnv(env EnvVariables) error {
 	if env.EnableDeployAppGateway {
 		// we should not allow applicationGatewayID in create case
 		if len(env.AppGwResourceID) != 0 {
-			return ErrorNotAllowedApplicationgatewayID
+			return controllererrors.NewError(
+				controllererrors.ErrorNotAllowedApplicationGatewayID,
+				"Please provide provide APPGW_NAME (helm var name: .appgw.name) instead of APPGW_RESOURCE_ID (helm var name: .appgw.applicationGatewayID). "+
+					"You can also provided APPGW_SUBSCRIPTION_ID and APPGW_RESOURCE_GROUP",
+			)
 		}
 
 		// if deploy is true, we need applicationGatewayName
 		if len(env.AppGwName) == 0 {
-			return ErrorMissingApplicationgatewayName
+			return controllererrors.NewError(
+				controllererrors.ErrorMissingApplicationGatewayName,
+				"Missing required Environment variables: AGIC requires APPGW_NAME (helm var name: appgw.name) to deploy Application Gateway",
+			)
 		}
 
 		// we need one of subnetID and subnetPrefix. We generate a subnetName if it is not provided.
 		if len(env.AppGwSubnetID) == 0 && len(env.AppGwSubnetPrefix) == 0 {
 			// when create is true, then either we should have env.AppGwSubnetID or env.AppGwSubnetPrefix
-			return ErrorMissingSubnetInfo
+			return controllererrors.NewError(
+				controllererrors.ErrorMissingSubnetInfo,
+				"Missing required Environment variables: "+
+					"AGIC requires APPGW_SUBNET_PREFIX (helm var name: appgw.subnetPrefix) or APPGW_SUBNET_ID (helm var name: appgw.subnetID) of an existing subnet. "+
+					"If subnetPrefix is specified, AGIC will look up a subnet with matching address prefix in the AKS cluster vnet. "+
+					"If a subnet is not found, then a new subnet will be created. This will be used to deploy the Application Gateway",
+			)
+
 		}
 	} else {
 		// if deploy is false, we need one of appgw name or resource id
 		if len(env.AppGwName) == 0 && len(env.AppGwResourceID) == 0 {
-			return ErrorMissingApplicationGatewayNameOrApplicationGatewayID
+			return controllererrors.NewError(
+				controllererrors.ErrorMissingApplicationGatewayNameOrApplicationGatewayID,
+				"Missing required Environment variables: "+
+					"Provide atleast provide APPGW_NAME (helm var name: .appgw.name) or APPGW_RESOURCE_ID (helm var name: .appgw.applicationGatewayID). "+
+					"If providing APPGW_NAME, You can also provided APPGW_SUBSCRIPTION_ID (helm var name: .appgw.subscriptionId) and APPGW_RESOURCE_GROUP (helm var name: .appgw.resourceGroup)",
+			)
 		}
 	}
 
@@ -213,11 +243,18 @@ func ValidateEnv(env EnvVariables) error {
 	if env.ReconcilePeriodSeconds != "" {
 		reconcilePeriodSeconds, err := strconv.Atoi(env.ReconcilePeriodSeconds)
 		if err != nil {
-			return ErrorInvalidReconcilePeriod
+			return controllererrors.NewErrorWithInnerError(
+				controllererrors.ErrorInvalidReconcilePeriod,
+				err,
+				"Please make sure that RECONCILE_PERIOD_SECONDS (helm var name: .reconcilePeriodSeconds) is an integer. Range: (30 - 300)",
+			)
 		}
 
 		if reconcilePeriodSeconds < 30 || reconcilePeriodSeconds > 300 {
-			return ErrorInvalidReconcilePeriod
+			return controllererrors.NewError(
+				controllererrors.ErrorInvalidReconcilePeriod,
+				"Please make sure that RECONCILE_PERIOD_SECONDS (helm var name: .reconcilePeriodSeconds) is an integer. Range: (30 - 300)",
+			)
 		}
 	}
 

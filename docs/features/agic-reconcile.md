@@ -1,4 +1,4 @@
-## Reconcile scenario
+## Reconcile scenario (BETA)
 When an Application Gateway is deployed through ARM template, a requirement is that the gateway configuration should contain a probe, listener, rule, backend pool and backend http setting. When such a template is re-deployed with minor changes (for example to WAF rules) on Gateway that is being controlled by AGIC, all the AGIC written rules are removed. Given such change on Application Gateway doesn’t trigger any events on AGIC, AGIC doesn’t reconcile the gateway back to the expected state. 
 
 ## Solution
@@ -8,7 +8,8 @@ To address the problem above, AGIC periodically checks if the latest gateway con
 There are two ways to configure AGIC reconcile via helm, and to use the new feature, make sure the AGIC version is at least at 1.2.0-rc1
 
 ### Configure inside helm values.yaml
-`reconcilePeriodSeconds: 30`, it means AGIC checks the reconciling in every 30 seconds
+`reconcilePeriodSeconds: 30`, it means AGIC checks the reconciling in every 30 seconds.
+Acceptable values are between 30 and 300.
 
 ### Configure from helm command line
 Configure from helm install command(first time install) and helm upgrade command, helm version is v3

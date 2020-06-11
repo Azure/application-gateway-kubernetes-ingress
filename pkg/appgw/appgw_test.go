@@ -295,8 +295,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				FrontendIPConfiguration:     resourceRef("--front-end-ip-id-1--"),
 				FrontendPort:                resourceRef(frontendPortID),
 				Protocol:                    n.HTTP,
-				HostName:                    &domainName,
-				Hostnames:                   &[]string{},
+				Hostnames:                   &[]string{domainName},
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
 		}
@@ -671,11 +670,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						FrontendPort:            resourceRef(frontendPortID),
 						SslCertificate:          resourceRef(sslCert),
 						Protocol:                n.HTTPS,
-						HostName:                &domainName,
 
 						// RequireServerNameIndication is not used in Application Gateway v2
 						RequireServerNameIndication: to.BoolPtr(false),
-						Hostnames:                   &[]string{},
+						Hostnames:                   &[]string{domainName},
 					},
 				}
 

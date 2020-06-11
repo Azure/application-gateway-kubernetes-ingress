@@ -11,6 +11,8 @@ import (
 
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/api/extensions/v1beta1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
 const (
@@ -59,9 +61,8 @@ const (
 	// that this is a gateway meant for the application gateway ingress controller.
 	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
-	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
-	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
-	ApplicationGatewayIngressClass = "azure/application-gateway"
+	//DefaultIngressClass defines the default app gateway ingress value
+	DefaultIngressClass = "azure/application-gateway"
 
 	// FirewallPolicy is the key part of a key/value Ingress annotation.
 	// The value of this is an ID of a Firewall Policy. The Firewall Policy must be already defined in Azure.
@@ -74,6 +75,12 @@ const (
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
 	// Multiple root certificates seperated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
+)
+
+var (
+	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
+	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
+	ApplicationGatewayIngressClass = DefaultIngressClass
 )
 
 // ProtocolEnum is the type for protocol
@@ -105,7 +112,9 @@ func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
 	if ok {
 		return val == ApplicationGatewayIngressClass, nil
 	}
-	return false, ErrMissingAnnotations
+	return false, controllererrors.NewError(
+		controllererrors.ErrorMissingAnnotation,
+		"appgw.ingress.istio.io/v1alpha3 not set")
 }
 
 // IsSslRedirect for HTTP end points.
@@ -169,7 +178,9 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 		return protocolEnum, nil
 	}
 
-	return HTTP, NewInvalidAnnotationContent(BackendProtocolKey, protocol)
+	return HTTP, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+		"annotation %v does not contain a valid value (%v)", BackendProtocolKey, protocol,
+	)
 }
 
 // GetHostNameExtensions from a given ingress
@@ -198,16 +209,24 @@ func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
 		if boolVal, err := strconv.ParseBool(val); err == nil {
 			return boolVal, nil
 		}
-		return false, NewInvalidAnnotationContent(name, val)
+		return false, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+			"annotation %v does not contain a valid value (%v)", name, val,
+		)
 	}
-	return false, ErrMissingAnnotations
+	return false, controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }
 
 func parseString(ing *v1beta1.Ingress, name string) (string, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		return val, nil
 	}
-	return "", ErrMissingAnnotations
+	return "", controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }
 
 func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
@@ -215,8 +234,13 @@ func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
 		if intVal, err := strconv.Atoi(val); err == nil {
 			return int32(intVal), nil
 		}
-		return 0, NewInvalidAnnotationContent(name, val)
+		return 0, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+			"annotation %v does not contain a valid value (%v)", name, val,
+		)
 	}
 
-	return 0, ErrMissingAnnotations
+	return 0, controllererrors.NewErrorf(
+		controllererrors.ErrorMissingAnnotation,
+		"%s is not set in Ingress %s/%s", name, ing.Namespace, ing.Name,
+	)
 }
