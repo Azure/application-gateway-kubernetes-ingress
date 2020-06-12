@@ -21,7 +21,20 @@ every pod gets an IP address from the node subnet and can be accessed directly w
 
 
 ## Deploy in different vnets
-AGIC pod(or AKS) can be deployed to different vNet from AppGw's vNet, however, the two vNets must be [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview) together. When you create a virtual network peering between two virtual networks, a route is added by Azure for each address range within the address space of each virtual network a peering is created for.
+AGIC pod(or AKS) can be deployed in different vNet from AppGw's vNet, however, the two vNets must be [peered](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview) together. When you create a virtual network peering between two virtual networks, a route is added by Azure for each address range within the address space of each virtual network a peering is created for.
+
+```bash
+# example to peer appgw vnet and aks vnet 
+nodeResourceGroup=$(az aks show -n myCluster -g myResourceGroup -o tsv --query "nodeResourceGroup")
+aksVnetName=$(az network vnet list -g $nodeResourceGroup -o tsv --query "[0].name")
+
+aksVnetId=$(az network vnet show -n $aksVnetName -g MC_$nodeResourceGroup -o tsv --query "id")
+az network vnet peering create -n AppGWtoAKSVnetPeering -g myResourceGroup --vnet-name myVnet --remote-vnet $aksVnetId --allow-vnet-access
+
+appGWVnetId=$(az network vnet show -n myVnet -g myResourceGroup -o tsv --query "id")
+az network vnet peering create -n AKStoAppGWVnetPeering -g $nodeResourceGroup --vnet-name $aksVnetName --remote-vnet $appGWVnetId --allow-vnet-access
+```
+
 Note that when AKS created with `--network-plugin kubenet`, make sure the route table and NSG created in the MC_* resource group are associated to the Application Gateway subnet.
 
 ```bash
@@ -42,3 +55,4 @@ az network vnet subnet update \
  ### Further Readings
   - [Peer the two virtual networks together](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing#peer-the-two-virtual-networks-together)
   - [Virtual network peering](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview)
+  - [How to peer your networks from different subscription](https://docs.microsoft.com/en-us/azure/virtual-network/create-peering-different-subscriptions)
