@@ -8,6 +8,8 @@ schedules:
 
 trigger: none
 
+trigger: none
+
 pr: none
 
 pool:
