@@ -7,9 +7,9 @@ This documents assumes you already have the following Azure tools and resources 
 
 Please use [Greenfeild Deployment](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md) to install nonexistents.
 
-To use the new feature, make sure the AGIC version is at least at 1.2.0-rc1
+To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
 ```bash
-helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc1 --generate-name
+helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name
 ```
 
 ## Create a certificate and configure the certificate to AppGw
