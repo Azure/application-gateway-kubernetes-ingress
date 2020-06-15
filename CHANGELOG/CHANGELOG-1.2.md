@@ -9,7 +9,7 @@
 - [v1.2.0-rc1](#v120-rc1)
   - [Features](#features)
   - [Fixes](#fixes-2)
-  - [Known Issues](#known-issues-1)
+  - [Known Issues](#known-issues-2)
 - [How to try](#how-to-try)
 
 # v1.2.0-rc3
@@ -26,7 +26,6 @@ We are working on bringing Azure Portal support for the new property soon. Until
 * [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme contruction for k8s event recorder
 
 ## Known Issues:
-* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
 * When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
   ```bash
   Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
@@ -49,7 +48,7 @@ We are working on bringing Azure Portal support for the new property soon. Until
 * helm: remove replica count setting from supported helm values. This will be added back when AGIC will recieve support for leader election.
 
 ## Known Issues:
-* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
+* This release has known issues related to enabling `shared` feature with helm. This has been addressed in 1.2.0-rc3.
 * When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
   ```bash
   Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
@@ -72,7 +71,7 @@ We are working on bringing Azure Portal support for the new property soon. Until
 * [#686](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/686): Skip updating the gateway when in non-operational state
 
 ## Known Issues:
-* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
+* This release has known issues related to enabling `shared` feature with helm. This has been addressed in 1.2.0-rc3.
 * When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
   ```bash
   Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
