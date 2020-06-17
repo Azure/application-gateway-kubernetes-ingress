@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -295,7 +295,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				FrontendIPConfiguration:     resourceRef("--front-end-ip-id-1--"),
 				FrontendPort:                resourceRef(frontendPortID),
 				Protocol:                    n.HTTP,
-				Hostnames:                   &[]string{domainName},
+				HostNames:                   &[]string{domainName},
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
 		}
@@ -673,7 +673,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 						// RequireServerNameIndication is not used in Application Gateway v2
 						RequireServerNameIndication: to.BoolPtr(false),
-						Hostnames:                   &[]string{domainName},
+						HostNames:                   &[]string{domainName},
 					},
 				}
 

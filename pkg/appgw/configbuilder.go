@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
@@ -223,18 +223,18 @@ func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, pro
 		UsePrivateIP: usePrivateIP,
 	}
 
-	var hostnames []string
+	var hostNames []string
 	if rule != nil && rule.Host != "" {
-		hostnames = append(hostnames, rule.Host)
+		hostNames = append(hostNames, rule.Host)
 	}
 
 	if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
 		if extendedHostNames != nil {
-			hostnames = append(hostnames, extendedHostNames...)
+			hostNames = append(hostNames, extendedHostNames...)
 		}
 	}
 
-	listenerID.setHostNames(hostnames)
+	listenerID.setHostNames(hostNames)
 	return listenerID
 }
 

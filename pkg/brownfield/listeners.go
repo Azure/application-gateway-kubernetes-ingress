@@ -9,15 +9,15 @@ import (
 	"math"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 const (
-	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
-	MaxAllowedHostnames int = 5
+	// MaxAllowedHostNames the maximum number of HostNames allowed for listener.
+	MaxAllowedHostNames int = 5
 )
 
 type listenersByName map[listenerName]n.ApplicationGatewayHTTPListener
@@ -40,16 +40,16 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 }
 
 type uniqueListenerConfig struct {
-	HostNames               [MaxAllowedHostnames]string
+	HostNames               [MaxAllowedHostNames]string
 	Protocol                n.ApplicationGatewayProtocol
 	FrontendPortID          string
 	FrontendIPConfiguration string
 }
 
-func (config *uniqueListenerConfig) setHostNames(hostnames []string) {
-	hostnameCount := int(math.Min(float64(len(hostnames)), float64(MaxAllowedHostnames)))
+func (config *uniqueListenerConfig) setHostNames(hostNames []string) {
+	hostnameCount := int(math.Min(float64(len(hostNames)), float64(MaxAllowedHostNames)))
 	for i := 0; i < hostnameCount; i++ {
-		config.HostNames[i] = hostnames[i]
+		config.HostNames[i] = hostNames[i]
 	}
 }
 
@@ -64,8 +64,8 @@ func MergeListeners(listenerBuckets ...[]n.ApplicationGatewayHTTPListener) []n.A
 			if listener.HostName != nil {
 				listenerConfig.setHostNames([]string{*listener.HostName})
 			}
-			if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
-				listenerConfig.setHostNames(*listener.Hostnames)
+			if listener.HostNames != nil && len(*listener.HostNames) > 0 {
+				listenerConfig.setHostNames(*listener.HostNames)
 			}
 			if listener.FrontendIPConfiguration != nil && listener.FrontendIPConfiguration.ID != nil {
 				listenerConfig.FrontendIPConfiguration = *listener.FrontendIPConfiguration.ID
@@ -138,19 +138,19 @@ func (er *ExistingResources) getListenersByName() listenersByName {
 }
 
 func (er ExistingResources) getBlacklistedListenersSet() map[listenerName]interface{} {
-	// Determine the list of prohibited listeners from the hostnames
+	// Determine the list of prohibited listeners from the HostNames
 	blacklistedListenersSet := make(map[listenerName]interface{})
-	prohibitedHostnames := er.getProhibitedHostnames()
+	prohibitedHostNames := er.getProhibitedHostNames()
 	for _, listener := range er.Listeners {
 		if listener.HostName != nil {
-			if _, exists := prohibitedHostnames[*listener.HostName]; exists {
+			if _, exists := prohibitedHostNames[*listener.HostName]; exists {
 				blacklistedListenersSet[listenerName(*listener.Name)] = nil
 				continue
 			}
 		}
-		if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
-			for _, hostName := range *listener.Hostnames {
-				if _, exists := prohibitedHostnames[hostName]; exists {
+		if listener.HostNames != nil && len(*listener.HostNames) > 0 {
+			for _, hostName := range *listener.HostNames {
+				if _, exists := prohibitedHostNames[hostName]; exists {
 					blacklistedListenersSet[listenerName(*listener.Name)] = nil
 					continue
 				}

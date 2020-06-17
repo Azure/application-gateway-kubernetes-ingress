@@ -8,7 +8,7 @@ package appgw
 import (
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 
@@ -174,16 +174,16 @@ func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID
 			FrontendPort:            resourceRef(*frontendPort.ID),
 			Protocol:                protocol,
 			HostName:                nil,
-			Hostnames:               &[]string{},
+			HostNames:               &[]string{},
 
 			// setting to default
 			RequireServerNameIndication: to.BoolPtr(false),
 		},
 	}
 
-	// Use only the 'Hostnames' field as application gateway allows either 'HostName' or 'Hostnames'
-	if hostnames := listenerID.getHostNames(); len(hostnames) != 0 {
-		listener.Hostnames = &hostnames
+	// Use only the 'HostNames' field as application gateway allows either 'HostName' or 'HostNames'
+	if hostNames := listenerID.getHostNames(); len(hostNames) != 0 {
+		listener.HostNames = &hostNames
 	}
 
 	return &listener, &frontendPort, nil
@@ -205,8 +205,8 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 
-		if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
-			listenerID.setHostNames(*listener.Hostnames)
+		if listener.HostNames != nil && len(*listener.HostNames) > 0 {
+			listenerID.setHostNames(*listener.HostNames)
 		} else if listener.HostName != nil {
 			listenerID.setHostNames([]string{*listener.HostName})
 		}
