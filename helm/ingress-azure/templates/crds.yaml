@@ -4,12 +4,25 @@
   {{ $.Files.Get $path }}
 ---
 {{- end }}
+{{- $watchNamespace := .Values.kubernetes.watchNamespace -}}
+{{- range .Values.appgw.prohibitedTargets -}}
 apiVersion: appgw.ingress.k8s.io/v1
 kind: AzureIngressProhibitedTarget
 metadata:
-  name: prohibit-all-targets
+  name: {{ .name }}
+  {{- if $watchNamespace }}
+  namespace: {{ $watchNamespace | splitList "," | first }}
+  {{- end }}
 spec:
+  {{- if .hostname }}
+  hostname: {{ .hostname }}
+  {{- end }}
+  {{- if .paths }}
   paths:
-    - /*
+  {{- range .paths }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
