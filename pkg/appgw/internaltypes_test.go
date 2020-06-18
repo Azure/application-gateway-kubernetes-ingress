@@ -226,7 +226,7 @@ var _ = Describe("Test internal types", func() {
 	})
 
 	Context("test GetHostNames works correctly", func() {
-		It("should correctly return the hostnames", func() {
+		It("should correctly return the HostNames", func() {
 			var hostnameValues = [5]string{"www.test1.com", "www.test2.com", "www.test3.com", "www.test4.com", "www.test5.com"}
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
@@ -237,7 +237,7 @@ var _ = Describe("Test internal types", func() {
 			Expect(actualHostName).To(Equal(hostnameValues[0:]))
 		})
 
-		It("should return nil if the 'hostnames' field is not set", func() {
+		It("should return nil if the 'HostNames' field is not set", func() {
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
@@ -253,8 +253,8 @@ var _ = Describe("Test internal types", func() {
 				FrontendPort: Port(80),
 				UsePrivateIP: false,
 			}
-			hostnames := []string{"www.test.com", "www.t*.com"}
-			listenerID.setHostNames(hostnames)
+			hostNames := []string{"www.test.com", "www.t*.com"}
+			listenerID.setHostNames(hostNames)
 			Expect(listenerID.HostNames[0]).To(Equal("www.test.com"))
 			Expect(listenerID.HostNames[1]).To(Equal("www.t*.com"))
 			Expect(listenerID.HostNames[2]).To(Equal(""))

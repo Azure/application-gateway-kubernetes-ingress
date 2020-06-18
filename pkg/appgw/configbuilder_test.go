@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -342,7 +342,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "hostnames": [
+--                    "hostNames": [
 --                        "foo.baz"
 --                    ],
 --                    "protocol": "Http",
@@ -592,7 +592,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "hostnames": [],
+--                    "hostNames": [],
 --                    "protocol": "Http",
 --                    "requireServerNameIndication": false
 --                }
@@ -853,7 +853,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "frontendPort": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
 --                    },
---                    "hostnames": [
+--                    "hostNames": [
 --                        "foo.baz",
 --                        "bye.com",
 --                        "test.com"

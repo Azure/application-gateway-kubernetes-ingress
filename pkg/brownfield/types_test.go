@@ -6,7 +6,7 @@
 package brownfield
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -33,14 +33,14 @@ var _ = Describe("Test NewExistingResources", func() {
 		})
 	})
 
-	Context("Test getProhibitedHostnames", func() {
+	Context("Test getProhibitedHostNames", func() {
 		It("should create a struct", func() {
 			appGw := n.ApplicationGateway{
 				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{},
 			}
 			defaultPool := n.ApplicationGatewayBackendAddressPool{}
 			er := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
-			actual := er.getProhibitedHostnames()
+			actual := er.getProhibitedHostNames()
 			expected := map[string]interface{}{
 				"bye.com":                 nil,
 				"--some-other-hostname--": nil,

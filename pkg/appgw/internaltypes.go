@@ -16,7 +16,7 @@ import (
 	"regexp"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
@@ -38,10 +38,10 @@ const (
 )
 
 const (
-	// MaxAllowedHostnames the maximum number of hostnames allowed for listener.
-	MaxAllowedHostnames int = 5
+	// MaxAllowedHostNames the maximum number of HostNames allowed for listener.
+	MaxAllowedHostNames int = 5
 
-	// WildcardSpecialCharacters are characters that are allowed for wildcard hostnames.
+	// WildcardSpecialCharacters are characters that are allowed for wildcard HostNames.
 	WildcardSpecialCharacters = "*?"
 )
 
@@ -60,7 +60,7 @@ type serviceBackendPortPair struct {
 
 type listenerIdentifier struct {
 	FrontendPort Port
-	HostNames    [MaxAllowedHostnames]string
+	HostNames    [MaxAllowedHostNames]string
 	UsePrivateIP bool
 }
 
@@ -232,24 +232,24 @@ func defaultFrontendListenerIdentifier() listenerIdentifier {
 	}
 }
 
-func (listenerID *listenerIdentifier) setHostNames(hostnames []string) {
-	hostnameCount := int(math.Min(float64(len(hostnames)), float64(MaxAllowedHostnames)))
+func (listenerID *listenerIdentifier) setHostNames(hostNames []string) {
+	hostnameCount := int(math.Min(float64(len(hostNames)), float64(MaxAllowedHostNames)))
 	for i := 0; i < hostnameCount; i++ {
-		listenerID.HostNames[i] = hostnames[i]
+		listenerID.HostNames[i] = hostNames[i]
 	}
 }
 
-// Returns the hostnames as a slice
+// Returns the HostNames as a slice
 func (listenerID *listenerIdentifier) getHostNames() []string {
-	var hostnames []string
+	var hostNames []string
 
 	for i := 0; i < len(listenerID.HostNames); i++ {
 		if listenerID.HostNames[i] != "" {
-			hostnames = append(hostnames, listenerID.HostNames[i])
+			hostNames = append(hostNames, listenerID.HostNames[i])
 		}
 	}
 
-	return hostnames
+	return hostNames
 }
 
 // getHostNameForProbes returns the first hostname which doesn't have special chars. To be used for probes.
