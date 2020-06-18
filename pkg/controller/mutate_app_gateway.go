@@ -166,13 +166,18 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		if _, yes := event.Value.(*v1.Endpoints); !yes {
 			// if the event is not Endpoint event, backendPool change will not be applied
 			glog.V(3).Info("Not endpoint event, skip to apply backend address pool changes")
-			generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools = &existingBackendAddressPools
+			// update BackendAddressPools but not assign backendAddresses
+			generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools = generatedBackendAddressPools
+			for _, backendAddressPool := range *generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools {
+				backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
+			}
+
 		} else {
 			// otherwise, we start to update our CRD
 			glog.V(3).Info("Endpoint event identified, start to update backend address pool")
 			// (TO-DO): update CRD
 			// Get crd object
-			backendPool, err := c.k8sContext.GetBackendPool("subscription-resourcegroup-gatewayname")
+			backendPool := c.k8sContext.GetBackendPool("subscription-resourcegroup-gatewayname")
 			if err == nil {
 				glog.V(3).Infof("Find backend address pool: %s", backendPool.Name)
 				for _, obj := range backendPool.Spec.BackendAddressPools {

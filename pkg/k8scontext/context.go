@@ -205,31 +205,13 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 }
 
 // GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
-	target, exist, err := c.Caches.AzureAppGwBackendPool.Get(fmt.Sprintf("%v", backendPoolName))
-
-	if !exist {
-		e := controllererrors.NewErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
-			"AzureApplicationGatewayBackendPool: %s not found",
-			backendPoolName)
-		glog.Error(e.Error())
-		c.MetricStore.IncErrorCount(e.Code)
-		return nil, e
-	}
-
+func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApplicationGatewayBackendPool {
+	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
 	if err != nil {
-		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
-			err,
-			"Error fetching AzureApplicationGatewayBackendPool: %s from store",
-			backendPoolName)
-		glog.Error(e.Error())
-		c.MetricStore.IncErrorCount(e.Code)
-		return nil, e
+		glog.Error("Error fetching Azure application gateway backend pool resource, Error: ", err)
+		return nil
 	}
-
-	return target.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+	return azpool
 }
 
 // ListServices returns a list of all the Services from cache.
