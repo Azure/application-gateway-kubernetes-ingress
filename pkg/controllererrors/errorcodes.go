@@ -24,6 +24,7 @@ const (
 	ErrorEmptyConfig                            ErrorCode = "ErrorEmptyConfig"
 	ErrorIstioResolvePortsForServices           ErrorCode = "ErrorIstioResolvePortsForServices"
 	ErrorIstioMultipleServiceBackendPortBinding ErrorCode = "ErrorIstioMultipleServiceBackendPortBinding"
+	ErrorNoBackendAddressPool                   ErrorCode = "ErrorNoBackendAddressPool"
 
 	// k8sContext package
 	ErrorEnpdointsNotFound              ErrorCode = "ErrorEnpdointsNotFound"

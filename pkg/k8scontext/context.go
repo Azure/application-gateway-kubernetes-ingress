@@ -205,13 +205,22 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 }
 
 // GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) *agpoolv1beta1.AzureApplicationGatewayBackendPool {
-	azpool, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
-	if err != nil {
-		glog.Error("Error fetching Azure application gateway backend pool resource, Error: ", err)
-		return nil
-	}
-	return azpool
+func (c *Context) GetBackendPool(backendPoolName string) (agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool, err error) {
+	utils.Retry(utils.RetryCount, utils.RetryPause,
+		func() (utils.Retriable, error) {
+			agPool, err = c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
+			if err != nil {
+				glog.Errorf("Error fetching AzureApplicationGatewayBackendPool CRD object: '%s', Error: %s", backendPoolName, err)
+			}
+			return utils.Retriable(true), err
+		})
+
+	return agPool, nil
+}
+
+func (c *Context) UpdateBackendPool(agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	result, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Update(context.TODO(), agPool, metav1.UpdateOptions{})
+	return result, err
 }
 
 // ListServices returns a list of all the Services from cache.

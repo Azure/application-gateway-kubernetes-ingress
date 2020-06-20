@@ -29,6 +29,11 @@ func (agw Identifier) gatewayResourceID(subResourceKind string, resourceName str
 	return agw.resourceID("Microsoft.Network", "applicationGateways", resourcePath)
 }
 
+func (agw Identifier) BackendAddressPoolCRDObjectID() string {
+	ObjectID := fmt.Sprintf("%s-%s-%s", agw.SubscriptionID, agw.ResourceGroup, agw.AppGwName)
+	return ObjectID
+}
+
 // AddressPoolID generates an ID for a backend address pool.
 func (agw Identifier) AddressPoolID(poolName string) string {
 	return agw.gatewayResourceID("backendAddressPools", poolName)

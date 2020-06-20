@@ -67,6 +67,7 @@ var _ = Describe("Worker Test", func() {
 
 			// Create and fill the channel
 			work := make(chan events.Event, buffSize)
+			epChan := make(chan events.Event, buffSize)
 		Fill:
 			for {
 				select {
@@ -78,7 +79,7 @@ var _ = Describe("Worker Test", func() {
 			}
 			Expect(counter).To(Equal(int64(len(work))))
 			def := events.Event{}
-			lastEvent := drainChan(work, def)
+			lastEvent := drainChan(work, epChan, def)
 			Expect(len(work)).To(Equal(0))
 			Expect(lastEvent).To(Equal(events.Event{}))
 		})
@@ -90,8 +91,9 @@ var _ = Describe("Worker Test", func() {
 
 			// Keep the channel empty
 			work := make(chan events.Event, buffSize)
+			epChan := make(chan events.Event, buffSize)
 			def := events.Event{}
-			lastEvent := drainChan(work, def)
+			lastEvent := drainChan(work, epChan, def)
 			Expect(lastEvent).To(Equal(def))
 		})
 	})

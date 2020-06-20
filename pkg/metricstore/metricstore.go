@@ -36,6 +36,7 @@ type MetricStore interface {
 	IncArmAPIUpdateCallFailureCounter()
 	IncArmAPIUpdateCallSuccessCounter()
 	IncArmAPICallCounter()
+	IncAddressPoolSlowUpdateCounter()
 	IncK8sAPIEventCounter()
 	IncErrorCount(controllererrors.ErrorCode)
 }
@@ -45,6 +46,7 @@ type AGICMetricStore struct {
 	constLabels                    prometheus.Labels
 	updateLatency                  prometheus.Gauge
 	k8sAPIEventCounter             prometheus.Counter
+	addressPoolSlowUpdateCounter   prometheus.Counter
 	armAPICallCounter              prometheus.Counter
 	armAPIUpdateCallFailureCounter prometheus.Counter
 	armAPIUpdateCallSuccessCounter prometheus.Counter
@@ -77,6 +79,12 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 			ConstLabels: constLabels,
 			Name:        "k8s_api_event_counter",
 			Help:        "This counter represents the number of events received from k8s API Server",
+		}),
+		addressPoolSlowUpdateCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace:   PrometheusNamespace,
+			ConstLabels: constLabels,
+			Name:        "ccp_addresspool_slowupdate_counter",
+			Help:        "This counter represents the number of slow updates to update address pool for ccp",
 		}),
 		armAPICallCounter: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace:   PrometheusNamespace,
@@ -113,6 +121,7 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 func (ms *AGICMetricStore) Start() {
 	ms.registry.MustRegister(ms.updateLatency)
 	ms.registry.MustRegister(ms.k8sAPIEventCounter)
+	ms.registry.MustRegister(ms.addressPoolSlowUpdateCounter)
 	ms.registry.MustRegister(ms.armAPIUpdateCallSuccessCounter)
 	ms.registry.MustRegister(ms.armAPIUpdateCallFailureCounter)
 	ms.registry.MustRegister(ms.armAPICallCounter)
@@ -123,6 +132,7 @@ func (ms *AGICMetricStore) Start() {
 func (ms *AGICMetricStore) Stop() {
 	ms.registry.Unregister(ms.updateLatency)
 	ms.registry.Unregister(ms.k8sAPIEventCounter)
+	ms.registry.Unregister(ms.addressPoolSlowUpdateCounter)
 	ms.registry.Unregister(ms.armAPIUpdateCallSuccessCounter)
 	ms.registry.Unregister(ms.armAPIUpdateCallFailureCounter)
 	ms.registry.Unregister(ms.armAPICallCounter)
@@ -137,6 +147,11 @@ func (ms *AGICMetricStore) SetUpdateLatencySec(duration time.Duration) {
 // IncK8sAPIEventCounter increases the counter after recieving a k8s Event
 func (ms *AGICMetricStore) IncK8sAPIEventCounter() {
 	ms.k8sAPIEventCounter.Inc()
+}
+
+// IncAddressPoolSlowUpdateCounter increases the counter when ccp slow-update is applied
+func (ms *AGICMetricStore) IncAddressPoolSlowUpdateCounter() {
+	ms.addressPoolSlowUpdateCounter.Inc()
 }
 
 // IncArmAPIUpdateCallFailureCounter increases the counter for failure on ARM

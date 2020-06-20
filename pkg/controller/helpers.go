@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/golang/glog"
 
@@ -176,41 +177,72 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 	return json.Marshal(m)
 }
 
+// convert a list of backendaddress to ip addresses
+func (c *AppGwIngressController) getIPAddresses(addressPools *[]n.ApplicationGatewayBackendAddress) []agpoolv1beta1.BackendAddress {
+	if addressPools == nil {
+		return []agpoolv1beta1.BackendAddress{}
+	}
+
+	var ipAddresses []agpoolv1beta1.BackendAddress
+	for _, addressPool := range *addressPools {
+		address := agpoolv1beta1.BackendAddress{IPAddress: *addressPool.IPAddress}
+		ipAddresses = append(ipAddresses, address)
+	}
+	return ipAddresses
+}
+
 // compare generated BackendAddressPools with cached one
 func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, existing *[]n.ApplicationGatewayBackendAddressPool) bool {
-	if existing == nil {
+	if existing == nil && generated == nil {
 		return false
 	}
 
-	backendIDtoIPAddressesMap := make(map[string][]string)
+	if existing == nil || generated == nil {
+		return true
+	}
+
+	backendIDtoIPAddressesMapNew := make(map[string][]string)
+	backendIDtoIPAddressesMapExisting := make(map[string]bool)
+
 	for _, gbap := range *generated {
-		backendNameG := gbap.Name
-		glog.V(9).Infof("New: find backend pool name: [%s]", *backendNameG)
+		backendIDNew := gbap.ID
+		glog.V(9).Infof("New: find backend pool id: [%s]", *backendIDNew)
 		ips := make([]string, len(*gbap.BackendAddresses))
 		for i, ip := range *gbap.BackendAddresses {
 			ips[i] = *ip.IPAddress
 		}
 		sort.Strings(ips)
-		backendIDtoIPAddressesMap[*backendNameG] = ips
+		backendIDtoIPAddressesMapNew[*backendIDNew] = ips
 	}
 
 	for _, cbap := range *existing {
-		backendNameC := cbap.Name
-		if ipAddresses, exists := backendIDtoIPAddressesMap[*backendNameC]; exists {
-			glog.V(9).Infof("Existing: find backend pool name: %s", *backendNameC)
+		backendIDExisting := cbap.ID
+		backendIDtoIPAddressesMapExisting[*backendIDExisting] = true
+		if ipAddresses, exists := backendIDtoIPAddressesMapNew[*backendIDExisting]; exists {
+			glog.V(9).Infof("Existing: find backend pool name: %s", *backendIDExisting)
 
 			ips := make([]string, len(*cbap.BackendAddresses))
 			for i, ip := range *cbap.BackendAddresses {
 				ips[i] = *ip.IPAddress
 			}
 			sort.Strings(ips)
+			// indicates the backend pool is updated
 			if !equal(ipAddresses, ips) {
 				glog.V(5).Infof("New: backend address pool ip: %v", ipAddresses)
 				glog.V(5).Infof("Existing: backend address pool ip: %v", ips)
 				return true
 			}
 		} else {
-			glog.V(3).Infof("Existing: NOT find backend pool name: [%s]", *backendNameC)
+			// if any backend pool is deleted
+			glog.V(3).Infof("Existing: NOT find backend pool id: [%s]", *backendIDExisting)
+			return true
+		}
+	}
+
+	// if any backend pool is newly added
+	for _, gbap := range *generated {
+		backendIDNew := gbap.ID
+		if _, exists := backendIDtoIPAddressesMapExisting[*backendIDNew]; !exists {
 			return true
 		}
 	}

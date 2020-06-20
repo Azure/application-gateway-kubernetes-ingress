@@ -40,4 +40,4 @@ export APPGW_ENABLE_SAVE_CONFIG_TO_FILE="true"
 ./bin/appgw-ingress \
     --in-cluster=false \
     --kubeconfig="$KUBE_CONFIG_FILE" \
-    --verbosity=9
+    --verbosity=3

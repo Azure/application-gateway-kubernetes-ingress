@@ -6,6 +6,13 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	RetryPause         = 10 * time.Second
+	RetryCount         = 3
+	MaxAuthRetryCount  = 10
+	ExtendedRetryCount = 60
+)
+
 // Retriable is returned by RetriableFunction and tells whether to retry the function or not.
 type Retriable bool
 
