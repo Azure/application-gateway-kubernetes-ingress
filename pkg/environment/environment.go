@@ -83,6 +83,9 @@ const (
 	// UseManagedIdentityForPodVarName is an environment variable name.
 	UseManagedIdentityForPodVarName = "USE_MANAGED_IDENTITY_FOR_POD"
 
+	// CCPEnabled to enable or disable backend address fast-update
+	CCPEnabled = "CCP_ENABLED"
+
 	// AttachWAFPolicyToListenerVarName is an environment variable name.
 	AttachWAFPolicyToListenerVarName = "ATTACH_WAF_POLICY_TO_LISTENER"
 
@@ -119,6 +122,7 @@ type EnvVariables struct {
 	VerbosityLevel              string
 	AGICPodName                 string
 	AGICPodNamespace            string
+	CCPEnabled                  bool
 	EnableBrownfieldDeployment  bool
 	EnableIstioIntegration      bool
 	EnableSaveConfigToFile      bool
@@ -177,6 +181,7 @@ func GetEnv() EnvVariables {
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
 		AGICPodName:                 os.Getenv(AGICPodNameVarName),
 		AGICPodNamespace:            os.Getenv(AGICPodNamespaceVarName),
+		CCPEnabled:                  GetEnvironmentVariable(CCPEnabled, "false", boolValidator) == "true",
 		EnableBrownfieldDeployment:  GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
 		EnableIstioIntegration:      GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
 		EnableSaveConfigToFile:      GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",

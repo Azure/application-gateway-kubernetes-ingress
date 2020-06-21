@@ -159,79 +159,90 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Post Compare Phase //
 	// ------------------ //
 
-	generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
-	if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
-		glog.V(3).Info("Backend address pool is updated")
-		// (TO-DO): a global flag to enable or disable the fast path, the flag shall be removed once we start to migrate to fast update
-		// Endpoint event has been verified at this point
-		if _, yes := event.Value.(*v1.Endpoints); !yes {
-			// if the event is not Endpoint event, backendPool change will not be applied
-			glog.V(3).Info("Not endpoint event, skip to apply backend address pool changes")
-			// update BackendAddressPools but not assign backendAddresses
-			for _, backendAddressPool := range *generatedBackendAddressPools {
-				backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
-			}
-
-		} else {
-			// otherwise, we start to update our CRD
-			glog.V(3).Info("Endpoint event identified, start to update backend address pool")
-			// check crd by name
-			AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
-			backendPool, err := c.k8sContext.GetBackendPool(AddressPoolCRDObjectID)
-			if err != nil {
-				glog.Warningf("Cannot find address pool CRD object Id: %s, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
-				// TO-DO: create CRD if it doesn't exist
-
-				// fallback to slow update to apply in case of failure
-				// generate metric for slow-update count
-				c.MetricStore.IncAddressPoolSlowUpdateCounter()
-			} else {
-				glog.V(3).Infof("Find AzureApplicationGatewayBackendPool CRD object id: %s", AddressPoolCRDObjectID)
-				if generatedBackendAddressPools == nil {
-					e := controllererrors.NewError(
-						controllererrors.ErrorNoBackendAddressPool,
-						"Unable to find any address pool from backend",
-					)
-					glog.Error(e.Error())
-					return e
-				}
-
-				// reset crd before update
-				backendPool.Spec.BackendAddressPools = []agpoolv1beta1.BackendAddressPool{}
-				var updatedBackendAddressPools []agpoolv1beta1.BackendAddressPool
-				// apply updates to CRD
+	// (TO-DO): a global flag to enable or disable the fast path, the flag shall be enabled by default once we start to migrate to fast update
+	if cbCtx.EnvVariables.CCPEnabled {
+		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
+		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
+			glog.V(3).Info("Backend address pool is updated")
+			// Endpoint event has been verified at this point
+			if _, yes := event.Value.(*v1.Endpoints); !yes {
+				// if the event is not Endpoint event, backendPool change will not be applied
+				glog.V(3).Info("Not endpoint event, skip to apply backend address pool changes")
+				// update BackendAddressPools but not assign backendAddresses
 				for _, backendAddressPool := range *generatedBackendAddressPools {
-					pool := agpoolv1beta1.BackendAddressPool{
-						Name:             *backendAddressPool.ID,
-						BackendAddresses: c.getIPAddresses(backendAddressPool.BackendAddresses),
-					}
-					updatedBackendAddressPools = append(updatedBackendAddressPools, pool)
+					backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
 				}
 
-				backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
-				if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
-					glog.Warningf("Failed to update address pool CRD object Id: %s, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
+			} else {
+				// otherwise, we start to update our CRD
+				glog.V(3).Info("Endpoint event identified, start to update backend address pool")
+				// check crd by name
+				AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
+				backendPool, err := c.k8sContext.GetBackendPool(AddressPoolCRDObjectID)
+				if err != nil {
+					glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be initialized, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
+					// TO-DO: Initialize a CRD object if it doesn't exist
+					initBackendPool := agpoolv1beta1.AzureApplicationGatewayBackendPool{}
+					initBackendPool.Name = AddressPoolCRDObjectID
+					if _, err := c.k8sContext.CreateBackendPool(&initBackendPool); err != nil {
+						e := controllererrors.NewError(
+							controllererrors.ErrorInitializeBackendAddressPool,
+							"Unable to initialize backend address pool",
+						)
+						glog.Warning(e.Error())
+					}
+
+					// fallback to slow update to apply in case of failure
+					// generate metric for slow-update count
 					c.MetricStore.IncAddressPoolSlowUpdateCounter()
 				} else {
-					for _, obj := range backendPool.Spec.BackendAddressPools {
-						var ips []string
-						for _, address := range obj.BackendAddresses {
-							ips = append(ips, address.IPAddress)
-						}
-						glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
+					glog.V(3).Infof("Find AzureApplicationGatewayBackendPool CRD object id: %s", AddressPoolCRDObjectID)
+					if generatedBackendAddressPools == nil {
+						e := controllererrors.NewError(
+							controllererrors.ErrorNoBackendAddressPool,
+							"Unable to find any address pool from backend",
+						)
+						glog.Error(e.Error())
+						return e
 					}
 
-					// make sure no backendaddress will be passed through slow path
-					// TO-DO: use the code once we have feature flag for ccp
-					// for _, backendAddressPool := range *generatedBackendAddressPools {
-					// 	backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
-					// }
-				}
+					// reset crd before update
+					backendPool.Spec.BackendAddressPools = []agpoolv1beta1.BackendAddressPool{}
+					var updatedBackendAddressPools []agpoolv1beta1.BackendAddressPool
+					// apply updates to CRD
+					for _, backendAddressPool := range *generatedBackendAddressPools {
+						pool := agpoolv1beta1.BackendAddressPool{
+							Name:             *backendAddressPool.ID,
+							BackendAddresses: c.getIPAddresses(backendAddressPool.BackendAddresses),
+						}
+						updatedBackendAddressPools = append(updatedBackendAddressPools, pool)
+					}
 
+					backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
+					if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
+						glog.Warningf("Failed to update address pool CRD object Id: %s, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
+						c.MetricStore.IncAddressPoolSlowUpdateCounter()
+					} else {
+						for _, obj := range backendPool.Spec.BackendAddressPools {
+							var ips []string
+							for _, address := range obj.BackendAddresses {
+								ips = append(ips, address.IPAddress)
+							}
+							glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
+						}
+
+						// make sure no backendaddress will be passed through slow path
+						// TO-DO: use the code once we have feature flag for ccp
+						// for _, backendAddressPool := range *generatedBackendAddressPools {
+						// 	backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
+						// }
+					}
+
+				}
 			}
+		} else {
+			glog.V(3).Info("Backend address pool has NOT been changed!")
 		}
-	} else {
-		glog.V(3).Info("Backend address pool has NOT been changed!")
 	}
 
 	// if this is not a reconciliation task

@@ -215,11 +215,18 @@ func (c *Context) GetBackendPool(backendPoolName string) (agPool *agpoolv1beta1.
 			return utils.Retriable(true), err
 		})
 
-	return agPool, nil
+	return
 }
 
+// UpdateBackendPool updates the backend address pool
 func (c *Context) UpdateBackendPool(agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
 	result, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Update(context.TODO(), agPool, metav1.UpdateOptions{})
+	return result, err
+}
+
+// CreateBackendPool creates the backend address pool
+func (c *Context) CreateBackendPool(agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	result, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Create(context.TODO(), agPool, metav1.CreateOptions{})
 	return result, err
 }
 

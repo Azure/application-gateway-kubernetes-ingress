@@ -1,6 +1,10 @@
 # Verbosity level of the App Gateway Ingress Controller
 verbosityLevel: 3
 
+# Enable CCP
+ccp:
+  enabled: false
+  
 # Reconcile period is time period after which AGIC will re-configure Application Gateway if the current state differs from the expected state.
 # If not specified, periodic reconcile is turned off. Range: 30 - 300 (seconds)
 # reconcilePeriodSeconds: 30
