@@ -14,9 +14,10 @@ import (
 	"strings"
 	"time"
 
-	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/golang/glog"
+
+	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )

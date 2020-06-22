@@ -11,6 +11,8 @@ const (
 	RetryPause = 10 * time.Second
 	// RetryCount indicates the retry times
 	RetryCount = 3
+	// ExtendedRetryCount extends the retry count
+	ExtendedRetryCount = 60
 )
 
 // Retriable is returned by RetriableFunction and tells whether to retry the function or not.
