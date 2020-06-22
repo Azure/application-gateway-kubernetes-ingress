@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
@@ -164,11 +164,11 @@ func newURLPathMap() n.ApplicationGatewayURLPathMap {
 	}
 }
 
-func newTestListenerID(port Port, hostnames []string, usePrivateIP bool) (listenerIdentifier, string) {
+func newTestListenerID(port Port, hostNames []string, usePrivateIP bool) (listenerIdentifier, string) {
 	listener := listenerIdentifier{
 		FrontendPort: port,
 		UsePrivateIP: usePrivateIP,
 	}
-	listener.setHostNames(hostnames)
+	listener.setHostNames(hostNames)
 	return listener, generateListenerName(listener)
 }

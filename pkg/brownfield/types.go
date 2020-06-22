@@ -6,7 +6,7 @@
 package brownfield
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
@@ -103,13 +103,13 @@ func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.
 	}
 }
 
-func (er ExistingResources) getProhibitedHostnames() map[string]interface{} {
-	prohibitedHostnames := make(map[string]interface{})
+func (er ExistingResources) getProhibitedHostNames() map[string]interface{} {
+	prohibitedHostNames := make(map[string]interface{})
 	for _, pt := range er.ProhibitedTargets {
 		if len(pt.Spec.Hostname) == 0 {
 			continue
 		}
-		prohibitedHostnames[pt.Spec.Hostname] = nil
+		prohibitedHostNames[pt.Spec.Hostname] = nil
 	}
-	return prohibitedHostnames
+	return prohibitedHostNames
 }

@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/golang/glog"
 	"k8s.io/api/extensions/v1beta1"
 
@@ -63,7 +63,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 	frontendPorts := make(map[Port]interface{})
 
 	// certificate from ingress TLS spec
-	ingressHostnameSecretIDMap := c.newHostToSecretMap(ingress)
+	ingressHostNamesecretIDMap := c.newHostToSecretMap(ingress)
 
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
@@ -77,7 +77,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 		glog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
-	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostnameSecretIDMap)
+	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostNamesecretIDMap)
 	hasTLS := (cert != nil || len(appgwCertName) > 0)
 
 	sslRedirect, _ := annotations.IsSslRedirect(ingress)

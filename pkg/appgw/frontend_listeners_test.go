@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -37,7 +37,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 	var expectedListener80Priv n.ApplicationGatewayHTTPListener
 	var expectedListener443 n.ApplicationGatewayHTTPListener
 	var expectedListener443Priv n.ApplicationGatewayHTTPListener
-	var expectedListener80MultiHostnames n.ApplicationGatewayHTTPListener
+	var expectedListener80MultiHostNames n.ApplicationGatewayHTTPListener
 	var listenerID80Name string
 	var listenerID80PrivName string
 	var listenerID443Name string
@@ -104,11 +104,11 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{tests.Host},
+				HostNames:                   &[]string{tests.Host},
 			},
 		}
 
-		expectedListener80MultiHostnames = n.ApplicationGatewayHTTPListener{
+		expectedListener80MultiHostNames = n.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(listenerID80ExtendedHostName),
 			ID:   to.StringPtr(resPref + "httpListeners/" + listenerID80ExtendedHostName),
@@ -116,7 +116,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
-				Hostnames:                   to.StringSlicePtr([]string{"test.com", "t*.com"}),
+				HostNames:                   to.StringSlicePtr([]string{"test.com", "t*.com"}),
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
 		}
@@ -130,7 +130,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-80"),
 				Protocol:                    n.ApplicationGatewayProtocol("Http"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{tests.Host},
+				HostNames:                   &[]string{tests.Host},
 			},
 		}
 
@@ -144,7 +144,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
 				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{tests.Host},
+				HostNames:                   &[]string{tests.Host},
 			},
 		}
 
@@ -158,7 +158,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
 				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
-				Hostnames:                   &[]string{tests.Host},
+				HostNames:                   &[]string{tests.Host},
 			},
 		}
 	})
@@ -208,7 +208,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			Expect(*port).To(Equal(expectedPort80))
 		})
 
-		It("should create a correct App Gwy listener when ingress has extended hostnames", func() {
+		It("should create a correct App Gwy listener when ingress has extended HostNames", func() {
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			cbCtx := &ConfigBuilderContext{
@@ -225,7 +225,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			listener, port, err := cb.newListener(cbCtx, listenerID80ExtendedHost, n.ApplicationGatewayProtocol("Http"), ports)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(*listener).To(Equal(expectedListener80MultiHostnames))
+			Expect(*listener).To(Equal(expectedListener80MultiHostNames))
 			Expect(*port).To(Equal(expectedPort80))
 		})
 	})

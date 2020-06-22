@@ -94,7 +94,7 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-443"
                     },
-                    "hostnames": [],
+                    "hostNames": [],
                     "protocol": "Https",
                     "requireServerNameIndication": false,
                     "sslCertificate": {
