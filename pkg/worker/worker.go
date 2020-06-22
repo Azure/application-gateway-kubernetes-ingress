@@ -42,7 +42,7 @@ func drainChan(ch chan events.Event, epch chan events.Event, defaultEvent events
 					epch <- defaultEvent
 				}
 			}
-			glog.V(3).Infof("Buffered %d endpoint events", len(epch))
+			glog.V(5).Infof("Buffered %d endpoint events", len(epch))
 			return lastEvent
 		}
 	}
@@ -89,9 +89,9 @@ func (w *Worker) Run(eventChan chan events.Event, stopChannel chan struct{}) {
 				if shouldProcess, _ := w.ShouldProcess(epEvent); !shouldProcess {
 					continue
 				}
-				glog.V(3).Info("###### Push back one endpoint event to the event channel ######")
+				glog.V(9).Info("###### Push back one endpoint event to the event channel ######")
 				eventChan <- epEvent
-				glog.V(3).Infof("###### %d events found after endpoint event push-back ######", len(eventChan))
+				glog.V(9).Infof("###### %d events found after endpoint event push-back ######", len(eventChan))
 				break
 			}
 

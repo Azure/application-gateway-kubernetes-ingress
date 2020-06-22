@@ -29,6 +29,7 @@ func (agw Identifier) gatewayResourceID(subResourceKind string, resourceName str
 	return agw.resourceID("Microsoft.Network", "applicationGateways", resourcePath)
 }
 
+// BackendAddressPoolCRDObjectID returns the name of address pool CRD object
 func (agw Identifier) BackendAddressPoolCRDObjectID() string {
 	ObjectID := fmt.Sprintf("%s-%s-%s", agw.SubscriptionID, agw.ResourceGroup, agw.AppGwName)
 	return ObjectID
