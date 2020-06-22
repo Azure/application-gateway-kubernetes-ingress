@@ -123,7 +123,7 @@ var _ = Describe("Test blacklisting targets", func() {
 		})
 	})
 
-	Context("Test getProhibitedHostnames()", func() {
+	Context("Test getProhibitedHostNames()", func() {
 		er := ExistingResources{
 			ProhibitedTargets: []*v1.AzureIngressProhibitedTarget{
 				{
@@ -141,13 +141,13 @@ var _ = Describe("Test blacklisting targets", func() {
 				},
 			},
 		}
-		It("should create a list of prohibited hostnames", func() {
-			prohibitedHostnames := er.getProhibitedHostnames()
-			Expect(len(prohibitedHostnames)).To(Equal(1))
+		It("should create a list of prohibited HostNames", func() {
+			prohibitedHostNames := er.getProhibitedHostNames()
+			Expect(len(prohibitedHostNames)).To(Equal(1))
 			expected := map[string]interface{}{
 				tests.Host: nil,
 			}
-			Expect(er.getProhibitedHostnames()).To(Equal(expected))
+			Expect(er.getProhibitedHostNames()).To(Equal(expected))
 		})
 	})
 })

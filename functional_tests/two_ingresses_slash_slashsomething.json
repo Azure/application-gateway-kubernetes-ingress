@@ -125,7 +125,7 @@
                     "frontendPort": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
                     },
-                    "hostnames": [],
+                    "hostNames": [],
                     "protocol": "Http",
                     "requireServerNameIndication": false
                 }

@@ -6,7 +6,7 @@
 package fixtures
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -103,7 +103,7 @@ func GetListenerUnassociated() *n.ApplicationGatewayHTTPListener {
 	}
 }
 
-// GetListenerWildcard creates a new listener which is associated to a rule and uses wild card hostnames
+// GetListenerWildcard creates a new listener which is associated to a rule and uses wild card HostNames
 func GetListenerWildcard() *n.ApplicationGatewayHTTPListener {
 	return &n.ApplicationGatewayHTTPListener{
 		Name: to.StringPtr(HTTPListenerWildcard),
@@ -111,7 +111,7 @@ func GetListenerWildcard() *n.ApplicationGatewayHTTPListener {
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
 			Protocol:                    n.HTTP,
-			Hostnames:                   &[]string{tests.WildcardHost1, tests.WildcardHost2},
+			HostNames:                   &[]string{tests.WildcardHost1, tests.WildcardHost2},
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
 	}

@@ -8,7 +8,7 @@ package brownfield
 import (
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/golang/glog"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -161,8 +161,8 @@ func (er ExistingResources) getHostNamesForRoutingRule(rule n.ApplicationGateway
 		return []string{""}, e
 	} else if listener.HostName != nil {
 		return []string{*listener.HostName}, nil
-	} else if listener.Hostnames != nil && len(*listener.Hostnames) > 0 {
-		return *listener.Hostnames, nil
+	} else if listener.HostNames != nil && len(*listener.HostNames) > 0 {
+		return *listener.HostNames, nil
 	}
 
 	return []string{""}, nil
@@ -178,13 +178,13 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 		if rule.HTTPListener == nil || rule.HTTPListener.ID == nil {
 			continue
 		}
-		hostNames, err := er.getHostNamesForRoutingRule(rule)
+		HostNames, err := er.getHostNamesForRoutingRule(rule)
 		if err != nil {
 			glog.Errorf("[brownfield] Could not obtain hostname for rule %s; Skipping rule", ruleName(*rule.Name))
 			continue
 		}
 
-		for _, hostName := range hostNames {
+		for _, hostName := range HostNames {
 			// Regardless of whether we have a URL PathMap or not. This matches the default backend pool.
 			ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], Target{
 				Hostname: hostName,
@@ -202,7 +202,7 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 					continue
 				}
 				for _, path := range *pathRule.Paths {
-					for _, hostName := range hostNames {
+					for _, hostName := range HostNames {
 						target := Target{hostName, TargetPath(path)}
 						ruleToTargets[ruleName(*rule.Name)] = append(ruleToTargets[ruleName(*rule.Name)], target)
 						pathMapToTargets[pathMapName] = append(pathMapToTargets[pathMapName], target)
