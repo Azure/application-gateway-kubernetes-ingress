@@ -159,9 +159,8 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 
 	// Post Compare Phase //
 	// ------------------ //
-
-	// (TO-DO): a global flag to enable or disable the fast path, the flag shall be enabled by default once we start to migrate to fast update
 	if cbCtx.EnvVariables.CCPEnabled {
+		glog.V(3).Info("Connected Control Plane is enabled")
 		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
 			glog.V(3).Info("Backend address pool is updated")
@@ -190,7 +189,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 							controllererrors.ErrorInitializeBackendAddressPool,
 							"Unable to initialize backend address pool",
 						)
-						glog.Warning(e.Error())
+						glog.Error(e.Error())
 					}
 
 					// fallback to slow update to apply in case of failure
@@ -233,10 +232,9 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 						}
 
 						// make sure no backendaddress will be passed through slow path
-						// TO-DO: use the code once we have feature flag for ccp
-						// for _, backendAddressPool := range *generatedBackendAddressPools {
-						// 	backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
-						// }
+						for _, backendAddressPool := range *generatedBackendAddressPools {
+							backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
+						}
 					}
 
 				}
