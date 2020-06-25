@@ -1,0 +1,10 @@
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayResponse
+metadata:
+  name: subscription-resourcegroup-gatewayname-instanceid
+spec:
+  instanceID: "1"
+  desiredBackendPoolResourceVersion: "17358752"
+  currentAppliedBackendPoolResourceVersion: "1700000"
+  lastCheckInTime:  "Wed, Jun 24, 2020  1:45:43 PM"
+  errorMessage: "RELOAD_NGINX_CONF_ERROR"
