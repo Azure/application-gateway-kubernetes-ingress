@@ -1,5 +1,5 @@
 apiVersion: appgw.ingress.azure.io/v1beta1
-kind: AzureApplicationGatewayResponse
+kind: AzureApplicationGatewayInstanceUpdateStatus
 metadata:
   name: subscription-resourcegroup-gatewayname-instanceid
 spec:
