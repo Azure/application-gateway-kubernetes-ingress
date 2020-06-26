@@ -7,4 +7,4 @@ spec:
   desiredBackendPoolResourceVersion: "17358752"
   currentAppliedBackendPoolResourceVersion: "1700000"
   lastCheckInTime:  "Wed, Jun 24, 2020  1:45:43 PM"
-  errorMessage: "RELOAD_NGINX_CONF_ERROR"
+  errorMessage: "EXAMPLE_ERROR_MESSAGE"
