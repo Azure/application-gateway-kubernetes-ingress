@@ -1,0 +1,11 @@
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayInstanceUpdateStatus
+metadata:
+  name: subscription-resourcegroup-gatewayname-instanceid
+spec:
+  instanceID: "1"
+  instanceCount: 10
+  desiredBackendPoolResourceVersion: "17358752"
+  currentAppliedBackendPoolResourceVersion: "1700000"
+  lastCheckInTime:  "Wed, Jun 24, 2020  1:45:43 PM"
+  errorCode: "EXAMPLE_ERROR_MESSAGE"
