@@ -19,27 +19,27 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 
-type AzureapplicationgatewaybackendpoolsV1beta1Interface interface {
+type AzureapplicationgatewayinstanceupdatestatusV1beta1Interface interface {
 	RESTClient() rest.Interface
-	AzureApplicationGatewayBackendPoolsGetter
+	AzureApplicationGatewayInstanceUpdateStatusesGetter
 }
 
-// AzureapplicationgatewaybackendpoolsV1beta1Client is used to interact with features provided by the azureapplicationgatewaybackendpools.appgw.ingress.azure.io group.
-type AzureapplicationgatewaybackendpoolsV1beta1Client struct {
+// AzureapplicationgatewayinstanceupdatestatusV1beta1Client is used to interact with features provided by the azureapplicationgatewayinstanceupdatestatus.appgw.ingress.azure.io group.
+type AzureapplicationgatewayinstanceupdatestatusV1beta1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AzureapplicationgatewaybackendpoolsV1beta1Client) AzureApplicationGatewayBackendPools() AzureApplicationGatewayBackendPoolInterface {
-	return newAzureApplicationGatewayBackendPools(c)
+func (c *AzureapplicationgatewayinstanceupdatestatusV1beta1Client) AzureApplicationGatewayInstanceUpdateStatuses() AzureApplicationGatewayInstanceUpdateStatusInterface {
+	return newAzureApplicationGatewayInstanceUpdateStatuses(c)
 }
 
-// NewForConfig creates a new AzureapplicationgatewaybackendpoolsV1beta1Client for the given config.
-func NewForConfig(c *rest.Config) (*AzureapplicationgatewaybackendpoolsV1beta1Client, error) {
+// NewForConfig creates a new AzureapplicationgatewayinstanceupdatestatusV1beta1Client for the given config.
+func NewForConfig(c *rest.Config) (*AzureapplicationgatewayinstanceupdatestatusV1beta1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func NewForConfig(c *rest.Config) (*AzureapplicationgatewaybackendpoolsV1beta1Cl
 	if err != nil {
 		return nil, err
 	}
-	return &AzureapplicationgatewaybackendpoolsV1beta1Client{client}, nil
+	return &AzureapplicationgatewayinstanceupdatestatusV1beta1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new AzureapplicationgatewaybackendpoolsV1beta1Client for the given config and
+// NewForConfigOrDie creates a new AzureapplicationgatewayinstanceupdatestatusV1beta1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *AzureapplicationgatewaybackendpoolsV1beta1Client {
+func NewForConfigOrDie(c *rest.Config) *AzureapplicationgatewayinstanceupdatestatusV1beta1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -61,9 +61,9 @@ func NewForConfigOrDie(c *rest.Config) *AzureapplicationgatewaybackendpoolsV1bet
 	return client
 }
 
-// New creates a new AzureapplicationgatewaybackendpoolsV1beta1Client for the given RESTClient.
-func New(c rest.Interface) *AzureapplicationgatewaybackendpoolsV1beta1Client {
-	return &AzureapplicationgatewaybackendpoolsV1beta1Client{c}
+// New creates a new AzureapplicationgatewayinstanceupdatestatusV1beta1Client for the given RESTClient.
+func New(c rest.Interface) *AzureapplicationgatewayinstanceupdatestatusV1beta1Client {
+	return &AzureapplicationgatewayinstanceupdatestatusV1beta1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -81,7 +81,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *AzureapplicationgatewaybackendpoolsV1beta1Client) RESTClient() rest.Interface {
+func (c *AzureapplicationgatewayinstanceupdatestatusV1beta1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

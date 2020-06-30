@@ -19,17 +19,18 @@ limitations under the License.
 package fake
 
 import (
+	clientset "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
+	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
+	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	fakeazureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1/fake"
+	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
+	fakeazureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/testing"
-
-	clientset "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
-	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
-	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
-	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
-	fakeazureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1/fake"
 )
 
 // NewSimpleClientset returns a clientset that will respond with the provided objects.
@@ -82,6 +83,11 @@ var _ clientset.Interface = &Clientset{}
 // AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
 func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
 	return &fakeazureapplicationgatewaybackendpoolsv1beta1.FakeAzureapplicationgatewaybackendpoolsV1beta1{Fake: &c.Fake}
+}
+
+// AzureapplicationgatewayinstanceupdatestatusV1beta1 retrieves the AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface {
+	return &fakeazureapplicationgatewayinstanceupdatestatusv1beta1.FakeAzureapplicationgatewayinstanceupdatestatusV1beta1{Fake: &c.Fake}
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
