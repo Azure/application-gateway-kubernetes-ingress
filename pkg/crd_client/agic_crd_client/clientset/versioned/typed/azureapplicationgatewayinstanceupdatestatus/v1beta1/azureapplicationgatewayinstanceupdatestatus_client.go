@@ -19,9 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
+	rest "k8s.io/client-go/rest"
+
 	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
-	rest "k8s.io/client-go/rest"
 )
 
 type AzureapplicationgatewayinstanceupdatestatusV1beta1Interface interface {

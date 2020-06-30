@@ -28,6 +28,8 @@ const (
 	// k8sContext package
 	ErrorEnpdointsNotFound              ErrorCode = "ErrorEnpdointsNotFound"
 	ErrorFetchingEnpdoints              ErrorCode = "ErrorFetchingEnpdoints"
+	ErrorFetchingBackendAddressPool     ErrorCode = "ErrorFetchingBackendAddressPool"
+	ErrorFetchingInstanceUpdateStatus   ErrorCode = "ErrorFetchingInstanceUpdateStatus"
 	ErrorInformersNotInitialized        ErrorCode = "ErrorInformersNotInitialized"
 	ErrorFailedInitialCacheSync         ErrorCode = "ErrorFailedInitialCacheSync"
 	ErrorUpdatingIngressStatus          ErrorCode = "ErrorUpdatingIngressStatus"
