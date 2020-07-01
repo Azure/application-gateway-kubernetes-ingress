@@ -26,12 +26,14 @@ import (
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
 
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
+	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 )
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
+	AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
 }
 
@@ -39,13 +41,19 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	azureapplicationgatewaybackendpoolsV1beta1 *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
-	azureingressprohibitedtargetsV1            *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
+	azureapplicationgatewaybackendpoolsV1beta1         *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
+	azureapplicationgatewayinstanceupdatestatusV1beta1 *azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+	azureingressprohibitedtargetsV1                    *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
 }
 
 // AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
 func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
 	return c.azureapplicationgatewaybackendpoolsV1beta1
+}
+
+// AzureapplicationgatewayinstanceupdatestatusV1beta1 retrieves the AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface {
+	return c.azureapplicationgatewayinstanceupdatestatusV1beta1
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
@@ -78,6 +86,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.azureapplicationgatewayinstanceupdatestatusV1beta1, err = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.azureingressprohibitedtargetsV1, err = azureingressprohibitedtargetsv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -95,6 +107,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
+	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -105,6 +118,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
+	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
