@@ -149,7 +149,7 @@ func (ms *AGICMetricStore) IncK8sAPIEventCounter() {
 	ms.k8sAPIEventCounter.Inc()
 }
 
-// IncAddressPoolSlowUpdateCounter increases the counter when ccp slow-update is applied
+// IncAddressPoolARMFallbackCounter increases the counter when backend adress update falls back to ARM
 func (ms *AGICMetricStore) IncAddressPoolARMFallbackCounter() {
 	ms.addressPoolARMFallbackCounter.Inc()
 }
