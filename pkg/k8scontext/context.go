@@ -147,11 +147,9 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget:                nil,
-		c.informers.IstioGateway:                                nil,
-		c.informers.IstioVirtualService:                         nil,
-		c.informers.AzureApplicationGatewayBackendPool:          nil,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
+		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.IstioGateway:                 nil,
+		c.informers.IstioVirtualService:          nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -160,10 +158,6 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
-
-		//TODO: enabled by ccp feature flag
-		c.informers.AzureApplicationGatewayBackendPool,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -173,6 +167,10 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	if envVariables.EnableIstioIntegration {
 		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
+	}
+
+	if envVariables.CCPEnabled {
+		sharedInformers = append(sharedInformers, c.informers.AzureApplicationGatewayBackendPool, c.informers.AzureApplicationGatewayInstanceUpdateStatus)
 	}
 
 	for _, informer := range sharedInformers {
@@ -211,20 +209,6 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 		return nil
 	}
 	return pod
-}
-
-// GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) (agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool, err error) {
-	utils.Retry(utils.RetryCount, utils.RetryPause,
-		func() (utils.Retriable, error) {
-			agPool, err = c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Get(context.TODO(), backendPoolName, metav1.GetOptions{})
-			if err != nil {
-				glog.Errorf("Error fetching AzureApplicationGatewayBackendPool CRD object: '%s', Error: %s", backendPoolName, err)
-			}
-			return utils.Retriable(true), err
-		})
-
-	return
 }
 
 // GetCachedBackendPool returns backend pool with specified name from synced cache

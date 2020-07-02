@@ -160,7 +160,6 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Post Compare Phase //
 	// ------------------ //
 	if cbCtx.EnvVariables.CCPEnabled {
-		glog.V(3).Info("Connected Control Plane is enabled")
 		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
 			glog.V(3).Info("Backend address pool is updated")
@@ -174,27 +173,26 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 				}
 
 			} else {
-				// otherwise, we start to update our CRD
+				// otherwise, we start to update the backend pool CRD
 				glog.V(3).Info("Endpoint event identified, start to update backend address pool")
 				// check crd by name
 				AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
-				backendPool, err := c.k8sContext.GetBackendPool(AddressPoolCRDObjectID)
+				backendPool, err := c.k8sContext.GetCachedBackendPool(AddressPoolCRDObjectID)
 				if err != nil {
-					glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be initialized, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
-					// TO-DO: Initialize a CRD object if it doesn't exist
+					glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be created, fall back to ARM update!", AddressPoolCRDObjectID)
 					initBackendPool := agpoolv1beta1.AzureApplicationGatewayBackendPool{}
 					initBackendPool.Name = AddressPoolCRDObjectID
 					if _, err := c.k8sContext.CreateBackendPool(&initBackendPool); err != nil {
 						e := controllererrors.NewError(
 							controllererrors.ErrorInitializeBackendAddressPool,
-							"Unable to initialize backend address pool",
+							"Unable to create backend address pool",
 						)
 						glog.Error(e.Error())
 					}
 
-					// fallback to slow update to apply in case of failure
-					// generate metric for slow-update count
-					c.MetricStore.IncAddressPoolSlowUpdateCounter()
+					// fallback to ARM in case of failure
+					// generate metric for ARM update count
+					c.MetricStore.IncAddressPoolARMFallbackCounter()
 				} else {
 					glog.V(3).Infof("Find AzureApplicationGatewayBackendPool CRD object id: %s", AddressPoolCRDObjectID)
 					if generatedBackendAddressPools == nil {
@@ -220,8 +218,8 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 
 					backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
 					if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
-						glog.Warningf("Failed to update address pool CRD object Id: %s, backend address pool update falls back to slow-update!", AddressPoolCRDObjectID)
-						c.MetricStore.IncAddressPoolSlowUpdateCounter()
+						glog.Warningf("Failed to update address pool CRD object Id: %s, fall back to ARM update!", AddressPoolCRDObjectID)
+						c.MetricStore.IncAddressPoolARMFallbackCounter()
 					} else {
 						for _, obj := range backendPool.Spec.BackendAddressPools {
 							var ips []string
@@ -231,7 +229,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 							glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
 						}
 
-						// make sure no backendaddress will be passed through slow path
+						// make sure no backendaddress will be passed through control path
 						for _, backendAddressPool := range *generatedBackendAddressPools {
 							backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
 						}
