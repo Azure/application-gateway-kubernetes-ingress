@@ -24,6 +24,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -59,23 +60,24 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
-		AzureIngressProhibitedTarget: crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
-		AzureAppGwBackendPool:        crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
-
+		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
+		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
 	cacheCollection := CacheCollection{
-		Endpoints:                    informerCollection.Endpoints.GetStore(),
-		Ingress:                      informerCollection.Ingress.GetStore(),
-		Pods:                         informerCollection.Pods.GetStore(),
-		Secret:                       informerCollection.Secret.GetStore(),
-		Service:                      informerCollection.Service.GetStore(),
-		AzureIngressProhibitedTarget: informerCollection.AzureIngressProhibitedTarget.GetStore(),
-		AzureAppGwBackendPool:        informerCollection.AzureAppGwBackendPool.GetStore(),
-		IstioGateway:                 informerCollection.IstioGateway.GetStore(),
-		IstioVirtualService:          informerCollection.IstioVirtualService.GetStore(),
+		Endpoints:                          informerCollection.Endpoints.GetStore(),
+		Ingress:                            informerCollection.Ingress.GetStore(),
+		Pods:                               informerCollection.Pods.GetStore(),
+		Secret:                             informerCollection.Secret.GetStore(),
+		Service:                            informerCollection.Service.GetStore(),
+		AzureIngressProhibitedTarget:       informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
+		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
+		IstioGateway:        informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService: informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
@@ -125,7 +127,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
-	informerCollection.AzureAppGwBackendPool.AddEventHandler(resourceHandler)
+	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
+	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -144,9 +147,11 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget: nil,
-		c.informers.IstioGateway:                 nil,
-		c.informers.IstioVirtualService:          nil,
+		c.informers.AzureIngressProhibitedTarget:                nil,
+		c.informers.IstioGateway:                                nil,
+		c.informers.IstioVirtualService:                         nil,
+		c.informers.AzureApplicationGatewayBackendPool:          nil,
+		c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -155,6 +160,10 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
+
+		//TODO: enabled by ccp feature flag
+		c.informers.AzureApplicationGatewayBackendPool,
+		c.informers.AzureApplicationGatewayInstanceUpdateStatus,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -216,6 +225,60 @@ func (c *Context) GetBackendPool(backendPoolName string) (agPool *agpoolv1beta1.
 		})
 
 	return
+}
+
+// GetCachedBackendPool returns backend pool with specified name from synced cache
+func (c *Context) GetCachedBackendPool(backendPoolName string) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	agpool, exist, err := c.Caches.AzureApplicationGatewayBackendPool.GetByKey(backendPoolName)
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingBackendAddressPool,
+			"Backend pool CRD object not found for %s",
+			backendPoolName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingBackendAddressPool,
+			err,
+			"Error fetching backend pool CRD object from store for %s",
+			backendPoolName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+}
+
+// GetCachedInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
+func (c *Context) GetCachedInstanceUpdateStatus(instanceUpdateStatusName string) (*aginstv1beta1.AzureApplicationGatewayInstanceUpdateStatus, error) {
+	agpool, exist, err := c.Caches.AzureApplicationGatewayInstanceUpdateStatus.GetByKey(instanceUpdateStatusName)
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingInstanceUpdateStatus,
+			"Instance update status CRD object not found for %s",
+			instanceUpdateStatusName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingInstanceUpdateStatus,
+			err,
+			"Error fetching instance update status CRD object from store for %s",
+			instanceUpdateStatusName)
+		glog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return agpool.(*aginstv1beta1.AzureApplicationGatewayInstanceUpdateStatus), nil
 }
 
 // UpdateBackendPool updates the backend address pool
