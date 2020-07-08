@@ -67,11 +67,11 @@ To install AAD Pod Identity to your cluster:
 Next we need to create an Azure identity and give it permissions to ARM. This identity will then be assigned to AGIC Pod using AAD Pod Identity.
 Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
 
-1. Create a User assigned identity in the same resource group as AKS cluster.
+1. Create a User assigned identity. This identity can be created in any resource group as long as permissions are set correctly. In following steps, we will create the identity in the same resource group as the AKS cluster.
 
     ```bash
     identityName="<identity-name>"
-    resourceGroup="<resourcegroup>"
+    resourceGroup="<resource-group>"
     az identity create -g $resourceGroup -n $identityName
     ```
 
