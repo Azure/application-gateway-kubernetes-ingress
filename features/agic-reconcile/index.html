@@ -176,11 +176,11 @@ Acceptable values are between 30 and 300.</p>
 <h3 id="configure-from-helm-command-line">Configure from helm command line</h3>
 <p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3
 <pre class="highlight"><code class="language-bash"># helm fresh install
-helm intall &lt;releaseName&gt; -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --version 1.2.0-rc1 --set reconcilePeriodSeconds=30 
+helm intall &lt;releaseName&gt; -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --version 1.2.0-rc3 --set reconcilePeriodSeconds=30 
 
 # help upgrade
 # --reuse-values, when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f.
-helm upgrade &lt;releaseName&gt; application-gateway-kubernetes-ingress/ingress-azure --reuse-values --version 1.2.0-rc1 --set reconcilePeriodSeconds=30</code></pre></p>
+helm upgrade &lt;releaseName&gt; application-gateway-kubernetes-ingress/ingress-azure --reuse-values --version 1.2.0-rc3 --set reconcilePeriodSeconds=30</code></pre></p>
               
             </div>
           </div>

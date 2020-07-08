@@ -245,39 +245,50 @@ for the AGIC pod to make HTTP requests to <a href="https://docs.microsoft.com/en
 </ul>
 <pre class="highlight"><code class="language-bash">kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml</code></pre>
 
-<p>Next we need to create an Azure identity and give it permissions ARM.
+<p>Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
 Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the following commands and create an identity:</p>
 <ol>
 <li>
-<p>Create an Azure identity <strong>in the same resource group as the AKS nodes</strong>. Picking the correct resource group is
-important. The resource group required in the command below is <em>not</em> the one referenced on the AKS portal pane. This is
-the resource group of the <code>aks-agentpool</code> virtual machines. Typically that resource group starts with <code>MC_</code> and contains
- the name of your AKS. For instance: <code>MC_resourceGroup_aksABCD_westus</code></p>
-<pre class="highlight"><code class="language-bash">az identity create -g &lt;agent-pool-resource-group&gt; -n &lt;identity-name&gt;</code></pre>
+<p>Create a User assigned identity. This identity can be created in any resource group as long as permissions are set correctly. In following steps, we will create the identity in the same resource group as the AKS cluster.</p>
+<pre class="highlight"><code class="language-bash">identityName="&lt;identity-name&gt;"
+resourceGroup="&lt;resource-group&gt;"
+az identity create -g $resourceGroup -n $identityName</code></pre>
 
 </li>
 <li>
-<p>For the role assignment commands below we need to obtain <code>clientId</code> for the newly created identity:</p>
-<pre class="highlight"><code class="language-bash">az identity show -g &lt;resourcegroup&gt; -n &lt;identity-name&gt;</code></pre>
+<p>For the role assignment commands below we need to obtain <code>identityId</code> and <code>clientId</code> for the newly created identity:</p>
+<pre class="highlight"><code class="language-bash">identityClientId=$(az identity show -g $resourceGroup -n $identityName -o tsv --query "clientId")
+identityId=$(az identity show -g $resourceGroup -n $identityName -o tsv --query "id")</code></pre>
 
 </li>
 <li>
-<p>Give the identity <code>Contributor</code> access to you App Gateway. For this you need the ID of the App Gateway, which will
+<p>Give AGIC's identity <code>Contributor</code> access to you App Gateway. For this you need the ID of the App Gateway, which will
 look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Microsoft.Network/applicationGateways/C</code></p>
 <p>Get the list of App Gateway IDs in your subscription with: <code>az network application-gateway list --query '[].id'</code></p>
 <pre class="highlight"><code class="language-bash">az role assignment create \
-    --role Contributor \
-    --assignee &lt;clientId&gt; \
+    --role "Contributor" \
+    --assignee $identityClientId \
     --scope &lt;App-Gateway-ID&gt;</code></pre>
 
 </li>
 <li>
-<p>Give the identity <code>Reader</code> access to the App Gateway resource group. The resource group ID would look like:
+<p>Give AGIC's identity <code>Reader</code> access to the App Gateway resource group. The resource group ID would look like:
 <code>/subscriptions/A/resourceGroups/B</code>. You can get all resource groups with: <code>az group list --query '[].id'</code></p>
 <pre class="highlight"><code class="language-bash">az role assignment create \
-    --role Reader \
-    --assignee &lt;clientId&gt; \
+    --role "Reader" \
+    --assignee $identityClientId \
     --scope &lt;App-Gateway-Resource-Group-ID&gt;</code></pre>
+
+</li>
+<li>
+<p>Give AKS cluster's service principal <code>Managed Identity Operator</code> access to the identity created for AGIC above.</p>
+<pre class="highlight"><code class="language-bash">aksName="&lt;aks-cluster-name&gt;"
+clusterClientId=$(az aks show -g $resourceGroup -n $aksName -o tsv --query "servicePrincipalProfile.clientId")
+
+az role assignment create \
+    --role "Managed Identity Operator" \
+    --assignee $clusterClientId \
+    --scope $identityId</code></pre>
 
 </li>
 </ol>
@@ -322,7 +333,7 @@ helm repo update</code></pre>
   --version 1.0.0</code></pre>
 
 <blockquote>
-<p>Note: Use at least version 1.2.0-rc1, e.g. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
+<p>Note: Use at least version 1.2.0-rc3, e.g. <code>--version 1.2.0-rc3</code>, when installing on k8s version &gt;= 1.16</p>
 </blockquote>
 <p>Alternatively you can combine the <code>helm-config.yaml</code> and the Helm command in one step:
 <pre class="highlight"><code class="language-bash">helm install ingress-azure application-gateway-kubernetes-ingress/ingress-azure \
@@ -340,7 +351,7 @@ helm repo update</code></pre>
      --set kubernetes.watchNamespace=default \
      --version 1.0.0</code></pre></p>
 <blockquote>
-<p>Note: Use at least version 1.2.0-rc1, e.g. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
+<p>Note: Use at least version 1.2.0-rc3, e.g. <code>--version 1.2.0-rc3</code>, when installing on k8s version &gt;= 1.16</p>
 </blockquote>
 </li>
 <li>

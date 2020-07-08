@@ -171,8 +171,8 @@
 - <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster
 - <a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</p>
 <p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfeild Deployment</a> to install nonexistents.</p>
-<p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc1
-<pre class="highlight"><code class="language-bash">helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc1 --generate-name</code></pre></p>
+<p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
+<pre class="highlight"><code class="language-bash">helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></pre></p>
 <h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
 <p>The certificate below should only be used for testing purpose.
 <pre class="highlight"><code class="language-bash">appgwName=""
