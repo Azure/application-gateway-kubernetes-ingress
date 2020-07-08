@@ -64,44 +64,56 @@ To install AAD Pod Identity to your cluster:
   kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
   ```
 
-Next we need to create an Azure identity and give it permissions ARM.
+Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
 Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
 
-1. Create an Azure identity **in the same resource group as the AKS nodes**. Picking the correct resource group is
-important. The resource group required in the command below is *not* the one referenced on the AKS portal pane. This is
-the resource group of the `aks-agentpool` virtual machines. Typically that resource group starts with `MC_` and contains
- the name of your AKS. For instance: `MC_resourceGroup_aksABCD_westus`
+1. Create a User assigned identity. This identity can be created in any resource group as long as permissions are set correctly. In following steps, we will create the identity in the same resource group as the AKS cluster.
 
     ```bash
-    az identity create -g <agent-pool-resource-group> -n <identity-name>
+    identityName="<identity-name>"
+    resourceGroup="<resource-group>"
+    az identity create -g $resourceGroup -n $identityName
     ```
 
-1. For the role assignment commands below we need to obtain `clientId` for the newly created identity:
+1. For the role assignment commands below we need to obtain `identityId` and `clientId` for the newly created identity:
 
     ```bash
-    az identity show -g <resourcegroup> -n <identity-name>
+    identityClientId=$(az identity show -g $resourceGroup -n $identityName -o tsv --query "clientId")
+    identityId=$(az identity show -g $resourceGroup -n $identityName -o tsv --query "id")
     ```
 
-1. Give the identity `Contributor` access to you App Gateway. For this you need the ID of the App Gateway, which will
+1. Give AGIC's identity `Contributor` access to you App Gateway. For this you need the ID of the App Gateway, which will
 look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft.Network/applicationGateways/C`
 
     Get the list of App Gateway IDs in your subscription with: `az network application-gateway list --query '[].id'`
 
     ```bash
     az role assignment create \
-        --role Contributor \
-        --assignee <clientId> \
+        --role "Contributor" \
+        --assignee $identityClientId \
         --scope <App-Gateway-ID>
     ```
 
-1. Give the identity `Reader` access to the App Gateway resource group. The resource group ID would look like:
+1. Give AGIC's identity `Reader` access to the App Gateway resource group. The resource group ID would look like:
 `/subscriptions/A/resourceGroups/B`. You can get all resource groups with: `az group list --query '[].id'`
 
     ```bash
     az role assignment create \
-        --role Reader \
-        --assignee <clientId> \
+        --role "Reader" \
+        --assignee $identityClientId \
         --scope <App-Gateway-Resource-Group-ID>
+    ```
+
+1. Give AKS cluster's service principal `Managed Identity Operator` access to the identity created for AGIC above.
+
+    ```bash
+    aksName="<aks-cluster-name>"
+    clusterClientId=$(az aks show -g $resourceGroup -n $aksName -o tsv --query "servicePrincipalProfile.clientId")
+
+    az role assignment create \
+        --role "Managed Identity Operator" \
+        --assignee $clusterClientId \
+        --scope $identityId
     ```
 
 ### Using a Service Principal

@@ -30,6 +30,7 @@ import (
 
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	azureapplicationgatewaybackendpool "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureapplicationgatewaybackendpool"
+	azureapplicationgatewayinstanceupdatestatus "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureapplicationgatewayinstanceupdatestatus"
 	azureingressprohibitedtarget "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureingressprohibitedtarget"
 	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/internalinterfaces"
 )
@@ -175,11 +176,16 @@ type SharedInformerFactory interface {
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
 	Azureapplicationgatewaybackendpools() azureapplicationgatewaybackendpool.Interface
+	Azureapplicationgatewayinstanceupdatestatus() azureapplicationgatewayinstanceupdatestatus.Interface
 	Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface
 }
 
 func (f *sharedInformerFactory) Azureapplicationgatewaybackendpools() azureapplicationgatewaybackendpool.Interface {
 	return azureapplicationgatewaybackendpool.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Azureapplicationgatewayinstanceupdatestatus() azureapplicationgatewayinstanceupdatestatus.Interface {
+	return azureapplicationgatewayinstanceupdatestatus.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface {
