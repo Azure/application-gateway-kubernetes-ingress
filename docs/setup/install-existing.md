@@ -64,7 +64,7 @@ To install AAD Pod Identity to your cluster:
   kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
   ```
 
-Next we need to create an Azure identity and give it permissions to ARM. This identity will then be assigned to AGIC Pod using AAD Pod Identity.
+Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
 Use [Cloud Shell](https://shell.azure.com/) to run all of the following commands and create an identity:
 
 1. Create a User assigned identity. This identity can be created in any resource group as long as permissions are set correctly. In following steps, we will create the identity in the same resource group as the AKS cluster.
