@@ -35,7 +35,7 @@ blank-slate infrastructure (running Windows Node Pool).
 
 ## Usage
 
-[**Tutorials**](docs/tutorial.md): Refer to these to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
+[**Tutorials**](docs/tutorials/tutorial.general.md): Refer to these to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure Application Gateway.
 
 [**Features**](docs/features/): List of all available AGIC features.
 
@@ -44,6 +44,7 @@ blank-slate infrastructure (running Windows Node Pool).
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
 
 ## How-tos
+* [Setup E2E SSL](docs/tutorials/tutorial.e2e-ssl.md)
 * [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
