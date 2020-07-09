@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-service
+spec:
+  selector:
+    app: website
+  ports:
+  - protocol: TCP
+    port: 8443
+    targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-deployment
+spec:
+  selector:
+    matchLabels:
+      app: website
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+        - name: website
+          imagePullPolicy: Always
+          image: nginx:latest
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+          - mountPath: /etc/nginx/ssl
+            name: secret-volume
+          - mountPath: /etc/nginx/conf.d
+            name: configmap-volume
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: backend-tls
+      - name: configmap-volume
+        configMap:
+          name: website-nginx-cm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-nginx-cm
+data:
+  default.conf: |-
+    server {
+        listen 8080 default_server;
+        listen 8443 ssl;
+        root /usr/share/nginx/html;
+        index index.html;
+        ssl_certificate /etc/nginx/ssl/tls.crt;
+        ssl_certificate_key /etc/nginx/ssl/tls.key;
+        location / {
+          return 200 "Hello World!";
+        }
+    }
