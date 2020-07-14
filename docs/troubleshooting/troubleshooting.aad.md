@@ -17,10 +17,10 @@ nmi-pv8ch
 1. [Stuck getting Application Gateway](#agic-is-stuck-getting-application-gateway)
 
 ## AGIC is stuck at creating authorizer
-When the AGIC pod starts, in one of the steps, AGIC tries to get an AAD (Azure Active Directory) token for the identity assigned to it. This token is then used to perform updates on the Application gateway.
+When the AGIC pod starts, in one of the steps, AGIC tries to get an AAD (Azure Active Directory) token for the identity assigned to it. This token is then used to perform updates on the Application gateway.  
 This identity can be of two types:
-    1. User Assigned Identity
-    1. Service Principal
+1. User Assigned Identity
+1. Service Principal
 
 When using User Assigned identity with AGIC, AGIC has a dependency on [`AAD Pod Identity`](https://github.com/Azure/aad-pod-identity).  
 When you see your AGIC pod stuck at `Creating Authorizer` step, then the issue could be related to the setup of the user assigned identity and AAD Pod Identity.
@@ -34,11 +34,11 @@ I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed
 I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123
 ```
 
-`AAD Pod identity` is responsible for assigning the user assigned identity provided by the user for AGIC to the underlying AKS nodes and setup the IP table rules to allow AGIC to get AAD token for the user to assign identity from the Instance Metadata service. When you install `AAD Pod Identity` on your AKS, it will deploy two components:
+`AAD Pod identity` is responsible for assigning the user assigned identity provided by the user for AGIC to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install `AAD Pod Identity` on your AKS cluster, it will deploy two components:
 1. Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is **elected leader**. It is responsible to do the assignment of the identity to the AKS nodes.
 1. Node Managed Identity (NMI): It runs as **daemon on every node**. It is responsible to enforce the IP table rules to allow AGIC to `GET` the access token.
 
-For further reading on how these components work, you go through [this readme](https://github.com/Azure/aad-pod-identity#components). Here is a [concept diagram](https://github.com/Azure/aad-pod-identity/blob/master/docs/design/concept.png) on the project page.
+For further reading on how these components work, you can go through [this readme](https://github.com/Azure/aad-pod-identity#components). Here is a [concept diagram](https://github.com/Azure/aad-pod-identity/blob/master/docs/design/concept.png) on the project page.
 
 Now, In order to debug the authorizer issue further, we need to get the logs for `mic` and `nmi` pods. These pods usually start with mic and nmi as the prefix. We should first investigate the logs of `mic` and then `nmi`.
 
@@ -53,7 +53,7 @@ nmi-pv8ch                              1/1     Running   1          15m
 
 ### Issue in MIC Pod
 For `mic` pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.
-1. MIC pod communicates with Azure to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts.
+1. MIC pod communicates with Azure to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.
     ```
     Updating msis on node aks-agentpool-41724381-vmss, add [1], del [1], update[0] failed with error azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version=2019-07-01: StatusCode=0 -- Original Error: adal: Failed to execute the refresh request. Error = 'Post "https://login.microsoftonline.com/<tenantId>/oauth2/token?api-version=1.0": dial tcp: i/o timeout'
     ```
@@ -64,7 +64,7 @@ For `mic` pod, we will need to find the leader. An easy way to find the leader i
 
 ### Issue in NMI Pod
 For `nmi` pod, we will need to find the pod running on the same node as AGIC pod.
-1. If you see `403` response for a token request, then make sure you have correct access to AGIC identity.
+1. If you see `403` response for a token request, then make sure you have correctly assigned the needed permission to AGIC identity.
     1. `Reader` accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
     1. `Contributor` access to Application Gateway. This is needed to perform updates on the Application Gateway.
 
