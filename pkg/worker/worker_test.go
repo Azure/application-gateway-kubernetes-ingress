@@ -13,7 +13,6 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
-	v1 "k8s.io/api/core/v1"
 )
 
 var _ = Describe("Worker Test", func() {
@@ -68,7 +67,6 @@ var _ = Describe("Worker Test", func() {
 
 			// Create and fill the channel
 			work := make(chan events.Event, buffSize)
-			epChan := make(chan events.Event, buffSize)
 		Fill:
 			for {
 				select {
@@ -80,38 +78,9 @@ var _ = Describe("Worker Test", func() {
 			}
 			Expect(counter).To(Equal(int64(len(work))))
 			def := events.Event{}
-			lastEvent := drainChan(work, epChan, def)
+			lastEvent := drainChan(work, def)
 			Expect(len(work)).To(Equal(0))
 			Expect(lastEvent).To(Equal(events.Event{}))
-			Expect(len(epChan)).To(Equal(0))
-		})
-	})
-
-	Context("Verify that drainChan works with endpoint event", func() {
-		It("Should not return endpoint event", func() {
-			buffSize := 10
-
-			// Create and fill the channel
-			work := make(chan events.Event, buffSize)
-
-			pod := &v1.Pod{}
-			podEvent := events.Event{
-				Type:  events.Create,
-				Value: pod,
-			}
-			work <- podEvent
-			endpoint := &v1.Endpoints{}
-			endpointEvent := events.Event{
-				Type:  events.Create,
-				Value: endpoint,
-			}
-			work <- endpointEvent
-			epChan := make(chan events.Event, buffSize)
-			def := events.Event{}
-			lastEvent := drainChan(work, epChan, def)
-			Expect(lastEvent).To(Equal(podEvent))
-			Expect(len(epChan)).To(Equal(1))
-
 		})
 	})
 
@@ -121,11 +90,9 @@ var _ = Describe("Worker Test", func() {
 
 			// Keep the channel empty
 			work := make(chan events.Event, buffSize)
-			epChan := make(chan events.Event, buffSize)
 			def := events.Event{}
-			lastEvent := drainChan(work, epChan, def)
+			lastEvent := drainChan(work, def)
 			Expect(lastEvent).To(Equal(def))
-			Expect(len(epChan)).To(Equal(0))
 		})
 	})
 })

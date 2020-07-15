@@ -163,82 +163,65 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
 			glog.V(3).Info("Backend address pool is updated")
-			// Endpoint event has been verified at this point
-			if _, yes := event.Value.(*v1.Endpoints); !yes {
-				// if the event is not Endpoint event, backendPool change will not be applied
-				glog.V(3).Info("Not endpoint event, skip to apply backend address pool changes")
-				// update BackendAddressPools but not assign backendAddresses
-				for _, backendAddressPool := range *generatedBackendAddressPools {
-					backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
+			// check crd by name
+			AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
+			backendPool, err := c.k8sContext.GetCachedBackendPool(AddressPoolCRDObjectID)
+			if err != nil {
+				glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be created, fall back to ARM update!", AddressPoolCRDObjectID)
+				initBackendPool := agpoolv1beta1.AzureApplicationGatewayBackendPool{}
+				initBackendPool.Name = AddressPoolCRDObjectID
+				if _, err := c.k8sContext.CreateBackendPool(&initBackendPool); err != nil {
+					e := controllererrors.NewError(
+						controllererrors.ErrorInitializeBackendAddressPool,
+						"Unable to create backend address pool",
+					)
+					glog.Error(e.Error())
 				}
 
+				// fallback to ARM in case of failure
+				// generate metric for ARM update count
+				c.MetricStore.IncAddressPoolARMFallbackCounter()
 			} else {
-				// otherwise, we start to update the backend pool CRD
-				glog.V(3).Info("Endpoint event identified, start to update backend address pool")
-				// check crd by name
-				AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
-				backendPool, err := c.k8sContext.GetCachedBackendPool(AddressPoolCRDObjectID)
-				if err != nil {
-					glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be created, fall back to ARM update!", AddressPoolCRDObjectID)
-					initBackendPool := agpoolv1beta1.AzureApplicationGatewayBackendPool{}
-					initBackendPool.Name = AddressPoolCRDObjectID
-					if _, err := c.k8sContext.CreateBackendPool(&initBackendPool); err != nil {
-						e := controllererrors.NewError(
-							controllererrors.ErrorInitializeBackendAddressPool,
-							"Unable to create backend address pool",
-						)
-						glog.Error(e.Error())
-					}
+				glog.V(3).Infof("Find AzureApplicationGatewayBackendPool object: %s", AddressPoolCRDObjectID)
+				if generatedBackendAddressPools == nil {
+					e := controllererrors.NewError(
+						controllererrors.ErrorNoBackendAddressPool,
+						"Unable to find any address pool from backend",
+					)
+					glog.Error(e.Error())
+					return e
+				}
 
-					// fallback to ARM in case of failure
-					// generate metric for ARM update count
+				// reset crd before update
+				backendPool.Spec.BackendAddressPools = []agpoolv1beta1.BackendAddressPool{}
+				var updatedBackendAddressPools []agpoolv1beta1.BackendAddressPool
+				// apply updates to CRD
+				for _, backendAddressPool := range *generatedBackendAddressPools {
+					pool := agpoolv1beta1.BackendAddressPool{
+						Name:             *backendAddressPool.ID,
+						BackendAddresses: c.getIPAddresses(backendAddressPool.BackendAddresses),
+					}
+					updatedBackendAddressPools = append(updatedBackendAddressPools, pool)
+				}
+
+				backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
+				if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
+					glog.Warningf("Failed to update address pool CRD object Id: %s, fall back to ARM update!", AddressPoolCRDObjectID)
 					c.MetricStore.IncAddressPoolARMFallbackCounter()
 				} else {
-					glog.V(3).Infof("Find AzureApplicationGatewayBackendPool CRD object id: %s", AddressPoolCRDObjectID)
-					if generatedBackendAddressPools == nil {
-						e := controllererrors.NewError(
-							controllererrors.ErrorNoBackendAddressPool,
-							"Unable to find any address pool from backend",
-						)
-						glog.Error(e.Error())
-						return e
-					}
-
-					// reset crd before update
-					backendPool.Spec.BackendAddressPools = []agpoolv1beta1.BackendAddressPool{}
-					var updatedBackendAddressPools []agpoolv1beta1.BackendAddressPool
-					// apply updates to CRD
-					for _, backendAddressPool := range *generatedBackendAddressPools {
-						pool := agpoolv1beta1.BackendAddressPool{
-							Name:             *backendAddressPool.ID,
-							BackendAddresses: c.getIPAddresses(backendAddressPool.BackendAddresses),
+					for _, obj := range backendPool.Spec.BackendAddressPools {
+						var ips []string
+						for _, address := range obj.BackendAddresses {
+							ips = append(ips, address.IPAddress)
 						}
-						updatedBackendAddressPools = append(updatedBackendAddressPools, pool)
+						glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
 					}
-
-					backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
-					if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
-						glog.Warningf("Failed to update address pool CRD object Id: %s, fall back to ARM update!", AddressPoolCRDObjectID)
-						c.MetricStore.IncAddressPoolARMFallbackCounter()
-					} else {
-						for _, obj := range backendPool.Spec.BackendAddressPools {
-							var ips []string
-							for _, address := range obj.BackendAddresses {
-								ips = append(ips, address.IPAddress)
-							}
-							glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
-						}
-
-						// make sure no backendaddress will be passed through control path
-						for _, backendAddressPool := range *generatedBackendAddressPools {
-							backendAddressPool.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses = nil
-						}
-					}
-
 				}
+
 			}
+
 		} else {
-			glog.V(3).Info("Backend address pool has NOT been changed!")
+			glog.V(5).Info("Backend address pool has NOT been changed!")
 		}
 	}
 

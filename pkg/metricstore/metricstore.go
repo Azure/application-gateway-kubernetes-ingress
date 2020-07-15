@@ -83,7 +83,7 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 		addressPoolARMFallbackCounter: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace:   PrometheusNamespace,
 			ConstLabels: constLabels,
-			Name:        "ccp_addresspool_armfallback_counter",
+			Name:        "update_addresspool_armfallback_counter",
 			Help:        "This counter represents the number of fall-back when update backend pool addresses",
 		}),
 		armAPICallCounter: prometheus.NewCounter(prometheus.CounterOpts{

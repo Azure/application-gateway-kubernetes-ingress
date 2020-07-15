@@ -202,26 +202,26 @@ func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, existin
 		return true
 	}
 
-	backendIDtoIPAddressesMapNew := make(map[string][]string)
-	backendIDtoIPAddressesMapExisting := make(map[string]bool)
+	if len(*existing) != len(*generated) {
+		return true
+	}
+
+	backendIDtoIPAddressesMapUpdated := make(map[string][]string)
 
 	for _, gbap := range *generated {
-		backendIDNew := gbap.ID
-		glog.V(9).Infof("New: find backend pool id: [%s]", *backendIDNew)
+		backendID := gbap.ID
+		glog.V(9).Infof("[CCP] find backend pool id: [%s]", *backendID)
 		ips := make([]string, len(*gbap.BackendAddresses))
 		for i, ip := range *gbap.BackendAddresses {
 			ips[i] = *ip.IPAddress
 		}
 		sort.Strings(ips)
-		backendIDtoIPAddressesMapNew[*backendIDNew] = ips
+		backendIDtoIPAddressesMapUpdated[*backendID] = ips
 	}
 
 	for _, cbap := range *existing {
 		backendIDExisting := cbap.ID
-		backendIDtoIPAddressesMapExisting[*backendIDExisting] = true
-		if ipAddresses, exists := backendIDtoIPAddressesMapNew[*backendIDExisting]; exists {
-			glog.V(9).Infof("Existing: find backend pool name: %s", *backendIDExisting)
-
+		if ipAddresses, exists := backendIDtoIPAddressesMapUpdated[*backendIDExisting]; exists {
 			ips := make([]string, len(*cbap.BackendAddresses))
 			for i, ip := range *cbap.BackendAddresses {
 				ips[i] = *ip.IPAddress
@@ -229,25 +229,15 @@ func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, existin
 			sort.Strings(ips)
 			// indicates the backend pool is updated
 			if !equal(ipAddresses, ips) {
-				glog.V(5).Infof("New: backend address pool ip: %v", ipAddresses)
-				glog.V(5).Infof("Existing: backend address pool ip: %v", ips)
+				glog.V(9).Infof("[CCP] backend address pool %s is updated", *backendIDExisting)
 				return true
 			}
 		} else {
-			// if any backend pool is deleted
-			glog.V(3).Infof("Existing: NOT find backend pool id: [%s]", *backendIDExisting)
+			// if any backend pool is deleted by updating
+			glog.V(5).Infof("backend pool id [%s] cannot be found from updated backend address pools", *backendIDExisting)
 			return true
 		}
 	}
-
-	// if any backend pool is newly added
-	for _, gbap := range *generated {
-		backendIDNew := gbap.ID
-		if _, exists := backendIDtoIPAddressesMapExisting[*backendIDNew]; !exists {
-			return true
-		}
-	}
-
 	return false
 }
 
