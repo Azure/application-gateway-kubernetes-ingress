@@ -29,7 +29,7 @@ In order to run the Go binary locally and control a remote AKS server, you need 
 Follow [these instructions](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication) to create the `$HOME/.azure/azureAuth.json` file. The file is generated via:
 
 ```bash
-az ad sp create-for-rbac --subscription <your-azure-subscription-id> --sdk-auth > $HOME/.azure/azureAuth.json
+az ad sp create-for-rbac --scopes /subscriptions/<your-azure-subscription-id> --sdk-auth > $HOME/.azure/azureAuth.json
 ```
 
 The file will contain a JSON blob with the following shape:
