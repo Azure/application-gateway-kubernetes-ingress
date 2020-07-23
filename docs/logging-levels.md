@@ -21,4 +21,4 @@ The verbosity levels are adjustable via the `verbosityLevel` variable in the
 the JSON config dispatched to
 [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview):
   - add `verbosityLevel: 5` on a line by itself in [helm-config.yaml](examples/sample-helm-config.yaml) and re-install
-  - get logs with `kubectl logs <pod-name>`
+  - get logs with `kubectl logs <pod-name> -n <namespace>`

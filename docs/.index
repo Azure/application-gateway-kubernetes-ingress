@@ -9,5 +9,5 @@ arrange:
     - features
     - how-tos
     - faq.md
-    - troubleshooting
+    - troubleshooting.md
 theme: readthedocs
