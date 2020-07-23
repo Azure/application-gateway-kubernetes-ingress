@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Helm Values Configuration Options - Application Gateway Ingress Controller</title>
+  <title>Logging Levels - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../css/theme.css" />
@@ -19,8 +19,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Helm Values Configuration Options";
-    var mkdocs_page_input_path = "helm-values-documenation.md";
+    var mkdocs_page_name = "Logging Levels";
+    var mkdocs_page_input_path = "logging-levels.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -60,14 +60,8 @@
                     <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
                     </li>
                 </ul>
-                <ul class="current">
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Helm Values Configuration Options</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#available-options">Available options</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#example">Example</a>
-    </li>
-    </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Setup</span></p>
@@ -126,8 +120,10 @@
                     <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting Guide</a>
                     </li>
                 </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../logging-levels/">Logging Levels</a>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Logging Levels</a>
+    <ul class="current">
+    </ul>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
@@ -158,10 +154,10 @@
     
       
     
-    <li>Helm Values Configuration Options</li>
+    <li>Logging Levels</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/helm-values-documenation.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/logging-levels.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
       
     </li>
   </ul>
@@ -171,101 +167,41 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="helm-values-configuration-options">Helm Values Configuration Options</h1>
-<h2 id="available-options">Available options</h2>
+                <h1 id="logging-levels">Logging Levels</h1>
+<p>AGIC has 3 logging levels. Level 1 is the default one and it shows minimal number of log lines.
+Level 5, on the other hand, would display all logs, including sanitized contents of config applied
+to ARM.</p>
+<p>The Kubernetes community has established 9 levels of logging for
+the <a href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-output-verbosity-and-debugging">kubectl</a> tool. In this
+repository we are utilizing 3 of these, with similar semantics:</p>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Default</th>
+<th>Verbosity</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>verbosityLevel</code></td>
+<td>1</td>
+<td>Default log level; shows startup details, warnings and errors</td>
+</tr>
+<tr>
 <td>3</td>
-<td>Sets the verbosity level of the AGIC logging infrastructure. See <a href="../troubleshooting/#logging-levels">Logging Levels</a> for possible values.</td>
+<td>Extended information about events and changes; lists of created objects</td>
 </tr>
 <tr>
-<td><code>reconcilePeriodSeconds</code></td>
-<td></td>
-<td>Enable periodic reconciliation to checks if the latest gateway configuration is different from what it cached. Range: 30 - 300 seconds. Disabled by default.</td>
-</tr>
-<tr>
-<td><code>appgw.applicationGatewayId</code></td>
-<td></td>
-<td>Resource Id of the Application Gateway. Example: <code>applicationgatewayd0f0</code></td>
-</tr>
-<tr>
-<td><code>appgw.subscriptionId</code></td>
-<td>Default is agent node pool's subscriptionId derived from CloudProvider config</td>
-<td>The Azure Subscription ID in which App Gateway resides. Example: <code>a123b234-a3b4-557d-b2df-a0bc12de1234</code></td>
-</tr>
-<tr>
-<td><code>appgw.resourceGroup</code></td>
-<td>Default is agent node pool's resource group derived from CloudProvider config</td>
-<td>Name of the Azure Resource Group in which App Gateway was created. Example: <code>app-gw-resource-group</code></td>
-</tr>
-<tr>
-<td><code>appgw.name</code></td>
-<td></td>
-<td>Name of the Application Gateway. Example: <code>applicationgatewayd0f0</code></td>
-</tr>
-<tr>
-<td><code>appgw.environment</code></td>
-<td><code>AZUREPUBLICCLOUD</code></td>
-<td>Specify which cloud environment. Possbile values: <code>AZURECHINACLOUD</code>, <code>AZUREGERMANCLOUD</code>, <code>AZUREPUBLICCLOUD</code>, <code>AZUREUSGOVERNMENTCLOUD</code></td>
-</tr>
-<tr>
-<td><code>appgw.shared</code></td>
-<td>false</td>
-<td>This boolean flag should be defaulted to <code>false</code>. Set to <code>true</code> should you need a <a href="../setup/install-existing/#multi-cluster--shared-app-gateway">Shared App Gateway</a>.</td>
-</tr>
-<tr>
-<td><code>kubernetes.watchNamespace</code></td>
-<td>Watches all if empty</td>
-<td>Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.</td>
-</tr>
-<tr>
-<td><code>kubernetes.rbac</code></td>
-<td>false</td>
-<td>Specify true if kubernetes cluster is rbac enabled</td>
-</tr>
-<tr>
-<td><code>armAuth.type</code></td>
-<td></td>
-<td>could be <code>aadPodIdentity</code> or <code>servicePrincipal</code></td>
-</tr>
-<tr>
-<td><code>armAuth.identityResourceID</code></td>
-<td></td>
-<td>Resource ID of the Azure Managed Identity</td>
-</tr>
-<tr>
-<td><code>armAuth.identityClientId</code></td>
-<td></td>
-<td>The Client ID of the Identity. See below for more information on Identity</td>
-</tr>
-<tr>
-<td><code>armAuth.secretJSON</code></td>
-<td></td>
-<td>Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>servicePrincipal</code>)</td>
+<td>5</td>
+<td>Logs marshaled objects; shows sanitized JSON config applied to ARM</td>
 </tr>
 </tbody>
 </table>
-<h2 id="example">Example</h2>
-<pre class="highlight"><code class="language-yaml">appgw:
-    applicationGatewayID: &lt;application-gateway-resource-id&gt;
-    environment: "AZUREUSGOVERNMENTCLOUD" # default: AZUREPUBLICCLOUD
-
-armAuth:
-    type: aadPodIdentity
-    identityResourceID: &lt;identityResourceId&gt;
-    identityClientID:  &lt;identityClientId&gt;
-
-rbac:
-    enabled: false</code></pre>
+<p>The verbosity levels are adjustable via the <code>verbosityLevel</code> variable in the
+<a href="../examples/sample-helm-config.yaml">helm-config.yaml</a> file. Increase verbosity level to <code>5</code> to get
+the JSON config dispatched to
+<a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a>:
+  - add <code>verbosityLevel: 5</code> on a line by itself in <a href="../examples/sample-helm-config.yaml">helm-config.yaml</a> and re-install
+  - get logs with <code>kubectl logs &lt;pod-name&gt; -n &lt;namespace&gt;</code></p>
               
             </div>
           </div>
@@ -273,10 +209,10 @@ rbac:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../setup/install-existing/" class="btn btn-neutral float-right" title="Brownfield Deployment">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../developers/build/" class="btn btn-neutral float-right" title="Building the controller">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../annotations/" class="btn btn-neutral" title="Annotations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../troubleshooting/" class="btn btn-neutral" title="Troubleshooting Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -302,10 +238,10 @@ rbac:
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../annotations/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../troubleshooting/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../setup/install-existing/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../developers/build/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

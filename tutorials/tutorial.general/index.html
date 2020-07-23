@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Tutorials - Application Gateway Ingress Controller</title>
+  <title>Tutorial: Basic - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../../css/theme.css" />
@@ -19,7 +19,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Tutorials";
+    var mkdocs_page_name = "Tutorial: Basic";
     var mkdocs_page_input_path = "tutorials/tutorial.general.md";
     var mkdocs_page_url = null;
   </script>
@@ -56,6 +56,14 @@
                     <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                     </li>
                 </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Setup</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
@@ -69,7 +77,7 @@
                 <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="../tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
                     </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tutorials</a>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tutorial: Basic</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a>
     </li>
@@ -88,10 +96,6 @@
         </ul>
     </li>
     </ul>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
@@ -131,11 +135,11 @@
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting Guide</a>
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
@@ -170,7 +174,7 @@
         
       
     
-    <li>Tutorials</li>
+    <li>Tutorial: Basic</li>
     <li class="wy-breadcrumbs-aside">
       
         <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/tutorials/tutorial.general.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
@@ -183,7 +187,7 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="tutorials">Tutorials</h1>
+                <h1 id="tutorial-basic">Tutorial: Basic</h1>
 <p>These tutorials help illustrate the usage of <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Kubernetes Ingress Resources</a> to expose an example Kubernetes service through the <a href="https://azure.microsoft.com/en-us/services/application-gateway/">Azure Application Gateway</a> over HTTP or HTTPS.</p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
@@ -198,8 +202,8 @@
 <h2 id="prerequisites">Prerequisites</h2>
 <ul>
 <li>Installed <code>ingress-azure</code> helm chart.</li>
-<li><a href="setup/install-new.md"><strong>Greenfield Deployment</strong></a>: If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.</li>
-<li><a href="setup/install-existing.md"><strong>Brownfield Deployment</strong></a>: If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.</li>
+<li><a href="../../setup/install-new/"><strong>Greenfield Deployment</strong></a>: If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.</li>
+<li><a href="../../setup/install-existing/"><strong>Brownfield Deployment</strong></a>: If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.</li>
 <li>If you want to use HTTPS on this application, you will need a x509 certificate and its private key.</li>
 </ul>
 <h2 id="deploy-guestbook-application">Deploy <code>guestbook</code> application</h2>
@@ -330,7 +334,7 @@ spec:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../../annotations/" class="btn btn-neutral float-right" title="Annotations">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../features/agic-reconcile/" class="btn btn-neutral float-right" title="Agic reconcile">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../tutorial.e2e-ssl/" class="btn btn-neutral" title="Tutorial: Setting up E2E SSL"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -362,7 +366,7 @@ spec:
         <span><a href="../tutorial.e2e-ssl/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../../annotations/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../../features/agic-reconcile/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

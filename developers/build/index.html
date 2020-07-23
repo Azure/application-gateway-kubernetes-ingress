@@ -56,6 +56,14 @@
                     <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                     </li>
                 </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Setup</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
@@ -69,11 +77,7 @@
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
                     </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorials</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Features</span></p>
@@ -113,11 +117,11 @@
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting Guide</a>
                     </li>
                 </ul>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
                     </li>
                 </ul>
                 <p class="caption"><span class="caption-text">Developers</span></p>
@@ -200,7 +204,7 @@
 <h3 id="obtain-azure-credentials">Obtain Azure Credentials</h3>
 <p>In order to run the Go binary locally and control a remote AKS server, you need Azure credentials. These will be stored in a JSON file in your home directory.</p>
 <p>Follow <a href="https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication">these instructions</a> to create the <code>$HOME/.azure/azureAuth.json</code> file. The file is generated via:</p>
-<pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --subscription &lt;your-azure-subscription-id&gt; --sdk-auth &gt; $HOME/.azure/azureAuth.json</code></pre>
+<pre class="highlight"><code class="language-bash">az ad sp create-for-rbac --scopes /subscriptions/&lt;your-azure-subscription-id&gt; --sdk-auth &gt; $HOME/.azure/azureAuth.json</code></pre>
 
 <p>The file will contain a JSON blob with the following shape:</p>
 <pre class="highlight"><code class="language-json">{
@@ -233,7 +237,7 @@
         <a href="../contribute/" class="btn btn-neutral float-right" title="Contribution Guidelines">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../../helm-values-documenation/" class="btn btn-neutral" title="Helm Values Configuration Options"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../logging-levels/" class="btn btn-neutral" title="Logging Levels"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -259,7 +263,7 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../../helm-values-documenation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../../logging-levels/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../contribute/" style="color: #fcfcfc">Next &raquo;</a></span>
