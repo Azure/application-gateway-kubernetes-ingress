@@ -5,6 +5,15 @@
 ---
 {{- end }}
 {{- $watchNamespace := .Values.kubernetes.watchNamespace -}}
+{{- if not .Values.appgw.prohibitedTargets }}
+apiVersion: appgw.ingress.k8s.io/v1
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibit-all-targets
+spec:
+  paths:
+    - /*
+{{- end -}}
 {{- range .Values.appgw.prohibitedTargets -}}
 apiVersion: appgw.ingress.k8s.io/v1
 kind: AzureIngressProhibitedTarget
