@@ -2,10 +2,12 @@ title: Page Title
 collapse: true
 arrange:
     - index.md
-    - setup
-    - tutorial.md
     - annotations.md
+    - helm-values-documenation.md
+    - setup
+    - tutorials
     - features
     - how-tos
     - faq.md
     - troubleshooting.md
+theme: readthedocs
