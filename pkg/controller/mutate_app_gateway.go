@@ -159,10 +159,10 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 
 	// Post Compare Phase //
 	// ------------------ //
-	if cbCtx.EnvVariables.CCPEnabled {
+	if cbCtx.EnvVariables.BackendPoolAddressFastUpdateEnabled {
 		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
-			glog.V(3).Info("Backend address pool is updated")
+			glog.V(3).Info("Backend pool address is updated")
 			// check crd by name
 			AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
 			backendPool, err := c.k8sContext.GetCachedBackendPool(AddressPoolCRDObjectID)

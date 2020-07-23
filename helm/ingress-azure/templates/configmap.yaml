@@ -79,8 +79,8 @@ data:
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
 
-{{- if .Values.ccp.enabled }}
-  CCP_ENABLED: "true"
+{{- if .Values.backendPoolAddressFastUpdate.enabled }}
+BACKENDPOOLADDRESS_FASTUPDATE_NABLED: "true"
 {{- end }}
 
 

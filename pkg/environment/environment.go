@@ -83,8 +83,8 @@ const (
 	// UseManagedIdentityForPodVarName is an environment variable name.
 	UseManagedIdentityForPodVarName = "USE_MANAGED_IDENTITY_FOR_POD"
 
-	// CCPEnabled to enable or disable backend address fast-update
-	CCPEnabled = "CCP_ENABLED"
+	// BackendPoolAddressFastUpdateEnabled to enable or disable backend pool address fast-update
+	BackendPoolAddressFastUpdateEnabled = "BACKENDPOOLADDRESS_FASTUPDATE_ENABLED"
 
 	// AttachWAFPolicyToListenerVarName is an environment variable name.
 	AttachWAFPolicyToListenerVarName = "ATTACH_WAF_POLICY_TO_LISTENER"
@@ -106,33 +106,33 @@ var (
 
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
-	CloudProviderConfigLocation string
-	ClientID                    string
-	SubscriptionID              string
-	ResourceGroupName           string
-	AppGwName                   string
-	AppGwSubnetName             string
-	AppGwSubnetPrefix           string
-	AppGwResourceID             string
-	AppGwSubnetID               string
-	AuthLocation                string
-	IngressClass                string
-	WatchNamespace              string
-	UsePrivateIP                string
-	VerbosityLevel              string
-	AGICPodName                 string
-	AGICPodNamespace            string
-	CCPEnabled                  bool
-	EnableBrownfieldDeployment  bool
-	EnableIstioIntegration      bool
-	EnableSaveConfigToFile      bool
-	EnablePanicOnPutError       bool
-	EnableDeployAppGateway      bool
-	UseManagedIdentityForPod    bool
-	HTTPServicePort             string
-	AttachWAFPolicyToListener   bool
-	HostedOnUnderlay            bool
-	ReconcilePeriodSeconds      string
+	CloudProviderConfigLocation         string
+	ClientID                            string
+	SubscriptionID                      string
+	ResourceGroupName                   string
+	AppGwName                           string
+	AppGwSubnetName                     string
+	AppGwSubnetPrefix                   string
+	AppGwResourceID                     string
+	AppGwSubnetID                       string
+	AuthLocation                        string
+	IngressClass                        string
+	WatchNamespace                      string
+	UsePrivateIP                        string
+	VerbosityLevel                      string
+	AGICPodName                         string
+	AGICPodNamespace                    string
+	BackendPoolAddressFastUpdateEnabled bool
+	EnableBrownfieldDeployment          bool
+	EnableIstioIntegration              bool
+	EnableSaveConfigToFile              bool
+	EnablePanicOnPutError               bool
+	EnableDeployAppGateway              bool
+	UseManagedIdentityForPod            bool
+	HTTPServicePort                     string
+	AttachWAFPolicyToListener           bool
+	HostedOnUnderlay                    bool
+	ReconcilePeriodSeconds              string
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -165,33 +165,33 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
 	env := EnvVariables{
-		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
-		ClientID:                    os.Getenv(ClientIDVarName),
-		SubscriptionID:              os.Getenv(SubscriptionIDVarName),
-		ResourceGroupName:           os.Getenv(ResourceGroupNameVarName),
-		AppGwName:                   os.Getenv(AppGwNameVarName),
-		AppGwSubnetName:             os.Getenv(AppGwSubnetNameVarName),
-		AppGwSubnetPrefix:           os.Getenv(AppGwSubnetPrefixVarName),
-		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
-		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
-		AuthLocation:                os.Getenv(AuthLocationVarName),
-		IngressClass:                os.Getenv(IngressClass),
-		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
-		UsePrivateIP:                os.Getenv(UsePrivateIPVarName),
-		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
-		AGICPodName:                 os.Getenv(AGICPodNameVarName),
-		AGICPodNamespace:            os.Getenv(AGICPodNamespaceVarName),
-		CCPEnabled:                  GetEnvironmentVariable(CCPEnabled, "false", boolValidator) == "true",
-		EnableBrownfieldDeployment:  GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
-		EnableIstioIntegration:      GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
-		EnableSaveConfigToFile:      GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
-		EnablePanicOnPutError:       GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
-		EnableDeployAppGateway:      GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
-		UseManagedIdentityForPod:    GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
-		HTTPServicePort:             GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
-		AttachWAFPolicyToListener:   GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
-		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
-		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
+		CloudProviderConfigLocation:         os.Getenv(CloudProviderConfigLocationVarName),
+		ClientID:                            os.Getenv(ClientIDVarName),
+		SubscriptionID:                      os.Getenv(SubscriptionIDVarName),
+		ResourceGroupName:                   os.Getenv(ResourceGroupNameVarName),
+		AppGwName:                           os.Getenv(AppGwNameVarName),
+		AppGwSubnetName:                     os.Getenv(AppGwSubnetNameVarName),
+		AppGwSubnetPrefix:                   os.Getenv(AppGwSubnetPrefixVarName),
+		AppGwResourceID:                     os.Getenv(AppGwResourceIDVarName),
+		AppGwSubnetID:                       os.Getenv(AppGwSubnetIDVarName),
+		AuthLocation:                        os.Getenv(AuthLocationVarName),
+		IngressClass:                        os.Getenv(IngressClass),
+		WatchNamespace:                      os.Getenv(WatchNamespaceVarName),
+		UsePrivateIP:                        os.Getenv(UsePrivateIPVarName),
+		VerbosityLevel:                      os.Getenv(VerbosityLevelVarName),
+		AGICPodName:                         os.Getenv(AGICPodNameVarName),
+		AGICPodNamespace:                    os.Getenv(AGICPodNamespaceVarName),
+		BackendPoolAddressFastUpdateEnabled: GetEnvironmentVariable(BackendPoolAddressFastUpdateEnabled, "false", boolValidator) == "true",
+		EnableBrownfieldDeployment:          GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
+		EnableIstioIntegration:              GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
+		EnableSaveConfigToFile:              GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
+		EnablePanicOnPutError:               GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
+		EnableDeployAppGateway:              GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
+		UseManagedIdentityForPod:            GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
+		HTTPServicePort:                     GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
+		AttachWAFPolicyToListener:           GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
+		HostedOnUnderlay:                    GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
+		ReconcilePeriodSeconds:              os.Getenv(ReconcilePeriodSecondsVarName),
 	}
 
 	return env

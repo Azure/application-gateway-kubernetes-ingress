@@ -169,7 +169,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
 	}
 
-	if envVariables.CCPEnabled {
+	if envVariables.BackendPoolAddressFastUpdateEnabled {
 		sharedInformers = append(sharedInformers, c.informers.AzureApplicationGatewayBackendPool, c.informers.AzureApplicationGatewayInstanceUpdateStatus)
 	}
 

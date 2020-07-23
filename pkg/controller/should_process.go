@@ -25,9 +25,6 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
 		validEndpointEventDetected := c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints)
-		if validEndpointEventDetected {
-			glog.V(9).Info("###### endpoint event detected ######")
-		}
 		return validEndpointEventDetected, to.StringPtr(reason)
 	}
 
@@ -35,9 +32,6 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("pod %s/%s is not used by any Ingress", pod.Namespace, pod.Name)
 		validPodEventDetected := c.k8sContext.IsPodReferencedByAnyIngress(pod)
-		if validPodEventDetected {
-			glog.V(9).Info("###### pod event detected ######")
-		}
 		return validPodEventDetected, to.StringPtr(reason)
 	}
 
