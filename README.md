@@ -41,6 +41,8 @@ blank-slate infrastructure (running Windows Node Pool).
 
 [**Annotations**](docs/annotations.md): The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to these to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
 
+[**Helm Values Configuration Options**](docs/helm-values-documenation.md): This document lists the various configuration options available through helm.
+
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
 
 ## How-tos
@@ -52,6 +54,7 @@ blank-slate infrastructure (running Windows Node Pool).
 * [Scale your Applications using Application Gateway Metrics (Beta)](docs/how-tos/scale-applications-using-appgw-metrics.md)
 * [Continuous Deployment with AKS and AGIC using Azure Pipelines](docs/how-tos/continuous-deployment.md)
 * [Minimizing Downtime During Deployments](./docs/how-tos/minimize-downtime-during-deployments.md)
+* [Increase AGIC verbosity level](./docs/logging-levels.md)
 
 ## Troubleshooting
 
