@@ -47,7 +47,7 @@ blank-slate infrastructure (running Windows Node Pool).
 
 ## How-tos
 * [Setup E2E SSL](docs/tutorials/tutorial.e2e-ssl.md)
-* [Setup networking between Application Gateway and AKS](./docs/how-tos/networking.md)
+* [Network connectivity when using kubenet or different virtual networks](./docs/how-tos/networking.md)
 * [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
