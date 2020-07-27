@@ -79,7 +79,7 @@ Steps to run ingress controller:
     ```
 
 ### Visual Studio Code (F5 debugging)
-You can also setup vscode to run the project `F5` and do breakpoint debugging. For this, you need to setup your
+You can also setup vscode to run the project with `F5` and use breakpoint debugging. For this, you need to setup your `launch.json` file within `.vscode` folder.
 ```json
 {
     "version": "0.2.0",
@@ -128,6 +128,9 @@ helm install ingress-azure \
       application-gateway-kubernetes-ingress/ingress-azure \
       --version 10486
 ```
+
+You can also find the `version` by opening your build in the `Merge Builds` pipeline and looking for the `buildid`. Use this version when installing on the cluster after the `Dev Release` completes.
+![buildid](../images/buildid.png)
 
 ## CMake options
 
