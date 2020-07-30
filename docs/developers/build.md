@@ -1,6 +1,9 @@
 # Building the controller
 
 * [Running it locally](#running-it-locally)
+    * [Pre-requisite](#pre-requisite)
+    * [Obtain Azure Credentials](#obtain-azure-credentials)
+    * [Deploy Application Gateway and AKS](#deploy-application-gateway-and-aks)
     * [Using startup script](#using-startup-script)
     * [Visual Studio Code (F5 debugging)](#visual-studio-code-f5-debugging)
 * [Run on a cluster using a Dev Release](#create-a-dev-release)
@@ -11,7 +14,8 @@
 This section outlines the environment variables and files necessary to successfully compile and run the Go binary, then connect it to an [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes).
 
 ### Pre-requisite
-* [go version 1.13](https://golang.org/dl/)
+* [go >= 1.13](https://golang.org/dl/)
+* OpenSSL
 
 ### Obtain Azure Credentials
 
