@@ -35,7 +35,7 @@ kubernetes:
 #   name: myApplicationGateway
 #   # Whether to force private IP for all the listeners on Application Gateway
 #   usePrivateIP: false
-#   prefix: "myPrefix"
+#   subResourceNamePrefix: "myPrefix"
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
