@@ -189,7 +189,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
 
 1. Check the log of the newly created pod to verify if it started properly
 
-Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
+Refer to the [tutorials](../tutorials/tutorial.general.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
 
 
 
