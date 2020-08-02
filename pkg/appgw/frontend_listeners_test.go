@@ -142,7 +142,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PublicIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
-				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
+				SslCertificate:              resourceRef(resPref + "sslCertificates/cert---namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
 				HostNames:                   &[]string{tests.Host},
 			},
@@ -156,7 +156,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				FrontendIPConfiguration:     resourceRef(tests.PrivateIPID),
 				FrontendPort:                resourceRef(resPref + "frontendPorts/fp-443"),
 				Protocol:                    n.ApplicationGatewayProtocol("Https"),
-				SslCertificate:              resourceRef(resPref + "sslCertificates/--namespace-----the-name-of-the-secret--"),
+				SslCertificate:              resourceRef(resPref + "sslCertificates/cert---namespace-----the-name-of-the-secret--"),
 				RequireServerNameIndication: to.BoolPtr(false),
 				HostNames:                   &[]string{tests.Host},
 			},
@@ -378,7 +378,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			listeners, _ := cb.getListeners(cbCtx)
 
-			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/appgw-installed-cert")
+			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/cert-appgw-installed-cert")
 			Expect(*listeners).To(ContainElement(expectedListener443))
 		})
 	})
@@ -425,7 +425,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			listeners, _ := cb.getListeners(cbCtx)
 			expectedListener80.FirewallPolicy = resourceRef(wafPolicyID)
-			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/appgw-installed-cert")
+			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/cert-appgw-installed-cert")
 			expectedListener443.FirewallPolicy = resourceRef(wafPolicyID)
 			Expect(*listeners).NotTo(ContainElement(expectedListener80))
 			Expect(*listeners).NotTo(ContainElement(expectedListener443))
@@ -495,7 +495,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			expectedListener80.FirewallPolicy = resourceRef(wafPolicyID)
 			Expect(*listeners).To(ContainElement(expectedListener80))
-			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/appgw-installed-cert")
+			expectedListener443.SslCertificate = resourceRef(resPref + "sslCertificates/cert-appgw-installed-cert")
 			expectedListener443.FirewallPolicy = resourceRef(wafPolicyID)
 			Expect(*listeners).To(ContainElement(expectedListener443))
 		})

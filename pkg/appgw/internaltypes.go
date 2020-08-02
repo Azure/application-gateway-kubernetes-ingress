@@ -26,15 +26,16 @@ import (
 )
 
 const (
-	prefixHTTPSettings = "bp"
-	prefixProbe        = "pb"
-	prefixPool         = "pool"
-	prefixPort         = "fp"
-	prefixListener     = "fl"
-	prefixPathMap      = "url"
-	prefixRoutingRule  = "rr"
-	prefixRedirect     = "sslr"
-	prefixPathRule     = "pr"
+	prefixHTTPSettings   = "bp"
+	prefixProbe          = "pb"
+	prefixPool           = "pool"
+	prefixPort           = "fp"
+	prefixListener       = "fl"
+	prefixPathMap        = "url"
+	prefixRoutingRule    = "rr"
+	prefixRedirect       = "sslr"
+	prefixPathRule       = "pr"
+	prefixSslCertificate = "cert"
 )
 
 const (
@@ -116,9 +117,9 @@ func (s secretIdentifier) secretKey() string {
 func (s secretIdentifier) secretFullName() string {
 	// in case of referring ssl certificate from agic annotation
 	if len(s.Namespace) == 0 {
-		return fmt.Sprintf("%v%v", agPrefix, s.Name)
+		return fmt.Sprintf("%v%v-%v", agPrefix, prefixSslCertificate, s.Name)
 	}
-	return fmt.Sprintf("%v%v-%v", agPrefix, s.Namespace, s.Name)
+	return fmt.Sprintf("%v%v-%v-%v", agPrefix, prefixSslCertificate, s.Namespace, s.Name)
 }
 
 func getResourceKey(namespace, name string) string {
