@@ -24,7 +24,13 @@ var _ = Describe("Test internal types", func() {
 		HostNames:    [5]string{"foo.baz"},
 	}
 	targetListenerHashCode := utils.GetHashCode(targetListener)
-
+	secretNamespace := secretIdentifier{
+		Namespace: tests.Namespace,
+		Name:      tests.NameOfSecret,
+	}
+	secretNoNamespace := secretIdentifier{
+		Name: tests.NameOfSecret,
+	}
 	Context("test each string key generator", func() {
 		backendPortNo := Port(8989)
 		servicePort := tests.ServicePort
@@ -88,6 +94,18 @@ var _ = Describe("Test internal types", func() {
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
 			actual := generateSSLRedirectConfigurationName(targetListener)
 			expected := "sslr-fl-" + targetListenerHashCode
+			Expect(actual).To(Equal(expected))
+		})
+
+		It("secretFullName returns expected key with namespace", func() {
+			actual := secretNamespace.secretFullName()
+			expected := agPrefix + tests.Namespace + "-" + tests.NameOfSecret
+			Expect(actual).To(Equal(expected))
+		})
+
+		It("secretFullName returns expected key without namespace", func() {
+			actual := secretNoNamespace.secretFullName()
+			expected := agPrefix + tests.NameOfSecret
 			Expect(actual).To(Equal(expected))
 		})
 	})
