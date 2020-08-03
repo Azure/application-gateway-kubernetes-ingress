@@ -105,7 +105,7 @@ var _ = Describe("Test internal types", func() {
 
 		It("secretFullName returns expected key without namespace", func() {
 			actual := secretNoNamespace.secretFullName()
-			expected := agPrefix + "cert-" + tests.NameOfSecret
+			expected := tests.NameOfSecret
 			Expect(actual).To(Equal(expected))
 		})
 	})

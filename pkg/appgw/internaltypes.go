@@ -117,7 +117,7 @@ func (s secretIdentifier) secretKey() string {
 func (s secretIdentifier) secretFullName() string {
 	// in case of referring ssl certificate from agic annotation
 	if len(s.Namespace) == 0 {
-		return fmt.Sprintf("%v%v-%v", agPrefix, prefixSslCertificate, s.Name)
+		return s.Name
 	}
 	return fmt.Sprintf("%v%v-%v-%v", agPrefix, prefixSslCertificate, s.Namespace, s.Name)
 }
