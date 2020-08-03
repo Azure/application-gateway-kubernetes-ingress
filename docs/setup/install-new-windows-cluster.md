@@ -361,5 +361,5 @@ kubectl apply -f aspnetapp.yaml
 
 
 ## Other Examples
-The **[tutorials](../tutorial.md)** document contains more examples on how to expose an AKS
+The **[tutorials](../tutorials/tutorial.general.md)** document contains more examples on how to expose an AKS
 service via HTTP or HTTPS, to the Internet with App Gateway.
