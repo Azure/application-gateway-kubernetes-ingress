@@ -110,7 +110,7 @@
                     "protocol": "Https",
                     "requireServerNameIndication": false,
                     "sslCertificate": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/cert-ssl-certificate"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/ssl-certificate"
                     }
                 }
             },
