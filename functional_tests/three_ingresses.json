@@ -186,7 +186,7 @@
                     "protocol": "Https",
                     "requireServerNameIndication": false,
                     "sslCertificate": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/cert---namespace-----the-name-of-the-secret--"
                     }
                 }
             },
@@ -348,8 +348,8 @@
         },
         "sslCertificates": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/--namespace-----the-name-of-the-secret--",
-                "name": "--namespace-----the-name-of-the-secret--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/cert---namespace-----the-name-of-the-secret--",
+                "name": "cert---namespace-----the-name-of-the-secret--",
                 "properties": {
                     "data": "xx",
                     "password": "msazure"
