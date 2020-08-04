@@ -26,15 +26,16 @@ import (
 )
 
 const (
-	prefixHTTPSettings = "bp"
-	prefixProbe        = "pb"
-	prefixPool         = "pool"
-	prefixPort         = "fp"
-	prefixListener     = "fl"
-	prefixPathMap      = "url"
-	prefixRoutingRule  = "rr"
-	prefixRedirect     = "sslr"
-	prefixPathRule     = "pr"
+	prefixHTTPSettings   = "bp"
+	prefixProbe          = "pb"
+	prefixPool           = "pool"
+	prefixPort           = "fp"
+	prefixListener       = "fl"
+	prefixPathMap        = "url"
+	prefixRoutingRule    = "rr"
+	prefixRedirect       = "sslr"
+	prefixPathRule       = "pr"
+	prefixSslCertificate = "cert"
 )
 
 const (
@@ -118,7 +119,7 @@ func (s secretIdentifier) secretFullName() string {
 	if len(s.Namespace) == 0 {
 		return s.Name
 	}
-	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
+	return fmt.Sprintf("%v%v-%v-%v", agPrefix, prefixSslCertificate, s.Namespace, s.Name)
 }
 
 func getResourceKey(namespace, name string) string {
