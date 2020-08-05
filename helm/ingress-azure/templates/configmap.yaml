@@ -35,7 +35,7 @@ data:
 
   {{- if .Values.appgw.subResourceNamePrefix }}
   APPGW_CONFIG_NAME_PREFIX: {{ .Values.appgw.subResourceNamePrefix | quote }}
-  {{- else }}
+  {{- end }}
 
   {{- if or .Values.appgw.subnetID .Values.appgw.subnetName .Values.appgw.subnetPrefix }}
   #if subnet is provided, we treat it as a create case
@@ -83,6 +83,6 @@ data:
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
 
-{{- if .Values.kubernetes.ingressClass}}
+{{- if .Values.kubernetes.ingressClass }}
   INGRESS_CLASS: "{{ .Values.kubernetes.ingressClass }}"
-{{- end}}
+{{- end }}
