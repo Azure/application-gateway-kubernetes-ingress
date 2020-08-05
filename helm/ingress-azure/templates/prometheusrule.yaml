@@ -1,0 +1,26 @@
+{{- if and .Values.metrics.enabled .Values.metrics.operator.defaultAlerts -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}    
+    severity: critical  
+spec:
+  groups:
+  - name: agic.rules
+    rules:
+    - alert: ErrorInARMDeployment
+      annotations:
+        description: At least 1 arm deployments resulted in error in the last 30 minutes.
+        summary: An error happend during the arm deployment.
+      expr: |        
+        sum(increase(appgw_ingress_controller_arm_api_update_call_failure_counter[30m])) by (container) > 0
+      for: 1m
+      labels:
+        severity: critical
+{{- end -}}

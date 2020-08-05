@@ -59,12 +59,13 @@ kubernetes:
 # Specify if the cluster is RBAC enabled or not
 metrics:
   enabled: true
-  podMonitor:
-    enabled: true
-    additionalLabels: {}      
-    scrapeInterval: 30s
-
-  alerts:  
-    enabled: true
+  operator:
+    podMonitor:
+      enabled: true
+      additionalLabels: {}      
+      scrapeInterval: 30s
+  
+    alerts:  
+      defaultAlerts: true
 rbac:
   enabled: false # true/false
