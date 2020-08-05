@@ -25,14 +25,22 @@ spec:
         {{- end }}
       annotations:
         checksum/config: {{ print .Values | sha256sum }}
+        {{- if .Values.metrics.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: {{ .Values.kubernetes.httpServicePort | quote}}
+        {{- end }}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
       containers:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if and .Values.metrics.enabled .Values.metrics.podMonitor.enabled }}
+        ports:
+        - name: metrics
+          containerPort: {{ .Values.kubernetes.httpServicePort }}
+          protocol: TCP
+        {{- end }}
         readinessProbe:
           httpGet:
             path: /health/ready

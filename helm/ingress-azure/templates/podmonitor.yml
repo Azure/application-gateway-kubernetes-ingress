@@ -1,0 +1,27 @@
+{{- if and .Values.metrics.enabled .Values.metrics.podMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+  labels:
+    app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- if .Values.metrics.podMonitor.additionalLabels }}
+{{ toYaml .Values.metrics.podMonitor.additionalLabels | indent 4 }}
+    {{- end }}
+spec:
+  podMetricsEndpoints:
+    - interval: {{ .Values.metrics.podMonitor.scrapeInterval }}
+      scrapeTimeout: 30s
+      port: metrics
+      path: /metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app: {{ template "application-gateway-kubernetes-ingress.name" . }}
+      release: {{ .Release.Name }}
+{{- end -}}
