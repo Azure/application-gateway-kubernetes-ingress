@@ -1,4 +1,4 @@
-{{- if and .Values.metrics.enabled .Values.metrics.operator.defaultAlerts -}}
+{{- if and .Values.metrics.enabled .Values.metrics.prometheusRule.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -9,7 +9,10 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}    
-    severity: critical  
+    severity: critical
+    {{- if .Values.metrics.prometheusRule.additionalLabels }}
+{{ toYaml .Values.metrics.prometheusRule.additionalLabels | indent 4 }}
+    {{- end }}
 spec:
   groups:
   - name: agic.rules

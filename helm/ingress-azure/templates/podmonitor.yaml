@@ -1,4 +1,4 @@
-{{- if and .Values.metrics.enabled .Values.metrics.operator.podMonitor.enabled -}}
+{{- if and .Values.metrics.enabled .Values.metrics.podMonitor.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -8,12 +8,12 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
-    {{- if .Values.metrics.operator.podMonitor.additionalLabels }}
-{{ toYaml .Values.metrics.operator.podMonitor.additionalLabels | indent 4 }}
+    {{- if .Values.metrics.podMonitor.additionalLabels }}
+{{ toYaml .Values.metrics.podMonitor.additionalLabels | indent 4 }}
     {{- end }}
 spec:
   podMetricsEndpoints:
-    - interval: {{ .Values.metrics.operator.podMonitor.scrapeInterval }}
+    - interval: {{ .Values.metrics.podMonitor.scrapeInterval }}
       scrapeTimeout: 30s
       port: metrics
       path: /metrics

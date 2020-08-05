@@ -35,7 +35,7 @@ spec:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if and .Values.metrics.enabled .Values.metrics.operator.podMonitor.enabled }}
+        {{- if and .Values.metrics.enabled .Values.metrics.podMonitor.enabled }}
         ports:
         - name: metrics
           containerPort: {{ .Values.kubernetes.httpServicePort }}
