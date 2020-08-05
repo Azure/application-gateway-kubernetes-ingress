@@ -57,6 +57,18 @@ appgw: {}
 #   secretJSON: <base64-encoded-JSON-blob>
 
 ################################################################################
+# Configure prometheus
+metrics:
+  enabled: true
+  podMonitor:
+    enabled: false
+    additionalLabels: {}      
+    scrapeInterval: 30s  
+  prometheusRule: 
+    enabled: false
+    additionalLabels: {}
+
+################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false

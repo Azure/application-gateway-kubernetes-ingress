@@ -19,6 +19,12 @@
 | `armAuth.identityResourceID` | | Resource ID of the Azure Managed Identity |
 | `armAuth.identityClientId` | | The Client ID of the Identity. See below for more information on Identity |
 | `armAuth.secretJSON` | | Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) |
+| `metrics.enabled` | true | Enable annotations for prometheus scrape |
+| `metrics.podMonitor.enabled` | false | Deploy PodMonitor for prometheus-operator scrape |
+| `metrics.podMonitor.additionalLabels` | {} | Additional labels to add in PodMonitor |
+| `metrics.podMonitor.scrapeInterval` | 30s | Prometheus-operator scrape interval (must be greater or equal than prometheus jobs interval) |
+| `metrics.prometheusRule.enabled` | false | Deploy PrometheusRule for prometheus-operator alerts |
+| `metrics.prometheusRule.additionalLabels` | {} | Additional labels to add in PrometheusRule |
 
 ## Example
 

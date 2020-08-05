@@ -60,7 +60,7 @@ kubernetes:
 metrics:
   enabled: true
   podMonitor:
-    enabled: true
+    enabled: false
     additionalLabels: {}      
     scrapeInterval: 30s  
   prometheusRule: 
