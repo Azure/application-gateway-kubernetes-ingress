@@ -46,7 +46,7 @@ const (
 	UsePrivateIPKey = ApplicationGatewayPrefix + "/use-private-ip"
 
 	// OverrideFrontendPortKey defines the key to define a custom fronend port
-	OverrideFrontendPortKey = ApplicationGatewayPrefix + "/frontend-port"
+	OverrideFrontendPortKey = ApplicationGatewayPrefix + "/override-frontend-port"
 
 	// BackendProtocolKey defines the key to determine whether to use private ip with the ingress.
 	BackendProtocolKey = ApplicationGatewayPrefix + "/backend-protocol"
