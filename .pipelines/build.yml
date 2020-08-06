@@ -78,7 +78,7 @@ steps:
 
 - script: |
     helm lint $(Build.SourcesDirectory)/helm/ingress-azure
-  displayName: 'Lint helm chart'
+  displayName: 'Helm lint'
 
 - task: PublishTestResults@2
   continueOnError: true
