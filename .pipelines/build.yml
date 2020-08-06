@@ -76,6 +76,10 @@ steps:
   workingDirectory: '$(modulePath)'
   displayName: 'Run unit tests with code coverage'
 
+- script: |
+    helm lint $(Build.SourcesDirectory)/helm/ingress-azure
+  displayName: 'Lint helm chart'
+
 - task: PublishTestResults@2
   continueOnError: true
   condition: succeededOrFailed()
