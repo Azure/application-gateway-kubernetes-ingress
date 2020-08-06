@@ -214,7 +214,7 @@ func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, pro
 	if protocol == n.HTTPS {
 		frontendPort = Port(443)
 	}
-	if overridePort != nil {
+	if overridePort != nil && *overridePort > 0 && *overridePort < 65536 {
 		frontendPort = *overridePort
 	}
 
