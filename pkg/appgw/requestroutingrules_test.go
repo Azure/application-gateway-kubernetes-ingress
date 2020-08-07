@@ -255,35 +255,39 @@ var _ = Describe("Test routing rules generations", func() {
 
 		rule := &ingress.Spec.Rules[0]
 
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+
 		It("frontend port is default to 80", func() {
+			listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
-		overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
-		overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
 
-		listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
 		It("frontend port is default to 80 when no annotation", func() {
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)			
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
-		listenerID = generateListenerID(ingress, rule, n.HTTPS, nil, false)
 		It("frontend port is default to 443 when https", func() {
+			
+		listenerID = generateListenerID(ingress, rule, n.HTTPS, nil, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
-		listenerID = generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPort, false)
 		It("frontend port is default to 443 when https with no annotation", func() {
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID = generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
-		ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
-		overrideFrontendPortFromAnnotation, _ = annotations.OverrideFrontendPort(ingress)
-		overrideFrontendPort = Port(overrideFrontendPortFromAnnotation)
 
-		listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
 		It("frontend port is overriden in annotation", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
+			overrideFrontendPortFromAnnotation, _ = annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort = Port(overrideFrontendPortFromAnnotation)
+			listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)			
 			Expect(listenerID.FrontendPort).To(Equal(Port(777)))
 		})
 	})
