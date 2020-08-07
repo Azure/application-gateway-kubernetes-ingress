@@ -257,7 +257,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
 		It("frontend port is default to 80", func() {
-			Expect(listenerID.FrontendPort).To(Equal(int32(80)))
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
 		overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
@@ -265,17 +265,17 @@ var _ = Describe("Test routing rules generations", func() {
 
 		listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
 		It("frontend port is default to 80 when no annotation", func() {
-			Expect(listenerID.FrontendPort).To(Equal(int32(80)))
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
 		listenerID = generateListenerID(ingress, rule, n.HTTPS, nil, false)
 		It("frontend port is default to 443 when https", func() {
-			Expect(listenerID.FrontendPort).To(Equal(int32(443)))
+			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
 		listenerID = generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPort, false)
 		It("frontend port is default to 443 when https with no annotation", func() {
-			Expect(listenerID.FrontendPort).To(Equal(int32(443)))
+			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
 		ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
@@ -284,7 +284,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		listenerID = generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
 		It("frontend port is overriden in annotation", func() {
-			Expect(listenerID.FrontendPort).To(Equal(int32(777)))
+			Expect(listenerID.FrontendPort).To(Equal(Port(777)))
 		})
 	})
 
