@@ -21,7 +21,11 @@ func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, cpConf
 	utils.Retry(maxAuthRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			// Fetch a new token
+			glog.V(1).Info("Fetching a new token...")
 			authorizer, err = getAuthorizer(authLocation, useManagedidentity, cpConfig)
+			if err != nil {
+				glog.Errorf(err.Error())
+			}
 			return utils.Retriable(true), err
 		})
 	return authorizer, nil
