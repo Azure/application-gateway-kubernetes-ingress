@@ -17,21 +17,22 @@ import (
 
 // ShouldProcess determines whether to process an event.
 func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string) {
-	if pod, ok := event.Value.(*v1.Pod); ok {
-		// this pod is not used by any ingress, skip any event for this
-		reason := fmt.Sprintf("pod %s/%s is not used by any Ingress", pod.Namespace, pod.Name)
-		return c.k8sContext.IsPodReferencedByAnyIngress(pod), to.StringPtr(reason)
-	}
-
 	if endpoints, ok := event.Value.(*v1.Endpoints); ok {
 		if endpoints.Namespace == "default" && endpoints.Name == "aad-pod-identity-mic" {
 			// Ignore AAD Pod Identity
 			return false, nil
 		}
-
 		// this pod is not used by any ingress, skip any event for this
 		reason := fmt.Sprintf("endpoint %s/%s is not used by any Ingress", endpoints.Namespace, endpoints.Name)
-		return c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints), to.StringPtr(reason)
+		validEndpointEventDetected := c.k8sContext.IsEndpointReferencedByAnyIngress(endpoints)
+		return validEndpointEventDetected, to.StringPtr(reason)
+	}
+
+	if pod, ok := event.Value.(*v1.Pod); ok {
+		// this pod is not used by any ingress, skip any event for this
+		reason := fmt.Sprintf("pod %s/%s is not used by any Ingress", pod.Namespace, pod.Name)
+		validPodEventDetected := c.k8sContext.IsPodReferencedByAnyIngress(pod)
+		return validPodEventDetected, to.StringPtr(reason)
 	}
 
 	if event.Type == events.PeriodicReconcile {

@@ -10,11 +10,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/golang/glog"
+
+	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -173,4 +176,86 @@ func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, err
 		deleteKey(&m, keyToDelete)
 	}
 	return json.Marshal(m)
+}
+
+// convert a list of backendaddress to ip addresses
+func (c *AppGwIngressController) getIPAddresses(addressPools *[]n.ApplicationGatewayBackendAddress) []agpoolv1beta1.BackendAddress {
+	if addressPools == nil {
+		return []agpoolv1beta1.BackendAddress{}
+	}
+
+	var ipAddresses []agpoolv1beta1.BackendAddress
+	for _, addressPool := range *addressPools {
+		address := agpoolv1beta1.BackendAddress{IPAddress: *addressPool.IPAddress}
+		ipAddresses = append(ipAddresses, address)
+	}
+	return ipAddresses
+}
+
+// compare generated BackendAddressPools with cached one
+func (c *AppGwIngressController) isBackendAddressPoolsUpdated(generated, existing *[]n.ApplicationGatewayBackendAddressPool) bool {
+	if existing == nil && generated == nil {
+		return false
+	}
+
+	if existing == nil || generated == nil {
+		return true
+	}
+
+	if len(*existing) != len(*generated) {
+		return true
+	}
+
+	backendIDtoIPAddressesMapUpdated := make(map[string][]string)
+
+	for _, gbap := range *generated {
+		backendID := gbap.ID
+		glog.V(9).Infof("[CCP] find backend pool id: [%s]", *backendID)
+		ips := make([]string, len(*gbap.BackendAddresses))
+		for i, ip := range *gbap.BackendAddresses {
+			ips[i] = *ip.IPAddress
+		}
+		sort.Strings(ips)
+		backendIDtoIPAddressesMapUpdated[*backendID] = ips
+	}
+
+	for _, cbap := range *existing {
+		backendIDExisting := cbap.ID
+		if ipAddresses, exists := backendIDtoIPAddressesMapUpdated[*backendIDExisting]; exists {
+			ips := make([]string, len(*cbap.BackendAddresses))
+			for i, ip := range *cbap.BackendAddresses {
+				ips[i] = *ip.IPAddress
+			}
+			sort.Strings(ips)
+			// indicates the backend pool is updated
+			if !equal(ipAddresses, ips) {
+				glog.V(9).Infof("[CCP] backend address pool %s is updated", *backendIDExisting)
+				return true
+			}
+		} else {
+			// if any backend pool is deleted by updating
+			glog.V(5).Infof("backend pool id [%s] cannot be found from updated backend address pools", *backendIDExisting)
+			return true
+		}
+	}
+	return false
+}
+
+// compare two string slices
+func equal(a, b []string) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }

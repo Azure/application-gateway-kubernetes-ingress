@@ -16,6 +16,8 @@ import (
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 
+	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -68,7 +70,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
 	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
-
+	existingBackendAddressPools := *appGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
 	// Prepare k8s resources Phase //
 	// --------------------------- //
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
@@ -157,6 +159,72 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 
 	// Post Compare Phase //
 	// ------------------ //
+	if cbCtx.EnvVariables.BackendPoolAddressFastUpdateEnabled {
+		generatedBackendAddressPools := generatedAppGw.ApplicationGatewayPropertiesFormat.BackendAddressPools
+		if c.isBackendAddressPoolsUpdated(generatedBackendAddressPools, &existingBackendAddressPools) {
+			glog.V(3).Info("Backend pool address is updated")
+			// check crd by name
+			AddressPoolCRDObjectID := c.appGwIdentifier.BackendAddressPoolCRDObjectID()
+			backendPool, err := c.k8sContext.GetCachedBackendPool(AddressPoolCRDObjectID)
+			if err != nil {
+				glog.Warningf("Cannot find address pool CRD object Id: %s, a CRD object will be created, fall back to ARM update!", AddressPoolCRDObjectID)
+				initBackendPool := agpoolv1beta1.AzureApplicationGatewayBackendPool{}
+				initBackendPool.Name = AddressPoolCRDObjectID
+				if _, err := c.k8sContext.CreateBackendPool(&initBackendPool); err != nil {
+					e := controllererrors.NewError(
+						controllererrors.ErrorInitializeBackendAddressPool,
+						"Unable to create backend address pool",
+					)
+					glog.Error(e.Error())
+				}
+
+				// fallback to ARM in case of failure
+				// generate metric for ARM update count
+				c.MetricStore.IncAddressPoolARMFallbackCounter()
+			} else {
+				glog.V(3).Infof("Find AzureApplicationGatewayBackendPool object: %s", AddressPoolCRDObjectID)
+				if generatedBackendAddressPools == nil {
+					e := controllererrors.NewError(
+						controllererrors.ErrorNoBackendAddressPool,
+						"Unable to find any address pool from backend",
+					)
+					glog.Error(e.Error())
+					return e
+				}
+
+				// reset crd before update
+				backendPool.Spec.BackendAddressPools = []agpoolv1beta1.BackendAddressPool{}
+				var updatedBackendAddressPools []agpoolv1beta1.BackendAddressPool
+				// apply updates to CRD
+				for _, backendAddressPool := range *generatedBackendAddressPools {
+					pool := agpoolv1beta1.BackendAddressPool{
+						Name:             *backendAddressPool.ID,
+						BackendAddresses: c.getIPAddresses(backendAddressPool.BackendAddresses),
+					}
+					updatedBackendAddressPools = append(updatedBackendAddressPools, pool)
+				}
+
+				backendPool.Spec.BackendAddressPools = updatedBackendAddressPools
+				if _, err := c.k8sContext.UpdateBackendPool(backendPool); err != nil {
+					glog.Warningf("Failed to update address pool CRD object Id: %s, fall back to ARM update!", AddressPoolCRDObjectID)
+					c.MetricStore.IncAddressPoolARMFallbackCounter()
+				} else {
+					for _, obj := range backendPool.Spec.BackendAddressPools {
+						var ips []string
+						for _, address := range obj.BackendAddresses {
+							ips = append(ips, address.IPAddress)
+						}
+						glog.V(9).Infof("Backend pool ID: %s, IPs: %s", obj.Name, strings.Join(ips, ","))
+					}
+				}
+
+			}
+
+		} else {
+			glog.V(5).Info("Backend address pool has NOT been changed!")
+		}
+	}
+
 	// if this is not a reconciliation task
 	// then compare the generated state with cached state
 	if event.Type != events.PeriodicReconcile {

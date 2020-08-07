@@ -116,7 +116,7 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 
 func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 	glog.V(5).Info("Getting Application Gateway configuration.")
-	err = utils.Retry(-1, retryPause,
+	err = utils.Retry(-1, utils.RetryPause,
 		func() (utils.Retriable, error) {
 			response, err := az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 			if err == nil {
@@ -126,7 +126,7 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 			e := controllererrors.NewErrorWithInnerErrorf(
 				controllererrors.ErrorGetApplicationGatewayError,
 				err,
-				"Failed fetching configuration for Application Gateway. Will retry in %v.", retryPause,
+				"Failed fetching configuration for Application Gateway. Will retry in %v.", utils.RetryPause,
 			)
 
 			if response.Response.Response != nil {
@@ -180,7 +180,7 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 }
 
 func (az *azClient) GetGateway() (gateway n.ApplicationGateway, err error) {
-	err = utils.Retry(retryCount, retryPause,
+	err = utils.Retry(utils.RetryCount, utils.RetryPause,
 		func() (utils.Retriable, error) {
 			gateway, err = az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 			if err != nil {
@@ -328,7 +328,7 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 
 // Create a resource group for the deployment.
 func (az *azClient) getGroup() (group r.Group, err error) {
-	utils.Retry(retryCount, retryPause,
+	utils.Retry(utils.RetryCount, utils.RetryPause,
 		func() (utils.Retriable, error) {
 			group, err = az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
 			if err != nil {
@@ -341,7 +341,7 @@ func (az *azClient) getGroup() (group r.Group, err error) {
 }
 
 func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceName) (vnet n.VirtualNetwork, err error) {
-	utils.Retry(extendedRetryCount, retryPause,
+	utils.Retry(utils.ExtendedRetryCount, utils.RetryPause,
 		func() (utils.Retriable, error) {
 			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
 			if err != nil {

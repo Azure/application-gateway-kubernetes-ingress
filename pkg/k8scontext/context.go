@@ -147,11 +147,9 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget:                nil,
-		c.informers.IstioGateway:                                nil,
-		c.informers.IstioVirtualService:                         nil,
-		c.informers.AzureApplicationGatewayBackendPool:          nil,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
+		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.IstioGateway:                 nil,
+		c.informers.IstioVirtualService:          nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -160,10 +158,6 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
-
-		//TODO: enabled by ccp feature flag
-		c.informers.AzureApplicationGatewayBackendPool,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -173,6 +167,10 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	if envVariables.EnableIstioIntegration {
 		sharedInformers = append(sharedInformers, c.informers.IstioGateway, c.informers.IstioVirtualService)
+	}
+
+	if envVariables.BackendPoolAddressFastUpdateEnabled {
+		sharedInformers = append(sharedInformers, c.informers.AzureApplicationGatewayBackendPool, c.informers.AzureApplicationGatewayInstanceUpdateStatus)
 	}
 
 	for _, informer := range sharedInformers {
@@ -213,8 +211,8 @@ func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 	return pod
 }
 
-// GetBackendPool returns backend pool with specified name
-func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+// GetCachedBackendPool returns backend pool with specified name from synced cache
+func (c *Context) GetCachedBackendPool(backendPoolName string) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
 	agpool, exist, err := c.Caches.AzureApplicationGatewayBackendPool.GetByKey(backendPoolName)
 	if !exist {
 		e := controllererrors.NewErrorf(
@@ -240,8 +238,8 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
 }
 
-// GetInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
-func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*aginstv1beta1.AzureApplicationGatewayInstanceUpdateStatus, error) {
+// GetCachedInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
+func (c *Context) GetCachedInstanceUpdateStatus(instanceUpdateStatusName string) (*aginstv1beta1.AzureApplicationGatewayInstanceUpdateStatus, error) {
 	agpool, exist, err := c.Caches.AzureApplicationGatewayInstanceUpdateStatus.GetByKey(instanceUpdateStatusName)
 	if !exist {
 		e := controllererrors.NewErrorf(
@@ -267,14 +265,16 @@ func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*agi
 	return agpool.(*aginstv1beta1.AzureApplicationGatewayInstanceUpdateStatus), nil
 }
 
-// GetProhibitedTarget returns prohibited target with specified name and namespace
-func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
-	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
-	if err != nil {
-		glog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
-		return nil
-	}
-	return target
+// UpdateBackendPool updates the backend address pool
+func (c *Context) UpdateBackendPool(agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	result, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Update(context.TODO(), agPool, metav1.UpdateOptions{})
+	return result, err
+}
+
+// CreateBackendPool creates the backend address pool
+func (c *Context) CreateBackendPool(agPool *agpoolv1beta1.AzureApplicationGatewayBackendPool) (*agpoolv1beta1.AzureApplicationGatewayBackendPool, error) {
+	result, err := c.crdClient.AzureapplicationgatewaybackendpoolsV1beta1().AzureApplicationGatewayBackendPools().Create(context.TODO(), agPool, metav1.CreateOptions{})
+	return result, err
 }
 
 // ListServices returns a list of all the Services from cache.
@@ -360,7 +360,7 @@ func (c *Context) IsPodReferencedByAnyIngress(pod *v1.Pod) bool {
 	return false
 }
 
-// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. a Endpoint is used by an ingress
+// IsEndpointReferencedByAnyIngress provides whether an Endpoint is useful i.e. an Endpoint is used by an ingress
 func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool {
 	service := c.GetService(fmt.Sprintf("%v/%v", endpoints.Namespace, endpoints.Name))
 	return service != nil && c.isServiceReferencedByAnyIngress(service)

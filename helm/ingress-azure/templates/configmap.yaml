@@ -83,6 +83,11 @@ data:
   RECONCILE_PERIOD_SECONDS: {{ .Values.reconcilePeriodSeconds | quote }}
 {{- end }}
 
+{{- if .Values.backendPoolAddressFastUpdate.enabled }}
+BACKENDPOOLADDRESS_FASTUPDATE_NABLED: "true"
+{{- end }}
+
+
 {{- if .Values.kubernetes.ingressClass}}
   INGRESS_CLASS: "{{ .Values.kubernetes.ingressClass }}"
 {{- end}}

@@ -45,4 +45,6 @@ func (ms *fakeMetricStore) IncArmAPICallCounter() {}
 
 func (ms *fakeMetricStore) IncK8sAPIEventCounter() {}
 
+func (ms *fakeMetricStore) IncAddressPoolARMFallbackCounter() {}
+
 func (ms *fakeMetricStore) IncErrorCount(controllererrors.ErrorCode) {}

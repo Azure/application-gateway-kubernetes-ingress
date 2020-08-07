@@ -75,7 +75,7 @@ func main() {
 	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
 	cpConfig, err := azure.NewCloudProviderConfig(env.CloudProviderConfigLocation)
 	if err != nil {
-		glog.Infof("Unable to load cloud provider config '%s'. Error: %s", env.CloudProviderConfigLocation, err.Error())
+		glog.Warningf("Unable to load cloud provider config '%s'. Error: %s", env.CloudProviderConfigLocation, err.Error())
 	}
 
 	env.Consolidate(cpConfig)

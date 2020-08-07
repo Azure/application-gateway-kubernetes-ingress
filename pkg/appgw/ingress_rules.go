@@ -123,6 +123,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 	return frontendPorts, listeners
 }
 
+// Get all the backendIds associated to available service
 func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) map[backendIdentifier]interface{} {
 	if c.mem.backendIDs != nil {
 		return *c.mem.backendIDs

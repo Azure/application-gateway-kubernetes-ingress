@@ -83,7 +83,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 		service := c.k8sContext.GetService(backendID.serviceKey())
 		if service == nil {
-			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
+			// in case the service doesn't exist anymore
 			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonServiceNotFound, logLine)
 			glog.Errorf(logLine)
@@ -123,7 +123,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 							resolvedBackendPorts[pair] = nil
 						} else {
 							// if service port is defined by name, need to resolve
-							glog.V(5).Infof("resolving port name [%s] for service [%s] and service port [%s] for Ingress [%s]", sp.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
+							glog.V(5).Infof("resolving port name [%s] for service [%s] and service port [%s] for Ingress [%s/%s]", sp.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Namespace, backendID.Ingress.Name)
 							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
