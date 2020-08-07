@@ -286,6 +286,22 @@ var _ = Describe("Test routing rules generations", func() {
 			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(777)))
 		})
+
+		It("frontend port is out of range", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "65000"
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
+
+		It("frontend port is out of range", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "0"
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
 	})
 
 	Context("test waf policy is configured in rule path", func() {
