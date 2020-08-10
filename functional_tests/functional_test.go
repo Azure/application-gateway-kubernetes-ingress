@@ -793,54 +793,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 							},
 						},
 					},
-					{
-						Host: "site.com",
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
-									{
-										Path: "/A/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
-											ServicePort: intstr.IntOrString{
-												Type:   intstr.Int,
-												IntVal: 80,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Host: "site.com",
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
-									{
-										Path: "/B/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameB,
-											ServicePort: intstr.IntOrString{
-												Type:   intstr.Int,
-												IntVal: 80,
-											},
-										},
-									},
-									{
-										Path: "/index/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceName,
-											ServicePort: intstr.IntOrString{
-												Type:   intstr.Int,
-												IntVal: 80,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 			ObjectMeta: metav1.ObjectMeta{
