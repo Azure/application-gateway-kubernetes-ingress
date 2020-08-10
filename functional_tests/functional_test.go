@@ -772,7 +772,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 									{
 										Path: "/B/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
+											ServiceName: serviceNameB,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 80,
@@ -780,9 +780,9 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 										},
 									},
 									{
-										Path: "/C/",
+										Path: "/index/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
+											ServiceName: serviceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 80,
@@ -820,7 +820,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 									{
 										Path: "/B/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
+											ServiceName: serviceNameB,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 80,
@@ -828,9 +828,9 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 										},
 									},
 									{
-										Path: "/C/",
+										Path: "/index/",
 										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceNameA,
+											ServiceName: serviceName,
 											ServicePort: intstr.IntOrString{
 												Type:   intstr.Int,
 												IntVal: 80,
