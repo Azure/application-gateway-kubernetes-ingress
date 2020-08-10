@@ -77,12 +77,12 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 		It("should be able to merge all the path rules into the same path map", func() {
 			for _, ingress := range cbCtx.IngressList {
-				for _, rule := range ingress.Spec.Rules {
-					for _, path := range rule.HTTP.Paths {
+				for ruleIdx, rule := range ingress.Spec.Rules {
+					for pathIdx, path := range rule.HTTP.Paths {
 						backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
 						backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 						httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
-						pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
+						pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
 						expectedPathRule := n.ApplicationGatewayPathRule{
 							Name: to.StringPtr(pathRuleName),
 							Etag: to.StringPtr("*"),
@@ -159,12 +159,12 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(len(*generatedPathMap.PathRules)).To(Equal(2))
 		})
 		It("should have two path rules coming from path based ingress", func() {
-			for _, rule := range ingressPathBased.Spec.Rules {
-				for _, path := range rule.HTTP.Paths {
+			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
+				for pathIdx, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
-					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
 					expectedPathRule := n.ApplicationGatewayPathRule{
 						Name: to.StringPtr(pathRuleName),
 						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),

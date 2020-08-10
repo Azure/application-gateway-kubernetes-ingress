@@ -167,7 +167,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 			Namespace: tests.Namespace,
-			Name:      tests.Name,
+			Name:      tests.Name + "FooBazNoTLS",
 		},
 	}
 
@@ -200,7 +200,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				annotations.HostNameExtensionKey: "foo.baz",
 			},
 			Namespace: tests.Namespace,
-			Name:      tests.Name,
+			Name:      tests.Name + "FooBazNoTLSHostNameFromAnnotation",
 		},
 	}
 
@@ -233,7 +233,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 			Namespace: tests.OtherNamespace,
-			Name:      tests.Name,
+			Name:      tests.Name + "OtherNamespace",
 		},
 	}
 
@@ -560,7 +560,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
 				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "A",
 			},
 		}
 
@@ -593,7 +593,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
 				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "B",
 			},
 		}
 
@@ -630,7 +630,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.SslRedirectKey:              "true",
 				},
 				Namespace: tests.HTTPSBackendNamespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "HttpsBackend",
 			},
 		}
 
@@ -664,7 +664,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.HostNameExtensionKey: "test.com, t*.com",
 				},
 				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "BWithExtendedHostName",
 			},
 		}
 
@@ -697,7 +697,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
 				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "SlashNothing",
 			},
 		}
 
@@ -740,7 +740,115 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 				},
 				Namespace: tests.Namespace,
-				Name:      tests.Name,
+				Name:      tests.Name + "SlashNothingSlashSomething",
+			},
+		}
+
+		ingressMultiplePathRules := &v1beta1.Ingress{
+			Spec: v1beta1.IngressSpec{
+				Rules: []v1beta1.IngressRule{
+					{
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/A/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/B/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+									{
+										Path: "/C/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Host: "site.com",
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/A/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Host: "site.com",
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Path: "/B/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+									{
+										Path: "/C/",
+										Backend: v1beta1.IngressBackend{
+											ServiceName: serviceNameA,
+											ServicePort: intstr.IntOrString{
+												Type:   intstr.Int,
+												IntVal: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name + "MultiplePathRules",
 			},
 		}
 
@@ -817,6 +925,19 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("ONE Ingress Resources with multiple paths rules", func() {
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*v1beta1.Ingress{
+					ingressMultiplePathRules,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "one_ingress_with_multiple_path_rules.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("TWO Ingress Resources, one with / another with /something paths", func() {
