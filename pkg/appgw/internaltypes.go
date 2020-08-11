@@ -158,8 +158,8 @@ func generateSSLRedirectConfigurationName(targetListener listenerIdentifier) str
 	return formatPropName(fmt.Sprintf("%s%s-%s", agPrefix, prefixRedirect, generateListenerName(targetListener)))
 }
 
-func generatePathRuleName(namespace, ingress, suffix string) string {
-	return formatPropName(fmt.Sprintf("%s%s-%s-%s-%s", agPrefix, prefixPathRule, namespace, ingress, suffix))
+func generatePathRuleName(namespace, ingress string, ruleIdx, pathIdx int) string {
+	return formatPropName(fmt.Sprintf("%s%s-%s-%s-rule-%d-path-%d", agPrefix, prefixPathRule, namespace, ingress, ruleIdx, pathIdx))
 }
 
 // DefaultBackendHTTPSettingsName is the name to be assigned to App Gateway's default HTTP settings resource.

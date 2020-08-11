@@ -59,14 +59,14 @@
                 }
             },
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---other-namespace---hello-world-c-80-80---name--",
-                "name": "bp---other-namespace---hello-world-c-80-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---other-namespace---hello-world-c-80-80---name--OtherNamespace",
+                "name": "bp---other-namespace---hello-world-c-80-80---name--OtherNamespace",
                 "properties": {
                     "cookieBasedAffinity": "Disabled",
                     "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---other-namespace---hello-world-c-80---name--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---other-namespace---hello-world-c-80---name--OtherNamespace"
                     },
                     "protocol": "Http",
                     "requestTimeout": 30
@@ -207,8 +207,8 @@
                 }
             },
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---other-namespace---hello-world-c-80---name--",
-                "name": "pb---other-namespace---hello-world-c-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---other-namespace---hello-world-c-80---name--OtherNamespace",
+                "name": "pb---other-namespace---hello-world-c-80---name--OtherNamespace",
                 "properties": {
                     "host": "foo.baz",
                     "interval": 30,
@@ -292,14 +292,14 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---other-namespace-----name---0",
-                            "name": "pr---other-namespace-----name---0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---other-namespace-----name--OtherNamespace-rule-0-path-0",
+                            "name": "pr---other-namespace-----name--OtherNamespace-rule-0-path-0",
                             "properties": {
                                 "backendAddressPool": {
                                     "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---other-namespace---hello-world-c-80-bp-80"
                                 },
                                 "backendHttpSettings": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---other-namespace---hello-world-c-80-80---name--"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---other-namespace---hello-world-c-80-80---name--OtherNamespace"
                                 },
                                 "paths": [
                                     "/b"

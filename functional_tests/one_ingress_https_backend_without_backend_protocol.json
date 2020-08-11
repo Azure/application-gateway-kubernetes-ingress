@@ -28,14 +28,14 @@
         ],
         "backendHttpSettingsCollection": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---https-backend-namespace---hello-world-https-443-443---name--",
-                "name": "bp---https-backend-namespace---hello-world-https-443-443---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---https-backend-namespace---hello-world-https-443-443---name--HttpsBackend",
+                "name": "bp---https-backend-namespace---hello-world-https-443-443---name--HttpsBackend",
                 "properties": {
                     "cookieBasedAffinity": "Disabled",
                     "pickHostNameFromBackendAddress": false,
                     "port": 443,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend"
                     },
                     "protocol": "Https",
                     "requestTimeout": 30
@@ -135,8 +135,8 @@
                 }
             },
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--",
-                "name": "pb---https-backend-namespace---hello-world-https-443---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend",
+                "name": "pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend",
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
@@ -185,14 +185,14 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-c61dda7ff9748ec5f51989767db5afd0/pathRules/pr---https-backend-namespace-----name---0",
-                            "name": "pr---https-backend-namespace-----name---0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-c61dda7ff9748ec5f51989767db5afd0/pathRules/pr---https-backend-namespace-----name--HttpsBackend-rule-0-path-0",
+                            "name": "pr---https-backend-namespace-----name--HttpsBackend-rule-0-path-0",
                             "properties": {
                                 "backendAddressPool": {
                                     "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---https-backend-namespace---hello-world-https-443-bp-443"
                                 },
                                 "backendHttpSettings": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---https-backend-namespace---hello-world-https-443-443---name--"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---https-backend-namespace---hello-world-https-443-443---name--HttpsBackend"
                                 },
                                 "paths": [
                                     "/A/"

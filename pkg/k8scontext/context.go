@@ -147,11 +147,11 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget:                nil,
-		c.informers.IstioGateway:                                nil,
-		c.informers.IstioVirtualService:                         nil,
-		c.informers.AzureApplicationGatewayBackendPool:          nil,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
+		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.IstioGateway:                 nil,
+		c.informers.IstioVirtualService:          nil,
+		// c.informers.AzureApplicationGatewayBackendPool:          nil,
+		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -162,8 +162,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Ingress,
 
 		//TODO: enabled by ccp feature flag
-		c.informers.AzureApplicationGatewayBackendPool,
-		c.informers.AzureApplicationGatewayInstanceUpdateStatus,
+		// c.informers.AzureApplicationGatewayBackendPool,
+		// c.informers.AzureApplicationGatewayInstanceUpdateStatus,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true

@@ -28,14 +28,28 @@
         ],
         "backendHttpSettingsCollection": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--",
-                "name": "bp---namespace---hello-world-b-80-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--FooBazNoTLS",
+                "name": "bp---namespace---hello-world-b-80-80---name--FooBazNoTLS",
                 "properties": {
                     "cookieBasedAffinity": "Disabled",
                     "pickHostNameFromBackendAddress": false,
                     "port": 80,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--FooBazNoTLS"
+                    },
+                    "protocol": "Http",
+                    "requestTimeout": 30
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--FooBazNoTLSHostNameFromAnnotation",
+                "name": "bp---namespace---hello-world-b-80-80---name--FooBazNoTLSHostNameFromAnnotation",
+                "properties": {
+                    "cookieBasedAffinity": "Disabled",
+                    "pickHostNameFromBackendAddress": false,
+                    "port": 80,
+                    "probe": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--FooBazNoTLSHostNameFromAnnotation"
                     },
                     "protocol": "Http",
                     "requestTimeout": 30
@@ -134,8 +148,23 @@
                 }
             },
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--",
-                "name": "pb---namespace---hello-world-b-80---name--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--FooBazNoTLS",
+                "name": "pb---namespace---hello-world-b-80---name--FooBazNoTLS",
+                "properties": {
+                    "host": "foo.baz",
+                    "interval": 30,
+                    "match": {},
+                    "minServers": 0,
+                    "path": "/.well-known/acme-challenge/blahBlahBBLLAAHH",
+                    "pickHostNameFromBackendHttpSettings": false,
+                    "protocol": "Http",
+                    "timeout": 30,
+                    "unhealthyThreshold": 3
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--FooBazNoTLSHostNameFromAnnotation",
+                "name": "pb---namespace---hello-world-b-80---name--FooBazNoTLSHostNameFromAnnotation",
                 "properties": {
                     "host": "foo.baz",
                     "interval": 30,
@@ -184,14 +213,14 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---namespace-----name---0",
-                            "name": "pr---namespace-----name---0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---namespace-----name--FooBazNoTLS-rule-0-path-0",
+                            "name": "pr---namespace-----name--FooBazNoTLS-rule-0-path-0",
                             "properties": {
                                 "backendAddressPool": {
                                     "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
                                 },
                                 "backendHttpSettings": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--FooBazNoTLS"
                                 },
                                 "paths": [
                                     "/.well-known/acme-challenge/blahBlahBBLLAAHH"
@@ -199,14 +228,14 @@
                             }
                         },
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---namespace-----name---0",
-                            "name": "pr---namespace-----name---0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5/pathRules/pr---namespace-----name--FooBazNoTLSHostNameFromAnnotation-rule-0-path-0",
+                            "name": "pr---namespace-----name--FooBazNoTLSHostNameFromAnnotation-rule-0-path-0",
                             "properties": {
                                 "backendAddressPool": {
                                     "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
                                 },
                                 "backendHttpSettings": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--FooBazNoTLSHostNameFromAnnotation"
                                 },
                                 "paths": [
                                     "/.well-known/acme-challenge/blahBlahBBLLAAHH"
