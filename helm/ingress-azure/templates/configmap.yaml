@@ -80,7 +80,7 @@ data:
 {{- end }}
 
 {{- if .Values.backendPoolAddressFastUpdate.enabled }}
-BACKENDPOOLADDRESS_FASTUPDATE_NABLED: "true"
+BACKENDPOOLADDRESS_FASTUPDATE_ENABLED: "true"
 {{- end }}
 
 
