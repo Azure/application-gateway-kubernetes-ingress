@@ -18,7 +18,7 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Support for public, private, and hybrid web sites
   - Integrated web application firewall
 
-## Change notes
+## Changelog
 - [Release Notes, Fixes and Known issues](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md)
 
 
