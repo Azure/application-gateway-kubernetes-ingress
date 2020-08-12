@@ -283,6 +283,7 @@ Broaden AGIC permissions with:
     EOF
     ```
 **NOTE:** To prohibit AGIC from making changes, in addition to *hostname*, a list of URL paths can also be configured as part of your prohibited policy, please refer to the [schema](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/AzureIngressProhibitedTarget.yaml) for details.
+
 2. Only after you have created your own custom prohibition, you can delete the default one, which is too broad:
 
     ```bash
