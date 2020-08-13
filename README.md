@@ -63,7 +63,7 @@ blank-slate infrastructure (running Windows Node Pool).
 
 ## Troubleshooting
 
-For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
+For troubleshooting, please refer to this [guide](docs/troubleshootings).
 
 ## Frequently asked questions
 
