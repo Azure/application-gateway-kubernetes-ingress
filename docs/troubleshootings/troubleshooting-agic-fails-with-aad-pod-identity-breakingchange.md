@@ -1,4 +1,4 @@
-## Troubleshooting: AGIC pod stuck in not ready state
+## Troubleshooting: AGIC fails with aad identity breaking changes
 
 ### Illustration
 AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive.
