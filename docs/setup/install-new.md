@@ -29,8 +29,8 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
 1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)). Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
     ```bash
     az ad sp create-for-rbac --skip-assignment -o json > auth.json
-    appId=$(jq -r ".appId" auth.json)
-    password=$(jq -r ".password" auth.json)
+    $appId=$(jq -r ".appId" auth.json)
+    $password=$(jq -r ".password" auth.json)
     ```
         These commands will create `appId` and `password` bash variables, which will be used in the steps below. You can view the value of these with `echo $appId` and `echo $password`.
 
