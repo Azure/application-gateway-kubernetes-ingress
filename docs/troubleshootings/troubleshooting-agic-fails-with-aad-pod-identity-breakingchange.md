@@ -35,19 +35,30 @@ For `AzureIdentity` and `AzureIdentityBinding` created using AAD Pod Identity v1
 | `AzureIdentity` | `azureIdentity` |
 | `Selector`      | `selector`      |
 
+***NOTE*** ASK recommends to use AAD Pod Identity with version >= 1.6.0
+
 #### AGIC fix to adapt to the break change
 Updated AGIC helm templates to use the right fields regarding AAD Pod Identity, [PR](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/825/files) for reference.
 
 
 ### Resolve the issue
 
-#### Upgrade AGIC
+#### Upgrade AGIC to 1.2.0
 AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) or release [v1.2.0](https://github.com/Azure/application-gateway-kubernetes-ingress/releases/tag/1.2.0) will be required.
 
 ```
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
 # --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
+
 helm repo update
+
+# install release 1.2.0
+helm upgrade \
+  <release-name> \
+  application-gateway-kubernetes-ingress/ingress-azure \
+  --reuse-values
+
+# install 1.2.0-rc2 
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
@@ -56,16 +67,16 @@ helm upgrade \
 ```
 
 #### Install the right version of AAD Pod Idenity
-if old version of AGIC being used, instead of upgrading AGIC as above, reinstall AAD Pod Identity with the right version, e.g. v1.5.5
+if old version of AGIC being used, instead of upgrading AGIC as above, reinstall AAD Pod Identity with the right and recommended version, i.e. >= v1.6.0
 
 - *RBAC enabled* AKS cluster
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
 ```
 
 - *RBAC disabled* AKS cluster
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
 ```
