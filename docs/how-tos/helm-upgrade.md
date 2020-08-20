@@ -30,7 +30,7 @@ Before we begin the upgrade procedure, ensure that you have added the required r
 1. View available versions of the `application-gateway-kubernetes-ingress` chart:
 
     ``` bash
-    helm search -l application-gateway-kubernetes-ingress
+    helm search repo -l application-gateway-kubernetes-ingress
     ```
 
     Sample response:
