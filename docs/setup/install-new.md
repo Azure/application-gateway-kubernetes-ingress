@@ -154,13 +154,13 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
    - *RBAC enabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
   ```
   ***Note:*** AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive, for any AAD Pod Identity version >= 1.6.0 or you plan to apply from master branch such as https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml, AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) will be required, more details please refer to [troubleshooting](../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange.md).
 
@@ -231,10 +231,10 @@ Values:
     helm install ingress-azure \
       -f helm-config.yaml \
       application-gateway-kubernetes-ingress/ingress-azure \
-      --version 1.0.0
+      --version 1.2.0
     ```
 
-    >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16
+    >Note: Use at least version 1.2.0-rc1, i.e. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
 
 ### Install a Sample App
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
