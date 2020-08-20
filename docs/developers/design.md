@@ -29,10 +29,10 @@ The AGIC is composed of the following three sub components:
 Let's take a look at each component:
 
 ### 1. K8s Context and Informers
-When any change is applied the k8s cluster by the user, AGIC needs to listen to these changes in order to update the corresponding configuration on the Application Gateway.
+When any change is applied on the k8s cluster by the user, AGIC needs to listen to these changes in order to update the corresponding configuration on the Application Gateway.
 We use the kubernetes informers for this purpose which is a standard for watching resources on the K8S API server.
 
-When AGIC starts, it [setups up informers](../pkg/k8scontext/context.go) for watching following resources:
+When AGIC starts, it [sets up informers](../pkg/k8scontext/context.go) for watching following resources:
 1. [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/): This is the top-level resource that AGIC monitors. It provides information about the layer-7 routing rules that need to be configured on the App Gateway.
 1. [Service](https://kubernetes.io/docs/concepts/services-networking/service/): Service provides an abstraction over the pods to expose as a network service. AGIC uses the service as logical grouping of pods to extract the IP addresses through the endpoints object created automatically along with the Service.
 1. [Endpoints](https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/): Endpoints provides information about Pod IP Addresses behind a service and is used to populate AppGW's backend pool.
