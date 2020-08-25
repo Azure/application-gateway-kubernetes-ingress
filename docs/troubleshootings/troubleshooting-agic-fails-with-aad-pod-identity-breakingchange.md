@@ -19,6 +19,7 @@ E0427 00:13:26.222815       1 mic.go:899] Ignoring azure identity default/agic-a
 ### Analysis of the issue
 #### AAD Breaking Change details
 For `AzureIdentity` and `AzureIdentityBinding` created using AAD Pod Identity v1.6.0+, the following fields are changed
+
  ***AzureIdentity***
 
 | < 1.6.0          | >= 1.6.0         |
