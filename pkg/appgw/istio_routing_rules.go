@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"fmt"
 	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -71,9 +70,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 					},
 				}
 
-				pathRuleIdx := fmt.Sprintf("%d-%d", virtSvcIdx, matchIdx)
-
-				pathRuleName := generatePathRuleName(virtSvc.Namespace, virtSvc.Name, pathRuleIdx)
+				pathRuleName := generatePathRuleName(virtSvc.Namespace, virtSvc.Name, virtSvcIdx, matchIdx)
 				pathRule := n.ApplicationGatewayPathRule{
 					Etag: to.StringPtr("*"),
 					Name: to.StringPtr(pathRuleName),
