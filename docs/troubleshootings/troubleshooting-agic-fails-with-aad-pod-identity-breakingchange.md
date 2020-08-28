@@ -1,8 +1,7 @@
-## Troubleshooting: AGIC fails with aad identity breaking changes
+## Troubleshooting: AGIC v1.2.0-rc1 and below fails with a breaking change introduced in AAD Pod Identity v1.6 
 
-### Illustration
-AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive.
-When using user assigned identity with AGIC version < v1.2.0-rc2, in case to apply AAD Pod Identity version >= 1.6.0 or from AAD master branch such as https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml, an error as shown below will be raised due to the breaking change, the error is caused by AAD Pod Identiy fields are mismatched to what AGIC uses.
+### Overview
+If you're using AGIC with version < v1.2.0-rc2 and AAD Pod Identity with version >= v1.6.0, an error as shown below will be raised due to a breaking change. AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 due to CRD fields being case sensitive. The error is caused by AAD Pod Identity fields not matching what AGIC uses; more details of the mismatch under [analysis of the issue](#analysis-of-the-issue). AAD Pod Identity v1.5 and lower have known issues with AKS' most recent base images, and therefore AKS has asked customers to upgrade to AAD Pod Identity v1.6 or higher. 
 
 ***AGIC Pod Logs***
 ```
@@ -17,7 +16,7 @@ E0427 00:13:26.222815       1 mic.go:899] Ignoring azure identity default/agic-a
 ```
 
 ### Analysis of the issue
-#### AAD Breaking Change details
+#### AAD breaking change details
 For `AzureIdentity` and `AzureIdentityBinding` created using AAD Pod Identity v1.6.0+, the following fields are changed
 
  ***AzureIdentity***
@@ -36,16 +35,16 @@ For `AzureIdentity` and `AzureIdentityBinding` created using AAD Pod Identity v1
 | `AzureIdentity` | `azureIdentity` |
 | `Selector`      | `selector`      |
 
-***NOTE*** ASK recommends to use AAD Pod Identity with version >= 1.6.0
+***NOTE*** AKS recommends to using AAD Pod Identity with version >= 1.6.0
 
-#### AGIC fix to adapt to the break change
-Updated AGIC helm templates to use the right fields regarding AAD Pod Identity, [PR](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/825/files) for reference.
+#### AGIC fix to adapt to the breaking change
+Updated AGIC Helm templates to use the right fields regarding AAD Pod Identity, [PR](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/825/files) for reference.
 
 
-### Resolve the issue
-It's recommended to upgrade your AGIC to release 1.2.0 and then apply AAD Pod Identity version >= 1.6.0
+### Resolving the issue
+It's recommended you upgrade your AGIC to release 1.2.0 and then apply AAD Pod Identity version >= 1.6.0
 #### Upgrade AGIC to 1.2.0
-AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) or release [v1.2.0](https://github.com/Azure/application-gateway-kubernetes-ingress/releases/tag/1.2.0) will be required.
+AGIC version [v1.2.0](https://github.com/Azure/application-gateway-kubernetes-ingress/releases/tag/1.2.0) will be required.
 
 ```
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
@@ -60,18 +59,16 @@ helm search repo -l application-gateway-kubernetes-ingress
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure
-
-# install rc version such as 1.2.0-rc2 
-helm upgrade \
-  <release-name> \
-  application-gateway-kubernetes-ingress/ingress-azure \
-  --reuse-values \
-  --version 1.2.0-rc2
+  --version 1.2.0
+  --reuse-values
 ```
+***Note:*** If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.2.0. 
 
-#### Install the right version of AAD Pod Idenity
-if old version of AGIC being used, instead of upgrading AGIC as above, reinstall AAD Pod Identity with the right and recommended version, i.e. >= v1.6.0
 
+#### Install the right version of AAD Pod Identity
+AKS recommends upgrading the Azure Active Directory Pod Identity version on your Azure Kubernetes Service Clusters to v1.6. AAD pod identity v1.5 or lower have a known issue with AKS' most recent base images. 
+
+To install AAD Pod Identity with version v1.6.0:
 - *RBAC enabled* AKS cluster
 
 ```bash
