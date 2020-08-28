@@ -70,7 +70,8 @@ helm upgrade \
 ```
 
 #### Install the right version of AAD Pod Idenity
-if old version of AGIC being used, instead of upgrading AGIC as above, reinstall AAD Pod Identity with the right and recommended version, i.e. >= v1.6.0
+AKS recommends to upgrade the Azure Active Directory Pod Identity version on your Azure Kubernetes Service Clusters to v1.6. AAD pod identity v1.5 or lower have a known issue with AKS' most recent base images. 
+To install AAD Pod Identity with version v1.6.0:
 
 - *RBAC enabled* AKS cluster
 
