@@ -73,7 +73,7 @@ AGIC can be stuck in getting the gateway due to:
 1. AGIC gets `NotFound` when getting Application Gateway  
 When you see this error,
     1. Verify that the gateway actually exists in the subscription and resource group printed in the AGIC logs.
-    1. If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the [`appgw.environment`](helm-values-documenation.md) property in the helm.
+    1. If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the [`appgw.environment`](../helm-values-documenation.md) property in the helm.
 1. AGIC gets `Unauthorized` when getting Application Gateway  
 Verify that you have given needed permissions to AGIC's identity:
     1. `Reader` accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
