@@ -214,8 +214,13 @@ func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, pro
 	if protocol == n.HTTPS {
 		frontendPort = Port(443)
 	}
-	if overridePort != nil && *overridePort > 0 && *overridePort < 65000 {
-		frontendPort = *overridePort
+	if overridePort != nil {
+		if *overridePort > 0 && *overridePort < 65000 {
+			frontendPort = *overridePort
+		} else {
+			glog.V(5).Infof("Invalid custom port configuration (%d). Setting listener port to default : %d", *overridePort, frontendPort)
+		}
+
 	}
 
 	listenerID := listenerIdentifier{
