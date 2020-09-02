@@ -424,7 +424,7 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 	}
 }
 
-// NewEndpointsFixture makes a new endpoint for testing
+// NewEndpointsFixtureWithSameNameMultiplePorts makes a new endpoint for testing
 func NewEndpointsFixtureWithSameNameMultiplePorts() *v1.Endpoints {
 	return &v1.Endpoints{
 		ObjectMeta: metav1.ObjectMeta{

@@ -28,9 +28,16 @@ import (
 var _ = Describe("Test the creation of Backend http settings from Ingress definition", func() {
 	// Setup
 	configBuilder := newConfigBuilderFixture(nil)
-	endpoint := tests.NewEndpointsFixture()
+
+	// contains endpoint for the service ports. Multiple ports present with name as https-port// contains endpoint for the service ports. Multiple ports present with name as https-port
+	endpoint := tests.NewEndpointsFixtureWithSameNameMultiplePorts()
+
+	// service contains multiple service ports with port as 80, 443, etc and target port as 9876, pod port name
 	service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
 	pod := tests.NewPodTestFixture(service.Namespace, "mybackend")
+
+	// Ingress contains two rules with service port as 80 and 443
 	ingress := tests.NewIngressFixture()
 	_ = configBuilder.k8sContext.Caches.Pods.Add(&pod)
 	_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
@@ -124,44 +131,21 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		})
 
 	})
-})
-
-var _ = Describe("Test the creation of Backend http settings from Ingress definition with target port in Service contains a name which resolved to multiple ports of PODs", func() {
-	// Setup
-	configBuilder := newConfigBuilderFixture(nil)
-
-	// contains endpoint for the service ports. Multiple ports present with name as https-port
-	endpoint := tests.NewEndpointsFixtureWithSameNameMultiplePorts()
-
-	// service contains multiple service ports with port as 80, 443, etc and target port as 9876, pod port name
-	service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
-
-	pod := tests.NewPodTestFixture(service.Namespace, "mybackend")
-
-	// Ingress contains two rules with service port as 80 and 443
-	ingress := tests.NewIngressFixture()
-
-	_ = configBuilder.k8sContext.Caches.Pods.Add(&pod)
-	_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
-	_ = configBuilder.k8sContext.Caches.Service.Add(service)
-	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
-
-	cbCtx := &ConfigBuilderContext{
-		IngressList:           []*v1beta1.Ingress{ingress},
-		ServiceList:           []*v1.Service{service},
-		DefaultAddressPoolID:  to.StringPtr("xx"),
-		DefaultHTTPSettingsID: to.StringPtr("yy"),
-	}
-
-	// Action
-	configBuilder.mem = memoization{}
-	configBuilder.newProbesMap(cbCtx)
-	httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
 	Context("test backend ports for the http settings", func() {
-		expectedhttpSettingsLen := 3
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
 
-		It("checking http settings backend port", func() {
+		configBuilder.mem = memoization{}
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("correct backend port is choosen in case of target port is resolved to multiple ports", func() {
+			expectedhttpSettingsLen := 3
 			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
 
 			for _, setting := range httpSettings {

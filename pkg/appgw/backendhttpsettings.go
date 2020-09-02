@@ -167,10 +167,6 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 	// enforce single pair relationship between service port and backend port
 	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
-		if len(serviceBackendPairs) > 1 {
-			// more than one possible backend port exposed through ingress
-			glog.V(5).Infof("service:port [%s:%s] has more than one service-backend port binding", backendID.serviceKey(), backendID.Backend.ServicePort.String())
-		}
 
 		// in case there are multiple backend ports found, using the smallest port in http setting
 		var backendport Port
@@ -181,6 +177,19 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 				uniquePair = k
 				backendport = k.BackendPort
 			}
+		}
+
+		if len(serviceBackendPairs) > 1 {
+
+			// more than one possible backend port exposed through ingress
+			e := controllererrors.NewErrorf(
+				controllererrors.ErrorMultipleServiceBackendPortBinding,
+				"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d",
+				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendport,
+			)
+
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, e.Error())
+			glog.Errorf(e.Error())
 		}
 
 		finalServiceBackendPairMap[backendID] = uniquePair
@@ -194,8 +203,6 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	for _, backend := range httpSettingsCollection {
 		httpSettings = append(httpSettings, backend)
 	}
-
-	glog.V(5).Infof("httpsettingsCount %d", len(httpSettings))
 
 	c.mem.settings = &httpSettings
 	c.mem.settingsByBackend = &backendHTTPSettingsMap
