@@ -447,4 +447,82 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(len(*configBuilder.appGw.URLPathMaps)).To(Equal(0))
 		})
 	})
+
+	FContext("test path-based rule with 1 ingress and multiple service having with same paths", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		endpoint1 := tests.NewEndpointsFixture()
+		endpoint2 := tests.NewEndpointsFixture()
+		service1 := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		service2 := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		service2.Name = "testService"
+		endpoint2.Name = service2.Name
+		// 2 path based rules with path - /api1, /api2
+		ingressPathBased := tests.NewIngressFixture()
+		ingressPathBased.Annotations[annotations.SslRedirectKey] = "false"
+		backendBasic := tests.NewIngressBackendFixture(service2.Name, 80)
+		// Adding duplicate path /api for a different service in same ingress
+		ruleApi := tests.NewIngressRuleFixture(tests.Host, "/api1", *backendBasic)
+		ingressPathBased.Spec.Rules = append([]v1beta1.IngressRule{ruleApi}, ingressPathBased.Spec.Rules...)
+
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint1)
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint2)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service1)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service2)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingressPathBased},
+			ServiceList:           []*v1.Service{service1, service2},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
+
+		rule := &ingressPathBased.Spec.Rules[0]
+
+		_ = configBuilder.Listeners(cbCtx)
+		// !! Action !! -- will mutate pathMap struct
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		generatedPathMap := pathMaps[sharedListenerID]
+		It("has default backend pool coming from path-based ingress", func() {
+			Expect(*generatedPathMap.DefaultBackendAddressPool.ID).To(Equal("xx"))
+		})
+		It("has default backend http settings coming from basic ingress", func() {
+			Expect(*generatedPathMap.DefaultBackendHTTPSettings.ID).To(Equal("yy"))
+		})
+		It("should has 2 path rules", func() {
+			Expect(len(*generatedPathMap.PathRules)).To(Equal(2))
+		})
+		It("should have two path rules coming from path based ingress", func() {
+			for idx, rule := range ingressPathBased.Spec.Rules {
+				if idx == 1 {
+					continue
+				}
+				for _, path := range rule.HTTP.Paths {
+					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
+					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
+					expectedPathRule := n.ApplicationGatewayPathRule{
+						Name: to.StringPtr(pathRuleName),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
+						Etag: to.StringPtr("*"),
+						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
+							Paths: &[]string{
+								path.Path,
+							},
+							BackendAddressPool:  &n.SubResource{ID: to.StringPtr(backendPoolID)},
+							BackendHTTPSettings: &n.SubResource{ID: to.StringPtr(httpSettingID)},
+						},
+					}
+					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+				}
+			}
+		})
+	})
 })

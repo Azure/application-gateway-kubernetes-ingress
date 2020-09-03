@@ -366,15 +366,32 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		existingPathMap.DefaultBackendAddressPool = nil
 		existingPathMap.DefaultBackendHTTPSettings = nil
 	}
-	if pathMapToMerge.PathRules == nil || len(*pathMapToMerge.PathRules) == 0 {
-		return existingPathMap
+
+	var mergedPathRules, allPathRules []n.ApplicationGatewayPathRule
+	if existingPathMap.PathRules == nil {
+		allPathRules = *pathMapToMerge.PathRules
+	} else {
+		allPathRules = append(*existingPathMap.PathRules, *pathMapToMerge.PathRules...)
 	}
 
-	if existingPathMap.PathRules == nil {
-		existingPathMap.PathRules = pathMapToMerge.PathRules
-	} else {
-		pathRules := append(*existingPathMap.PathRules, *pathMapToMerge.PathRules...)
-		existingPathMap.PathRules = &pathRules
+	// we want to ensure that there are only unique paths in the url path map
+	pathMap := make(map[string]n.ApplicationGatewayPathRule)
+	for _, pathRule := range allPathRules {
+		addRuleToMergeList := true
+		for _, path := range *pathRule.Paths {
+			_, exists := pathMap[path]
+			if exists {
+				glog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
+				addRuleToMergeList = false
+			} else {
+				pathMap[path] = pathRule
+			}
+		}
+		if addRuleToMergeList {
+			mergedPathRules = append(mergedPathRules, pathRule)
+		}
 	}
+
+	existingPathMap.PathRules = &mergedPathRules
 	return existingPathMap
 }
