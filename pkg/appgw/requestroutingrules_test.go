@@ -448,21 +448,24 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
-	FContext("test path-based rule with 1 ingress and multiple service having with same paths", func() {
+	Context("test path-based rule with 1 ingress and multiple service having with same paths", func() {
 		configBuilder := newConfigBuilderFixture(nil)
+		testServiceName := "testService"
 		endpoint1 := tests.NewEndpointsFixture()
 		endpoint2 := tests.NewEndpointsFixture()
+		endpoint2.Name = testServiceName
 		service1 := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		service2 := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
-		service2.Name = "testService"
-		endpoint2.Name = service2.Name
+		service2.Name = testServiceName
+
 		// 2 path based rules with path - /api1, /api2
 		ingressPathBased := tests.NewIngressFixture()
 		ingressPathBased.Annotations[annotations.SslRedirectKey] = "false"
 		backendBasic := tests.NewIngressBackendFixture(service2.Name, 80)
+
 		// Adding duplicate path /api for a different service in same ingress
-		ruleApi := tests.NewIngressRuleFixture(tests.Host, "/api1", *backendBasic)
-		ingressPathBased.Spec.Rules = append([]v1beta1.IngressRule{ruleApi}, ingressPathBased.Spec.Rules...)
+		duplicatePathRule := tests.NewIngressRuleFixture(tests.Host, "/api1", *backendBasic)
+		ingressPathBased.Spec.Rules = append([]v1beta1.IngressRule{duplicatePathRule}, ingressPathBased.Spec.Rules...)
 
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint1)
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint2)
