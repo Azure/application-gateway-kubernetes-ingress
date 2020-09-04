@@ -124,6 +124,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 						} else {
 							// if service port is defined by name, need to resolve
 							glog.V(5).Infof("resolving port name [%s] for service [%s] and service port [%s] for Ingress [%s]", sp.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
+
+							// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
 							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
@@ -171,8 +173,13 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		// in case there are multiple backend ports found, using the smallest port in http setting
 		var backendport Port
 		backendport = 65536
+
+		// this will store all the ports found
+		var ports []string
+
 		var uniquePair serviceBackendPortPair
 		for k := range serviceBackendPairs {
+			ports = append(ports, fmt.Sprintf("%d", k.BackendPort))
 			if k.BackendPort <= backendport {
 				uniquePair = k
 				backendport = k.BackendPort
@@ -184,8 +191,8 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 			// more than one possible backend port exposed through ingress
 			e := controllererrors.NewErrorf(
 				controllererrors.ErrorMultipleServiceBackendPortBinding,
-				"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d",
-				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendport,
+				"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
+				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendport, strings.Join(ports, ","),
 			)
 
 			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, e.Error())

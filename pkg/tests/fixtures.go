@@ -457,27 +457,27 @@ func NewEndpointsFixtureWithSameNameMultiplePorts() *v1.Endpoints {
 				Ports: []v1.EndpointPort{
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     "--service-https-port--",
+						Name:     ServiceHTTPSPort,
 						Port:     5000,
 					},
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     "--service-https-port--",
+						Name:     ServiceHTTPSPort,
 						Port:     80,
 					},
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     "--service-https-port--",
+						Name:     ServiceHTTPSPort,
 						Port:     81,
 					},
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     "--service-https-port--",
+						Name:     ServiceHTTPSPort,
 						Port:     4999,
 					},
 					{
 						Protocol: v1.ProtocolTCP,
-						Name:     "--service-https-port--",
+						Name:     ServiceHTTPSPort,
 						Port:     75,
 					},
 				},
