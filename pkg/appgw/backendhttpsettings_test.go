@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"strconv"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"strings"
@@ -26,9 +28,16 @@ import (
 var _ = Describe("Test the creation of Backend http settings from Ingress definition", func() {
 	// Setup
 	configBuilder := newConfigBuilderFixture(nil)
-	endpoint := tests.NewEndpointsFixture()
+
+	// contains endpoint for the service ports. Multiple ports present with name as https-port// contains endpoint for the service ports. Multiple ports present with name as https-port
+	endpoint := tests.NewEndpointsFixtureWithSameNameMultiplePorts()
+
+	// service contains multiple service ports with port as 80, 443, etc and target port as 9876, pod port name
 	service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
 	pod := tests.NewPodTestFixture(service.Namespace, "mybackend")
+
+	// Ingress contains two rules with service port as 80 and 443
 	ingress := tests.NewIngressFixture()
 	_ = configBuilder.k8sContext.Caches.Pods.Add(&pod)
 	_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
@@ -121,5 +130,39 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.HTTPS)
 		})
 
+	})
+
+	Context("test backend ports for the http settings", func() {
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		configBuilder.mem = memoization{}
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("correct backend port is choosen in case of target port is resolved to multiple ports", func() {
+			expectedhttpSettingsLen := 3
+			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
+
+			for _, setting := range httpSettings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
+					// http setting for ingress with service port as 80
+					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
+				} else if strings.Contains(*setting.Name, "75") {
+					// http setting for the ingress with service port as 443. Target port is https-port which resolves to multiple backend port
+					// and the smallest backend port is chosen
+					Expect(int32(75)).To(Equal(*setting.Port), "setting %s backend port %d should be 75", *setting.Name, *setting.Port)
+				} else {
+					// Dummy Failure, This should not happen
+					Expect(23).To(Equal(75), "setting %s is not expected to be created", *setting.Name)
+				}
+			}
+		})
 	})
 })
