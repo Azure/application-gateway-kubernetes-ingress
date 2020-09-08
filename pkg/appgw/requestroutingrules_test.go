@@ -23,6 +23,22 @@ import (
 )
 
 var _ = Describe("Test routing rules generations", func() {
+	checkPathRules := func(urlPathMap *n.ApplicationGatewayURLPathMap, pathRuleCount int) {
+		if pathRuleCount == 0 {
+			Expect(urlPathMap.PathRules).To(BeNil())
+		}
+
+		Expect(len(*urlPathMap.PathRules)).To(Equal(pathRuleCount))
+
+		// check name uniqueness
+		nameMap := map[string]interface{}{}
+		for _, pathRule := range *urlPathMap.PathRules {
+			_, exists := nameMap[*pathRule.Name]
+			Expect(exists).To(BeFalse())
+			nameMap[*pathRule.Name] = nil
+		}
+	}
+
 	Context("test path-based rule with 2 ingress both with paths", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		endpoint := tests.NewEndpointsFixture()
@@ -74,17 +90,17 @@ var _ = Describe("Test routing rules generations", func() {
 		It("has default backend http settings", func() {
 			Expect(generatedPathMap.DefaultBackendHTTPSettings).To(Not(BeNil()))
 		})
-		It("should has 3 path rules", func() {
-			Expect(len(*generatedPathMap.PathRules)).To(Equal(3))
+		It("should have uniquely names path rules and 3 path rules", func() {
+			checkPathRules(generatedPathMap, 3)
 		})
 		It("should be able to merge all the path rules into the same path map", func() {
 			for _, ingress := range cbCtx.IngressList {
-				for _, rule := range ingress.Spec.Rules {
-					for _, path := range rule.HTTP.Paths {
+				for ruleIdx, rule := range ingress.Spec.Rules {
+					for pathIdx, path := range rule.HTTP.Paths {
 						backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
 						backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 						httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
-						pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
+						pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
 						expectedPathRule := n.ApplicationGatewayPathRule{
 							Name: to.StringPtr(pathRuleName),
 							Etag: to.StringPtr("*"),
@@ -157,16 +173,16 @@ var _ = Describe("Test routing rules generations", func() {
 			httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendIDBasic.serviceFullName(), backendIDBasic.Backend.ServicePort.String(), Port(tests.ContainerPort), ingressBasic.Name))
 			Expect(*generatedPathMap.DefaultBackendHTTPSettings.ID).To(Equal(httpSettingID))
 		})
-		It("should has 2 path rules", func() {
-			Expect(len(*generatedPathMap.PathRules)).To(Equal(2))
+		It("should have uniquely names path rules and has 2 path rules", func() {
+			checkPathRules(generatedPathMap, 2)
 		})
 		It("should have two path rules coming from path based ingress", func() {
-			for _, rule := range ingressPathBased.Spec.Rules {
-				for _, path := range rule.HTTP.Paths {
+			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
+				for pathIdx, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
-					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, "0")
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
 					expectedPathRule := n.ApplicationGatewayPathRule{
 						Name: to.StringPtr(pathRuleName),
 						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
@@ -230,8 +246,8 @@ var _ = Describe("Test routing rules generations", func() {
 		It("generated expected ID", func() {
 			Expect(actualID).To(Equal(expectedRedirectID))
 		})
-		It("should still have 2 path rules", func() {
-			Expect(2).To(Equal(len(*pathMap[listenerID].PathRules)))
+		It("should have uniquely names path rules and still has 2 path rules", func() {
+			checkPathRules(pathMap[listenerID], 2)
 		})
 	})
 

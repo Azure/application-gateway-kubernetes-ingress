@@ -1,4 +1,4 @@
-# Tutorials
+# Tutorial: Basic
 
 These tutorials help illustrate the usage of [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) to expose an example Kubernetes service through the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) over HTTP or HTTPS.
 
@@ -15,8 +15,8 @@ These tutorials help illustrate the usage of [Kubernetes Ingress Resources](http
 ## Prerequisites
 
 - Installed `ingress-azure` helm chart.
-  - [**Greenfield Deployment**](setup/install-new.md): If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
-  - [**Brownfield Deployment**](setup/install-existing.md): If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.
+  - [**Greenfield Deployment**](../setup/install-new.md): If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
+  - [**Brownfield Deployment**](../setup/install-existing.md): If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.
 - If you want to use HTTPS on this application, you will need a x509 certificate and its private key.
 
 ## Deploy `guestbook` application
