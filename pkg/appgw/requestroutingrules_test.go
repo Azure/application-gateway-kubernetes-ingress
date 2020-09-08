@@ -6,8 +6,6 @@
 package appgw
 
 import (
-	"strconv"
-
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -520,15 +518,15 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(len(*generatedPathMap.PathRules)).To(Equal(2))
 		})
 		It("should have two path rules coming from path based ingress", func() {
-			for idx, rule := range ingressPathBased.Spec.Rules {
-				if idx == 1 {
+			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
+				if ruleIdx == 1 {
 					continue
 				}
 				for pathIdx, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
 					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
-					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, strconv.Itoa(pathIdx))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
 					expectedPathRule := n.ApplicationGatewayPathRule{
 						Name: to.StringPtr(pathRuleName),
 						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
