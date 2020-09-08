@@ -1,13 +1,11 @@
-# Troubleshooting
+## Troubleshooting: Installing a simple application
 
 [Azure Cloud Shell](https://shell.azure.com/) is the most convenient way to troubleshoot any problems with your AKS
 and AGIC installation. Launch your shell from [shell.azure.com](https://shell.azure.com/) or by clicking the link:
 
 [![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
-
-### Test with a simple Kubernetes app
-
+In the troubleshooting document, we will debug issues in the AGIC installation by installing a simple application step by step and check the output as we go along.  
 The steps below assume:
   - You have an AKS cluster, with Advanced Networking enabled
   - AGIC has been installed on the AKS cluster
@@ -66,7 +64,7 @@ Copy and paste all lines at once from the
 script above into a [Azure Cloud Shell](https://shell.azure.com/). Please ensure the entire
 command is copied - starting with `cat` and including the last `EOF`.
 
-![apply](images/tsg--apply-config.png)
+![apply](../images/tsg--apply-config.png)
 
 After a successful deployment of the app above your AKS cluster will have a new Pod, Service and an Ingress.
 
@@ -74,17 +72,17 @@ Get the list of pods with [Cloud Shell](https://shell.azure.com/): `kubectl get 
 We expect for a pod named 'test-agic-app-pod' to have been created. It will have an IP address. This address
 must be within the VNET of the App Gateway, which is used with AKS.
 
-![pods](images/tsg--get-pods.png)
+![pods](../images/tsg--get-pods.png)
 
 Get the list of services: `kubectl get services -o wide`. We expect to see a service named
 'test-agic-app-service'.
 
-![pods](images/tsg--get-services.png)
+![pods](../images/tsg--get-services.png)
 
 Get the list of the ingresses: `kubectl get ingress`. We expect an Ingress resource named
 'test-agic-app-ingress' to have been created. The resource will have a host name 'test.agic.contoso.com'.
 
-![pods](images/tsg--get-ingress.png)
+![pods](../images/tsg--get-ingress.png)
 
 One of the pods will be AGIC. `kubectl get pods` will show a list of pods, one of which will begin
 with 'ingress-azure'. Get all logs of that pod with `kubectl logs <name-of-ingress-controller-pod>`
@@ -104,23 +102,23 @@ indicating successful App Gateway configuration with
 App Gateway will have the following configuration applied:
 
 - Listener:
-![listener](images/tsg--listeners.png)
+![listener](../images/tsg--listeners.png)
 
 - Routing Rule:
-![routing_rule](images/tsg--rule.png)
+![routing_rule](../images/tsg--rule.png)
 
 - Backend Pool:
   - There will be one IP address in the backend address pool and it will match the IP address of the Pod we observed earlier with `kubectl get pods -o wide`
-![backend_pool](images/tsg--backendpools.png)
+![backend_pool](../images/tsg--backendpools.png)
 
 
 Finally we can use the `cURL` command from within [Cloud Shell](https://shell.azure.com/) to
 establish an HTTP connection to the newly deployed app:
 
 1. Use `kubectl get ingress` to get the Public IP address of App Gateway
-2. Use `curl -I -H 'test.agic.contoso.com' <publitc-ip-address-from-previous-command>`
+2. Use `curl -I -H 'Host: test.agic.contoso.com' <publitc-ip-address-from-previous-command>`
 
-![pods](images/tsg--curl.png)
+![pods](../images/tsg--curl.png)
 
 A result of `HTTP/1.1 200 OK` indicates that the App Gateway + AKS + AGIC system is working as expected.
 
@@ -136,7 +134,7 @@ The following must be in place for AGIC to function as expected:
      Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get pods -o wide --show-labels`
      If you have a Pod with an `apsnetapp`, your output may look like this:
      ```bash
-     delyan@Azure:~$ kubectl get pods -o wide --show-labels
+     $> kubectl get pods -o wide --show-labels
 
      NAME                   READY   STATUS    RESTARTS   AGE   IP          NODE                       NOMINATED NODE   READINESS GATES   LABELS
      aspnetapp              1/1     Running   0          17h   10.0.0.6    aks-agentpool-35064155-1   <none>           <none>            app=aspnetapp
@@ -145,7 +143,7 @@ The following must be in place for AGIC to function as expected:
   2. One or more **services**, referencing the pods above via matching `selector` labels.
      Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get services -o wide`
      ```bash
-     delyan@Azure:~$ kubectl get services -o wide --show-labels
+     $> kubectl get services -o wide --show-labels
 
      NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR        LABELS
      aspnetapp           ClusterIP   10.2.63.254    <none>        80/TCP    17h   app=aspnetapp   <none>     
@@ -154,7 +152,7 @@ The following must be in place for AGIC to function as expected:
   3. **Ingress**, annotated with `kubernetes.io/ingress.class: azure/application-gateway`, referencing the service above
      Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get ingress -o wide --show-labels`
      ```bash
-     delyan@Azure:~$ kubectl get ingress -o wide --show-labels
+     $> kubectl get ingress -o wide --show-labels
 
      NAME        HOSTS   ADDRESS   PORTS   AGE   LABELS
      aspnetapp   *                 80      17h   <none>
@@ -162,7 +160,7 @@ The following must be in place for AGIC to function as expected:
 
   4. View annotations of the ingress above: `kubectl get ingress aspnetapp -o yaml` (substitute `aspnetapp` with the name of your ingress)
      ```bash
-     delyan@Azure:~$ kubectl get ingress aspnetapp -o yaml
+     $> kubectl get ingress aspnetapp -o yaml
 
      apiVersion: extensions/v1beta1
      kind: Ingress
@@ -183,22 +181,22 @@ The following must be in place for AGIC to function as expected:
 
 * Get the existing namespaces in Kubernetes cluster. What namespace is your app
 running in? Is AGIC watching that namespace? Refer to the
-[Multiple Namespace Support](features/multiple-namespaces.md#enable-multiple-namespace-support)
+[Multiple Namespace Support](../features/multiple-namespaces.md#enable-multiple-namespace-support)
 documentation on how to properly configure observed namespaces.
-```bash
-# What namespaces exist on your cluster
-kubectl get namespaces
+    ```bash
+    # What namespaces exist on your cluster
+    kubectl get namespaces
 
-# What pods are currently running
-kubectl get pods --all-namespaces -o wide
-```
+    # What pods are currently running
+    kubectl get pods --all-namespaces -o wide
+    ```
 
 
 * The AGIC pod should be in the `default` namespace (see column `NAMESPACE`). A healthy pod would have `Running` in the `STATUS` column. There should be at least one AGIC pod.
-```bash
-# Get a list of the Application Gateway Ingress Controller pods
-kubectl get pods --all-namespaces --selector app=ingress-azure
-```
+    ```bash
+    # Get a list of the Application Gateway Ingress Controller pods
+    kubectl get pods --all-namespaces --selector app=ingress-azure
+    ```
 
 
 * If the AGIC pod is not healthy (`STATUS` column from the command above is not `Running`):
@@ -210,48 +208,22 @@ kubectl get pods --all-namespaces --selector app=ingress-azure
 * Do you have a Kubernetes
 [Service](https://kubernetes.io/docs/concepts/services-networking/service/) and
 [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resources?
-```bash
-# Get all services across all namespaces
-kubectl get service --all-namespaces -o wide
+    ```bash
+    # Get all services across all namespaces
+    kubectl get service --all-namespaces -o wide
 
-# Get all ingress resources across all namespaces
-kubectl get ingress --all-namespaces -o wide
-```
+    # Get all ingress resources across all namespaces
+    kubectl get ingress --all-namespaces -o wide
+    ```
 
 
 * Is your [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) annotated with: `kubernetes.io/ingress.class: azure/application-gateway`? AGIC will only watch for Kubernetes Ingress resources that have this annotation.
-```bash
-# Get the YAML definition of a particular ingress resource
-kubectl get ingress --namespace  <which-namespace?>  <which-ingress?>  -o yaml
-```
+    ```bash
+    # Get the YAML definition of a particular ingress resource
+    kubectl get ingress --namespace  <which-namespace?>  <which-ingress?>  -o yaml
+    ```
 
 
 * AGIC emits Kubernetes events for certain critical errors. You can view these:
   - in your terminal via `kubectl get events --sort-by=.metadata.creationTimestamp`
   - in your browser using the [Kubernetes Web UI (Dashboard)](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
-
-
-# Logging Levels
-
-AGIC has 3 logging levels. Level 1 is the default one and it shows minimal number of log lines.
-Level 5, on the other hand, would display all logs, including sanitized contents of config applied
-to ARM.
-
-The Kubernetes community has established 9 levels of logging for
-the [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-output-verbosity-and-debugging) tool. In this
-repository we are utilizing 3 of these, with similar semantics:
-
-
-| Verbosity | Description |
-|-----------|-------------|
-|  1        | Default log level; shows startup details, warnings and errors |
-|  3        | Extended information about events and changes; lists of created objects |
-|  5        | Logs marshaled objects; shows sanitized JSON config applied to ARM |
-
-
-The verbosity levels are adjustable via the `verbosityLevel` variable in the
-[helm-config.yaml](examples/sample-helm-config.yaml) file. Increase verbosity level to `5` to get
-the JSON config dispatched to
-[ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview):
-  - add `verbosityLevel: 5` on a line by itself in [helm-config.yaml](examples/sample-helm-config.yaml) and re-install
-  - get logs with `kubectl logs <pod-name>`

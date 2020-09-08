@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"sort"
-	"strconv"
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -180,7 +179,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 					}
 				}
 
-				pathMap := c.getPathMap(cbCtx, listenerID, listenerAzConfig, ingress, rule)
+				pathMap := c.getPathMap(cbCtx, listenerID, listenerAzConfig, ingress, rule, ruleIdx)
 				urlPathMaps[listenerID] = c.mergePathMap(urlPathMaps[listenerID], pathMap, cbCtx)
 			}
 		}
@@ -216,7 +215,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	return urlPathMaps
 }
 
-func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *n.ApplicationGatewayURLPathMap {
+func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *n.ApplicationGatewayURLPathMap {
 	// initialize a path map for this listener if doesn't exists
 	pathMapName := generateURLPathMapName(listenerID)
 	pathMap := n.ApplicationGatewayURLPathMap{
@@ -237,7 +236,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 		pathMap.DefaultBackendHTTPSettings = resourceRef(*defaultHTTPSettingsID)
 	}
 
-	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule)
+	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule, ruleIdx)
 
 	return &pathMap
 }
@@ -287,7 +286,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
 }
 
-func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) *[]n.ApplicationGatewayPathRule {
+func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)
@@ -298,7 +297,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		}
 
 		pathMapName := generateURLPathMapName(listenerID)
-		pathRuleName := generatePathRuleName(ingress.Namespace, ingress.Name, strconv.Itoa(pathIdx))
+		pathRuleName := generatePathRuleName(ingress.Namespace, ingress.Name, ruleIdx, pathIdx)
 		pathRule := n.ApplicationGatewayPathRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(pathRuleName),

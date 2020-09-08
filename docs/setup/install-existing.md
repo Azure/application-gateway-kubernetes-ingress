@@ -104,17 +104,17 @@ look something like this: `/subscriptions/A/resourceGroups/B/providers/Microsoft
         --scope <App-Gateway-Resource-Group-ID>
     ```
 
-1. Give AKS cluster's service principal `Managed Identity Operator` access to the identity created for AGIC above.
+**Note**: There are additional role assignment required if you wish to assign user-assigned identities that are **NOT** within AKS cluster resource group. You can run the following command to assign the `Managed Identity Operator` role with the identity resource Id.
 
-    ```bash
-    aksName="<aks-cluster-name>"
-    clusterClientId=$(az aks show -g $resourceGroup -n $aksName -o tsv --query "servicePrincipalProfile.clientId")
+  ```bash
+  aksName="<aks-cluster-name>"
+  clusterClientId=$(az aks show -g $resourceGroup -n $aksName -o tsv --query "servicePrincipalProfile.clientId")
 
-    az role assignment create \
-        --role "Managed Identity Operator" \
-        --assignee $clusterClientId \
-        --scope $identityId
-    ```
+  az role assignment create \
+    --role "Managed Identity Operator" \
+    --assignee $clusterClientId \
+    --scope $identityId
+  ```
 
 ### Using a Service Principal
 It is also possible to provide AGIC access to ARM via a Kubernetes secret.
@@ -189,7 +189,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
 
 1. Check the log of the newly created pod to verify if it started properly
 
-Refer to the [tutorials](../tutorial.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
+Refer to the [tutorials](../tutorials/tutorial.general.md) to understand how you can expose an AKS service over HTTP or HTTPS, to the internet, using an Azure App Gateway.
 
 
 
@@ -282,6 +282,7 @@ Broaden AGIC permissions with:
       hostname: your.own-hostname.com
     EOF
     ```
+**NOTE:** To prohibit AGIC from making changes, in addition to *hostname*, a list of URL paths can also be configured as part of your prohibited policy, please refer to the [schema](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/AzureIngressProhibitedTarget.yaml) for details.
 
 2. Only after you have created your own custom prohibition, you can delete the default one, which is too broad:
 

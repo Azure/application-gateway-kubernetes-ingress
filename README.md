@@ -18,6 +18,10 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Support for public, private, and hybrid web sites
   - Integrated web application firewall
 
+## Changelog
+- [Release Notes, Fixes and Known issues](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md)
+
+
 ## Blogs and talks
 - [Application Gateway Ingress Controller for Azure Kubernetes Service](https://azure.microsoft.com/en-us/blog/application-gateway-ingress-controller-for-azure-kubernetes-service/)
 - [Ignite 2019 - AGIC GA announcement](https://myignite.techcommunity.microsoft.com/sessions/82945)
@@ -41,10 +45,13 @@ blank-slate infrastructure (running Windows Node Pool).
 
 [**Annotations**](docs/annotations.md): The Kubernetes Ingress specification does not allow all features of Application Gateway to be exposed through the ingress resource. Therefore we have introduced application gateway ingress controller specific annotations to expose application gateway features through an ingress resource. Please refer to these to understand the various annotations supported by the ingress controller, and the corresponding features that can be turned on in the application gateway for a given annotation.
 
+[**Helm Values Configuration Options**](docs/helm-values-documenation.md): This document lists the various configuration options available through helm.
+
 [**Upgrade/Rollback AGIC using helm**](docs/how-tos/helm-upgrade.md): This documents explains how to upgrade/rollback AGIC helm installation.
 
 ## How-tos
 * [Setup E2E SSL](docs/tutorials/tutorial.e2e-ssl.md)
+* [Network connectivity when using kubenet or different virtual networks](./docs/how-tos/networking.md)
 * [Automate SSL Cert issuance and rotation with Let's Encrypt](docs/how-tos/lets-encrypt.md)
 * [Expose a WebSocket server](docs/how-tos/websockets.md)
 * [Automate DNS updates](docs/how-tos/dns.md)
@@ -52,10 +59,11 @@ blank-slate infrastructure (running Windows Node Pool).
 * [Scale your Applications using Application Gateway Metrics (Beta)](docs/how-tos/scale-applications-using-appgw-metrics.md)
 * [Continuous Deployment with AKS and AGIC using Azure Pipelines](docs/how-tos/continuous-deployment.md)
 * [Minimizing Downtime During Deployments](./docs/how-tos/minimize-downtime-during-deployments.md)
+* [Increase AGIC verbosity level](./docs/logging-levels.md)
 
 ## Troubleshooting
 
-For troubleshooting, please refer to this [guide](docs/troubleshooting.md).
+For troubleshooting, please refer to this [guide](docs/troubleshootings).
 
 ## Frequently asked questions
 
@@ -74,7 +82,7 @@ The best way to report an issue is to create a Github Issue for the project. Ple
 
 ## Contributing
 
-This is a Golang project. You can find the build instructions of the project in the [Developer Guide](docs/developers/build.md).
+This is a Golang project. You can find the build instructions of the project in the [Developer Guide](docs/developers/developer-guideline.md).
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
