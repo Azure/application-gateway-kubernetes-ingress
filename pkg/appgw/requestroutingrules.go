@@ -391,6 +391,9 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		}
 	}
 
-	existingPathMap.PathRules = &mergedPathRules
+	if len(mergedPathRules) > 0 {
+		existingPathMap.PathRules = &mergedPathRules
+	}
+
 	return existingPathMap
 }
