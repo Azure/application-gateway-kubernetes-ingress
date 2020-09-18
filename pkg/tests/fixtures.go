@@ -198,6 +198,41 @@ func NewIngressFixture() *v1beta1.Ingress {
 	}
 }
 
+// NewAnnotatedIngressFixture makes a new Ingress for testing that supports configurable annotations
+func NewAnnotatedIngressFixture(annotationMap map[string]string) *v1beta1.Ingress {
+	be80 := NewIngressBackendFixture(ServiceName, 80)
+	be443 := NewIngressBackendFixture(ServiceName, 443)
+
+	return &v1beta1.Ingress{
+		Spec: v1beta1.IngressSpec{
+			Rules: []v1beta1.IngressRule{
+				NewIngressRuleFixture(Host, URLPath1, *be80),
+				NewIngressRuleFixture(Host, URLPath2, *be443),
+			},
+			TLS: []v1beta1.IngressTLS{
+				{
+					Hosts: []string{
+						"www.contoso.com",
+						"ftp.contoso.com",
+						Host,
+						"",
+					},
+					SecretName: NameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: NameOfSecret,
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: annotationMap,
+			Namespace:   Namespace,
+			Name:        Name,
+		},
+	}
+}
+
 // NewIngressFixtureSingleSlashPath makes a new Ingress with "/" and "/*" as ingress rule path for testing
 func NewIngressFixtureSingleSlashPath() *v1beta1.Ingress {
 	be80 := NewIngressBackendFixture(ServiceName, 80)

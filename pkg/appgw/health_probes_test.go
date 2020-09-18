@@ -15,6 +15,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
@@ -180,6 +181,43 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pb := cb.generateHealthProbe(be)
 		It("should return nil and not crash", func() {
 			Expect(pb).To(BeNil())
+		})
+	})
+
+	Context("test BackendProbePath annotiation in generateHealthProbe()", func() {
+		annotationMap := map[string]string{
+			annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+			annotations.SslRedirectKey:      "true",
+			annotations.BackendProbePathKey: "/test/path",
+		}
+		ingressList := []*v1beta1.Ingress{tests.NewAnnotatedIngressFixture(annotationMap)}
+
+		cb := newConfigBuilderFixture(nil)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme = v1.URISchemeHTTPS
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		// !! Action !!
+		probeMap, _ := cb.newProbesMap(cbCtx)
+
+		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
+		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		It("uses the readiness probe to set the protocol on the probe", func() {
+			Expect(*probeMap[probeName].Path).To(Equal("/test/path"))
 		})
 	})
 
