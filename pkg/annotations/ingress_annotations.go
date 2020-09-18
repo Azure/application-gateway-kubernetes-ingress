@@ -27,6 +27,9 @@ const (
 	// Null means Host specified in the request to Application Gateway is used to connect to the backend.
 	BackendHostNameKey = ApplicationGatewayPrefix + "/backend-hostname"
 
+	// BackendProbePathKey defines a custom path that is used in the health check probes.
+	BackendProbePathKey = ApplicationGatewayPrefix + "/backend-probe-path"
+
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
@@ -130,6 +133,11 @@ func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
 // BackendHostName override hostname
 func BackendHostName(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, BackendHostNameKey)
+}
+
+// BackendProbePath override Health Probe path
+func BackendProbePath(ing *v1beta1.Ingress) (string, error) {
+	return parseString(ing, BackendProbePathKey)
 }
 
 // GetAppGwSslCertificate refer to appgw installed certificate
