@@ -216,8 +216,82 @@ var _ = Describe("configure App Gateway health probes", func() {
 
 		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
 		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
-		It("uses the readiness probe to set the protocol on the probe", func() {
+		It("should set the path given as an annotation as the probe path", func() {
 			Expect(*probeMap[probeName].Path).To(Equal("/test/path"))
+		})
+	})
+
+	Context("test BackendProbePath annotiation in generateHealthProbe() for empty string", func() {
+		annotationMap := map[string]string{
+			annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+			annotations.SslRedirectKey:      "true",
+			annotations.BackendProbePathKey: "",
+		}
+		ingressList := []*v1beta1.Ingress{tests.NewAnnotatedIngressFixture(annotationMap)}
+
+		cb := newConfigBuilderFixture(nil)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme = v1.URISchemeHTTPS
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		// !! Action !!
+		probeMap, _ := cb.newProbesMap(cbCtx)
+
+		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
+		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		It("should default to '/' if no path is given.", func() {
+			Expect(*probeMap[probeName].Path).To(Equal("/"))
+		})
+	})
+
+	Context("test BackendProbePath annotiation in generateHealthProbe() for a non path", func() {
+		annotationMap := map[string]string{
+			annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+			annotations.SslRedirectKey:      "true",
+			annotations.BackendProbePathKey: "ThisIs_-SometestString that is no path123!",
+		}
+		ingressList := []*v1beta1.Ingress{tests.NewAnnotatedIngressFixture(annotationMap)}
+
+		cb := newConfigBuilderFixture(nil)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme = v1.URISchemeHTTPS
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		// !! Action !!
+		probeMap, _ := cb.newProbesMap(cbCtx)
+
+		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
+		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		It("should default to '/' since no valid path was given", func() {
+			Expect(*probeMap[probeName].Path).To(Equal("/"))
 		})
 	})
 
