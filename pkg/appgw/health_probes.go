@@ -164,11 +164,12 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	}
 
 	if customPath, err := annotations.BackendProbePath(backendID.Ingress); err == nil {
-		if matched, reErr := regexp.MatchString(`^((?:[^/]*/)*)(.*)$`, customPath); matched == true && reErr == nil {
+		if matched, reErr := regexp.MatchString(`^\/[/.a-zA-Z0-9-]+$`, customPath); matched == true && reErr == nil {
 			probe.Path = to.StringPtr(customPath)
 			glog.V(5).Infof("Created custom path %s for ingress %s/%s probe", *probe.Path, backendID.Ingress.Namespace, backendID.Ingress.Name)
 		} else {
-			glog.V(5).Infof("Custom path %s for ingress %s/%s probe is not valid! Using %s instead.", customPath, backendID.Ingress.Namespace, backendID.Ingress.Name, *probe.Path)
+			probe.Path = to.StringPtr("/")
+			glog.V(5).Infof("Custom path %s for ingress %s/%s probe is not valid! Using '/' instead.", customPath, backendID.Ingress.Namespace, backendID.Ingress.Name)
 		}
 	}
 
