@@ -13,6 +13,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/backend-path-prefix](#backend-path-prefix) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/backend-hostname](#backend-hostname) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/backend-protocol](#backend-protocol) | `string` | `http` | `http`, `https` |
+| [appgw.ingress.kubernetes.io/backend-probe-path](#backend-probe-path) | `string` |  | `string` |
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | |
 | [appgw.ingress.kubernetes.io/appgw-trusted-root-certificate](#appgw-trusted-root-certificate) | `string` | `nil` | |
@@ -116,6 +117,38 @@ spec:
         backend:
           serviceName: go-server-service
           servicePort: 443
+```
+
+## Backend Probe Path
+
+This annotation allows us to specify a custom path that the Application Gateway should use to probe the health of an endpoint.
+
+> **Note**
+The argument has to be a valid path and is checked against the regular expression `^\/[/.a-zA-Z0-9-]+$`. If it does not match, it defaults to the path `/`.
+
+### Usage
+```yaml
+appgw.ingress.kubernetes.io/backend-probe-path: "/path/to/healthcheck"
+```
+
+### Example
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-timeout
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-probe-path: "/path/to/healthcheck"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
 ```
 
 ## SSL Redirect
@@ -418,7 +451,7 @@ appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGr
 ```
 
 ### Example
-The example below will apply the WAF policy 
+The example below will apply the WAF policy
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -436,7 +469,7 @@ spec:
         backend:
           serviceName: ad-server
           servicePort: 80
-          
+
       - path: /auth
         backend:
           serviceName: auth-server
