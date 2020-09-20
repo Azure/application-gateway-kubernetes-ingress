@@ -79,6 +79,7 @@ var _ = Describe("Environment", func() {
 					SubscriptionID:             "SubscriptionIDVarName",
 					ResourceGroupName:          "ResourceGroupNameVarName",
 					AppGwName:                  "AppGwNameVarName",
+					AppGwSkuName:               "Standard_v2",
 					AuthLocation:               "AuthLocationVarName",
 					WatchNamespace:             "WatchNamespaceVarName",
 					UsePrivateIP:               "UsePrivateIPVarName",

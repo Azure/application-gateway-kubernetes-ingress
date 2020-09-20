@@ -29,8 +29,8 @@ type AzClient interface {
 	WaitForGetAccessOnGateway() error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
-	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string) error
-	DeployGatewayWithSubnet(string) error
+	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
+	DeployGatewayWithSubnet(string, string) error
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
 }
@@ -275,7 +275,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
-func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string) (err error) {
+func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix, skuName string) (err error) {
 	vnet, err := az.getVnet(resourceGroupName, vnetName)
 	if err != nil {
 		return
@@ -296,12 +296,12 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		}
 	}
 
-	err = az.DeployGatewayWithSubnet(*subnet.ID)
+	err = az.DeployGatewayWithSubnet(*subnet.ID, skuName)
 	return
 }
 
 // DeployGateway is a method that deploy the appgw and related resources
-func (az *azClient) DeployGatewayWithSubnet(subnetID string) (err error) {
+func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
 	glog.Infof("Deploying Gateway")
 
 	// Check if group exists
@@ -313,7 +313,7 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID string) (err error) {
 
 	deploymentName := string(az.appGwName)
 	glog.Infof("Starting ARM template deployment: %s", deploymentName)
-	result, err := az.createDeployment(subnetID)
+	result, err := az.createDeployment(subnetID, skuName)
 	if err != nil {
 		return
 	}
@@ -388,7 +388,7 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 }
 
 // Create the deployment
-func (az *azClient) createDeployment(subnetID string) (deployment r.DeploymentExtended, err error) {
+func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.DeploymentExtended, err error) {
 	template := getTemplate()
 	if err != nil {
 		return
@@ -399,6 +399,9 @@ func (az *azClient) createDeployment(subnetID string) (deployment r.DeploymentEx
 		},
 		"applicationGatewaySubnetId": map[string]string{
 			"value": subnetID,
+		},
+		"applicationGatewaySku": map[string]string{
+			"value": skuName,
 		},
 	}
 
@@ -444,7 +447,6 @@ func getTemplate() map[string]interface{} {
 				}
 			},
 			"applicationGatewaySku": {
-				"defaultValue": "Standard_v2",
 				"allowedValues": [
 					"Standard_v2",
 					"WAF_v2"
