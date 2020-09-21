@@ -55,13 +55,13 @@ To install AAD Pod Identity to your cluster:
    - *RBAC enabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
   ```
 
 Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
