@@ -1,23 +1,35 @@
-- [v1.2.0-rc3](#v120-rc3)
-  - [Important Note](#important-note)
+- [Important Note](#important-note)
+- [How to try](#how-to-try)
+- [v1.2.1](#v121)
   - [Fixes](#fixes)
+- [v1.2.0](#v120)
+- [v1.2.0-rc3](#v120-rc3)
+  - [Fixes](#fixes-1)
   - [Known Issues](#known-issues)
 - [v1.2.0-rc2](#v120-rc2)
   - [Important Note](#important-note-1)
-  - [Fixes](#fixes-1)
+  - [Fixes](#fixes-2)
   - [Known Issues](#known-issues-1)
 - [v1.2.0-rc1](#v120-rc1)
   - [Features](#features)
-  - [Fixes](#fixes-2)
+  - [Fixes](#fixes-3)
   - [Known Issues](#known-issues-2)
-- [How to try](#how-to-try)
-
-# v1.2.0-rc3
 
 #### Important Note
 
 In this release, AGIC will use the new `hostnames` property in HTTP Listener in Application Gateway instead of `hostname`. With this property, We will be able to expose support for Wild Card hostnames with characters like * and ? allowed to match characters.  
 We are working on bringing Azure Portal support for the new property soon. Until those changes arrive, Users will not be able to view the hostname in the listener section on Portal.
+
+# v1.2.1
+
+## Fixes
+* [#1009][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1009] Use non-root user in AGIC docker image
+
+# v1.2.0
+
+Same as [v1.2.0-rc3](#v120-rc3).
+
+# v1.2.0-rc3
 
 ## Fixes:
 * [#867](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867) Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
@@ -33,11 +45,6 @@ We are working on bringing Azure Portal support for the new property soon. Until
 
 # v1.2.0-rc2
 
-#### Important Note
-
-In this release, AGIC will use the new `hostnames` property in HTTP Listener in Application Gateway instead of `hostname`. With this property, We will be able to expose support for Wild Card hostnames with characters like * and ? allowed to match characters.  
-We are working on bringing Azure Portal support for the new property soon. Until those changes arrive, Users will not be able to view the hostname in the listener section on Portal.
-
 ## Fixes:
 * [#828](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/828): Address breaking change in AAD Pod Identity v1.6 related to case-sensitvity in Azure Identity CRD.
 * [#779](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/779), [#752](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/752), [#635](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/635), [#629](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/629): Fix nil pointer dereference exception when an ingress is not having HTTP ingress rule.
@@ -49,6 +56,7 @@ We are working on bringing Azure Portal support for the new property soon. Until
 
 ## Known Issues:
 * This release has known issues related to enabling `shared` feature with helm. This has been addressed in 1.2.0-rc3.
+* Issues with installation of ProhibitedTarget CRD using Helm 3. Helm 3 has done away with `crd-install` hooks and requires CRDs to moved to a separate `crd` folder.
 * When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
   ```bash
   Error: UPGRADE FAILED: rendered manifests contain a new resource that already exists. Unable to continue with update: existing resource conflict: namespace: default, name: <release-name>, existing_kind: apps/v1, Kind=Deployment, new_kind: apps/v1, Kind=Deployment
@@ -79,13 +87,13 @@ We are working on bringing Azure Portal support for the new property soon. Until
 
 ## How to try:
 ```bash
-# use --version 1.2.0-rc3 when installing/upgrading using helm
+# use --version 1.2.1 when installing/upgrading using helm
 helm repo update
 helm install \
   <release-name> \
   -f helm-config.yaml \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --version 1.2.0-rc3
+  --version 1.2.1
 
 # or 
 
@@ -96,5 +104,5 @@ helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
   --reuse-values \
-  --version 1.2.0-rc3
+  --version 1.2.1
 ```
