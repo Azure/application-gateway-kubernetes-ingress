@@ -594,6 +594,7 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 		It("should have three path rules coming from path based ingress", func() {
 			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
+				pathMapPerRule := make(map[string]bool)
 				for pathIdx, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
@@ -612,13 +613,21 @@ var _ = Describe("Test routing rules generations", func() {
 						},
 					}
 
-					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+					if _, exists := pathMapPerRule[path.Path]; exists {
+						// duplicate paths in a rule are not accepted
+						Expect(*generatedPathMap.PathRules).ToNot(ContainElement(expectedPathRule))
+					} else {
+						pathMapPerRule[path.Path] = true
+						Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+					}
 				}
 			}
 		})
 	})
 
 	Context("test path-based rule with 2 ingress both with having same paths", func() {
+		// Since 2 ingress are created with same hostname all path rules for ingress merge because of same listenerId
+		// In case of duplicate rules in 2 ingress, only rules from first ingress will be part of the path rules
 		configBuilder := newConfigBuilderFixture(nil)
 		endpoint := tests.NewEndpointsFixture()
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
@@ -673,7 +682,6 @@ var _ = Describe("Test routing rules generations", func() {
 			checkPathRules(generatedPathMap, 2)
 		})
 		It("should be able to merge all the path rules into the same path map", func() {
-			// Since 2 ingress have duplicate rules, only rules from first ingress will be part of the path rules
 			ingress := cbCtx.IngressList[0]
 			for ruleIdx, rule := range ingress.Spec.Rules {
 				for pathIdx, path := range rule.HTTP.Paths {
