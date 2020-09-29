@@ -160,6 +160,27 @@ func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 	}
 }
 
+// NewIngressRuleWithPathsFixture makes a new Ingress Rule with mutiple paths for testing
+func NewIngressRuleWithPathsFixture(host string, urlPathsList []string, be v1beta1.IngressBackend) v1beta1.IngressRule {
+	ingressRule := v1beta1.IngressRule{
+		Host: host,
+		IngressRuleValue: v1beta1.IngressRuleValue{
+			HTTP: &v1beta1.HTTPIngressRuleValue{
+				Paths: []v1beta1.HTTPIngressPath{},
+			},
+		},
+	}
+
+	for _, value := range urlPathsList {
+		ingressRule.IngressRuleValue.HTTP.Paths = append(ingressRule.IngressRuleValue.HTTP.Paths, v1beta1.HTTPIngressPath{
+			Path:    value,
+			Backend: be,
+		})
+	}
+
+	return ingressRule
+}
+
 // NewIngressFixture makes a new Ingress for testing
 func NewIngressFixture() *v1beta1.Ingress {
 	be80 := NewIngressBackendFixture(ServiceName, 80)

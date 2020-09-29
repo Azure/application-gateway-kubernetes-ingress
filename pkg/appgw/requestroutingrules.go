@@ -366,6 +366,10 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		existingPathMap.DefaultBackendHTTPSettings = nil
 	}
 
+	if pathMapToMerge.PathRules == nil || len(*pathMapToMerge.PathRules) == 0 {
+		return existingPathMap
+	}
+
 	var mergedPathRules, allPathRules []n.ApplicationGatewayPathRule
 	if existingPathMap.PathRules == nil {
 		allPathRules = *pathMapToMerge.PathRules
@@ -378,8 +382,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 	for _, pathRule := range allPathRules {
 		addRuleToMergeList := true
 		for _, path := range *pathRule.Paths {
-			_, exists := pathMap[path]
-			if exists {
+			if _, exists := pathMap[path]; exists {
 				glog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
 				addRuleToMergeList = false
 			} else {
@@ -391,9 +394,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		}
 	}
 
-	if len(mergedPathRules) > 0 {
-		existingPathMap.PathRules = &mergedPathRules
-	}
+	existingPathMap.PathRules = &mergedPathRules
 
 	return existingPathMap
 }

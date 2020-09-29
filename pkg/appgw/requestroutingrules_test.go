@@ -464,7 +464,7 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
-	Context("test path-based rule with 1 ingress and multiple service having with same paths", func() {
+	Context("test path-based rule with 1 ingress and multiple service having with duplicate url paths", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		testServiceName := "testService"
 		endpoint1 := tests.NewEndpointsFixture()
@@ -540,6 +540,183 @@ var _ = Describe("Test routing rules generations", func() {
 						},
 					}
 					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+				}
+			}
+		})
+	})
+
+	Context("test path-based rule with 1 ingress and 1 service having 1 rule with duplicate paths", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		endpoint1 := tests.NewEndpointsFixture()
+		service1 := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
+		// 2 path based rules with path - /api1, /api2
+		ingressPathBased := tests.NewIngressFixture()
+		ingressPathBased.Annotations[annotations.SslRedirectKey] = "false"
+		backendBasic := tests.NewIngressBackendFixture(tests.ServiceName, 80)
+		// Adding duplicate path /api3 for a same service in same ingress
+		duplicatePathRule := tests.NewIngressRuleWithPathsFixture(tests.Host, []string{"/api3", "/api3"}, *backendBasic)
+		ingressPathBased.Spec.Rules = append([]v1beta1.IngressRule{duplicatePathRule}, ingressPathBased.Spec.Rules...)
+
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint1)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service1)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingressPathBased},
+			ServiceList:           []*v1.Service{service1},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
+
+		rule := &ingressPathBased.Spec.Rules[0]
+
+		_ = configBuilder.Listeners(cbCtx)
+		// !! Action !! -- will mutate pathMap struct
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		generatedPathMap := pathMaps[sharedListenerID]
+		It("has default backend pool coming from path-based ingress", func() {
+			Expect(*generatedPathMap.DefaultBackendAddressPool.ID).To(Equal("xx"))
+		})
+		It("has default backend http settings coming from basic ingress", func() {
+			Expect(*generatedPathMap.DefaultBackendHTTPSettings.ID).To(Equal("yy"))
+		})
+		It("should has 3 path rules", func() {
+			// even though there are 4 paths, namely /api1, /api2, /api3, /api3,
+			// the generated pathmap count will be 3 after removing duplicates
+			Expect(len(*generatedPathMap.PathRules)).To(Equal(3))
+		})
+		It("should have three path rules coming from path based ingress", func() {
+			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
+				for pathIdx, path := range rule.HTTP.Paths {
+					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
+					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
+					expectedPathRule := n.ApplicationGatewayPathRule{
+						Name: to.StringPtr(pathRuleName),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
+						Etag: to.StringPtr("*"),
+						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
+							Paths: &[]string{
+								path.Path,
+							},
+							BackendAddressPool:  &n.SubResource{ID: to.StringPtr(backendPoolID)},
+							BackendHTTPSettings: &n.SubResource{ID: to.StringPtr(httpSettingID)},
+						},
+					}
+
+					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+				}
+			}
+		})
+	})
+
+	Context("test path-based rule with 2 ingress both with having same paths", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingressPathBased1 := tests.NewIngressFixture()
+		ingressPathBased1.Annotations[annotations.SslRedirectKey] = "false"
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased1)
+
+		ingressPathBased2 := tests.NewIngressFixture()
+		ingressPathBased2.Name = "ingress1"
+		ingressPathBased2.Annotations[annotations.SslRedirectKey] = "false"
+		testEndpoint := tests.NewEndpointsFixture()
+		testEndpoint.Name = "test"
+		testService := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		testService.Name = "test"
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath1, *testBackend)
+		ingressPathBased2.Spec.Rules = []v1beta1.IngressRule{
+			testRule,
+		}
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(testEndpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(testService)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressPathBased2)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*v1beta1.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
+
+		rule := &ingressPathBased1.Spec.Rules[0]
+
+		_ = configBuilder.Listeners(cbCtx)
+		// !! Action !! -- will mutate pathMap struct
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.HTTPS, nil, false)
+		generatedPathMap := pathMaps[sharedListenerID]
+		It("has default backend pool", func() {
+			Expect(generatedPathMap.DefaultBackendAddressPool).To(Not(BeNil()))
+		})
+		It("has default backend http settings", func() {
+			Expect(generatedPathMap.DefaultBackendHTTPSettings).To(Not(BeNil()))
+		})
+		It("should have uniquely names path rules and 2 path rules", func() {
+			checkPathRules(generatedPathMap, 2)
+		})
+		It("should be able to merge all the path rules into the same path map", func() {
+			// Since 2 ingress have duplicate rules, only rules from first ingress will be part of the path rules
+			ingress := cbCtx.IngressList[0]
+			for ruleIdx, rule := range ingress.Spec.Rules {
+				for pathIdx, path := range rule.HTTP.Paths {
+					backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
+					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
+					expectedPathRule := n.ApplicationGatewayPathRule{
+						Name: to.StringPtr(pathRuleName),
+						Etag: to.StringPtr("*"),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
+						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
+							Paths: &[]string{
+								path.Path,
+							},
+							BackendAddressPool:  &n.SubResource{ID: to.StringPtr(backendPoolID)},
+							BackendHTTPSettings: &n.SubResource{ID: to.StringPtr(httpSettingID)},
+						},
+					}
+					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+				}
+			}
+
+			ingress = cbCtx.IngressList[1]
+			for ruleIdx, rule := range ingress.Spec.Rules {
+				for pathIdx, path := range rule.HTTP.Paths {
+					backendID := generateBackendID(ingress, &rule, &path, &path.Backend)
+					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
+					httpSettingID := configBuilder.appGwIdentifier.HTTPSettingsID(generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort), backendID.Ingress.Name))
+					pathRuleName := generatePathRuleName(backendID.Ingress.Namespace, backendID.Ingress.Name, ruleIdx, pathIdx)
+					expectedPathRule := n.ApplicationGatewayPathRule{
+						Name: to.StringPtr(pathRuleName),
+						Etag: to.StringPtr("*"),
+						ID:   to.StringPtr(configBuilder.appGwIdentifier.pathRuleID(*generatedPathMap.Name, pathRuleName)),
+						ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
+							Paths: &[]string{
+								path.Path,
+							},
+							BackendAddressPool:  &n.SubResource{ID: to.StringPtr(backendPoolID)},
+							BackendHTTPSettings: &n.SubResource{ID: to.StringPtr(httpSettingID)},
+						},
+					}
+					Expect(*generatedPathMap.PathRules).ToNot(ContainElement(expectedPathRule))
 				}
 			}
 		})
