@@ -231,7 +231,7 @@ Values:
     helm install ingress-azure \
       -f helm-config.yaml \
       application-gateway-kubernetes-ingress/ingress-azure \
-      --version 1.2.0
+      --version 1.2.1
     ```
 
     >Note: Use at least version 1.2.0-rc1, i.e. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
