@@ -50,6 +50,10 @@ data:
   APPGW_SUBNET_PREFIX: {{ .Values.appgw.subnetPrefix | quote }}
   {{- end }}
 
+  {{- if .Values.appgw.skuName }}
+  APPGW_SKU_NAME: {{ .Values.appgw.skuName | quote }}
+  {{- end }}
+
   {{- if .Values.appgw.subnetName }}
   APPGW_SUBNET_NAME: {{ .Values.appgw.subnetName | quote }}
   {{- else }}
