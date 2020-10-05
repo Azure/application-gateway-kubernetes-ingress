@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"fmt"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
@@ -590,9 +592,6 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 		It("should have two path rules coming from path based ingress", func() {
 			for ruleIdx, rule := range ingressPathBased.Spec.Rules {
-				if ruleIdx == 1 {
-					continue
-				}
 				for pathIdx, path := range rule.HTTP.Paths {
 					backendID := generateBackendID(ingressPathBased, &rule, &path, &path.Backend)
 					backendPoolID := configBuilder.appGwIdentifier.AddressPoolID(generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), Port(tests.ContainerPort)))
@@ -610,7 +609,13 @@ var _ = Describe("Test routing rules generations", func() {
 							BackendHTTPSettings: &n.SubResource{ID: to.StringPtr(httpSettingID)},
 						},
 					}
-					Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule))
+
+					if ruleIdx == 1 {
+						// this is the second rule for /api1 which should not be added to the path rules
+						Expect(*generatedPathMap.PathRules).ToNot(ContainElement(expectedPathRule), fmt.Sprintf("%+v", ingressPathBased))
+					} else {
+						Expect(*generatedPathMap.PathRules).To(ContainElement(expectedPathRule), fmt.Sprintf("%+v", ingressPathBased))
+					}
 				}
 			}
 		})
