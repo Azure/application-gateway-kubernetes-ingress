@@ -67,6 +67,10 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
+	// Override the defaults 80,443 ports use for the listener
+	overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+	overrideFrontendPortForIngress := Port(overrideFrontendPortFromAnnotation)
+
 	// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
 	usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIPForIngress := usePrivateIPFromAnnotation || env.UsePrivateIP == "true"
@@ -85,7 +89,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 	// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
 	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS;
 	if hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTPS, nil, usePrivateIPForIngress)
+		listenerID := generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPortForIngress, usePrivateIPForIngress)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		// Only associate the Listener with a Redirect if redirect is enabled
 		redirect := ""
@@ -114,7 +118,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 	}
 	// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 	if sslRedirect || !hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, usePrivateIPForIngress)
+		listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPortForIngress, usePrivateIPForIngress)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		listeners[listenerID] = listenerAzConfig{
 			Protocol: n.HTTP,
