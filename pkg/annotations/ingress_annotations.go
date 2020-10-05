@@ -45,6 +45,9 @@ const (
 	// UsePrivateIPKey defines the key to determine whether to use private ip with the ingress.
 	UsePrivateIPKey = ApplicationGatewayPrefix + "/use-private-ip"
 
+	// OverrideFrontendPortKey defines the key to define a custom fronend port
+	OverrideFrontendPortKey = ApplicationGatewayPrefix + "/override-frontend-port"
+
 	// BackendProtocolKey defines the key to determine whether to use private ip with the ingress.
 	BackendProtocolKey = ApplicationGatewayPrefix + "/backend-protocol"
 
@@ -165,6 +168,11 @@ func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
 // UsePrivateIP determines whether to use private IP with the ingress
 func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
 	return parseBool(ing, UsePrivateIPKey)
+}
+
+// OverrideFrontendPort determines whether to use a custom Frontend port
+func OverrideFrontendPort(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, OverrideFrontendPortKey)
 }
 
 // BackendProtocol provides value for protocol to be used with the backend
