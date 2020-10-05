@@ -249,6 +249,77 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
+	Context("test override frontend port", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		endpoint := tests.NewEndpointsFixture()
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressFixture()
+
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList: []*v1beta1.Ingress{ingress},
+			ServiceList: []*v1.Service{service},
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+		_ = configBuilder.RequestRoutingRules(cbCtx)
+
+		rule := &ingress.Spec.Rules[0]
+
+		It("frontend port is default to 80", func() {
+			listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
+
+		It("frontend port is default to 80 when no annotation", func() {
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
+
+		It("frontend port is default to 443 when https", func() {
+			listenerID := generateListenerID(ingress, rule, n.HTTPS, nil, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
+		})
+
+		It("frontend port is default to 443 when https with no annotation", func() {
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
+		})
+
+		It("frontend port is overriden in annotation", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(777)))
+		})
+
+		It("frontend port is out of range", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "65000"
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
+
+		It("frontend port is out of range", func() {
+			ingress.Annotations[annotations.OverrideFrontendPortKey] = "0"
+			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
+			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
+			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
+		})
+	})
+
 	Context("test waf policy is configured in rule path", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		secret := tests.NewSecretTestFixture()
