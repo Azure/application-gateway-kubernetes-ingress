@@ -37,6 +37,9 @@ appgw: {}
 #   # Whether to force private IP for all the listeners on Application Gateway
 #   usePrivateIP: false
 #   subResourceNamePrefix: "myPrefix"
+#   # Any extra annotations needed for the ingress controller pod
+#   annotations: 
+#     example.io/myAnnotation: annotation
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager
