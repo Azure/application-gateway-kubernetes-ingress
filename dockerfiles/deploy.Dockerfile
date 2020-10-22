@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 RUN apt-get update
 RUN apt-get install -y ca-certificates openssl
 RUN useradd appgw-ingress-user
