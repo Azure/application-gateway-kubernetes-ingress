@@ -44,6 +44,9 @@ const (
 	// AppGwSubnetIDVarName is the name of the APPGW_SUBNET_ID
 	AppGwSubnetIDVarName = "APPGW_SUBNET_ID"
 
+	// AppGwSkuVarName is the sku of the AGW
+	AppGwSkuVarName = "APPGW_SKU_NAME"
+
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
 
@@ -98,6 +101,7 @@ const (
 
 var (
 	portNumberValidator = regexp.MustCompile(`^[0-9]{4,5}$`)
+	skuValidator        = regexp.MustCompile(`WAF_v2|Standard_v2`)
 	boolValidator       = regexp.MustCompile(`^(?i)(true|false)$`)
 )
 
@@ -112,6 +116,7 @@ type EnvVariables struct {
 	AppGwSubnetPrefix           string
 	AppGwResourceID             string
 	AppGwSubnetID               string
+	AppGwSkuName                string
 	AuthLocation                string
 	IngressClass                string
 	WatchNamespace              string
@@ -170,6 +175,7 @@ func GetEnv() EnvVariables {
 		AppGwSubnetPrefix:           os.Getenv(AppGwSubnetPrefixVarName),
 		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
+		AppGwSkuName:                GetEnvironmentVariable(AppGwSkuVarName, "Standard_v2", skuValidator),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
 		IngressClass:                os.Getenv(IngressClass),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),

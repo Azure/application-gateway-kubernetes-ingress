@@ -9,7 +9,7 @@ E0813 15:49:23.529297 1 client.go:170] Code="ErrorApplicationGatewayForbidden" M
 ```
 
 ### Resolve the issue
-We are working on the fix, currently to resolve the issue above, agic client identity will need to be reassigned to AKS nodes.
+Team is working on the [fix](https://github.com/Azure/aad-pod-identity/issues/681), currently to resolve the issue above, agic client identity will need to be reassigned to AKS nodes.
 Please perform the following commands in your [Azure Cloud Shell](https://shell.azure.com/).
 ```
 aksClusterName="YOUR_AKS_CLUSTER_NAME"

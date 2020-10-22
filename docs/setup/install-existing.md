@@ -55,13 +55,13 @@ To install AAD Pod Identity to your cluster:
    - *RBAC enabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment-rbac.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.5.5/deploy/infra/deployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
   ```
 
 Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
@@ -154,7 +154,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
     nano helm-config.yaml
     ```
 
-    **NOTE:** The `<identity-resource-id>` and `<identity-client-id>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: `az identity show -g <resourcegroup> -n <identity-name>`, where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
+    **NOTE:** The `<identityResourceId>` and `<identityClientId>` are the properties of the Azure AD Identity you setup in the previous section. You can retrieve this information by running the following command: `az identity show -g <resourcegroup> -n <identity-name>`, where `<resourcegroup>` is the resource group in which the top level AKS cluster object, Application Gateway and Managed Identify are deployed.
 
 1. Install Helm chart `application-gateway-kubernetes-ingress` with the `helm-config.yaml` configuration from the previous step
 
@@ -162,7 +162,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
     helm install ingress-azure \
       -f helm-config.yaml \
       application-gateway-kubernetes-ingress/ingress-azure \
-      --version 1.0.0
+      --version 1.2.1
     ```
 
     >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16
@@ -182,7 +182,7 @@ You can use [Cloud Shell](https://shell.azure.com/) to install the AGIC Helm pac
          --set rbac.enabled=true \
          --set verbosityLevel=3 \
          --set kubernetes.watchNamespace=default \
-         --version 1.0.0
+         --version 1.2.1
     ```
 
     >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16

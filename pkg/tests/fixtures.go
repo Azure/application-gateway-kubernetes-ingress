@@ -160,6 +160,27 @@ func NewIngressRuleFixture(host string, urlPath string, be v1beta1.IngressBacken
 	}
 }
 
+// NewIngressRuleWithPathsFixture makes a new Ingress Rule with mutiple paths for testing
+func NewIngressRuleWithPathsFixture(host string, urlPathsList []string, be v1beta1.IngressBackend) v1beta1.IngressRule {
+	ingressRule := v1beta1.IngressRule{
+		Host: host,
+		IngressRuleValue: v1beta1.IngressRuleValue{
+			HTTP: &v1beta1.HTTPIngressRuleValue{
+				Paths: []v1beta1.HTTPIngressPath{},
+			},
+		},
+	}
+
+	for _, value := range urlPathsList {
+		ingressRule.IngressRuleValue.HTTP.Paths = append(ingressRule.IngressRuleValue.HTTP.Paths, v1beta1.HTTPIngressPath{
+			Path:    value,
+			Backend: be,
+		})
+	}
+
+	return ingressRule
+}
+
 // NewIngressFixture makes a new Ingress for testing
 func NewIngressFixture() *v1beta1.Ingress {
 	be80 := NewIngressBackendFixture(ServiceName, 80)
@@ -419,6 +440,68 @@ func NewServiceFixture(servicePorts ...v1.ServicePort) *v1.Service {
 			// Ignored if type is ExternalName.
 			Selector: map[string]string{
 				SelectorKey: SelectorValue,
+			},
+		},
+	}
+}
+
+// NewEndpointsFixtureWithSameNameMultiplePorts makes a new endpoint for testing
+func NewEndpointsFixtureWithSameNameMultiplePorts() *v1.Endpoints {
+	return &v1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ServiceName,
+			Namespace: Namespace,
+		},
+		Subsets: []v1.EndpointSubset{
+			{
+				// IP addresses which offer the related ports that are marked as ready. These endpoints
+				// should be considered safe for load balancers and clients to utilize.
+				// +optional
+				Addresses: []v1.EndpointAddress{
+					{
+						IP: "10.9.8.7",
+						// The Hostname of this endpoint
+						// +optional
+						Hostname: "www.contoso.com",
+						// Optional: Node hosting this endpoint. This can be used to determine endpoints local to a node.
+						// +optional
+						NodeName: to.StringPtr(NodeName),
+					},
+				},
+				// IP addresses which offer the related ports but are not currently marked as ready
+				// because they have not yet finished starting, have recently failed a readiness check,
+				// or have recently failed a liveness check.
+				// +optional
+				NotReadyAddresses: []v1.EndpointAddress{},
+				// Port numbers available on the related IP addresses.
+				// +optional
+				Ports: []v1.EndpointPort{
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     ServiceHTTPSPort,
+						Port:     5000,
+					},
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     ServiceHTTPSPort,
+						Port:     80,
+					},
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     ServiceHTTPSPort,
+						Port:     81,
+					},
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     ServiceHTTPSPort,
+						Port:     4999,
+					},
+					{
+						Protocol: v1.ProtocolTCP,
+						Name:     ServiceHTTPSPort,
+						Port:     75,
+					},
+				},
 			},
 		},
 	}

@@ -40,6 +40,7 @@ func TestIt(t *testing.T) {
 var _ = Describe("Test ingress annotation functions", func() {
 	annotations := map[string]string{
 		"appgw.ingress.kubernetes.io/use-private-ip":                 "true",
+		"appgw.ingress.kubernetes.io/override-frontend-port":         "444",
 		"appgw.ingress.kubernetes.io/connection-draining":            "true",
 		"appgw.ingress.kubernetes.io/cookie-based-affinity":          "true",
 		"appgw.ingress.kubernetes.io/ssl-redirect":                   "true",
@@ -253,6 +254,18 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := UsePrivateIP(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test OverrideFrontendPort", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, _ := OverrideFrontendPort(ing)
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns true with correct annotation", func() {
+			actual, _ := OverrideFrontendPort(ing)
+			Expect(actual).To(Equal(int32(444)))
 		})
 	})
 
