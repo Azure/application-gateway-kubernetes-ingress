@@ -29,8 +29,8 @@ data:
 {{- if .Values.appgw.applicationGatewayID }}
   APPGW_RESOURCE_ID: {{ .Values.appgw.applicationGatewayID | quote }}
 {{- else }}
-  APPGW_SUBSCRIPTION_ID: {{ .Values.appgw.subscriptionId | quote }}
-  APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup | quote }}
+  APPGW_SUBSCRIPTION_ID: {{ default "" .Values.appgw.subscriptionId | quote }}
+  APPGW_RESOURCE_GROUP:  {{ default "" .Values.appgw.resourceGroup | quote }}
   APPGW_NAME:            {{ .Values.appgw.name | quote }}
 
   {{- if or .Values.appgw.subnetID .Values.appgw.subnetName .Values.appgw.subnetPrefix }}
