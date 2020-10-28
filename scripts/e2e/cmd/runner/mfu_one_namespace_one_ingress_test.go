@@ -189,6 +189,76 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
+		It("[override-frontend-port] should be able to use frontend port other than 80/443", func() {
+			namespaceName := "e2e-override-frontend-port"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			OverrideFrontendPortYamlPath := "testdata/one-namespace-one-ingress/override-frontend-port/app.yaml"
+			klog.Info("Applying yaml: ", OverrideFrontendPortYamlPath)
+			err = applyYaml(clientset, namespaceName, OverrideFrontendPortYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttp := fmt.Sprintf("http://%s:%d/good", publicIP, 8080)
+			urlHttps := fmt.Sprintf("https://%s:%d/good", publicIP, 8443)
+			// http get to return 200 ok
+			_, err = makeGetRequest(urlHttp, "app.http", 200, true)
+			Expect(err).To(BeNil())
+			// https get to return 200 ok
+			_, err = makeGetRequest(urlHttps, "app.https", 200, true)
+			Expect(err).To(BeNil())
+		})
+
+		It("[invalid-config] should be able to work with duplicate paths and multiple backend port", func() {
+			namespaceName := "e2e-invalid-config"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			InvalidConfigYamlPath := "testdata/one-namespace-one-ingress/invalid-configuration/app.yaml"
+			klog.Info("Applying yaml: ", InvalidConfigYamlPath)
+			err = applyYaml(clientset, namespaceName, InvalidConfigYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			url := fmt.Sprintf("http://%s/", publicIP)
+			resp, err := makeGetRequest(url, "app.http", 200, true)
+			Expect(err).To(BeNil())
+			Expect(readBody(resp)).To(Equal("app"))
+
+			url = fmt.Sprintf("http://%s/app", publicIP)
+			resp, err = makeGetRequest(url, "app.http", 200, true)
+			Expect(err).To(BeNil())
+			Expect(readBody(resp)).To(Equal("app"))
+
+			url = fmt.Sprintf("http://%s/app1", publicIP)
+			resp, err = makeGetRequest(url, "app.http", 200, true)
+			Expect(err).To(BeNil())
+			Expect(readBody(resp)).To(Equal("app"))
+		})
+
 		AfterEach(func() {
 			// clear all namespaces
 			cleanUp(clientset)
