@@ -33,10 +33,6 @@ data:
   APPGW_RESOURCE_GROUP:  {{ .Values.appgw.resourceGroup | quote }}
   APPGW_NAME:            {{ .Values.appgw.name | quote }}
 
-  {{- if .Values.appgw.subResourceNamePrefix }}
-  APPGW_CONFIG_NAME_PREFIX: {{ .Values.appgw.subResourceNamePrefix | quote }}
-  {{- end }}
-
   {{- if or .Values.appgw.subnetID .Values.appgw.subnetName .Values.appgw.subnetPrefix }}
   #if subnet is provided, we treat it as a create case
   APPGW_ENABLE_DEPLOY:   "true"
@@ -62,6 +58,10 @@ data:
 
   {{- end }}
 
+{{- end }}
+
+{{- if .Values.appgw.subResourceNamePrefix }}
+  APPGW_CONFIG_NAME_PREFIX: {{ .Values.appgw.subResourceNamePrefix | quote }}
 {{- end }}
 
 {{- if .Values.appgw.shared }}
