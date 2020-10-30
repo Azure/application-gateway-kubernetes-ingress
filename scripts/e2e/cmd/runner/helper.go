@@ -79,6 +79,7 @@ func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
 	client := n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
 	var authorizer autorest.Authorizer
 	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
 		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	} else {
 		authorizer, err = settings.GetAuthorizer()
@@ -107,6 +108,7 @@ func getRoleAssignmentsClient() (*a.RoleAssignmentsClient, error) {
 	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
 	var authorizer autorest.Authorizer
 	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
 		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	} else {
 		authorizer, err = settings.GetAuthorizer()
