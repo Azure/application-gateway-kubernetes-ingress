@@ -16,7 +16,9 @@ import (
 	"strings"
 	"time"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/uuid"
@@ -66,14 +68,51 @@ func getClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-func getRoleClient() (*a.RoleAssignmentsClient, error) {
+func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
+	env := GetEnv()
+
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	client := n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
+	var authorizer autorest.Authorizer
+	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
+		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	} else {
+		authorizer, err = settings.GetAuthorizer()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	client.Authorizer = authorizer
+	err = client.AddToUserAgent(UserAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
+func getRoleAssignmentsClient() (*a.RoleAssignmentsClient, error) {
+	env := GetEnv()
+
 	settings, err := auth.GetSettingsFromEnvironment()
 	if err != nil {
 		return nil, err
 	}
 
 	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	authorizer, err := settings.GetAuthorizer()
+	var authorizer autorest.Authorizer
+	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
+		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	} else {
+		authorizer, err = settings.GetAuthorizer()
+	}
 	if err != nil {
 		return nil, err
 	}

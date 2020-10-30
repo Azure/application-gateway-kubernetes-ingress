@@ -131,7 +131,7 @@ var _ = Describe("MFU", func() {
 
 		It("[retry access check] should be able to wait for the access to be granted", func() {
 			klog.Info("Initializing role client")
-			roleClient, err := getRoleClient()
+			roleClient, err := getRoleAssignmentsClient()
 			Expect(err).To(BeNil())
 
 			// remove role assignment
