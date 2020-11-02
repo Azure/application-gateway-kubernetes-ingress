@@ -51,6 +51,7 @@ function InstallAGIC() {
     helm upgrade --install agic-${version} staging/ingress-azure \
         --set appgw.name=${applicationGatewayName} \
         --set appgw.subnetPrefix=${applicationGatewaySubnetPrefix} \
+        --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
         --set armAuth.type=aadPodIdentity \
         --set armAuth.identityResourceID=${identityResourceId} \
         --set armAuth.identityClientID=${identityClientId} \
@@ -87,6 +88,7 @@ function SetupSharedBackend() {
     helm upgrade --install agic-${version} staging/ingress-azure \
         -f ./helm-config-with-prohibited-rules.yaml \
         --set appgw.applicationGatewayID=${applicationGatewayId} \
+        --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
         --set armAuth.type=aadPodIdentity \
         --set armAuth.identityResourceID=${identityResourceId} \
         --set armAuth.identityClientID=${identityClientId} \
