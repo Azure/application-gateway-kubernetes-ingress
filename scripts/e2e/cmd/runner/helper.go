@@ -307,7 +307,6 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for configmaps")
 			}
-			continue
 		} else if pod, ok := objs.(*v1.Pod); ok {
 			nm := pod.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
@@ -321,7 +320,6 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for pods")
 			}
-			continue
 		} else {
 			return fmt.Errorf("unable to apply YAML. Unknown object type: %v", objs)
 		}
