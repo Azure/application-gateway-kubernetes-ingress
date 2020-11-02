@@ -17,8 +17,13 @@ function InstallAGIC() {
         echo "version is not set"
         exit 1
     )
-    [[ -z "${applicationGatewayId}" ]] && (
-        echo "buiapplicationGatewayIdldid is not set"
+    # Using 'applicationGatewayName' without providing 'subscription' and 'resource group' will make AGIC use values from azure.json
+    [[ -z "${applicationGatewayName}" ]] && (
+        echo "applicationGatewayName is not set"
+        exit 1
+    )
+    [[ -z "${applicationGatewaySubnetPrefix}" ]] && (
+        echo "applicationGatewaySubnetPrefix is not set"
         exit 1
     )
     [[ -z "${identityResourceId}" ]] && (
@@ -44,7 +49,8 @@ function InstallAGIC() {
 
     # AAD pod identity is taking time to assign identity. Timeout is set to 120 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
-        --set appgw.applicationGatewayID=${applicationGatewayId} \
+        --set appgw.name=${applicationGatewayName} \
+        --set appgw.subnetPrefix=${applicationGatewaySubnetPrefix} \
         --set armAuth.type=aadPodIdentity \
         --set armAuth.identityResourceID=${identityResourceId} \
         --set armAuth.identityClientID=${identityClientId} \
@@ -60,26 +66,35 @@ function InstallAGIC() {
 }
 
 function SetupSharedBackend() {
+    [[ -z "${version}" ]] && (
+        echo "version is not set"
+        exit 1
+    )
+    [[ -z "${applicationGatewayId}" ]] && (
+        echo "applicationGatewayId is not set"
+        exit 1
+    )
+    [[ -z "${identityResourceId}" ]] && (
+        echo "identityResourceId is not set"
+        exit 1
+    )
+    [[ -z "${identityClientId}" ]] && (
+        echo "identityClientId is not set"
+        exit 1
+    )
+
     # install agic with shared enabled
     helm upgrade --install agic-${version} staging/ingress-azure \
+        -f ./helm-config-with-prohibited-rules.yaml \
         --set appgw.applicationGatewayID=${applicationGatewayId} \
         --set armAuth.type=aadPodIdentity \
         --set armAuth.identityResourceID=${identityResourceId} \
         --set armAuth.identityClientID=${identityClientId} \
-        --set rbac.enabled=true \
-        --set appgw.shared=true \
         --timeout 120s \
         --wait \
         -n agic \
         --version ${version}
 
-    # apply customized prohibited policy for blacklisted backend
-    kubectl apply -f prohibit-blacklist-service.yaml
-
     # get all the prohibited target config
     kubectl get AzureIngressProhibitedTargets -n agic -o yaml
-
-    # delete default prohibit-all-targets
-    # blacklist-service shall be kept after porhibited policy applied
-    kubectl delete AzureIngressProhibitedTarget prohibit-all-targets -n agic
 }
