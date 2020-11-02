@@ -221,8 +221,8 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
-		It("[invalid-config] should be able to work with duplicate paths and multiple backend port", func() {
-			namespaceName := "e2e-invalid-config"
+		It("[configuration-reliability] should be able to work with an invalid configuration containing duplicate paths and multiple backend port", func() {
+			namespaceName := "e2e-configuration-reliability"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
