@@ -169,7 +169,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			glog.V(5).Infof("Created custom path %s for ingress %s/%s probe", *probe.Path, backendID.Ingress.Namespace, backendID.Ingress.Name)
 		} else {
 			probe.Path = to.StringPtr("/")
-			glog.V(5).Infof("Custom path %s for ingress %s/%s probe is not valid! Using '/' instead.", customPath, backendID.Ingress.Namespace, backendID.Ingress.Name)
+			glog.Warningf("Custom path %s for ingress %s/%s probe is not valid! Using '/' instead.", customPath, backendID.Ingress.Namespace, backendID.Ingress.Name)
 		}
 	}
 
