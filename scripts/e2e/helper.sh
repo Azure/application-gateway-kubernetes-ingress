@@ -57,6 +57,7 @@ function InstallAGIC() {
         --set armAuth.identityClientID=${identityClientId} \
         --set rbac.enabled=true \
         --set appgw.shared=false \
+        --set kubernetes.ingressClass="$1" \
         --timeout 120s \
         --wait \
         -n agic \
@@ -92,6 +93,7 @@ function SetupSharedBackend() {
         --set armAuth.type=aadPodIdentity \
         --set armAuth.identityResourceID=${identityResourceId} \
         --set armAuth.identityClientID=${identityClientId} \
+        --set kubernetes.ingressClass="$1" \
         --timeout 120s \
         --wait \
         -n agic \
@@ -99,4 +101,13 @@ function SetupSharedBackend() {
 
     # get all the prohibited target config
     kubectl get AzureIngressProhibitedTargets -n agic -o yaml
+}
+
+function EvaluateTestStatus() {
+    failedCount=$(grep "type=\"Failure\"" report.*.xml | wc -l | cut -d' ' -f8)
+    if [[ failedCount -ne 0 ]]; then
+        exit 1
+    fi
+
+    exit 0
 }
