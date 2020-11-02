@@ -26,17 +26,22 @@ const (
 	// KubeConfigVarName is the name of the KUBECONFIG
 	KubeConfigVarName = "KUBECONFIG"
 
-	// ObjectIDVarName is tne name of the identityObjectId
+	// ObjectIDVarName is the name of the identityObjectId
 	ObjectIDVarName = "identityObjectId"
+
+	// AzureAuthLocationVarName is the name of the AZURE_AUTH_LOCATION
+	AzureAuthLocationVarName = "AZURE_AUTH_LOCATION"
 )
 
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
-	SubscriptionID     string
-	ResourceGroupName  string
-	AppGwName          string
-	KubeConfigFilePath string
-	ObjectID           string
+	SubscriptionID        string
+	ResourceGroupName     string
+	AppGwName             string
+	SubResourceNamePrefix string
+	KubeConfigFilePath    string
+	ObjectID              string
+	AzureAuthLocation     string
 }
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
@@ -47,6 +52,7 @@ func GetEnv() *EnvVariables {
 		AppGwName:          os.Getenv(AppGwNameVarName),
 		KubeConfigFilePath: GetEnvironmentVariable(KubeConfigVarName, "~/.kube/config", nil),
 		ObjectID:           os.Getenv(ObjectIDVarName),
+		AzureAuthLocation:  os.Getenv(AzureAuthLocationVarName),
 	}
 }
 
