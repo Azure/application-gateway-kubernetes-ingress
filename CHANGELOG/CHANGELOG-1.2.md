@@ -23,7 +23,7 @@ We are working on bringing Azure Portal support for the new property soon. Until
 # v1.2.1
 
 ## Fixes
-* [#1009][https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1009] Use non-root user in AGIC docker image
+* [#1009](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1009) Use non-root user in AGIC docker image
 
 # v1.2.0
 
