@@ -10,7 +10,7 @@
 * [#801](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/801) Support custom ingress class
 * [#917](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/917) Support for configuring prohibited targets through helm config
 * [#1008](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1008) Ability to provide SKU when deploying gateway though AGIC
-* [#958](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/958) Support sub-resource name prefix; usefull when using shared mode
+* [#958](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/958) Support sub-resource name prefix
 
 ### Miscellaneuos:
 * [#1027](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1027) Updated to Ubuntu 20.04 LTS
