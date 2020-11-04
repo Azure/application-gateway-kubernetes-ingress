@@ -20,6 +20,7 @@
 * [#990](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/990) Choose backend port in case backend port name is resolved to multiple backend ports
 * [#975](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/975) Duplicate URL Path Map names w/ certain Ingress YAML
 * [#991](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/991) Merge path rules such that duplicate paths are ignored
+* [#1018](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1018) Add security context to have permission to azure.json
 
 ## How to try:
 ```bash
