@@ -29,6 +29,8 @@ spec:
         prometheus.io/port: {{ .Values.kubernetes.httpServicePort | quote}}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
+      securityContext:        
+        runAsUser: 0
       containers:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -66,8 +68,9 @@ spec:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
         volumeMounts:
-        - mountPath: /etc/appgw/azure.json
-          name: azure
+        - name: azure
+          mountPath: /etc/appgw/
+          readOnly: true
         {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: networking-appgw-k8s-azure-service-principal-mount
@@ -78,8 +81,8 @@ spec:
       volumes:
       - name: azure
         hostPath:
-          path: /etc/kubernetes/azure.json
-          type: File
+          path: /etc/kubernetes/
+          type: Directory
       {{- if .Values.armAuth }}
       {{- if eq .Values.armAuth.type "servicePrincipal"}}
       - name: networking-appgw-k8s-azure-service-principal-mount
