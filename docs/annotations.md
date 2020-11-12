@@ -22,6 +22,9 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/request-timeout](#request-timeout) | `int32` (seconds) | `30` | |
 | [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | |
 | [appgw.ingress.kubernetes.io/waf-policy-for-path](#azure-waf-policy-for-path) | `string` |   |   |
+| [appgw.ingress.kubernetes.io/health-probe-hostname](#health-probe-hostname) | `string` |  `nil` |   |
+| [appgw.ingress.kubernetes.io/health-probe-port](#health-probe-port) | `int32` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-path](#health-probe-path) | `string` | `nil`  |   |
 
 ## Backend Path Prefix
 
@@ -443,3 +446,106 @@ spec:
           servicePort: 80
 ```
 Note that the WAF policy will be applied to both `/ad-server` and `/auth` URLs.
+
+## Health Probe Hostname
+
+This annotation allows specifically define a target host to be used for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined, host used in liveliness probe definition is also used as a target host for health probe. However if annotation `appgw.ingress.kubernetes.io/health-probe-hostname` is defined it overrides it with its own value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-hostname: <hostname>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/
+        backend:
+          serviceName: go-server-service
+          servicePort: 80
+```
+
+## Health Probe Port
+
+Health probe port annotation allows specifically define target TCP port to be used for AGW health probe. By default, if backend container running service has liveliness probe of type `HTTP GET` defined, port used in liveliness probe definition is also used as a port for health probe. Annotation `appgw.ingress.kubernetes.io/health-probe-port` has precedence over such default value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-port: <port number>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
+    appgw.ingress.kubernetes.io/health-probe-port: "443"
+    appgw.ingress.kubernetes.io/health-probe-path: "/healthz"
+    appgw.ingress.kubernetes.io/backend-protocol: https
+spec:
+  tls:
+    - secretName: "my-backend-host.custom.app-ssl-certificate"
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 443
+```
+
+## Health Probe Path
+
+This annotation allows specifically define target URI path to be used for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , path defined in liveliness probe definition is also used as a parh for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-path` overrides it with its own value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
+    appgw.ingress.kubernetes.io/health-probe-port: "8080"
+    appgw.ingress.kubernetes.io/health-probe-path: "/healthz"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
+```
+
+
+
