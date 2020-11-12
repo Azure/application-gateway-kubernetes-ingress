@@ -27,14 +27,14 @@ const (
 	// Null means Host specified in the request to Application Gateway is used to connect to the backend.
 	BackendHostNameKey = ApplicationGatewayPrefix + "/backend-hostname"
 
-  // HealthProbeHostKey defines the key for Host which should be used as a target for health probe.
-  HealthProbeHostKey = ApplicationGatewayPrefix + "/health-probe-hostname"
+	// HealthProbeHostKey defines the key for Host which should be used as a target for health probe.
+	HealthProbeHostKey = ApplicationGatewayPrefix + "/health-probe-hostname"
 
-  // HealthProbePortKey defines the key for port that should be used as a target for health probe.
-  HealthProbePortKey = ApplicationGatewayPrefix + "/health-probe-port"
+	// HealthProbePortKey defines the key for port that should be used as a target for health probe.
+	HealthProbePortKey = ApplicationGatewayPrefix + "/health-probe-port"
 
-  // HealthProbePathKey defines the key for URL path which should be used as a target for health probe.
-  HealthProbePathKey = ApplicationGatewayPrefix + "/health-probe-path"
+	// HealthProbePathKey defines the key for URL path which should be used as a target for health probe.
+	HealthProbePathKey = ApplicationGatewayPrefix + "/health-probe-path"
 
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
@@ -146,19 +146,18 @@ func BackendHostName(ing *v1beta1.Ingress) (string, error) {
 
 // HealthProbeHostName probe hostname override
 func HealthProbeHostName(ing *v1beta1.Ingress) (string, error) {
- return parseString(ing, HealthProbeHostKey)
+	return parseString(ing, HealthProbeHostKey)
 }
 
 // HealthProbePort probe port override
 func HealthProbePort(ing *v1beta1.Ingress) (int32, error) {
- return parseInt32(ing, HealthProbePortKey)
+	return parseInt32(ing, HealthProbePortKey)
 }
 
 // HealthProbePath probe path override
 func HealthProbePath(ing *v1beta1.Ingress) (string, error) {
- return parseString(ing, HealthProbePathKey)
+	return parseString(ing, HealthProbePathKey)
 }
-
 
 // GetAppGwSslCertificate refer to appgw installed certificate
 func GetAppGwSslCertificate(ing *v1beta1.Ingress) (string, error) {
