@@ -158,6 +158,29 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		}
 	}
 
+	// backend protocol must match http settings protocol
+	backendProtocol, err = annotations.BackendProtocol(backendID.Ingress)
+	if err == nil && backendProtocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	}
+
+	// override healthcheck probe host with host defined in annotation if exists
+	probeHost, err := annotations.HealthProbeHostName(backendID.Ingress)
+	if err == nil && probeHost != "" {
+		probe.Host = to.StringPtr(probeHost)
+	}
+
+	// override healthcheck probe target port with port defined in annotation if exists
+	probePort, err := annotations.HealthProbePort(backendID.Ingress)
+	if err == nil && probePort > 0 && probePort < 65536 {
+		probe.Port = to.Int32Ptr(probePort)
+	}
+
+	// override healthcheck probe host with host defined in annotation if exists
+	probePath, err := annotations.HealthProbePath(backendID.Ingress)
+	if err == nil && probePath != "" {
+		probe.Path = to.StringPtr(probePath)
+	}
 	if probe.Path != nil {
 		probe.Path = to.StringPtr(strings.TrimRight(*probe.Path, "*"))
 	}
