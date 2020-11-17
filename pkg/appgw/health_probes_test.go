@@ -7,6 +7,7 @@ package appgw
 
 import (
 	"fmt"
+	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -180,6 +181,54 @@ var _ = Describe("configure App Gateway health probes", func() {
 		pb := cb.generateHealthProbe(be)
 		It("should return nil and not crash", func() {
 			Expect(pb).To(BeNil())
+		})
+	})
+
+	Context("ensure that annotation overrides defaults for health probe", func() {
+
+		annotationHpHostname := "myhost.mydomain.com"
+		annotationHpPort := int32(8080)
+		annotationHpPath := "/healthz"
+
+		annotations := map[string]string{
+			"kubernetes.io/ingress.class":                       "azure/application-gateway",
+			"appgw.ingress.kubernetes.io/health-probe-hostname": annotationHpHostname,
+			"appgw.ingress.kubernetes.io/health-probe-port":     strconv.Itoa(int(annotationHpPort)),
+			"appgw.ingress.kubernetes.io/health-probe-path":     annotationHpPath,
+		}
+
+		ingress := fixtures.GetIngress()
+		ingress.ObjectMeta.Annotations = annotations
+
+		cb := newConfigBuilderFixture(nil)
+		be := backendIdentifier{
+			serviceIdentifier: serviceIdentifier{
+				Namespace: "--namespace--",
+				Name:      "--service-name--",
+			},
+			Ingress: ingress,
+			Rule:    nil,
+			Path: &v1beta1.HTTPIngressPath{
+				Path: "/test",
+				Backend: v1beta1.IngressBackend{
+					ServiceName: "--service-name--",
+				},
+			},
+			Backend: &v1beta1.IngressBackend{},
+		}
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		_ = cb.k8sContext.Caches.Service.Add(service)
+
+		pb := cb.generateHealthProbe(be)
+
+		It("probe hostname must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Host).Should(Equal(&annotationHpHostname))
+		})
+		It("probe port must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Port).Should(Equal(&annotationHpPort))
+		})
+		It("probe path must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Path).Should(Equal(&annotationHpPath))
 		})
 	})
 

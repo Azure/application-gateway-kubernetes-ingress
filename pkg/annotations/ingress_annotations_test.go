@@ -51,6 +51,9 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/hostname-extension":             "www.bye.com, www.b*.com",
 		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":          "appgw-cert",
 		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate": "appgw-root-cert1,appgw-root-cert2",
+		"appgw.ingress.kubernetes.io/health-probe-hostname":          "myhost.mydomain.com",
+		"appgw.ingress.kubernetes.io/health-probe-port":              "8080",
+		"appgw.ingress.kubernetes.io/health-probe-path":              "/healthz",
 		"kubernetes.io/ingress.class":                                "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                            "azure/application-gateway",
 		"falseKey":                                                   "false",
@@ -102,6 +105,48 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := GetAppGwTrustedRootCertificate(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("appgw-root-cert1,appgw-root-cert2"))
+		})
+	})
+
+	Context("test health-probe-hostname", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbeHostName(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns hostname", func() {
+			actual, err := HealthProbeHostName(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("myhost.mydomain.com"))
+		})
+	})
+
+	Context("test health-probe-port", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbePort(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns probe port", func() {
+			actual, err := HealthProbePort(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(8080)))
+		})
+	})
+
+	Context("test health-probe-path", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbePath(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns probe path", func() {
+			actual, err := HealthProbePath(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("/healthz"))
 		})
 	})
 
