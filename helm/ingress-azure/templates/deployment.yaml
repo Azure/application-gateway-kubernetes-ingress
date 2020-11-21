@@ -87,10 +87,18 @@ spec:
           secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
       {{- end}}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.agic.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
       {{- end}}
+      {{- with .Values.agic.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.agic.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}

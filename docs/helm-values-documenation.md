@@ -19,6 +19,9 @@
 | `armAuth.identityResourceID` | | Resource ID of the Azure Managed Identity |
 | `armAuth.identityClientId` | | The Client ID of the Identity. See below for more information on Identity |
 | `armAuth.secretJSON` | | Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) |
+| `agic.nodeSelector` | `{}` | Scheduling node selector |
+| `agic.tolerations` | `[]` | Scheduling tolerations |
+| `agic.affinity` | `{}` | Scheduling affinity |
 
 ## Example
 
@@ -31,6 +34,11 @@ armAuth:
     type: aadPodIdentity
     identityResourceID: <identityResourceId>
     identityClientID:  <identityClientId>
+
+agic:
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 rbac:
     enabled: false

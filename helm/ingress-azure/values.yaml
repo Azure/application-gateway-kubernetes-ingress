@@ -57,6 +57,13 @@ appgw: {}
 #   secretJSON: <base64-encoded-JSON-blob>
 
 ################################################################################
+# Specify the scheduling options
+agic:
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
