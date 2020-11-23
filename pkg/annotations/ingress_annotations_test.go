@@ -39,25 +39,29 @@ func TestIt(t *testing.T) {
 
 var _ = Describe("Test ingress annotation functions", func() {
 	annotations := map[string]string{
-		"appgw.ingress.kubernetes.io/use-private-ip":                 "true",
-		"appgw.ingress.kubernetes.io/override-frontend-port":         "444",
-		"appgw.ingress.kubernetes.io/connection-draining":            "true",
-		"appgw.ingress.kubernetes.io/cookie-based-affinity":          "true",
-		"appgw.ingress.kubernetes.io/ssl-redirect":                   "true",
-		"appgw.ingress.kubernetes.io/request-timeout":                "123456",
-		"appgw.ingress.kubernetes.io/connection-draining-timeout":    "3456",
-		"appgw.ingress.kubernetes.io/backend-path-prefix":            "prefix-here",
-		"appgw.ingress.kubernetes.io/backend-hostname":               "www.backend.com",
-		"appgw.ingress.kubernetes.io/hostname-extension":             "www.bye.com, www.b*.com",
-		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":          "appgw-cert",
-		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate": "appgw-root-cert1,appgw-root-cert2",
-		"appgw.ingress.kubernetes.io/health-probe-hostname":          "myhost.mydomain.com",
-		"appgw.ingress.kubernetes.io/health-probe-port":              "8080",
-		"appgw.ingress.kubernetes.io/health-probe-path":              "/healthz",
-		"kubernetes.io/ingress.class":                                "azure/application-gateway",
-		"appgw.ingress.istio.io/v1alpha3":                            "azure/application-gateway",
-		"falseKey":                                                   "false",
-		"errorKey":                                                   "234error!!",
+		"appgw.ingress.kubernetes.io/use-private-ip":                  "true",
+		"appgw.ingress.kubernetes.io/override-frontend-port":          "444",
+		"appgw.ingress.kubernetes.io/connection-draining":             "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity":           "true",
+		"appgw.ingress.kubernetes.io/ssl-redirect":                    "true",
+		"appgw.ingress.kubernetes.io/request-timeout":                 "123456",
+		"appgw.ingress.kubernetes.io/connection-draining-timeout":     "3456",
+		"appgw.ingress.kubernetes.io/backend-path-prefix":             "prefix-here",
+		"appgw.ingress.kubernetes.io/backend-hostname":                "www.backend.com",
+		"appgw.ingress.kubernetes.io/hostname-extension":              "www.bye.com, www.b*.com",
+		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":           "appgw-cert",
+		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate":  "appgw-root-cert1,appgw-root-cert2",
+		"appgw.ingress.kubernetes.io/health-probe-hostname":           "myhost.mydomain.com",
+		"appgw.ingress.kubernetes.io/health-probe-port":               "8080",
+		"appgw.ingress.kubernetes.io/health-probe-path":               "/healthz",
+		"appgw.ingress.kubernetes.io/health-probe-status-codes":       "200-399, 401",
+		"appgw.ingress.kubernetes.io/health-probe-interval":           "15",
+		"appgw.ingress.kubernetes.io/health-probe-timeout":            "10",
+		"appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold": "3",
+		"kubernetes.io/ingress.class":                                 "azure/application-gateway",
+		"appgw.ingress.istio.io/v1alpha3":                             "azure/application-gateway",
+		"falseKey":                                                    "false",
+		"errorKey":                                                    "234error!!",
 	}
 
 	ing := &v1beta1.Ingress{
@@ -147,6 +151,63 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := HealthProbePath(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("/healthz"))
+		})
+	})
+
+	Context("test health-probe-status-codes", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbeStatusCodes(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).Should(BeEmpty())
+		})
+		It("returns hostname", func() {
+			actual, err := HealthProbeStatusCodes(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).Should(HaveLen(2))
+			Expect(actual).Should(ConsistOf("200-399", "401"))
+		})
+	})
+
+	Context("test health-probe-interval", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbeInterval(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns hostname", func() {
+			actual, err := HealthProbeInterval(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(15)))
+		})
+	})
+
+	Context("test health-probe-timeout", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbeTimeout(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns hostname", func() {
+			actual, err := HealthProbeTimeout(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(10)))
+		})
+	})
+
+	Context("test health-probe-unhealthy-treshold", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &v1beta1.Ingress{}
+			actual, err := HealthProbeUnhealthyTreshold(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(int32(0)))
+		})
+		It("returns hostname", func() {
+			actual, err := HealthProbeUnhealthyTreshold(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(int32(3)))
 		})
 	})
 

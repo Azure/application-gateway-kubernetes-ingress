@@ -36,6 +36,18 @@ const (
 	// HealthProbePathKey defines the key for URL path which should be used as a target for health probe.
 	HealthProbePathKey = ApplicationGatewayPrefix + "/health-probe-path"
 
+	// HealthProbeStatusCodesKey defines status codes returned by the probe to be interpreted as healty service
+	HealthProbeStatusCodesKey = ApplicationGatewayPrefix + "/health-probe-status-codes"
+
+	// HealthProbeIntervalKey defines the probe interval in seconds
+	HealthProbeIntervalKey = ApplicationGatewayPrefix + "/health-probe-interval"
+
+	// HealthProbeTimeoutKey defines the probe timeout in seconds
+	HealthProbeTimeoutKey = ApplicationGatewayPrefix + "/health-probe-timeout"
+
+	// HealthProbeUnhealthyTresholdKey defines threshold for marking backend server as unhealthy
+	HealthProbeUnhealthyTresholdKey = ApplicationGatewayPrefix + "/health-probe-unhealthy-treshold"
+
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
@@ -157,6 +169,35 @@ func HealthProbePort(ing *v1beta1.Ingress) (int32, error) {
 // HealthProbePath probe path override
 func HealthProbePath(ing *v1beta1.Ingress) (string, error) {
 	return parseString(ing, HealthProbePathKey)
+}
+
+// HealthProbeStatusCodes probe status codes
+func HealthProbeStatusCodes(ing *v1beta1.Ingress) ([]string, error) {
+	value, err := parseString(ing, HealthProbeStatusCodesKey)
+	if value != "" {
+		codesArray := strings.Split(value, ",")
+		for index, element := range codesArray {
+			codesArray[index] = strings.TrimSpace(element)
+		}
+		return codesArray, err
+	}
+
+	return nil, err
+}
+
+// HealthProbeInterval probe interval
+func HealthProbeInterval(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, HealthProbeIntervalKey)
+}
+
+// HealthProbeTimeout probe timeout
+func HealthProbeTimeout(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, HealthProbeTimeoutKey)
+}
+
+// HealthProbeUnhealthyTreshold probe threshold
+func HealthProbeUnhealthyTreshold(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, HealthProbeUnhealthyTresholdKey)
 }
 
 // GetAppGwSslCertificate refer to appgw installed certificate

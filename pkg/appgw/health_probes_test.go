@@ -8,6 +8,7 @@ package appgw
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -189,12 +190,21 @@ var _ = Describe("configure App Gateway health probes", func() {
 		annotationHpHostname := "myhost.mydomain.com"
 		annotationHpPort := int32(8080)
 		annotationHpPath := "/healthz"
+		annotationHpCodes := "200-399,401"
+		annotationHpInterval := int32(15)
+		annotationHpTimeout := int32(10)
+		annotationHpTreshold := int32(3)
+		StatusCodes := strings.Split(annotationHpCodes, ",")
 
 		annotations := map[string]string{
-			"kubernetes.io/ingress.class":                       "azure/application-gateway",
-			"appgw.ingress.kubernetes.io/health-probe-hostname": annotationHpHostname,
-			"appgw.ingress.kubernetes.io/health-probe-port":     strconv.Itoa(int(annotationHpPort)),
-			"appgw.ingress.kubernetes.io/health-probe-path":     annotationHpPath,
+			"kubernetes.io/ingress.class":                                 "azure/application-gateway",
+			"appgw.ingress.kubernetes.io/health-probe-hostname":           annotationHpHostname,
+			"appgw.ingress.kubernetes.io/health-probe-port":               strconv.Itoa(int(annotationHpPort)),
+			"appgw.ingress.kubernetes.io/health-probe-path":               annotationHpPath,
+			"appgw.ingress.kubernetes.io/health-probe-status-codes":       annotationHpCodes,
+			"appgw.ingress.kubernetes.io/health-probe-interval":           strconv.Itoa(int(annotationHpInterval)),
+			"appgw.ingress.kubernetes.io/health-probe-timeout":            strconv.Itoa(int(annotationHpTimeout)),
+			"appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold": strconv.Itoa(int(annotationHpTreshold)),
 		}
 
 		ingress := fixtures.GetIngress()
@@ -229,6 +239,18 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 		It("probe path must match annotation", func() {
 			Expect(pb.ApplicationGatewayProbePropertiesFormat.Path).Should(Equal(&annotationHpPath))
+		})
+		It("probe status codes must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Match.StatusCodes).Should(Equal(&StatusCodes))
+		})
+		It("probe interval must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Interval).Should(Equal(&annotationHpInterval))
+		})
+		It("probe timeout must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Timeout).Should(Equal(&annotationHpTimeout))
+		})
+		It("probe threshold must match annotation", func() {
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.UnhealthyThreshold).Should(Equal(&annotationHpTreshold))
 		})
 	})
 

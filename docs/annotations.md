@@ -26,6 +26,10 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-hostname](#health-probe-hostname) | `string` |  `nil` |   |
 | [appgw.ingress.kubernetes.io/health-probe-port](#health-probe-port) | `int32` | `nil`  |   |
 | [appgw.ingress.kubernetes.io/health-probe-path](#health-probe-path) | `string` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-status-codes](#health-probe-status-codes) | `[]string` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold](#health-probe-unhealthy-treshold) | `int32` | `nil`  |   |
 
 ## Override Frontend Port
 
@@ -552,7 +556,7 @@ spec:
 
 ## Health Probe Path
 
-This annotation allows specifically define target URI path to be used for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , path defined in liveliness probe definition is also used as a parh for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-path` overrides it with its own value.
+This annotation allows specifically define target URI path to be used for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , path defined in liveliness probe definition is also used as a path for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-path` overrides it with its own value.
 
 ### Usage
 
@@ -583,5 +587,126 @@ spec:
           servicePort: 8080
 ```
 
+## Health Probe Status Codes
 
+This annotation defines healthy status codes returned by the health probe. The values are comma seperated list of individual status codes or ranges defined as `<start of the range>-<end of the range>`.
 
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-399, 401"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
+```
+
+## Health Probe Interval
+
+This annotation sets AGW health probe interval. By default, if backend container running service with liveliness probe of type `HTTP GET` defined, interval in liveliness probe definition is also used as a interval for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-interval` overrides it with its value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-interval: "20"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
+```
+
+## Health Probe Timeout
+
+This annotation allows specifically define timeout for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined, timeout defined in liveliness probe definition is also used for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-timeout` overrides it with its value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-timeout: "15"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
+```
+
+## Health Probe Unhealthy Treshold
+
+This annotation allows specifically define target unhealthy thresold for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , threshold defined in liveliness probe definition is also used for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold` overrides it with its value.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold: "5"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
+```
