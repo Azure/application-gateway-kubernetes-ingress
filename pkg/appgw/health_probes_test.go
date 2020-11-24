@@ -193,18 +193,18 @@ var _ = Describe("configure App Gateway health probes", func() {
 		annotationHpCodes := "200-399,401"
 		annotationHpInterval := int32(15)
 		annotationHpTimeout := int32(10)
-		annotationHpTreshold := int32(3)
-		StatusCodes := strings.Split(annotationHpCodes, ",")
+		annotationHpThreshold := int32(3)
+		statusCodes := strings.Split(annotationHpCodes, ",")
 
 		annotations := map[string]string{
-			"kubernetes.io/ingress.class":                                 "azure/application-gateway",
-			"appgw.ingress.kubernetes.io/health-probe-hostname":           annotationHpHostname,
-			"appgw.ingress.kubernetes.io/health-probe-port":               strconv.Itoa(int(annotationHpPort)),
-			"appgw.ingress.kubernetes.io/health-probe-path":               annotationHpPath,
-			"appgw.ingress.kubernetes.io/health-probe-status-codes":       annotationHpCodes,
-			"appgw.ingress.kubernetes.io/health-probe-interval":           strconv.Itoa(int(annotationHpInterval)),
-			"appgw.ingress.kubernetes.io/health-probe-timeout":            strconv.Itoa(int(annotationHpTimeout)),
-			"appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold": strconv.Itoa(int(annotationHpTreshold)),
+			"kubernetes.io/ingress.class":                                  "azure/application-gateway",
+			"appgw.ingress.kubernetes.io/health-probe-hostname":            annotationHpHostname,
+			"appgw.ingress.kubernetes.io/health-probe-port":                strconv.Itoa(int(annotationHpPort)),
+			"appgw.ingress.kubernetes.io/health-probe-path":                annotationHpPath,
+			"appgw.ingress.kubernetes.io/health-probe-status-codes":        annotationHpCodes,
+			"appgw.ingress.kubernetes.io/health-probe-interval":            strconv.Itoa(int(annotationHpInterval)),
+			"appgw.ingress.kubernetes.io/health-probe-timeout":             strconv.Itoa(int(annotationHpTimeout)),
+			"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold": strconv.Itoa(int(annotationHpThreshold)),
 		}
 
 		ingress := fixtures.GetIngress()
@@ -241,7 +241,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Expect(pb.ApplicationGatewayProbePropertiesFormat.Path).Should(Equal(&annotationHpPath))
 		})
 		It("probe status codes must match annotation", func() {
-			Expect(pb.ApplicationGatewayProbePropertiesFormat.Match.StatusCodes).Should(Equal(&StatusCodes))
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.Match.StatusCodes).Should(Equal(&statusCodes))
 		})
 		It("probe interval must match annotation", func() {
 			Expect(pb.ApplicationGatewayProbePropertiesFormat.Interval).Should(Equal(&annotationHpInterval))
@@ -250,7 +250,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Expect(pb.ApplicationGatewayProbePropertiesFormat.Timeout).Should(Equal(&annotationHpTimeout))
 		})
 		It("probe threshold must match annotation", func() {
-			Expect(pb.ApplicationGatewayProbePropertiesFormat.UnhealthyThreshold).Should(Equal(&annotationHpTreshold))
+			Expect(pb.ApplicationGatewayProbePropertiesFormat.UnhealthyThreshold).Should(Equal(&annotationHpThreshold))
 		})
 	})
 

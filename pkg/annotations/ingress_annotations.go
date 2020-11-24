@@ -45,8 +45,8 @@ const (
 	// HealthProbeTimeoutKey defines the probe timeout in seconds
 	HealthProbeTimeoutKey = ApplicationGatewayPrefix + "/health-probe-timeout"
 
-	// HealthProbeUnhealthyTresholdKey defines threshold for marking backend server as unhealthy
-	HealthProbeUnhealthyTresholdKey = ApplicationGatewayPrefix + "/health-probe-unhealthy-treshold"
+	// HealthProbeUnhealthyThresholdKey defines threshold for marking backend server as unhealthy
+	HealthProbeUnhealthyThresholdKey = ApplicationGatewayPrefix + "/health-probe-unhealthy-threshold"
 
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
@@ -195,9 +195,9 @@ func HealthProbeTimeout(ing *v1beta1.Ingress) (int32, error) {
 	return parseInt32(ing, HealthProbeTimeoutKey)
 }
 
-// HealthProbeUnhealthyTreshold probe threshold
-func HealthProbeUnhealthyTreshold(ing *v1beta1.Ingress) (int32, error) {
-	return parseInt32(ing, HealthProbeUnhealthyTresholdKey)
+// HealthProbeUnhealthyThreshold probe threshold
+func HealthProbeUnhealthyThreshold(ing *v1beta1.Ingress) (int32, error) {
+	return parseInt32(ing, HealthProbeUnhealthyThresholdKey)
 }
 
 // GetAppGwSslCertificate refer to appgw installed certificate

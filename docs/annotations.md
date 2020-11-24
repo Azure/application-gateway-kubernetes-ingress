@@ -29,7 +29,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-status-codes](#health-probe-status-codes) | `[]string` | `nil`  |   |
 | [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   |
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   |
-| [appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold](#health-probe-unhealthy-treshold) | `int32` | `nil`  |   |
+| [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   |
 
 ## Override Frontend Port
 
@@ -594,7 +594,7 @@ This annotation defines healthy status codes returned by the health probe. The v
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+appgw.ingress.kubernetes.io/health-probe-status-codes: <status codes>
 ```
 
 ### Example
@@ -625,7 +625,7 @@ This annotation sets AGW health probe interval. By default, if backend container
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+appgw.ingress.kubernetes.io/health-probe-interval: <interval seconds>
 ```
 
 ### Example
@@ -656,7 +656,7 @@ This annotation allows specifically define timeout for AGW health probe. By defa
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+appgw.ingress.kubernetes.io/health-probe-timeout: <timeout seconds>
 ```
 
 ### Example
@@ -680,14 +680,14 @@ spec:
           servicePort: 8080
 ```
 
-## Health Probe Unhealthy Treshold
+## Health Probe Unhealthy Threshold
 
-This annotation allows specifically define target unhealthy thresold for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , threshold defined in liveliness probe definition is also used for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold` overrides it with its value.
+This annotation allows specifically define target unhealthy thresold for AGW health probe. By default, if backend container running service with liveliness probe of type `HTTP GET` defined , threshold defined in liveliness probe definition is also used for health probe. However annotation `appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold` overrides it with its value.
 
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/health-probe-path: <URI path>
+appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: <unhealthy threshold>
 ```
 
 ### Example
@@ -700,7 +700,7 @@ metadata:
   namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-unhealthy-treshold: "5"
+    appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "5"
 spec:
   rules:
   - http:

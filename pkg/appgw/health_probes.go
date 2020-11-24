@@ -111,14 +111,6 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Protocol = n.HTTPS
 	}
 
-	// backend protocol take precedence over port
-	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
-	if err == nil && backendProtocol == annotations.HTTPS {
-		probe.Protocol = n.HTTPS
-	} else if err == nil && backendProtocol == annotations.HTTP {
-		probe.Protocol = n.HTTP
-	}
-
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
@@ -159,9 +151,11 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	}
 
 	// backend protocol must match http settings protocol
-	backendProtocol, err = annotations.BackendProtocol(backendID.Ingress)
+	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
 	if err == nil && backendProtocol == annotations.HTTPS {
 		probe.Protocol = n.HTTPS
+	} else if err == nil && backendProtocol == annotations.HTTP {
+		probe.Protocol = n.HTTP
 	}
 
 	// override healthcheck probe host with host defined in annotation if exists
@@ -205,7 +199,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	}
 
 	// override healthcheck probe threshold with value defined in annotation if exists
-	probeThreshold, err := annotations.HealthProbeUnhealthyTreshold(backendID.Ingress)
+	probeThreshold, err := annotations.HealthProbeUnhealthyThreshold(backendID.Ingress)
 	if err == nil && probeThreshold > 0 {
 		probe.UnhealthyThreshold = to.Int32Ptr(probeThreshold)
 	}
