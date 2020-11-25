@@ -111,14 +111,6 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Protocol = n.HTTPS
 	}
 
-	// backend protocol take precedence over port
-	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
-	if err == nil && backendProtocol == annotations.HTTPS {
-		probe.Protocol = n.HTTPS
-	} else if err == nil && backendProtocol == annotations.HTTP {
-		probe.Protocol = n.HTTP
-	}
-
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
@@ -158,8 +150,58 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		}
 	}
 
+	// backend protocol must match http settings protocol
+	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
+	if err == nil && backendProtocol == annotations.HTTPS {
+		probe.Protocol = n.HTTPS
+	} else if err == nil && backendProtocol == annotations.HTTP {
+		probe.Protocol = n.HTTP
+	}
+
+	// override healthcheck probe host with host defined in annotation if exists
+	probeHost, err := annotations.HealthProbeHostName(backendID.Ingress)
+	if err == nil && probeHost != "" {
+		probe.Host = to.StringPtr(probeHost)
+	}
+
+	// override healthcheck probe target port with port defined in annotation if exists
+	probePort, err := annotations.HealthProbePort(backendID.Ingress)
+	if err == nil && probePort > 0 && probePort < 65536 {
+		probe.Port = to.Int32Ptr(probePort)
+	}
+
+	// override healthcheck probe path with path defined in annotation if exists
+	probePath, err := annotations.HealthProbePath(backendID.Ingress)
+	if err == nil && probePath != "" {
+		probe.Path = to.StringPtr(probePath)
+	}
+
 	if probe.Path != nil {
 		probe.Path = to.StringPtr(strings.TrimRight(*probe.Path, "*"))
+	}
+
+	// override healthcheck probe match status codes with ones defined in annotation if exists
+	probeStatuses, err := annotations.HealthProbeStatusCodes(backendID.Ingress)
+	if err == nil && len(probeStatuses) > 0 {
+		probe.Match.StatusCodes = &probeStatuses
+	}
+
+	// override healthcheck probe interval with value defined in annotation if exists
+	probeInterval, err := annotations.HealthProbeInterval(backendID.Ingress)
+	if err == nil && probeInterval > 0 {
+		probe.Interval = to.Int32Ptr(probeInterval)
+	}
+
+	// override healthcheck probe timeout with value defined in annotation if exists
+	probeTimeout, err := annotations.HealthProbeTimeout(backendID.Ingress)
+	if err == nil && probeTimeout > 0 {
+		probe.Timeout = to.Int32Ptr(probeTimeout)
+	}
+
+	// override healthcheck probe threshold with value defined in annotation if exists
+	probeThreshold, err := annotations.HealthProbeUnhealthyThreshold(backendID.Ingress)
+	if err == nil && probeThreshold > 0 {
+		probe.UnhealthyThreshold = to.Int32Ptr(probeThreshold)
 	}
 
 	// For V1 gateway, port property is not supported
