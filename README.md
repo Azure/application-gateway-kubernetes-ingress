@@ -4,6 +4,8 @@
 [![Go Report Card](https://goreportcard.com/badge/Azure/application-gateway-kubernetes-ingress)](https://goreportcard.com/report/Azure/application-gateway-kubernetes-ingress)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/azure/application-gateway-kubernetes-ingress)
 
+![Staging release (latest by date)](https://img.shields.io/badge/dynamic/yaml?url=https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/index.yaml&label=nightly&query=entries[%22ingress-azure%22][0].appVersion&color=green)
+
 Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/) customers to leverage Azure's native [Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.
 
 The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway  specific configuration and applied to the [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
@@ -19,7 +21,7 @@ AGIC is configured via the Kubernetes [Ingress resource](http://kubernetes.io/do
   - Integrated web application firewall
 
 ## Changelog
-- [Release Notes, Fixes and Known issues](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md)
+- [Release Notes, Fixes and Known issues](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG)
 
 
 ## Blogs and talks
@@ -82,7 +84,9 @@ The best way to report an issue is to create a Github Issue for the project. Ple
 
 ## Contributing
 
-This is a Golang project. You can find the build instructions of the project in the [Developer Guide](docs/developers/developer-guideline.md).
+* [Developer Guide](docs/developers/developer-guideline.md)
+* [Installing the latest nightly build](./docs/developers/nightly.md)
+
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us

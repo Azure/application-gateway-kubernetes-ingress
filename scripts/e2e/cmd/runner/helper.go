@@ -16,7 +16,9 @@ import (
 	"strings"
 	"time"
 
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/uuid"
@@ -66,14 +68,51 @@ func getClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-func getRoleClient() (*a.RoleAssignmentsClient, error) {
+func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
+	env := GetEnv()
+
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	client := n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
+	var authorizer autorest.Authorizer
+	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
+		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	} else {
+		authorizer, err = settings.GetAuthorizer()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	client.Authorizer = authorizer
+	err = client.AddToUserAgent(UserAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
+func getRoleAssignmentsClient() (*a.RoleAssignmentsClient, error) {
+	env := GetEnv()
+
 	settings, err := auth.GetSettingsFromEnvironment()
 	if err != nil {
 		return nil, err
 	}
 
 	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	authorizer, err := settings.GetAuthorizer()
+	var authorizer autorest.Authorizer
+	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
+		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	} else {
+		authorizer, err = settings.GetAuthorizer()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +209,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 		return nil, err
 	}
 
-	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap)`)
+	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap|Pod)`)
 	fileAsString := string(fileR[:])
 	sepYamlfiles := strings.Split(fileAsString, "---")
 	retVal := make([]runtime.Object, 0, len(sepYamlfiles))
@@ -216,8 +255,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for secrets")
 			}
-		}
-		if ingress, ok := objs.(*v1beta1.Ingress); ok {
+		} else if ingress, ok := objs.(*v1beta1.Ingress); ok {
 			nm := ingress.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
 				if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Create(ingress); err != nil {
@@ -230,8 +268,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for ingress")
 			}
-		}
-		if service, ok := objs.(*v1.Service); ok {
+		} else if service, ok := objs.(*v1.Service); ok {
 			nm := service.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
 				if _, err := clientset.CoreV1().Services(namespaceName).Create(service); err != nil {
@@ -244,9 +281,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for service")
 			}
-
-		}
-		if deployment, ok := objs.(*appsv1.Deployment); ok {
+		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
 			nm := deployment.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
 				if _, err := clientset.AppsV1().Deployments(namespaceName).Create(deployment); err != nil {
@@ -259,9 +294,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for deployment")
 			}
-
-		}
-		if cm, ok := objs.(*v1.ConfigMap); ok {
+		} else if cm, ok := objs.(*v1.ConfigMap); ok {
 			nm := cm.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
 				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Create(cm); err != nil {
@@ -274,7 +307,21 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for configmaps")
 			}
-
+		} else if pod, ok := objs.(*v1.Pod); ok {
+			nm := pod.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.CoreV1().Pods(namespaceName).Create(pod); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.CoreV1().Pods(nm).Create(pod); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for pods")
+			}
+		} else {
+			return fmt.Errorf("unable to apply YAML. Unknown object type: %v", objs)
 		}
 	}
 	return nil
@@ -396,4 +443,41 @@ func makeGetRequest(url string, host string, statusCode int, inSecure bool) (*ht
 	}
 
 	return nil, fmt.Errorf("Unable to get status code %d with url '%s' with host '%s'. Response: [%+v]", statusCode, url, host, resp)
+}
+
+func readBody(resp *http.Response) (string, error) {
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+
+		return string(bodyBytes), nil
+	}
+
+	return "", nil
+}
+
+func getGateway() (*n.ApplicationGateway, error) {
+	env := GetEnv()
+
+	klog.Info("preparing app gateway client")
+	client, err := getApplicationGatewaysClient()
+	if err != nil {
+		return nil, err
+	}
+
+	gateway, err := client.Get(
+		context.TODO(),
+		env.ResourceGroupName,
+		env.AppGwName,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &gateway, nil
 }
