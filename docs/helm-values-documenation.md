@@ -37,7 +37,7 @@ armAuth:
     identityResourceID: <identityResourceId>
     identityClientID:  <identityClientId>
 
-agic:
+kubernetes:
   nodeSelector: {}
   tolerations: []
   affinity: {}
