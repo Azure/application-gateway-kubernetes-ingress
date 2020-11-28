@@ -1,0 +1,13 @@
+appgw:
+  shared: true
+  prohibitedTargets:
+    - name: prohibit-backend-ns
+      hostname: brownfield-blacklist-ns.host
+      paths:
+        - "/blacklist/*"
+
+armAuth:
+  type: aadPodIdentity
+
+rbac:
+  enabled: true
