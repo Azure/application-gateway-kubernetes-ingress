@@ -56,7 +56,7 @@ kubernetes:
 #   secretJSON: <base64-encoded-JSON-blob>
 
 ################################################################################
-# Specify if the cluster is RBAC enabled or not
+# Configure prometheus
 metrics:
   enabled: true
   podMonitor:

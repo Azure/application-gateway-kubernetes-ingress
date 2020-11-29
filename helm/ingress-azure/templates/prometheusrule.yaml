@@ -17,13 +17,41 @@ spec:
   groups:
   - name: agic.rules
     rules:
-    - alert: ErrorInARMDeployment
-      annotations:
-        description: At least 1 arm deployments resulted in error in the last 30 minutes.
-        summary: An error happend during the arm deployment.
-      expr: |        
-        sum(increase(appgw_ingress_controller_arm_api_update_call_failure_counter[30m])) by (container) > 0
-      for: 1m
+    - alert: AppGWIngressControllerDeploymentReplicasMismatch
+      expr: kube_deployment_spec_replicas{deployment="{{ template "application-gateway-kubernetes-ingress.fullname" . }}",namespace="{{ .Release.Namespace }}"} != kube_deployment_status_replicas_available{deployment="{{ template "application-gateway-kubernetes-ingress.fullname" . }}",namespace="{{ .Release.Namespace }}"}
+      for: 20m
       labels:
-        severity: critical
+        severity: warning
+      annotations:
+        summary: 'AGIC has a deployment replica mismatch'
+        description: AGIC deployment has a deployment replica mismatch for the last 20 minutes.
+    - alert: AppGWIngressControllerPodTooManyRestarts
+      expr: changes(kube_pod_container_status_restarts_total{container="{{ .Chart.Name }}",namespace="{{ .Release.Namespace }}"}[20m]) > 2
+      labels:
+        severity: warning
+      annotations:
+        summary: 'AGIC has restarted too many times in the last 20 minutes'
+        description: 'AGIC pod has restarted more than twice in the last 20 minutes.'
+    - alert: AppGWIngressControllerHighApplicationGatewayUpdateCallErrorRatio
+      expr: sum(increase(appgw_ingress_controller_arm_api_update_call_failure_counter{container="{{ .Chart.Name }}",namespace="{{ .Release.Namespace }}"}[20m])) by (container) > 0
+      for: 20m
+      labels:
+        severity: info
+      annotations:
+        summary: "AGIC is seeing a high failure rate when updating the Application Gateway"
+        description: 'AGIC is seeing a high failure rate when updating the Application Gateway Name: {{`}}`}}/{{`{{`}} $labels.controller_appgw_name {{`}}`}} Resource Groups: {{`}}`}}/{{`{{`}} $labels.controller_appgw_resource_group {{`}}`}} Subscription: {{`}}`}}/{{`{{`}} $labels.controller_appgw_subscription {{`}}`}}'
+    - alert: AppGWIngressControllerUpdateCallTakingTooLong
+      expr: appgw_ingress_controller_update_latency_seconds{container="{{ .Chart.Name }}",namespace="{{ .Release.Namespace }}"} > 120
+      labels:
+        severity: info
+      annotations:
+        summary: "AGIC targeted Application Gateway is taking longer than 2 minutes to update"
+        description: 'Application Gateway Name: {{`}}`}}/{{`{{`}} $labels.controller_appgw_name {{`}}`}} Resource Groups: {{`}}`}}/{{`{{`}} $labels.controller_appgw_resource_group {{`}}`}} Subscription: {{`}}`}}/{{`{{`}} $labels.controller_appgw_subscription {{`}}`}} is taking longer than 2 minutes to update'
+    - alert: AppGWIngressControllerLastErrorCode
+      expr: changes(appgw_ingress_controller_error_counter{container="{{ .Chart.Name }}",namespace="{{ .Release.Namespace }}"}[20m]) > 0
+      labels:
+        severity: info
+      annotations:
+        summary: "AGIC has reported an error code"
+        description: 'AGIC had reported error code: {{`}}`}}/{{`{{`}} $labels.error_code {{`}}`}}'
 {{- end -}}
