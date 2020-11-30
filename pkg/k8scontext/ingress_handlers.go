@@ -115,7 +115,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
 					if err := h.context.CertificateSecretStore.ConvertSecret(secKey, secret.(*v1.Secret)); err != nil {
-						continue
+						glog.Error(err.Error())
 					}
 				}
 			}
