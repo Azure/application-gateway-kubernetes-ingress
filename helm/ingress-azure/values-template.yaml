@@ -20,6 +20,11 @@ kubernetes:
   # Port for AGIC's HTTP API endpoint
   httpServicePort: 8123
 
+  # Specify the scheduling options
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace
 # ingressClass: agic-2
@@ -54,6 +59,10 @@ kubernetes:
 #   # Generate this value with:
 #   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
 #   secretJSON: <base64-encoded-JSON-blob>
+
+################################################################################
+# (Legacy: use `kubernetes.nodeSelector` instead) Specify the scheduling options
+nodeSelector: {}
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not

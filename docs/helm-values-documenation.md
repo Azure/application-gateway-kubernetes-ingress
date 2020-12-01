@@ -14,11 +14,16 @@
 | `appgw.shared` | false | This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](setup/install-existing.md#multi-cluster--shared-app-gateway). |
 | `appgw.subResourceNamePrefix` | No prefix if empty | Prefix that should be used in the naming of the Application Gateway's sub-resources|
 | `kubernetes.watchNamespace` | Watches all if empty | Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces. |
+| `kubernetes.nodeSelector` | `{}` | Scheduling node selector |
+| `kubernetes.tolerations` | `[]` | Scheduling tolerations |
+| `kubernetes.affinity` | `{}` | Scheduling affinity |
 | `rbac.enabled` | false | Specify true if kubernetes cluster is rbac enabled |
 | `armAuth.type` | | could be `aadPodIdentity` or `servicePrincipal` |
 | `armAuth.identityResourceID` | | Resource ID of the Azure Managed Identity |
 | `armAuth.identityClientId` | | The Client ID of the Identity. See below for more information on Identity |
 | `armAuth.secretJSON` | | Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) |
+| `nodeSelector` | `{}` | (Legacy: use `kubernetes.nodeSelector` instead) Scheduling node selector |
+
 
 ## Example
 
@@ -31,6 +36,11 @@ armAuth:
     type: aadPodIdentity
     identityResourceID: <identityResourceId>
     identityClientID:  <identityClientId>
+
+kubernetes:
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 rbac:
     enabled: false
