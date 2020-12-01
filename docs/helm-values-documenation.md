@@ -17,6 +17,7 @@
 | `kubernetes.nodeSelector` | `{}` | Scheduling node selector |
 | `kubernetes.tolerations` | `[]` | Scheduling tolerations |
 | `kubernetes.affinity` | `{}` | Scheduling affinity |
+| `kubernetes.ingressClass` | `azure/application-gateway` | Specify a [custom ingress class](features\custom-ingress-class.md) which will be used to match `kubernetes.io/ingress.class` in ingress manifest |
 | `rbac.enabled` | false | Specify true if kubernetes cluster is rbac enabled |
 | `armAuth.type` | | could be `aadPodIdentity` or `servicePrincipal` |
 | `armAuth.identityResourceID` | | Resource ID of the Azure Managed Identity |
