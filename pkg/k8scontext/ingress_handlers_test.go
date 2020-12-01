@@ -21,6 +21,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
@@ -81,6 +82,40 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(0))
 			h.ingressUpdate(ing, ing)
 			Expect(len(h.context.Work)).To(Equal(0))
+		})
+
+		ginkgo.It("should update the ingressSecretsMap even when secret is malformed", func() {
+			namespace := "ns"
+			data := map[string][]byte{
+				"tls.crt": []byte(""),
+				"tls.key": []byte(""),
+			}
+			secret := &v1.Secret{
+				Type: "kubernetes.io/tls",
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      tests.NameOfSecret,
+					Namespace: namespace,
+				},
+				Data: data,
+			}
+
+			// create a malformed secret
+			err := h.context.Caches.Secret.Add(secret)
+			Expect(err).To(BeNil())
+
+			secKey := utils.GetResourceKey(secret.Namespace, secret.Name)
+			secretInterface, exists, err := h.context.Caches.Secret.GetByKey(secKey)
+			Expect(exists).To(BeTrue())
+			cachedSecret := secretInterface.(*v1.Secret)
+			Expect(cachedSecret.Data).To(Equal(data))
+
+			ing := tests.NewIngressTestFixtureBasic(namespace, "ing", true)
+
+			// add ingress
+			h.ingressAdd(ing)
+
+			// check that map is updated with the new key
+			Expect(h.context.ingressSecretsMap.ContainsValue(secKey)).To(BeTrue())
 		})
 	})
 })
