@@ -90,10 +90,26 @@ spec:
           secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
       {{- end}}
+      {{- if .Values.kubernetes.nodeSelector }}
+      {{- with .Values.kubernetes.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end}}
+      {{- else}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
       {{- end}}
+      {{- end}}
+
+      {{- with .Values.kubernetes.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.kubernetes.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}

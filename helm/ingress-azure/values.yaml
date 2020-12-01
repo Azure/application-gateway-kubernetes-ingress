@@ -24,6 +24,12 @@ kubernetes:
   # Port for AGIC's HTTP API endpoint
   httpServicePort: 8123
 
+  # Specify the scheduling options
+  nodeSelector: {}
+    # disktype: dentro
+  tolerations: []
+  affinity: {}
+
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
@@ -55,6 +61,10 @@ appgw: {}
 #   # Generate this value with:
 #   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
 #   secretJSON: <base64-encoded-JSON-blob>
+
+################################################################################
+# (Legacy: use `kubernetes.nodeSelector` instead) Specify the scheduling options
+nodeSelector: {}
 
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
