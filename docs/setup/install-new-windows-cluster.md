@@ -287,7 +287,7 @@ Values:
       -f helm-config.yaml \
       application-gateway-kubernetes-ingress/ingress-azure \
       --set nodeSelector."beta\.kubernetes\.io/os"=linux \
-      --version 1.2.1
+      --version 1.3.0
     ```
 
     >Note: Use at least version 1.2.0-rc3, e.g. `--version 1.2.0-rc3`, when installing on k8s version >= 1.16
