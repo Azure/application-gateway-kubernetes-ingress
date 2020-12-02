@@ -16,7 +16,7 @@ shared between one or more AKS clusters and/or other Azure components.
 ### Prerequisites
 This documents assumes you already have the following tools and infrastructure installed:
 - [AKS](https://azure.microsoft.com/en-us/services/kubernetes-service/) with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni) enabled
-- [App Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant) in the same virtual network as AKS
+- [App Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-autoscale-ps) in the same virtual network as AKS
 - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) installed on your AKS cluster
 - [Cloud Shell](https://shell.azure.com/) is the Azure shell environment, which has `az` CLI, `kubectl`, and `helm` installed. These tools are required for the commands below.
 
