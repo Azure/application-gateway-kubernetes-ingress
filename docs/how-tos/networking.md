@@ -71,7 +71,7 @@ appGatewayName="<appGatewayName>"
 appGatewayResourceGroup="<appGatewayResourceGroup>"
 
 # find route table used by aks cluster
-nodeResourceGroup=$(az aks show -n myCluster -g myResourceGroup -o tsv --query "nodeResourceGroup")
+nodeResourceGroup=$(az aks show -n $aksClusterName -g $aksResourceGroup -o tsv --query "nodeResourceGroup")
 routeTableId=$(az network route-table list -g $nodeResourceGroup --query "[].id | [0]" -o tsv)
 
 # get the application gateway's subnet
