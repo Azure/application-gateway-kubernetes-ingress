@@ -157,5 +157,19 @@ var _ = Describe("Azure", func() {
 				Expect(subResource).To(Equal(ResourceName("")))
 			})
 		})
+
+		Context("test GetOperationIDFromPollingURL func", func() {
+			It("should be able to parse operationID", func() {
+				pollingURL := "https://management.azure.com/subscriptions/87654321-abcd-1234-b193-d305572e416f/providers/Microsoft.Network/locations/eastus2/operations/c24da597-9666-4950-a9f7-10bdfa17883d?api-version=2020-05-01"
+				expectedOperationID := "c24da597-9666-4950-a9f7-10bdfa17883d"
+				Expect(GetOperationIDFromPollingURL(pollingURL)).To(Equal(expectedOperationID))
+			})
+
+			It("should give empty string when unable to parse", func() {
+				pollingURL := "random"
+				expectedOperationID := ""
+				Expect(GetOperationIDFromPollingURL(pollingURL)).To(Equal(expectedOperationID))
+			})
+		})
 	})
 })

@@ -83,3 +83,16 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 
 	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s", subscriptionID, split[1], split[2]), nil
 }
+
+// GetOperationIDFromPollingURL extracts operationID from pollingURL
+func GetOperationIDFromPollingURL(pollingURL string) string {
+	operationID := ""
+	if pollingURL != "" {
+		matchGroup := operationIDRegex.FindStringSubmatch(pollingURL)
+		if len(matchGroup) == 2 {
+			operationID = matchGroup[1]
+		}
+	}
+
+	return operationID
+}
