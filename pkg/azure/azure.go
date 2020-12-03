@@ -7,6 +7,7 @@ package azure
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
@@ -14,14 +15,20 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
 
-// SubscriptionID is the subscription of the resource in the resourceID
-type SubscriptionID string
+type (
+	// SubscriptionID is the subscription of the resource in the resourceID
+	SubscriptionID string
 
-// ResourceGroup is the resource group in which resource is deployed in the resourceID
-type ResourceGroup string
+	// ResourceGroup is the resource group in which resource is deployed in the resourceID
+	ResourceGroup string
 
-// ResourceName is the resource name in the resourceID
-type ResourceName string
+	// ResourceName is the resource name in the resourceID
+	ResourceName string
+)
+
+var (
+	operationIDRegex = regexp.MustCompile(`/operations/(.+)\?api-version`)
+)
 
 // ParseResourceID gets subscriptionId, resource group, resource name from resourceID
 func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
