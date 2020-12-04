@@ -7,7 +7,6 @@ package k8scontext
 
 import (
 	"context"
-	"flag"
 	"reflect"
 	"time"
 
@@ -50,9 +49,6 @@ var _ = ginkgo.Describe("K8scontext", func() {
 	// Create the Ingress resource.
 	podObj := tests.NewPodTestFixture(ingressNS, "pod")
 	pod := &podObj
-
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "5")
 
 	// function to wait until sync
 	waitContextSync := func(ctxt *Context, resourceList ...interface{}) {

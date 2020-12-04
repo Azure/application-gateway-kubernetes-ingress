@@ -18,7 +18,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -98,7 +98,7 @@ func formatPropName(val string) string {
 	separator := "-"
 	prefix := val[0 : maxLen-len(hash)-len(separator)]
 	finalVal := fmt.Sprintf("%s%s%s", prefix, separator, hash)
-	glog.V(3).Infof("Prop name %s with length %d is longer than %d characters; Transformed to %s", val, len(val), maxLen, finalVal)
+	klog.V(3).Infof("Prop name %s with length %d is longer than %d characters; Transformed to %s", val, len(val), maxLen, finalVal)
 	return finalVal
 }
 

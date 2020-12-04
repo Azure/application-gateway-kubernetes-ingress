@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
@@ -34,7 +34,7 @@ var (
 func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 	split := strings.Split(ID, "/")
 	if len(split) < 9 {
-		glog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
+		klog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
 		return "", "", ""
 	}
 
@@ -45,7 +45,7 @@ func ParseResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName) {
 func ParseSubResourceID(ID string) (SubscriptionID, ResourceGroup, ResourceName, ResourceName) {
 	split := strings.Split(ID, "/")
 	if len(split) < 11 {
-		glog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
+		klog.Errorf("resourceID %s is invalid. There should be atleast 9 segments in resourceID", ID)
 		return "", "", "", ""
 	}
 
@@ -84,7 +84,7 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 			controllererrors.ErrorMissingResourceGroup,
 			"infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup),
 		)
-		glog.V(5).Info(err.Error())
+		klog.V(5).Info(err.Error())
 		return "", err
 	}
 

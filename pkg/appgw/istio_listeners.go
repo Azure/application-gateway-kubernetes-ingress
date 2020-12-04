@@ -7,7 +7,7 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 )
 
@@ -23,7 +23,7 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 	for _, igwy := range istioGateways {
 		for _, server := range igwy.Spec.Servers {
 			if server.Port.Protocol != v1alpha3.ProtocolHTTP {
-				glog.Infof("[istio] AGIC does not support Gateway with Server.Port.Protocol=%+v", server.Port.Protocol)
+				klog.Infof("[istio] AGIC does not support Gateway with Server.Port.Protocol=%+v", server.Port.Protocol)
 				continue
 			}
 			for _, host := range server.Hosts {

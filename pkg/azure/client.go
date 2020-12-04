@@ -14,7 +14,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -80,25 +80,25 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	}
 
 	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to App Gateway client: ", userAgent)
+		klog.Error("Error adding User Agent to App Gateway client: ", userAgent)
 	}
 	if err := az.publicIPsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Public IP client: ", userAgent)
+		klog.Error("Error adding User Agent to Public IP client: ", userAgent)
 	}
 	if err := az.virtualNetworksClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Virtual Networks client: ", userAgent)
+		klog.Error("Error adding User Agent to Virtual Networks client: ", userAgent)
 	}
 	if err := az.subnetsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Subnets client: ", userAgent)
+		klog.Error("Error adding User Agent to Subnets client: ", userAgent)
 	}
 	if err := az.routeTablesClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Route Tables client: ", userAgent)
+		klog.Error("Error adding User Agent to Route Tables client: ", userAgent)
 	}
 	if err := az.groupsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Groups client: ", userAgent)
+		klog.Error("Error adding User Agent to Groups client: ", userAgent)
 	}
 	if err := az.deploymentsClient.AddToUserAgent(userAgent); err != nil {
-		glog.Error("Error adding User Agent to Deployments client: ", userAgent)
+		klog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
 
 	return az
@@ -115,7 +115,7 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 }
 
 func (az *azClient) WaitForGetAccessOnGateway() (err error) {
-	glog.V(5).Info("Getting Application Gateway configuration.")
+	klog.V(5).Info("Getting Application Gateway configuration.")
 	err = utils.Retry(-1, retryPause,
 		func() (utils.Retriable, error) {
 			response, err := az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
@@ -167,7 +167,7 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 				}
 			}
 
-			glog.Errorf(e.Error())
+			klog.Errorf(e.Error())
 
 			if controllererrors.IsErrorCode(e, controllererrors.ErrorApplicationGatewayNotFound) {
 				return utils.Retriable(false), e
@@ -184,7 +184,7 @@ func (az *azClient) GetGateway() (gateway n.ApplicationGateway, err error) {
 		func() (utils.Retriable, error) {
 			gateway, err = az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 			if err != nil {
-				glog.Errorf("Error while getting application gateway '%s': %s", string(az.appGwName), err)
+				klog.Errorf("Error while getting application gateway '%s': %s", string(az.appGwName), err)
 			}
 			return utils.Retriable(true), err
 		})
@@ -198,7 +198,7 @@ func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
 	}
 
 	if appGwFuture.PollingURL() != "" {
-		glog.V(3).Infof("OperationID='%s'", GetOperationIDFromPollingURL(appGwFuture.PollingURL()))
+		klog.V(3).Infof("OperationID='%s'", GetOperationIDFromPollingURL(appGwFuture.PollingURL()))
 	}
 
 	// Wait until deployment finshes and save the error message
@@ -228,7 +228,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
 	if routeTable.Response.StatusCode == 404 {
-		glog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
+		klog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
 			routeTableID,
 			err.Error())
 		return nil
@@ -248,12 +248,12 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	if subnet.RouteTable != nil {
 		if *subnet.RouteTable.ID != routeTableID {
-			glog.V(5).Infof("Skipping associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster as it is already associated to route table '%s'.",
+			klog.V(5).Infof("Skipping associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster as it is already associated to route table '%s'.",
 				subnetID,
 				routeTableID,
 				*subnet.SubnetPropertiesFormat.RouteTable.ID)
 		} else {
-			glog.V(5).Infof("Application Gateway subnet '%s' is associated with route table '%s' used by k8s cluster.",
+			klog.V(5).Infof("Application Gateway subnet '%s' is associated with route table '%s' used by k8s cluster.",
 				subnetID,
 				routeTableID)
 		}
@@ -261,7 +261,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 		return nil
 	}
 
-	glog.Infof("Associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster.", subnetID, routeTableID)
+	klog.Infof("Associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster.", subnetID, routeTableID)
 	subnet.RouteTable = &routeTable
 
 	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), subnet)
@@ -285,15 +285,15 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		return
 	}
 
-	glog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
+	klog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
 	subnet, err := az.findSubnet(vnet, subnetName, subnetPrefix)
 	if err != nil {
 		if subnetPrefix == "" {
-			glog.Infof("Unable to find a subnet with subnetName %s. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet %s", subnetName, vnetName)
+			klog.Infof("Unable to find a subnet with subnetName %s. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet %s", subnetName, vnetName)
 			return
 		}
 
-		glog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
+		klog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
 			return
@@ -306,25 +306,25 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 
 // DeployGateway is a method that deploy the appgw and related resources
 func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
-	glog.Infof("Deploying Gateway")
+	klog.Infof("Deploying Gateway")
 
 	// Check if group exists
 	group, err := az.getGroup()
 	if err != nil {
 		return
 	}
-	glog.Infof("Using resource group: %v", *group.Name)
+	klog.Infof("Using resource group: %v", *group.Name)
 
 	deploymentName := string(az.appGwName)
-	glog.Infof("Starting ARM template deployment: %s", deploymentName)
+	klog.Infof("Starting ARM template deployment: %s", deploymentName)
 	result, err := az.createDeployment(subnetID, skuName)
 	if err != nil {
 		return
 	}
 	if result.Name != nil {
-		glog.Infof("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
+		klog.Infof("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
 	} else {
-		glog.Infof("Completed deployment %v (no data returned to SDK)", deploymentName)
+		klog.Infof("Completed deployment %v (no data returned to SDK)", deploymentName)
 	}
 
 	return
@@ -336,7 +336,7 @@ func (az *azClient) getGroup() (group r.Group, err error) {
 		func() (utils.Retriable, error) {
 			group, err = az.groupsClient.Get(az.ctx, string(az.resourceGroupName))
 			if err != nil {
-				glog.Errorf("Error while getting resource group '%s': %s", az.resourceGroupName, err)
+				klog.Errorf("Error while getting resource group '%s': %s", az.resourceGroupName, err)
 			}
 			return utils.Retriable(true), err
 		})
@@ -349,7 +349,7 @@ func (az *azClient) getVnet(resourceGroupName ResourceGroup, vnetName ResourceNa
 		func() (utils.Retriable, error) {
 			vnet, err = az.virtualNetworksClient.Get(az.ctx, string(resourceGroupName), string(vnetName), "")
 			if err != nil {
-				glog.Errorf("Error while getting virtual network '%s': %s", vnetName, err)
+				klog.Errorf("Error while getting virtual network '%s': %s", vnetName, err)
 			}
 			return utils.Retriable(true), err
 		})

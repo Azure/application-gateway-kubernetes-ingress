@@ -8,13 +8,19 @@
 package appgw
 
 import (
+	"flag"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/klog/v2"
 )
 
 func TestAppgw(t *testing.T) {
+	klog.InitFlags(nil)
+	_ = flag.Set("v", "5")
+	_ = flag.Lookup("logtostderr").Value.Set("true")
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Appgw Suite")
 }

@@ -3,7 +3,7 @@ package utils
 import (
 	"time"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 // Retriable is returned by RetriableFunction and tells whether to retry the function or not.
@@ -30,7 +30,7 @@ func Retry(totalRetryCount int, retryPause time.Duration, retriableFunction Retr
 			break
 		}
 
-		glog.Infof("Retrying in %s", retryPause)
+		klog.Infof("Retrying in %s", retryPause)
 		time.Sleep(retryPause)
 	}
 	return

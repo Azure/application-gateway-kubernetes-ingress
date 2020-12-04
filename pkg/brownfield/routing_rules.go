@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -28,7 +28,7 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 		return nil, er.RoutingRules
 	}
 	ruleToTargets, _ := er.getRuleToTargets()
-	glog.V(5).Infof("[brownfield] Rule to Targets map: %+v", ruleToTargets)
+	klog.V(5).Infof("[brownfield] Rule to Targets map: %+v", ruleToTargets)
 
 	// Figure out if the given routing rule is blacklisted. It will be if it has a host/path that
 	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
@@ -36,11 +36,11 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 		targetsForRule := ruleToTargets[ruleName(*rule.Name)]
 		for _, target := range targetsForRule {
 			if target.IsBlacklisted(blacklist) {
-				glog.V(5).Infof("[brownfield] Routing Rule %s is blacklisted", *rule.Name)
+				klog.V(5).Infof("[brownfield] Routing Rule %s is blacklisted", *rule.Name)
 				return true
 			}
 		}
-		glog.V(5).Infof("[brownfield] Routing Rule %s is NOT blacklisted", *rule.Name)
+		klog.V(5).Infof("[brownfield] Routing Rule %s is NOT blacklisted", *rule.Name)
 		return false
 	}
 
@@ -92,9 +92,9 @@ func LogRules(existingBlacklisted []n.ApplicationGatewayRequestRoutingRule, exis
 		}
 	}
 
-	glog.V(3).Info("[brownfield] Rules AGIC created: ", getRuleNames(managedRules))
-	glog.V(3).Info("[brownfield] Existing Blacklisted Rules AGIC will retain: ", getRuleNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing Rules AGIC will remove: ", getRuleNames(garbage))
+	klog.V(3).Info("[brownfield] Rules AGIC created: ", getRuleNames(managedRules))
+	klog.V(3).Info("[brownfield] Existing Blacklisted Rules AGIC will retain: ", getRuleNames(existingBlacklisted))
+	klog.V(3).Info("[brownfield] Existing Rules AGIC will remove: ", getRuleNames(garbage))
 }
 
 // mergeRoutingRules merges two routing rules by merging their pathRules
@@ -106,12 +106,12 @@ func mergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Applicat
 
 	if firstRoutingRule.RuleType == n.PathBasedRouting {
 		// Get the url path map of the first rule
-		glog.V(5).Infof("[brownfield] Merging path based rule %s with rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
+		klog.V(5).Infof("[brownfield] Merging path based rule %s with rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
 		firstPathMap := lookupPathMap(appGw.URLPathMaps, firstRoutingRule.URLPathMap.ID)
 
 		if secondRoutingRule.RuleType == n.Basic {
 			// Replace the default values from the second rule
-			glog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *firstPathMap.Name, *secondRoutingRule.Name)
+			klog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *firstPathMap.Name, *secondRoutingRule.Name)
 			mergePathMapsWithBasicRule(firstPathMap, secondRoutingRule)
 			return firstRoutingRule
 		}
@@ -120,11 +120,11 @@ func mergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Applicat
 		secondPathMap := lookupPathMap(appGw.URLPathMaps, secondRoutingRule.URLPathMap.ID)
 
 		// Merge the path rules from second path map to first path map
-		glog.V(5).Infof("[brownfield] Merging path map %s with path map %s", *firstPathMap.Name, *secondPathMap.Name)
+		klog.V(5).Infof("[brownfield] Merging path map %s with path map %s", *firstPathMap.Name, *secondPathMap.Name)
 		firstPathMap.PathRules = mergePathRules(firstPathMap.PathRules, secondPathMap.PathRules)
 
 		// Delete the second path map
-		glog.V(5).Infof("[brownfield] Deleting path map %s", *secondPathMap.Name)
+		klog.V(5).Infof("[brownfield] Deleting path map %s", *secondPathMap.Name)
 		appGw.URLPathMaps = deletePathMap(appGw.URLPathMaps, secondPathMap.ID)
 	}
 
@@ -157,7 +157,7 @@ func (er ExistingResources) getHostNamesForRoutingRule(rule n.ApplicationGateway
 			controllererrors.ErrorGeneratingListeners,
 			"[brownfield] Could not find listener %s in index", listenerName,
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return []string{""}, e
 	} else if listener.HostName != nil {
 		return []string{*listener.HostName}, nil
@@ -180,7 +180,7 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 		}
 		HostNames, err := er.getHostNamesForRoutingRule(rule)
 		if err != nil {
-			glog.Errorf("[brownfield] Could not obtain hostname for rule %s; Skipping rule", ruleName(*rule.Name))
+			klog.Errorf("[brownfield] Could not obtain hostname for rule %s; Skipping rule", ruleName(*rule.Name))
 			continue
 		}
 
@@ -198,7 +198,7 @@ func (er ExistingResources) getRuleToTargets() (ruleToTargets, pathmapToTargets)
 			pathMapName, pathRules := er.getPathRules(rule)
 			for _, pathRule := range pathRules {
 				if pathRule.Paths == nil {
-					glog.V(5).Infof("[brownfield] Path Rule %+v does not have paths list", *pathRule.Name)
+					klog.V(5).Infof("[brownfield] Path Rule %+v does not have paths list", *pathRule.Name)
 					continue
 				}
 				for _, path := range *pathRule.Paths {
@@ -220,6 +220,6 @@ func (er ExistingResources) getPathRules(rule n.ApplicationGatewayRequestRouting
 	if pathMap, ok := pathMapsByName[pathMapName]; ok {
 		return pathMapName, *pathMap.PathRules
 	}
-	glog.Errorf("[brownfield] Did not find URLPathMap with ID %s", pathMapName)
+	klog.Errorf("[brownfield] Did not find URLPathMap with ID %s", pathMapName)
 	return pathMapName, []n.ApplicationGatewayPathRule{}
 }

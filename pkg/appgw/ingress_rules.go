@@ -7,7 +7,7 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -38,7 +38,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 
 		for k, v := range ruleListeners {
 			if applyToListener {
-				glog.V(3).Infof("Attach WAF policy: %s to listener: %s", policy, generateListenerName(k))
+				klog.V(3).Infof("Attach WAF policy: %s to listener: %s", policy, generateListenerName(k))
 				v.FirewallPolicy = policy
 			}
 			listeners[k] = v
@@ -78,7 +78,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 	appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
 	if len(appgwCertName) > 0 {
 		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
-		glog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
+		klog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
 	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostNamesecretIDMap)
@@ -136,20 +136,20 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.Backend != nil {
 			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
-			glog.V(3).Info("Found default backend:", backendID.serviceKey())
+			klog.V(3).Info("Found default backend:", backendID.serviceKey())
 			backendIDs[backendID] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP == nil {
 				// skip no http rule
-				glog.V(5).Infof("[%s] Skip rule #%d for host '%s' - it has no HTTP rules.", ingress.Namespace, ruleIdx+1, rule.Host)
+				klog.V(5).Infof("[%s] Skip rule #%d for host '%s' - it has no HTTP rules.", ingress.Namespace, ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
 				backendID := generateBackendID(ingress, rule, path, &path.Backend)
-				glog.V(5).Info("Found backend:", backendID.serviceKey())
+				klog.V(5).Info("Found backend:", backendID.serviceKey())
 				backendIDs[backendID] = nil
 			}
 		}
@@ -160,7 +160,7 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 	// Filter out backends, where Ingresses reference non-existent Services
 	for be := range backendIDs {
 		if _, exists := serviceSet[be.serviceKey()]; !exists {
-			glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
+			klog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
 			// TODO(draychev): Enable this filter when we are certain this won't break anything!
 			// continue
 		}

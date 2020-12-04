@@ -14,7 +14,7 @@ import (
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -31,14 +31,14 @@ var keysToDeleteForCache = []string{
 func (c *AppGwIngressController) updateCache(appGw *n.ApplicationGateway) {
 	jsonConfig, err := appGw.MarshalJSON()
 	if err != nil {
-		glog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
+		klog.Error("Could not marshal App Gwy to update cache; Wiping cache.", err)
 		c.configCache = nil
 		return
 	}
 	var sanitized []byte
 	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
 		// Ran into an error; Wipe the existing cache
-		glog.Error("Failed stripping ETag key from App Gwy config. Wiping cache.", err)
+		klog.Error("Failed stripping ETag key from App Gwy config. Wiping cache.", err)
 		c.configCache = nil
 		return
 	}
@@ -54,7 +54,7 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	sanitizedInput := resetBackReference(appGw)
 	jsonConfig, err := sanitizedInput.MarshalJSON()
 	if err != nil {
-		glog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
+		klog.Error("Could not marshal App Gwy to compare w/ cache; Will not use cache.", err)
 		return false
 	}
 	// The JSON stored in the cache and the newly marshaled JSON will have different ETags even if configs are the same.
@@ -62,12 +62,12 @@ func (c *AppGwIngressController) configIsSame(appGw *n.ApplicationGateway) bool 
 	var sanitized []byte
 	if sanitized, err = deleteKeyFromJSON(jsonConfig, keysToDeleteForCache...); err != nil {
 		// Ran into an error; Don't use cache; Refresh cache w/ new JSON
-		glog.Error("Failed stripping ETag key from App Gwy config. Will not use cache.", err)
+		klog.Error("Failed stripping ETag key from App Gwy config. Will not use cache.", err)
 		return false
 	}
 
-	glog.V(9).Info("input state = ", string(sanitized))
-	glog.V(9).Info("cached state = ", string(*c.configCache))
+	klog.V(9).Info("input state = ", string(sanitized))
+	klog.V(9).Info("cached state = ", string(*c.configCache))
 
 	// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 	return c.configCache != nil && bytes.Compare(*c.configCache, sanitized) == 0
@@ -113,7 +113,7 @@ func dumpSanitizedJSON(appGw *n.ApplicationGateway, logToFile bool, overwritePre
 	if logToFile {
 		fileName := fmt.Sprintf("app-gateway-config-%d.json", time.Now().UnixNano())
 		if filePath, err := utils.SaveToFile(fileName, prettyJSON); err != nil {
-			glog.Error("Could not log to file: ", filePath, err)
+			klog.Error("Could not log to file: ", filePath, err)
 		}
 	}
 
@@ -166,7 +166,7 @@ func deleteKey(m *map[string]interface{}, keyToDelete string) {
 func deleteKeyFromJSON(jsonWithEtag []byte, keysToDelete ...string) ([]byte, error) {
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonWithEtag), &m); err != nil {
-		glog.Error("Could not unmarshal config App Gwy JSON to delete Etag.", err)
+		klog.Error("Could not unmarshal config App Gwy JSON to delete Etag.", err)
 		return nil, err
 	}
 	for _, keyToDelete := range keysToDelete {

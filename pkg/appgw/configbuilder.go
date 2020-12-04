@@ -11,7 +11,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -83,7 +83,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate Health Probes",
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return nil, e
 	}
 
@@ -94,7 +94,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate backend http settings",
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return nil, e
 	}
 
@@ -106,7 +106,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate backend address pools",
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return nil, e
 	}
 
@@ -121,7 +121,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate frontend listeners",
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return nil, e
 	}
 
@@ -133,7 +133,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate request routing rules",
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		return nil, e
 	}
 
@@ -179,7 +179,7 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 	resolvedPorts := make(map[int32]interface{})
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
-		glog.Error("Could not fetch endpoint by service key from cache", err)
+		klog.Error("Could not fetch endpoint by service key from cache", err)
 		return resolvedPorts
 	}
 
@@ -218,7 +218,7 @@ func generateListenerID(ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, pro
 		if *overridePort > 0 && *overridePort < 65000 {
 			frontendPort = *overridePort
 		} else {
-			glog.V(5).Infof("Invalid custom port configuration (%d). Setting listener port to default : %d", *overridePort, frontendPort)
+			klog.V(5).Infof("Invalid custom port configuration (%d). Setting listener port to default : %d", *overridePort, frontendPort)
 		}
 
 	}
@@ -253,7 +253,7 @@ func (c *appGwConfigBuilder) addTags() {
 	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
 		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
 	} else {
-		glog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
+		klog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
 	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
 }

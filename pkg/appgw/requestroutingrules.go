@@ -11,7 +11,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -71,7 +71,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener, exists := httpListenersMap[listenerID]
 		if !exists {
-			glog.Errorf("Routing rule %s will not be created; listener %+v does not exist", routingRuleName, listenerID)
+			klog.Errorf("Routing rule %s will not be created; listener %+v does not exist", routingRuleName, listenerID)
 			continue
 		}
 		rule := n.ApplicationGatewayRequestRoutingRule{
@@ -103,12 +103,12 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			pathMap = append(pathMap, *urlPathMap)
 		}
 		if rule.RuleType == n.PathBasedRouting {
-			glog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
+			klog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
 		} else {
 			if rule.RedirectConfiguration != nil {
-				glog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
 			} else {
-				glog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
 		}
 		requestRoutingRules = append(requestRoutingRules, rule)
@@ -127,7 +127,7 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
-		glog.Error("Error fetching Backends and Settings: ", err)
+		klog.Error("Error fetching Backends and Settings: ", err)
 	}
 	if serviceBackendPair, exists := serviceBackendPairMap[backendID]; exists {
 		poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
@@ -251,10 +251,10 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
 
 		if _, exists := redirectsSet[*redirectRef.ID]; exists {
-			glog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
+			klog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
 			return nil, nil, redirectRef.ID
 		}
-		glog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
+		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
 
 	var defRule *v1beta1.IngressRule
@@ -313,7 +313,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			glog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
+			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
@@ -328,11 +328,11 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 				// This Path Rule has a SSL Redirect!
 				// Add it and move on to the next Path Rule; No need to attach Backend Pools and Settings
 				pathRule.RedirectConfiguration = redirectRef
-				glog.V(5).Infof("Attached redirection %s to path rule: %s", *redirectRef.ID, *pathRule.Name)
+				klog.V(5).Infof("Attached redirection %s to path rule: %s", *redirectRef.ID, *pathRule.Name)
 				pathRules = append(pathRules, pathRule)
 				continue
 			} else {
-				glog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
+				klog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 			}
 
 		}
@@ -345,7 +345,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 
 		pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
 		pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
-		glog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+		klog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
 
 		pathRules = append(pathRules, pathRule)
 	}
@@ -383,7 +383,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		addRuleToMergeList := true
 		for _, path := range *pathRule.Paths {
 			if _, exists := pathMap[path]; exists {
-				glog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
+				klog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
 				addRuleToMergeList = false
 			} else {
 				pathMap[path] = pathRule

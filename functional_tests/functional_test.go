@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	. "github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -39,6 +40,10 @@ import (
 )
 
 func TestFunctional(t *testing.T) {
+	klog.InitFlags(nil)
+	_ = flag.Set("v", "5")
+	_ = flag.Lookup("logtostderr").Value.Set("true")
+
 	RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Appgw Suite")
 }
@@ -473,9 +478,6 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	podB := tests.NewPodFixture(serviceNameB, tests.Namespace, backendName, int32(backendPort))
 	podC := tests.NewPodFixture(serviceNameC, tests.OtherNamespace, backendName, int32(backendPort))
 	podHttps := tests.NewPodHTTPSFixture(serviceNameHttps, tests.HTTPSBackendNamespace, httpsBackendName, int32(httpsServicePort))
-
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
 
 	appGwIdentifier := Identifier{
 		SubscriptionID: tests.Subscription,

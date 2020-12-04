@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -26,10 +26,10 @@ func (er ExistingResources) GetBlacklistedHTTPSettings() ([]n.ApplicationGateway
 	for _, setting := range er.HTTPSettings {
 		if _, isBlacklisted := blacklistedSettingsSet[settingName(*setting.Name)]; isBlacklisted {
 			blacklisted = append(blacklisted, setting)
-			glog.V(5).Infof("HTTP Setting %s is blacklisted", *setting.Name)
+			klog.V(5).Infof("HTTP Setting %s is blacklisted", *setting.Name)
 			continue
 		}
-		glog.V(5).Infof("HTTP Setting %s is NOT blacklisted", *setting.Name)
+		klog.V(5).Infof("HTTP Setting %s is NOT blacklisted", *setting.Name)
 		nonBlacklisted = append(nonBlacklisted, setting)
 	}
 	return blacklisted, nonBlacklisted
@@ -103,7 +103,7 @@ func (er ExistingResources) getBlacklistedSettingsSet() map[settingName]interfac
 			blacklistedSettingsSet[settingName] = nil
 		}
 		if pathMap.PathRules == nil {
-			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
 			continue
 		}
 		for _, rule := range *pathMap.PathRules {
