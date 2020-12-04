@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -56,7 +56,7 @@ const (
 	// UsePrivateIPVarName is the name of the USE_PRIVATE_IP
 	UsePrivateIPVarName = "USE_PRIVATE_IP"
 
-	// VerbosityLevelVarName sets the level of glog verbosity should the CLI argument be blank
+	// VerbosityLevelVarName sets the level of klog verbosity should the CLI argument be blank
 	VerbosityLevelVarName = "APPGW_VERBOSITY_LEVEL"
 
 	// EnableBrownfieldDeploymentVarName is a feature flag enabling observation of {Managed,Prohibited}Target CRDs
@@ -243,7 +243,7 @@ func ValidateEnv(env EnvVariables) error {
 	}
 
 	if env.WatchNamespace == "" {
-		glog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
+		klog.V(1).Infof("%s is not set. Watching all available namespaces.", WatchNamespaceVarName)
 	}
 
 	if env.ReconcilePeriodSeconds != "" {
@@ -276,7 +276,7 @@ func GetEnvironmentVariable(environmentVariable, defaultValue string, validator 
 		if validator.MatchString(value) {
 			return value
 		}
-		glog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
+		klog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
 	}
 	return defaultValue
 }

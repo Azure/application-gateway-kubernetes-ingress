@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -29,11 +29,11 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 	for _, listener := range er.Listeners {
 		listenerNm := listenerName(*listener.Name)
 		if _, exists := blacklistedListenersSet[listenerNm]; exists {
-			glog.V(5).Infof("[brownfield] Listener %s is blacklisted", listenerNm)
+			klog.V(5).Infof("[brownfield] Listener %s is blacklisted", listenerNm)
 			blacklisted = append(blacklisted, listener)
 			continue
 		}
-		glog.V(5).Infof("[brownfield] Listener %s is not blacklisted", listenerNm)
+		klog.V(5).Infof("[brownfield] Listener %s is not blacklisted", listenerNm)
 		nonBlacklisted = append(nonBlacklisted, listener)
 	}
 	return blacklisted, nonBlacklisted
@@ -100,9 +100,9 @@ func LogListeners(existingBlacklisted []n.ApplicationGatewayHTTPListener, existi
 		}
 	}
 
-	glog.V(3).Info("[brownfield] Listeners AGIC created: ", getListenerNames(managedListeners))
-	glog.V(3).Info("[brownfield] Existing Blacklisted Listeners AGIC will retain: ", getListenerNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing Listeners AGIC will remove: ", getListenerNames(garbage))
+	klog.V(3).Info("[brownfield] Listeners AGIC created: ", getListenerNames(managedListeners))
+	klog.V(3).Info("[brownfield] Existing Blacklisted Listeners AGIC will retain: ", getListenerNames(existingBlacklisted))
+	klog.V(3).Info("[brownfield] Existing Listeners AGIC will remove: ", getListenerNames(garbage))
 }
 
 func getListenerNames(listeners []n.ApplicationGatewayHTTPListener) string {

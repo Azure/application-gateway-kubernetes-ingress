@@ -10,14 +10,14 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDestinationIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
 	if err != nil {
 		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", destinationID.serviceKey())
-		glog.Errorf(logLine)
+		klog.Errorf(logLine)
 		//TODO(rhea): add recorder event for error
 		return nil
 	}
@@ -39,7 +39,7 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 			return pool
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
-		glog.Error(logLine)
+		klog.Error(logLine)
 		//TODO(rhea): add recorder event for error
 	}
 	return nil

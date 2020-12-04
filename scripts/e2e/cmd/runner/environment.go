@@ -10,7 +10,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -83,7 +83,7 @@ func GetEnvironmentVariable(environmentVariable, defaultValue string, validator 
 		if validator.MatchString(value) {
 			return value
 		}
-		glog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
+		klog.Errorf("Environment variable %s contains a value which does not pass validation filter; Using default value: %s", environmentVariable, defaultValue)
 	}
 	return defaultValue
 }

@@ -11,7 +11,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -96,11 +96,11 @@ func GetIngressComplex() (*v1beta1.Ingress, error) {
 func GetIngressNamespaced() (*[]v1beta1.Ingress, error) {
 	ingr1, err := getIngress("ingress-namespace-1.yaml")
 	if err != nil {
-		glog.Fatal(err)
+		klog.Fatal(err)
 	}
 	ingr2, err := getIngress("ingress-namespace-2.yaml")
 	if err != nil {
-		glog.Fatal(err)
+		klog.Fatal(err)
 	}
 	return &[]v1beta1.Ingress{*ingr1, *ingr2}, nil
 }

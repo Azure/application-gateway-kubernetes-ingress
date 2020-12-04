@@ -3,7 +3,7 @@ package k8scontext
 import (
 	"reflect"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
@@ -38,7 +38,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
 					if err := h.context.CertificateSecretStore.ConvertSecret(secKey, secret.(*v1.Secret)); err != nil {
-						glog.Error(err.Error())
+						klog.Error(err.Error())
 					}
 				}
 			}
@@ -115,7 +115,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 			if secret, exists, err := h.context.Caches.Secret.GetByKey(secKey); exists && err == nil {
 				if !h.context.ingressSecretsMap.ContainsValue(secKey) {
 					if err := h.context.CertificateSecretStore.ConvertSecret(secKey, secret.(*v1.Secret)); err != nil {
-						glog.Error(err.Error())
+						klog.Error(err.Error())
 					}
 				}
 			}

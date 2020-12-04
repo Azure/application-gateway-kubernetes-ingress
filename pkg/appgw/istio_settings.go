@@ -10,7 +10,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -36,7 +36,7 @@ func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifi
 			}
 			for _, match := range rule.Match {
 				if match.URI == nil {
-					glog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
+					klog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
 					continue
 				}
 				matchID := generateIstioMatchID(virtualService, &rule, &match, destinations)
@@ -63,7 +63,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		if service == nil {
 			// Once services are filtered in the istioMatchDestinationIDs function, this should never happen
 			logLine := fmt.Sprintf("Unable to get the service [%s]", destinationID.serviceKey())
-			glog.Errorf(logLine)
+			klog.Errorf(logLine)
 			// TODO(rhea): add error event
 			pair := serviceBackendPortPair{
 				ServicePort: Port(destinationPortNum),
@@ -101,7 +101,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 						} else {
 							// if service port is defined by name, need to resolve
 							targetPortName := sp.TargetPort.StrVal
-							glog.V(1).Infof("resolving port name %s", targetPortName)
+							klog.V(1).Infof("resolving port name %s", targetPortName)
 							targetPortsResolved := c.resolveIstioPortName(targetPortName, &destinationID)
 							for targetPort := range targetPortsResolved {
 								pair := serviceBackendPortPair{
@@ -118,7 +118,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		}
 		if len(resolvedBackendPorts) == 0 {
 			logLine := fmt.Sprintf("Unable to resolve any backend port for service [%s]", destinationID.serviceKey())
-			glog.Error(logLine)
+			klog.Error(logLine)
 			//TODO(rhea): Add error event
 
 			unresolvedDestinationID = append(unresolvedDestinationID, destinationID)
@@ -158,7 +158,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 				"service:port [%s:%s] has more than one service-backend port binding",
 				destinationID.serviceKey(), backendServicePort,
 			)
-			glog.Warning(e.Error())
+			klog.Warning(e.Error())
 			return nil, nil, nil, e
 		}
 
@@ -190,7 +190,7 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 		// TODO(delqn): Implement port lookup by name
 	}
 	httpSettingsName := generateHTTPSettingsName(destinationID.serviceFullName(), backendServicePort, port, destinationID.istioVirtualServiceIdentifier.Name)
-	glog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+	klog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,

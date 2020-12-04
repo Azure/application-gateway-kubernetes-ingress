@@ -13,7 +13,7 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -135,7 +135,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 // Run executes informer collection.
 func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) error {
-	glog.V(1).Infoln("k8s context run started")
+	klog.V(1).Infoln("k8s context run started")
 	var hasSynced []cache.InformerSynced
 
 	if c.informers == nil {
@@ -185,7 +185,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		hasSynced = append(hasSynced, informer.HasSynced)
 	}
 
-	glog.V(1).Infoln("Waiting for initial cache sync")
+	klog.V(1).Infoln("Waiting for initial cache sync")
 	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
 		e := controllererrors.NewError(
 			controllererrors.ErrorFailedInitialCacheSync,
@@ -198,8 +198,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	// Closing the cacheSynced channel signals to the rest of the system that... caches have been synced.
 	close(c.CacheSynced)
 
-	glog.V(1).Infoln("Initial cache sync done")
-	glog.V(1).Infoln("k8s context run finished")
+	klog.V(1).Infoln("Initial cache sync done")
+	klog.V(1).Infoln("k8s context run finished")
 	return nil
 }
 
@@ -207,7 +207,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 func (c *Context) GetAGICPod(envVariables environment.EnvVariables) *v1.Pod {
 	pod, err := c.kubeClient.CoreV1().Pods(envVariables.AGICPodNamespace).Get(context.TODO(), envVariables.AGICPodName, metav1.GetOptions{})
 	if err != nil {
-		glog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: ", err)
+		klog.Error("Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: ", err)
 		return nil
 	}
 	return pod
@@ -221,7 +221,7 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 			controllererrors.ErrorFetchingBackendAddressPool,
 			"Backend pool CRD object not found for %s",
 			backendPoolName)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -232,7 +232,7 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 			err,
 			"Error fetching backend pool CRD object from store for %s",
 			backendPoolName)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -248,7 +248,7 @@ func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*agi
 			controllererrors.ErrorFetchingInstanceUpdateStatus,
 			"Instance update status CRD object not found for %s",
 			instanceUpdateStatusName)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -259,7 +259,7 @@ func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*agi
 			err,
 			"Error fetching instance update status CRD object from store for %s",
 			instanceUpdateStatusName)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -271,7 +271,7 @@ func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*agi
 func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
 	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
 	if err != nil {
-		glog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
+		klog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
 		return nil
 	}
 	return target
@@ -301,7 +301,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 			controllererrors.ErrorFetchingEnpdoints,
 			"Endpoint not found for %s",
 			serviceKey)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -312,7 +312,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 			err,
 			"Error fetching endpoints from store for %s",
 			serviceKey)
-		glog.Error(e.Error())
+		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
@@ -413,7 +413,7 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 		prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 	}
 
-	glog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+	klog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 
 	return targets
 }
@@ -423,12 +423,12 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
-		glog.V(3).Infof("unable to get service from store, error occurred %s", err)
+		klog.V(3).Infof("unable to get service from store, error occurred %s", err)
 		return nil
 	}
 
 	if !exist {
-		glog.V(9).Infof("Service %s does not exist", serviceKey)
+		klog.V(9).Infof("Service %s does not exist", serviceKey)
 		return nil
 	}
 
@@ -441,12 +441,12 @@ func (c *Context) GetSecret(secretKey string) *v1.Secret {
 	secretInterface, exist, err := c.Caches.Secret.GetByKey(secretKey)
 
 	if err != nil {
-		glog.Error("Error fetching secret from store:", err)
+		klog.Error("Error fetching secret from store:", err)
 		return nil
 	}
 
 	if !exist {
-		glog.Error("Error fetching secret from store! Service does not exist:", secretKey)
+		klog.Error("Error fetching secret from store! Service does not exist:", secretKey)
 		return nil
 	}
 
@@ -474,7 +474,7 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 	for _, virtualService := range virtualServices {
 		virtualServiceLogging = append(virtualServiceLogging, fmt.Sprintf("%s/%s", virtualService.Namespace, virtualService.Name))
 	}
-	glog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
+	klog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
 	return virtualServices
 }
 
@@ -557,7 +557,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate v1beta1.Ingress, newIP IPA
 	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
 		existingIP := lbi.IP
 		if existingIP == string(newIP) {
-			glog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			klog.V(5).Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
 			return nil
 		}
 	}

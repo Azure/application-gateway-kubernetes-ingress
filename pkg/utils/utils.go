@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 // GetResourceKey generates the key in k8s format for a given resource
@@ -37,18 +37,18 @@ func GetLastChunkOfSlashed(s string) string {
 func SaveToFile(fileName string, content []byte) (string, error) {
 	tempFile, err := ioutil.TempFile("", fileName)
 	if err != nil {
-		glog.Error(err)
+		klog.Error(err)
 		return tempFile.Name(), err
 	}
 	if _, err := tempFile.Write(content); err != nil {
-		glog.Error(err)
+		klog.Error(err)
 		return tempFile.Name(), err
 	}
 	if err := tempFile.Close(); err != nil {
-		glog.Error(err)
+		klog.Error(err)
 		return tempFile.Name(), err
 	}
-	glog.Infof("Saved App Gateway config to %s", tempFile.Name())
+	klog.Infof("Saved App Gateway config to %s", tempFile.Name())
 	return tempFile.Name(), nil
 }
 
@@ -56,7 +56,7 @@ func SaveToFile(fileName string, content []byte) (string, error) {
 func GetHashCode(i interface{}) string {
 	jsonBytes, err := json.Marshal(i)
 	if err != nil {
-		glog.Errorf("Failed MD5 hashing %+v", i)
+		klog.Errorf("Failed MD5 hashing %+v", i)
 		return ""
 	}
 	return fmt.Sprintf("%x", md5.Sum(jsonBytes))

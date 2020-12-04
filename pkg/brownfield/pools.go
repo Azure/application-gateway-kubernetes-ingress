@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -25,10 +25,10 @@ func (er ExistingResources) GetBlacklistedPools() ([]n.ApplicationGatewayBackend
 	for _, pool := range er.BackendPools {
 		if _, isBlacklisted := blacklistedPoolsSet[backendPoolName(*pool.Name)]; isBlacklisted {
 			blacklistedPools = append(blacklistedPools, pool)
-			glog.V(5).Infof("[brownfield] Backend Address Pool %s is blacklisted", *pool.Name)
+			klog.V(5).Infof("[brownfield] Backend Address Pool %s is blacklisted", *pool.Name)
 			continue
 		}
-		glog.V(5).Infof("[brownfield] Backend Address Pool %s is NOT blacklisted", *pool.Name)
+		klog.V(5).Infof("[brownfield] Backend Address Pool %s is NOT blacklisted", *pool.Name)
 		nonBlacklistedPools = append(nonBlacklistedPools, pool)
 	}
 	return blacklistedPools, nonBlacklistedPools
@@ -64,9 +64,9 @@ func LogPools(existingBlacklisted []n.ApplicationGatewayBackendAddressPool, exis
 		}
 	}
 
-	glog.V(3).Info("[brownfield] Pools AGIC created: ", getPoolNames(managedPools))
-	glog.V(3).Info("[brownfield] Existing Blacklisted Pools AGIC will retain: ", getPoolNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing Pools AGIC will remove: ", getPoolNames(garbage))
+	klog.V(3).Info("[brownfield] Pools AGIC created: ", getPoolNames(managedPools))
+	klog.V(3).Info("[brownfield] Existing Blacklisted Pools AGIC will retain: ", getPoolNames(existingBlacklisted))
+	klog.V(3).Info("[brownfield] Existing Pools AGIC will remove: ", getPoolNames(garbage))
 }
 
 func indexPoolsByName(pools []n.ApplicationGatewayBackendAddressPool) poolsByName {
@@ -105,7 +105,7 @@ func (er ExistingResources) getBlacklistedPoolsSet() map[backendPoolName]interfa
 			blacklistedPoolsSet[poolName] = nil
 		}
 		if pathMap.PathRules == nil {
-			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
 			continue
 		}
 		for _, rule := range *pathMap.PathRules {

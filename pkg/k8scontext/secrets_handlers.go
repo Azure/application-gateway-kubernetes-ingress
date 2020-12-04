@@ -13,7 +13,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 // secret resource handlers
@@ -36,7 +36,7 @@ func (h handlers) secretAdd(obj interface{}) {
 			}
 			h.context.MetricStore.IncK8sAPIEventCounter()
 		} else {
-			glog.Error(err.Error())
+			klog.Error(err.Error())
 		}
 	}
 }
@@ -63,7 +63,7 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 			}
 			h.context.MetricStore.IncK8sAPIEventCounter()
 		} else {
-			glog.Error(err.Error())
+			klog.Error(err.Error())
 		}
 	}
 }
