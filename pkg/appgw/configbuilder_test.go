@@ -8,7 +8,6 @@ package appgw
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -178,9 +177,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
-
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
 
 	appGwIdentifier := Identifier{
 		SubscriptionID: tests.Subscription,

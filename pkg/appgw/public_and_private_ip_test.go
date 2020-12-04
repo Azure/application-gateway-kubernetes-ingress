@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"time"
 
@@ -205,9 +204,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	pod1 := tests.NewPodFixture("pod1", ingressNS, "http", int32(80))
 	pod2 := tests.NewPodFixture("pod2", ingressNS, "https", int32(80))
-
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
 
 	appGwIdentifier := Identifier{
 		SubscriptionID: tests.Subscription,

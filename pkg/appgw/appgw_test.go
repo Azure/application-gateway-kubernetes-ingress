@@ -7,7 +7,6 @@ package appgw
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"time"
@@ -192,9 +191,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
-
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Set("v", "3")
 
 	// Method to test all the ingress that have been added to the K8s context.
 	testIngress := func() []*v1beta1.Ingress {
