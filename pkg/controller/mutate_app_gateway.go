@@ -13,7 +13,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -38,7 +38,7 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 			err,
 			"unable to get specified AppGateway [%v], check AppGateway identifier", c.appGwIdentifier.AppGwName,
 		)
-		glog.Errorf(e.Error())
+		klog.Errorf(e.Error())
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, e.Error())
 		}
@@ -67,7 +67,7 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
 	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
-	glog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
+	klog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	// Prepare k8s resources Phase //
 	// --------------------------- //
@@ -80,9 +80,9 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 				targetJSON, _ := json.Marshal(target)
 				prohibitedTargetsList = append(prohibitedTargetsList, string(targetJSON))
 			}
-			glog.V(3).Infof("[brownfield] Prohibited targets: %s", strings.Join(prohibitedTargetsList, ", "))
+			klog.V(3).Infof("[brownfield] Prohibited targets: %s", strings.Join(prohibitedTargetsList, ", "))
 		} else {
-			glog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureProhibitedTarget CRDs; Disabling brownfield deployment feature.")
+			klog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureProhibitedTarget CRDs; Disabling brownfield deployment feature.")
 			cbCtx.EnvVariables.EnableBrownfieldDeployment = false
 		}
 	}
@@ -94,7 +94,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 			cbCtx.IstioGateways = istioGateways
 			cbCtx.IstioVirtualServices = istioServices
 		} else {
-			glog.Warning("Istio Integration is enabled, but AGIC needs Istio Gateways and Virtual Services; Disabling Istio integration.")
+			klog.Warning("Istio Integration is enabled, but AGIC needs Istio Gateways and Virtual Services; Disabling Istio integration.")
 			cbCtx.EnvVariables.EnableIstioIntegration = false
 		}
 	}
@@ -106,13 +106,13 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		for _, gateway := range cbCtx.IstioGateways {
 			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
 		}
-		glog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
+		klog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
 	// Run fatal validations on the existing config of the Application Gateway.
 	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
 		errorLine := fmt.Sprint("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
-		glog.Error(errorLine)
+		klog.Error(errorLine)
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
 		}
@@ -128,7 +128,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Run validations on the Kubernetes resources which can suggest misconfiguration.
 	if err = configBuilder.PreBuildValidate(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
-		glog.Error(errorLine)
+		klog.Error(errorLine)
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		}
@@ -138,7 +138,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Replace the current appgw config with the generated one
 	if generatedAppGw, err = configBuilder.Build(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder Build returned error:", err)
-		glog.Error(errorLine)
+		klog.Error(errorLine)
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		}
@@ -148,7 +148,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Run post validations to report errors in the config generation.
 	if err = configBuilder.PostBuildValidate(cbCtx); err != nil {
 		errorLine := fmt.Sprint("ConfigBuilder PostBuildValidate returned error:", err)
-		glog.Error(errorLine)
+		klog.Error(errorLine)
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		}
@@ -161,7 +161,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// then compare the generated state with cached state
 	if event.Type != events.PeriodicReconcile {
 		if c.configIsSame(appGw) {
-			glog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
+			klog.V(3).Info("cache: Config has NOT changed! No need to connect to ARM.")
 			return nil
 		}
 	}
@@ -171,18 +171,18 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// ---------------- //
 
 	configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
-	glog.V(5).Infof("Generated config:\n%s", string(configJSON))
+	klog.V(5).Infof("Generated config:\n%s", string(configJSON))
 
 	// Initiate deployment
-	glog.V(3).Info("BEGIN AppGateway deployment")
-	defer glog.V(3).Info("END AppGateway deployment")
+	klog.V(3).Info("BEGIN AppGateway deployment")
+	defer klog.V(3).Info("END AppGateway deployment")
 	err = c.azClient.UpdateGateway(generatedAppGw)
 	if err != nil {
 		// Reset cache
 		c.configCache = nil
 		return err
 	}
-	glog.V(1).Infof("Applied generated Application Gateway configuration")
+	klog.V(1).Infof("Applied generated Application Gateway configuration")
 	// ----------------- //
 
 	// Cache Phase //
@@ -197,7 +197,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		)
 	}
 
-	glog.V(3).Info("cache: Updated with latest applied config.")
+	klog.V(3).Info("cache: Updated with latest applied config.")
 	c.updateCache(appGw)
 	// ----------- //
 

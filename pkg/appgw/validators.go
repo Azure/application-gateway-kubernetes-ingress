@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
@@ -118,7 +118,7 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 	var jsonConfigs []string
 	for _, ip := range *config.FrontendIPConfigurations {
 		if jsonConf, err := ip.MarshalJSON(); err != nil {
-			glog.Error("Could not marshall IP configuration:", *ip.ID, err)
+			klog.Error("Could not marshall IP configuration:", *ip.ID, err)
 		} else {
 			jsonConfigs = append(jsonConfigs, string(jsonConf))
 		}

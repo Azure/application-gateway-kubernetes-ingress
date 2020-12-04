@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -40,7 +40,7 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 			controllererrors.ErrorNoSuchNamespace,
 			"error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","),
 		)
-		glog.Errorf(err.Error())
+		klog.Errorf(err.Error())
 		return err
 	}
 	return nil
@@ -72,7 +72,7 @@ func getKubeClientConfig() *rest.Config {
 	if *inCluster {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			glog.Fatal("Error creating in-cluster client configuration:", err)
+			klog.Fatal("Error creating in-cluster client configuration:", err)
 		}
 		return config
 	}
@@ -80,7 +80,7 @@ func getKubeClientConfig() *rest.Config {
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeConfigFile)
 	if err != nil {
-		glog.Fatal("error creating client configuration:", err)
+		klog.Fatal("error creating client configuration:", err)
 	}
 
 	return config
@@ -88,12 +88,12 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.V(5).Infof)
+	eventBroadcaster.StartLogging(klog.V(5).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()
 	if err != nil {
-		glog.Error("Could not obtain host name from the operating system", err)
+		klog.Error("Could not obtain host name from the operating system", err)
 		hostname = "unknown-hostname"
 	}
 	source := v1.EventSource{
@@ -109,10 +109,10 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	envVerbosityInt, err := strconv.Atoi(envVerbosity)
 	if err != nil {
-		glog.Infof("Using verbosity level %d from CLI flag %s", flagVerbosity, verbosityFlag)
+		klog.Infof("Using verbosity level %d from CLI flag %s", flagVerbosity, verbosityFlag)
 		return flagVerbosity
 	}
-	glog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
+	klog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
 }
 

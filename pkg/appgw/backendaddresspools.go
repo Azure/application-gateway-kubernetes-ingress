@@ -11,7 +11,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -34,18 +34,18 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
-	glog.V(5).Infof("Created default backend pool %s", *defaultPool.Name)
+	klog.V(5).Infof("Created default backend pool %s", *defaultPool.Name)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
 	}
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
-		glog.Error("Error fetching Backends and Settings: ", err)
+		klog.Error("Error fetching Backends and Settings: ", err)
 	}
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, managedPoolsByName); pool != nil {
 			managedPoolsByName[*pool.Name] = pool
-			glog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
+			klog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
 		}
 	}
 
@@ -54,7 +54,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
 			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
 				managedPoolsByName[*pool.Name] = pool
-				glog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, destinationID.serviceKey())
+				klog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, destinationID.serviceKey())
 			}
 		}
 	}
@@ -100,7 +100,7 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
-		glog.Errorf(err.Error())
+		klog.Errorf(err.Error())
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, err.Error())
 		return nil
 	}
@@ -116,7 +116,7 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 			return c.newPool(poolName, subset)
 		}
 		logLine := fmt.Sprintf("Backend target port %d does not have matching endpoint port", serviceBackendPair.BackendPort)
-		glog.Error(logLine)
+		klog.Error(logLine)
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonBackendPortTargetMatch, logLine)
 	}
 	return nil

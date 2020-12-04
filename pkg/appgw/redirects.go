@@ -10,7 +10,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
@@ -29,7 +29,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	for listenerID, listenerConfig := range c.getListenerConfigs(cbCtx) {
 		httpListener, exists := httpListenersMap[listenerID]
 		if !exists {
-			glog.Errorf("Redirect will not be created for target listener %+v as listener does not exist in listenerMap", listenerID)
+			klog.Errorf("Redirect will not be created for target listener %+v as listener does not exist in listenerMap", listenerID)
 			continue
 		}
 
@@ -41,7 +41,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		if isHTTPS && hasSslRedirect {
 			targetListener := resourceRef(*httpListener.ID)
 			redirectConfigs = append(redirectConfigs, c.newSSLRedirectConfig(listenerConfig, targetListener))
-			glog.Infof("Created redirection configuration %s for (%s,%d); not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName, listenerID.HostNames, listenerID.FrontendPort)
+			klog.Infof("Created redirection configuration %s for (%s,%d); not yet linked to a routing rule", listenerConfig.SslRedirectConfigurationName, listenerID.HostNames, listenerID.FrontendPort)
 		}
 	}
 

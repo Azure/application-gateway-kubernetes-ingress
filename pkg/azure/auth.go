@@ -11,7 +11,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -34,15 +34,15 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 	// 3. If User provided nothing and CloudProviderConfig has value, then use CloudProviderConfig
 	// 4. Fall back to environment
 	if authLocation != "" {
-		glog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
+		klog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
 		return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	}
 	if !useManagedidentity && cpConfig != nil {
-		glog.V(1).Info("Creating authorizer using Cluster Service Principal.")
+		klog.V(1).Info("Creating authorizer using Cluster Service Principal.")
 		credAuthorizer := auth.NewClientCredentialsConfig(cpConfig.ClientID, cpConfig.ClientSecret, cpConfig.TenantID)
 		return credAuthorizer.Authorizer()
 	}
 
-	glog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
+	klog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
 	return auth.NewAuthorizerFromEnvironment()
 }

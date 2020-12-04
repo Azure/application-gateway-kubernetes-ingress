@@ -18,10 +18,10 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
@@ -60,9 +60,10 @@ var allowedSkus = map[n.ApplicationGatewayTier]interface{}{
 
 func main() {
 	// Log output is buffered... Calling Flush before exiting guarantees all log output is written.
-	defer glog.Flush()
+	klog.InitFlags(nil)
+	defer klog.Flush()
 	if err := flags.Parse(os.Args); err != nil {
-		glog.Fatal("Error parsing command line arguments:", err)
+		klog.Fatal("Error parsing command line arguments:", err)
 	}
 
 	env := environment.GetEnv()
@@ -75,7 +76,7 @@ func main() {
 	// Reference: https://github.com/kubernetes-sigs/cloud-provider-azure/blob/master/docs/cloud-provider-config.md#cloud-provider-config
 	cpConfig, err := azure.NewCloudProviderConfig(env.CloudProviderConfigLocation)
 	if err != nil {
-		glog.Infof("Unable to load cloud provider config '%s'. Error: %s", env.CloudProviderConfigLocation, err.Error())
+		klog.Infof("Unable to load cloud provider config '%s'. Error: %s", env.CloudProviderConfigLocation, err.Error())
 	}
 
 	env.Consolidate(cpConfig)
@@ -105,7 +106,7 @@ func main() {
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
 		}
-		glog.Fatal(errorLine)
+		klog.Fatal(errorLine)
 	}
 
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), env.ClientID)
@@ -125,7 +126,7 @@ func main() {
 		env.HTTPServicePort)
 	httpServer.Start()
 
-	glog.V(3).Infof("Appication Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
+	klog.V(3).Infof("Appication Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {
@@ -133,7 +134,7 @@ func main() {
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 		}
-		glog.Fatal(errorLine)
+		klog.Fatal(errorLine)
 	} else {
 		azClient.SetAuthorizer(authorizer)
 	}
@@ -156,31 +157,31 @@ func main() {
 				if agicPod != nil {
 					recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedDeployingAppGw, errorLine)
 				}
-				glog.Fatal(errorLine)
+				klog.Fatal(errorLine)
 			}
 		} else {
 			errorLine := fmt.Sprint("Failed getting Application Gateway: ", err)
 			if agicPod != nil {
 				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 			}
-			glog.Fatal(errorLine)
+			klog.Fatal(errorLine)
 		}
 	}
 
 	// namespace validations
 	if err := validateNamespaces(namespaces, kubeClient); err != nil {
-		glog.Fatal(err) // side-effect: will panic on non-existent namespace
+		klog.Fatal(err) // side-effect: will panic on non-existent namespace
 	}
 	if len(namespaces) == 0 {
-		glog.Info("Ingress Controller will observe all namespaces.")
+		klog.Info("Ingress Controller will observe all namespaces.")
 	} else {
-		glog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
+		klog.Info("Ingress Controller will observe the following namespaces:", strings.Join(namespaces, ","))
 	}
 
 	// fatal config validations
 	appGw, _ := azClient.GetGateway()
 	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
-		glog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
+		klog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
 	}
 
 	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
@@ -190,7 +191,7 @@ func main() {
 		}
 		// Slow down the cycling of the AGIC pod.
 		time.Sleep(5 * time.Second)
-		glog.Fatal(errorLine)
+		klog.Fatal(errorLine)
 	}
 
 	// associate route table to application gateway subnet
@@ -200,7 +201,7 @@ func main() {
 
 		err = azClient.ApplyRouteTable(subnetID, routeTableID)
 		if err != nil {
-			glog.V(5).Infof("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin): [%+v]",
+			klog.V(5).Infof("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin): [%+v]",
 				subnetID,
 				routeTableID,
 				err)
@@ -212,7 +213,7 @@ func main() {
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
 		}
-		glog.Fatal(errorLine)
+		klog.Fatal(errorLine)
 	}
 
 	sigChan := make(chan os.Signal)
@@ -221,5 +222,5 @@ func main() {
 
 	appGwIngressController.Stop()
 	httpServer.Stop()
-	glog.Info("Goodbye!")
+	klog.Info("Goodbye!")
 }

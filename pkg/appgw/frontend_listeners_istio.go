@@ -7,7 +7,7 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, map[Port]n.ApplicationGatewayFrontendPort, map[string]string) {
@@ -19,11 +19,11 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
 			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol, portsByNumber)
 			if err != nil {
-				glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
+				klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
 			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
-				glog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
+				klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
 				continue
 			}
 

@@ -10,7 +10,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -38,12 +38,12 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
 		listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol, portsByNumber)
 		if err != nil {
-			glog.Errorf("Failed creating listener %+v: %s", listenerID, err)
+			klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
 		}
 
 		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
-			glog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s; Will not create listener %+v", *port.Name, *listener.Name, listenerName, listenerID)
+			klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s; Will not create listener %+v", *port.Name, *listener.Name, listenerName, listenerID)
 			continue
 		}
 
@@ -112,13 +112,13 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 
 	if cbCtx.EnvVariables.AttachWAFPolicyToListener {
 		// logging to see if customer configures env.AttachWAFPolicyToListener or not
-		glog.V(5).Info("env.AttachWAFPolicyToListener is enabled")
+		klog.V(5).Info("env.AttachWAFPolicyToListener is enabled")
 	}
 
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
-		glog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
+		klog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig
@@ -214,7 +214,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 		if portExists && port.Port != nil {
 			listenerID.FrontendPort = Port(*port.Port)
 		} else {
-			glog.Errorf("Failed to find port '%s' referenced by listener '%s'", *listener.FrontendPort.ID, *listener.Name)
+			klog.Errorf("Failed to find port '%s' referenced by listener '%s'", *listener.FrontendPort.ID, *listener.Name)
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])
 	}

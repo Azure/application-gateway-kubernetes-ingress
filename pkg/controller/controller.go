@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
@@ -70,7 +70,7 @@ func (c *AppGwIngressController) Start(envVariables environment.EnvVariables) er
 	// Starts k8scontext which contains all the informers
 	// This will start individual go routines for informers
 	if err := c.k8sContext.Run(c.stopChannel, false, envVariables); err != nil {
-		glog.Error("Could not start Kubernetes Context: ", err)
+		klog.Error("Could not start Kubernetes Context: ", err)
 		return err
 	}
 
@@ -114,31 +114,31 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 
 	appGw, cbCtx, err := c.GetAppGw()
 	if err != nil {
-		glog.Error("Error Retrieving AppGw for k8s event. ", err)
+		klog.Error("Error Retrieving AppGw for k8s event. ", err)
 		return err
 	}
 
 	// Reset all ingress Ips and igore mutating appgw if gateway is in stopped state
 	if !c.isApplicationGatewayMutable(appGw) {
-		glog.Info("Reset all ingress ip")
+		klog.Info("Reset all ingress ip")
 		c.ResetAllIngress(appGw, cbCtx)
-		glog.Info("Ignore mutating App Gateway as it is not mutable")
+		klog.Info("Ignore mutating App Gateway as it is not mutable")
 		return nil
 	}
 
 	if err := c.MutateAllIngress(appGw, cbCtx); err != nil {
-		glog.Error("Error mutating AKS from k8s event. ", err)
+		klog.Error("Error mutating AKS from k8s event. ", err)
 	}
 
 	if err := c.MutateAppGateway(event, appGw, cbCtx); err != nil {
-		glogIt := glog.Errorf
+		klogIt := klog.Errorf
 		if cbCtx.EnvVariables.EnablePanicOnPutError {
-			glogIt = glog.Fatalf
+			klogIt = klog.Fatalf
 		}
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedApplyingAppGwConfig, err.Error())
 		}
-		glogIt(err.Error())
+		klogIt(err.Error())
 		c.MetricStore.IncArmAPIUpdateCallFailureCounter()
 		return err
 	}
@@ -148,20 +148,20 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	c.MetricStore.SetUpdateLatencySec(duration)
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
-	glog.V(1).Infof("Completed last event loop run in: %+v", duration)
+	klog.V(1).Infof("Completed last event loop run in: %+v", duration)
 
 	return nil
 }
 
 func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSecondsStr string) {
-	glog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
+	klog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
 
 	reconcilePeriodSeconds, _ := strconv.Atoi(reconcilePeriodSecondsStr)
 	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)
 	for {
 		select {
 		case tickedTime := <-reconcileTicker.C:
-			glog.V(9).Info("Reconciling ticker ticked at ", tickedTime)
+			klog.V(9).Info("Reconciling ticker ticked at ", tickedTime)
 			work <- events.Event{
 				Type: events.PeriodicReconcile,
 			}

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 )
 
 type urlPathMapName string
@@ -26,7 +26,7 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 		return nil, er.URLPathMaps
 	}
 	_, pathMapToTargets := er.getRuleToTargets()
-	glog.V(5).Infof("[brownfield] PathMap to Targets map: %+v", pathMapToTargets)
+	klog.V(5).Infof("[brownfield] PathMap to Targets map: %+v", pathMapToTargets)
 
 	// Figure out if the given BackendAddressPathMap is blacklisted. It will be if it has a host/path that
 	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
@@ -34,11 +34,11 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 		targetsForPathMap := pathMapToTargets[urlPathMapName(*pathMap.Name)]
 		for _, target := range targetsForPathMap {
 			if target.IsBlacklisted(blacklist) {
-				glog.V(5).Infof("[brownfield] Routing PathMap %s is blacklisted", *pathMap.Name)
+				klog.V(5).Infof("[brownfield] Routing PathMap %s is blacklisted", *pathMap.Name)
 				return true
 			}
 		}
-		glog.V(5).Infof("[brownfield] Routing PathMap %s is NOT blacklisted", *pathMap.Name)
+		klog.V(5).Infof("[brownfield] Routing PathMap %s is NOT blacklisted", *pathMap.Name)
 		return false
 	}
 
@@ -60,10 +60,10 @@ func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.Appli
 	for _, bucket := range pathMapBuckets {
 		for _, pathMap := range bucket {
 			if existingPathMap, exists := uniq[urlPathMapName(*pathMap.Name)]; exists {
-				glog.V(5).Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
+				klog.V(5).Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
 				uniq[urlPathMapName(*pathMap.Name)].PathRules = mergePathRules(existingPathMap.PathRules, pathMap.PathRules)
 			} else {
-				glog.V(5).Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
+				klog.V(5).Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
 				uniq[urlPathMapName(*pathMap.Name)] = pathMap
 			}
 		}
@@ -90,9 +90,9 @@ func LogPathMaps(existingBlacklisted []n.ApplicationGatewayURLPathMap, existingN
 		}
 	}
 
-	glog.V(3).Info("[brownfield] PathMaps AGIC created: ", getPathMapNames(managedPathMaps))
-	glog.V(3).Info("[brownfield] Existing Blacklisted PathMaps AGIC will retain: ", getPathMapNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing PathMaps AGIC will remove: ", getPathMapNames(garbage))
+	klog.V(3).Info("[brownfield] PathMaps AGIC created: ", getPathMapNames(managedPathMaps))
+	klog.V(3).Info("[brownfield] Existing Blacklisted PathMaps AGIC will retain: ", getPathMapNames(existingBlacklisted))
+	klog.V(3).Info("[brownfield] Existing PathMaps AGIC will remove: ", getPathMapNames(garbage))
 }
 
 // mergePathMapsWithBasicRule merges a Url pathmap with a basic routing rule
@@ -137,7 +137,7 @@ func deletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *st
 	deleteIdx := -1
 	for idx, pathMap := range pathMaps {
 		if *pathMap.ID == *resourceID {
-			glog.V(5).Infof("[brownfield] Deleting %s", *resourceID)
+			klog.V(5).Infof("[brownfield] Deleting %s", *resourceID)
 			deleteIdx = idx
 		}
 	}

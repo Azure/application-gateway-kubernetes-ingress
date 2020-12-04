@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -24,11 +24,11 @@ func (er ExistingResources) GetBlacklistedProbes() ([]n.ApplicationGatewayProbe,
 	var blacklistedProbes []n.ApplicationGatewayProbe
 	for _, probe := range er.Probes {
 		if _, isBlacklisted := blacklistedProbesSet[probeName(*probe.Name)]; isBlacklisted {
-			glog.V(5).Infof("Probe %s is blacklisted", *probe.Name)
+			klog.V(5).Infof("Probe %s is blacklisted", *probe.Name)
 			blacklistedProbes = append(blacklistedProbes, probe)
 			continue
 		}
-		glog.V(5).Infof("Probe %s is not blacklisted", *probe.Name)
+		klog.V(5).Infof("Probe %s is not blacklisted", *probe.Name)
 		nonBlacklistedProbes = append(nonBlacklistedProbes, probe)
 	}
 	return blacklistedProbes, nonBlacklistedProbes

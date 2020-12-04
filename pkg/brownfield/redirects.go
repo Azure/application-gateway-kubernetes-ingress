@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -25,10 +25,10 @@ func (er ExistingResources) GetBlacklistedRedirects() ([]n.ApplicationGatewayRed
 	for _, redirect := range er.Redirects {
 		if _, isBlacklisted := blacklisted[redirectName(*redirect.Name)]; isBlacklisted {
 			blacklistedRedirects = append(blacklistedRedirects, redirect)
-			glog.V(5).Infof("[brownfield] Redirect %s is blacklisted", *redirect.Name)
+			klog.V(5).Infof("[brownfield] Redirect %s is blacklisted", *redirect.Name)
 			continue
 		}
-		glog.V(5).Infof("[brownfield] Redirect %s is not blacklisted", *redirect.Name)
+		klog.V(5).Infof("[brownfield] Redirect %s is not blacklisted", *redirect.Name)
 		nonBlacklistedRedirects = append(nonBlacklistedRedirects, redirect)
 	}
 	return blacklistedRedirects, nonBlacklistedRedirects
@@ -49,9 +49,9 @@ func LogRedirects(existingBlacklisted []n.ApplicationGatewayRedirectConfiguratio
 		}
 	}
 
-	glog.V(3).Info("[brownfield] Redirects AGIC created: ", getRedirectNames(managedRedirects))
-	glog.V(3).Info("[brownfield] Existing Blacklisted Redirects AGIC will retain: ", getRedirectNames(existingBlacklisted))
-	glog.V(3).Info("[brownfield] Existing Redirects AGIC will remove: ", getRedirectNames(garbage))
+	klog.V(3).Info("[brownfield] Redirects AGIC created: ", getRedirectNames(managedRedirects))
+	klog.V(3).Info("[brownfield] Existing Blacklisted Redirects AGIC will retain: ", getRedirectNames(existingBlacklisted))
+	klog.V(3).Info("[brownfield] Existing Redirects AGIC will remove: ", getRedirectNames(garbage))
 }
 
 // MergeRedirects merges list of lists of redirects into a single list, maintaining uniqueness.
@@ -105,7 +105,7 @@ func (er ExistingResources) getBlacklistedRedirectsSet() map[redirectName]interf
 			blacklisted[redirectName] = nil
 		}
 		if pathMap.PathRules == nil {
-			glog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
 			continue
 		}
 		for _, rule := range *pathMap.PathRules {

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/health"
@@ -54,9 +54,9 @@ func NewHTTPServer(controller *controller.AppGwIngressController, metricStore me
 
 func (s *httpServer) Start() {
 	go func() {
-		glog.Infof("Starting API Server on %s", s.server.Addr)
+		klog.Infof("Starting API Server on %s", s.server.Addr)
 		if err := s.server.ListenAndServe(); err != nil {
-			glog.Fatal("Failed to start API server", err)
+			klog.Fatal("Failed to start API server", err)
 		}
 	}()
 }
@@ -65,6 +65,6 @@ func (s *httpServer) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.server.Shutdown(ctx); err != nil {
-		glog.Error("Unable to shutdown API server gracefully", err)
+		klog.Error("Unable to shutdown API server gracefully", err)
 	}
 }
