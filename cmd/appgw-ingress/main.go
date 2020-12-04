@@ -112,7 +112,7 @@ func main() {
 
 	uniqueUserAgentSuffix := utils.RandStringRunes(10)
 	if agicPod != nil {
-		uniqueUserAgent = agicPod.Name
+		uniqueUserAgentSuffix = agicPod.Name
 	}
 	glog.Infof("Using User Agent Suffix='%s' when communicating with ARM", uniqueUserAgentSuffix)
 
