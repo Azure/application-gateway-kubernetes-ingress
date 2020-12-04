@@ -197,6 +197,10 @@ func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
 		return
 	}
 
+	if appGwFuture.PollingURL() != "" {
+		glog.V(3).Infof("OperationID='%s'", GetOperationIDFromPollingURL(appGwFuture.PollingURL()))
+	}
+
 	// Wait until deployment finshes and save the error message
 	err = appGwFuture.WaitForCompletionRef(az.ctx, az.appGatewaysClient.BaseClient.Client)
 	return
