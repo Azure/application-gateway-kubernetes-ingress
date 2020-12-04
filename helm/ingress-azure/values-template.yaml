@@ -24,6 +24,9 @@ kubernetes:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  
+  # custom annotations
+  podAnnotations: {}
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace
@@ -68,5 +71,3 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
-
-podAnnotations: {}
