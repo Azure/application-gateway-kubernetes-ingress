@@ -70,3 +70,6 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
+
+podAnnotations: 
+  zz: zz
