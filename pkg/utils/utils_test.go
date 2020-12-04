@@ -62,5 +62,15 @@ var _ = Describe("Utils", func() {
 				Expect(hashcode).To(Equal("28a37ff7b783ffb4696dfb7774331163"))
 			})
 		})
+
+		Context("Test RandStringRunes", func() {
+			It("should generate n length string", func() {
+				Expect(len(RandStringRunes(10))).To(Equal(10))
+			})
+
+			It("should not fail when n = 0", func() {
+				Expect(len(RandStringRunes(0))).To(Equal(0))
+			})
+		})
 	})
 })

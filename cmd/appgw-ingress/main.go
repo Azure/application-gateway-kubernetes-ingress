@@ -34,6 +34,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -109,7 +110,13 @@ func main() {
 		klog.Fatal(errorLine)
 	}
 
-	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), env.ClientID)
+	uniqueUserAgentSuffix := utils.RandStringRunes(10)
+	if agicPod != nil {
+		uniqueUserAgent = agicPod.Name
+	}
+	glog.Infof("Using User Agent Suffix='%s' when communicating with ARM", uniqueUserAgentSuffix)
+
+	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), uniqueUserAgentSuffix, env.ClientID)
 	appGwIdentifier := appgw.Identifier{
 		SubscriptionID: env.SubscriptionID,
 		ResourceGroup:  env.ResourceGroupName,

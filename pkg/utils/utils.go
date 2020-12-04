@@ -10,10 +10,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"strings"
+	"time"
 
 	"k8s.io/klog/v2"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
 
 // GetResourceKey generates the key in k8s format for a given resource
 func GetResourceKey(namespace, name string) string {
@@ -60,4 +68,13 @@ func GetHashCode(i interface{}) string {
 		return ""
 	}
 	return fmt.Sprintf("%x", md5.Sum(jsonBytes))
+}
+
+// RandStringRunes generates n length random string
+func RandStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
