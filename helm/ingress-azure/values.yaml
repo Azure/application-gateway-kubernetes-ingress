@@ -29,6 +29,9 @@ kubernetes:
     # disktype: dentro
   tolerations: []
   affinity: {}
+  
+  # Add pod level annotations
+  podAnnotations: {}
 
 
 ################################################################################
