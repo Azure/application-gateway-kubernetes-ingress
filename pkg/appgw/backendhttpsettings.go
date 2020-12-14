@@ -12,9 +12,9 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -73,135 +73,27 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
 	}
 
-	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
-	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
-	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
-
-	var unresolvedBackendID []backendIdentifier
-	for backendID := range c.newBackendIdsFiltered(cbCtx) {
-		resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
-
-		service := c.k8sContext.GetService(backendID.serviceKey())
-		if service == nil {
-			// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
-			logLine := fmt.Sprintf("Unable to get the service [%s]", backendID.serviceKey())
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonServiceNotFound, logLine)
-			klog.Errorf(logLine)
-			pair := serviceBackendPortPair{
-				ServicePort: Port(backendID.Backend.ServicePort.IntVal),
-				BackendPort: Port(backendID.Backend.ServicePort.IntVal),
-			}
-			resolvedBackendPorts[pair] = nil
-		} else {
-			for _, sp := range service.Spec.Ports {
-				// find the backend port number
-				// check if any service ports matches the specified ports
-				if sp.Protocol != v1.ProtocolTCP {
-					// ignore UDP ports
-					continue
-				}
-				if fmt.Sprint(sp.Port) == backendID.Backend.ServicePort.String() ||
-					sp.Name == backendID.Backend.ServicePort.String() ||
-					sp.TargetPort.String() == backendID.Backend.ServicePort.String() {
-					// matched a service port with a port from the service
-
-					if sp.TargetPort.String() == "" {
-						// targetPort is not defined, by default targetPort == port
-						pair := serviceBackendPortPair{
-							ServicePort: Port(sp.Port),
-							BackendPort: Port(sp.Port),
-						}
-						resolvedBackendPorts[pair] = nil
-					} else {
-						// target port is defined as name or port number
-						if sp.TargetPort.Type == intstr.Int {
-							// port is defined as port number
-							pair := serviceBackendPortPair{
-								ServicePort: Port(sp.Port),
-								BackendPort: Port(sp.TargetPort.IntVal),
-							}
-							resolvedBackendPorts[pair] = nil
-						} else {
-							// if service port is defined by name, need to resolve
-							klog.V(5).Infof("resolving port name [%s] for service [%s] and service port [%s] for Ingress [%s]", sp.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
-
-							// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
-							targetPortsResolved := c.resolvePortName(sp.Name, &backendID)
-							for targetPort := range targetPortsResolved {
-								pair := serviceBackendPortPair{
-									ServicePort: Port(sp.Port),
-									BackendPort: Port(targetPort),
-								}
-								resolvedBackendPorts[pair] = nil
-							}
-						}
-					}
-					break
-				}
-			}
-		}
-
-		if len(resolvedBackendPorts) == 0 {
-			logLine := fmt.Sprintf("unable to resolve any backend port for service [%s] and service port [%s] for Ingress [%s]", backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, logLine)
-			klog.Error(logLine)
-
-			unresolvedBackendID = append(unresolvedBackendID, backendID)
-			break
-		}
-
-		// Merge serviceBackendPairsMap[backendID] into resolvedBackendPorts
-		if _, ok := serviceBackendPairsMap[backendID]; !ok {
-			serviceBackendPairsMap[backendID] = make(map[serviceBackendPortPair]interface{})
-		}
-		for portPair := range resolvedBackendPorts {
-			serviceBackendPairsMap[backendID][portPair] = nil
-		}
-	}
-
-	if len(unresolvedBackendID) > 0 {
-		klog.Warningf("Unable to resolve %d backends: %+v", len(unresolvedBackendID), unresolvedBackendID)
-	}
-
-	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
 	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
+	serviceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
+	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
+	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
 	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
-
-	// enforce single pair relationship between service port and backend port
-	for backendID, serviceBackendPairs := range serviceBackendPairsMap {
-
-		// in case there are multiple backend ports found, using the smallest port in http setting
-		var backendport Port
-		backendport = 65536
-
-		// this will store all the ports found
-		var ports []string
-
-		var uniquePair serviceBackendPortPair
-		for k := range serviceBackendPairs {
-			ports = append(ports, fmt.Sprintf("%d", k.BackendPort))
-			if k.BackendPort <= backendport {
-				uniquePair = k
-				backendport = k.BackendPort
-			}
+	for backendID := range c.newBackendIdsFiltered(cbCtx) {
+		backendPort, err := c.resolveBackendPort(backendID)
+		if err != nil {
+			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, err.Error())
+			klog.Error(err.Error())
 		}
 
-		if len(serviceBackendPairs) > 1 {
-
-			// more than one possible backend port exposed through ingress
-			e := controllererrors.NewErrorf(
-				controllererrors.ErrorMultipleServiceBackendPortBinding,
-				"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
-				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendport, strings.Join(ports, ","),
-			)
-
-			c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonPortResolutionError, e.Error())
-			klog.Errorf(e.Error())
-		}
-
-		finalServiceBackendPairMap[backendID] = uniquePair
-		httpSettings := c.generateHTTPSettings(backendID, uniquePair.BackendPort, cbCtx)
+		httpSettings := c.generateHTTPSettings(backendID, backendPort, cbCtx)
 		klog.V(5).Infof("Created backend http settings %s for ingress %s/%s and service %s", *httpSettings.Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
+
+		// TODO(aksgupta): Only backend port is used in the output; remove service port.
+		serviceBackendPairMap[backendID] = serviceBackendPortPair{
+			ServicePort: backendPort,
+			BackendPort: backendPort,
+		}
+
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		backendHTTPSettingsMap[backendID] = &httpSettings
 	}
@@ -213,8 +105,107 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 
 	c.mem.settings = &httpSettings
 	c.mem.settingsByBackend = &backendHTTPSettingsMap
-	c.mem.serviceBackendPairsByBackend = &finalServiceBackendPairMap
-	return httpSettings, backendHTTPSettingsMap, finalServiceBackendPairMap, nil
+	c.mem.serviceBackendPairsByBackend = &serviceBackendPairMap
+	return httpSettings, backendHTTPSettingsMap, serviceBackendPairMap, nil
+}
+
+func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Port, error) {
+	var e error
+	service := c.k8sContext.GetService(backendID.serviceKey())
+	if service == nil {
+		// This should never happen since newBackendIdsFiltered() already filters out backends for non-existent Services
+		e = controllererrors.NewErrorf(
+			controllererrors.ErrorServiceNotFound,
+			"Service not found %s",
+			backendID.serviceKey())
+		return Port(backendID.Backend.ServicePort.IntVal), e
+	}
+
+	// find the target port number for service port specified in the ingress manifest
+	servicePortInIngress := backendID.Backend.ServicePort.String()
+	resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
+	for _, servicePort := range service.Spec.Ports {
+		// ignore UDP ports
+		if servicePort.Protocol != v1.ProtocolTCP {
+			continue
+		}
+
+		// match service by either port, port name or target port
+		if fmt.Sprint(servicePort.Port) != servicePortInIngress &&
+			servicePort.Name != servicePortInIngress &&
+			servicePort.TargetPort.String() != servicePortInIngress {
+			continue
+		}
+
+		// if target port is not specified, use the service port as backend port
+		if servicePort.TargetPort.String() == "" {
+			// targetPort is not defined, by default targetPort == port
+			pair := serviceBackendPortPair{
+				ServicePort: Port(servicePort.Port),
+				BackendPort: Port(servicePort.Port),
+			}
+			resolvedBackendPorts[pair] = nil
+			continue
+		}
+
+		// if target port is an int, use it as backend port
+		if servicePort.TargetPort.Type == intstr.Int {
+			// port is defined as port number
+			pair := serviceBackendPortPair{
+				ServicePort: Port(servicePort.Port),
+				BackendPort: Port(servicePort.TargetPort.IntVal),
+			}
+			resolvedBackendPorts[pair] = nil
+			continue
+		}
+
+		// if target port is port name, then resolve the port number for the port name
+		// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
+		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
+		targetPortsResolved := c.resolvePortName(servicePort.Name, &backendID)
+		for targetPort := range targetPortsResolved {
+			pair := serviceBackendPortPair{
+				ServicePort: Port(servicePort.Port),
+				BackendPort: Port(targetPort),
+			}
+			resolvedBackendPorts[pair] = nil
+		}
+	}
+
+	if len(resolvedBackendPorts) == 0 {
+		e = controllererrors.NewErrorf(
+			controllererrors.ErrorUnableToResolveBackendPortFromServicePort,
+			"No port matched %s",
+			backendID.serviceKey())
+
+		// if service port is an int, use that as backend port
+		if backendID.Backend.ServicePort.Type == intstr.Int {
+			return Port(backendID.Backend.ServicePort.IntVal), e
+		}
+
+		// returning port 80 as a last resort
+		return Port(80), e
+	}
+
+	backendPort := Port(65536)
+	var ports []string
+	for k := range resolvedBackendPorts {
+		ports = append(ports, string(k.BackendPort))
+		if k.BackendPort <= backendPort {
+			backendPort = k.BackendPort
+		}
+	}
+
+	if len(resolvedBackendPorts) > 1 {
+		// found more than 1 backend port for the service port which is a conflicting scenario
+		e = controllererrors.NewErrorf(
+			controllererrors.ErrorMultipleServiceBackendPortBinding,
+			"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
+			backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort, strings.Join(ports, ","),
+		)
+	}
+
+	return backendPort, e
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
