@@ -1,7 +1,11 @@
 - [How to try](#how-to-try)
+- [v1.3.0](#v130)
 - [v1.3.0-rc1](#v130-rc1)
   - [Features](#features)
   - [Fixes](#fixes)
+
+# v1.3.0
+Same as v1.3.0-rc1
 
 # v1.3.0-rc1
 
@@ -24,6 +28,13 @@
 
 ## How to try:
 ```bash
+# upgrade to the latest release version 1.3.0
+helm repo update
+helm install \
+  <release-name> \
+  -f helm-config.yaml \
+  application-gateway-kubernetes-ingress/ingress-azure
+
 # use --version 1.3.0-rc1 when installing/upgrading using helm
 helm repo update
 helm install \
