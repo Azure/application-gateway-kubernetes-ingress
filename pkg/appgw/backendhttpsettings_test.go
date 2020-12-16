@@ -172,7 +172,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 	Context("make sure all backends are processed", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress, ingress1},
+			IngressList:           []*v1beta1.Ingress{ingress1, ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
