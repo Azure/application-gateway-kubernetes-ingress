@@ -8,12 +8,13 @@ package k8scontext
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -21,6 +22,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
@@ -42,9 +44,31 @@ import (
 const providerPrefix = "azure://"
 const workBuffer = 1024
 
-var namespacesToIgnore = map[string]interface{}{
-	"kube-system": nil,
-	"kube-public": nil,
+var namespacesToIgnore map[string]interface{}
+
+// SetNamespacesToIgnore sets system namespaces to be ignored unless allowSystemNamespaces environment variable is set to "true"
+func SetNamespacesToIgnore() {
+	var allowSystemNamespaces bool
+	allowSystemNamespacesFlag, exists := os.LookupEnv("allowSystemNamespaces")
+	if exists {
+		val, err := strconv.ParseBool(allowSystemNamespacesFlag)
+		allowSystemNamespaces = val
+		if err != nil {
+			allowSystemNamespaces = false
+		}
+	} else {
+		allowSystemNamespaces = false
+	}
+	if allowSystemNamespaces {
+		klog.V(1).Infoln("All namespaces will be monitored for secrets and ingress")
+		namespacesToIgnore = map[string]interface{}{}
+	} else {
+		klog.V(1).Infoln("Namespaces kube-system, kube-public will be ignored")
+		namespacesToIgnore = map[string]interface{}{
+			"kube-system": nil,
+			"kube-public": nil,
+		}
+	}
 }
 
 // NewContext creates a context based on a Kubernetes client instance.
@@ -52,6 +76,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
+
+	SetNamespacesToIgnore()
 
 	informerCollection := InformerCollection{
 		Endpoints: informerFactory.Core().V1().Endpoints().Informer(),

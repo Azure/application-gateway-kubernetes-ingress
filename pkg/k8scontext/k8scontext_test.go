@@ -7,6 +7,7 @@ package k8scontext
 
 import (
 	"context"
+	"os"
 	"reflect"
 	"time"
 
@@ -435,6 +436,21 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			}
 			finalList := filterAndSort(ingrList)
 			Expect(finalList).To(ContainElement(ingr))
+		})
+	})
+
+	ginkgo.Context("System namespaces consideration", func() {
+		ginkgo.It("system namespaces should be ignored by default", func() {
+			Expect(namespacesToIgnore).To(HaveLen(2))
+		})
+
+		ginkgo.It("system namespaces should be considered when env var allowSystemNamespaces is set to true", func() {
+			k8sClient = testclient.NewSimpleClientset()
+			crdClient := fake.NewSimpleClientset()
+			istioCrdClient := istioFake.NewSimpleClientset()
+			os.Setenv("allowSystemNamespaces", "true")
+			NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+			Expect(namespacesToIgnore).To(HaveLen(0))
 		})
 	})
 })
