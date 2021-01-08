@@ -74,6 +74,30 @@ func GetTargetBlacklist(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) 
 	return &target
 }
 
+// IsWhitelisted figures out whether a given Target objects in a list of whitelisted targets.
+func (t Target) IsWhitelisted(whitelist TargetWhitelist) bool {
+	jsonTarget, _ := json.Marshal(t)
+	for _, wtTarget := range *whitelist {
+
+		// An empty whitelist hostname indicates that any hostname would be whitelisted.
+		// If host names match - this target is in the whitelist.
+		// AGIC is allowed to create and modify App Gwy config for blank host.
+		hostIsWhitelisted := wtTarget.Hostname == "" || strings.ToLower(t.Hostname) == strings.ToLower(wtTarget.Hostname)
+
+		pathIsWhitelisted := wtTarget.Path == "" || wtTarget.Path == "/*" || t.Path.lower() == wtTarget.Path.lower() || wtTarget.Path.contains(t.Path) // TODO(draychev): || t.Path.contains(blTarget.Path)
+
+		// With this version we keep things as simple as possible: match host and exact path to determine
+		// whether given target is in the whitelist. Ideally this would be URL Path set overlap operation,
+		// which we deliberately leave for a later time.
+		if hostIsWhitelisted && pathIsWhitelisted {
+			klog.V(5).Infof("[brownfield] Target %s is whitelisted", jsonTarget)
+			return true // Found it
+		}
+	}
+	klog.V(5).Infof("[brownfield] Target %s is not whitelisted", jsonTarget)
+	return false // Did not find it
+}
+
 // GetTargetWhitelist returns the list of Targets given a list AllowedTarget CRDs.
 func GetTargetWhitelist(allowedTargets []*atv1.AzureIngressAllowedTarget) TargetWhitelist {
 	// TODO(draychev): make this a method of ExistingResources and memoize it.

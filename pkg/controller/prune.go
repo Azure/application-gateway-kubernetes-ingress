@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -41,12 +41,16 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 	return prunedIngresses
 }
 
-// pruneProhibitedIngress filters rules that are specified by prohibited target CRD
+// pruneProhibitedIngress filters rules that are specified by prohibited target CRD or not allowed target CRD
 func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
 	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
 	for idx, ingress := range ingressList {
 		klog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-		ingressList[idx].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			ingressList[idx].Spec.Rules = brownfield.PruneIngressNotAllowedRules(ingress, cbCtx.AllowedTargets)
+		} else {
+			ingressList[idx].Spec.Rules = brownfield.PruneIngressProhibitedRules(ingress, cbCtx.ProhibitedTargets)
+		}
 		klog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
 	}
 
