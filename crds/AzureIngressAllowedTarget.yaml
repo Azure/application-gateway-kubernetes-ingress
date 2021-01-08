@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   name: azureingressallowedtargets.appgw.ingress.k8s.io
   annotations:
-    "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1029" # UPDATE THIS WITH THE PR
+    "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1103"
 spec:
   group: appgw.ingress.k8s.io
   names:
