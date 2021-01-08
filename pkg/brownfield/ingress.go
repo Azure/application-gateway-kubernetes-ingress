@@ -12,7 +12,7 @@ import (
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
-// PruneIngressRules transforms the given ingress struct to remove targets, which AGIC should not create configuration for.
+// PruneIngressProhibitedRules transforms the given ingress struct to remove targets, which AGIC should not create configuration for.
 func PruneIngressProhibitedRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) []v1beta1.IngressRule {
 
 	if ing.Spec.Rules == nil || len(ing.Spec.Rules) == 0 {
@@ -65,7 +65,7 @@ func PruneIngressProhibitedRules(ing *v1beta1.Ingress, prohibitedTargets []*ptv1
 	return rules
 }
 
-// PruneIngressRules transforms the given ingress struct to remove targets, which AGIC should not create configuration for.
+// PruneIngressNotAllowedRules transforms the given ingress struct to remove targets, which AGIC should not create configuration for.
 func PruneIngressNotAllowedRules(ing *v1beta1.Ingress, allowedTargets []*atv1.AzureIngressAllowedTarget) []v1beta1.IngressRule {
 
 	if ing.Spec.Rules == nil || len(ing.Spec.Rules) == 0 {
