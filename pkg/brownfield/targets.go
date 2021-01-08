@@ -11,11 +11,15 @@ import (
 
 	"k8s.io/klog/v2"
 
+	atv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
 // TargetBlacklist is a list of Targets, which AGIC is not allowed to apply configuration for.
 type TargetBlacklist *[]Target
+
+// TargetWhitelist is a list of Targets, which AGIC is allowed to apply configuration for.
+type TargetWhitelist *[]Target
 
 // TargetPath is a string type alias.
 type TargetPath string
@@ -63,6 +67,26 @@ func GetTargetBlacklist(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) 
 		for _, path := range prohibitedTarget.Spec.Paths {
 			target = append(target, Target{
 				Hostname: prohibitedTarget.Spec.Hostname,
+				Path:     TargetPath(strings.ToLower(path)),
+			})
+		}
+	}
+	return &target
+}
+
+// GetTargetWhitelist returns the list of Targets given a list AllowedTarget CRDs.
+func GetTargetWhitelist(allowedTargets []*atv1.AzureIngressAllowedTarget) TargetWhitelist {
+	// TODO(draychev): make this a method of ExistingResources and memoize it.
+	var target []Target
+	for _, allowedTarget := range allowedTargets {
+		if len(allowedTarget.Spec.Paths) == 0 {
+			target = append(target, Target{
+				Hostname: allowedTarget.Spec.Hostname,
+			})
+		}
+		for _, path := range allowedTarget.Spec.Paths {
+			target = append(target, Target{
+				Hostname: allowedTarget.Spec.Hostname,
 				Path:     TargetPath(strings.ToLower(path)),
 			})
 		}

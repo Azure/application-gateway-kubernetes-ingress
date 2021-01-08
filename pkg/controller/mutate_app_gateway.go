@@ -75,7 +75,17 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
 			allowedTargets := c.k8sContext.ListAzureAllowedTargets()
 			cbCtx.AllowedTargets = allowedTargets
-			// klog.V(3).Infof("[brownfield] Allowed targets: %s", strings.Join(allowedTargets[0]., ", "))
+			if len(allowedTargets) > 0 {
+				var allowedTargetsList []string
+				for _, target := range *brownfield.GetTargetWhitelist(allowedTargets) {
+					targetJSON, _ := json.Marshal(target)
+					allowedTargetsList = append(allowedTargetsList, string(targetJSON))
+				}
+				klog.V(3).Infof("[brownfield] Allowed targets: %s", strings.Join(allowedTargetsList, ", "))
+			} else {
+				klog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureAllowedTarget CRDs")
+			}
+
 		} else {
 			prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
 			if len(prohibitedTargets) > 0 {
