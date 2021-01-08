@@ -21,6 +21,7 @@ type InformerCollection struct {
 	Namespace                                   cache.SharedIndexInformer
 	AzureIngressManagedLocation                 cache.SharedInformer
 	AzureIngressProhibitedTarget                cache.SharedInformer
+	AzureIngressAllowedTarget                   cache.SharedInformer
 	AzureApplicationGatewayBackendPool          cache.SharedInformer
 	AzureApplicationGatewayInstanceUpdateStatus cache.SharedInformer
 	IstioGateway                                cache.SharedIndexInformer
@@ -37,6 +38,7 @@ type CacheCollection struct {
 	Namespaces                                  cache.Store
 	AzureIngressManagedLocation                 cache.Store
 	AzureIngressProhibitedTarget                cache.Store
+	AzureIngressAllowedTarget                   cache.Store
 	AzureApplicationGatewayBackendPool          cache.Store
 	AzureApplicationGatewayInstanceUpdateStatus cache.Store
 	IstioGateway                                cache.Store

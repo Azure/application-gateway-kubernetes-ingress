@@ -70,26 +70,28 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(UsePrivateIPVarName, "UsePrivateIPVarName")
 				_ = os.Setenv(VerbosityLevelVarName, "VerbosityLevelVarName")
 				_ = os.Setenv(EnableBrownfieldDeploymentVarName, "SomethingIrrelevant1234")
+				_ = os.Setenv(UseAllowedTargetsBrownfieldDeploymentVarName, "SomethingIrrelevant4321")
 				_ = os.Setenv(EnableIstioIntegrationVarName, "true")
 				_ = os.Setenv(EnableSaveConfigToFileVarName, "false")
 				_ = os.Setenv(EnablePanicOnPutErrorVarName, "true")
 				_ = os.Setenv(ReconcilePeriodSecondsVarName, "30")
 
 				expected := EnvVariables{
-					SubscriptionID:             "SubscriptionIDVarName",
-					ResourceGroupName:          "ResourceGroupNameVarName",
-					AppGwName:                  "AppGwNameVarName",
-					AppGwSkuName:               "Standard_v2",
-					AuthLocation:               "AuthLocationVarName",
-					WatchNamespace:             "WatchNamespaceVarName",
-					UsePrivateIP:               "UsePrivateIPVarName",
-					VerbosityLevel:             "VerbosityLevelVarName",
-					EnableBrownfieldDeployment: false,
-					EnableIstioIntegration:     true,
-					EnableSaveConfigToFile:     false,
-					EnablePanicOnPutError:      true,
-					HTTPServicePort:            "8123",
-					ReconcilePeriodSeconds:     "30",
+					SubscriptionID:                        "SubscriptionIDVarName",
+					ResourceGroupName:                     "ResourceGroupNameVarName",
+					AppGwName:                             "AppGwNameVarName",
+					AppGwSkuName:                          "Standard_v2",
+					AuthLocation:                          "AuthLocationVarName",
+					WatchNamespace:                        "WatchNamespaceVarName",
+					UsePrivateIP:                          "UsePrivateIPVarName",
+					VerbosityLevel:                        "VerbosityLevelVarName",
+					EnableBrownfieldDeployment:            false,
+					UseAllowedTargetsBrownfieldDeployment: false,
+					EnableIstioIntegration:                true,
+					EnableSaveConfigToFile:                false,
+					EnablePanicOnPutError:                 true,
+					HTTPServicePort:                       "8123",
+					ReconcilePeriodSeconds:                "30",
 				}
 
 				Expect(GetEnv()).To(Equal(expected))

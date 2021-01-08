@@ -13,7 +13,6 @@ import (
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
-	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -21,10 +20,12 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	allowedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -61,6 +62,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
 		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureIngressAllowedTarget:                   crdInformerFactory.Azureingressallowedtargets().V1().AzureIngressAllowedTargets().Informer(),
 		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
 		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
@@ -74,6 +76,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:                             informerCollection.Secret.GetStore(),
 		Service:                            informerCollection.Service.GetStore(),
 		AzureIngressProhibitedTarget:       informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		AzureIngressAllowedTarget:          informerCollection.AzureIngressAllowedTarget.GetStore(),
 		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
 		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
 		IstioGateway:        informerCollection.IstioGateway.GetStore(),
@@ -127,6 +130,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
+	informerCollection.AzureIngressAllowedTarget.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 
@@ -148,6 +152,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	}
 	crds := map[cache.SharedInformer]interface{}{
 		c.informers.AzureIngressProhibitedTarget: nil,
+		c.informers.AzureIngressAllowedTarget:    nil,
 		c.informers.IstioGateway:                 nil,
 		c.informers.IstioVirtualService:          nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
@@ -168,7 +173,11 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment {
-		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
+		if envVariables.UseAllowedTargetsBrownfieldDeployment {
+			sharedInformers = append(sharedInformers, c.informers.AzureIngressAllowedTarget)
+		} else {
+			sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
+		}
 	}
 
 	if envVariables.EnableIstioIntegration {
@@ -270,6 +279,16 @@ func (c *Context) GetInstanceUpdateStatus(instanceUpdateStatusName string) (*agi
 // GetProhibitedTarget returns prohibited target with specified name and namespace
 func (c *Context) GetProhibitedTarget(namespace string, targetName string) *prohibitedv1.AzureIngressProhibitedTarget {
 	target, err := c.crdClient.AzureingressprohibitedtargetsV1().AzureIngressProhibitedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
+	if err != nil {
+		klog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
+		return nil
+	}
+	return target
+}
+
+// GetAllowedTarget returns allowed target with specified name and namespace
+func (c *Context) GetAllowedTarget(namespace string, targetName string) *allowedv1.AzureIngressAllowedTarget {
+	target, err := c.crdClient.AzureingressallowedtargetsV1().AzureIngressAllowedTargets(namespace).Get(context.TODO(), targetName, metav1.GetOptions{})
 	if err != nil {
 		klog.Error("Error fetching Azure ingress prohibired target resource, Error: ", err)
 		return nil
@@ -414,6 +433,27 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 	}
 
 	klog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+
+	return targets
+}
+
+// ListAzureAllowedTargets returns a list of App Gwy configs, for which AGIC is allowed to modify config.
+func (c *Context) ListAzureAllowedTargets() []*allowedv1.AzureIngressAllowedTarget {
+	var targets []*allowedv1.AzureIngressAllowedTarget
+	for _, obj := range c.Caches.AzureIngressAllowedTarget.List() {
+		allowedTarget := obj.(*allowedv1.AzureIngressAllowedTarget)
+		if _, exists := c.namespaces[allowedTarget.Namespace]; len(c.namespaces) > 0 && !exists {
+			continue
+		}
+		targets = append(targets, allowedTarget)
+	}
+
+	var allowedTargets []string
+	for _, target := range targets {
+		allowedTargets = append(allowedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
+	}
+
+	klog.V(5).Infof("AzureIngressAllowedTargets: %+v", strings.Join(allowedTargets, ","))
 
 	return targets
 }

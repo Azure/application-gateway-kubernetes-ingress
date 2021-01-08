@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 
+	atv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
@@ -22,6 +23,7 @@ type ConfigBuilderContext struct {
 	IngressList          []*v1beta1.Ingress
 	ServiceList          []*v1.Service
 	ProhibitedTargets    []*ptv1.AzureIngressProhibitedTarget
+	AllowedTargets       []*atv1.AzureIngressAllowedTarget
 	EnvVariables         environment.EnvVariables
 	IstioGateways        []*v1alpha3.Gateway
 	IstioVirtualServices []*v1alpha3.VirtualService
