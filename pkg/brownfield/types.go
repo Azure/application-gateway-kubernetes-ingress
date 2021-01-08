@@ -8,6 +8,7 @@ package brownfield
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
+	atv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
@@ -34,6 +35,7 @@ type ExistingResources struct {
 	Probes             []n.ApplicationGatewayProbe
 	Redirects          []n.ApplicationGatewayRedirectConfiguration
 	ProhibitedTargets  []*ptv1.AzureIngressProhibitedTarget
+	AllowedTargets     []*atv1.AzureIngressAllowedTarget
 	DefaultBackendPool *n.ApplicationGatewayBackendAddressPool
 
 	// Cache helper structs
@@ -42,7 +44,7 @@ type ExistingResources struct {
 }
 
 // NewExistingResources creates a new ExistingResources struct.
-func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, defaultPool *n.ApplicationGatewayBackendAddressPool) ExistingResources {
+func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.AzureIngressProhibitedTarget, allowedTargets []*atv1.AzureIngressAllowedTarget, defaultPool *n.ApplicationGatewayBackendAddressPool) ExistingResources {
 	var allExistingSettings []n.ApplicationGatewayBackendHTTPSettings
 	if appGw.BackendHTTPSettingsCollection != nil {
 		allExistingSettings = *appGw.BackendHTTPSettingsCollection
@@ -99,6 +101,7 @@ func NewExistingResources(appGw n.ApplicationGateway, prohibitedTargets []*ptv1.
 		Probes:             allExistingHealthProbes,
 		Redirects:          allExistingRedirects,
 		ProhibitedTargets:  prohibitedTargets,
+		AllowedTargets:     allowedTargets,
 		DefaultBackendPool: defaultPool,
 	}
 }

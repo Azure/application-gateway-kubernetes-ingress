@@ -11,8 +11,8 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -24,7 +24,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedPathMaps()
@@ -41,7 +41,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	c.appGw.URLPathMaps = &pathMaps
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 		{
 			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()

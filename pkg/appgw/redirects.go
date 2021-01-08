@@ -46,7 +46,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets,cbCtx.AllowedTargets, nil)
 
 		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedRedirects()

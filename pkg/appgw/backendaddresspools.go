@@ -11,8 +11,8 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -65,7 +65,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, &defaultPool)
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, &defaultPool)
 
 		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
 		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPools()
