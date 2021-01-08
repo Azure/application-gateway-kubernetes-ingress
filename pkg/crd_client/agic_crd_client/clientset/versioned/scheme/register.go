@@ -27,6 +27,7 @@ import (
 
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	azureingressallowedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 )
 
@@ -37,6 +38,7 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	azureapplicationgatewaybackendpoolsv1beta1.AddToScheme,
 	azureapplicationgatewayinstanceupdatestatusv1beta1.AddToScheme,
 	azureingressprohibitedtargetsv1.AddToScheme,
+	azureingressallowedtargetsv1.AddToScheme,
 }
 
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition

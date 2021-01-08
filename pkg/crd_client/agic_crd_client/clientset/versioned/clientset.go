@@ -27,6 +27,7 @@ import (
 
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	azureingressallowedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressallowedtarget/v1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 )
 
@@ -35,6 +36,7 @@ type Interface interface {
 	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
 	AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
+	AzureingressallowedtargetsV1() azureingressallowedtargetsv1.AzureingressallowedtargetsV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
@@ -43,6 +45,7 @@ type Clientset struct {
 	*discovery.DiscoveryClient
 	azureapplicationgatewaybackendpoolsV1beta1         *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
 	azureapplicationgatewayinstanceupdatestatusV1beta1 *azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+	azureingressallowedtargetsV1                       *azureingressallowedtargetsv1.AzureingressallowedtargetsV1Client
 	azureingressprohibitedtargetsV1                    *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
 }
 
@@ -59,6 +62,11 @@ func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureap
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
 func (c *Clientset) AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface {
 	return c.azureingressprohibitedtargetsV1
+}
+
+// AzureingressallowedtargetsV1 retrieves the AzureingressallowedtargetsV1Client
+func (c *Clientset) AzureingressallowedtargetsV1() azureingressallowedtargetsv1.AzureingressallowedtargetsV1Interface {
+	return c.azureingressallowedtargetsV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -94,6 +102,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.azureingressallowedtargetsV1, err = azureingressallowedtargetsv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 
 	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfig(&configShallowCopy)
 	if err != nil {
@@ -109,6 +121,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
+	cs.azureingressallowedtargetsV1 = azureingressallowedtargetsv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -120,6 +133,7 @@ func New(c rest.Interface) *Clientset {
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
+	cs.azureingressallowedtargetsV1 = azureingressallowedtargetsv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

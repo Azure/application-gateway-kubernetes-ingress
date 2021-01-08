@@ -1,0 +1,33 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: azureingressallowedtargets.appgw.ingress.k8s.io
+  annotations:
+    "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1029" # UPDATE THIS WITH THE PR
+spec:
+  group: appgw.ingress.k8s.io
+  names:
+    kind: AzureIngressAllowedTarget
+    plural: azureingressallowedtargets
+    singular: azureingressallowedtarget
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                hostname:
+                  description: "Hostname of the allowed target"
+                  type: string
+                paths:
+                  description: "(optional) A list of URL paths, for which the Ingress Controller is allowed from mutating Application Gateway configuration; Must begin with a / and end with /*"
+                  type: array
+                  items:
+                    type: string
+                    pattern: '^\/(?:.+\/)?\*$'
