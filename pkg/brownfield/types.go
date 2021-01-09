@@ -116,3 +116,14 @@ func (er ExistingResources) getProhibitedHostNames() map[string]interface{} {
 	}
 	return prohibitedHostNames
 }
+
+func (er ExistingResources) getAllowedHostNames() map[string]interface{} {
+	allowedHostNames := make(map[string]interface{})
+	for _, pt := range er.AllowedTargets {
+		if len(pt.Spec.Hostname) == 0 {
+			continue
+		}
+		allowedHostNames[pt.Spec.Hostname] = nil
+	}
+	return allowedHostNames
+}

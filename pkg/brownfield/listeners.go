@@ -39,6 +39,23 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 	return blacklisted, nonBlacklisted
 }
 
+// GetNotWhitelistedListeners filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+func (er ExistingResources) GetNotWhitelistedListeners() ([]n.ApplicationGatewayHTTPListener, []n.ApplicationGatewayHTTPListener) {
+	whitelistedListenersSet := er.getWhitelistedListenersSet()
+	var nonWhitelisted, whitelisted []n.ApplicationGatewayHTTPListener
+	for _, listener := range er.Listeners {
+		listenerNm := listenerName(*listener.Name)
+		if _, exists := whitelistedListenersSet[listenerNm]; exists {
+			klog.V(5).Infof("[brownfield] Listener %s is whitelisted", listenerNm)
+			whitelisted = append(whitelisted, listener)
+			continue
+		}
+		klog.V(5).Infof("[brownfield] Listener %s is NOT whitelisted", listenerNm)
+		nonWhitelisted = append(nonWhitelisted, listener)
+	}
+	return nonWhitelisted, whitelisted
+}
+
 type uniqueListenerConfig struct {
 	HostNames               [MaxAllowedHostNames]string
 	Protocol                n.ApplicationGatewayProtocol
@@ -167,4 +184,36 @@ func (er ExistingResources) getBlacklistedListenersSet() map[listenerName]interf
 		}
 	}
 	return blacklistedListenersSet
+}
+
+func (er ExistingResources) getWhitelistedListenersSet() map[listenerName]interface{} {
+	// Determine the list of allowed listeners from the HostNames
+	whitelistedListenersSet := make(map[listenerName]interface{})
+	allowedHostNames := er.getAllowedHostNames()
+	for _, listener := range er.Listeners {
+		if listener.HostName != nil {
+			if _, exists := allowedHostNames[*listener.HostName]; exists {
+				whitelistedListenersSet[listenerName(*listener.Name)] = nil
+				continue
+			}
+		}
+		if listener.HostNames != nil && len(*listener.HostNames) > 0 {
+			for _, hostName := range *listener.HostNames {
+				if _, exists := allowedHostNames[hostName]; exists {
+					whitelistedListenersSet[listenerName(*listener.Name)] = nil
+					continue
+				}
+			}
+		}
+	}
+
+	// Augment the list of not allowed listeners by looking at the rules
+	_, whitelistedRoutingRules := er.GetNotWhitelistedRoutingRules()
+	for _, rule := range whitelistedRoutingRules {
+		if rule.HTTPListener != nil && rule.HTTPListener.ID != nil {
+			listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))
+			whitelistedListenersSet[listenerName] = nil
+		}
+	}
+	return whitelistedListenersSet
 }

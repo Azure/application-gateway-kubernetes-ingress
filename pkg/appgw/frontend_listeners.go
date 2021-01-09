@@ -70,13 +70,20 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 
 		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedListeners()
+		var existingNonAllowed []n.ApplicationGatewayHTTPListener
+		var existingAllowed []n.ApplicationGatewayHTTPListener
 
-		brownfield.LogListeners(existingBlacklisted, existingNonBlacklisted, listeners)
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			existingNonAllowed, existingAllowed = er.GetNotWhitelistedListeners()
+		} else {
+			existingNonAllowed, existingAllowed = er.GetBlacklistedListeners()
+		}
+
+		brownfield.LogListeners(existingNonAllowed, existingAllowed, listeners)
 
 		// MergeListeners would produce unique list of listeners based on Name. Blacklisted listeners,
 		// which have the same name as a managed listeners would be overwritten.
-		listeners = brownfield.MergeListeners(existingBlacklisted, listeners)
+		listeners = brownfield.MergeListeners(existingNonAllowed, listeners)
 	}
 
 	portIDs := make(map[string]interface{})
