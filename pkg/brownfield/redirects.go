@@ -34,6 +34,23 @@ func (er ExistingResources) GetBlacklistedRedirects() ([]n.ApplicationGatewayRed
 	return blacklistedRedirects, nonBlacklistedRedirects
 }
 
+// GetNotWhitelistedRedirects removes the managed redirects from the given list of redirects; resulting in a list of redirects not managed by AGIC.
+func (er ExistingResources) GetNotWhitelistedRedirects() ([]n.ApplicationGatewayRedirectConfiguration, []n.ApplicationGatewayRedirectConfiguration) {
+	nonWhitelisted := er.getNotWhitelistedRedirectsSet()
+	var nonWhitelistedRedirects []n.ApplicationGatewayRedirectConfiguration
+	var whitelistedRedirects []n.ApplicationGatewayRedirectConfiguration
+	for _, redirect := range er.Redirects {
+		if _, isBlacklisted := nonWhitelisted[redirectName(*redirect.Name)]; isBlacklisted {
+			nonWhitelistedRedirects = append(nonWhitelistedRedirects, redirect)
+			klog.V(5).Infof("[brownfield] Redirect %s is NOT whitelisted", *redirect.Name)
+			continue
+		}
+		klog.V(5).Infof("[brownfield] Redirect %s is whitelisted", *redirect.Name)
+		whitelistedRedirects = append(whitelistedRedirects, redirect)
+	}
+	return nonWhitelistedRedirects, whitelistedRedirects
+}
+
 // LogRedirects emits a few log lines detailing what Redirects are created, blacklisted, and removed from ARM.
 func LogRedirects(existingBlacklisted []n.ApplicationGatewayRedirectConfiguration, existingNonBlacklisted []n.ApplicationGatewayRedirectConfiguration, managedRedirects []n.ApplicationGatewayRedirectConfiguration) {
 	var garbage []n.ApplicationGatewayRedirectConfiguration
@@ -117,4 +134,35 @@ func (er ExistingResources) getBlacklistedRedirectsSet() map[redirectName]interf
 	}
 
 	return blacklisted
+}
+
+func (er ExistingResources) getNotWhitelistedRedirectsSet() map[redirectName]interface{} {
+	nonWhitelistedRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	nonWhitelisted := make(map[redirectName]interface{})
+	for _, rule := range nonWhitelistedRoutingRules {
+		if rule.RedirectConfiguration != nil && rule.RedirectConfiguration.ID != nil {
+			redirectName := redirectName(utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+			nonWhitelisted[redirectName] = nil
+		}
+	}
+
+	nonWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps()
+	for _, pathMap := range nonWhitelistedPathMaps {
+		if pathMap.DefaultRedirectConfiguration != nil && pathMap.DefaultRedirectConfiguration.ID != nil {
+			redirectName := redirectName(utils.GetLastChunkOfSlashed(*pathMap.DefaultRedirectConfiguration.ID))
+			nonWhitelisted[redirectName] = nil
+		}
+		if pathMap.PathRules == nil {
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.RedirectConfiguration != nil && rule.RedirectConfiguration.ID != nil {
+				redirectName := redirectName(utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+				nonWhitelisted[redirectName] = nil
+			}
+		}
+	}
+
+	return nonWhitelisted
 }

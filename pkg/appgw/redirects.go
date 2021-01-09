@@ -46,16 +46,23 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets,cbCtx.AllowedTargets, nil)
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 
 		// Listeners we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedRedirects()
+		var existingNonAllowed []n.ApplicationGatewayRedirectConfiguration
+		var existingAllowed []n.ApplicationGatewayRedirectConfiguration
 
-		brownfield.LogRedirects(existingBlacklisted, existingNonBlacklisted, redirectConfigs)
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			existingNonAllowed, existingAllowed = er.GetNotWhitelistedRedirects()
+		} else {
+			existingNonAllowed, existingAllowed = er.GetBlacklistedRedirects()
+		}
+
+		brownfield.LogRedirects(existingNonAllowed, existingAllowed, redirectConfigs)
 
 		// MergeRedirects would produce unique list of redirects based on Name. Blacklisted redirects,
 		// which have the same name as a managed redirects would be overwritten.
-		redirectConfigs = brownfield.MergeRedirects(existingBlacklisted, redirectConfigs)
+		redirectConfigs = brownfield.MergeRedirects(existingNonAllowed, redirectConfigs)
 	}
 
 	sort.Sort(sorter.ByRedirectName(redirectConfigs))
