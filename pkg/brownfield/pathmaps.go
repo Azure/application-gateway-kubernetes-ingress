@@ -54,6 +54,42 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 	return blacklistedPathMaps, nonBlacklistedPathMaps
 }
 
+// GetNotWhitelistedPathMaps filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
+func (er ExistingResources) GetNotWhitelistedPathMaps() ([]n.ApplicationGatewayURLPathMap, []n.ApplicationGatewayURLPathMap) {
+
+	whitelist := GetTargetWhitelist(er.AllowedTargets)
+	if whitelist == nil {
+		return er.URLPathMaps, nil
+	}
+	_, pathMapToTargets := er.getRuleToTargets()
+	klog.V(5).Infof("[brownfield] PathMap to Targets map: %+v", pathMapToTargets)
+
+	// Figure out if the given BackendAddressPathMap is not whitelisted. It will be if it has a host/path that
+	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
+	isNotWhitelisted := func(pathMap n.ApplicationGatewayURLPathMap) bool {
+		targetsForPathMap := pathMapToTargets[urlPathMapName(*pathMap.Name)]
+		for _, target := range targetsForPathMap {
+			if target.IsWhitelisted(whitelist) {
+				klog.V(5).Infof("[brownfield] Routing PathMap %s is whitelisted", *pathMap.Name)
+				return false
+			}
+		}
+		klog.V(5).Infof("[brownfield] Routing PathMap %s is NOT whitelisted", *pathMap.Name)
+		return true
+	}
+
+	var nonWhitelistedPathMaps []n.ApplicationGatewayURLPathMap
+	var whitelistedPathMaps []n.ApplicationGatewayURLPathMap
+	for _, pathMap := range er.URLPathMaps {
+		if isNotWhitelisted(pathMap) {
+			nonWhitelistedPathMaps = append(nonWhitelistedPathMaps, pathMap)
+			continue
+		}
+		whitelistedPathMaps = append(whitelistedPathMaps, pathMap)
+	}
+	return nonWhitelistedPathMaps, whitelistedPathMaps
+}
+
 // MergePathMaps merges list of lists of pathMaps into a single list, maintaining uniqueness.
 func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.ApplicationGatewayURLPathMap {
 	uniq := make(pathMapsByName)

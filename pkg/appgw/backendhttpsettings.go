@@ -35,13 +35,20 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 
 		// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedHTTPSettings()
+		var existingNonAllowed []n.ApplicationGatewayBackendHTTPSettings
+		var existingAllowed []n.ApplicationGatewayBackendHTTPSettings
 
-		brownfield.LogHTTPSettings(klog.V(3), existingBlacklisted, existingNonBlacklisted, agicHTTPSettings)
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedHTTPSettings()
+		} else {
+			existingNonAllowed, existingAllowed = rCtx.GetBlacklistedHTTPSettings()
+		}
+
+		brownfield.LogHTTPSettings(klog.V(3), existingNonAllowed, existingAllowed, agicHTTPSettings)
 
 		// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
 		// as a managed rule would be overwritten.
-		agicHTTPSettings = brownfield.MergeHTTPSettings(existingBlacklisted, agicHTTPSettings)
+		agicHTTPSettings = brownfield.MergeHTTPSettings(existingNonAllowed, agicHTTPSettings)
 	}
 	if cbCtx.EnvVariables.EnableIstioIntegration {
 		istioHTTPSettings, _, _, _ := c.getIstioDestinationsAndSettingsMap(cbCtx)

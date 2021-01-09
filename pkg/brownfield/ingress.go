@@ -74,9 +74,8 @@ func PruneIngressNotAllowedRules(ing *v1beta1.Ingress, allowedTargets []*atv1.Az
 
 	whitelist := GetTargetWhitelist(allowedTargets)
 
-	// Need to review this to be able to return nil, a change in other place is needed
 	if whitelist == nil || len(*whitelist) == 0 {
-		return ing.Spec.Rules
+		return nil
 	}
 
 	var rules []v1beta1.IngressRule

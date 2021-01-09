@@ -34,6 +34,23 @@ func (er ExistingResources) GetBlacklistedPools() ([]n.ApplicationGatewayBackend
 	return blacklistedPools, nonBlacklistedPools
 }
 
+// GetNotWhitelistedPools removes the managed pools from the given list of pools; resulting in a list of pools not managed by AGIC.
+func (er ExistingResources) GetNotWhitelistedPools() ([]n.ApplicationGatewayBackendAddressPool, []n.ApplicationGatewayBackendAddressPool) {
+	nonWhitelistedPoolsSet := er.getNotWhitelistedPoolsSet()
+	var nonWhitelistedPools []n.ApplicationGatewayBackendAddressPool
+	var whitelistedPools []n.ApplicationGatewayBackendAddressPool
+	for _, pool := range er.BackendPools {
+		if _, isnonWhitelisted := nonWhitelistedPoolsSet[backendPoolName(*pool.Name)]; isnonWhitelisted {
+			nonWhitelistedPools = append(nonWhitelistedPools, pool)
+			klog.V(5).Infof("[brownfield] Backend Address Pool %s is NOT whitelisted", *pool.Name)
+			continue
+		}
+		klog.V(5).Infof("[brownfield] Backend Address Pool %s is whitelisted", *pool.Name)
+		whitelistedPools = append(whitelistedPools, pool)
+	}
+	return nonWhitelistedPools, whitelistedPools
+}
+
 // MergePools merges list of lists of backend address pools into a single list, maintaining uniqueness.
 func MergePools(pools ...[]n.ApplicationGatewayBackendAddressPool) []n.ApplicationGatewayBackendAddressPool {
 	uniqPool := make(poolsByName)
@@ -117,4 +134,35 @@ func (er ExistingResources) getBlacklistedPoolsSet() map[backendPoolName]interfa
 	}
 
 	return blacklistedPoolsSet
+}
+
+func (er ExistingResources) getNotWhitelistedPoolsSet() map[backendPoolName]interface{} {
+	notWhitelistedRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	notWhitelistedPoolsSet := make(map[backendPoolName]interface{})
+	for _, rule := range notWhitelistedRoutingRules {
+		if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
+			poolName := backendPoolName(utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID))
+			notWhitelistedPoolsSet[poolName] = nil
+		}
+	}
+
+	notWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps() //Pending
+	for _, pathMap := range notWhitelistedPathMaps {
+		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
+			poolName := backendPoolName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendAddressPool.ID))
+			notWhitelistedPoolsSet[poolName] = nil
+		}
+		if pathMap.PathRules == nil {
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
+				poolName := backendPoolName(utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID))
+				notWhitelistedPoolsSet[poolName] = nil
+			}
+		}
+	}
+
+	return notWhitelistedPoolsSet
 }

@@ -6,16 +6,19 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 )
@@ -26,6 +29,40 @@ type ipAddress string
 // MutateAllIngress applies changes to ingress status object in kubernetes
 func (c AppGwIngressController) MutateAllIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
 	ips := getIPsFromAppGateway(appGw, c.azClient)
+
+	// Load Prohibited && Allowed targets in order to be ready for prune
+	// --------------------------- //
+	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			allowedTargets := c.k8sContext.ListAzureAllowedTargets()
+			cbCtx.AllowedTargets = allowedTargets
+			if len(allowedTargets) > 0 {
+				var allowedTargetsList []string
+				for _, target := range *brownfield.GetTargetWhitelist(allowedTargets) {
+					targetJSON, _ := json.Marshal(target)
+					allowedTargetsList = append(allowedTargetsList, string(targetJSON))
+				}
+				klog.V(3).Infof("[brownfield] Allowed targets: %s", strings.Join(allowedTargetsList, ", "))
+			} else {
+				klog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureAllowedTarget CRDs")
+			}
+
+		} else {
+			prohibitedTargets := c.k8sContext.ListAzureProhibitedTargets()
+			if len(prohibitedTargets) > 0 {
+				cbCtx.ProhibitedTargets = prohibitedTargets
+				var prohibitedTargetsList []string
+				for _, target := range *brownfield.GetTargetBlacklist(prohibitedTargets) {
+					targetJSON, _ := json.Marshal(target)
+					prohibitedTargetsList = append(prohibitedTargetsList, string(targetJSON))
+				}
+				klog.V(3).Infof("[brownfield] Prohibited targets: %s", strings.Join(prohibitedTargetsList, ", "))
+			} else {
+				klog.Warning("Brownfield Deployment is enabled, but AGIC did not find any AzureProhibitedTarget CRDs; Disabling brownfield deployment feature.")
+				cbCtx.EnvVariables.EnableBrownfieldDeployment = false
+			}
+		}
+	}
 
 	// update all relevant ingresses with IP address obtained from existing App Gateway configuration
 	cbCtx.IngressList = c.PruneIngress(appGw, cbCtx)

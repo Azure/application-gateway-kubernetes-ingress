@@ -56,6 +56,42 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 	return blacklistedRules, nonBlacklistedRules
 }
 
+// GetNotWhitelistedRoutingRules filters the given list of routing rules to the list rules that AGIC is allowed to manage.
+func (er ExistingResources) GetNotWhitelistedRoutingRules() ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayRequestRoutingRule) {
+
+	whitelist := GetTargetWhitelist(er.AllowedTargets)
+	if whitelist == nil {
+		return er.RoutingRules, nil
+	}
+	ruleToTargets, _ := er.getRuleToTargets()
+	klog.V(5).Infof("[brownfield] Rule to Targets map: %+v", ruleToTargets)
+
+	// Figure out if the given routing rule is not whitelisted. It will be if it has a host/path that
+	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
+	isNotWhitelisted := func(rule n.ApplicationGatewayRequestRoutingRule) bool {
+		targetsForRule := ruleToTargets[ruleName(*rule.Name)]
+		for _, target := range targetsForRule {
+			if target.IsWhitelisted(whitelist) {
+				klog.V(5).Infof("[brownfield] Routing Rule %s is whitelisted", *rule.Name)
+				return false
+			}
+		}
+		klog.V(5).Infof("[brownfield] Routing Rule %s is NOT whitelisted", *rule.Name)
+		return true
+	}
+
+	var nonWhitelistedRules []n.ApplicationGatewayRequestRoutingRule
+	var whitelistedRules []n.ApplicationGatewayRequestRoutingRule
+	for _, rule := range er.RoutingRules {
+		if isNotWhitelisted(rule) {
+			nonWhitelistedRules = append(nonWhitelistedRules, rule)
+			continue
+		}
+		whitelistedRules = append(whitelistedRules, rule)
+	}
+	return nonWhitelistedRules, whitelistedRules
+}
+
 // MergeRules merges list of lists of rules into a single list, maintaining uniqueness.
 func MergeRules(appGw *n.ApplicationGateway, ruleBuckets ...[]n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
 	uniq := make(map[string]*n.ApplicationGatewayRequestRoutingRule)

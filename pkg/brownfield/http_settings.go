@@ -35,6 +35,24 @@ func (er ExistingResources) GetBlacklistedHTTPSettings() ([]n.ApplicationGateway
 	return blacklisted, nonBlacklisted
 }
 
+// GetNotWhitelistedHTTPSettings filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
+// HTTP Setting is whitelisted when it is associated with a Routing Rule that is whitelisted.
+func (er ExistingResources) GetNotWhitelistedHTTPSettings() ([]n.ApplicationGatewayBackendHTTPSettings, []n.ApplicationGatewayBackendHTTPSettings) {
+	whitelistedSettingsSet := er.getNotWhitelistedSettingsSet()
+	var nonWhitelisted []n.ApplicationGatewayBackendHTTPSettings
+	var whitelisted []n.ApplicationGatewayBackendHTTPSettings
+	for _, setting := range er.HTTPSettings {
+		if _, isNonWhitelisted := whitelistedSettingsSet[settingName(*setting.Name)]; isNonWhitelisted {
+			nonWhitelisted = append(nonWhitelisted, setting)
+			klog.V(5).Infof("HTTP Setting %s is NOT whitelisted", *setting.Name)
+			continue
+		}
+		klog.V(5).Infof("HTTP Setting %s is whitelisted", *setting.Name)
+		whitelisted = append(whitelisted, setting)
+	}
+	return nonWhitelisted, whitelisted
+}
+
 // MergeHTTPSettings merges list of lists of HTTP Settings into a single list, maintaining uniqueness.
 func MergeHTTPSettings(settingBuckets ...[]n.ApplicationGatewayBackendHTTPSettings) []n.ApplicationGatewayBackendHTTPSettings {
 	uniq := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -115,4 +133,35 @@ func (er ExistingResources) getBlacklistedSettingsSet() map[settingName]interfac
 	}
 
 	return blacklistedSettingsSet
+}
+
+func (er ExistingResources) getNotWhitelistedSettingsSet() map[settingName]interface{} {
+	nonWhiteRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	nonWhitelistedSettingsSet := make(map[settingName]interface{})
+	for _, rule := range nonWhiteRoutingRules {
+		if rule.BackendHTTPSettings != nil && rule.BackendHTTPSettings.ID != nil {
+			settingName := settingName(utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+			nonWhitelistedSettingsSet[settingName] = nil
+		}
+	}
+
+	nonWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps()
+	for _, pathMap := range nonWhitelistedPathMaps {
+		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
+			settingName := settingName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendHTTPSettings.ID))
+			nonWhitelistedSettingsSet[settingName] = nil
+		}
+		if pathMap.PathRules == nil {
+			klog.Errorf("PathMap %s does not have PathRules", *pathMap.Name)
+			continue
+		}
+		for _, rule := range *pathMap.PathRules {
+			if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
+				settingName := settingName(utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+				nonWhitelistedSettingsSet[settingName] = nil
+			}
+		}
+	}
+
+	return nonWhitelistedSettingsSet
 }

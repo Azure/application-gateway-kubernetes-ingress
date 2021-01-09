@@ -65,16 +65,24 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
+
 		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, &defaultPool)
 
 		// Split the existing pools we obtained from App Gateway into ones AGIC is and is not allowed to change.
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedPools()
+		var existingNonAllowed []n.ApplicationGatewayBackendAddressPool
+		var existingAllowed []n.ApplicationGatewayBackendAddressPool
 
-		brownfield.LogPools(existingBlacklisted, existingNonBlacklisted, agicCreatedPools)
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			existingNonAllowed, existingAllowed = er.GetNotWhitelistedPools()
+		} else {
+			existingNonAllowed, existingAllowed = er.GetBlacklistedPools()
+		}
+		brownfield.LogPools(existingNonAllowed, existingAllowed, agicCreatedPools)
 
 		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
 		// as a managed pool would be overwritten.
-		return brownfield.MergePools(existingBlacklisted, agicCreatedPools)
+		return brownfield.MergePools(existingNonAllowed, agicCreatedPools)
+
 	}
 
 	c.mem.pools = &agicCreatedPools
