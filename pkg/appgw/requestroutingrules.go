@@ -27,13 +27,20 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedPathMaps()
+			var existingNonAllowed []n.ApplicationGatewayURLPathMap
+			var existingAllowed []n.ApplicationGatewayURLPathMap
 
-			brownfield.LogPathMaps(existingBlacklisted, existingNonBlacklisted, pathMaps)
+			if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+				existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedPathMaps()
+			} else {
+				existingNonAllowed, existingAllowed = rCtx.GetBlacklistedPathMaps()
+			}
+
+			brownfield.LogPathMaps(existingNonAllowed, existingAllowed, pathMaps)
 
 			// MergePathMaps would produce unique list of routing rules based on Name. Routing rules, which have the same name
 			// as a managed rule would be overwritten.
-			pathMaps = brownfield.MergePathMaps(existingBlacklisted, pathMaps)
+			pathMaps = brownfield.MergePathMaps(existingNonAllowed, pathMaps)
 		}
 	}
 
@@ -44,13 +51,20 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
 		{
 			// RoutingRules we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
-			existingBlacklisted, existingNonBlacklisted := rCtx.GetBlacklistedRoutingRules()
+			var existingNonAllowed []n.ApplicationGatewayRequestRoutingRule
+			var existingAllowed []n.ApplicationGatewayRequestRoutingRule
 
-			brownfield.LogRules(existingBlacklisted, existingNonBlacklisted, requestRoutingRules)
+			if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+				existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedRoutingRules()
+			} else {
+				existingNonAllowed, existingAllowed = rCtx.GetBlacklistedRoutingRules()
+			}
+
+			brownfield.LogRules(existingNonAllowed, existingAllowed, requestRoutingRules)
 
 			// MergeRules would produce unique list of routing rules based on Name. Routing rules, which have the same name
 			// as a managed rule would be overwritten.
-			requestRoutingRules = brownfield.MergeRules(&c.appGw, existingBlacklisted, requestRoutingRules)
+			requestRoutingRules = brownfield.MergeRules(&c.appGw, existingNonAllowed, requestRoutingRules)
 		}
 	}
 

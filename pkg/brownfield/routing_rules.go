@@ -68,26 +68,26 @@ func (er ExistingResources) GetNotWhitelistedRoutingRules() ([]n.ApplicationGate
 
 	// Figure out if the given routing rule is not whitelisted. It will be if it has a host/path that
 	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
-	isNotWhitelisted := func(rule n.ApplicationGatewayRequestRoutingRule) bool {
+	isWhitelisted := func(rule n.ApplicationGatewayRequestRoutingRule) bool {
 		targetsForRule := ruleToTargets[ruleName(*rule.Name)]
 		for _, target := range targetsForRule {
-			if target.IsWhitelisted(whitelist) {
-				klog.V(5).Infof("[brownfield] Routing Rule %s is whitelisted", *rule.Name)
+			if !target.IsWhitelisted(whitelist) {
+				klog.V(5).Infof("[brownfield] Routing Rule %s is NOT whitelisted", *rule.Name)
 				return false
 			}
 		}
-		klog.V(5).Infof("[brownfield] Routing Rule %s is NOT whitelisted", *rule.Name)
+		klog.V(5).Infof("[brownfield] Routing Rule %s is whitelisted", *rule.Name)
 		return true
 	}
 
 	var nonWhitelistedRules []n.ApplicationGatewayRequestRoutingRule
 	var whitelistedRules []n.ApplicationGatewayRequestRoutingRule
 	for _, rule := range er.RoutingRules {
-		if isNotWhitelisted(rule) {
-			nonWhitelistedRules = append(nonWhitelistedRules, rule)
+		if isWhitelisted(rule) {
+			whitelistedRules = append(whitelistedRules, rule)
 			continue
 		}
-		whitelistedRules = append(whitelistedRules, rule)
+		nonWhitelistedRules = append(nonWhitelistedRules, rule)
 	}
 	return nonWhitelistedRules, whitelistedRules
 }
