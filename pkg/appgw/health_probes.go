@@ -12,9 +12,9 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -29,10 +29,19 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 	}
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
-		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets,cbCtx.AllowedTargets, nil)
-		existingBlacklisted, existingNonBlacklisted := er.GetBlacklistedProbes()
-		brownfield.LogProbes(klog.V(3), existingBlacklisted, existingNonBlacklisted, agicCreatedProbes)
-		agicCreatedProbes = brownfield.MergeProbes(existingBlacklisted, agicCreatedProbes)
+		er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, cbCtx.AllowedTargets, nil)
+
+		var existingNonAllowed []n.ApplicationGatewayProbe
+		var existingAllowed []n.ApplicationGatewayProbe
+
+		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
+			existingNonAllowed, existingAllowed = er.GetNotWhitelistedProbes()
+		} else {
+			existingNonAllowed, existingAllowed = er.GetBlacklistedProbes()
+		}
+
+		brownfield.LogProbes(klog.V(3), existingNonAllowed, existingAllowed, agicCreatedProbes)
+		agicCreatedProbes = brownfield.MergeProbes(existingNonAllowed, agicCreatedProbes)
 	}
 
 	sort.Sort(sorter.ByHealthProbeName(agicCreatedProbes))

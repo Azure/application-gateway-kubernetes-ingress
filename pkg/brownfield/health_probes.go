@@ -34,6 +34,23 @@ func (er ExistingResources) GetBlacklistedProbes() ([]n.ApplicationGatewayProbe,
 	return blacklistedProbes, nonBlacklistedProbes
 }
 
+// GetNotWhitelistedProbes filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+func (er ExistingResources) GetNotWhitelistedProbes() ([]n.ApplicationGatewayProbe, []n.ApplicationGatewayProbe) {
+	whitelistedProbesSet := er.getWhitelistedProbesSet()
+	var nonWhitelistedProbes []n.ApplicationGatewayProbe
+	var whitelistedProbes []n.ApplicationGatewayProbe
+	for _, probe := range er.Probes {
+		if _, isWhitelisted := whitelistedProbesSet[probeName(*probe.Name)]; isWhitelisted {
+			klog.V(5).Infof("Probe %s is whitelisted", *probe.Name)
+			whitelistedProbes = append(whitelistedProbes, probe)
+			continue
+		}
+		klog.V(5).Infof("Probe %s is not whitelisted", *probe.Name)
+		nonWhitelistedProbes = append(nonWhitelistedProbes, probe)
+	}
+	return nonWhitelistedProbes, whitelistedProbes
+}
+
 // MergeProbes merges list of lists of health probes into a single list, maintaining uniqueness.
 func MergeProbes(probesBuckets ...[]n.ApplicationGatewayProbe) []n.ApplicationGatewayProbe {
 	uniqProbes := make(probesByName)
@@ -95,4 +112,16 @@ func (er ExistingResources) getBlacklistedProbesSet() map[probeName]interface{} 
 		}
 	}
 	return blacklistedProbesSet
+}
+
+func (er ExistingResources) getWhitelistedProbesSet() map[probeName]interface{} {
+	_, whitelistedHTTPSettings := er.GetNotWhitelistedHTTPSettings()
+	whitelistedProbesSet := make(map[probeName]interface{})
+	for _, setting := range whitelistedHTTPSettings {
+		if setting.Probe != nil && setting.Probe.ID != nil {
+			probeName := probeName(utils.GetLastChunkOfSlashed(*setting.Probe.ID))
+			whitelistedProbesSet[probeName] = nil
+		}
+	}
+	return whitelistedProbesSet
 }
