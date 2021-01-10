@@ -25,7 +25,7 @@ var _ = Describe("Test blacklisting path maps", func() {
 	Context("Test GetBlacklistedHTTPSettings() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted path maps", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedPathMaps()
 			Expect(len(blacklisted)).To(Equal(3))
@@ -45,7 +45,7 @@ var _ = Describe("Test blacklisting path maps", func() {
 			}
 			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), wildcard)
 
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedPathMaps()
 			Expect(len(blacklisted)).To(Equal(3))
 			Expect(blacklisted).To(ContainElement(pathMap2))

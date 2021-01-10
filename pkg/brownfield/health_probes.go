@@ -34,8 +34,8 @@ func (er ExistingResources) GetBlacklistedProbes() ([]n.ApplicationGatewayProbe,
 	return blacklistedProbes, nonBlacklistedProbes
 }
 
-// GetNotWhitelistedProbes filters the given list of health probes to the list Probes that AGIC is allowed to manage.
-func (er ExistingResources) GetNotWhitelistedProbes() ([]n.ApplicationGatewayProbe, []n.ApplicationGatewayProbe) {
+// GetWhitelistedProbes filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+func (er ExistingResources) GetWhitelistedProbes() ([]n.ApplicationGatewayProbe, []n.ApplicationGatewayProbe) {
 	whitelistedProbesSet := er.getWhitelistedProbesSet()
 	var nonWhitelistedProbes []n.ApplicationGatewayProbe
 	var whitelistedProbes []n.ApplicationGatewayProbe
@@ -115,7 +115,7 @@ func (er ExistingResources) getBlacklistedProbesSet() map[probeName]interface{} 
 }
 
 func (er ExistingResources) getWhitelistedProbesSet() map[probeName]interface{} {
-	_, whitelistedHTTPSettings := er.GetNotWhitelistedHTTPSettings()
+	_, whitelistedHTTPSettings := er.GetWhitelistedHTTPSettings()
 	whitelistedProbesSet := make(map[probeName]interface{})
 	for _, setting := range whitelistedHTTPSettings {
 		if setting.Probe != nil && setting.Probe.ID != nil {

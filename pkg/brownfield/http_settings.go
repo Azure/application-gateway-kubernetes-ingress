@@ -35,9 +35,9 @@ func (er ExistingResources) GetBlacklistedHTTPSettings() ([]n.ApplicationGateway
 	return blacklisted, nonBlacklisted
 }
 
-// GetNotWhitelistedHTTPSettings filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
+// GetWhitelistedHTTPSettings filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
 // HTTP Setting is whitelisted when it is associated with a Routing Rule that is whitelisted.
-func (er ExistingResources) GetNotWhitelistedHTTPSettings() ([]n.ApplicationGatewayBackendHTTPSettings, []n.ApplicationGatewayBackendHTTPSettings) {
+func (er ExistingResources) GetWhitelistedHTTPSettings() ([]n.ApplicationGatewayBackendHTTPSettings, []n.ApplicationGatewayBackendHTTPSettings) {
 	whitelistedSettingsSet := er.getNotWhitelistedSettingsSet()
 	var nonWhitelisted []n.ApplicationGatewayBackendHTTPSettings
 	var whitelisted []n.ApplicationGatewayBackendHTTPSettings
@@ -136,7 +136,7 @@ func (er ExistingResources) getBlacklistedSettingsSet() map[settingName]interfac
 }
 
 func (er ExistingResources) getNotWhitelistedSettingsSet() map[settingName]interface{} {
-	nonWhiteRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	nonWhiteRoutingRules, _ := er.GetWhitelistedRoutingRules()
 	nonWhitelistedSettingsSet := make(map[settingName]interface{})
 	for _, rule := range nonWhiteRoutingRules {
 		if rule.BackendHTTPSettings != nil && rule.BackendHTTPSettings.ID != nil {
@@ -145,7 +145,7 @@ func (er ExistingResources) getNotWhitelistedSettingsSet() map[settingName]inter
 		}
 	}
 
-	nonWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps()
+	nonWhitelistedPathMaps, _ := er.GetWhitelistedPathMaps()
 	for _, pathMap := range nonWhitelistedPathMaps {
 		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
 			settingName := settingName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendHTTPSettings.ID))

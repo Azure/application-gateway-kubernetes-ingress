@@ -27,7 +27,7 @@ var _ = Describe("Test blacklist listeners", func() {
 	Context("Test GetBlacklistedListeners() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted listeners", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedListeners()
 
 			Expect(len(blacklisted)).To(Equal(4))
@@ -51,7 +51,7 @@ var _ = Describe("Test blacklist listeners", func() {
 					},
 				},
 			}
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedListeners()
 
@@ -71,7 +71,7 @@ var _ = Describe("Test blacklist listeners", func() {
 		It("should create a list of blacklisted and non blacklisted listeners", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()                    // Host: "bye.com", Paths: [/fox, /bar]
 			prohibitedTargets = append(prohibitedTargets, &ptv1.AzureIngressProhibitedTarget{}) // Host: '', Path: []
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedListeners()
 
 			Expect(len(blacklisted)).To(Equal(5))
@@ -94,7 +94,7 @@ var _ = Describe("Test blacklist listeners", func() {
 				},
 			})
 
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			set := er.getBlacklistedListenersSet()
 
 			Expect(len(set)).To(Equal(5))
@@ -114,7 +114,7 @@ var _ = Describe("Test blacklist listeners", func() {
 	Context("Test getListenersByName()", func() {
 		It("should create a set of listeners by name and memoize it", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			er.listenersByName = nil
 			listenersByName := er.getListenersByName()
 			Expect(er.listenersByName).ToNot(BeNil())

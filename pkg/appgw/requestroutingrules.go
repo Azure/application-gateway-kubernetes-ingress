@@ -31,7 +31,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 			var existingAllowed []n.ApplicationGatewayURLPathMap
 
 			if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-				existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedPathMaps()
+				existingNonAllowed, existingAllowed = rCtx.GetWhitelistedPathMaps()
 			} else {
 				existingNonAllowed, existingAllowed = rCtx.GetBlacklistedPathMaps()
 			}
@@ -55,7 +55,7 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 			var existingAllowed []n.ApplicationGatewayRequestRoutingRule
 
 			if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-				existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedRoutingRules()
+				existingNonAllowed, existingAllowed = rCtx.GetWhitelistedRoutingRules()
 			} else {
 				existingNonAllowed, existingAllowed = rCtx.GetBlacklistedRoutingRules()
 			}

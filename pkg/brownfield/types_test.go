@@ -24,7 +24,7 @@ var _ = Describe("Test NewExistingResources", func() {
 			}
 			defaultPool := n.ApplicationGatewayBackendAddressPool{}
 
-			actual := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
+			actual := NewExistingResources(appGw, prohibitedTargets, nil, &defaultPool)
 			expected := ExistingResources{
 				ProhibitedTargets:  prohibitedTargets,
 				DefaultBackendPool: &n.ApplicationGatewayBackendAddressPool{},
@@ -39,7 +39,7 @@ var _ = Describe("Test NewExistingResources", func() {
 				ApplicationGatewayPropertiesFormat: &n.ApplicationGatewayPropertiesFormat{},
 			}
 			defaultPool := n.ApplicationGatewayBackendAddressPool{}
-			er := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, &defaultPool)
 			actual := er.getProhibitedHostNames()
 			expected := map[string]interface{}{
 				"bye.com":                 nil,

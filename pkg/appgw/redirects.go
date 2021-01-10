@@ -53,7 +53,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 		var existingAllowed []n.ApplicationGatewayRedirectConfiguration
 
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-			existingNonAllowed, existingAllowed = er.GetNotWhitelistedRedirects()
+			existingNonAllowed, existingAllowed = er.GetWhitelistedRedirects()
 		} else {
 			existingNonAllowed, existingAllowed = er.GetBlacklistedRedirects()
 		}

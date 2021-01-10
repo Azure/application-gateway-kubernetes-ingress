@@ -39,8 +39,8 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 	return blacklisted, nonBlacklisted
 }
 
-// GetNotWhitelistedListeners filters the given list of health probes to the list Probes that AGIC is allowed to manage.
-func (er ExistingResources) GetNotWhitelistedListeners() ([]n.ApplicationGatewayHTTPListener, []n.ApplicationGatewayHTTPListener) {
+// GetWhitelistedListeners filters the given list of health probes to the list Probes that AGIC is allowed to manage.
+func (er ExistingResources) GetWhitelistedListeners() ([]n.ApplicationGatewayHTTPListener, []n.ApplicationGatewayHTTPListener) {
 	whitelistedListenersSet := er.getWhitelistedListenersSet()
 	var nonWhitelisted, whitelisted []n.ApplicationGatewayHTTPListener
 	for _, listener := range er.Listeners {
@@ -208,7 +208,7 @@ func (er ExistingResources) getWhitelistedListenersSet() map[listenerName]interf
 	}
 
 	// Augment the list of not allowed listeners by looking at the rules
-	_, whitelistedRoutingRules := er.GetNotWhitelistedRoutingRules()
+	_, whitelistedRoutingRules := er.GetWhitelistedRoutingRules()
 	for _, rule := range whitelistedRoutingRules {
 		if rule.HTTPListener != nil && rule.HTTPListener.ID != nil {
 			listenerName := listenerName(utils.GetLastChunkOfSlashed(*rule.HTTPListener.ID))

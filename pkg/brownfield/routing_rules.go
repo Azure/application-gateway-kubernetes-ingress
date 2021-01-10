@@ -56,8 +56,8 @@ func (er ExistingResources) GetBlacklistedRoutingRules() ([]n.ApplicationGateway
 	return blacklistedRules, nonBlacklistedRules
 }
 
-// GetNotWhitelistedRoutingRules filters the given list of routing rules to the list rules that AGIC is allowed to manage.
-func (er ExistingResources) GetNotWhitelistedRoutingRules() ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayRequestRoutingRule) {
+// GetWhitelistedRoutingRules filters the given list of routing rules to the list rules that AGIC is allowed to manage.
+func (er ExistingResources) GetWhitelistedRoutingRules() ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayRequestRoutingRule) {
 
 	whitelist := GetTargetWhitelist(er.AllowedTargets)
 	if whitelist == nil {

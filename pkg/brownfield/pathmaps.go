@@ -54,8 +54,8 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 	return blacklistedPathMaps, nonBlacklistedPathMaps
 }
 
-// GetNotWhitelistedPathMaps filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
-func (er ExistingResources) GetNotWhitelistedPathMaps() ([]n.ApplicationGatewayURLPathMap, []n.ApplicationGatewayURLPathMap) {
+// GetWhitelistedPathMaps filters the given list of routing pathMaps to the list pathMaps that AGIC is allowed to manage.
+func (er ExistingResources) GetWhitelistedPathMaps() ([]n.ApplicationGatewayURLPathMap, []n.ApplicationGatewayURLPathMap) {
 
 	whitelist := GetTargetWhitelist(er.AllowedTargets)
 	if whitelist == nil {

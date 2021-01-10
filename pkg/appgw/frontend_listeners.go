@@ -74,7 +74,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		var existingAllowed []n.ApplicationGatewayHTTPListener
 
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-			existingNonAllowed, existingAllowed = er.GetNotWhitelistedListeners()
+			existingNonAllowed, existingAllowed = er.GetWhitelistedListeners()
 		} else {
 			existingNonAllowed, existingAllowed = er.GetBlacklistedListeners()
 		}

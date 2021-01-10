@@ -35,7 +35,7 @@ func (c *appGwConfigBuilder) HealthProbesCollection(cbCtx *ConfigBuilderContext)
 		var existingAllowed []n.ApplicationGatewayProbe
 
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-			existingNonAllowed, existingAllowed = er.GetNotWhitelistedProbes()
+			existingNonAllowed, existingAllowed = er.GetWhitelistedProbes()
 		} else {
 			existingNonAllowed, existingAllowed = er.GetBlacklistedProbes()
 		}

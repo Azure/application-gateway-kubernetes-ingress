@@ -26,7 +26,7 @@ var _ = Describe("Test GetBlacklistedRedirects", func() {
 	}
 	appGw := fixtures.GetAppGateway()
 
-	er := NewExistingResources(appGw, prohibitedTargets, nil)
+	er := NewExistingResources(appGw, prohibitedTargets,nil, nil)
 
 	Context("Test GetBlacklistedRedirects()", func() {
 		It("should work as expected", func() {

@@ -26,7 +26,7 @@ var _ = Describe("Test blacklisting HTTP settings", func() {
 	Context("Test GetBlacklistedHTTPSettings() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted settings", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedHTTPSettings()
 			Expect(len(blacklisted)).To(Equal(2))
@@ -46,7 +46,7 @@ var _ = Describe("Test blacklisting HTTP settings", func() {
 			}
 			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), wildcard)
 
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedHTTPSettings()
 			Expect(len(blacklisted)).To(Equal(2))
 
@@ -58,7 +58,7 @@ var _ = Describe("Test blacklisting HTTP settings", func() {
 	Context("Test getBlacklistedSettingsSet()", func() {
 		It("should create a set of blacklisted settings", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			set := er.getBlacklistedSettingsSet()
 			Expect(len(set)).To(Equal(2))
 			_, exists := set[fixtures.BackendHTTPSettingsName1]

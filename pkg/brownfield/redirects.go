@@ -34,8 +34,8 @@ func (er ExistingResources) GetBlacklistedRedirects() ([]n.ApplicationGatewayRed
 	return blacklistedRedirects, nonBlacklistedRedirects
 }
 
-// GetNotWhitelistedRedirects removes the managed redirects from the given list of redirects; resulting in a list of redirects not managed by AGIC.
-func (er ExistingResources) GetNotWhitelistedRedirects() ([]n.ApplicationGatewayRedirectConfiguration, []n.ApplicationGatewayRedirectConfiguration) {
+// GetWhitelistedRedirects removes the managed redirects from the given list of redirects; resulting in a list of redirects not managed by AGIC.
+func (er ExistingResources) GetWhitelistedRedirects() ([]n.ApplicationGatewayRedirectConfiguration, []n.ApplicationGatewayRedirectConfiguration) {
 	nonWhitelisted := er.getNotWhitelistedRedirectsSet()
 	var nonWhitelistedRedirects []n.ApplicationGatewayRedirectConfiguration
 	var whitelistedRedirects []n.ApplicationGatewayRedirectConfiguration
@@ -137,7 +137,7 @@ func (er ExistingResources) getBlacklistedRedirectsSet() map[redirectName]interf
 }
 
 func (er ExistingResources) getNotWhitelistedRedirectsSet() map[redirectName]interface{} {
-	nonWhitelistedRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	nonWhitelistedRoutingRules, _ := er.GetWhitelistedRoutingRules()
 	nonWhitelisted := make(map[redirectName]interface{})
 	for _, rule := range nonWhitelistedRoutingRules {
 		if rule.RedirectConfiguration != nil && rule.RedirectConfiguration.ID != nil {
@@ -146,7 +146,7 @@ func (er ExistingResources) getNotWhitelistedRedirectsSet() map[redirectName]int
 		}
 	}
 
-	nonWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps()
+	nonWhitelistedPathMaps, _ := er.GetWhitelistedPathMaps()
 	for _, pathMap := range nonWhitelistedPathMaps {
 		if pathMap.DefaultRedirectConfiguration != nil && pathMap.DefaultRedirectConfiguration.ID != nil {
 			redirectName := redirectName(utils.GetLastChunkOfSlashed(*pathMap.DefaultRedirectConfiguration.ID))

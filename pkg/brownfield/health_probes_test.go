@@ -30,7 +30,7 @@ var _ = Describe("Test blacklist health probes", func() {
 
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // /fox  /bar
 
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedProbes()
 
@@ -53,7 +53,7 @@ var _ = Describe("Test blacklist health probes", func() {
 			}
 			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), wildcard)
 
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 
 			// Everything is blacklisted
 			blacklisted, nonBlacklisted := er.GetBlacklistedProbes()
@@ -97,7 +97,7 @@ var _ = Describe("Test blacklist health probes", func() {
 	Context("Test getBlacklistedProbesSet()", func() {
 		It("should create a set of blacklisted probes", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets, nil, nil)
 			set := er.getBlacklistedProbesSet()
 			Expect(len(set)).To(Equal(2))
 			_, exists := set[fixtures.ProbeName1]

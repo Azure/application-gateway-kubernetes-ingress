@@ -39,7 +39,7 @@ func (c *appGwConfigBuilder) BackendHTTPSettingsCollection(cbCtx *ConfigBuilderC
 		var existingAllowed []n.ApplicationGatewayBackendHTTPSettings
 
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-			existingNonAllowed, existingAllowed = rCtx.GetNotWhitelistedHTTPSettings()
+			existingNonAllowed, existingAllowed = rCtx.GetWhitelistedHTTPSettings()
 		} else {
 			existingNonAllowed, existingAllowed = rCtx.GetBlacklistedHTTPSettings()
 		}

@@ -26,7 +26,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 	Context("Test getRoutingRuleToTargetsMap()", func() {
 		It("should create a map of routing rules to targets", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets,nil, nil)
 
 			ruleToTargets, pathMapToTargets := er.getRuleToTargets()
 
@@ -67,7 +67,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 	Context("Test GetBlacklistedRoutingRules() with a blacklist", func() {
 		It("should create a list of blacklisted and non blacklisted request routing rules", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets,nil, nil)
 			blacklisted, nonBlacklisted := er.GetBlacklistedRoutingRules()
 
 			Expect(len(blacklisted)).To(Equal(4))
@@ -87,7 +87,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets() // Host: "bye.com", Paths: [/fox, /bar]
 			wildcard := &ptv1.AzureIngressProhibitedTarget{}
 			prohibitedTargets = append(prohibitedTargets, wildcard)
-			er := NewExistingResources(appGw, prohibitedTargets, nil)
+			er := NewExistingResources(appGw, prohibitedTargets,nil, nil)
 
 			blacklisted, nonBlacklisted := er.GetBlacklistedRoutingRules()
 

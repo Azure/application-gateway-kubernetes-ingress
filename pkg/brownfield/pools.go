@@ -34,8 +34,8 @@ func (er ExistingResources) GetBlacklistedPools() ([]n.ApplicationGatewayBackend
 	return blacklistedPools, nonBlacklistedPools
 }
 
-// GetNotWhitelistedPools removes the managed pools from the given list of pools; resulting in a list of pools not managed by AGIC.
-func (er ExistingResources) GetNotWhitelistedPools() ([]n.ApplicationGatewayBackendAddressPool, []n.ApplicationGatewayBackendAddressPool) {
+// GetWhitelistedPools removes the managed pools from the given list of pools; resulting in a list of pools not managed by AGIC.
+func (er ExistingResources) GetWhitelistedPools() ([]n.ApplicationGatewayBackendAddressPool, []n.ApplicationGatewayBackendAddressPool) {
 	nonWhitelistedPoolsSet := er.getNotWhitelistedPoolsSet()
 	var nonWhitelistedPools []n.ApplicationGatewayBackendAddressPool
 	var whitelistedPools []n.ApplicationGatewayBackendAddressPool
@@ -137,7 +137,7 @@ func (er ExistingResources) getBlacklistedPoolsSet() map[backendPoolName]interfa
 }
 
 func (er ExistingResources) getNotWhitelistedPoolsSet() map[backendPoolName]interface{} {
-	notWhitelistedRoutingRules, _ := er.GetNotWhitelistedRoutingRules()
+	notWhitelistedRoutingRules, _ := er.GetWhitelistedRoutingRules()
 	notWhitelistedPoolsSet := make(map[backendPoolName]interface{})
 	for _, rule := range notWhitelistedRoutingRules {
 		if rule.BackendAddressPool != nil && rule.BackendAddressPool.ID != nil {
@@ -146,7 +146,7 @@ func (er ExistingResources) getNotWhitelistedPoolsSet() map[backendPoolName]inte
 		}
 	}
 
-	notWhitelistedPathMaps, _ := er.GetNotWhitelistedPathMaps() //Pending
+	notWhitelistedPathMaps, _ := er.GetWhitelistedPathMaps() //Pending
 	for _, pathMap := range notWhitelistedPathMaps {
 		if pathMap.DefaultBackendAddressPool != nil && pathMap.DefaultBackendAddressPool.ID != nil {
 			poolName := backendPoolName(utils.GetLastChunkOfSlashed(*pathMap.DefaultBackendAddressPool.ID))

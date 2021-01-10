@@ -73,7 +73,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		var existingAllowed []n.ApplicationGatewayBackendAddressPool
 
 		if cbCtx.EnvVariables.UseAllowedTargetsBrownfieldDeployment {
-			existingNonAllowed, existingAllowed = er.GetNotWhitelistedPools()
+			existingNonAllowed, existingAllowed = er.GetWhitelistedPools()
 		} else {
 			existingNonAllowed, existingAllowed = er.GetBlacklistedPools()
 		}

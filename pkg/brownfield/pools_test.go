@@ -57,7 +57,7 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 	prohibitedTargets := fixtures.GetAzureIngressProhibitedTargets()
 
-	brownfieldContext := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
+	brownfieldContext := NewExistingResources(appGw, prohibitedTargets, nil, &defaultPool)
 
 	prohibitWildcard := &ptv1.AzureIngressProhibitedTarget{
 		Spec: ptv1.AzureIngressProhibitedTargetSpec{},
@@ -124,7 +124,7 @@ var _ = Describe("Test blacklisting backend pools", func() {
 
 		It("blacklists everything linked to a listener", func() {
 			prohibitedTargets := append(fixtures.GetAzureIngressProhibitedTargets(), prohibitWildcard)
-			bfCtx := NewExistingResources(appGw, prohibitedTargets, &defaultPool)
+			bfCtx := NewExistingResources(appGw, prohibitedTargets, nil, &defaultPool)
 			blacklisted, notBlacklisted := bfCtx.GetBlacklistedPools()
 
 			Expect(len(blacklisted)).To(Equal(3))
