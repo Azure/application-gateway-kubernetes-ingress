@@ -18,4 +18,12 @@ var _ = Describe("Test Fixtures", func() {
 			Expect(actual[0].Spec.Hostname).To(Equal(expected))
 		})
 	})
+
+	Context("Testing GetAzureIngressAllowedTargets", func() {
+		It("should work as expected", func() {
+			actual := GetAzureIngressAllowedTargets()
+			expected := "bye.com"
+			Expect(actual[0].Spec.Hostname).To(Equal(expected))
+		})
+	})
 })

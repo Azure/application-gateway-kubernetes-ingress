@@ -6,6 +6,7 @@
 package fixtures
 
 import (
+	atv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressallowedtarget/v1"
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -53,6 +54,38 @@ func GetAzureIngressProhibitedTargets() []*ptv1.AzureIngressProhibitedTarget {
 		},
 		{
 			Spec: ptv1.AzureIngressProhibitedTargetSpec{
+				Hostname: tests.WildcardHost1,
+			},
+		},
+	}
+}
+
+// GetAzureIngressAllowedTargets creates a new struct for use in unit tests.
+func GetAzureIngressAllowedTargets() []*atv1.AzureIngressAllowedTarget {
+	return []*atv1.AzureIngressAllowedTarget{
+		{
+			Spec: atv1.AzureIngressAllowedTargetSpec{
+				Hostname: tests.Host,
+				Paths: []string{
+					PathFox,
+					PathBar,
+				},
+			},
+		},
+		{
+			Spec: atv1.AzureIngressAllowedTargetSpec{
+				Hostname: tests.OtherHost,
+			},
+		},
+		{
+			Spec: atv1.AzureIngressAllowedTargetSpec{
+				Paths: []string{
+					PathForbidden,
+				},
+			},
+		},
+		{
+			Spec: atv1.AzureIngressAllowedTargetSpec{
 				Hostname: tests.WildcardHost1,
 			},
 		},
