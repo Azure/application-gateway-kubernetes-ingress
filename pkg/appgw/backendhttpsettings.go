@@ -73,11 +73,11 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
 	}
 
-	defaultBackend := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
+	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
 	serviceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
-	httpSettingsCollection[*defaultBackend.Name] = defaultBackend
+	httpSettingsCollection[*defaultHTTPSetting.Name] = defaultHTTPSetting
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		backendPort, err := c.resolveBackendPort(backendID)
 		if err != nil {
@@ -86,7 +86,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		}
 
 		httpSettings := c.generateHTTPSettings(backendID, backendPort, cbCtx)
-		klog.V(5).Infof("Created backend http settings %s for ingress %s/%s and service %s", *httpSettings.Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
+		klog.Infof("Created backend http settings %s for ingress %s/%s and service %s", *httpSettings.Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 
 		// TODO(aksgupta): Only backend port is used in the output; remove service port.
 		serviceBackendPairMap[backendID] = serviceBackendPortPair{
@@ -118,7 +118,13 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			controllererrors.ErrorServiceNotFound,
 			"Service not found %s",
 			backendID.serviceKey())
-		return Port(backendID.Backend.ServicePort.IntVal), e
+
+		backendPort := Port(80)
+		if backendID.Backend.ServicePort.Type == intstr.Int && backendID.Backend.ServicePort.IntVal < 65536 {
+			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		}
+
+		return backendPort, e
 	}
 
 	// find the target port number for service port specified in the ingress manifest
@@ -172,37 +178,41 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 		}
 	}
 
+	backendPort := Port(65536)
 	if len(resolvedBackendPorts) == 0 {
 		e = controllererrors.NewErrorf(
 			controllererrors.ErrorUnableToResolveBackendPortFromServicePort,
 			"No port matched %s",
 			backendID.serviceKey())
-
-		// if service port is an int, use that as backend port
 		if backendID.Backend.ServicePort.Type == intstr.Int {
-			return Port(backendID.Backend.ServicePort.IntVal), e
+			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		}
+	} else {
+		var ports []string
+		for k := range resolvedBackendPorts {
+			ports = append(ports, string(k.BackendPort))
+			if k.BackendPort <= backendPort {
+				backendPort = k.BackendPort
+			}
 		}
 
-		// returning port 80 as a last resort
-		return Port(80), e
-	}
-
-	backendPort := Port(65536)
-	var ports []string
-	for k := range resolvedBackendPorts {
-		ports = append(ports, string(k.BackendPort))
-		if k.BackendPort <= backendPort {
-			backendPort = k.BackendPort
+		if len(resolvedBackendPorts) > 1 {
+			// found more than 1 backend port for the service port which is a conflicting scenario
+			e = controllererrors.NewErrorf(
+				controllererrors.ErrorMultipleServiceBackendPortBinding,
+				"service %s and service port %s has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
+				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort, strings.Join(ports, ","),
+			)
 		}
 	}
 
-	if len(resolvedBackendPorts) > 1 {
-		// found more than 1 backend port for the service port which is a conflicting scenario
+	if backendPort >= Port(65536) {
 		e = controllererrors.NewErrorf(
-			controllererrors.ErrorMultipleServiceBackendPortBinding,
-			"service:port [%s:%s] has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
-			backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort, strings.Join(ports, ","),
+			controllererrors.ErrorServiceResolvedToInvalidPort,
+			"service %s and service port %s was resolved to an invalid service-backend port %d, defaulting to port 80",
+			backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort,
 		)
+		backendPort = Port(80)
 	}
 
 	return backendPort, e

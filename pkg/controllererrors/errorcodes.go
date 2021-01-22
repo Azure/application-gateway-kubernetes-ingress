@@ -9,9 +9,10 @@ package controllererrors
 const (
 
 	// appgw package
-	ErrorServiceNotFound                           ErrorCode = "ServiceNotFound"
+	ErrorServiceNotFound                           ErrorCode = "ErrorServiceNotFound"
 	ErrorMultipleServiceBackendPortBinding         ErrorCode = "ErrorMultipleServiceBackendPortBinding"
 	ErrorUnableToResolveBackendPortFromServicePort ErrorCode = "ErrorUnableToResolveBackendPortFromServicePort"
+	ErrorServiceResolvedToInvalidPort              ErrorCode = "ErrorServiceResolvedToInvalidPort"
 	ErrorGeneratingProbes                          ErrorCode = "ErrorGeneratingProbes"
 	ErrorGeneratingBackendSettings                 ErrorCode = "ErrorGeneratingBackendSettings"
 	ErrorCreatingBackendPools                      ErrorCode = "ErrorCreatingBackendPools"

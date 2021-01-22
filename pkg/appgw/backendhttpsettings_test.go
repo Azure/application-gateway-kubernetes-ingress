@@ -44,9 +44,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	_ = configBuilder.k8sContext.Caches.Service.Add(service)
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
-	// Ingress "websocket-ingress" with service missing "websocket-service"
-	ingress1, _ := tests.GetVerySimpleIngress()
-	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress1)
+	// Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
+	ingressWithInvalidServices, _ := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
+	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressWithInvalidServices)
 
 	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe on the pods", func() {
 
@@ -171,8 +171,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	})
 
 	Context("make sure all backends are processed", func() {
+		// ingress1 : Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress1, ingress},
+			IngressList:           []*v1beta1.Ingress{ingressWithInvalidServices, ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -183,7 +184,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
 		It("should configure all the backends even when a service is missing", func() {
-			expectedhttpSettingsLen := 4
+			expectedhttpSettingsLen := 5
 			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
 
 			for _, setting := range httpSettings {
@@ -196,10 +197,12 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 					// http setting for the ingress with service port as 443. Target port is https-port which resolves to multiple backend port
 					// and the smallest backend port is chosen
 					Expect(int32(75)).To(Equal(*setting.Port), "setting %s backend port %d should be 75", *setting.Name, *setting.Port)
-				} else if strings.Contains(*setting.Name, "bp--websocket-service-80-80-websocket-ingress") {
-					// http setting for the ingress with service port as 443. Target port is https-port which resolves to multiple backend port
-					// and the smallest backend port is chosen
-					Expect(int32(80)).To(Equal(*setting.Port), "setting %s backend port %d should be 75", *setting.Name, *setting.Port)
+				} else if strings.Contains(*setting.Name, "bp---namespace---missing-service-8080-8080-ingress-with-invalid-services") {
+					// http setting for missing service
+					Expect(int32(8080)).To(Equal(*setting.Port), "setting %s backend port %d should be 8080", *setting.Name, *setting.Port)
+				} else if strings.Contains(*setting.Name, "bp---namespace-----service-name---70000-80-ingress-with-invalid-services") {
+					// http setting for service with invalid port
+					Expect(int32(80)).To(Equal(*setting.Port), "setting %s backend port %d should be 80", *setting.Name, *setting.Port)
 				} else {
 					// Dummy Failure, This should not happen
 					Expect(23).To(Equal(75), "setting %s is not expected to be created", *setting.Name)
