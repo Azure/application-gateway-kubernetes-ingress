@@ -54,13 +54,13 @@ type azClient struct {
 }
 
 // NewAzClient returns an Azure Client
-func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, clientID string) AzClient {
+func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, uniqueUserAgentSuffix, clientID string) AzClient {
 	settings, err := auth.GetSettingsFromEnvironment()
 	if err != nil {
 		return nil
 	}
 
-	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
+	userAgent := fmt.Sprintf("ingress-appgw/%s/%s", version.Version, uniqueUserAgentSuffix)
 	az := &azClient{
 		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
