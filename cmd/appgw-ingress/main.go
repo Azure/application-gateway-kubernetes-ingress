@@ -114,7 +114,7 @@ func main() {
 	if agicPod != nil {
 		uniqueUserAgentSuffix = agicPod.Name
 	}
-	glog.Infof("Using User Agent Suffix='%s' when communicating with ARM", uniqueUserAgentSuffix)
+	klog.Infof("Using User Agent Suffix='%s' when communicating with ARM", uniqueUserAgentSuffix)
 
 	azClient := azure.NewAzClient(azure.SubscriptionID(env.SubscriptionID), azure.ResourceGroup(env.ResourceGroupName), azure.ResourceName(env.AppGwName), uniqueUserAgentSuffix, env.ClientID)
 	appGwIdentifier := appgw.Identifier{
