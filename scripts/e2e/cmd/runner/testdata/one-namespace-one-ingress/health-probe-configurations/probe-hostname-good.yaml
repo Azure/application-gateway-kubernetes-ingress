@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-ingress
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/health-probe-hostname: localhost
+    appgw.ingress.kubernetes.io/health-probe-interval: "1"
+    appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "3"
+    appgw.ingress.kubernetes.io/health-probe-timeout: "1
+spec:
+  rules:
+    - http:
+        paths:
+        - path: /status/*
+          backend:
+            serviceName: test-service
+            servicePort: 80

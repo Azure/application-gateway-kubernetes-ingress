@@ -99,6 +99,106 @@ var _ = Describe("MFU", func() {
 			}
 		})
 
+		It("[health-probe-config] health probe configuration with annotation should be applied first", func() {
+			namespaceName := "health-probe-config"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			healthConfigProbeYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/app.yaml"
+			klog.Info("Applying yaml: ", healthConfigProbeYamlPath)
+			err = applyYaml(clientset, "", healthConfigProbeYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			// initial deployment should be ok for the request
+			url := fmt.Sprintf("http://%s/status/200", publicIP)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with bad hostname, 502 is expected
+			healthConfigProbeBadHostnameYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-hostname-bad.yaml"
+			klog.Info("Applying ingress with bad hostname annotation")
+			err = applyYaml(clientset, "", healthConfigProbeBadHostnameYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 502, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with good hostname, 200 is expected
+			healthConfigProbeGoodHostnameYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-hostname-good.yaml"
+			klog.Info("Applying ingress with good hostname annotation")
+			err = applyYaml(clientset, "", healthConfigProbeGoodHostnameYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with bad path, 502 is expected
+			healthConfigProbeBadPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-bad.yaml"
+			klog.Info("Applying ingress with bad path annotation")
+			err = applyYaml(clientset, "", healthConfigProbeBadPathYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 502, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with good path, 200 is expected
+			healthConfigProbeGoodPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-good.yaml"
+			klog.Info("Applying ingress with good path annotation")
+			err = applyYaml(clientset, "", healthConfigProbeGoodPathYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with bad port, 502 is expected
+			healthConfigProbeBadPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-bad.yaml"
+			klog.Info("Applying ingress with bad port annotation")
+			err = applyYaml(clientset, "", healthConfigProbeBadPortYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 502, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with good port, 200 is expected
+			healthConfigProbeGoodPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-good.yaml"
+			klog.Info("Applying ingress with good port annotation")
+			err = applyYaml(clientset, "", healthConfigProbeGoodPortYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with bad status, 502 is expected
+			healthConfigProbeBadStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-bad.yaml"
+			klog.Info("Applying ingress with bad status annotation")
+			err = applyYaml(clientset, "", healthConfigProbeBadStatusYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 502, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with good status, 200 is expected
+			healthConfigProbeGoodStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-good.yaml"
+			klog.Info("Applying ingress with good status annotation")
+			err = applyYaml(clientset, "", healthConfigProbeGoodStatusYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
+		})
+
 		It("[container-readiness-probe] backend should be removed when health probe is not healthy", func() {
 			// http get to return 200 ok
 			for _, nm := range []string{"e2e-probe1", "e2e-probe2"} {
