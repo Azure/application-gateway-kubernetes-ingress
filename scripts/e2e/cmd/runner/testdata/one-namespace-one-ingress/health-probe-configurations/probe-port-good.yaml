@@ -7,7 +7,7 @@ metadata:
     appgw.ingress.kubernetes.io/health-probe-port: "80"
     appgw.ingress.kubernetes.io/health-probe-interval: "1"
     appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "3"
-    appgw.ingress.kubernetes.io/health-probe-timeout: "1
+    appgw.ingress.kubernetes.io/health-probe-timeout: "1"
 spec:
   rules:
     - http:

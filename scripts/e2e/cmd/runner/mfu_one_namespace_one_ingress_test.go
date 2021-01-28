@@ -66,6 +66,24 @@ var _ = Describe("MFU", func() {
 			// https get to return 200 ok
 			_, err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
+
+			//start to configure with bad hostname, 502 is expected
+			healthConfigProbeBadHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-bad.yaml"
+			klog.Info("Applying ingress with bad hostname annotation")
+			err = applyYaml(clientset, "", healthConfigProbeBadHostnameYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 502, true)
+			Expect(err).To(BeNil())
+
+			// start to configure with good hostname, 200 is expected
+			healthConfigProbeGoodHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-good.yaml"
+			klog.Info("Applying ingress with good hostname annotation")
+			err = applyYaml(clientset, "", healthConfigProbeGoodHostnameYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(15 * time.Second)
+			_, err = makeGetRequest(url, "", 200, true)
+			Expect(err).To(BeNil())
 		})
 
 		It("[three-namespaces] containers with the same probe and labels in 3 different namespaces should have unique and working health probes", func() {
@@ -123,24 +141,6 @@ var _ = Describe("MFU", func() {
 
 			// initial deployment should be ok for the request
 			url := fmt.Sprintf("http://%s/status/200", publicIP)
-			_, err = makeGetRequest(url, "", 200, true)
-			Expect(err).To(BeNil())
-
-			// start to configure with bad hostname, 502 is expected
-			healthConfigProbeBadHostnameYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-hostname-bad.yaml"
-			klog.Info("Applying ingress with bad hostname annotation")
-			err = applyYaml(clientset, "", healthConfigProbeBadHostnameYamlPath)
-			Expect(err).To(BeNil())
-			time.Sleep(15 * time.Second)
-			_, err = makeGetRequest(url, "", 502, true)
-			Expect(err).To(BeNil())
-
-			// start to configure with good hostname, 200 is expected
-			healthConfigProbeGoodHostnameYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-hostname-good.yaml"
-			klog.Info("Applying ingress with good hostname annotation")
-			err = applyYaml(clientset, "", healthConfigProbeGoodHostnameYamlPath)
-			Expect(err).To(BeNil())
-			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
 			Expect(err).To(BeNil())
 
