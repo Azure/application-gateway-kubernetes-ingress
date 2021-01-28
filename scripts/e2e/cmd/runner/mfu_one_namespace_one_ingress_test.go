@@ -73,7 +73,7 @@ var _ = Describe("MFU", func() {
 			err = applyYaml(clientset, "", healthConfigProbeBadHostnameYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
-			_, err = makeGetRequest(url, "", 502, true)
+			_, err = makeGetRequest(urlHttps, "", 502, true)
 			Expect(err).To(BeNil())
 
 			// start to configure with good hostname, 200 is expected
@@ -82,7 +82,7 @@ var _ = Describe("MFU", func() {
 			err = applyYaml(clientset, "", healthConfigProbeGoodHostnameYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
-			_, err = makeGetRequest(url, "", 200, true)
+			_, err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
 		})
 
