@@ -100,7 +100,7 @@ var _ = Describe("MFU", func() {
 		})
 
 		It("[health-probe-config] health probe configuration with annotation should be applied first", func() {
-			namespaceName := "health-probe-config"
+			namespaceName := "e2e-health-probe-config"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
