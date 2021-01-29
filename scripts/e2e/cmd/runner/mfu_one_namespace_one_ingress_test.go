@@ -183,7 +183,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with bad status, 502 is expected
 			healthConfigProbeBadStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-bad.yaml"
 			klog.Info("Updating ingress with bad status annotation")
-			err = updateYaml(clientset, "", healthConfigProbeBadStatusYamlPath)
+			err = updateYaml(clientset, namespaceName, healthConfigProbeBadStatusYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
