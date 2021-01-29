@@ -70,18 +70,18 @@ var _ = Describe("MFU", func() {
 			//start to configure with bad hostname, 502 is expected
 			healthConfigProbeBadHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-bad.yaml"
 			klog.Info("Applying ingress with bad hostname annotation")
-			err = applyYaml(clientset, "", healthConfigProbeBadHostnameYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeBadHostnameYamlPath)
 			Expect(err).To(BeNil())
-			time.Sleep(15 * time.Second)
+			time.Sleep(30 * time.Second)
 			_, err = makeGetRequest(urlHttps, "", 502, true)
 			Expect(err).To(BeNil())
 
 			// start to configure with good hostname, 200 is expected
 			healthConfigProbeGoodHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-good.yaml"
 			klog.Info("Applying ingress with good hostname annotation")
-			err = applyYaml(clientset, "", healthConfigProbeGoodHostnameYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeGoodHostnameYamlPath)
 			Expect(err).To(BeNil())
-			time.Sleep(15 * time.Second)
+			time.Sleep(30 * time.Second)
 			_, err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
 		})
@@ -130,7 +130,7 @@ var _ = Describe("MFU", func() {
 
 			healthConfigProbeYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/app.yaml"
 			klog.Info("Applying yaml: ", healthConfigProbeYamlPath)
-			err = applyYaml(clientset, "", healthConfigProbeYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -147,7 +147,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with bad path, 502 is expected
 			healthConfigProbeBadPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-bad.yaml"
 			klog.Info("Applying ingress with bad path annotation")
-			err = applyYaml(clientset, "", healthConfigProbeBadPathYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeBadPathYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
@@ -156,7 +156,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with good path, 200 is expected
 			healthConfigProbeGoodPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-good.yaml"
 			klog.Info("Applying ingress with good path annotation")
-			err = applyYaml(clientset, "", healthConfigProbeGoodPathYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeGoodPathYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
@@ -165,7 +165,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with bad port, 502 is expected
 			healthConfigProbeBadPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-bad.yaml"
 			klog.Info("Applying ingress with bad port annotation")
-			err = applyYaml(clientset, "", healthConfigProbeBadPortYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeBadPortYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
@@ -174,7 +174,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with good port, 200 is expected
 			healthConfigProbeGoodPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-good.yaml"
 			klog.Info("Applying ingress with good port annotation")
-			err = applyYaml(clientset, "", healthConfigProbeGoodPortYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeGoodPortYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
@@ -192,7 +192,7 @@ var _ = Describe("MFU", func() {
 			// start to configure with good status, 200 is expected
 			healthConfigProbeGoodStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-good.yaml"
 			klog.Info("Applying ingress with good status annotation")
-			err = applyYaml(clientset, "", healthConfigProbeGoodStatusYamlPath)
+			err = applyYaml(clientset, namespaceName, healthConfigProbeGoodStatusYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
