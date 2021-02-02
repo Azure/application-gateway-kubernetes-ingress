@@ -386,11 +386,10 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		// Check tags
-		Expect(len(appGW.Tags)).To(Equal(3))
+		Expect(len(appGW.Tags)).To(Equal(2))
 		expected := map[string]*string{
-			tags.ManagedByK8sIngress:     to.StringPtr("a/b/c"),
-			tags.IngressForAKSClusterID:  to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
-			tags.LastUpdatedByK8sIngress: to.StringPtr("2009-11-17 20:34:58.651387237 +0000 UTC"),
+			tags.ManagedByK8sIngress:    to.StringPtr("a/b/c"),
+			tags.IngressForAKSClusterID: to.StringPtr("/subscriptions/subid/resourcegroups/aksresgp/providers/Microsoft.ContainerService/managedClusters/aksname"),
 		}
 		Expect(appGW.Tags).To(Equal(expected))
 	}
