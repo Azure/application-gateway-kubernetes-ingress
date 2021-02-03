@@ -13,7 +13,7 @@ func GetFakeEnv() EnvVariables {
 		AppGwName:         "--AppGwName--",
 		AuthLocation:      "--AuthLocation--",
 		WatchNamespace:    "--WatchNamespace--",
-		UsePrivateIP:      "false",
+		UsePrivateIP:      false,
 		VerbosityLevel:    "123456789",
 	}
 

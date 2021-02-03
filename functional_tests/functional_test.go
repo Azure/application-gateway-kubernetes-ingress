@@ -1004,5 +1004,19 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "health_probes_same_labels_different_namespaces.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("empty cluster without ingresses and services and private IP", func() {
+			env := environment.GetFakeEnv()
+			env.UsePrivateIP = true
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList:           []*v1beta1.Ingress{},
+				ServiceList:           []*v1.Service{},
+				EnvVariables:          env,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "empty_cluster_with_private_ip.json", stopChannel, ctxt, configBuilder)
+		})
+
 	})
 })

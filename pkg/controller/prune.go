@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -63,7 +63,7 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 			klog.Errorf("Ingress %s/%s has invalid value for annotation %s", ingress.Namespace, ingress.Name, annotations.UsePrivateIPKey)
 		}
 
-		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
+		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP
 		if usePrivateIP && !appGwHasPrivateIP {
 			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			klog.Error(errorLine)

@@ -243,7 +243,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
-			cbCtx.EnvVariables.UsePrivateIP = "true"
+			cbCtx.EnvVariables.UsePrivateIP = true
 
 			listeners, ports := cb.getListeners(cbCtx)
 			Expect(len(*listeners)).To(Equal(2))
@@ -304,7 +304,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			certs := newCertsFixture()
 			cb := newConfigBuilderFixture(&certs)
 			envVariablesCopy := envVariables
-			envVariablesCopy.UsePrivateIP = "true"
+			envVariablesCopy.UsePrivateIP = true
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*v1beta1.Ingress{
 					tests.NewIngressFixture(),
