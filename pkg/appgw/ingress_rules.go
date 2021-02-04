@@ -7,8 +7,8 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -73,7 +73,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule
 
 	// Private IP is used when either annotation use-private-ip or USE_PRIVATE_IP env variable is true.
 	usePrivateIPFromAnnotation, _ := annotations.UsePrivateIP(ingress)
-	usePrivateIPForIngress := usePrivateIPFromAnnotation || env.UsePrivateIP == "true"
+	usePrivateIPForIngress := usePrivateIPFromAnnotation || env.UsePrivateIP
 
 	appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
 	if len(appgwCertName) > 0 {

@@ -120,7 +120,7 @@ type EnvVariables struct {
 	AuthLocation                string
 	IngressClass                string
 	WatchNamespace              string
-	UsePrivateIP                string
+	UsePrivateIP                bool
 	VerbosityLevel              string
 	AGICPodName                 string
 	AGICPodNamespace            string
@@ -165,6 +165,8 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
+	usePrivateIP, _ := strconv.ParseBool(os.Getenv(UsePrivateIPVarName))
+
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
 		ClientID:                    os.Getenv(ClientIDVarName),
@@ -179,7 +181,7 @@ func GetEnv() EnvVariables {
 		AuthLocation:                os.Getenv(AuthLocationVarName),
 		IngressClass:                os.Getenv(IngressClass),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
-		UsePrivateIP:                os.Getenv(UsePrivateIPVarName),
+		UsePrivateIP:                usePrivateIP,
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
 		AGICPodName:                 os.Getenv(AGICPodNameVarName),
 		AGICPodNamespace:            os.Getenv(AGICPodNamespaceVarName),
