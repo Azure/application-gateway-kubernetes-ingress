@@ -1,0 +1,21 @@
+---
+# Source: ingress-azure/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-cm-ingress-azure
+  labels:
+    app: ingress-azure
+    chart: ingress-azure-1.2.1
+    heritage: Helm
+    release: RELEASE-NAME
+data:
+  APPGW_VERBOSITY_LEVEL: "3"
+  HTTP_SERVICE_PORT:     "8123"
+  APPGW_SUBSCRIPTION_ID: "0000-0000-0000-0000-00000000"
+  APPGW_RESOURCE_GROUP:  "resgp"
+  APPGW_NAME:            "gateway"
+  APPGW_SUBNET_NAME: "gateway-subnet"
+  KUBERNETES_WATCHNAMESPACE: "a,b,c"
+  AZURE_CLIENT_ID: "0000-0000-0000-0000-00000000"
+  USE_MANAGED_IDENTITY_FOR_POD: "true"

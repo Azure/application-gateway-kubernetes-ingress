@@ -16,12 +16,14 @@ require (
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
+	github.com/kylelemons/godebug v1.1.0
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.7.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v1.1.0
 	github.com/spf13/pflag v1.0.5
 	google.golang.org/appengine v1.6.1 // indirect
+	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0-20200326015715-b5bd82427fa8
 	k8s.io/apimachinery v0.0.0-20200326015016-e92250ad09d8
 	k8s.io/client-go v0.16.7
