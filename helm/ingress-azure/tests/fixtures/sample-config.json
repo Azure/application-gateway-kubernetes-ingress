@@ -16,6 +16,51 @@
         "enabled": false
     },
     "kubernetes": {
-        "watchNamespace": "a,b,c"
+        "watchNamespace": "a,b,c",
+        "nodeSelector": {
+            "beta.kubernetes.io/os": "linux"
+        },
+        "podAnnotations": {
+            "custom-annotation": "custom-value"
+        },
+        "tolerations": [
+            {
+                "key": "CriticalAppsOnly",
+                "operator": "Exists"
+            }
+        ],
+        "affinity": {
+            "nodeAffinity": {
+                "preferredDuringSchedulingIgnoredDuringExecution": [
+                    {
+                        "weight": 100,
+                        "preference": {
+                            "matchExpressions": [
+                                {
+                                    "key": "kubernetes.cloud.com/mode",
+                                    "operator": "In",
+                                    "values": [
+                                        "system"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "labelSelector": null,
+                            "matchExpressions": [
+                                {
+                                    "key": "kubernetes.cloud.com/cluster",
+                                    "operator": "Exists"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
     }
 }
