@@ -32,7 +32,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
-      {{- with .Values.securityContext }}
+      {{- with .Values.kubernetes.securityContext }}
       securityContext:
         {{ toYaml . | nindent 8 }}
       {{- end }}
@@ -53,6 +53,8 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         env:
+        - name: AZURE_CLOUD_PROVIDER_LOCATION
+          value: /etc/appgw/azure.json
         - name: AGIC_POD_NAME
           valueFrom:
             fieldRef:
@@ -66,37 +68,32 @@ spec:
         - name: AZURE_AUTH_LOCATION
           value: /etc/Azure/Networking-AppGW/auth/armAuth.json
         {{- end}}
-        {{- else }}
-        - name: AZURE_CLOUD_PROVIDER_LOCATION
-          value: /etc/appgw/azure.json
         {{- end}}
         envFrom:
         - configMapRef:
             name: {{ template "application-gateway-kubernetes-ingress.configmapname" . }}
         volumeMounts:
+        - name: azure
+          mountPath: /etc/appgw/
+          readOnly: true
         {{- if .Values.armAuth }}
         {{- if eq .Values.armAuth.type "servicePrincipal"}}
         - name: networking-appgw-k8s-azure-service-principal-mount
           mountPath: /etc/Azure/Networking-AppGW/auth
           readOnly: true
         {{- end}}
-        {{- else }}
-        - name: azure
-          mountPath: /etc/appgw/
-          readOnly: true
         {{- end}}
       volumes:
+      - name: azure
+        hostPath:
+          path: /etc/kubernetes/
+          type: Directory
       {{- if .Values.armAuth }}
       {{- if eq .Values.armAuth.type "servicePrincipal"}}
       - name: networking-appgw-k8s-azure-service-principal-mount
         secret:
           secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
-      {{- else }}
-      - name: azure
-        hostPath:
-          path: /etc/kubernetes/
-          type: Directory
       {{- end}}
       {{- if .Values.kubernetes.nodeSelector }}
       {{- with .Values.kubernetes.nodeSelector }}

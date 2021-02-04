@@ -29,6 +29,9 @@ kubernetes:
     # disktype: dentro
   tolerations: []
   affinity: {}
+
+  securityContext:
+    runAsUser: 0
   
   # Add pod level annotations
   podAnnotations: {}
@@ -73,6 +76,3 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
-
-securityContext:
-  runAsUser: 0
