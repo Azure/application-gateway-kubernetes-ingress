@@ -17,6 +17,10 @@
     },
     "kubernetes": {
         "watchNamespace": "a,b,c",
+        "securityContext": {
+            "runAsUser": 3000,
+            "runAsGroup": 3000
+        },
         "nodeSelector": {
             "beta.kubernetes.io/os": "linux"
         },

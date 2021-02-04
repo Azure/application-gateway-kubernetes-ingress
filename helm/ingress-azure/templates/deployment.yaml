@@ -34,7 +34,7 @@ spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
       {{- with .Values.kubernetes.securityContext }}
       securityContext:
-        {{ toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
