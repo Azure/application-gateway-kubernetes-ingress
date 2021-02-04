@@ -17,7 +17,7 @@ import (
 
 const valuesDir = "fixtures"
 
-// TestChart is a simple snapshot-style regression test for the CCP chart.
+// TestChart is a simple snapshot-style regression test.
 //
 // This approach proves that the chart can be rendered successfully given various inputs, and that
 // the resulting manifests haven't changed unexpectedly since a known good state.

@@ -49,7 +49,7 @@ func (s *Snapshot) Diff(t *testing.T, expected *Snapshot) {
 	}
 }
 
-// RenderChart renderss a Helm chart to a given directory.
+// RenderChart renders a Helm chart to a given directory.
 func RenderChart(chart, values, dir string) error {
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
