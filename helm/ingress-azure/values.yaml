@@ -29,6 +29,9 @@ kubernetes:
     # disktype: dentro
   tolerations: []
   affinity: {}
+
+  securityContext:
+    runAsUser: 0
   
   # Add pod level annotations
   podAnnotations: {}

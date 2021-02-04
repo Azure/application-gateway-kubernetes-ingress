@@ -24,12 +24,10 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8123"
-        custom-annotation: custom-value
     spec:
       serviceAccountName: RELEASE-NAME-sa-ingress-azure
       securityContext:
-        runAsGroup: 3000
-        runAsUser: 3000
+        runAsUser: 0
       containers:
       - name: ingress-azure
         image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.2.0
@@ -69,24 +67,3 @@ spec:
         hostPath:
           path: /etc/kubernetes/
           type: Directory
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - preference:
-              matchExpressions:
-              - key: kubernetes.cloud.com/mode
-                operator: In
-                values:
-                - system
-            weight: 100
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - labelSelector: null
-              matchExpressions:
-              - key: kubernetes.cloud.com/cluster
-                operator: Exists
-      tolerations:
-        - key: CriticalAppsOnly
-          operator: Exists
