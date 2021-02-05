@@ -370,14 +370,20 @@ var _ = Describe("MFU", func() {
 			_, err = clientset.CoreV1().Namespaces().Create(ns)
 			Expect(err).To(BeNil())
 
-			EmptySecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/app.yaml"
-			klog.Info("Applying yaml: ", EmptySecretYamlPath)
+			EmptySecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/empty-secret.yaml"
+			klog.Info("Applying empty secret yaml: ", EmptySecretYamlPath)
 			err = applyYaml(clientset, namespaceName, EmptySecretYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
-			SecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/secret.yaml"
-			klog.Info("Applying yaml: ", SecretYamlPath)
+			AppYamlPath := "testdata/one-namespace-one-ingress/empty-secret/app.yaml"
+			klog.Info("Applying App yaml: ", AppYamlPath)
+			err = applyYaml(clientset, namespaceName, AppYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			SecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/populated-secret.yaml"
+			klog.Info("Update secret yaml: ", SecretYamlPath)
 			err = updateYaml(clientset, namespaceName, SecretYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
