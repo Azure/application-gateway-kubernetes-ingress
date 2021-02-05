@@ -359,6 +359,40 @@ var _ = Describe("MFU", func() {
 			Expect(readBody(resp)).To(Equal("app"))
 		})
 
+		It("[empty-secret] should be able to update application gateway if empty secret is populated", func() {
+			namespaceName := "e2e-empty-secret"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			Expect(err).To(BeNil())
+
+			EmptySecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/app.yaml"
+			klog.Info("Applying yaml: ", EmptySecretYamlPath)
+			err = applyYaml(clientset, namespaceName, EmptySecretYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			SecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/secret.yaml"
+			klog.Info("Applying yaml: ", SecretYamlPath)
+			err = updateYaml(clientset, namespaceName, SecretYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("https://%s", publicIP)
+			// http get to return 200 ok
+			_, err = makeGetRequest(urlHttps, "example.com", 200, true)
+			Expect(err).To(BeNil())
+		})
+
 		AfterEach(func() {
 			// clear all namespaces
 			cleanUp(clientset)
