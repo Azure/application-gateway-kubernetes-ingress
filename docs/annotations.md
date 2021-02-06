@@ -23,13 +23,13 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/override-frontend-port](#override-frontend-port) | `string` |   |   | `1.3.0` |
 | [appgw.ingress.kubernetes.io/use-private-ip](#use-private-ip) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/waf-policy-for-path](#azure-waf-policy-for-path) | `string` |   |   | `1.3.0` |
-| [appgw.ingress.kubernetes.io/health-probe-hostname](#health-probe-hostname) | `string` |  `nil` |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-port](#health-probe-port) | `int32` | `nil`  |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-path](#health-probe-path) | `string` | `nil`  |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-status-codes](#health-probe-status-codes) | `[]string` | `nil`  |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `not yet released` |
-| [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `not yet released` |
+| [appgw.ingress.kubernetes.io/health-probe-hostname](#health-probe-hostname) | `string` |  `nil` |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-port](#health-probe-port) | `int32` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-path](#health-probe-path) | `string` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-status-codes](#health-probe-status-codes) | `[]string` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 
 ## Override Frontend Port
 
