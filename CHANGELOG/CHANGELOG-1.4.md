@@ -34,15 +34,12 @@
 
 ## How to try:
 ```bash
-# upgrade to the latest release version 1.4.0-rc1
+# Add helm repo / update AGIC repo
+helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
 helm repo update
-helm install \
-  <release-name> \
-  -f helm-config.yaml \
-  application-gateway-kubernetes-ingress/ingress-azure
 
-# use --version 1.4.0-rc1 when installing/upgrading using helm
-helm repo update
+# Install
+# use --version 1.4.0-rc1 when installing using helm
 helm install \
   <release-name> \
   -f helm-config.yaml \
@@ -51,9 +48,9 @@ helm install \
 
 # or 
 
+# Upgrade
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
 # --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
-helm repo update
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
