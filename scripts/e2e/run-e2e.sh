@@ -17,7 +17,7 @@ mv ./cmd/runner/report.xml report.e2e.xml
 # install with custom tag
 InstallAGIC "custom-ingress-class"
 
-go test -v -timeout 60m -tags e2eingressclass ./... || true
+go test -v -timeout 120m -tags e2eingressclass ./... || true
 mv ./cmd/runner/report.xml report.e2eingressclass.xml
 
 # print test logs
