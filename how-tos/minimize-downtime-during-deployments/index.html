@@ -7,15 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Minimizing Downtime During Deployments - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../css/extra.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
   
   <script>
     // Current page data
@@ -26,11 +25,11 @@
   
   <script src="../../js/jquery-2.1.1.min.js" defer></script>
   <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -41,7 +40,6 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -52,101 +50,223 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Setup</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Minimizing Downtime During Deployments</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#purpose">Purpose</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#understanding-502-errors">Understanding 502 Errors</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#solution">Solution</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a>
-    </li>
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting Guide</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Minimizing Downtime During Deployments</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#minimizing-downtime-during-deployments">Minimizing Downtime During Deployments</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#purpose">Purpose</a></li>
+        
+            <li><a class="toctree-l4" href="#overview">Overview</a></li>
+        
+            <li><a class="toctree-l4" href="#understanding-502-errors">Understanding 502 Errors</a></li>
+        
+            <li><a class="toctree-l4" href="#solution">Solution</a></li>
+        
+            <li><a class="toctree-l4" href="#summary">Summary</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
       </div>
-    </div>
+      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -177,7 +297,6 @@
       
     </li>
   </ul>
-  
   <hr/>
 </div>
           <div role="main">
@@ -223,26 +342,27 @@
 <ol>
 <li>Change the Pod and/or Deployment specs by adding <a href="https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#container-hooks">preStop container life-cycle hooks</a>, with a delay (sleep) of at least 90 seconds.
 Example:
-<pre class="highlight"><code class="language-yaml">kind: Deployment
-metadata:
-  name: x
-  labels:
-    app: y
-spec:
-  ...
-  template:
-    ...
-    spec:
-      containers:
-      - name: ctr
-        ...
-        lifecycle:
-          preStop:
-            exec:
-              command: ["sleep","90"]</code></pre></li>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">y</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ctr</span>
+        <span class="l l-Scalar l-Scalar-Plain">...</span>
+        <span class="nt">lifecycle</span><span class="p">:</span>
+          <span class="nt">preStop</span><span class="p">:</span>
+            <span class="nt">exec</span><span class="p">:</span>
+              <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;sleep&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;90&quot;</span><span class="p p-Indicator">]</span>
+</pre></div></li>
 </ol>
 <blockquote>
-<p>Note: The "sleep" command assumes the container is based on Linux. For Windows containers the equivalent command is "timeout".</p>
+<p>Note: The "sleep" command assumes the container is based on Linux. For Windows containers the equivalent command is <code>["powershell.exe","-c","sleep","90"]</code>.</p>
 </blockquote>
 <p>The addition of the <code>preStop</code> container life cycle hook will:
   - delay Kubernetes sending <code>SIGTERM</code> to the container by 90 seconds, but put the pod immediately in <code>Terminating</code> state
@@ -252,47 +372,50 @@ spec:
 <ol>
 <li>Add <a href="https://docs.microsoft.com/bs-latn-ba/azure/application-gateway/ingress-controller-annotations#connection-draining">connection draining annotation</a> to the Ingress read by AGIC to allow for in-flight connections to complete. Example:</li>
 </ol>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
- name: websocket-ingress
- annotations:
-   kubernetes.io/ingress.class: azure/application-gateway
-   appgw.ingress.kubernetes.io/connection-draining: "true"
-   appgw.ingress.kubernetes.io/connection-draining-timeout: "30"</code></pre>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+ <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-ingress</span>
+ <span class="nt">annotations</span><span class="p">:</span>
+   <span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+   <span class="nt">appgw.ingress.kubernetes.io/connection-draining</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
+   <span class="nt">appgw.ingress.kubernetes.io/connection-draining-timeout</span><span class="p">:</span> <span class="s">&quot;30&quot;</span>
+</pre></div>
 
 <p>What this achieves - when a pod is pulled from an App Gateway backend it will disappear from the UI, but existing in-flight connections will not be immediately terminated -- they will be given 30 seconds to complete.</p>
 <p>We believe that the addition of the <code>preStop</code> hook and the connection draining annotation will drastically remove the probability for App Gateway to attempt to connect to a terminated pod.</p>
 <ol>
 <li>Add <a href="https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#hook-handler-execution">terminationGracePeriodSeconds</a> to the Pod resource YAML. This must be set to a value that is greater than the <code>preStop</code> hook wait time.</li>
 </ol>
-<pre class="highlight"><code class="language-yaml">kind: Deployment
-metadata:
-  name: x
-  labels:
-    app: y
-spec:
-  ...
-  template:
-    ...
-    spec:
-      containers:
-      - name: ctr
-        ...
-      terminationGracePeriodSeconds: 101</code></pre>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">y</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ctr</span>
+        <span class="l l-Scalar l-Scalar-Plain">...</span>
+      <span class="nt">terminationGracePeriodSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">101</span>
+</pre></div>
 
 <ol>
 <li>Decrease interval between App Gateway health probes to backend pools. The goal is to increase number of probes per unit of time. This will ensure that a terminated pod, which has not yet been removed from App Gateway's backend pool, will be marked as unhealthy sooner, thus removing the probability of a request landing on a terminated pod and resulting in a 502 error. </li>
 </ol>
 <p>For example the following <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes Deployment liveness probe</a> will result in the respective pods being marked as unhealthy after 15 seconds and 3 failed probes. This config will be directly applied to Application Gateway (by AGIC), as well as Kubernetes.</p>
-<pre class="highlight"><code class="language-yaml">...
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          periodSeconds: 4
-          timeoutSeconds: 5
-          failureThreshold: 3</code></pre>
+<div class="highlight"><pre><span></span><span class="nn">...</span>
+        <span class="nt">livenessProbe</span><span class="p">:</span>
+          <span class="nt">httpGet</span><span class="p">:</span>
+            <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/</span>
+            <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+          <span class="nt">periodSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+          <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+          <span class="nt">failureThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+</pre></div>
 
 <h2 id="summary">Summary</h2>
 <p>To achieve a near-zero-downtime deployments, we need to add a:
@@ -328,7 +451,7 @@ spec:
     
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -338,7 +461,7 @@ spec:
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -352,11 +475,6 @@ spec:
     <script>var base_url = '../..';</script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(true);
-        };
-    </script>
 
 </body>
 </html>

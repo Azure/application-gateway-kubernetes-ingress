@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Application Gateway Ingress Controller Design (WIP) - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Application Gateway Ingress Controller Design (WIP)";
+    var mkdocs_page_input_path = "developers/design.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../contribute/">Contribution Guidelines</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Application Gateway Ingress Controller Design (WIP)</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#application-gateway-ingress-controller-design-wip">Application Gateway Ingress Controller Design (WIP)</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#document-purpose">Document Purpose</a></li>
+        
+            <li><a class="toctree-l4" href="#overview">Overview</a></li>
+        
+            <li><a class="toctree-l4" href="#high-level-architecture">High-level architecture</a></li>
+        
+            <li><a class="toctree-l4" href="#components">Components</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Developers &raquo;</li>
+        
+      
+    
+    <li>Application Gateway Ingress Controller Design (WIP)</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/developers/design.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="application-gateway-ingress-controller-design-wip">Application Gateway Ingress Controller Design (WIP)</h1>
+<h2 id="document-purpose">Document Purpose</h2>
+<p>This document is the detailed design and architecture of the Application Gateway Ingress Controller (AGIC) being built in this repository.</p>
+<h2 id="overview">Overview</h2>
+<p>Application Gateway Ingress Controller (AGIC) is a Kubernetes application, which makes it possible for <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">Azure Kubernetes Service (AKS)</a> customers to leverage Azure's native <a href="https://azure.microsoft.com/en-us/services/application-gateway/">Application Gateway</a> L7 load-balancer to expose cloud software to the Internet. AGIC monitors the Kubernetes cluster it is hosted on and continuously updates an App Gateway, so that selected services are exposed to the Internet.</p>
+<p>The Ingress Controller runs in its own pod on the customer’s AKS. AGIC monitors a subset of Kubernetes Resources for changes. The state of the AKS cluster is translated to App Gateway  specific configuration and applied to the <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
+<p><img alt="Azure Application Gateway + AKS" src="../../images/architecture.png" /></p>
+<h2 id="high-level-architecture">High-level architecture</h2>
+<p>The AGIC is composed of the following three sub components:
+  1. <a href="#1-k8s-context-and-informers">K8S Context and Informers</a> - handles events from the cluster and alerts the worker
+  2. <a href="#2-worker">Worker</a> - handles events coming from the informer and perform relevant actions
+  3. <a href="#3-application-gateway-config-builder">Application Gateway Config Builder</a> -  generates the new gateway configuration</p>
+<p><img alt="components relationship" src="../../images/component-diagram.png" /></p>
+<h2 id="components">Components</h2>
+<p>Let's take a look at each component:</p>
+<h3 id="1-k8s-context-and-informers">1. K8s Context and Informers</h3>
+<p>When any change is applied on the k8s cluster by the user, AGIC needs to listen to these changes in order to update the corresponding configuration on the Application Gateway.
+We use the kubernetes informers for this purpose which is a standard for watching resources on the K8S API server.</p>
+<p>When AGIC starts, it <a href="../pkg/k8scontext/context.go">sets up informers</a> for watching following resources:
+1. <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a>: This is the top-level resource that AGIC monitors. It provides information about the layer-7 routing rules that need to be configured on the App Gateway.
+1. <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>: Service provides an abstraction over the pods to expose as a network service. AGIC uses the service as logical grouping of pods to extract the IP addresses through the endpoints object created automatically along with the Service.
+1. <a href="https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/">Endpoints</a>: Endpoints provides information about Pod IP Addresses behind a service and is used to populate AppGW's backend pool.
+1. <a href="https://kubernetes.io/docs/concepts/workloads/pods/">Pod</a>: Pod provides information about liveness and readiness probes which translated to health probe in App Gateway. AGIC only supports HTTP based liveness and readiness probe.
+1. <a href="https://kubernetes.io/docs/concepts/configuration/secret/">Secret</a>: This resource is for extracting SSL certificates when referenced in an ingress. This also triggeres a change when the secret is updated.
+1. <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRDs</a>: AGIC has some custom resources for supporting specific features like prohibited target for sharing a gateway.</p>
+<p>When starting the informers, AGIC also provides event handlers for each for create/update/delete operations on the resource. This handler is responsible for enqueuing an event .</p>
+<h3 id="2-worker">2. Worker</h3>
+<p><a href="../../pkg/worker.go">Worker</a> is responsible for processing the events and performing updates.</p>
+<p>When Worker's <code>Run</code> function is called, it starts as a separate thread and waits on the <code>Work</code> channel. When an informers add an event to the channel, worker dequeues the event and checks whether the event is noise or is relevant. Events that are coming from unwatched namespaces and unreferenced pods/endpoints are skipped to reduce the churn. If the the last worker loop was run less than 1 second ago, it sleeps for the remainder and wakes up to space out the updates.<br />
+After this, worker starts draining the rest of the events and calling the <code>ProcessEvent</code> function to process the event.</p>
+<p><code>ProcessEvent</code> function does the following:
+1. Check if the Application Gateway is in <code>Running</code> or <code>Starting</code> operational state.
+1. Updates all ingress resources with public/private IP address of the App Gateway.
+1. Generate new config and update the Application Gateway.</p>
+<h3 id="3-application-gateway-config-builder">3. Application Gateway Config Builder</h3>
+<p>This <a href="../../pkg/appgw/configbuilder.go">component</a> is responsible for using the information in the local kubernetes cache and generating the corresponding Application Gateway configuration as an output.</p>
+<p>Worker invokes the <code>Build</code> on this component which then generates various gateways sub-resources starting from leaf sub-resources like <code>probes</code>, <code>http settings</code> up to the <code>request routing rules</code>.</p>
+<div class="highlight"><pre><span></span><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">appGwConfigBuilder</span><span class="p">)</span> <span class="nx">Build</span><span class="p">(</span><span class="nx">cbCtx</span> <span class="o">*</span><span class="nx">ConfigBuilderContext</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">n</span><span class="p">.</span><span class="nx">ApplicationGateway</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+<span class="o">...</span>
+  <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">HealthProbesCollection</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+  <span class="nx">err</span> <span class="p">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">BackendHTTPSettingsCollection</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+  <span class="nx">err</span> <span class="p">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">BackendAddressPools</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+  <span class="c1">// generates SSL certificate, frontend ports and http listeners</span>
+  <span class="nx">err</span> <span class="p">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+  <span class="c1">// generates URL path maps and request routing rules</span>
+  <span class="nx">err</span> <span class="p">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">RequestRoutingRules</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+  <span class="k">return</span> <span class="o">&amp;</span><span class="nx">c</span><span class="p">.</span><span class="nx">appGw</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span>
+</pre></div>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../developer-guideline/" class="btn btn-neutral float-right" title="Application Gateway Ingress Controller Development Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../contribute/" class="btn btn-neutral" title="Contribution Guidelines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../contribute/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../developer-guideline/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

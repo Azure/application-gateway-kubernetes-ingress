@@ -7,15 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Appgw ssl certificate - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../css/extra.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
   
   <script>
     // Current page data
@@ -26,11 +25,11 @@
   
   <script src="../../js/jquery-2.1.1.min.js" defer></script>
   <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -41,7 +40,6 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -52,91 +50,218 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Setup</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Appgw ssl certificate</a>
-    <ul class="current">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../probes/">Probes</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting Guide</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Appgw ssl certificate</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#prerequisites">Prerequisites</a></li>
+    
+
+    <li class="toctree-l3"><a href="#create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</a></li>
+    
+
+    <li class="toctree-l3"><a href="#configure-certificate-from-key-vault-to-appgw">Configure certificate from Key Vault to AppGw</a></li>
+    
+
+    <li class="toctree-l3"><a href="#testing-the-key-vault-certificate-on-ingress">Testing the key vault certificate on Ingress</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
       </div>
-    </div>
+      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -167,7 +292,6 @@
       
     </li>
   </ul>
-  
   <hr/>
 </div>
           <div role="main">
@@ -181,129 +305,133 @@
 - <a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</p>
 <p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfeild Deployment</a> to install nonexistents.</p>
 <p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
-<pre class="highlight"><code class="language-bash">helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></pre></p>
+<div class="highlight"><pre><span></span>helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version <span class="m">1</span>.2.0-rc3 --generate-name
+</pre></div></p>
 <h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
 <p>The certificate below should only be used for testing purpose.
-<pre class="highlight"><code class="language-bash">appgwName=""
-resgp=""
+<div class="highlight"><pre><span></span><span class="nv">appgwName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">resgp</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
 
-# generate certificate for testing
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -out test-cert.crt \
-  -keyout test-cert.key \
-  -subj "/CN=test"
+<span class="c1"># generate certificate for testing</span>
+openssl req -x509 -nodes -days <span class="m">365</span> -newkey rsa:2048 <span class="se">\</span>
+  -out test-cert.crt <span class="se">\</span>
+  -keyout test-cert.key <span class="se">\</span>
+  -subj <span class="s2">&quot;/CN=test&quot;</span>
 
-openssl pkcs12 -export \
-  -in test-cert.crt \
-  -inkey test-cert.key \
-  -passout pass:test \
+openssl pkcs12 -export <span class="se">\</span>
+  -in test-cert.crt <span class="se">\</span>
+  -inkey test-cert.key <span class="se">\</span>
+  -passout pass:test <span class="se">\</span>
   -out test.pfx
 
-# configure certificate to app gateway
-az network application-gateway ssl-cert create \
-  --resource-group $resgp \
-  --gateway-name $appgwName \
-  -n mysslcert \
-  --cert-file test-cert.pfx \
-  --cert-password "test"</code></pre></p>
+<span class="c1"># configure certificate to app gateway</span>
+az network application-gateway ssl-cert create <span class="se">\</span>
+  --resource-group <span class="nv">$resgp</span> <span class="se">\</span>
+  --gateway-name <span class="nv">$appgwName</span> <span class="se">\</span>
+  -n mysslcert <span class="se">\</span>
+  --cert-file test-cert.pfx <span class="se">\</span>
+  --cert-password <span class="s2">&quot;test&quot;</span>
+</pre></div></p>
 <h2 id="configure-certificate-from-key-vault-to-appgw">Configure certificate from Key Vault to AppGw</h2>
 <p>To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault. </p>
-<pre class="highlight"><code class="language-bash"># Configure your resources
-appgwName=""
-resgp=""
-vaultName=""
-location=""
-agicIdentityPrincipalId=""
+<div class="highlight"><pre><span></span><span class="c1"># Configure your resources</span>
+<span class="nv">appgwName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">resgp</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">vaultName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">location</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">agicIdentityPrincipalId</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
 
-# One time operation, create Azure key vault and certificate (can done through portal as well)
-az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
+<span class="c1"># One time operation, create Azure key vault and certificate (can done through portal as well)</span>
+az keyvault create -n <span class="nv">$vaultName</span> -g <span class="nv">$resgp</span> --enable-soft-delete -l <span class="nv">$location</span>
 
-# One time operation, create user-assigned managed identity
-az identity create -n appgw-id -g $resgp -l $location
-identityID=$(az identity show -n appgw-id -g $resgp -o tsv --query "id")
-identityPrincipal=$(az identity show -n appgw-id -g $resgp -o tsv --query "principalId")
+<span class="c1"># One time operation, create user-assigned managed identity</span>
+az identity create -n appgw-id -g <span class="nv">$resgp</span> -l <span class="nv">$location</span>
+<span class="nv">identityID</span><span class="o">=</span><span class="k">$(</span>az identity show -n appgw-id -g <span class="nv">$resgp</span> -o tsv --query <span class="s2">&quot;id&quot;</span><span class="k">)</span>
+<span class="nv">identityPrincipal</span><span class="o">=</span><span class="k">$(</span>az identity show -n appgw-id -g <span class="nv">$resgp</span> -o tsv --query <span class="s2">&quot;principalId&quot;</span><span class="k">)</span>
 
-# One time operation, assign AGIC identity to have operator access over AppGw identity
-az role assignment create --role "Managed Identity Operator" --assignee $agicIdentityPrincipalId --scope $identityID
+<span class="c1"># One time operation, assign AGIC identity to have operator access over AppGw identity</span>
+az role assignment create --role <span class="s2">&quot;Managed Identity Operator&quot;</span> --assignee <span class="nv">$agicIdentityPrincipalId</span> --scope <span class="nv">$identityID</span>
 
-# One time operation, assign the identity to Application Gateway
-az network application-gateway identity assign \
-  --gateway-name $appgwName \
-  --resource-group $resgp \
-  --identity $identityID
+<span class="c1"># One time operation, assign the identity to Application Gateway</span>
+az network application-gateway identity assign <span class="se">\</span>
+  --gateway-name <span class="nv">$appgwName</span> <span class="se">\</span>
+  --resource-group <span class="nv">$resgp</span> <span class="se">\</span>
+  --identity <span class="nv">$identityID</span>
 
-# One time operation, assign the identity GET secret access to Azure Key Vault
-az keyvault set-policy \
--n $vaultName \
--g $resgp \
---object-id $identityPrincipal \
+<span class="c1"># One time operation, assign the identity GET secret access to Azure Key Vault</span>
+az keyvault set-policy <span class="se">\</span>
+-n <span class="nv">$vaultName</span> <span class="se">\</span>
+-g <span class="nv">$resgp</span> <span class="se">\</span>
+--object-id <span class="nv">$identityPrincipal</span> <span class="se">\</span>
 --secret-permissions get
 
-# For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway
-az keyvault certificate create \
---vault-name $vaultName \
--n mycert \
--p "$(az keyvault certificate get-default-policy)"
-versionedSecretId=$(az keyvault certificate show -n mycert --vault-name $vaultName --query "sid" -o tsv)
-unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
+<span class="c1"># For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway</span>
+az keyvault certificate create <span class="se">\</span>
+--vault-name <span class="nv">$vaultName</span> <span class="se">\</span>
+-n mycert <span class="se">\</span>
+-p <span class="s2">&quot;</span><span class="k">$(</span>az keyvault certificate get-default-policy<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">versionedSecretId</span><span class="o">=</span><span class="k">$(</span>az keyvault certificate show -n mycert --vault-name <span class="nv">$vaultName</span> --query <span class="s2">&quot;sid&quot;</span> -o tsv<span class="k">)</span>
+<span class="nv">unversionedSecretId</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$versionedSecretId</span> <span class="p">|</span> cut -d<span class="s1">&#39;/&#39;</span> -f-5<span class="k">)</span> <span class="c1"># remove the version from the url</span>
 
-# For each new certificate, Add the certificate to AppGw
-az network application-gateway ssl-cert create \
--n mykvsslcert \
---gateway-name $appgwName \
---resource-group $resgp \
---key-vault-secret-id $unversionedSecretId # ssl certificate with name "mykvsslcert" will be configured on AppGw</code></pre>
+<span class="c1"># For each new certificate, Add the certificate to AppGw</span>
+az network application-gateway ssl-cert create <span class="se">\</span>
+-n mykvsslcert <span class="se">\</span>
+--gateway-name <span class="nv">$appgwName</span> <span class="se">\</span>
+--resource-group <span class="nv">$resgp</span> <span class="se">\</span>
+--key-vault-secret-id <span class="nv">$unversionedSecretId</span> <span class="c1"># ssl certificate with name &quot;mykvsslcert&quot; will be configured on AppGw</span>
+</pre></div>
 
 <h2 id="testing-the-key-vault-certificate-on-ingress">Testing the key vault certificate on Ingress</h2>
 <p>Since we have certificate from Key Vault configured in Application Gateway, we can then add the new annotation <code>appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</code> in Kubernetes ingress to enable the feature.</p>
-<pre class="highlight"><code class="language-bash"># install an app
-cat &lt;&lt; EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: aspnetapp
-  labels:
-    app: aspnetapp
-spec:
-  containers:
-  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
-    name: aspnetapp-image
-    ports:
-    - containerPort: 80
-      protocol: TCP
+<div class="highlight"><pre><span></span><span class="c1"># install an app</span>
+cat <span class="s">&lt;&lt; EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Pod</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">  labels:</span>
+<span class="s">    app: aspnetapp</span>
+<span class="s">spec:</span>
+<span class="s">  containers:</span>
+<span class="s">  - image: &quot;mcr.microsoft.com/dotnet/core/samples:aspnetapp&quot;</span>
+<span class="s">    name: aspnetapp-image</span>
+<span class="s">    ports:</span>
+<span class="s">    - containerPort: 80</span>
+<span class="s">      protocol: TCP</span>
 
----
+<span class="s">---</span>
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: aspnetapp
-spec:
-  selector:
-    app: aspnetapp
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">spec:</span>
+<span class="s">  selector:</span>
+<span class="s">    app: aspnetapp</span>
+<span class="s">  ports:</span>
+<span class="s">  - protocol: TCP</span>
+<span class="s">    port: 80</span>
+<span class="s">    targetPort: 80</span>
 
----
+<span class="s">---</span>
 
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: aspnetapp
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          serviceName: aspnetapp
-          servicePort: 80
-EOF</code></pre>
+<span class="s">apiVersion: extensions/v1beta1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">  annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">    appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</span>
+<span class="s">spec:</span>
+<span class="s">  rules:</span>
+<span class="s">  - http:</span>
+<span class="s">      paths:</span>
+<span class="s">      - path: /</span>
+<span class="s">        backend:</span>
+<span class="s">          serviceName: aspnetapp</span>
+<span class="s">          servicePort: 80</span>
+<span class="s">EOF</span>
+</pre></div>
               
             </div>
           </div>
@@ -326,7 +454,7 @@ EOF</code></pre>
     
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -336,7 +464,7 @@ EOF</code></pre>
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -350,11 +478,6 @@ EOF</code></pre>
     <script>var base_url = '../..';</script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(true);
-        };
-    </script>
 
 </body>
 </html>

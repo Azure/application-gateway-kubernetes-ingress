@@ -7,15 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  
   <link rel="shortcut icon" href="../img/favicon.ico">
   <title>Frequrently Asked Questions: [WIP] - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../css/theme.css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../css/extra.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../css/extra.css" rel="stylesheet">
   
   <script>
     // Current page data
@@ -26,11 +25,11 @@
   
   <script src="../js/jquery-2.1.1.min.js" defer></script>
   <script src="../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -41,7 +40,6 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href=".." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -52,95 +50,217 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Setup</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-existing/">Brownfield Deployment</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../setup/install-new/">Greenfield Deployment</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../features/probes/">Probes</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../how-tos/websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul class="current">
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Frequrently Asked Questions: [WIP]</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#what-is-an-ingress-controller">What is an Ingress Controller</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#can-single-ingress-controller-instance-manage-multiple-application-gateway">Can single ingress controller instance manage multiple Application Gateway</a>
-    </li>
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../setup/install-new/">Greenfield Deployment</a>
+                </li>
     </ul>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/">Troubleshooting Guide</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../features/agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Frequrently Asked Questions: [WIP]</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#frequrently-asked-questions-wip">Frequrently Asked Questions: [WIP]</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#what-is-an-ingress-controller">What is an Ingress Controller</a></li>
+        
+            <li><a class="toctree-l3" href="#can-single-ingress-controller-instance-manage-multiple-application-gateway">Can single ingress controller instance manage multiple Application Gateway</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../troubleshootings/">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/contribute/">Contribution Guidelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../developers/test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
       </div>
-    </div>
+      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -167,7 +287,6 @@
       
     </li>
   </ul>
-  
   <hr/>
 </div>
           <div role="main">
@@ -191,7 +310,7 @@ To satify this <code>Ingress</code> resource, an Ingress Controller is required 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../troubleshooting/" class="btn btn-neutral float-right" title="Troubleshooting Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../troubleshootings/" class="btn btn-neutral float-right" title="Troubleshooting Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../how-tos/websockets/" class="btn btn-neutral" title="Websockets"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -206,7 +325,7 @@ To satify this <code>Ingress</code> resource, an Ingress Controller is required 
     
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -216,25 +335,20 @@ To satify this <code>Ingress</code> resource, an Ingress Controller is required 
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
         <span><a href="../how-tos/websockets/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../troubleshooting/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../troubleshootings/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
     <script>var base_url = '..';</script>
     <script src="../js/theme.js" defer></script>
       <script src="../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(true);
-        };
-    </script>
 
 </body>
 </html>

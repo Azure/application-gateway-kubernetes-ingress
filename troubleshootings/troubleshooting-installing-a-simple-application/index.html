@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Troubleshooting installing a simple application - Application Gateway Ingress Controller</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Troubleshooting installing a simple application";
+    var mkdocs_page_input_path = "troubleshootings/troubleshooting-installing-a-simple-application.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../how-tos/websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Troubleshooting installing a simple application</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#troubleshooting-installing-a-simple-application">Troubleshooting: Installing a simple application</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#inspect-kubernetes-installation">Inspect Kubernetes Installation</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Troubleshootings &raquo;</li>
+        
+      
+    
+    <li>Troubleshooting installing a simple application</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/troubleshootings/troubleshooting-installing-a-simple-application.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="troubleshooting-installing-a-simple-application">Troubleshooting: Installing a simple application</h2>
+<p><a href="https://shell.azure.com/">Azure Cloud Shell</a> is the most convenient way to troubleshoot any problems with your AKS
+and AGIC installation. Launch your shell from <a href="https://shell.azure.com/">shell.azure.com</a> or by clicking the link:</p>
+<p><a href="https://shell.azure.com"><img alt="Embed launch" src="https://shell.azure.com/images/launchcloudshell.png" title="Launch Azure Cloud Shell" /></a></p>
+<p>In the troubleshooting document, we will debug issues in the AGIC installation by installing a simple application step by step and check the output as we go along.<br />
+The steps below assume:
+  - You have an AKS cluster, with Advanced Networking enabled
+  - AGIC has been installed on the AKS cluster
+  - You already hav an App Gateway on a VNET shared with your AKS cluster</p>
+<p>To verify that the App Gateway + AKS + AGIC installation is setup correctly, deploy
+the simplest possible app:</p>
+<div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Pod</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-pod</span>
+<span class="s">  labels:</span>
+<span class="s">    app: test-agic-app</span>
+<span class="s">spec:</span>
+<span class="s">  containers:</span>
+<span class="s">  - image: &quot;mcr.microsoft.com/dotnet/core/samples:aspnetapp&quot;</span>
+<span class="s">    name: aspnetapp-image</span>
+<span class="s">    ports:</span>
+<span class="s">    - containerPort: 80</span>
+<span class="s">      protocol: TCP</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-service</span>
+<span class="s">spec:</span>
+<span class="s">  selector:</span>
+<span class="s">    app: test-agic-app</span>
+<span class="s">  ports:</span>
+<span class="s">  - protocol: TCP</span>
+<span class="s">    port: 80</span>
+<span class="s">    targetPort: 80</span>
+<span class="s">---</span>
+<span class="s">apiVersion: extensions/v1beta1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-ingress</span>
+<span class="s">  annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">spec:</span>
+<span class="s">  rules:</span>
+<span class="s">    - host: test.agic.contoso.com</span>
+<span class="s">      http:</span>
+<span class="s">        paths:</span>
+<span class="s">          - path: /</span>
+<span class="s">            backend:</span>
+<span class="s">              serviceName: test-agic-app-service</span>
+<span class="s">              servicePort: 80</span>
+<span class="s">EOF</span>
+</pre></div>
+
+<p>Copy and paste all lines at once from the
+script above into a <a href="https://shell.azure.com/">Azure Cloud Shell</a>. Please ensure the entire
+command is copied - starting with <code>cat</code> and including the last <code>EOF</code>.</p>
+<p><img alt="apply" src="../../images/tsg--apply-config.png" /></p>
+<p>After a successful deployment of the app above your AKS cluster will have a new Pod, Service and an Ingress.</p>
+<p>Get the list of pods with <a href="https://shell.azure.com/">Cloud Shell</a>: <code>kubectl get pods -o wide</code>.
+We expect for a pod named 'test-agic-app-pod' to have been created. It will have an IP address. This address
+must be within the VNET of the App Gateway, which is used with AKS.</p>
+<p><img alt="pods" src="../../images/tsg--get-pods.png" /></p>
+<p>Get the list of services: <code>kubectl get services -o wide</code>. We expect to see a service named
+'test-agic-app-service'.</p>
+<p><img alt="pods" src="../../images/tsg--get-services.png" /></p>
+<p>Get the list of the ingresses: <code>kubectl get ingress</code>. We expect an Ingress resource named
+'test-agic-app-ingress' to have been created. The resource will have a host name 'test.agic.contoso.com'.</p>
+<p><img alt="pods" src="../../images/tsg--get-ingress.png" /></p>
+<p>One of the pods will be AGIC. <code>kubectl get pods</code> will show a list of pods, one of which will begin
+with 'ingress-azure'. Get all logs of that pod with <code>kubectl logs &lt;name-of-ingress-controller-pod&gt;</code>
+to verify that we have had a successful deployment. A successful deployment would have added the following
+lines to the log:
+<div class="highlight"><pre><span></span>I0927 22:34:51.281437       1 process.go:156] Applied App Gateway config in 20.461335266s
+I0927 22:34:51.281585       1 process.go:165] cache: Updated with latest applied config.
+I0927 22:34:51.282342       1 process.go:171] END AppGateway deployment
+</pre></div></p>
+<p>Alternatively, from <a href="https://shell.azure.com/">Cloud Shell</a> we can retrieve only the lines
+indicating successful App Gateway configuration with
+<code>kubectl logs &lt;ingress-azure-....&gt; | grep 'Applied App Gateway config in'</code>, where
+<code>&lt;ingress-azure....&gt;</code> should be the exact name of the AGIC pod.</p>
+<p>App Gateway will have the following configuration applied:</p>
+<ul>
+<li>
+<p>Listener:
+<img alt="listener" src="../../images/tsg--listeners.png" /></p>
+</li>
+<li>
+<p>Routing Rule:
+<img alt="routing_rule" src="../../images/tsg--rule.png" /></p>
+</li>
+<li>
+<p>Backend Pool:</p>
+</li>
+<li>There will be one IP address in the backend address pool and it will match the IP address of the Pod we observed earlier with <code>kubectl get pods -o wide</code>
+<img alt="backend_pool" src="../../images/tsg--backendpools.png" /></li>
+</ul>
+<p>Finally we can use the <code>cURL</code> command from within <a href="https://shell.azure.com/">Cloud Shell</a> to
+establish an HTTP connection to the newly deployed app:</p>
+<ol>
+<li>Use <code>kubectl get ingress</code> to get the Public IP address of App Gateway</li>
+<li>Use <code>curl -I -H 'Host: test.agic.contoso.com' &lt;publitc-ip-address-from-previous-command&gt;</code></li>
+</ol>
+<p><img alt="pods" src="../../images/tsg--curl.png" /></p>
+<p>A result of <code>HTTP/1.1 200 OK</code> indicates that the App Gateway + AKS + AGIC system is working as expected.</p>
+<h3 id="inspect-kubernetes-installation">Inspect Kubernetes Installation</h3>
+<h4 id="pods-services-ingress">Pods, Services, Ingress</h4>
+<p>Application Gateway Ingress Controller (AGIC) continuously monitors the folowing Kubernetes resources: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment">Deployment</a> or <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/#what-is-a-pod">Pod</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a></p>
+<p>The following must be in place for AGIC to function as expected:
+  1. AKS must have one or more healthy <strong>pods</strong>.
+     Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get pods -o wide --show-labels</code>
+     If you have a Pod with an <code>apsnetapp</code>, your output may look like this:
+     <div class="highlight"><pre><span></span>$&gt; kubectl get pods -o wide --show-labels
+
+NAME                   READY   STATUS    RESTARTS   AGE   IP          NODE                       NOMINATED NODE   READINESS GATES   LABELS
+aspnetapp              <span class="m">1</span>/1     Running   <span class="m">0</span>          17h   <span class="m">10</span>.0.0.6    aks-agentpool-35064155-1   &lt;none&gt;           &lt;none&gt;            <span class="nv">app</span><span class="o">=</span>aspnetapp
+</pre></div></p>
+<ol>
+<li>
+<p>One or more <strong>services</strong>, referencing the pods above via matching <code>selector</code> labels.
+     Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get services -o wide</code>
+     <div class="highlight"><pre><span></span>$&gt; kubectl get services -o wide --show-labels
+
+NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>   AGE   SELECTOR        LABELS
+aspnetapp           ClusterIP   <span class="m">10</span>.2.63.254    &lt;none&gt;        <span class="m">80</span>/TCP    17h   <span class="nv">app</span><span class="o">=</span>aspnetapp   &lt;none&gt;     
+</pre></div></p>
+</li>
+<li>
+<p><strong>Ingress</strong>, annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code>, referencing the service above
+     Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get ingress -o wide --show-labels</code>
+     <div class="highlight"><pre><span></span>$&gt; kubectl get ingress -o wide --show-labels
+
+NAME        HOSTS   ADDRESS   PORTS   AGE   LABELS
+aspnetapp   *                 <span class="m">80</span>      17h   &lt;none&gt;
+</pre></div></p>
+</li>
+<li>
+<p>View annotations of the ingress above: <code>kubectl get ingress aspnetapp -o yaml</code> (substitute <code>aspnetapp</code> with the name of your ingress)
+     <div class="highlight"><pre><span></span>$&gt; kubectl get ingress aspnetapp -o yaml
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: aspnetapp
+spec:
+  backend:
+    serviceName: aspnetapp
+    servicePort: <span class="m">80</span>
+</pre></div></p>
+<p>The ingress resource must be annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code>.</p>
+</li>
+</ol>
+<h4 id="verify-observed-nampespace">Verify Observed Nampespace</h4>
+<ul>
+<li>
+<p>Get the existing namespaces in Kubernetes cluster. What namespace is your app
+running in? Is AGIC watching that namespace? Refer to the
+<a href="../../features/multiple-namespaces/#enable-multiple-namespace-support">Multiple Namespace Support</a>
+documentation on how to properly configure observed namespaces.
+    <div class="highlight"><pre><span></span><span class="c1"># What namespaces exist on your cluster</span>
+kubectl get namespaces
+
+<span class="c1"># What pods are currently running</span>
+kubectl get pods --all-namespaces -o wide
+</pre></div></p>
+</li>
+<li>
+<p>The AGIC pod should be in the <code>default</code> namespace (see column <code>NAMESPACE</code>). A healthy pod would have <code>Running</code> in the <code>STATUS</code> column. There should be at least one AGIC pod.
+    <div class="highlight"><pre><span></span><span class="c1"># Get a list of the Application Gateway Ingress Controller pods</span>
+kubectl get pods --all-namespaces --selector <span class="nv">app</span><span class="o">=</span>ingress-azure
+</pre></div></p>
+</li>
+<li>
+<p>If the AGIC pod is not healthy (<code>STATUS</code> column from the command above is not <code>Running</code>):</p>
+</li>
+<li>get logs to understand why: <code>kubectl logs &lt;pod-name&gt;</code></li>
+<li>for the previous instance of the pod: <code>kubectl logs &lt;pod-name&gt; --previous</code></li>
+<li>
+<p>describe the pod to get more context: <code>kubectl describe pod &lt;pod-name&gt;</code></p>
+</li>
+<li>
+<p>Do you have a Kubernetes
+<a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a> and
+<a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> resources?
+    <div class="highlight"><pre><span></span><span class="c1"># Get all services across all namespaces</span>
+kubectl get service --all-namespaces -o wide
+
+<span class="c1"># Get all ingress resources across all namespaces</span>
+kubectl get ingress --all-namespaces -o wide
+</pre></div></p>
+</li>
+<li>
+<p>Is your <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> annotated with: <code>kubernetes.io/ingress.class: azure/application-gateway</code>? AGIC will only watch for Kubernetes Ingress resources that have this annotation.
+    <div class="highlight"><pre><span></span><span class="c1"># Get the YAML definition of a particular ingress resource</span>
+kubectl get ingress --namespace  &lt;which-namespace?&gt;  &lt;which-ingress?&gt;  -o yaml
+</pre></div></p>
+</li>
+<li>
+<p>AGIC emits Kubernetes events for certain critical errors. You can view these:</p>
+</li>
+<li>in your terminal via <code>kubectl get events --sort-by=.metadata.creationTimestamp</code></li>
+<li>in your browser using the <a href="https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/">Kubernetes Web UI (Dashboard)</a></li>
+</ul>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../logging-levels/" class="btn btn-neutral float-right" title="Logging Levels">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../troubleshooting-agic-pod-stuck-in-not-ready-state/" class="btn btn-neutral" title="Troubleshooting agic pod stuck in not ready state"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../troubleshooting-agic-pod-stuck-in-not-ready-state/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../../logging-levels/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

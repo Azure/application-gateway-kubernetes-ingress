@@ -7,15 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Automate DNS updates - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../css/extra.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link href="../../css/extra.css" rel="stylesheet">
   
   <script>
     // Current page data
@@ -26,11 +25,11 @@
   
   <script src="../../js/jquery-2.1.1.min.js" defer></script>
   <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
 </head>
@@ -41,7 +40,6 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
         <div role="search">
@@ -52,91 +50,209 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Setup</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Automate DNS updates</a>
-    <ul class="current">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Introduction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../annotations/">Annotations</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Setup</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../setup/install-existing/">Brownfield Deployment</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../setup/install-new/">Greenfield Deployment</a>
+                </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/">Troubleshooting Guide</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Tutorials</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Features</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../features/agic-reconcile/">Agic reconcile</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../features/probes/">Probes</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">How tos</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Automate DNS updates</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#automate-dns-updates">Automate DNS updates</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../networking/">How to setup networking between Application Gateway and AKS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../websockets/">Websockets</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Troubleshootings</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/">Troubleshooting Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../logging-levels/">Logging Levels</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Developers</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../../developers/build/">Building the controller</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/nightly/">Install the latest nightly build</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../../developers/test/">Testing the controller</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
       </div>
-    </div>
+      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -167,7 +283,6 @@
       
     </li>
   </ul>
-  
   <hr/>
 </div>
           <div role="main">
@@ -178,31 +293,32 @@
 To achieve this the <a href="https://github.com/kubernetes-sigs/external-dns">ExternalDNS</a> Kubernetes app is required. ExternalDNS in installable via a <a href="https://github.com/kubernetes-incubator/external-dns">Helm chart</a>. The <a href="https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/azure.md">following document</a> provides a tutorial on setting up ExternalDNS with an Azure DNS.</p>
 <p>Below is a sample Ingress resource, annotated with
 <code>kubernetes.io/ingress.class: azure/application-gateway</code>, which configures <code>aplpha.contoso.com</code>.</p>
-<pre class="highlight"><code class="language-yaml">apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: websocket-ingress
-  namespace: alpha
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: alpha.contoso.com
-      http:
-        paths:
-        - path: /
-          backend:
-            serviceName: contoso-service
-            servicePort: 80</code></pre>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">websocket-ingress</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpha</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">rules</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">host</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpha.contoso.com</span>
+      <span class="nt">http</span><span class="p">:</span>
+        <span class="nt">paths</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/</span>
+          <span class="nt">backend</span><span class="p">:</span>
+            <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">contoso-service</span>
+            <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
 
 <p>Application Gateway Ingress Controller (AGIC) automatically recognizes the public IP address
 assigned to the Application Gateway it is associated with, and sets this IP (<code>1.2.3.4</code>)
 on the Ingress resource as shown below:</p>
-<pre class="highlight"><code class="language-bash">$ kubectl get ingress -A
+<div class="highlight"><pre><span></span>$ kubectl get ingress -A
 NAMESPACE             NAME                HOSTS                 ADDRESS   PORTS   AGE
-alpha                 alpha-ingress       alpha.contoso.com     1.2.3.4   80      8m55s
-beta                  beta-ingress        beta.contoso.com      1.2.3.4   80      8m54s
-</code></pre>
+alpha                 alpha-ingress       alpha.contoso.com     <span class="m">1</span>.2.3.4   <span class="m">80</span>      8m55s
+beta                  beta-ingress        beta.contoso.com      <span class="m">1</span>.2.3.4   <span class="m">80</span>      8m54s
+</pre></div>
 
 <p>Once the Ingresses contain both host and adrress, ExternalDNS will provision these to the
 DNS system it has been associated with and authorized for.</p>
@@ -228,7 +344,7 @@ DNS system it has been associated with and authorized for.</p>
     
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -238,7 +354,7 @@ DNS system it has been associated with and authorized for.</p>
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -252,11 +368,6 @@ DNS system it has been associated with and authorized for.</p>
     <script>var base_url = '../..';</script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
-            SphinxRtdTheme.Navigation.enable(true);
-        };
-    </script>
 
 </body>
 </html>
