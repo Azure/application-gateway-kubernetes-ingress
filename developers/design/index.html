@@ -320,11 +320,11 @@
 We use the kubernetes informers for this purpose which is a standard for watching resources on the K8S API server.</p>
 <p>When AGIC starts, it <a href="../../pkg/k8scontext/context.go">sets up informers</a> for watching following resources:
 1. <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a>: This is the top-level resource that AGIC monitors. It provides information about the layer-7 routing rules that need to be configured on the App Gateway.
-1. <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>: Service provides an abstraction over the pods to expose as a network service. AGIC uses the service as logical grouping of pods to extract the IP addresses through the endpoints object created automatically along with the Service.
-1. <a href="https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/">Endpoints</a>: Endpoints provides information about Pod IP Addresses behind a service and is used to populate AppGW's backend pool.
-1. <a href="https://kubernetes.io/docs/concepts/workloads/pods/">Pod</a>: Pod provides information about liveness and readiness probes which translated to health probe in App Gateway. AGIC only supports HTTP based liveness and readiness probe.
-1. <a href="https://kubernetes.io/docs/concepts/configuration/secret/">Secret</a>: This resource is for extracting SSL certificates when referenced in an ingress. This also triggeres a change when the secret is updated.
-1. <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRDs</a>: AGIC has some custom resources for supporting specific features like prohibited target for sharing a gateway.</p>
+2. <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>: Service provides an abstraction over the pods to expose as a network service. AGIC uses the service as logical grouping of pods to extract the IP addresses through the endpoints object created automatically along with the Service.
+3. <a href="https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/">Endpoints</a>: Endpoints provides information about Pod IP Addresses behind a service and is used to populate AppGW's backend pool.
+4. <a href="https://kubernetes.io/docs/concepts/workloads/pods/">Pod</a>: Pod provides information about liveness and readiness probes which translated to health probe in App Gateway. AGIC only supports HTTP based liveness and readiness probe.
+5. <a href="https://kubernetes.io/docs/concepts/configuration/secret/">Secret</a>: This resource is for extracting SSL certificates when referenced in an ingress. This also triggeres a change when the secret is updated.
+6. <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRDs</a>: AGIC has some custom resources for supporting specific features like prohibited target for sharing a gateway.</p>
 <p>When starting the informers, AGIC also provides event handlers for each for create/update/delete operations on the resource. This handler is responsible for enqueuing an event .</p>
 <h3 id="2-worker">2. Worker</h3>
 <p><a href="../../pkg/worker/worker.go">Worker</a> is responsible for processing the events and performing updates.</p>
@@ -332,8 +332,8 @@ We use the kubernetes informers for this purpose which is a standard for watchin
 After this, worker starts draining the rest of the events and calling the <code>ProcessEvent</code> function to process the event.</p>
 <p><code>ProcessEvent</code> function does the following:
 1. Check if the Application Gateway is in <code>Running</code> or <code>Starting</code> operational state.
-1. Updates all ingress resources with public/private IP address of the App Gateway.
-1. Generate new config and update the Application Gateway.</p>
+2. Updates all ingress resources with public/private IP address of the App Gateway.
+3. Generate new config and update the Application Gateway.</p>
 <h3 id="3-application-gateway-config-builder">3. Application Gateway Config Builder</h3>
 <p>This <a href="../../pkg/appgw/configbuilder.go">component</a> is responsible for using the information in the local kubernetes cache and generating the corresponding Application Gateway configuration as an output.</p>
 <p>Worker invokes the <code>Build</code> on this component which then generates various gateways sub-resources starting from leaf sub-resources like <code>probes</code>, <code>http settings</code> up to the <code>request routing rules</code>.</p>
