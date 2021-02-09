@@ -327,7 +327,7 @@ We use the kubernetes informers for this purpose which is a standard for watchin
 1. <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRDs</a>: AGIC has some custom resources for supporting specific features like prohibited target for sharing a gateway.</p>
 <p>When starting the informers, AGIC also provides event handlers for each for create/update/delete operations on the resource. This handler is responsible for enqueuing an event .</p>
 <h3 id="2-worker">2. Worker</h3>
-<p><a href="../../../pkg/worker.go">Worker</a> is responsible for processing the events and performing updates.</p>
+<p><a href="../../pkg/worker/worker.go">Worker</a> is responsible for processing the events and performing updates.</p>
 <p>When Worker's <code>Run</code> function is called, it starts as a separate thread and waits on the <code>Work</code> channel. When an informers add an event to the channel, worker dequeues the event and checks whether the event is noise or is relevant. Events that are coming from unwatched namespaces and unreferenced pods/endpoints are skipped to reduce the churn. If the the last worker loop was run less than 1 second ago, it sleeps for the remainder and wakes up to space out the updates.<br />
 After this, worker starts draining the rest of the events and calling the <code>ProcessEvent</code> function to process the event.</p>
 <p><code>ProcessEvent</code> function does the following:
