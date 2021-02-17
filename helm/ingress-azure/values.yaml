@@ -23,8 +23,7 @@ kubernetes:
   httpServicePort: 8123
 
   # Specify the scheduling options
-  nodeSelector:
-    {}
+  nodeSelector: {}
     # disktype: dentro
   tolerations: []
   affinity: {}
