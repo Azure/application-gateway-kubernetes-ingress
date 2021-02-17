@@ -28,9 +28,12 @@ kubernetes:
 
   securityContext:
     runAsUser: 0
-  
+
   # Add pod level annotations
   podAnnotations: {}
+
+  # Add priorityClassName
+  priorityClassName:
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace
