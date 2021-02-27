@@ -1,7 +1,11 @@
 - [How to try](#how-to-try)
+- [v1.4.0](#v140)
 - [v1.4.0-rc1](#v140-rc1)
   - [Features](#features)
   - [Fixes](#fixes)
+
+# v1.4.0
+Same as v1.4.0-rc1
 
 # v1.4.0-rc1
 
@@ -39,12 +43,10 @@ helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.c
 helm repo update
 
 # Install
-# use --version 1.4.0-rc1 when installing using helm
 helm install \
   <release-name> \
   -f helm-config.yaml \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --version 1.4.0-rc1
 
 # or 
 
@@ -54,6 +56,5 @@ helm install \
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --reuse-values \
-  --version 1.4.0-rc1
+  --reuse-values
 ```
