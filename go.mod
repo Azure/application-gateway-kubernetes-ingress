@@ -3,15 +3,14 @@ module github.com/Azure/application-gateway-kubernetes-ingress
 go 1.13
 
 require (
-	github.com/Azure/azure-sdk-for-go v43.2.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.9.6
-	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
-	github.com/Azure/go-autorest/autorest/to v0.3.0
-	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
+	github.com/Azure/azure-sdk-for-go v52.1.0+incompatible
+	github.com/Azure/go-autorest/autorest v0.11.18
+	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
+	github.com/Azure/go-autorest/autorest/to v0.4.0
+	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
@@ -27,7 +26,6 @@ require (
 	k8s.io/api v0.0.0-20200326015715-b5bd82427fa8
 	k8s.io/apimachinery v0.0.0-20200326015016-e92250ad09d8
 	k8s.io/client-go v0.16.7
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.4.0
 )
 
