@@ -35,7 +35,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 
 The annotation allows to configure frontend listener to use different ports other than 80/443 for http/https.
 
-If the port is withing the App Gw authorized range (1 - 64999), this listener will be created on this specific port. If an invalid port or no port is set in the annotation, the configuration will fallback on default 80 or 443.
+If the port is within the App Gw authorized range (1 - 64999), this listener will be created on this specific port. If an invalid port or no port is set in the annotation, the configuration will fallback on default 80 or 443.
 
 ### Usage
 
