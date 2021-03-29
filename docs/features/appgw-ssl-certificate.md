@@ -28,7 +28,7 @@ openssl pkcs12 -export \
   -in test-cert.crt \
   -inkey test-cert.key \
   -passout pass:test \
-  -out test.pfx
+  -out test-cert.pfx
 
 # configure certificate to app gateway
 az network application-gateway ssl-cert create \
