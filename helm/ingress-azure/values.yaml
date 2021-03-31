@@ -14,9 +14,7 @@ image:
   tag: 1.2.0
   pullPolicy: Always
 
-
 kubernetes:
-
   # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
   # Accepts one or many comma-separated values
   watchNamespace:
@@ -32,9 +30,12 @@ kubernetes:
 
   securityContext:
     runAsUser: 0
-  
+
   # Add pod level annotations
   podAnnotations: {}
+
+  # Add priorityClassName
+  priorityClassName: ""
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace
