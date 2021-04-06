@@ -68,6 +68,16 @@ appgw: {}
 nodeSelector: {}
 
 ################################################################################
+# Specify resource quota for agic pod
+resources: {}
+  #limits:
+  #  cpu: 200m
+  #  memory: 100Mi
+  #requests:
+  #  cpu: 100m
+  #  memory: 100Mi
+
+################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
