@@ -9,9 +9,9 @@ import (
 	"fmt"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
@@ -54,7 +54,7 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 
 	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
-	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP == "true"
+	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP
 
 	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP)
 	if ipConf == nil {

@@ -14,6 +14,8 @@
 | `appgw.shared` | false | This boolean flag should be defaulted to `false`. Set to `true` should you need a [Shared App Gateway](setup/install-existing.md#multi-cluster--shared-app-gateway). |
 | `appgw.subResourceNamePrefix` | No prefix if empty | Prefix that should be used in the naming of the Application Gateway's sub-resources|
 | `kubernetes.watchNamespace` | Watches all if empty | Specify the name space, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces. |
+| `kubernetes.securityContext` | `runAsUser: 0` | Specify security context to use with AGIC deployment. By default, AGIC will assume `root` permission. Jump to [Security Context](#security-context) for more information. |
+| `kubernetes.podAnnotations` | `{}` | Specify custom annotations for AGIC pod |
 | `kubernetes.nodeSelector` | `{}` | Scheduling node selector |
 | `kubernetes.tolerations` | `[]` | Scheduling tolerations |
 | `kubernetes.affinity` | `{}` | Scheduling affinity |
@@ -24,7 +26,6 @@
 | `armAuth.identityClientId` | | The Client ID of the Identity. See below for more information on Identity |
 | `armAuth.secretJSON` | | Only needed when Service Principal Secret type is chosen (when `armAuth.type` has been set to `servicePrincipal`) |
 | `nodeSelector` | `{}` | (Legacy: use `kubernetes.nodeSelector` instead) Scheduling node selector |
-
 
 ## Example
 
@@ -46,3 +47,14 @@ kubernetes:
 rbac:
     enabled: false
 ```
+
+---
+### Security Context
+By default, AGIC will assume `root` permission which allows it to read `cloud-provider` config and get meta-data information about the cluster.
+If you want AGIC to run without `root` access, then make sure that AGIC is installed with atleast the following information to run successfully:
+* `appgw.subscriptionId`, `appgw.resourceGroup` and `appgw.name`  
+or
+* `appgw.applicationGatewayID`
+
+AGIC also uses `cloud-provider` config to get Node's Virtual Network Name / Subscription and Route table name. If AGIC is not able to reach this information,  It will skip assigning the Node's route table to Application Gateway's subnet which is required when using `kubenet` network plugin. To workaround, this assignment can be performed manually.
+

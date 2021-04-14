@@ -1,0 +1,70 @@
+{
+    "verbosityLevel": 3,
+    "appgw": {
+        "subscriptionId": "0000-0000-0000-0000-00000000",
+        "resourceGroup": "resgp",
+        "name": "gateway",
+        "usePrivateIP": false,
+        "shared": false
+    },
+    "armAuth": {
+        "type": "aadPodIdentity",
+        "identityResourceID": "/a/b/c",
+        "identityClientID": "0000-0000-0000-0000-00000000"
+    },
+    "rbac": {
+        "enabled": false
+    },
+    "kubernetes": {
+        "watchNamespace": "a,b,c",
+        "securityContext": {
+            "runAsUser": 3000,
+            "runAsGroup": 3000
+        },
+        "nodeSelector": {
+            "beta.kubernetes.io/os": "linux"
+        },
+        "podAnnotations": {
+            "custom-annotation": "custom-value"
+        },
+        "tolerations": [
+            {
+                "key": "CriticalAppsOnly",
+                "operator": "Exists"
+            }
+        ],
+        "affinity": {
+            "nodeAffinity": {
+                "preferredDuringSchedulingIgnoredDuringExecution": [
+                    {
+                        "weight": 100,
+                        "preference": {
+                            "matchExpressions": [
+                                {
+                                    "key": "kubernetes.cloud.com/mode",
+                                    "operator": "In",
+                                    "values": [
+                                        "system"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "labelSelector": null,
+                            "matchExpressions": [
+                                {
+                                    "key": "kubernetes.cloud.com/cluster",
+                                    "operator": "Exists"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -322,7 +322,7 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error
 		return
 	}
 	if result.Name != nil {
-		klog.Infof("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
+		klog.Infof("Completed deployment %v: %v", deploymentName, result.Properties.ProvisioningState)
 	} else {
 		klog.Infof("Completed deployment %v (no data returned to SDK)", deploymentName)
 	}
@@ -424,7 +424,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 	if err != nil {
 		return
 	}
-	err = deploymentFuture.Future.WaitForCompletionRef(az.ctx, az.deploymentsClient.BaseClient.Client)
+	err = deploymentFuture.WaitForCompletionRef(az.ctx, az.deploymentsClient.BaseClient.Client)
 	if err != nil {
 		return
 	}

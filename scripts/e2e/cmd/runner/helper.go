@@ -234,6 +234,99 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 	return retVal, nil
 }
 
+func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string) error {
+	// create objects in the yaml
+	fileObjects, err := parseK8sYaml(fileName)
+	if err != nil {
+		return err
+	}
+
+	for _, objs := range fileObjects {
+		if secret, ok := objs.(*v1.Secret); ok {
+			nm := secret.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.CoreV1().Secrets(namespaceName).Update(secret); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.CoreV1().Secrets(nm).Update(secret); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for secrets when update")
+			}
+		} else if ingress, ok := objs.(*v1beta1.Ingress); ok {
+			nm := ingress.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Update(ingress); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.ExtensionsV1beta1().Ingresses(nm).Update(ingress); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for ingress when update")
+			}
+		} else if service, ok := objs.(*v1.Service); ok {
+			nm := service.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.CoreV1().Services(namespaceName).Update(service); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.CoreV1().Services(nm).Update(service); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for service when update")
+			}
+		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
+			nm := deployment.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.AppsV1().Deployments(namespaceName).Update(deployment); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.AppsV1().Deployments(nm).Update(deployment); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for deployment when update")
+			}
+		} else if cm, ok := objs.(*v1.ConfigMap); ok {
+			nm := cm.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Update(cm); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.CoreV1().ConfigMaps(nm).Update(cm); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for configmaps when update")
+			}
+		} else if pod, ok := objs.(*v1.Pod); ok {
+			nm := pod.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := clientset.CoreV1().Pods(namespaceName).Update(pod); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := clientset.CoreV1().Pods(nm).Update(pod); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for pods when update")
+			}
+		} else {
+			return fmt.Errorf("unable to update YAML. Unknown object type: %v", objs)
+		}
+	}
+	return nil
+}
+
 func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string) error {
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
@@ -253,7 +346,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for secrets")
+				return errors.New("namespace is not defined for secrets when create")
 			}
 		} else if ingress, ok := objs.(*v1beta1.Ingress); ok {
 			nm := ingress.Namespace
@@ -266,7 +359,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for ingress")
+				return errors.New("namespace is not defined for ingress when create")
 			}
 		} else if service, ok := objs.(*v1.Service); ok {
 			nm := service.Namespace
@@ -279,7 +372,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for service")
+				return errors.New("namespace is not defined for service when create")
 			}
 		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
 			nm := deployment.Namespace
@@ -292,7 +385,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for deployment")
+				return errors.New("namespace is not defined for deployment when create")
 			}
 		} else if cm, ok := objs.(*v1.ConfigMap); ok {
 			nm := cm.Namespace
@@ -305,7 +398,7 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for configmaps")
+				return errors.New("namespace is not defined for configmaps when create")
 			}
 		} else if pod, ok := objs.(*v1.Pod); ok {
 			nm := pod.Namespace

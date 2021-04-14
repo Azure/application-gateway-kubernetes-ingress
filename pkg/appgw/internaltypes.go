@@ -18,8 +18,8 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -227,9 +227,10 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 	}
 }
 
-func defaultFrontendListenerIdentifier() listenerIdentifier {
+func defaultFrontendListenerIdentifier(usePrivateIP bool) listenerIdentifier {
 	return listenerIdentifier{
 		FrontendPort: Port(80),
+		UsePrivateIP: usePrivateIP,
 	}
 }
 

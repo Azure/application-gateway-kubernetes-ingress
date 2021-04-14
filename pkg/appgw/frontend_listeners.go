@@ -139,7 +139,8 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 				break
 			}
 		}
-		allListeners[defaultFrontendListenerIdentifier()] = listenerConfig
+
+		allListeners[defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)] = listenerConfig
 	}
 
 	c.mem.listenerConfigs = &allListeners

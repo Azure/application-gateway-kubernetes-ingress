@@ -22,10 +22,14 @@ kubernetes:
 
   # Specify the scheduling options
   nodeSelector: {}
+    # disktype: dentro
   tolerations: []
   affinity: {}
+
+  securityContext:
+    runAsUser: 0
   
-  # custom annotations
+  # Add pod level annotations
   podAnnotations: {}
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway

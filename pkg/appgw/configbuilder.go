@@ -11,10 +11,10 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
@@ -255,7 +255,6 @@ func (c *appGwConfigBuilder) addTags() {
 	} else {
 		klog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
-	c.appGw.Tags[tags.LastUpdatedByK8sIngress] = to.StringPtr(c.clock.Now().String())
 }
 
 // GetVersion returns a string representing the version of AGIC.
