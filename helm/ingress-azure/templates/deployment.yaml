@@ -59,7 +59,7 @@ spec:
           periodSeconds: 20
         {{- with .Values.resources }}
         resources:
-{{ toYaml . | indent 10 }}
+        {{ toYaml . | indent 10 }}
         {{- end }}
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
@@ -107,22 +107,22 @@ spec:
       {{- if .Values.kubernetes.nodeSelector }}
       {{- with .Values.kubernetes.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
+      {{ toYaml . | indent 8 }}
       {{- end}}
       {{- else}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
+      {{ toYaml . | indent 8 }}
       {{- end}}
       {{- end}}
 
       {{- with .Values.kubernetes.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
+      {{ toYaml . | indent 8 }}
       {{- end }}
       {{- with .Values.kubernetes.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+      {{ toYaml . | indent 8 }}
       {{- end }}
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:

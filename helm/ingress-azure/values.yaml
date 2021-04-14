@@ -11,7 +11,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.2.0
+  tag: 1.4.0
   pullPolicy: Always
 
 
