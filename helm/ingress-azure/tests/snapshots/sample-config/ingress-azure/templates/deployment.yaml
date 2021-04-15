@@ -46,6 +46,13 @@ spec:
             port: 8123
           initialDelaySeconds: 15
           periodSeconds: 20
+        resources:
+          limits:
+            cpu: 200m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json

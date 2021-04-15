@@ -57,6 +57,10 @@ spec:
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
+        {{- with .Values.kubernetes.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+        {{- end }}
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json

@@ -21,6 +21,16 @@
             "runAsUser": 3000,
             "runAsGroup": 3000
         },
+        "resources": {
+            "limits": {
+                "cpu": "200m",
+                "memory": "100Mi"
+            },
+            "requests": {
+                "cpu": "100m",
+                "memory": "100Mi"
+            }
+        },
         "nodeSelector": {
             "beta.kubernetes.io/os": "linux"
         },
