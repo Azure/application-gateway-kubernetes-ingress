@@ -11,7 +11,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.4.0
+  tag: 1.2.0
   pullPolicy: Always
 
 
@@ -35,6 +35,15 @@ kubernetes:
   
   # Add pod level annotations
   podAnnotations: {}
+
+  # Specify resource quota for agic pod
+  resources: {}
+    #limits:
+    #  cpu: 200m
+    #  memory: 100Mi
+    #requests:
+    #  cpu: 100m
+    #  memory: 100Mi
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace
@@ -74,16 +83,6 @@ appgw: {}
 ################################################################################
 # (Legacy: use `kubernetes.nodeSelector` instead) Specify the scheduling options
 nodeSelector: {}
-
-################################################################################
-# Specify resource quota for agic pod
-resources: {}
-  #limits:
-  #  cpu: 200m
-  #  memory: 100Mi
-  #requests:
-  #  cpu: 100m
-  #  memory: 100Mi
     
 ################################################################################
 # Specify if the cluster is RBAC enabled or not

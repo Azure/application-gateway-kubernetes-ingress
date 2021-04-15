@@ -57,7 +57,7 @@ spec:
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
-        {{- with .Values.resources }}
+        {{- with .Values.kubernetes.resources }}
         resources:
         {{ toYaml . | indent 10 }}
         {{- end }}
