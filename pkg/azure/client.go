@@ -54,13 +54,13 @@ type azClient struct {
 }
 
 // NewAzClient returns an Azure Client
-func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, clientID string) AzClient {
+func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup, appGwName ResourceName, uniqueUserAgentSuffix, clientID string) AzClient {
 	settings, err := auth.GetSettingsFromEnvironment()
 	if err != nil {
 		return nil
 	}
 
-	userAgent := fmt.Sprintf("ingress-appgw/%s", version.Version)
+	userAgent := fmt.Sprintf("ingress-appgw/%s/%s", version.Version, uniqueUserAgentSuffix)
 	az := &azClient{
 		appGatewaysClient:     n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
 		publicIPsClient:       n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, string(subscriptionID)),
@@ -322,7 +322,7 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error
 		return
 	}
 	if result.Name != nil {
-		klog.Infof("Completed deployment %v: %v", deploymentName, *result.Properties.ProvisioningState)
+		klog.Infof("Completed deployment %v: %v", deploymentName, result.Properties.ProvisioningState)
 	} else {
 		klog.Infof("Completed deployment %v (no data returned to SDK)", deploymentName)
 	}
@@ -424,7 +424,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 	if err != nil {
 		return
 	}
-	err = deploymentFuture.Future.WaitForCompletionRef(az.ctx, az.deploymentsClient.BaseClient.Client)
+	err = deploymentFuture.WaitForCompletionRef(az.ctx, az.deploymentsClient.BaseClient.Client)
 	if err != nil {
 		return
 	}

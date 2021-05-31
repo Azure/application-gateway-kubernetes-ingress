@@ -22,11 +22,24 @@ kubernetes:
 
   # Specify the scheduling options
   nodeSelector: {}
+    # disktype: dentro
   tolerations: []
   affinity: {}
+
+  securityContext:
+    runAsUser: 0
   
-  # custom annotations
+  # Add pod level annotations
   podAnnotations: {}
+
+  # Specify resource quota for agic pod
+  resources: {}
+    #limits:
+    #  cpu: 200m
+    #  memory: 100Mi
+    #requests:
+    #  cpu: 100m
+    #  memory: 100Mi
 
 # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
 # This can be used to segregate ingress controllers in the same namespace

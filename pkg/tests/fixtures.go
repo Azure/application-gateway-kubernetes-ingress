@@ -11,12 +11,12 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 )
@@ -90,6 +90,38 @@ spec:
 // GetIngressComplex creates an Ingress test fixture with multiple backends and path rules.
 func GetIngressComplex() (*v1beta1.Ingress, error) {
 	return getIngress("ingress-complex.yaml")
+}
+
+// GetIngressWithMissingServiceAndServiceWithInvalidPort with missing service and service with invalid port
+func GetIngressWithMissingServiceAndServiceWithInvalidPort() (*v1beta1.Ingress, error) {
+	ingr := []byte(`
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-with-invalid-services
+  namespace: --namespace--
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  backend:
+    serviceName: missing-service
+    servicePort: 8080
+  rules:
+    - host: other-service
+      http:
+        paths:
+        - path: /otherService/*
+          backend:
+            serviceName: --service-name--
+            servicePort: 70000
+---
+    `)
+	obj, _, err := scheme.Codecs.UniversalDeserializer().Decode(ingr, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.Ingress), nil
 }
 
 // GetIngressNamespaced creates 2 Ingress test fixtures in different namespaces.

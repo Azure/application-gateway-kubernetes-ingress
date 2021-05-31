@@ -7,13 +7,12 @@ package appgw
 
 import (
 	"fmt"
-	"strconv"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -129,7 +128,7 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil)
 	}
 
-	if usePrivateIP, _ := strconv.ParseBool(envVariables.UsePrivateIP); usePrivateIP && !privateIPPresent {
+	if envVariables.UsePrivateIP && !privateIPPresent {
 		e := controllererrors.NewError(
 			controllererrors.ErrorNoPrivateIP,
 			"Applcation Gateway doesn't have a private IP. Either add a private IP or set usePrivateIP flag to false in helm config.",

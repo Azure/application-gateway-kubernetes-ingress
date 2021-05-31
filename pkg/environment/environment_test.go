@@ -67,7 +67,7 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(AppGwNameVarName, "AppGwNameVarName")
 				_ = os.Setenv(AuthLocationVarName, "AuthLocationVarName")
 				_ = os.Setenv(WatchNamespaceVarName, "WatchNamespaceVarName")
-				_ = os.Setenv(UsePrivateIPVarName, "UsePrivateIPVarName")
+				_ = os.Setenv(UsePrivateIPVarName, "True")
 				_ = os.Setenv(VerbosityLevelVarName, "VerbosityLevelVarName")
 				_ = os.Setenv(EnableBrownfieldDeploymentVarName, "SomethingIrrelevant1234")
 				_ = os.Setenv(EnableIstioIntegrationVarName, "true")
@@ -82,7 +82,7 @@ var _ = Describe("Environment", func() {
 					AppGwSkuName:               "Standard_v2",
 					AuthLocation:               "AuthLocationVarName",
 					WatchNamespace:             "WatchNamespaceVarName",
-					UsePrivateIP:               "UsePrivateIPVarName",
+					UsePrivateIP:               true,
 					VerbosityLevel:             "VerbosityLevelVarName",
 					EnableBrownfieldDeployment: false,
 					EnableIstioIntegration:     true,

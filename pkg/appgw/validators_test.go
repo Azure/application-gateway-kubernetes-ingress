@@ -171,8 +171,8 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should not error out when Ip Configuration is contains both PublicIP & PrivateIP and UsePrivateIP is true.", func() {
 			envVariablesNew := environment.GetFakeEnv()
-			envVariablesNew.UsePrivateIP = "true"
-			Expect(envVariablesNew.UsePrivateIP).To(Equal("true"))
+			envVariablesNew.UsePrivateIP = true
+			Expect(envVariablesNew.UsePrivateIP).To(Equal(true))
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf, privateIPConf}
 			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
 			Expect(err).To(BeNil())
@@ -180,8 +180,8 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 
 		It("should error out when Ip Configuration is contains 1 PublicIP and UsePrivateIP is true.", func() {
 			envVariablesNew := environment.GetFakeEnv()
-			envVariablesNew.UsePrivateIP = "true"
-			Expect(envVariablesNew.UsePrivateIP).To(Equal("true"))
+			envVariablesNew.UsePrivateIP = true
+			Expect(envVariablesNew.UsePrivateIP).To(Equal(true))
 			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf}
 			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
 			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorNoPrivateIP))

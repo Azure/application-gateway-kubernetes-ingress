@@ -32,8 +32,15 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
-      securityContext:        
+      {{- if .Values.kubernetes.securityContext }}
+      {{- with .Values.kubernetes.securityContext }}
+      securityContext:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      securityContext:
         runAsUser: 0
+      {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -50,6 +57,10 @@ spec:
             port: {{ .Values.kubernetes.httpServicePort }}
           initialDelaySeconds: 15
           periodSeconds: 20
+        {{- with .Values.kubernetes.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+        {{- end }}
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
