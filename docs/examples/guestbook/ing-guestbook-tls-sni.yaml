@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: guestbook
@@ -13,6 +13,10 @@ spec:
   - host: <guestbook.contoso.com>
     http:
       paths:
-      - backend:
-          serviceName: frontend
-          servicePort: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port: 
+                number: 80
