@@ -12,9 +12,9 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
@@ -82,7 +82,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		return nil
 	}
 	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
-	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.Service.Name, serviceBackendPortToStr(backendID.Path.Backend.Service.Port), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 
 	// set defaults
@@ -107,7 +107,8 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	if backendID.Backend.ServicePort.String() == "443" {
+	// nil check on Service
+	if backendID.Backend.Service != nil && serviceBackendPortToStr(backendID.Backend.Service.Port) == "443" {
 		probe.Protocol = n.HTTPS
 	}
 
@@ -220,9 +221,9 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 			continue
 		}
 
-		if fmt.Sprint(sp.Port) == backendID.Backend.ServicePort.String() ||
-			sp.Name == backendID.Backend.ServicePort.String() ||
-			sp.TargetPort.String() == backendID.Backend.ServicePort.String() {
+		if backendID.Backend.Service != nil && (fmt.Sprint(sp.Port) == serviceBackendPortToStr(backendID.Backend.Service.Port) ||
+			sp.Name == serviceBackendPortToStr(backendID.Backend.Service.Port) ||
+			sp.TargetPort.String() == serviceBackendPortToStr(backendID.Backend.Service.Port)) {
 
 			// Matched a service port in the service
 			if sp.TargetPort.String() == "" {

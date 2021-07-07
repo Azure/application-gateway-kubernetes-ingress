@@ -7,7 +7,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -17,13 +17,13 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-type pruneFunc func(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress
+type pruneFunc func(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress
 
 var once sync.Once
 var pruneFuncList []pruneFunc
 
 // PruneIngress filters ingress list based on filter functions and returns a filtered ingress list
-func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*v1beta1.Ingress {
+func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) []*networking.Ingress {
 	once.Do(func() {
 		if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 			pruneFuncList = append(pruneFuncList, pruneProhibitedIngress)
@@ -42,7 +42,7 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 }
 
 // pruneProhibitedIngress filters rules that are specified by prohibited target CRD
-func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
+func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
 	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
 	for idx, ingress := range ingressList {
 		klog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
@@ -54,8 +54,8 @@ func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGatew
 }
 
 // pruneNoPrivateIP filters ingresses which use private IP annotation when AppGw doesn't have a private IP
-func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	var prunedIngresses []*v1beta1.Ingress
+func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
 	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, err := annotations.UsePrivateIP(ingress)
@@ -80,8 +80,8 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 }
 
 // pruneNoSslCertificate filters ingresses which use appgw-ssl-certificate annotation when AppGw doesn't have annotated ssl certificate installed
-func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	var prunedIngresses []*v1beta1.Ingress
+func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
 	set := make(map[string]bool)
 	for _, installedSslCertificate := range *appGw.SslCertificates {
 		set[*installedSslCertificate.Name] = true
@@ -112,8 +112,8 @@ func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGatewa
 }
 
 // pruneNoTrustedRootCertificate filters ingresses which use appgw-trusted-root-certificate annotation when AppGw doesn't have annotated root certificate(s) installed
-func pruneNoTrustedRootCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	var prunedIngresses []*v1beta1.Ingress
+func pruneNoTrustedRootCertificate(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
 	set := make(map[string]bool)
 	for _, installedTrustedRootCertificate := range *appGw.TrustedRootCertificates {
 		set[*installedTrustedRootCertificate.Name] = true
@@ -148,8 +148,8 @@ func pruneNoTrustedRootCertificate(c *AppGwIngressController, appGw *n.Applicati
 }
 
 // pruneRedirectWithNoTLS filters ingresses which are annotated for ssl redirect but don't have a TLS section in the spec
-func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*v1beta1.Ingress) []*v1beta1.Ingress {
-	var prunedIngresses []*v1beta1.Ingress
+func pruneRedirectWithNoTLS(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
 	for _, ingress := range ingressList {
 		appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
 		hasTLS := (ingress.Spec.TLS != nil && len(ingress.Spec.TLS) > 0) || len(appgwCertName) > 0

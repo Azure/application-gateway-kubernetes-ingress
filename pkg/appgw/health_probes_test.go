@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
@@ -24,7 +24,7 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
-	ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+	ingressList := []*networking.Ingress{tests.NewIngressFixture()}
 	serviceList := []*v1.Service{tests.NewServiceFixture()}
 
 	Context("create probes", func() {
@@ -134,7 +134,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeMap, _ := cb.newProbesMap(cbCtx)
 
 		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
-		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		probeName := generateProbeName(backend.Service.Name, serviceBackendPortToStr(backend.Service.Port), ingressList[0])
 		It("uses the readiness probe to set the protocol on the probe", func() {
 			Expect(probeMap[probeName].Protocol).To(Equal(n.HTTPS))
 		})
@@ -177,7 +177,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Ingress: fixtures.GetIngress(),
 			Rule:    nil,
 			Path:    nil,
-			Backend: &v1beta1.IngressBackend{},
+			Backend: &networking.IngressBackend{},
 		}
 		pb := cb.generateHealthProbe(be)
 		It("should return nil and not crash", func() {
@@ -218,13 +218,15 @@ var _ = Describe("configure App Gateway health probes", func() {
 			},
 			Ingress: ingress,
 			Rule:    nil,
-			Path: &v1beta1.HTTPIngressPath{
+			Path: &networking.HTTPIngressPath{
 				Path: "/test",
-				Backend: v1beta1.IngressBackend{
-					ServiceName: "--service-name--",
+				Backend: networking.IngressBackend{
+					Service: &networking.IngressServiceBackend{
+						Name: "--service-name--",
+					},
 				},
 			},
-			Backend: &v1beta1.IngressBackend{},
+			Backend: &networking.IngressBackend{},
 		}
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)

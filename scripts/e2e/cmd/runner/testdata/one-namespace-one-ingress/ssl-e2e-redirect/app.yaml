@@ -47,7 +47,7 @@ spec:
           secretName: testsecret-tls
       - name: configmap-volume
         configMap:
-          name: nginx-cm       
+          name: nginx-cm
 ---
 apiVersion: v1
 kind: Service
@@ -61,7 +61,7 @@ spec:
     port: 443
     targetPort: 443
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ssl-redirect-ingress
@@ -79,12 +79,18 @@ spec:
         paths:
         - path: /index.html
           backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
+            service:
+              name: ssl-redirect-service
+              port:
+                number: 443
+          pathType: Exact
         - path: /*
           backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
+            service:
+              name: ssl-redirect-service
+              port:
+                number: 443
+          pathType: Prefix
 ---
 apiVersion: v1
 kind: Secret

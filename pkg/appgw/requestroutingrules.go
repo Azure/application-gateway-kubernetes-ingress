@@ -11,7 +11,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -119,18 +119,18 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	return requestRoutingRules, pathMap
 }
 
-func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
+func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
-	if ingress.Spec.Backend == nil {
+	if ingress.Spec.DefaultBackend == nil {
 		return
 	}
-	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
 		klog.Error("Error fetching Backends and Settings: ", err)
 	}
 	if serviceBackendPair, exists := serviceBackendPairMap[backendID]; exists {
-		poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
+		poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
@@ -215,7 +215,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	return urlPathMaps
 }
 
-func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *n.ApplicationGatewayURLPathMap {
+func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *n.ApplicationGatewayURLPathMap {
 	// initialize a path map for this listener if doesn't exists
 	pathMapName := generateURLPathMapName(listenerID)
 	pathMap := n.ApplicationGatewayURLPathMap{
@@ -241,7 +241,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	return &pathMap
 }
 
-func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) (*string, *string, *string) {
+func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
@@ -257,9 +257,9 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
 
-	var defRule *v1beta1.IngressRule
-	var defPath *v1beta1.HTTPIngressPath
-	defBackend := ingress.Spec.Backend
+	var defRule *networking.IngressRule
+	var defPath *networking.HTTPIngressPath
+	defBackend := ingress.Spec.DefaultBackend
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		if path.Path == "" || path.Path == "/*" || path.Path == "/" {
@@ -286,7 +286,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
 }
 
-func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
+func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)

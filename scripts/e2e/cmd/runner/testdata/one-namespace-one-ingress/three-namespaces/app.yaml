@@ -42,7 +42,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: zagora-ingress
@@ -56,8 +56,11 @@ spec:
         paths:
         - path: /*
           backend:
-            serviceName: zagora-service
-            servicePort: 80
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -102,7 +105,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: zagora-ingress
@@ -116,8 +119,11 @@ spec:
         paths:
         - path: /*
           backend:
-            serviceName: zagora-service
-            servicePort: 80
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -162,7 +168,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: zagora-ingress
@@ -176,5 +182,8 @@ spec:
         paths:
         - path: /*
           backend:
-            serviceName: zagora-service
-            servicePort: 80
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix

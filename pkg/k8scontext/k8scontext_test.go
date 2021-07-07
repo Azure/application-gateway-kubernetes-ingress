@@ -14,7 +14,7 @@ import (
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -85,10 +85,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		Expect(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
 
 		// create ingress in namespace
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
+		_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred(), "Unabled to create ingress resource due to: %v", err)
 
 		// Create a `k8scontext` to start listening to ingress resources.
+		IsNetworkingV1PackageSupported = true
 		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
@@ -101,7 +102,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 	ginkgo.Context("Checking if we are able to listen to Ingress Resources", func() {
 		ginkgo.It("Should be able to retrieve all Ingress Resources", func() {
 			// Retrieve the Ingress to make sure it was created.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
+			ingresses, err := k8sClient.NetworkingV1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unabled to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -124,11 +125,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		ginkgo.It("Should be able to follow modifications to the Ingress Resource.", func() {
 			ingress.Spec.Rules[0].Host = "hellow-1.com"
 
-			_, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
+			_, err := k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unabled to update ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
+			ingresses, err := k8sClient.NetworkingV1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(1), "Expected to have a single ingress stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -150,11 +151,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 
 		ginkgo.It("Should be able to follow deletion of the Ingress Resource.", func() {
-			err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Delete(context.TODO(), ingressName, metav1.DeleteOptions{})
+			err := k8sClient.NetworkingV1().Ingresses(ingressNS).Delete(context.TODO(), ingressName, metav1.DeleteOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to delete ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
+			ingresses, err := k8sClient.NetworkingV1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(0), "Expected to have no ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -173,7 +174,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 
 		ginkgo.It("Should be following Ingress Resource with Application Gateway specific annotations only.", func() {
-			nonAppGWIngress := &v1beta1.Ingress{}
+			nonAppGWIngress := &networking.Ingress{}
 			err := deepcopy.Copy(nonAppGWIngress, ingress)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -181,11 +182,11 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
 			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
 
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), nonAppGWIngress, metav1.CreateOptions{})
+			_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), nonAppGWIngress, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
 
 			// Retrieve the Ingress to make sure it was updated.
-			ingresses, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
+			ingresses, err := k8sClient.NetworkingV1().Ingresses(ingressNS).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to retrieve stored ingresses resource due to: %v", err)
 			Expect(len(ingresses.Items)).To(Equal(2), "Expected to have 2 ingresses stored in mock K8s but found: %d ingresses", len(ingresses.Items))
 
@@ -403,7 +404,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// add test
 			err := ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
@@ -418,7 +419,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// add again
 			err = ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
-			updatedIngress, _ := k8sClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
+			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
 			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
@@ -429,8 +430,8 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 	ginkgo.Context("Filtering Ingress Resources", func() {
 		ginkgo.It("keep ingress, which does not have rules, but has a default backend", func() {
-			ingr, _ := tests.GetVerySimpleIngress()
-			ingrList := []*v1beta1.Ingress{
+			ingr := tests.GetVerySimpleIngress()
+			ingrList := []*networking.Ingress{
 				ingr,
 			}
 			finalList := filterAndSort(ingrList)

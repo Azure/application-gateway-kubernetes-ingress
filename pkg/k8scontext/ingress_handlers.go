@@ -3,10 +3,10 @@ package k8scontext
 import (
 	"reflect"
 
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -14,7 +14,7 @@ import (
 
 // ingress resource handlers
 func (h handlers) ingressAdd(obj interface{}) {
-	ing := obj.(*v1beta1.Ingress)
+	ing, _ := toIngress(obj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -54,7 +54,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 }
 
 func (h handlers) ingressDelete(obj interface{}) {
-	ing, ok := obj.(*v1beta1.Ingress)
+	ing, ok := toIngress(obj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -68,7 +68,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 			// unable to get from tombstone
 			return
 		}
-		ing, ok = tombstone.Obj.(*v1beta1.Ingress)
+		ing, ok = tombstone.Obj.(*networking.Ingress)
 	}
 	if ing == nil {
 		return
@@ -87,7 +87,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 }
 
 func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
-	ing := newObj.(*v1beta1.Ingress)
+	ing, _ := toIngress(newObj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -98,7 +98,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
-	oldIng := oldObj.(*v1beta1.Ingress)
+	oldIng, _ := toIngress(oldObj)
 	if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
 		return
 	}

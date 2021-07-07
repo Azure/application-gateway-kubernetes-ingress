@@ -104,7 +104,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-a
@@ -119,10 +119,12 @@ spec:
         paths:
         - path: /*
           backend:
-            serviceName: aspnetapp
-            servicePort: 80
+            service:
+              name: aspnetapp
+              port: 80
+          pathType: Prefix
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-b
@@ -137,10 +139,12 @@ spec:
         paths:
         - path: /igloo
           backend:
-            serviceName: httpbin
-            servicePort: 80
+            service:
+              name: httpbin
+              port: 80
+          pathType: Exact
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-c
@@ -155,10 +159,12 @@ spec:
         paths:
         - path: /kuard
           backend:
-            serviceName: kuard
-            servicePort: 80
+            service:
+              name: kuard
+              port: 80
+        pathType: Exact
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-d
@@ -167,6 +173,7 @@ metadata:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-path-prefix: "/"
 spec:
-  backend:
-    serviceName: kuard
-    servicePort: 80
+  defaultBackend:
+    service:
+      name: kuard
+      port: 80

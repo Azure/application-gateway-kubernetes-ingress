@@ -31,7 +31,7 @@ spec:
       port: 80
       targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress
@@ -48,5 +48,8 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: backend-service
-              servicePort: 80
+              service:
+                name: backend-service
+                port:
+                  number: 80
+            pathType: Exact
