@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Upgrading AGIC using Helm - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -305,7 +303,6 @@ using a Helm repository hosted on Azure Storage.</p>
 <p>View your currently added Helm repositories with:</p>
 <div class="highlight"><pre><span></span>helm repo list
 </pre></div>
-
 </li>
 <li>
 <p>Add the AGIC repo with:</p>
@@ -313,7 +310,6 @@ using a Helm repository hosted on Azure Storage.</p>
     application-gateway-kubernetes-ingress <span class="se">\</span>
     https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
 </pre></div>
-
 </li>
 </ul>
 <h2 id="upgrade">Upgrade</h2>
@@ -322,32 +318,27 @@ using a Helm repository hosted on Azure Storage.</p>
 <p>Refresh the AGIC Helm repository to get the latest release:</p>
 <div class="highlight"><pre><span></span>helm repo update
 </pre></div>
-
 </li>
 <li>
 <p>View available versions of the <code>application-gateway-kubernetes-ingress</code> chart:</p>
 <div class="highlight"><pre><span></span>helm search repo -l application-gateway-kubernetes-ingress
 </pre></div>
-
 <p>Sample response:</p>
 <div class="highlight"><pre><span></span>NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
 application-gateway-kubernetes-ingress/ingress-azure    <span class="m">1</span>.0.0           <span class="m">1</span>.0.0           Use Azure Application Gateway as the ingress <span class="k">for</span> an Azure...
 application-gateway-kubernetes-ingress/ingress-azure    <span class="m">0</span>.7.0-rc1       <span class="m">0</span>.7.0-rc1       Use Azure Application Gateway as the ingress <span class="k">for</span> an Azure...
 application-gateway-kubernetes-ingress/ingress-azure    <span class="m">0</span>.6.0           <span class="m">0</span>.6.0           Use Azure Application Gateway as the ingress <span class="k">for</span> an Azure...
 </pre></div>
-
 <p>Latest available version from the list above is: <code>0.7.0-rc1</code></p>
 </li>
 <li>
 <p>View the Helm charts currently installed:</p>
 <div class="highlight"><pre><span></span>helm list
 </pre></div>
-
 <p>Sample response:</p>
 <div class="highlight"><pre><span></span>NAME            REVISION        UPDATED                         STATUS  CHART                   APP VERSION     NAMESPACE
 odd-billygoat   <span class="m">22</span>              Fri Nov <span class="m">08</span> <span class="m">15</span>:56:06 <span class="m">2019</span>        FAILED  ingress-azure-1.0.0     <span class="m">1</span>.0.0           default
 </pre></div>
-
 <p>The Helm chart installation from the sample response above is named <code>odd-billygoat</code>. We will
 use this name for the rest of the commands. Your actual deployment name will most likely differ.</p>
 </li>
@@ -358,7 +349,6 @@ use this name for the rest of the commands. Your actual deployment name will mos
     application-gateway-kubernetes-ingress/ingress-azure <span class="se">\</span>
     --version <span class="m">1</span>.0.0
 </pre></div>
-
 </li>
 </ol>
 <h2 id="rollback">Rollback</h2>
@@ -368,20 +358,17 @@ use this name for the rest of the commands. Your actual deployment name will mos
 <p>Get the last known healthy release number:</p>
 <div class="highlight"><pre><span></span>helm <span class="nb">history</span> odd-billygoat
 </pre></div>
-
 <p>Sample output:</p>
 <div class="highlight"><pre><span></span>REVISION        UPDATED                         STATUS          CHART                   DESCRIPTION
 <span class="m">1</span>               Mon Jun <span class="m">17</span> <span class="m">13</span>:49:42 <span class="m">2019</span>        DEPLOYED        ingress-azure-0.6.0     Install <span class="nb">complete</span>
 <span class="m">2</span>               Fri Jun <span class="m">21</span> <span class="m">15</span>:56:06 <span class="m">2019</span>        FAILED          ingress-azure-xx        xxxx
 </pre></div>
-
 <p>From the sample output of the <code>helm history</code> command it looks like the last successful deployment of our <code>odd-billygoat</code> was revision <code>1</code></p>
 </li>
 <li>
 <p>Rollback to the last successful revision:</p>
 <div class="highlight"><pre><span></span>helm rollback odd-billygoat <span class="m">1</span>
 </pre></div>
-
 </li>
 </ol>
               

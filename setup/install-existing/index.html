@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Brownfield Deployment - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -359,13 +357,11 @@ for the AGIC pod to make HTTP requests to <a href="https://docs.microsoft.com/en
 </ul>
 <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
 </pre></div>
-
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
 <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
 </pre></div>
-
 <p>Next we need to create an Azure identity and give it permissions to ARM. This identity will be used by AGIC to perform updates on the Application Gateway.
 Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the following commands and create an identity:</p>
 <ol>
@@ -375,14 +371,12 @@ Use <a href="https://shell.azure.com/">Cloud Shell</a> to run all of the followi
 <span class="nv">resourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;resource-group&gt;&quot;</span>
 az identity create -g <span class="nv">$resourceGroup</span> -n <span class="nv">$identityName</span>
 </pre></div>
-
 </li>
 <li>
 <p>For the role assignment commands below we need to obtain <code>identityId</code> and <code>clientId</code> for the newly created identity:</p>
 <div class="highlight"><pre><span></span><span class="nv">identityClientId</span><span class="o">=</span><span class="k">$(</span>az identity show -g <span class="nv">$resourceGroup</span> -n <span class="nv">$identityName</span> -o tsv --query <span class="s2">&quot;clientId&quot;</span><span class="k">)</span>
 <span class="nv">identityId</span><span class="o">=</span><span class="k">$(</span>az identity show -g <span class="nv">$resourceGroup</span> -n <span class="nv">$identityName</span> -o tsv --query <span class="s2">&quot;id&quot;</span><span class="k">)</span>
 </pre></div>
-
 </li>
 <li>
 <p>Give AGIC's identity <code>Contributor</code> access to you App Gateway. For this you need the ID of the App Gateway, which will
@@ -393,7 +387,6 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
     --assignee <span class="nv">$identityClientId</span> <span class="se">\</span>
     --scope &lt;App-Gateway-ID&gt;
 </pre></div>
-
 </li>
 <li>
 <p>Give AGIC's identity <code>Reader</code> access to the App Gateway resource group. The resource group ID would look like:
@@ -403,7 +396,6 @@ look something like this: <code>/subscriptions/A/resourceGroups/B/providers/Micr
     --assignee <span class="nv">$identityClientId</span> <span class="se">\</span>
     --scope &lt;App-Gateway-Resource-Group-ID&gt;
 </pre></div>
-
 </li>
 </ol>
 <p><strong>Note</strong>: There are additional role assignment required if you wish to assign user-assigned identities that are <strong>NOT</strong> within AKS cluster resource group. You can run the following command to assign the <code>Managed Identity Operator</code> role with the identity resource Id.</p>
@@ -415,7 +407,6 @@ az role assignment create <span class="se">\</span>
   --assignee <span class="nv">$clusterClientId</span> <span class="se">\</span>
   --scope <span class="nv">$identityId</span>
 </pre></div>
-
 <h3 id="using-a-service-principal">Using a Service Principal</h3>
 <p>It is also possible to provide AGIC access to ARM via a Kubernetes secret.</p>
 <ol>
@@ -424,7 +415,6 @@ az role assignment create <span class="se">\</span>
 </ol>
 <div class="highlight"><pre><span></span>az ad sp create-for-rbac --sdk-auth <span class="p">|</span> base64 -w0
 </pre></div>
-
 <ol>
 <li>Add the base64 encoded JSON blob to the <code>helm-config.yaml</code> file. More information on <code>helm-config.yaml</code> is in the
   next section.
@@ -441,7 +431,6 @@ az role assignment create <span class="se">\</span>
 <div class="highlight"><pre><span></span>helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
 helm repo update
 </pre></div>
-
 </li>
 <li>
 <p>Download <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>, which will configure AGIC:
@@ -461,7 +450,6 @@ helm repo update
   application-gateway-kubernetes-ingress/ingress-azure <span class="se">\</span>
   --version <span class="m">1</span>.3.0
 </pre></div>
-
 <blockquote>
 <p>Note: Use at least version 1.2.0-rc3, e.g. <code>--version 1.2.0-rc3</code>, when installing on k8s version &gt;= 1.16</p>
 </blockquote>
@@ -517,7 +505,6 @@ defining it in the Kubernetes Ingress, AGIC will delete the <code>prod.contoso.c
 <span class="s">  hostname: prod.contoso.com</span>
 <span class="s">EOF</span>
 </pre></div>
-
 <p>The command above creates an <code>AzureIngressProhibitedTarget</code> object. This makes AGIC (version 0.8.0 and later) aware of the existence of
 App Gateway config for <code>prod.contoso.com</code> and explicitly instructs it to avoid changing any configuration
 related to that hostname.</p>
@@ -530,7 +517,6 @@ Under the <code>appgw:</code> section, add <code>shared</code> key and set it to
     <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;applicationGatewayName&gt;</span>      <span class="c1"># existing field</span>
     <span class="nt">shared</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>                        <span class="c1"># &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</span>
 </pre></div>
-
 <p>Apply the Helm changes:
   1. Ensure the <code>AzureIngressProhibitedTarget</code> CRD is installed with:
       <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml
@@ -565,7 +551,6 @@ Helm install with <code>appgw.shared=true</code> will deploy AGIC, but will not 
 <p>Only after you have created your own custom prohibition, you can delete the default one, which is too broad:</p>
 <div class="highlight"><pre><span></span>kubectl delete AzureIngressProhibitedTarget prohibit-all-targets
 </pre></div>
-
 </li>
 </ol>
 <h3 id="enable-for-an-existing-agic-installation">Enable for an existing AGIC installation</h3>

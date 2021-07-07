@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Automate DNS updates - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -310,7 +308,6 @@ To achieve this the <a href="https://github.com/kubernetes-sigs/external-dns">Ex
             <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">contoso-service</span>
             <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
 </pre></div>
-
 <p>Application Gateway Ingress Controller (AGIC) automatically recognizes the public IP address
 assigned to the Application Gateway it is associated with, and sets this IP (<code>1.2.3.4</code>)
 on the Ingress resource as shown below:</p>
@@ -319,7 +316,6 @@ NAMESPACE             NAME                HOSTS                 ADDRESS   PORTS 
 alpha                 alpha-ingress       alpha.contoso.com     <span class="m">1</span>.2.3.4   <span class="m">80</span>      8m55s
 beta                  beta-ingress        beta.contoso.com      <span class="m">1</span>.2.3.4   <span class="m">80</span>      8m54s
 </pre></div>
-
 <p>Once the Ingresses contain both host and adrress, ExternalDNS will provision these to the
 DNS system it has been associated with and authorized for.</p>
               

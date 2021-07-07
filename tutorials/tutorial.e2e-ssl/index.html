@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Tutorial: Setting up E2E SSL - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -408,7 +406,6 @@ frontend-tls          kubernetes.io/tls                     <span class="m">2</s
         <span class="no">}</span>
     <span class="no">}</span>
 </pre></div>
-
 <p>You can also install the above yamls using:
 <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-https-backend.yaml
 </pre></div></p>
@@ -431,7 +428,6 @@ az network application-gateway root-cert create <span class="se">\</span>
     --name backend-tls <span class="se">\</span>
     --cert-file backend.crt
 </pre></div>
-
 <h2 id="setup-ingress-for-e2e">Setup ingress for E2E</h2>
 <p>Now, we will configure our ingress to use the <code>frontend</code> certificate for frontend SSL and <code>backend</code> certificate as root certificate so that Application Gateway can authenticate the backend.</p>
 <div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt; EOF | kubectl apply -f -</span>
@@ -460,7 +456,6 @@ az network application-gateway root-cert create <span class="se">\</span>
 <span class="s">            servicePort: 8443</span>
 <span class="s">EOF</span>
 </pre></div>
-
 <p>For frontend SSL, we have added <code>tls</code> section in our ingress resource.
 <div class="highlight"><pre><span></span>  <span class="nt">tls</span><span class="p">:</span>
     <span class="p p-Indicator">-</span> <span class="nt">secretName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend-tls</span>

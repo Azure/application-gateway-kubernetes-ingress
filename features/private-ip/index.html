@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Using Private IP for internal routing - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -306,7 +304,6 @@ Application Gateway with a <a href="https://docs.microsoft.com/en-us/azure/appli
 <h3 id="usage">Usage</h3>
 <div class="highlight"><pre><span></span><span class="nt">appgw.ingress.kubernetes.io/use-private-ip</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
 </pre></div>
-
 <p>For App Gateways without a Private IP, Ingresses annotated with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> will be ignored. This will be indicated in the ingress event and AGIC pod log.</p>
 <ul>
 <li>
@@ -317,13 +314,11 @@ Type     Reason       Age               From                                    
 Warning  NoPrivateIP  2m <span class="o">(</span>x17 over 2m<span class="o">)</span>  azure/application-gateway, prod-ingress-azure-5c9b6fcd4-bctcb  Ingress default/hello-world-ingress requires Application Gateway 
 applicationgateway3026 has a private IP address
 </pre></div>
-
 </li>
 <li>
 <p>Error as indicated in AGIC Logs</p>
 <div class="highlight"><pre><span></span>E0730 <span class="m">18</span>:57:37.914749       <span class="m">1</span> prune.go:65<span class="o">]</span> Ingress default/hello-world-ingress requires Application Gateway applicationgateway3026 has a private IP address
 </pre></div>
-
 </li>
 </ul>
 <h2 id="assign-globally">Assign Globally</h2>
@@ -335,7 +330,6 @@ applicationgateway3026 has a private IP address
     <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;applicationGatewayName&gt;</span>
     <span class="nt">usePrivateIP</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
 </pre></div>
-
 <p>This will make the ingress controller filter the ipconfigurations for a Private IP when configuring the frontend listeners on the Application Gateway.
 AGIC will panic and crash if <code>usePrivateIP: true</code> and no Private IP is assigned.</p>
 <p><strong>Notes:</strong>

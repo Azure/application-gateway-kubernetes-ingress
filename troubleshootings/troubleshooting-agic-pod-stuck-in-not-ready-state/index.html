@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Troubleshooting agic pod stuck in not ready state - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -326,11 +324,10 @@ When you see your AGIC pod stuck at <code>Creating Authorizer</code> step, then 
 <div class="highlight"><pre><span></span>$ kubectl logs &lt;AGIC-POD-NAME&gt;
 ERROR: logging before flag.Parse: I0628 18:09:49.947221       1 utils.go:115] Using verbosity level 3 from environment variable APPGW_VERBOSITY_LEVEL
 I0628 18:09:49.987776       1 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
-I0628 18:09:49.987861       1 main.go:128] Appication Gateway Details: Subscription=&quot;xxxx&quot; Resource Group=&quot;resgp&quot; Name=&quot;gateway&quot;
+I0628 18:09:49.987861       1 main.go:128] Application Gateway Details: Subscription=&quot;xxxx&quot; Resource Group=&quot;resgp&quot; Name=&quot;gateway&quot;
 I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed Service Identity
 I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123
 </pre></div>
-
 <p><code>AAD Pod Identity</code> is responsible for assigning the user assigned identity provided by the user for AGIC as <code>AGIC's Identity</code> to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install <code>AAD Pod Identity</code> on your AKS cluster, it will deploy two components:
 1. Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is <strong>elected leader</strong>. It is responsible to do the assignment of the identity to the AKS nodes.
 1. Node Managed Identity (NMI): It runs as <strong>daemon on every node</strong>. It is responsible to enforce the IP table rules to allow AGIC to <code>GET</code> the access token.</p>
@@ -343,7 +340,6 @@ mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
 mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
 nmi-pv8ch                              1/1     Running   1          15m
 </pre></div>
-
 <h6 id="issue-in-mic-pod">Issue in MIC Pod</h6>
 <p>For <code>mic</code> pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.
 1. MIC pod communicates with Azure Resource Manager(ARM) to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.
@@ -355,7 +351,7 @@ nmi-pv8ch                              1/1     Running   1          15m
 <h6 id="issue-in-nmi-pod">Issue in NMI Pod</h6>
 <p>For <code>nmi</code> pod, we will need to find the pod running on the same node as AGIC pod.
 1. If you see <code>403</code> response for a token request, then make sure you have correctly assigned the needed permission to <code>AGIC's identity</code>.
-    1. <code>Reader</code> accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
+    1. <code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
     1. <code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</p>
 <h3 id="agic-is-stuck-getting-application-gateway">AGIC is stuck getting Application Gateway</h3>
 <p>AGIC can be stuck in getting the gateway due to:
@@ -365,7 +361,7 @@ When you see this error,
     1. If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the <a href="../../helm-values-documenation/"><code>appgw.environment</code></a> property in the helm.
 1. AGIC gets <code>Unauthorized</code> when getting Application Gateway<br />
 Verify that you have given needed permissions to AGIC's identity:
-    1. <code>Reader</code> accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
+    1. <code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
     1. <code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</p>
               
             </div>

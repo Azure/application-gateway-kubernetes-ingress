@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Troubleshooting installing a simple application - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -349,7 +347,6 @@ the simplest possible app:</p>
 <span class="s">              servicePort: 80</span>
 <span class="s">EOF</span>
 </pre></div>
-
 <p>Copy and paste all lines at once from the
 script above into a <a href="https://shell.azure.com/">Azure Cloud Shell</a>. Please ensure the entire
 command is copied - starting with <code>cat</code> and including the last <code>EOF</code>.</p>
@@ -403,7 +400,7 @@ establish an HTTP connection to the newly deployed app:</p>
 <p>A result of <code>HTTP/1.1 200 OK</code> indicates that the App Gateway + AKS + AGIC system is working as expected.</p>
 <h3 id="inspect-kubernetes-installation">Inspect Kubernetes Installation</h3>
 <h4 id="pods-services-ingress">Pods, Services, Ingress</h4>
-<p>Application Gateway Ingress Controller (AGIC) continuously monitors the folowing Kubernetes resources: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment">Deployment</a> or <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/#what-is-a-pod">Pod</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a></p>
+<p>Application Gateway Ingress Controller (AGIC) continuously monitors the following Kubernetes resources: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#creating-a-deployment">Deployment</a> or <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/#what-is-a-pod">Pod</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a>, <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a></p>
 <p>The following must be in place for AGIC to function as expected:
   1. AKS must have one or more healthy <strong>pods</strong>.
      Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get pods -o wide --show-labels</code>

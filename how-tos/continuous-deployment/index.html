@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Continuous Deployment with AKS and AGIC using Azure Pipelines - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -150,7 +148,7 @@
     
         <ul>
         
-            <li><a class="toctree-l4" href="#setup-up-new-service-connection-with-service-pricipal">Setup up new service connection with service pricipal</a></li>
+            <li><a class="toctree-l4" href="#setup-up-new-service-connection-with-service-principal">Setup up new service connection with service principal</a></li>
         
             <li><a class="toctree-l4" href="#create-a-new-azure-release-pipeline">Create a new Azure release pipeline</a></li>
         
@@ -299,7 +297,7 @@
                 <h1 id="continuous-deployment-with-aks-and-agic-using-azure-pipelines">Continuous Deployment with AKS and AGIC using Azure Pipelines</h1>
 <p>To achieve an efficiently deployed and managed global infrastucture, it is important to setup workflows for continuous integration and deployment. <code>Azure Devops</code> is one of the options to achieve this goal.</p>
 <p>In following example, we setup a Azure Devops release pipeline to deploy an AKS cluster along with AGIC as ingress. This example is merely a scaffolding. You need to separately setup a build pipeline to install your application and ingress on the AKS cluster deployed as part of the release.</p>
-<h2 id="setup-up-new-service-connection-with-service-pricipal">Setup up new service connection with service pricipal</h2>
+<h2 id="setup-up-new-service-connection-with-service-principal">Setup up new service connection with service principal</h2>
 <blockquote>
 <p><strong>Note</strong>: Skip if already have service connection with owner access for role assigment</p>
 </blockquote>
@@ -309,7 +307,6 @@
 <div class="highlight"><pre><span></span>az ad sp create-for-rbac -n azure-pipeline-cd --role owner
 <span class="c1"># Copy the AppId and Password. We will use these in the next step.</span>
 </pre></div>
-
 </li>
 <li>
 <p>Now, create a <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&amp;tabs=yaml#create-a-service-connection">new service connection</a> in Azure Devops. Select "<em>use the full version of the service connection dialog</em>" option so that you can provide the newly created service principal.
@@ -331,7 +328,7 @@
 1. Now provide the required settings for all tasks:
     1. Select the correct <code>Agent Pool</code>
     <img alt="import pipeline" src="../../images/pipeline-settings.png" />
-    1. Select the newly created service conenction for the <code>Create Kubernetes Cluster</code> and <code>Create AGIC Identity</code> tasks.
+    1. Select the newly created service connection for the <code>Create Kubernetes Cluster</code> and <code>Create AGIC Identity</code> tasks.
     <img alt="import pipeline" src="../../images/pipeline-set-connection.png" />
     1. Provide the values for <code>clientId</code> and <code>clientSecret</code> that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.
         <div class="highlight"><pre><span></span><span class="c1"># create a new one and copy the appId and password to the variable section in the pipeline</span>

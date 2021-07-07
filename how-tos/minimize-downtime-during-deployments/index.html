@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Minimizing Downtime During Deployments - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -308,7 +306,7 @@
 <h2 id="overview">Overview</h2>
 <p>It is not uncommon for Kubernetes operators to observe Application Gateway 502 errors while performing a Kubernets rolling update on an AKS cluster fronted by Application Gateway and AGIC. This document offers a method to alleviate this problem. Since the method described in this document relies on correctly aligning the timing of deployment events it is not possible to guarantee 100% elimination of the probability of running into a 502 error. Even with this method there will be a non-zero chance for a period of time where Application Gateway backends could lag behind the most recent updates applied by a rolling update to the Kubernetes pods.</p>
 <h2 id="understanding-502-errors">Understanding 502 Errors</h2>
-<p>At a high level there are 3 scenarious in which one could observe 502 errors on an AKS cluster fronted with App Gateway and AGIC. In all of these the root cause is the delay one could observe in applying a IP address changes to the Application Gateway's backend pools.</p>
+<p>At a high level there are 3 scenarios in which one could observe 502 errors on an AKS cluster fronted with App Gateway and AGIC. In all of these the root cause is the delay one could observe in applying a IP address changes to the Application Gateway's backend pools.</p>
 <ul>
 <li>
 <p>Scaling down a Kubernetes cluster:</p>
@@ -381,7 +379,6 @@ Example:
    <span class="nt">appgw.ingress.kubernetes.io/connection-draining</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
    <span class="nt">appgw.ingress.kubernetes.io/connection-draining-timeout</span><span class="p">:</span> <span class="s">&quot;30&quot;</span>
 </pre></div>
-
 <p>What this achieves - when a pod is pulled from an App Gateway backend it will disappear from the UI, but existing in-flight connections will not be immediately terminated -- they will be given 30 seconds to complete.</p>
 <p>We believe that the addition of the <code>preStop</code> hook and the connection draining annotation will drastically remove the probability for App Gateway to attempt to connect to a terminated pod.</p>
 <ol>
@@ -402,7 +399,6 @@ Example:
         <span class="l l-Scalar l-Scalar-Plain">...</span>
       <span class="nt">terminationGracePeriodSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">101</span>
 </pre></div>
-
 <ol>
 <li>Decrease interval between App Gateway health probes to backend pools. The goal is to increase number of probes per unit of time. This will ensure that a terminated pod, which has not yet been removed from App Gateway's backend pool, will be marked as unhealthy sooner, thus removing the probability of a request landing on a terminated pod and resulting in a 502 error. </li>
 </ol>
@@ -416,7 +412,6 @@ Example:
           <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
           <span class="nt">failureThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
 </pre></div>
-
 <h2 id="summary">Summary</h2>
 <p>To achieve a near-zero-downtime deployments, we need to add a:
   - <code>preStop</code> hook waiting for 90 seconds

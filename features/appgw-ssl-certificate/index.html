@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Appgw ssl certificate - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -322,7 +320,7 @@ openssl pkcs12 -export <span class="se">\</span>
   -in test-cert.crt <span class="se">\</span>
   -inkey test-cert.key <span class="se">\</span>
   -passout pass:test <span class="se">\</span>
-  -out test.pfx
+  -out test-cert.pfx
 
 <span class="c1"># configure certificate to app gateway</span>
 az network application-gateway ssl-cert create <span class="se">\</span>
@@ -380,7 +378,6 @@ az network application-gateway ssl-cert create <span class="se">\</span>
 --resource-group <span class="nv">$resgp</span> <span class="se">\</span>
 --key-vault-secret-id <span class="nv">$unversionedSecretId</span> <span class="c1"># ssl certificate with name &quot;mykvsslcert&quot; will be configured on AppGw</span>
 </pre></div>
-
 <h2 id="testing-the-key-vault-certificate-on-ingress">Testing the key vault certificate on Ingress</h2>
 <p>Since we have certificate from Key Vault configured in Application Gateway, we can then add the new annotation <code>appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</code> in Kubernetes ingress to enable the feature.</p>
 <div class="highlight"><pre><span></span><span class="c1"># install an app</span>

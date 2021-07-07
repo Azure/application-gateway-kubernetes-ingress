@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Greenfield Deployment - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -443,7 +441,6 @@ az aks get-credentials --resource-group <span class="nv">$resourceGroupName</spa
 </ul>
 <div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
 </pre></div>
-
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
@@ -514,7 +511,6 @@ nano helm-config.yaml
   application-gateway-kubernetes-ingress/ingress-azure <span class="se">\</span>
   --version <span class="m">1</span>.3.0
 </pre></div>
-
 <blockquote>
 <p>Note: Use at least version 1.2.0-rc1, i.e. <code>--version 1.2.0-rc1</code>, when installing on k8s version &gt;= 1.16</p>
 </blockquote>
@@ -570,7 +566,6 @@ via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
           <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
 <span class="l l-Scalar l-Scalar-Plain">EOF</span>
 </pre></div>
-
 <p>Alternatively you can:</p>
 <ol>
 <li>

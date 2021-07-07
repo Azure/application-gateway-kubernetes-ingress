@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Building the controller - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -323,7 +321,6 @@
 <p>Follow <a href="https://docs.microsoft.com/en-us/dotnet/api/overview/azure/containerinstance?view=azure-dotnet#authentication">these instructions</a> to create the <code>$HOME/.azure/azureAuth.json</code> file. The file is generated via:</p>
 <div class="highlight"><pre><span></span>az ad sp create-for-rbac --sdk-auth &gt; <span class="nv">$HOME</span>/.azure/azureAuth.json
 </pre></div>
-
 <p>The file will contain a JSON blob with the following shape:</p>
 <div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;clientId&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
@@ -338,7 +335,6 @@
   <span class="nt">&quot;managementEndpointUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;https://management.core.windows.net/&quot;</span>
 <span class="p">}</span>
 </pre></div>
-
 <h3 id="deploy-application-gateway-and-aks">Deploy Application Gateway and AKS</h3>
 <p>To deploy a fresh setup, please follow the steps for template deployment in the <a href="../../setup/install-new/">greenfield</a> documentation.</p>
 <h3 id="using-startup-script">Using startup script</h3>

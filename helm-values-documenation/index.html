@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../img/favicon.ico">
   <title>Helm Values Configuration Options - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -306,7 +304,7 @@
 <tr>
 <td><code>verbosityLevel</code></td>
 <td>3</td>
-<td>Sets the verbosity level of the AGIC logging infrastructure. See <a href="../logging-levels/#logging-levels">Logging Levels</a> for possible values.</td>
+<td>Sets the verbosity level of the AGIC logging infrastructure. See <a href="troubleshooting.md#logging-levels">Logging Levels</a> for possible values.</td>
 </tr>
 <tr>
 <td><code>reconcilePeriodSeconds</code></td>
@@ -381,7 +379,7 @@
 <tr>
 <td><code>kubernetes.ingressClass</code></td>
 <td><code>azure/application-gateway</code></td>
-<td>Specify a <a href="../features/custom-ingress-class/">custom ingress class</a> which will be used to match <code>kubernetes.io/ingress.class</code> in ingress manifest</td>
+<td>Specify a <a href="features\custom-ingress-class.md">custom ingress class</a> which will be used to match <code>kubernetes.io/ingress.class</code> in ingress manifest</td>
 </tr>
 <tr>
 <td><code>rbac.enabled</code></td>
@@ -406,7 +404,7 @@
 <tr>
 <td><code>armAuth.secretJSON</code></td>
 <td></td>
-<td>Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>se[rvicePrincipal</code>)</td>
+<td>Only needed when Service Principal Secret type is chosen (when <code>armAuth.type</code> has been set to <code>servicePrincipal</code>)</td>
 </tr>
 <tr>
 <td><code>nodeSelector</code></td>
@@ -418,7 +416,7 @@
 <h2 id="example">Example</h2>
 <div class="highlight"><pre><span></span><span class="nt">appgw</span><span class="p">:</span>
     <span class="nt">applicationGatewayID</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;application-gateway-resource-id&gt;</span>
-    <span class="nt">environment</span><span class="p">:</span> <span class="s">&quot;AZUREUSGOVERNMENTCLOUD&quot;</span> <span class="c1"># default: AZUREPUBLICCLOUD</span>
+    <span class="nt">environment</span><span class="p">:</span> <span class="nt">&quot;AZUREUSGOVERNMENTCLOUD&quot; # default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AZUREPUBLICCLOUD</span>
 
 <span class="nt">armAuth</span><span class="p">:</span>
     <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">aadPodIdentity</span>
@@ -433,7 +431,6 @@
 <span class="nt">rbac</span><span class="p">:</span>
     <span class="nt">enabled</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
 </pre></div>
-
 <hr />
 <h3 id="security-context">Security Context</h3>
 <p>By default, AGIC will assume <code>root</code> permission which allows it to read <code>cloud-provider</code> config and get meta-data information about the cluster.

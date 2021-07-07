@@ -9,8 +9,6 @@
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Tutorial: Basic - Application Gateway Ingress Controller</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -330,7 +328,6 @@
 </ol>
 <div class="highlight"><pre><span></span>kubectl apply -f guestbook-all-in-one.yaml
 </pre></div>
-
 <p>Now, the <code>guestbook</code> application has been deployed.</p>
 <h2 id="expose-services-over-http">Expose services over HTTP</h2>
 <p>In order to expose the guestbook application we will using the following ingress resource:</p>
@@ -348,7 +345,6 @@
           <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
           <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
 </pre></div>
-
 <p>This ingress will expose the <code>frontend</code> service of the <code>guestbook-all-in-one</code> deployment
 as a default backend of the Application Gateway.</p>
 <p>Save the above ingress resource as <code>ing-guestbook.yaml</code>.</p>
@@ -357,7 +353,6 @@ as a default backend of the Application Gateway.</p>
 <p>Deploy <code>ing-guestbook.yaml</code> by running:</p>
 <div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook.yaml
 </pre></div>
-
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>
@@ -373,7 +368,6 @@ public address of the Application Gateway.</p>
 <p>Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running</p>
 <div class="highlight"><pre><span></span>kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;
 </pre></div>
-
 </li>
 <li>
 <p>Define the following ingress. In the ingress, specify the name of the secret in the <code>secretName</code> section.</p>
@@ -393,14 +387,12 @@ public address of the Application Gateway.</p>
           <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
           <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
 </pre></div>
-
 <p><em>NOTE:</em> Replace <code>&lt;guestbook-secret-name&gt;</code> in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name <code>ing-guestbook-tls.yaml</code>.</p>
 </li>
 <li>
 <p>Deploy ing-guestbook-tls.yaml by running</p>
 <div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls.yaml
 </pre></div>
-
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>
@@ -410,7 +402,6 @@ public address of the Application Gateway.</p>
 <p>In order to make the <code>guestbook</code> application available on HTTP, annotate the <code>Ingress</code> with </p>
 <div class="highlight"><pre><span></span>  appgw.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;
 </pre></div>
-
 <p>Only in this case a HTTP Listener is created in Azure which redirects the visitor to the HTTPS version.</p>
 <h3 id="with-specified-hostname">With specified hostname</h3>
 <p>You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
@@ -438,13 +429,11 @@ By specifying hostname, the guestbook service will only be available on the spec
           <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
           <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
 </pre></div>
-
 </li>
 <li>
 <p>Deploy <code>ing-guestbook-tls-sni.yaml</code> by running</p>
 <div class="highlight"><pre><span></span>kubectl apply -f ing-guestbook-tls-sni.yaml
 </pre></div>
-
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>
