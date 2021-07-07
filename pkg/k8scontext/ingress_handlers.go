@@ -68,7 +68,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 			// unable to get from tombstone
 			return
 		}
-		ing, ok = tombstone.Obj.(*networking.Ingress)
+		ing, _ = tombstone.Obj.(*networking.Ingress)
 	}
 	if ing == nil {
 		return

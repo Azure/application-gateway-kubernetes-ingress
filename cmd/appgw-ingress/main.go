@@ -134,7 +134,7 @@ func main() {
 		env.HTTPServicePort)
 	httpServer.Start()
 
-	klog.V(3).Infof("Appication Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
+	klog.V(3).Infof("Application Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
 	if authorizer, err = azure.GetAuthorizerWithRetry(env.AuthLocation, env.UseManagedIdentityForPod, cpConfig, maxRetryCount, retryPause); err != nil {

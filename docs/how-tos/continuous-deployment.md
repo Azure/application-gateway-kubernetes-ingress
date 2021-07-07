@@ -4,7 +4,7 @@ To achieve an efficiently deployed and managed global infrastucture, it is impor
 
 In following example, we setup a Azure Devops release pipeline to deploy an AKS cluster along with AGIC as ingress. This example is merely a scaffolding. You need to separately setup a build pipeline to install your application and ingress on the AKS cluster deployed as part of the release.
 
-## Setup up new service connection with service pricipal
+## Setup up new service connection with service principal
 
 > **Note**: Skip if already have service connection with owner access for role assigment
 
@@ -35,7 +35,7 @@ To use the example release pipeline,
 1. Now provide the required settings for all tasks:
     1. Select the correct `Agent Pool`
     ![import pipeline](../images/pipeline-settings.png)
-    1. Select the newly created service conenction for the `Create Kubernetes Cluster` and `Create AGIC Identity` tasks.
+    1. Select the newly created service connection for the `Create Kubernetes Cluster` and `Create AGIC Identity` tasks.
     ![import pipeline](../images/pipeline-set-connection.png)
     1. Provide the values for `clientId` and `clientSecret` that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.
         ```bash

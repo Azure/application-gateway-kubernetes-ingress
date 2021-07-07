@@ -627,7 +627,7 @@ func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP 
 	return nil
 }
 
-// IsIngressApplicationGateway checks if applicaiton gateway annotation is present on the ingress
+// IsIngressApplicationGateway checks if application gateway annotation is present on the ingress
 func IsIngressApplicationGateway(ingress *networking.Ingress) bool {
 	val, _ := annotations.IsApplicationGatewayIngress(ingress)
 	return val

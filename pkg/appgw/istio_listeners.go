@@ -41,7 +41,7 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 
 	// App Gateway must have at least one listener - the default one!
 	if len(allListeners) == 0 {
-		// TODO(aksgupta): refactor to get environemnt variable
+		// TODO(aksgupta): refactor to get environment variable
 		allListeners[defaultFrontendListenerIdentifier(false)] = listenerAzConfig{
 			// Default protocol
 			Protocol: n.HTTP,

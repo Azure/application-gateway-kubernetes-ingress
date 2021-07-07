@@ -97,7 +97,7 @@ const (
 	AppGwSslCertificate = ApplicationGatewayPrefix + "/appgw-ssl-certificate"
 
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
-	// Multiple root certificates seperated by comma, e.g. "cert1,cert2"
+	// Multiple root certificates separated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
 )
 

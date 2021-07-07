@@ -94,7 +94,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	Context("test appgw trusted root certificate annotation configures trusted root certificate(s) on httpsettings", func() {
 
 		checkTrustedRootCertificateAnnotation := func(protocol string, trustedRootCertificate string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
-			// appgw trusted root certificate needs to be used together with backend protocal annotation, and protocal "https" should be used.
+			// appgw trusted root certificate needs to be used together with backend protocol annotation, and protocol "https" should be used.
 			// PickHostNameFromBackendAddress will be true given backend hostname is not specified
 			ingress.Annotations[annotations.BackendProtocolKey] = protocol
 			ingress.Annotations[annotations.AppGwTrustedRootCertificate] = trustedRootCertificate
@@ -148,7 +148,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		configBuilder.newProbesMap(cbCtx)
 		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
-		It("correct backend port is choosen in case of target port is resolved to multiple ports", func() {
+		It("correct backend port is chosen in case of target port is resolved to multiple ports", func() {
 			expectedhttpSettingsLen := 3
 			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
 

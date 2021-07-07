@@ -41,7 +41,7 @@ const (
 	// AGICNamespace is namespace where AGIC is installed
 	AGICNamespace = "agic"
 
-	// Contributor is the role defintion ID for the corresponding role in AAD
+	// Contributor is the role definition ID for the corresponding role in AAD
 	Contributor = "b24988ac-6180-42a0-ab88-20f7382dd24c"
 
 	// UserAgent is the user agent used when making Azure requests

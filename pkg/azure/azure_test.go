@@ -10,9 +10,11 @@ package azure
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -39,13 +41,13 @@ var _ = Describe("Azure", func() {
 		})
 
 		Context("ensure ConvertToClusterResourceGroup works as expected", func() {
-			It("should parse empty infra resourse group correctly", func() {
+			It("should parse empty infra resource group correctly", func() {
 				subID := SubscriptionID("xxxx")
 				resGp := ResourceGroup("")
 				_, err := ConvertToClusterResourceGroup(subID, resGp, nil)
 				Ω(err).To(HaveOccurred(), "this call should have failed in parsing the resource group")
 			})
-			It("should parse valid infra resourse group correctly", func() {
+			It("should parse valid infra resource group correctly", func() {
 				subID := SubscriptionID("xxxx")
 				resGp := ResourceGroup("MC_resgp_resName_location")
 				Expect(ConvertToClusterResourceGroup(subID, resGp, nil)).To(Equal("/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ContainerService/managedClusters/resName"))
@@ -56,19 +58,29 @@ var _ = Describe("Azure", func() {
 			})
 		})
 
-		Context("test getAuthorizer", func() {
-			It("should try and get some authorizer", func() {
-				authorizer, err := getAuthorizer("", false, nil)
-				Ω(authorizer).ToNot(BeNil())
-				Ω(err).ToNot(HaveOccurred())
+		Context("test getAuthorizer functions", func() {
+			BeforeEach(func() {
+				os.Setenv(auth.ClientID, "guid1")
+				os.Setenv(auth.TenantID, "guid2")
+				os.Setenv(auth.ClientSecret, "fake-secret")
 			})
-		})
 
-		Context("test getAuthorizerWithRetry", func() {
-			It("should try and get some authorizer", func() {
-				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
-				Ω(authorizer).ToNot(BeNil())
+			It("getAuthorizer should try and get some authorizer", func() {
+				authorizer, err := getAuthorizer("", false, nil)
 				Ω(err).ToNot(HaveOccurred())
+				Ω(authorizer).ToNot(BeNil())
+			})
+
+			It("getAuthorizerWithRetry should try and get some authorizer", func() {
+				authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
+				Ω(err).ToNot(HaveOccurred())
+				Ω(authorizer).ToNot(BeNil())
+			})
+
+			AfterEach(func() {
+				os.Unsetenv(auth.ClientID)
+				os.Unsetenv(auth.TenantID)
+				os.Unsetenv(auth.ClientSecret)
 			})
 		})
 

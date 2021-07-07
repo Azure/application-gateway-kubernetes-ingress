@@ -297,7 +297,7 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
-		It("frontend port is overriden in annotation", func() {
+		It("frontend port is overridden in annotation", func() {
 			ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)

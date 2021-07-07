@@ -83,7 +83,7 @@ func (h handlers) secretDelete(obj interface{}) {
 			// unable to get from tombstone
 			return
 		}
-		sec, ok = tombstone.Obj.(*v1.Secret)
+		sec, _ = tombstone.Obj.(*v1.Secret)
 	}
 	if sec == nil {
 		return
