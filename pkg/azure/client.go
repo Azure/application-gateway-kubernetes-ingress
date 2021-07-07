@@ -417,7 +417,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 			Properties: &r.DeploymentProperties{
 				Template:   template,
 				Parameters: params,
-				Mode:       r.Incremental,
+				Mode:       r.DeploymentModeIncremental,
 			},
 		},
 	)
