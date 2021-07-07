@@ -9,33 +9,28 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/deckarep/golang-set v1.7.1
-	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
-	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
-	github.com/googleapis/gnostic v0.3.1 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
+	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
 	github.com/kylelemons/godebug v1.1.0
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.7.0
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v1.1.0
 	github.com/spf13/pflag v1.0.5
-	google.golang.org/appengine v1.6.1 // indirect
-	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.0.0-20200326015715-b5bd82427fa8
-	k8s.io/apimachinery v0.0.0-20200326015016-e92250ad09d8
-	k8s.io/client-go v0.16.7
-	k8s.io/klog/v2 v2.4.0
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
+	gopkg.in/yaml.v2 v2.4.0
+	k8s.io/api v0.21.2
+	k8s.io/apimachinery v0.21.2
+	k8s.io/client-go v0.21.2
+	k8s.io/klog/v2 v2.8.0
 )
 
 replace (
 	golang.org/x/sync => golang.org/x/sync v0.0.0-20181108010431-42b317875d0f
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20190209173611-3b5209105503
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20190313210603-aa82965741a9
-	k8s.io/api => k8s.io/api v0.0.0-20200326015715-b5bd82427fa8
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20200326015016-e92250ad09d8
-	k8s.io/client-go => k8s.io/client-go v0.0.0-20200326020446-6240434e1ad6
 	k8s.io/component-base => k8s.io/component-base v0.0.0-20190612130303-4062e14deebe
 )
 

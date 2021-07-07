@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-ingress
@@ -12,5 +12,8 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: websocket-service
-              servicePort: 80
+              service:
+                name: websocket-service
+                port:
+                  number: 80
+            pathType: Exact

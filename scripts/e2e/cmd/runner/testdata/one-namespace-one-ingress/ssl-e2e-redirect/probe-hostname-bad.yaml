@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ssl-redirect-ingress
@@ -17,9 +17,15 @@ spec:
         paths:
         - path: /index.html
           backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
+            service:
+              name: ssl-redirect-service
+              port:
+                number: 443
+          pathType: Exact
         - path: /*
           backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
+            service:
+              name: ssl-redirect-service
+              port:
+                number: 443
+          pathType: Prefix

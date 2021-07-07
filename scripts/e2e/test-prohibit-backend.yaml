@@ -47,7 +47,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: brownfield-blacklist-ingress
@@ -62,5 +62,8 @@ spec:
         paths:
         - path: /blacklist
           backend:
-            serviceName: brownfield-blacklist-service
-            servicePort: 80
+            service:
+              name: brownfield-blacklist-service
+              port:
+                number: 80
+          pathType: Exact

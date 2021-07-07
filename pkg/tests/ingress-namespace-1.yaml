@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-coffeeshop
@@ -14,9 +14,15 @@ spec:
       paths:
       - path: /greentea
         backend:
-          serviceName: tea-shop-service
-          servicePort: 80
+          service:
+            name: tea-shop-service
+            port:
+              number: 80
+        pathType: Exact
       - path: /blackcoffee
         backend:
-          serviceName: coffe-shop-service
-          servicePort: 80
+          service:
+            name: coffe-shop-service
+            port:
+              number: 80
+        pathType: Exact

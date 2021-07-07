@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -41,7 +41,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 	Context("Test RequestRoutingRules with TLS and with SSL Redirect Annotation", func() {
 		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{ingress}
+		ingressList := []*networking.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList:           ingressList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
@@ -93,7 +93,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		ingress.Spec.TLS = nil
-		ingressList := []*v1beta1.Ingress{ingress}
+		ingressList := []*networking.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList:           ingressList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
@@ -121,7 +121,7 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		cb := newConfigBuilderFixture(nil)
 		ingress := tests.NewIngressFixture()
 		delete(ingress.Annotations, annotations.SslRedirectKey)
-		ingressList := []*v1beta1.Ingress{ingress}
+		ingressList := []*networking.Ingress{ingress}
 		cbCtx := ConfigBuilderContext{
 			IngressList:           ingressList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),

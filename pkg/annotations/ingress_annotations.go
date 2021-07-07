@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/knative/pkg/apis/istio/v1alpha3"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
@@ -125,7 +125,7 @@ var ProtocolEnumLookup = map[string]ProtocolEnum{
 }
 
 // IsApplicationGatewayIngress checks if the Ingress resource can be handled by the Application Gateway ingress controller.
-func IsApplicationGatewayIngress(ing *v1beta1.Ingress) (bool, error) {
+func IsApplicationGatewayIngress(ing *networking.Ingress) (bool, error) {
 	controllerName, err := parseString(ing, IngressClassKey)
 	return controllerName == ApplicationGatewayIngressClass, err
 }
@@ -142,37 +142,37 @@ func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
 }
 
 // IsSslRedirect for HTTP end points.
-func IsSslRedirect(ing *v1beta1.Ingress) (bool, error) {
+func IsSslRedirect(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, SslRedirectKey)
 }
 
 // BackendPathPrefix override path
-func BackendPathPrefix(ing *v1beta1.Ingress) (string, error) {
+func BackendPathPrefix(ing *networking.Ingress) (string, error) {
 	return parseString(ing, BackendPathPrefixKey)
 }
 
 // BackendHostName override hostname
-func BackendHostName(ing *v1beta1.Ingress) (string, error) {
+func BackendHostName(ing *networking.Ingress) (string, error) {
 	return parseString(ing, BackendHostNameKey)
 }
 
 // HealthProbeHostName probe hostname override
-func HealthProbeHostName(ing *v1beta1.Ingress) (string, error) {
+func HealthProbeHostName(ing *networking.Ingress) (string, error) {
 	return parseString(ing, HealthProbeHostKey)
 }
 
 // HealthProbePort probe port override
-func HealthProbePort(ing *v1beta1.Ingress) (int32, error) {
+func HealthProbePort(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, HealthProbePortKey)
 }
 
 // HealthProbePath probe path override
-func HealthProbePath(ing *v1beta1.Ingress) (string, error) {
+func HealthProbePath(ing *networking.Ingress) (string, error) {
 	return parseString(ing, HealthProbePathKey)
 }
 
 // HealthProbeStatusCodes probe status codes
-func HealthProbeStatusCodes(ing *v1beta1.Ingress) ([]string, error) {
+func HealthProbeStatusCodes(ing *networking.Ingress) ([]string, error) {
 	value, err := parseString(ing, HealthProbeStatusCodesKey)
 	if value != "" {
 		codesArray := strings.Split(value, ",")
@@ -186,62 +186,62 @@ func HealthProbeStatusCodes(ing *v1beta1.Ingress) ([]string, error) {
 }
 
 // HealthProbeInterval probe interval
-func HealthProbeInterval(ing *v1beta1.Ingress) (int32, error) {
+func HealthProbeInterval(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, HealthProbeIntervalKey)
 }
 
 // HealthProbeTimeout probe timeout
-func HealthProbeTimeout(ing *v1beta1.Ingress) (int32, error) {
+func HealthProbeTimeout(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, HealthProbeTimeoutKey)
 }
 
 // HealthProbeUnhealthyThreshold probe threshold
-func HealthProbeUnhealthyThreshold(ing *v1beta1.Ingress) (int32, error) {
+func HealthProbeUnhealthyThreshold(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, HealthProbeUnhealthyThresholdKey)
 }
 
 // GetAppGwSslCertificate refer to appgw installed certificate
-func GetAppGwSslCertificate(ing *v1beta1.Ingress) (string, error) {
+func GetAppGwSslCertificate(ing *networking.Ingress) (string, error) {
 	return parseString(ing, AppGwSslCertificate)
 }
 
 // GetAppGwTrustedRootCertificate refer to appgw installed root certificate
-func GetAppGwTrustedRootCertificate(ing *v1beta1.Ingress) (string, error) {
+func GetAppGwTrustedRootCertificate(ing *networking.Ingress) (string, error) {
 	return parseString(ing, AppGwTrustedRootCertificate)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection
-func RequestTimeout(ing *v1beta1.Ingress) (int32, error) {
+func RequestTimeout(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, RequestTimeoutKey)
 }
 
 // IsConnectionDraining provides whether connection draining is enabled or not.
-func IsConnectionDraining(ing *v1beta1.Ingress) (bool, error) {
+func IsConnectionDraining(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, ConnectionDrainingKey)
 }
 
 // ConnectionDrainingTimeout provides value for draining timeout for backends.
-func ConnectionDrainingTimeout(ing *v1beta1.Ingress) (int32, error) {
+func ConnectionDrainingTimeout(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, ConnectionDrainingTimeoutKey)
 }
 
 // IsCookieBasedAffinity provides value to enable/disable cookie based affinity for client connection.
-func IsCookieBasedAffinity(ing *v1beta1.Ingress) (bool, error) {
+func IsCookieBasedAffinity(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
 }
 
 // UsePrivateIP determines whether to use private IP with the ingress
-func UsePrivateIP(ing *v1beta1.Ingress) (bool, error) {
+func UsePrivateIP(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, UsePrivateIPKey)
 }
 
 // OverrideFrontendPort determines whether to use a custom Frontend port
-func OverrideFrontendPort(ing *v1beta1.Ingress) (int32, error) {
+func OverrideFrontendPort(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, OverrideFrontendPortKey)
 }
 
 // BackendProtocol provides value for protocol to be used with the backend
-func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
+func BackendProtocol(ing *networking.Ingress) (ProtocolEnum, error) {
 	protocol, err := parseString(ing, BackendProtocolKey)
 	if err != nil {
 		return HTTP, err
@@ -257,7 +257,7 @@ func BackendProtocol(ing *v1beta1.Ingress) (ProtocolEnum, error) {
 }
 
 // GetHostNameExtensions from a given ingress
-func GetHostNameExtensions(ing *v1beta1.Ingress) ([]string, error) {
+func GetHostNameExtensions(ing *networking.Ingress) ([]string, error) {
 	val, err := parseString(ing, HostNameExtensionKey)
 	if err == nil {
 		var hostnames []string
@@ -273,11 +273,11 @@ func GetHostNameExtensions(ing *v1beta1.Ingress) ([]string, error) {
 }
 
 // WAFPolicy override path
-func WAFPolicy(ing *v1beta1.Ingress) (string, error) {
+func WAFPolicy(ing *networking.Ingress) (string, error) {
 	return parseString(ing, FirewallPolicy)
 }
 
-func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
+func parseBool(ing *networking.Ingress, name string) (bool, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		if boolVal, err := strconv.ParseBool(val); err == nil {
 			return boolVal, nil
@@ -292,7 +292,7 @@ func parseBool(ing *v1beta1.Ingress, name string) (bool, error) {
 	)
 }
 
-func parseString(ing *v1beta1.Ingress, name string) (string, error) {
+func parseString(ing *networking.Ingress, name string) (string, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		return val, nil
 	}
@@ -302,7 +302,7 @@ func parseString(ing *v1beta1.Ingress, name string) (string, error) {
 	)
 }
 
-func parseInt32(ing *v1beta1.Ingress, name string) (int32, error) {
+func parseInt32(ing *networking.Ingress, name string) (int32, error) {
 	if val, ok := ing.Annotations[name]; ok {
 		if intVal, err := strconv.Atoi(val); err == nil {
 			return int32(intVal), nil

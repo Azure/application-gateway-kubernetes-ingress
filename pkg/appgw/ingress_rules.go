@@ -7,18 +7,18 @@ package appgw
 
 import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
-func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
+func (c *appGwConfigBuilder) getListenersFromIngress(ingress *networking.Ingress, env environment.EnvVariables) map[listenerIdentifier]listenerAzConfig {
 	listeners := make(map[listenerIdentifier]listenerAzConfig)
 
 	// if ingress has only backend configured
-	if ingress.Spec.Backend != nil && len(ingress.Spec.Rules) == 0 {
+	if ingress.Spec.DefaultBackend != nil && len(ingress.Spec.Rules) == 0 {
 		return listeners
 	}
 
@@ -48,7 +48,7 @@ func (c *appGwConfigBuilder) getListenersFromIngress(ingress *v1beta1.Ingress, e
 	return listeners
 }
 
-func (c *appGwConfigBuilder) applyToListener(rule *v1beta1.IngressRule) bool {
+func (c *appGwConfigBuilder) applyToListener(rule *networking.IngressRule) bool {
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		// if there is path that is /, /* , empty string, then apply the waf policy to the listener.
@@ -59,7 +59,7 @@ func (c *appGwConfigBuilder) applyToListener(rule *v1beta1.IngressRule) bool {
 	return false
 }
 
-func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *v1beta1.IngressRule, ingress *v1beta1.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
+func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressRule, ingress *networking.Ingress, env environment.EnvVariables) (map[Port]interface{}, map[listenerIdentifier]listenerAzConfig) {
 	frontendPorts := make(map[Port]interface{})
 
 	// certificate from ingress TLS spec
@@ -134,8 +134,8 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
-		if ingress.Spec.Backend != nil {
-			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+		if ingress.Spec.DefaultBackend != nil {
+			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
 			klog.V(3).Info("Found default backend:", backendID.serviceKey())
 			backendIDs[backendID] = nil
 		}

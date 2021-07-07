@@ -44,7 +44,7 @@ spec:
 
 ---
 # This ingress is using "custom: custom-ingress-class" ingress class
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -56,13 +56,16 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: svc
-          servicePort: pp
+          service:
+            name: svc
+            port:
+              name: pp
         path: /status*
+        pathType: Prefix
 
 ---
 # This ingress is using "default: azure/application-gateway" ingress class
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -74,6 +77,9 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: svc
-          servicePort: pp
+          service:
+            name: svc
+            port:
+              name: pp
         path: /status*
+        pathType: Prefix

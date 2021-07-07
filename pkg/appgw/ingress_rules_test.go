@@ -4,7 +4,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -51,7 +51,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -99,7 +99,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		ingress.SetAnnotations(newAnnotation)
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -140,7 +140,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		})
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -168,7 +168,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		cb := newConfigBuilderFixture(&certs)
 		ingress := tests.NewIngressFixture()
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
@@ -195,7 +195,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		ingress := tests.NewIngressFixture()
 		ingress.Annotations[annotations.SslRedirectKey] = "one/two/three"
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}

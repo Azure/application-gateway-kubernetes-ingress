@@ -42,7 +42,7 @@ spec:
     port: 80
     targetPort: port
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -61,32 +61,50 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: svc-{{ . }}
-          servicePort: pp-{{ . }}
+          service:
+            name: svc-{{ . }}
+            port:
+              name: pp-{{ . }}
+        pathType: Prefix
         path: /status*
       - backend:
-            serviceName: svc-{{ . }}
-            servicePort: pp-{{ . }}
+            service:
+              name: svc-{{ . }}
+              port:
+                name: pp-{{ . }}
+        pathType: Prefix
         path: /redirect-to*
       - backend:
-          serviceName: svc-{{ . }}
-          servicePort: pp-{{ . }}
+          service:
+            name: svc-{{ . }}
+            port:
+              name: pp-{{ . }}
+        pathType: Exact
         path: /path
       - backend:
-            serviceName: svc-{{ . }}
-            servicePort: pp-{{ . }}
+            service:
+              name: svc-{{ . }}
+              port:
+                name: pp-{{ . }}
+        pathType: Prefix
         path: /path/*
   - host: appb.{{ . }}
     http:
       paths:
       - backend:
-            serviceName: svc-{{ . }}
-            servicePort: pp-{{ . }}
+            service:
+              name: svc-{{ . }}
+              port:
+                name: pp-{{ . }}
         path: /status*
+        pathType: Prefix
       - backend:
-          serviceName: svc-{{ . }}
-          servicePort: pp-{{ . }}
+          service:
+            name: svc-{{ . }}
+            port:
+              name: pp-{{ . }}
         path: /redirect-to*
+        pathType: Prefix
 ---
 {{- end }}
 apiVersion: v1

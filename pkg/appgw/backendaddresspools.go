@@ -9,14 +9,13 @@ import (
 	"fmt"
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
-	v1 "k8s.io/api/core/v1"
-
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
 )
 
 func (c *appGwConfigBuilder) BackendAddressPools(cbCtx *ConfigBuilderContext) error {
@@ -107,7 +106,7 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 
 	for _, subset := range endpoints.Subsets {
 		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
-			poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
+			poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 			// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 			// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
 			if pool, ok := addressPools[poolName]; ok {

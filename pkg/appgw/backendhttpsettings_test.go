@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -45,7 +45,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 	// Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
-	ingressWithInvalidServices, _ := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
+	ingressWithInvalidServices := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressWithInvalidServices)
 
 	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe on the pods", func() {
@@ -59,7 +59,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			Expect(annotations.BackendProtocol(ingress)).To(Equal(protocolEnum))
 
 			cbCtx := &ConfigBuilderContext{
-				IngressList:           []*v1beta1.Ingress{ingress},
+				IngressList:           []*networking.Ingress{ingress},
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -101,7 +101,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			_ = configBuilder.k8sContext.Caches.Ingress.Update(ingress)
 
 			cbCtx := &ConfigBuilderContext{
-				IngressList:           []*v1beta1.Ingress{ingress},
+				IngressList:           []*networking.Ingress{ingress},
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -138,7 +138,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 	Context("test backend ports for the http settings", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -173,7 +173,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	Context("make sure all backends are processed", func() {
 		// ingress1 : Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingressWithInvalidServices, ingress},
+			IngressList:           []*networking.Ingress{ingressWithInvalidServices, ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),

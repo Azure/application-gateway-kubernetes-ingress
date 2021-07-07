@@ -120,15 +120,15 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			backendID.serviceKey())
 
 		backendPort := Port(80)
-		if backendID.Backend.ServicePort.Type == intstr.Int && backendID.Backend.ServicePort.IntVal < 65536 {
-			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		if backendID.Backend.Service.Port.Name == "" && backendID.Backend.Service.Port.Number < 65536 {
+			backendPort = Port(backendID.Backend.Service.Port.Number)
 		}
 
 		return backendPort, e
 	}
 
 	// find the target port number for service port specified in the ingress manifest
-	servicePortInIngress := backendID.Backend.ServicePort.String()
+	servicePortInIngress := fmt.Sprint(backendID.Backend.Service.Port.Number)
 	resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 	for _, servicePort := range service.Spec.Ports {
 		// ignore UDP ports
@@ -167,7 +167,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 
 		// if target port is port name, then resolve the port number for the port name
 		// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
-		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
+		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendID.Ingress.Name)
 		targetPortsResolved := c.resolvePortName(servicePort.Name, &backendID)
 		for targetPort := range targetPortsResolved {
 			pair := serviceBackendPortPair{
@@ -184,8 +184,8 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			controllererrors.ErrorUnableToResolveBackendPortFromServicePort,
 			"No port matched %s",
 			backendID.serviceKey())
-		if backendID.Backend.ServicePort.Type == intstr.Int {
-			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		if backendID.Backend.Service.Port.Name == "" {
+			backendPort = Port(backendID.Backend.Service.Port.Number)
 		}
 	} else {
 		var ports []string
@@ -201,7 +201,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			e = controllererrors.NewErrorf(
 				controllererrors.ErrorMultipleServiceBackendPortBinding,
 				"service %s and service port %s has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
-				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort, strings.Join(ports, ","),
+				backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendPort, strings.Join(ports, ","),
 			)
 		}
 	}
@@ -210,7 +210,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 		e = controllererrors.NewErrorf(
 			controllererrors.ErrorServiceResolvedToInvalidPort,
 			"service %s and service port %s was resolved to an invalid service-backend port %d, defaulting to port 80",
-			backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort,
+			backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendPort,
 		)
 		backendPort = Port(80)
 	}
@@ -219,7 +219,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
-	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
+	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), port, backendID.Ingress.Name)
 
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
