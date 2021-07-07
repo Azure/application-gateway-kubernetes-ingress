@@ -47,7 +47,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 			logLine := fmt.Sprintf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
 			eventRecorder.Event(be.Ingress, v1.EventTypeWarning, events.ReasonIngressServiceTargetMatch, logLine)
 			// NOTE: We could and should return a new error here.
-			// However this could be enabled at a later point in time once we know with certainty taht there are no valid
+			// However this could be enabled at a later point in time once we know with certainty that there are no valid
 			// scenarios where one could have Ingress pointing to a missing Service targets.
 		}
 	}

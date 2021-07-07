@@ -65,7 +65,7 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 
 		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP
 		if usePrivateIP && !appGwHasPrivateIP {
-			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP adress", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP address", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			klog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
 			if c.agicPod != nil {

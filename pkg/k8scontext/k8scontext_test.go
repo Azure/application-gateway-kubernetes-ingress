@@ -223,6 +223,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 			// Retrieve the Pods to make sure it was updated.
 			podList, err := k8sClient.CoreV1().Pods(ingressNS).List(context.TODO(), metav1.ListOptions{})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(podList).ToNot(BeNil())
 			Expect(len(podList.Items)).To(Equal(2), "Expected to have two pod stored but found: %d pods", len(podList.Items))
 

@@ -106,6 +106,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			secKey := utils.GetResourceKey(secret.Namespace, secret.Name)
 			secretInterface, exists, err := h.context.Caches.Secret.GetByKey(secKey)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(exists).To(BeTrue())
 			cachedSecret := secretInterface.(*v1.Secret)
 			Expect(cachedSecret.Data).To(Equal(data))

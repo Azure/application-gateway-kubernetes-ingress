@@ -29,7 +29,7 @@ When you see your AGIC pod stuck at `Creating Authorizer` step, then the issue c
 $ kubectl logs <AGIC-POD-NAME>
 ERROR: logging before flag.Parse: I0628 18:09:49.947221       1 utils.go:115] Using verbosity level 3 from environment variable APPGW_VERBOSITY_LEVEL
 I0628 18:09:49.987776       1 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
-I0628 18:09:49.987861       1 main.go:128] Appication Gateway Details: Subscription="xxxx" Resource Group="resgp" Name="gateway"
+I0628 18:09:49.987861       1 main.go:128] Application Gateway Details: Subscription="xxxx" Resource Group="resgp" Name="gateway"
 I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed Service Identity
 I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123
 ```
@@ -65,7 +65,7 @@ For `mic` pod, we will need to find the leader. An easy way to find the leader i
 ###### Issue in NMI Pod
 For `nmi` pod, we will need to find the pod running on the same node as AGIC pod.
 1. If you see `403` response for a token request, then make sure you have correctly assigned the needed permission to `AGIC's identity`.
-    1. `Reader` accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
+    1. `Reader` access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
     1. `Contributor` access to Application Gateway. This is needed to perform updates on the Application Gateway.
 
 ### AGIC is stuck getting Application Gateway
@@ -76,5 +76,5 @@ When you see this error,
     1. If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the [`appgw.environment`](../helm-values-documenation.md) property in the helm.
 1. AGIC gets `Unauthorized` when getting Application Gateway  
 Verify that you have given needed permissions to AGIC's identity:
-    1. `Reader` accesss to Application Gateway's resource group. This is needed to list the resources in the this resource group.
+    1. `Reader` access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
     1. `Contributor` access to Application Gateway. This is needed to perform updates on the Application Gateway.

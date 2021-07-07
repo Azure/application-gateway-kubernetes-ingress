@@ -1,6 +1,6 @@
 # How to setup networking between Application Gateway and AKS
 
-When you are using Application Gateway with AKS for L7, you need to make sure that you have setup network connectivity correctly between the gateway and the cluster. Otherwise, you might recieve 502s when reaching your site.
+When you are using Application Gateway with AKS for L7, you need to make sure that you have setup network connectivity correctly between the gateway and the cluster. Otherwise, you might receive 502s when reaching your site.
 
 There are two major things to consider when setting up network connectivity between Application Gateway and AKS
 1. Virtual Network Configuration
@@ -12,7 +12,7 @@ There are two major things to consider when setting up network connectivity betw
 
 ## Virtual Network Configuration
 ### Deployed in same virtual network
-If you have deployed AKS and Application Gateway in the same virtual network with `Azure CNI` for network plugin, then you don't have to do any changes and you are good to go. Applicaiton Gateway instances should be able to reach the PODs.
+If you have deployed AKS and Application Gateway in the same virtual network with `Azure CNI` for network plugin, then you don't have to do any changes and you are good to go. Application Gateway instances should be able to reach the PODs.
 
 If you are using `kubenet` network plugin, then jump to [Kubenet](#with-kubenet) to setup the route table.
 

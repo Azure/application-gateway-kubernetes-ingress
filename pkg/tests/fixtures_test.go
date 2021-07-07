@@ -131,7 +131,7 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test NewPodFixture", func() {
 		It("should work", func() {
-			actual := NewPodFixture("service-name", "namespace", "conatiner-name", int32(80))
+			actual := NewPodFixture("service-name", "namespace", "container-name", int32(80))
 			Expect(actual.Name).To(Equal("service-name"))
 		})
 	})
