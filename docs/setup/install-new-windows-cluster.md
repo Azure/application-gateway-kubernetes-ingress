@@ -276,7 +276,7 @@ Values:
    ```bash
    az identity show -g <resource-group> -n <identity-name>
    ```
-- `<resource-group>` in the command above is the resource group of your App Gateway. 
+- `<resource-group>` in the command above is the resource group of your App Gateway.
 - `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
 
 
@@ -330,7 +330,7 @@ spec:
 
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aspnetapp
@@ -342,8 +342,11 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: aspnetapp
-          servicePort: 80
+          service:
+            name: aspnetapp
+            port:
+              number: 80
+        pathType: Exact
 EOF
 ```
 

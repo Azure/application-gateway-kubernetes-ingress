@@ -43,7 +43,7 @@ spec:
 
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-repeater
@@ -55,8 +55,10 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: websocket-app-service
-              servicePort: 80
+              service:
+                name: websocket-app-service
+                port:
+                  number: 80
 ```
 
 Given that all the prerequisites are fulfilled, and you have an App Gateway controlled by a K8s Ingress in your AKS, the deployment above would result in a WebSockets server exposed on port 80 of your App Gateway's public IP and the `ws.contoso.com` domain.

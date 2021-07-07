@@ -5,7 +5,7 @@ and AGIC installation. Launch your shell from [shell.azure.com](https://shell.az
 
 [![Embed launch](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
 
-In the troubleshooting document, we will debug issues in the AGIC installation by installing a simple application step by step and check the output as we go along.  
+In the troubleshooting document, we will debug issues in the AGIC installation by installing a simple application step by step and check the output as we go along.
 The steps below assume:
   - You have an AKS cluster, with Advanced Networking enabled
   - AGIC has been installed on the AKS cluster
@@ -42,7 +42,7 @@ spec:
     port: 80
     targetPort: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: test-agic-app-ingress
@@ -55,8 +55,11 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: test-agic-app-service
-              servicePort: 80
+              service:
+                name: test-agic-app-service
+                port:
+                  number: 80
+            pathType: Exact
 EOF
 ```
 
@@ -146,7 +149,7 @@ The following must be in place for AGIC to function as expected:
      $> kubectl get services -o wide --show-labels
 
      NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR        LABELS
-     aspnetapp           ClusterIP   10.2.63.254    <none>        80/TCP    17h   app=aspnetapp   <none>     
+     aspnetapp           ClusterIP   10.2.63.254    <none>        80/TCP    17h   app=aspnetapp   <none>
      ```
 
   3. **Ingress**, annotated with `kubernetes.io/ingress.class: azure/application-gateway`, referencing the service above
@@ -162,20 +165,22 @@ The following must be in place for AGIC to function as expected:
      ```bash
      $> kubectl get ingress aspnetapp -o yaml
 
-     apiVersion: extensions/v1beta1
+     apiVersion: networking.k8s.io/v1
      kind: Ingress
      metadata:
        annotations:
          kubernetes.io/ingress.class: azure/application-gateway
        name: aspnetapp
      spec:
-       backend:
-         serviceName: aspnetapp
-         servicePort: 80
+       defaultBackend:
+         service:
+          name: aspnetapp
+          port:
+            number: 80
      ```
 
      The ingress resource must be annotated with `kubernetes.io/ingress.class: azure/application-gateway`.
- 
+
 
 #### Verify Observed Nampespace
 
