@@ -133,19 +133,22 @@ spec:
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: http-bin-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
     - host: app.http
       http:
@@ -154,25 +157,29 @@ spec:
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app1
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app1
             backend:
               service:
                 name: http-bin-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
 
 ---
@@ -191,19 +198,22 @@ spec:
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: http-bin-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
     - host: app.http
       http:
@@ -212,35 +222,41 @@ spec:
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app
             backend:
               service:
                 name: http-bin-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app1
             backend:
               service:
                 name: nginx-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
           - path: /app1
             backend:
               service:
                 name: http-bin-service
-                port: http
+                port:
+                  name: http
             pathType: Exact
