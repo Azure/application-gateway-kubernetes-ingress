@@ -80,22 +80,22 @@ func toIngress(obj interface{}) (*networkingv1.Ingress, bool) {
 }
 
 // SupportsNetworkingPackage checks if the package "k8s.io/api/networking/v1"
-// is available or not and if Ingress V1 is supported (k8s >= v1.18.0)
-func SupportsNetworkingPackage(client clientset.Interface) (bool, bool) {
+// is available or not and if Ingress V1 is supported (k8s >= v1.19.0)
+// https://kubernetes.io/blog/2021/07/14/upcoming-changes-in-kubernetes-1-22/#what-to-do
+func SupportsNetworkingPackage(client clientset.Interface) bool {
 	// check kubernetes version to use new ingress package or not
-	version114, _ := version.ParseGeneric("v1.14.0")
-	version118, _ := version.ParseGeneric("v1.18.0")
+	version119, _ := version.ParseGeneric("v1.19.0")
 
 	serverVersion, err := client.Discovery().ServerVersion()
 	if err != nil {
-		return false, false
+		return false
 	}
 
 	runningVersion, err := version.ParseGeneric(serverVersion.String())
 	if err != nil {
 		klog.Errorf("unexpected error parsing running Kubernetes version: %v", err)
-		return false, false
+		return false
 	}
 
-	return runningVersion.AtLeast(version114), runningVersion.AtLeast(version118)
+	return runningVersion.AtLeast(version119)
 }
