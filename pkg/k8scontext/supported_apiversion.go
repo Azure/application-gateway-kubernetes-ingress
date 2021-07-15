@@ -18,7 +18,7 @@ import (
 var (
 	runtimeScheme = k8sruntime.NewScheme()
 
-	// IsNetworkingV1PackageSupported is flag that indicates whether networking/v1beta ingress should be used instead.
+	// IsNetworkingV1Beta1PackageSupported is flag that indicates whether networking/v1beta ingress should be used instead.
 	IsNetworkingV1Beta1PackageSupported bool
 
 	// IsNetworkingV1PackageSupported is flag that indicates whether networking/v1 ingress should be used instead.
