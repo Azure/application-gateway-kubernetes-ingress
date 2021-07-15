@@ -8,6 +8,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -41,7 +42,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
@@ -95,7 +96,7 @@ var _ = Describe("MFU", func() {
 					},
 				}
 				klog.Info("Creating namespace: ", nm)
-				_, err = clientset.CoreV1().Namespaces().Create(ns)
+				_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 				Expect(err).To(BeNil())
 			}
 			threeNamespacesYamlPath := "testdata/one-namespace-one-ingress/three-namespaces/app.yaml"
@@ -125,7 +126,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			healthConfigProbeYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/app.yaml"
@@ -208,7 +209,7 @@ var _ = Describe("MFU", func() {
 					},
 				}
 				klog.Info("Creating namespace: ", nm)
-				_, err = clientset.CoreV1().Namespaces().Create(ns)
+				_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 				Expect(err).To(BeNil())
 			}
 			containerReadinessProbeYamlPath := "testdata/one-namespace-one-ingress/container-readiness-probe/app.yaml"
@@ -270,7 +271,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
@@ -297,7 +298,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			OverrideFrontendPortYamlPath := "testdata/one-namespace-one-ingress/override-frontend-port/app.yaml"
@@ -329,7 +330,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			InvalidConfigYamlPath := "testdata/one-namespace-one-ingress/invalid-configuration/app.yaml"
@@ -367,7 +368,7 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			EmptySecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/empty-secret.yaml"

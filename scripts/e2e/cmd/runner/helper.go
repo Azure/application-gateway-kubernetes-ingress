@@ -24,10 +24,13 @@ import (
 	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/version"
+	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -48,7 +51,11 @@ const (
 	UserAgent = "ingress-appgw-e2e"
 )
 
-func getClient() (*kubernetes.Clientset, error) {
+var (
+	runtimeScheme = k8sruntime.NewScheme()
+)
+
+func getClient() (*clientset.Clientset, error) {
 	var kubeConfig *rest.Config
 	var err error
 	kubeConfigFile := GetEnv().KubeConfigFilePath
@@ -61,7 +68,7 @@ func getClient() (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 
-	clientset, err := kubernetes.NewForConfig(kubeConfig)
+	clientset, err := clientset.NewForConfig(kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -174,19 +181,21 @@ func removeRoleAssignments(roleClient *a.RoleAssignmentsClient) error {
 	return nil
 }
 
-func deleteAGICPod(clientset *kubernetes.Clientset) error {
+func deleteAGICPod(clientset *clientset.Clientset) error {
 	// k delete -n agic pods -l app=ingress-azure
 	return clientset.CoreV1().Pods(AGICNamespace).DeleteCollection(
-		&metav1.DeleteOptions{},
+		context.TODO(),
+		metav1.DeleteOptions{},
 		metav1.ListOptions{
 			LabelSelector: "app=ingress-azure",
 		})
 }
 
-func deleteAADPodIdentityPods(clientset *kubernetes.Clientset) error {
+func deleteAADPodIdentityPods(clientset *clientset.Clientset) error {
 	// k delete -n default pods -l app=mic
 	err := clientset.CoreV1().Pods("default").DeleteCollection(
-		&metav1.DeleteOptions{},
+		context.TODO(),
+		metav1.DeleteOptions{},
 		metav1.ListOptions{
 			LabelSelector: "app=mic",
 		})
@@ -196,7 +205,8 @@ func deleteAADPodIdentityPods(clientset *kubernetes.Clientset) error {
 
 	// k delete -n default pods -l component=nmi
 	err = clientset.CoreV1().Pods("default").DeleteCollection(
-		&metav1.DeleteOptions{},
+		context.TODO(),
+		metav1.DeleteOptions{},
 		metav1.ListOptions{
 			LabelSelector: "component=nmi",
 		})
@@ -234,7 +244,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 	return retVal, nil
 }
 
-func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string) error {
+func updateYaml(clientset *clientset.Clientset, namespaceName string, fileName string) error {
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
 	if err != nil {
@@ -245,24 +255,24 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 		if secret, ok := objs.(*v1.Secret); ok {
 			nm := secret.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Secrets(namespaceName).Update(secret); err != nil {
+				if _, err := clientset.CoreV1().Secrets(namespaceName).Update(context.TODO(), secret, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Secrets(nm).Update(secret); err != nil {
+				if _, err := clientset.CoreV1().Secrets(nm).Update(context.TODO(), secret, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
 				return errors.New("namespace is not defined for secrets when update")
 			}
-		} else if ingress, ok := objs.(*v1beta1.Ingress); ok {
+		} else if ingress, ok := objs.(*networkingv1.Ingress); ok {
 			nm := ingress.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Update(ingress); err != nil {
+				if _, err := clientset.NetworkingV1().Ingresses(namespaceName).Update(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.ExtensionsV1beta1().Ingresses(nm).Update(ingress); err != nil {
+				if _, err := clientset.NetworkingV1().Ingresses(nm).Update(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -271,11 +281,11 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 		} else if service, ok := objs.(*v1.Service); ok {
 			nm := service.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Services(namespaceName).Update(service); err != nil {
+				if _, err := clientset.CoreV1().Services(namespaceName).Update(context.TODO(), service, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Services(nm).Update(service); err != nil {
+				if _, err := clientset.CoreV1().Services(nm).Update(context.TODO(), service, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -284,11 +294,11 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
 			nm := deployment.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.AppsV1().Deployments(namespaceName).Update(deployment); err != nil {
+				if _, err := clientset.AppsV1().Deployments(namespaceName).Update(context.TODO(), deployment, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.AppsV1().Deployments(nm).Update(deployment); err != nil {
+				if _, err := clientset.AppsV1().Deployments(nm).Update(context.TODO(), deployment, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -297,11 +307,11 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 		} else if cm, ok := objs.(*v1.ConfigMap); ok {
 			nm := cm.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Update(cm); err != nil {
+				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Update(context.TODO(), cm, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().ConfigMaps(nm).Update(cm); err != nil {
+				if _, err := clientset.CoreV1().ConfigMaps(nm).Update(context.TODO(), cm, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -310,11 +320,11 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 		} else if pod, ok := objs.(*v1.Pod); ok {
 			nm := pod.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Pods(namespaceName).Update(pod); err != nil {
+				if _, err := clientset.CoreV1().Pods(namespaceName).Update(context.TODO(), pod, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Pods(nm).Update(pod); err != nil {
+				if _, err := clientset.CoreV1().Pods(nm).Update(context.TODO(), pod, metav1.UpdateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -327,48 +337,73 @@ func updateYaml(clientset *kubernetes.Clientset, namespaceName string, fileName 
 	return nil
 }
 
-func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName string) error {
+func applyYaml(clientset *clientset.Clientset, namespaceName string, fileName string) error {
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
 	if err != nil {
 		return err
 	}
 
+	_, isNetworkingV1PackageSupported := supportsNetworkingPackage(clientset)
+
 	for _, objs := range fileObjects {
 		if secret, ok := objs.(*v1.Secret); ok {
 			nm := secret.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Secrets(namespaceName).Create(secret); err != nil {
+				if _, err := clientset.CoreV1().Secrets(namespaceName).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Secrets(nm).Create(secret); err != nil {
+				if _, err := clientset.CoreV1().Secrets(nm).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else {
 				return errors.New("namespace is not defined for secrets when create")
 			}
-		} else if ingress, ok := objs.(*v1beta1.Ingress); ok {
-			nm := ingress.Namespace
-			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Create(ingress); err != nil {
-					return err
-				}
-			} else if len(nm) != 0 {
-				if _, err := clientset.ExtensionsV1beta1().Ingresses(nm).Create(ingress); err != nil {
-					return err
+		} else if ingress, ok := objs.(*networkingv1.Ingress); ok {
+			if isNetworkingV1PackageSupported {
+				klog.Info("Creating Ingress with networking v1 api-version")
+				nm := ingress.Namespace
+				if len(nm) == 0 && len(namespaceName) != 0 {
+					if _, err := clientset.NetworkingV1().Ingresses(namespaceName).Create(context.TODO(), ingress, metav1.CreateOptions{}); err != nil {
+						return err
+					}
+				} else if len(nm) != 0 {
+					if _, err := clientset.NetworkingV1().Ingresses(nm).Create(context.TODO(), ingress, metav1.CreateOptions{}); err != nil {
+						return err
+					}
+				} else {
+					return errors.New("namespace is not defined for ingress when create")
 				}
 			} else {
-				return errors.New("namespace is not defined for ingress when create")
+				klog.Info("Creating Ingress with extensions v1beta1 api-version")
+
+				extensionsIngress, err := toExtensions(ingress)
+				if err != nil {
+					return err
+				}
+
+				nm := ingress.Namespace
+				if len(nm) == 0 && len(namespaceName) != 0 {
+					if _, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Create(context.TODO(), extensionsIngress, metav1.CreateOptions{}); err != nil {
+						return err
+					}
+				} else if len(nm) != 0 {
+					if _, err := clientset.ExtensionsV1beta1().Ingresses(nm).Create(context.TODO(), extensionsIngress, metav1.CreateOptions{}); err != nil {
+						return err
+					}
+				} else {
+					return errors.New("namespace is not defined for ingress when create")
+				}
 			}
 		} else if service, ok := objs.(*v1.Service); ok {
 			nm := service.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Services(namespaceName).Create(service); err != nil {
+				if _, err := clientset.CoreV1().Services(namespaceName).Create(context.TODO(), service, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Services(nm).Create(service); err != nil {
+				if _, err := clientset.CoreV1().Services(nm).Create(context.TODO(), service, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -377,11 +412,11 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
 			nm := deployment.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.AppsV1().Deployments(namespaceName).Create(deployment); err != nil {
+				if _, err := clientset.AppsV1().Deployments(namespaceName).Create(context.TODO(), deployment, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.AppsV1().Deployments(nm).Create(deployment); err != nil {
+				if _, err := clientset.AppsV1().Deployments(nm).Create(context.TODO(), deployment, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -390,11 +425,11 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 		} else if cm, ok := objs.(*v1.ConfigMap); ok {
 			nm := cm.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Create(cm); err != nil {
+				if _, err := clientset.CoreV1().ConfigMaps(namespaceName).Create(context.TODO(), cm, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().ConfigMaps(nm).Create(cm); err != nil {
+				if _, err := clientset.CoreV1().ConfigMaps(nm).Create(context.TODO(), cm, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -403,11 +438,11 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 		} else if pod, ok := objs.(*v1.Pod); ok {
 			nm := pod.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
-				if _, err := clientset.CoreV1().Pods(namespaceName).Create(pod); err != nil {
+				if _, err := clientset.CoreV1().Pods(namespaceName).Create(context.TODO(), pod, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else if len(nm) != 0 {
-				if _, err := clientset.CoreV1().Pods(nm).Create(pod); err != nil {
+				if _, err := clientset.CoreV1().Pods(nm).Create(context.TODO(), pod, metav1.CreateOptions{}); err != nil {
 					return err
 				}
 			} else {
@@ -420,8 +455,38 @@ func applyYaml(clientset *kubernetes.Clientset, namespaceName string, fileName s
 	return nil
 }
 
-func cleanUp(clientset *kubernetes.Clientset) error {
-	namespaces, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
+func supportsNetworkingPackage(client clientset.Interface) (bool, bool) {
+	// check kubernetes version to use new ingress package or not
+	version114, _ := version.ParseGeneric("v1.14.0")
+	version118, _ := version.ParseGeneric("v1.18.0")
+
+	serverVersion, err := client.Discovery().ServerVersion()
+	if err != nil {
+		return false, false
+	}
+
+	runningVersion, err := version.ParseGeneric(serverVersion.String())
+	if err != nil {
+		klog.Errorf("unexpected error parsing running Kubernetes version: %v", err)
+		return false, false
+	}
+
+	return runningVersion.AtLeast(version114), runningVersion.AtLeast(version118)
+}
+
+func toExtensions(ingressV1 *networkingv1.Ingress) (*extensionsv1beta1.Ingress, error) {
+	extensionsv1beta1Ingress := &extensionsv1beta1.Ingress{}
+
+	err := runtimeScheme.Convert(ingressV1, extensionsv1beta1Ingress, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return extensionsv1beta1Ingress, nil
+}
+
+func cleanUp(clientset *clientset.Clientset) error {
+	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -437,13 +502,13 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 		return nil
 	}
 
-	deleteOptions := &metav1.DeleteOptions{
+	deleteOptions := metav1.DeleteOptions{
 		GracePeriodSeconds: to.Int64Ptr(0),
 	}
 
 	klog.Infof("Deleting namespaces [%+v]...", namespacesToDelete)
 	for _, ns := range namespacesToDelete {
-		if err = clientset.CoreV1().Namespaces().Delete(ns.Name, deleteOptions); err != nil {
+		if err = clientset.CoreV1().Namespaces().Delete(context.TODO(), ns.Name, deleteOptions); err != nil {
 			return err
 		}
 	}
@@ -451,7 +516,7 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 	klog.Info("Waiting for namespace to get deleted...")
 	for _, ns := range namespacesToDelete {
 		for i := 1; i <= 100; i++ {
-			_, err = clientset.CoreV1().Namespaces().Get(ns.Name, metav1.GetOptions{})
+			_, err = clientset.CoreV1().Namespaces().Get(context.TODO(), ns.Name, metav1.GetOptions{})
 			if err != nil {
 				break
 			}
@@ -464,9 +529,9 @@ func cleanUp(clientset *kubernetes.Clientset) error {
 	return nil
 }
 
-func getPublicIP(clientset *kubernetes.Clientset, namespaceName string) (string, error) {
+func getPublicIP(clientset *clientset.Clientset, namespaceName string) (string, error) {
 	for i := 1; i <= 100; i++ {
-		ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).List(metav1.ListOptions{})
+		ingresses, err := clientset.NetworkingV1().Ingresses(namespaceName).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
 			return "", err
 		}
