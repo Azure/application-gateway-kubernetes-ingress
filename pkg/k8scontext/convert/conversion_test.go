@@ -1,0 +1,47 @@
+package convert
+
+import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/networking/v1"
+
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+)
+
+var _ = Describe("Test conversion functions", func() {
+	ingressV1, _ := tests.GetIngressV1FromFile("testdata/ingress-v1.yaml")
+	ingressV1Beta1, _ := tests.GetIngressV1Beta1FromFile("testdata/ingress-v1beta1.yaml")
+
+	// remove PathType property as that will not be converted
+	for ruleIdx := range ingressV1.Spec.Rules {
+		for pathIdx := range ingressV1.Spec.Rules[ruleIdx].HTTP.Paths {
+			ingressV1.Spec.Rules[ruleIdx].HTTP.Paths[pathIdx].PathType = nil
+		}
+	}
+
+	Context("Test ingress converstions", func() {
+
+		It("should have v1.Ingress with all properties set", func() {
+			Expect(ingressV1.Spec.DefaultBackend).NotTo(BeNil())
+			Expect(ingressV1.Spec.TLS).NotTo(BeNil())
+			Expect(ingressV1.Spec.Rules).NotTo(BeNil())
+			Expect(ingressV1.Status).NotTo(BeNil())
+		})
+
+		It("correctly converts v1beta.Ingress to v1.Ingress", func() {
+
+			convertIngressV1, converted := ToIngressV1(ingressV1Beta1)
+			Expect(converted, BeTrue())
+
+			Expect(convertIngressV1).To(Equal(ingressV1))
+		})
+
+		It("should not match ingress v1.Ingress if properties are different", func() {
+			convertIngressV1, converted := ToIngressV1(ingressV1Beta1)
+			Expect(converted, BeTrue())
+
+			convertIngressV1.Spec.Rules = make([]v1.IngressRule, 0)
+			Expect(convertIngressV1).ToNot(Equal(ingressV1))
+		})
+	})
+})
