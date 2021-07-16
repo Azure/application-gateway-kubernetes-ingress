@@ -146,7 +146,7 @@ func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
 	return obj.(*networking.Ingress), nil
 }
 
-// GetIngressV1FromFile reads an ingress V1 from file
+// GetIngressV1Beta1FromFile reads an ingress V1Beta1 from file
 func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
 	ingr, err := ioutil.ReadFile(fileName)
 	if err != nil {
