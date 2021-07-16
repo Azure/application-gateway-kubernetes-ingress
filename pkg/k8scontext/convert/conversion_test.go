@@ -3,7 +3,6 @@ package convert
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
@@ -29,7 +28,6 @@ var _ = Describe("Test conversion functions", func() {
 		})
 
 		It("correctly converts v1beta.Ingress to v1.Ingress", func() {
-
 			convertIngressV1, converted := ToIngressV1(ingressV1Beta1)
 			Expect(converted, BeTrue())
 
@@ -40,7 +38,7 @@ var _ = Describe("Test conversion functions", func() {
 			convertIngressV1, converted := ToIngressV1(ingressV1Beta1)
 			Expect(converted, BeTrue())
 
-			convertIngressV1.Spec.Rules = make([]v1.IngressRule, 0)
+			convertIngressV1.Spec.Rules[0].HTTP.Paths[0].Backend.Service.Name = "random"
 			Expect(convertIngressV1).ToNot(Equal(ingressV1))
 		})
 	})
