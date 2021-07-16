@@ -9,12 +9,13 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext/convert"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // ingress resource handlers
 func (h handlers) ingressAdd(obj interface{}) {
-	ing, _ := toIngress(obj)
+	ing, _ := convert.ToIngressV1(obj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -54,7 +55,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 }
 
 func (h handlers) ingressDelete(obj interface{}) {
-	ing, ok := toIngress(obj)
+	ing, ok := convert.ToIngressV1(obj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -87,7 +88,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 }
 
 func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
-	ing, _ := toIngress(newObj)
+	ing, _ := convert.ToIngressV1(newObj)
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
@@ -98,7 +99,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 	if reflect.DeepEqual(oldObj, newObj) {
 		return
 	}
-	oldIng, _ := toIngress(oldObj)
+	oldIng, _ := convert.ToIngressV1(oldObj)
 	if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
 		return
 	}

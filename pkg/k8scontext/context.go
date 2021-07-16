@@ -34,6 +34,7 @@ import (
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext/convert"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -374,7 +375,7 @@ func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool
 func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 	var ingressList []*networking.Ingress
 	for _, ingressInterface := range c.Caches.Ingress.List() {
-		ingress := ingressInterface.(*networking.Ingress)
+		ingress, _ := convert.ToIngressV1(ingressInterface)
 		if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
 			continue
 		}

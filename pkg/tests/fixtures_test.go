@@ -82,7 +82,7 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test getIngress", func() {
 		It("should throw an error because the file does not exist", func() {
-			_, err := getIngress("blahBlahBlah")
+			_, err := GetIngressV1FromFile("blahBlahBlah")
 			Expect(err).To(HaveOccurred())
 		})
 	})

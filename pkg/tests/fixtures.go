@@ -12,6 +12,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -61,7 +62,7 @@ const (
 
 // GetIngress creates an Ingress test fixture.
 func GetIngress() (*networking.Ingress, error) {
-	return getIngress("ingress.yaml")
+	return GetIngressV1FromFile("ingress.yaml")
 }
 
 // GetVerySimpleIngress creates one very simple Ingress test fixture with no rules.
@@ -88,7 +89,7 @@ func GetVerySimpleIngress() *networking.Ingress {
 
 // GetIngressComplex creates an Ingress test fixture with multiple backends and path rules.
 func GetIngressComplex() (*networking.Ingress, error) {
-	return getIngress("ingress-complex.yaml")
+	return GetIngressV1FromFile("ingress-complex.yaml")
 }
 
 // GetIngressWithMissingServiceAndServiceWithInvalidPort with missing service and service with invalid port
@@ -120,18 +121,19 @@ func GetIngressWithMissingServiceAndServiceWithInvalidPort() *networking.Ingress
 
 // GetIngressNamespaced creates 2 Ingress test fixtures in different namespaces.
 func GetIngressNamespaced() (*[]networking.Ingress, error) {
-	ingr1, err := getIngress("ingress-namespace-1.yaml")
+	ingr1, err := GetIngressV1FromFile("ingress-namespace-1.yaml")
 	if err != nil {
 		klog.Fatal(err)
 	}
-	ingr2, err := getIngress("ingress-namespace-2.yaml")
+	ingr2, err := GetIngressV1FromFile("ingress-namespace-2.yaml")
 	if err != nil {
 		klog.Fatal(err)
 	}
 	return &[]networking.Ingress{*ingr1, *ingr2}, nil
 }
 
-func getIngress(fileName string) (*networking.Ingress, error) {
+// GetIngressV1FromFile reads an ingress V1 from file
+func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
 	ingr, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
@@ -142,6 +144,20 @@ func getIngress(fileName string) (*networking.Ingress, error) {
 		return nil, err
 	}
 	return obj.(*networking.Ingress), nil
+}
+
+// GetIngressV1Beta1FromFile reads an ingress V1Beta1 from file
+func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
+	ingr, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	obj, _, err := scheme.Codecs.UniversalDeserializer().Decode(ingr, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return obj.(*extensions.Ingress), nil
 }
 
 // GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
