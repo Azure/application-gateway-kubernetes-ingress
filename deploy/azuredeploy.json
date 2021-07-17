@@ -603,7 +603,8 @@
                         "osType": "Linux",
                         "storageProfile": "ManagedDisks",
                         "vnetSubnetID": "[variables('kubernetesSubnetId')]",
-                        "dnsPrefix": "agents"
+                        "dnsPrefix": "agents",
+                        "type": "VirtualMachineScaleSets"
                     }
                 ],
                 "servicePrincipalProfile": {
