@@ -29,8 +29,10 @@ To use a custom ingress class,
         paths:
         - path: /hello/
             backend:
-            serviceName: go-server-service
-            servicePort: 80
+            service:
+                name: go-server-service
+                port:
+                    number: 80
     ```
 
 ## Reference

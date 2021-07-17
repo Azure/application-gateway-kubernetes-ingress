@@ -49,7 +49,7 @@ and duplicates will removed..
 For example, consider the following duplicate ingress resources defined
 namespaces `staging` and `production` for `www.contoso.com`:
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-ingress
@@ -62,12 +62,14 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: web-service
-              servicePort: 80
+              service:
+                name: web-service
+                port:
+                  number: 80
 ```
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-ingress
@@ -80,8 +82,10 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: web-service
-              servicePort: 80
+              service:
+                name: web-service
+                port:
+                  number: 80
 ```
 
 Despite the two ingress resources demanding traffic for `www.contoso.com` to be

@@ -39,7 +39,7 @@ Now, the `guestbook` application has been deployed.
 In order to expose the guestbook application we will using the following ingress resource:
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: guestbook
@@ -50,8 +50,10 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: frontend
-          servicePort: 80
+          service:
+            name: frontend
+            port:
+              number: 80
 ```
 
 This ingress will expose the `frontend` service of the `guestbook-all-in-one` deployment
@@ -85,7 +87,7 @@ Without specifying hostname, the guestbook service will be available on all the 
 1. Define the following ingress. In the ingress, specify the name of the secret in the `secretName` section.
 
     ```yaml
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
       name: guestbook
@@ -98,8 +100,10 @@ Without specifying hostname, the guestbook service will be available on all the 
       - http:
           paths:
           - backend:
-              serviceName: frontend
-              servicePort: 80
+              service:
+                name: frontend
+                port:
+                  number: 80
     ```
 
     *NOTE:* Replace `<guestbook-secret-name>` in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name `ing-guestbook-tls.yaml`.
@@ -114,7 +118,7 @@ Without specifying hostname, the guestbook service will be available on all the 
 
 Now the `guestbook` application will be available on HTTPS.
 
-In order to make the `guestbook` application available on HTTP, annotate the `Ingress` with 
+In order to make the `guestbook` application available on HTTP, annotate the `Ingress` with
 
 ```
   appgw.ingress.kubernetes.io/ssl-redirect: "true"
@@ -131,7 +135,7 @@ By specifying hostname, the guestbook service will only be available on the spec
     In the ingress, specify the name of the secret in the `secretName` section and replace the hostname in the `hosts` section accordingly.
 
     ```yaml
-    apiVersion: extensions/v1beta1
+    apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
       name: guestbook
@@ -147,8 +151,10 @@ By specifying hostname, the guestbook service will only be available on the spec
         http:
           paths:
           - backend:
-              serviceName: frontend
-              servicePort: 80
+              service:
+                name: frontend
+                port:
+                  number: 80
     ```
 
 1. Deploy `ing-guestbook-tls-sni.yaml` by running

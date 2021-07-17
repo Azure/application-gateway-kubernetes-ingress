@@ -4,7 +4,7 @@ The probe properties can be customized by adding a [Readiness or Liveness Probe]
 
 ### With `readinessProbe` or `livenessProbe`
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aspnetapp

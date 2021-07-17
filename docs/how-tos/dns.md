@@ -7,7 +7,7 @@ Below is a sample Ingress resource, annotated with
 `kubernetes.io/ingress.class: azure/application-gateway`, which configures `aplpha.contoso.com`.
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-ingress
@@ -21,8 +21,11 @@ spec:
         paths:
         - path: /
           backend:
-            serviceName: contoso-service
-            servicePort: 80
+            service:
+              name: contoso-service
+              port:
+                number: 80
+          pathType: Exact
 ```
 
 Application Gateway Ingress Controller (AGIC) automatically recognizes the public IP address
