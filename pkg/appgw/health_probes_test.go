@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -226,7 +226,11 @@ var _ = Describe("configure App Gateway health probes", func() {
 					},
 				},
 			},
-			Backend: &networking.IngressBackend{},
+			Backend: &networking.IngressBackend{
+				Service: &networking.IngressServiceBackend{
+					Name: "--service-name--",
+				},
+			},
 		}
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)

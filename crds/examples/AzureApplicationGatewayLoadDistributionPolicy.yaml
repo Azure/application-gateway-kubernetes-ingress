@@ -1,0 +1,20 @@
+apiVersion: appgw.ingress.azure.io/v1
+kind: AzureApplicationGatewayLoadDistribitionPolicy
+metadata:
+  name: load-distribution-policy-with-failover
+spec:
+  targets:
+    - backend:
+        service:
+          name: gwm-mcs-prod
+          port:
+            number: 80
+      role: active
+      weight: 8
+    - backend:
+        service:
+          name: gwm-mcs-staging
+          port:
+            number: 80
+      role: active
+      weight: 2

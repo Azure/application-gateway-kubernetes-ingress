@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
+
 	v1 "k8s.io/api/core/v1"
 	extensions "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1"
@@ -35,6 +36,7 @@ const (
 	WildcardHost2                = "hola.com"
 	NameOfSecret                 = "--the-name-of-the-secret--"
 	ServiceName                  = "--service-name--"
+	LoadDistributionPolicyName   = "--load-dist-policy--"
 	NodeName                     = "--node-name--"
 	URLPath1                     = "/api1"
 	URLPath2                     = "/api2"
@@ -187,6 +189,16 @@ func NewIngressBackendFixture(serviceName string, port int32) *networking.Ingres
 	}
 }
 
+func NewIngressLoadDistributionPolicyBackendFixture(ldpName string) *networking.IngressBackend {
+	return &networking.IngressBackend{
+		Resource: &v1.TypedLocalObjectReference{
+			APIGroup: to.StringPtr("appgw.ingress.azure.io"),
+			Kind:     "AzureApplicationGatewayLoadDistributionPolicy",
+			Name:     ldpName,
+		},
+	}
+}
+
 // NewIngressRuleFixture makes a new Ingress Rule for testing
 func NewIngressRuleFixture(host string, urlPath string, be networking.IngressBackend) networking.IngressRule {
 	return networking.IngressRule{
@@ -223,6 +235,40 @@ func NewIngressRuleWithPathsFixture(host string, urlPathsList []string, be netwo
 	}
 
 	return ingressRule
+}
+
+func NewIngressWithLoadDistributionPolicyFixture() *networking.Ingress {
+	ldp443 := NewIngressLoadDistributionPolicyBackendFixture(LoadDistributionPolicyName)
+	return &networking.Ingress{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
+				NewIngressRuleFixture(Host, URLPath2, *ldp443),
+			},
+			TLS: []networking.IngressTLS{
+				{
+					Hosts: []string{
+						"www.contoso.com",
+						"ftp.contoso.com",
+						Host,
+						"",
+					},
+					SecretName: NameOfSecret,
+				},
+				{
+					Hosts:      []string{},
+					SecretName: NameOfSecret,
+				},
+			},
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.SslRedirectKey:  "true",
+			},
+			Namespace: Namespace,
+			Name:      Name,
+		},
+	}
 }
 
 // NewIngressFixture makes a new Ingress for testing

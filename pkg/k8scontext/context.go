@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	appgwldpv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -60,9 +61,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
-		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
-		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
-		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
+		AzureIngressProhibitedTarget:                  crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureApplicationGatewayBackendPool:            crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
+		AzureApplicationGatewayInstanceUpdateStatus:   crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
+		AzureApplicationGatewayLoadDistributionPolicy: crdInformerFactory.Azureapplicationgatewayloaddistributionpolicy().V1().AzureApplicationGatewayLoadDistributionPolicies().Informer(),
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
@@ -135,6 +137,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
+	informerCollection.AzureApplicationGatewayLoadDistributionPolicy.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -170,6 +173,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		//TODO: enabled by ccp feature flag
 		// c.informers.AzureApplicationGatewayBackendPool,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus,
+		c.informers.AzureApplicationGatewayLoadDistributionPolicy,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -244,6 +248,19 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	}
 
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+}
+
+// GetLoadDistributionPolicy returns the load distribution policy identified by the key.
+func (c *Context) GetLoadDistributionPolicy(namespace string, ldpName string) *appgwldpv1.AzureApplicationGatewayLoadDistributionPolicy {
+	ldp, err := c.crdClient.AzureapplicationgatewayloaddistributionpolicyV1().AzureApplicationGatewayLoadDistributionPolicies(namespace).Get(
+		context.TODO(),
+		ldpName,
+		metav1.GetOptions{})
+	if err != nil {
+		klog.Error("Error fetching Azure load distribution policy resource, Error: ", err)
+		return nil
+	}
+	return ldp
 }
 
 // GetInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses

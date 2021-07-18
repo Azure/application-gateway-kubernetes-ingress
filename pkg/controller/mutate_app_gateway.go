@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 
@@ -50,8 +50,9 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 		IngressList:  c.k8sContext.ListHTTPIngresses(),
 		EnvVariables: environment.GetEnv(),
 
-		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
-		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
+		DefaultAddressPoolID:            to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
+		DefaultLoadDistributionPolicyID: to.StringPtr(c.appGwIdentifier.LoadDistributionPolicyID(appgw.DefaultLoadDistributionPolicyName)),
+		DefaultHTTPSettingsID:           to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 
 		ExistingPortsByNumber: make(map[appgw.Port]n.ApplicationGatewayFrontendPort),
 	}

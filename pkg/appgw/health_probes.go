@@ -10,9 +10,10 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
 
@@ -77,12 +78,23 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n.ApplicationGatewayProbe {
 	// TODO(draychev): remove GetService
+	serviceKey := backendID.serviceKey()
 	service := c.k8sContext.GetService(backendID.serviceKey())
+	backendService := backendID.Backend.Service
+	//for LDP case, we should just use first service
+	if backendID.isLDPBackend() {
+		ldpName := backendID.Backend.Resource.Name
+		ldp := c.k8sContext.GetLoadDistributionPolicy(backendID.Namespace, ldpName)
+		//redefine to be targeting first service in LDP
+		serviceKey = fmt.Sprintf("%v/%v", backendID.Namespace, ldp.Spec.Targets[0].Service.Name)
+		service = c.k8sContext.GetService(serviceKey)
+		backendService = &ldp.Spec.Targets[0].Service
+	}
 	if service == nil || backendID.Path == nil {
 		return nil
 	}
 	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
-	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.Service.Name, serviceBackendPortToStr(backendID.Path.Backend.Service.Port), backendID.Ingress))
+	probe.Name = to.StringPtr(generateProbeName(backendService.Name, serviceBackendPortToStr(backendService.Port), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 
 	// set defaults
@@ -107,12 +119,11 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	// nil check on Service
-	if backendID.Backend.Service != nil && serviceBackendPortToStr(backendID.Backend.Service.Port) == "443" {
+	if serviceBackendPortToStr(backendService.Port) == "443" {
 		probe.Protocol = n.HTTPS
 	}
 
-	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
+	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendService, serviceKey)
 	if k8sProbeForServiceContainer != nil {
 		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
 			probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
@@ -213,7 +224,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	return &probe
 }
 
-func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendID backendIdentifier) *v1.Probe {
+func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, backendService *networking.IngressServiceBackend, serviceKey string) *v1.Probe {
 	// find all the target ports used by the service
 	allPorts := make(map[int32]interface{})
 	for _, sp := range service.Spec.Ports {
@@ -221,9 +232,9 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 			continue
 		}
 
-		if backendID.Backend.Service != nil && (fmt.Sprint(sp.Port) == serviceBackendPortToStr(backendID.Backend.Service.Port) ||
-			sp.Name == serviceBackendPortToStr(backendID.Backend.Service.Port) ||
-			sp.TargetPort.String() == serviceBackendPortToStr(backendID.Backend.Service.Port)) {
+		if fmt.Sprint(sp.Port) == serviceBackendPortToStr(backendService.Port) ||
+			sp.Name == serviceBackendPortToStr(backendService.Port) ||
+			sp.TargetPort.String() == serviceBackendPortToStr(backendService.Port) {
 
 			// Matched a service port in the service
 			if sp.TargetPort.String() == "" {
@@ -232,7 +243,7 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 				// port is defined as port number
 				allPorts[sp.TargetPort.IntVal] = nil
 			} else {
-				for targetPort := range c.resolvePortName(sp.Name, &backendID) {
+				for targetPort := range c.resolvePortName(sp.Name, serviceKey) {
 					allPorts[targetPort] = nil
 				}
 			}

@@ -13,18 +13,19 @@ import (
 
 // InformerCollection : all the informers for k8s resources we care about.
 type InformerCollection struct {
-	Endpoints                                   cache.SharedIndexInformer
-	Ingress                                     cache.SharedIndexInformer
-	Pods                                        cache.SharedIndexInformer
-	Secret                                      cache.SharedIndexInformer
-	Service                                     cache.SharedIndexInformer
-	Namespace                                   cache.SharedIndexInformer
-	AzureIngressManagedLocation                 cache.SharedInformer
-	AzureIngressProhibitedTarget                cache.SharedInformer
-	AzureApplicationGatewayBackendPool          cache.SharedInformer
-	AzureApplicationGatewayInstanceUpdateStatus cache.SharedInformer
-	IstioGateway                                cache.SharedIndexInformer
-	IstioVirtualService                         cache.SharedIndexInformer
+	Endpoints                                     cache.SharedIndexInformer
+	Ingress                                       cache.SharedIndexInformer
+	Pods                                          cache.SharedIndexInformer
+	Secret                                        cache.SharedIndexInformer
+	Service                                       cache.SharedIndexInformer
+	Namespace                                     cache.SharedIndexInformer
+	AzureIngressManagedLocation                   cache.SharedInformer
+	AzureIngressProhibitedTarget                  cache.SharedInformer
+	AzureApplicationGatewayBackendPool            cache.SharedInformer
+	AzureApplicationGatewayInstanceUpdateStatus   cache.SharedInformer
+	AzureApplicationGatewayLoadDistributionPolicy cache.SharedInformer
+	IstioGateway                                  cache.SharedIndexInformer
+	IstioVirtualService                           cache.SharedIndexInformer
 }
 
 // CacheCollection : all the listers from the informers.

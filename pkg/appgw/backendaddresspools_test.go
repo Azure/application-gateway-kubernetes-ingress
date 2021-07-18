@@ -6,8 +6,8 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -149,7 +149,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 
 		// -- Action --
-		actual := cb.getBackendAddressPool(backendID, serviceBackendPair, addressPools)
+		actual := cb.getBackendAddressPool(backendID, backendID.serviceIdentifier, serviceBackendPair, addressPools)
 
 		It("should have constructed correct ApplicationGatewayBackendAddressPool", func() {
 			// The order here is deliberate -- ensure this is properly sorted

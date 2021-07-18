@@ -1,0 +1,57 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: azureapplicationgatewayloaddistributionpolicies.appgw.ingress.azure.io
+spec:
+  group: appgw.ingress.azure.io
+  scope: Namespaced
+  names:
+    kind: AzureApplicationGatewayLoadDistributionPolicy
+    plural: azureapplicationgatewayloaddistributionpolicies
+    singular: azureapplicationgatewayloaddistributionpolicy
+    shortNames:
+      - agldp
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                targets:
+                  description: "An array of services that contains information for how the service should be used for load balancing and active passive support in Application Gateway"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      backend:
+                        type: object
+                        properties:
+                          service:
+                            description: "service object model"
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: "same of service"
+                              port:
+                                type: object
+                                properties:
+                                  number:
+                                    type: integer
+                                    description: "port number for service"
+                                  name:
+                                    type: string
+                                    decription: "port name for service"
+                          weight:
+                            description: "weight of the service when Application Gateway uses it for weighted round robin load balancing"
+                            type: integer
+                            default: 1
+                          role:
+                            description: "Decides if server should be active or passive for Active/Passive load balancing"
+                            type: string
+                            default: "active"

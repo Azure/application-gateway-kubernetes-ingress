@@ -12,8 +12,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )
@@ -42,7 +42,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		klog.Error("Error fetching Backends and Settings: ", err)
 	}
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
-		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, managedPoolsByName); pool != nil {
+		if pool := c.getBackendAddressPool(backendID, backendID.serviceIdentifier, serviceBackendPair, managedPoolsByName); pool != nil {
 			managedPoolsByName[*pool.Name] = pool
 			klog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
 		}
@@ -89,15 +89,27 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(cbCtx)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		backendPoolMap[backendID] = &defaultPool
-		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, addressPools); pool != nil {
+		// NEED TO HANDLE RESOURCE REFERENCE FOR INGRESS BACKEND (LDP)
+		// if LDP -> loop over LDP backends. if service just call once (as is)
+		if backendID.isLDPBackend() {
+			ldpName := backendID.Backend.Resource.Name
+			ldp := c.k8sContext.GetLoadDistributionPolicy(backendID.Namespace, ldpName)
+			for _, backend := range ldp.Spec.Targets {
+				serviceID := secretIdentifier{
+					Namespace: backendID.Namespace,
+					Name:      backend.Service.Name,
+				}
+				c.getBackendAddressPool(backendID, serviceIdentifier(serviceID), serviceBackendPair, addressPools)
+			}
+		} else if pool := c.getBackendAddressPool(backendID, backendID.serviceIdentifier, serviceBackendPair, addressPools); pool != nil {
 			backendPoolMap[backendID] = pool
 		}
 	}
 	return backendPoolMap
 }
 
-func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
-	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
+func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceID serviceIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
+	endpoints, err := c.k8sContext.GetEndpointsByService(serviceID.serviceKey())
 	if err != nil {
 		klog.Errorf(err.Error())
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, err.Error())
@@ -106,7 +118,7 @@ func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, 
 
 	for _, subset := range endpoints.Subsets {
 		if _, portExists := getUniqueTCPPorts(subset)[serviceBackendPair.BackendPort]; portExists {
-			poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
+			poolName := generateAddressPoolName(serviceID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 			// The same service might be referenced in multiple ingress resources, this might result in multiple `serviceBackendPairMap` having the same service key but different
 			// ingress resource. Thus, while generating the backend address pool, we should make sure that we are generating unique backend address pools.
 			if pool, ok := addressPools[poolName]; ok {

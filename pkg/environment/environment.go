@@ -97,6 +97,8 @@ const (
 
 	// IngressClass is an environment variable
 	IngressClass = "INGRESS_CLASS"
+
+	MutliClusterModeVarName = "MULTICLUSTER_MODE"
 )
 
 var (
@@ -134,6 +136,7 @@ type EnvVariables struct {
 	AttachWAFPolicyToListener   bool
 	HostedOnUnderlay            bool
 	ReconcilePeriodSeconds      string
+	MutliClusterMode            bool
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -166,6 +169,7 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 // GetEnv returns values for defined environment variables for Ingress Controller.
 func GetEnv() EnvVariables {
 	usePrivateIP, _ := strconv.ParseBool(os.Getenv(UsePrivateIPVarName))
+	MutliClusterMode, _ := strconv.ParseBool(os.Getenv(MutliClusterModeVarName))
 
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
@@ -195,6 +199,7 @@ func GetEnv() EnvVariables {
 		AttachWAFPolicyToListener:   GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
 		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
+		MutliClusterMode:            MutliClusterMode,
 	}
 
 	return env

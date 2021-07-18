@@ -6,7 +6,9 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"fmt"
+
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
@@ -157,12 +159,23 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 
 	finalBackendIDs := make(map[backendIdentifier]interface{})
 	serviceSet := newServiceSet(&cbCtx.ServiceList)
-	// Filter out backends, where Ingresses reference non-existent Services
+	// Filter out backends, where Ingresses reference non-existent Services, however LDP backends can have non existent Services
+	// TODO(draychev): Enable this filter when we are certain this won't break anything!
 	for be := range backendIDs {
-		if _, exists := serviceSet[be.serviceKey()]; !exists {
-			klog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
-			// TODO(draychev): Enable this filter when we are certain this won't break anything!
-			// continue
+		if be.isLDPBackend() {
+			ldp := c.k8sContext.GetLoadDistributionPolicy(be.Namespace, be.Backend.Resource.Name)
+			for _, ldpBackend := range ldp.Spec.Targets {
+				serviceKey := fmt.Sprintf("%v/%v", be.Namespace, ldpBackend.Service.Name)
+				if _, exists := serviceSet[serviceKey]; !exists {
+					klog.Errorf("Ingress %s/%s references non existent Service %s in its LoadDistributionPolicy backend. Please correct the AzureApplicationGatewayLoadDistributionPolicy & Service sections of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, serviceKey)
+					// continue
+				}
+			}
+		} else {
+			if _, exists := serviceSet[be.serviceKey()]; !exists {
+				klog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
+				// continue
+			}
 		}
 		finalBackendIDs[be] = nil
 	}

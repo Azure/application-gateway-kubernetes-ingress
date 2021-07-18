@@ -16,8 +16,8 @@ import (
 	"regexp"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
@@ -26,16 +26,17 @@ import (
 )
 
 const (
-	prefixHTTPSettings   = "bp"
-	prefixProbe          = "pb"
-	prefixPool           = "pool"
-	prefixPort           = "fp"
-	prefixListener       = "fl"
-	prefixPathMap        = "url"
-	prefixRoutingRule    = "rr"
-	prefixRedirect       = "sslr"
-	prefixPathRule       = "pr"
-	prefixSslCertificate = "cert"
+	prefixHTTPSettings           = "bp"
+	prefixProbe                  = "pb"
+	prefixPool                   = "pool"
+	prefixPort                   = "fp"
+	prefixListener               = "fl"
+	prefixPathMap                = "url"
+	prefixRoutingRule            = "rr"
+	prefixRedirect               = "sslr"
+	prefixPathRule               = "pr"
+	prefixSslCertificate         = "cert"
+	prefixLoadDistributionPolicy = "ldp"
 )
 
 const (
@@ -106,6 +107,18 @@ func (s serviceIdentifier) serviceFullName() string {
 	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
 
+func (be backendIdentifier) isLDPBackend() bool {
+	if be.Backend.Resource != nil && be.Backend.Resource.Kind == "AzureApplicationGatewayLoadDistributionPolicy" {
+		return true
+	}
+	return false
+}
+
+func (be backendIdentifier) loadDistributionPolicyKey() string {
+	return fmt.Sprintf("%v/%v", be.Namespace, be.Backend.Resource.Name)
+}
+
+//maybe alter here to return key for service/first LDP service
 func (s serviceIdentifier) serviceKey() string {
 	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
 }
@@ -138,6 +151,10 @@ func generateAddressPoolName(serviceName string, servicePort string, backendPort
 	return formatPropName(fmt.Sprintf("%s%s-%v-%v-bp-%v", agPrefix, prefixPool, serviceName, servicePort, backendPort))
 }
 
+func generateLoadDistributionName(ldpName string) string {
+	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixLoadDistributionPolicy, ldpName))
+}
+
 func generateFrontendPortName(port Port) string {
 	return formatPropName(fmt.Sprintf("%s%s-%v", agPrefix, prefixPort, port))
 }
@@ -167,6 +184,9 @@ var DefaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefi
 
 // DefaultBackendAddressPoolName is the name to be assigned to App Gateway's default backend pool resource.
 var DefaultBackendAddressPoolName = fmt.Sprintf("%sdefaultaddresspool", agPrefix)
+
+// DefaultLoadDistributionPolicyName is the name to be assigned to App Gateway's default backend pool resource.
+var DefaultLoadDistributionPolicyName = fmt.Sprintf("%sdefaultloaddistributionpolicy", agPrefix)
 
 func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {
 	return fmt.Sprintf("%sdefaultprobe-%s", agPrefix, protocol)

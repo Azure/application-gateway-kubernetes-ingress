@@ -8,8 +8,8 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 // Identifier is identifier for a specific Application Gateway
@@ -62,6 +62,10 @@ func (agw Identifier) urlPathMapID(urlPathMapName string) string {
 func (agw Identifier) pathRuleID(pathMapName string, pathRuleName string) string {
 	pathRuleSuffix := fmt.Sprintf("%s/pathRules/%s", pathMapName, pathRuleName)
 	return agw.urlPathMapID(pathRuleSuffix)
+}
+
+func (agw Identifier) LoadDistributionPolicyID(ldpName string) string {
+	return agw.gatewayResourceID("loadDistributionPolicies", ldpName)
 }
 
 func (agw Identifier) listenerID(listenerName string) string {

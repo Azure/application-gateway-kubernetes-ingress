@@ -16,6 +16,7 @@ const (
 	ErrorGeneratingProbes                          ErrorCode = "ErrorGeneratingProbes"
 	ErrorGeneratingBackendSettings                 ErrorCode = "ErrorGeneratingBackendSettings"
 	ErrorCreatingBackendPools                      ErrorCode = "ErrorCreatingBackendPools"
+	ErrorCreatingLoadDistributionPolicies          ErrorCode = "ErrorCreatingLoadDistributionPolicies"
 	ErrorGeneratingListeners                       ErrorCode = "ErrorGeneratingListeners"
 	ErrorGeneratingRoutingRules                    ErrorCode = "ErrorGeneratingRoutingRules"
 	ErrorNoDefaults                                ErrorCode = "ErrorNoDefaults"

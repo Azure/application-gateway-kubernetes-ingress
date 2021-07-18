@@ -19,10 +19,9 @@ limitations under the License.
 package v1
 
 import (
-	rest "k8s.io/client-go/rest"
-
 	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
+	rest "k8s.io/client-go/rest"
 )
 
 type AzureingressprohibitedtargetsV1Interface interface {

@@ -21,19 +21,20 @@ package versioned
 import (
 	"fmt"
 
+	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
+	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	azureapplicationgatewayloaddistributionpolicyv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayloaddistributionpolicy/v1"
+	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-
-	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
-	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
-	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 )
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
 	AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface
+	AzureapplicationgatewayloaddistributionpolicyV1() azureapplicationgatewayloaddistributionpolicyv1.AzureapplicationgatewayloaddistributionpolicyV1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
 }
 
@@ -43,6 +44,7 @@ type Clientset struct {
 	*discovery.DiscoveryClient
 	azureapplicationgatewaybackendpoolsV1beta1         *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
 	azureapplicationgatewayinstanceupdatestatusV1beta1 *azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+	azureapplicationgatewayloaddistributionpolicyV1    *azureapplicationgatewayloaddistributionpolicyv1.AzureapplicationgatewayloaddistributionpolicyV1Client
 	azureingressprohibitedtargetsV1                    *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
 }
 
@@ -54,6 +56,11 @@ func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicatio
 // AzureapplicationgatewayinstanceupdatestatusV1beta1 retrieves the AzureapplicationgatewayinstanceupdatestatusV1beta1Client
 func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface {
 	return c.azureapplicationgatewayinstanceupdatestatusV1beta1
+}
+
+// AzureapplicationgatewayloaddistributionpolicyV1 retrieves the AzureapplicationgatewayloaddistributionpolicyV1Client
+func (c *Clientset) AzureapplicationgatewayloaddistributionpolicyV1() azureapplicationgatewayloaddistributionpolicyv1.AzureapplicationgatewayloaddistributionpolicyV1Interface {
+	return c.azureapplicationgatewayloaddistributionpolicyV1
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
@@ -90,6 +97,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.azureapplicationgatewayloaddistributionpolicyV1, err = azureapplicationgatewayloaddistributionpolicyv1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.azureingressprohibitedtargetsV1, err = azureingressprohibitedtargetsv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -108,6 +119,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfigOrDie(c)
+	cs.azureapplicationgatewayloaddistributionpolicyV1 = azureapplicationgatewayloaddistributionpolicyv1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -119,6 +131,7 @@ func New(c rest.Interface) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.New(c)
+	cs.azureapplicationgatewayloaddistributionpolicyV1 = azureapplicationgatewayloaddistributionpolicyv1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)

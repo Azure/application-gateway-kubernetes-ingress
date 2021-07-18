@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/record"
@@ -48,6 +48,7 @@ type memoization struct {
 	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
 	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
 	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	loadDistributionPolicies     *[]n.ApplicationGatewayLoadDistributionPolicy
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
@@ -105,6 +106,18 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			controllererrors.ErrorCreatingBackendPools,
 			err,
 			"unable to generate backend address pools",
+		)
+		klog.Errorf(e.Error())
+		return nil, e
+	}
+
+	//LDPs depend on BackendAddressPools
+	err = c.LoadDistributionPolicy(cbCtx)
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingLoadDistributionPolicies,
+			err,
+			"unable to generate load distribution policies",
 		)
 		klog.Errorf(e.Error())
 		return nil, e
@@ -175,9 +188,9 @@ func (c *appGwConfigBuilder) runValidationFunctions(cbCtx *ConfigBuilderContext,
 
 // resolvePortName function goes through the endpoints of a given service and
 // look for possible port number corresponding to a port name
-func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backendIdentifier) map[int32]interface{} {
+func (c *appGwConfigBuilder) resolvePortName(portName string, serviceKey string) map[int32]interface{} {
 	resolvedPorts := make(map[int32]interface{})
-	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
+	endpoints, err := c.k8sContext.GetEndpointsByService(serviceKey)
 	if err != nil {
 		klog.Error("Could not fetch endpoint by service key from cache", err)
 		return resolvedPorts
