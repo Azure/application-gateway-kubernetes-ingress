@@ -4,6 +4,7 @@ apiVersion: appgw.ingress.azure.io/v1beta1
 kind: AzureApplicationGatewayLoadDistribitionPolicy
 metadata:
   name: load-distribution-policy-blue-green
+spec:
   targets:
     - backend:
         service:
