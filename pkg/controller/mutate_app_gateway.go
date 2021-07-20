@@ -50,8 +50,9 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 		IngressList:  c.k8sContext.ListHTTPIngresses(),
 		EnvVariables: environment.GetEnv(),
 
-		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
-		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
+		DefaultAddressPoolID:            to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
+		DefaultLoadDistributionPolicyID: to.StringPtr(c.appGwIdentifier.LoadDistributionPolicyID(appgw.DefaultLoadDistributionPolicyName)),
+		DefaultHTTPSettingsID:           to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 
 		ExistingPortsByNumber: make(map[appgw.Port]n.ApplicationGatewayFrontendPort),
 	}

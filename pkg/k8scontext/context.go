@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -60,9 +61,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Secret:    informerFactory.Core().V1().Secrets().Informer(),
 		Service:   informerFactory.Core().V1().Services().Informer(),
 
-		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
-		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
-		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
+		AzureIngressProhibitedTarget:                  crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
+		AzureApplicationGatewayBackendPool:            crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
+		AzureApplicationGatewayInstanceUpdateStatus:   crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
+		AzureApplicationGatewayLoadDistributionPolicy: crdInformerFactory.Azureapplicationgatewayloaddistributionpolicies().V1beta1().AzureApplicationGatewayLoadDistributionPolicies().Informer(),
 		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
@@ -74,14 +76,15 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	}
 
 	cacheCollection := CacheCollection{
-		Endpoints:                          informerCollection.Endpoints.GetStore(),
-		Ingress:                            informerCollection.Ingress.GetStore(),
-		Pods:                               informerCollection.Pods.GetStore(),
-		Secret:                             informerCollection.Secret.GetStore(),
-		Service:                            informerCollection.Service.GetStore(),
-		AzureIngressProhibitedTarget:       informerCollection.AzureIngressProhibitedTarget.GetStore(),
-		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
-		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
+		Endpoints:                    informerCollection.Endpoints.GetStore(),
+		Ingress:                      informerCollection.Ingress.GetStore(),
+		Pods:                         informerCollection.Pods.GetStore(),
+		Secret:                       informerCollection.Secret.GetStore(),
+		Service:                      informerCollection.Service.GetStore(),
+		AzureIngressProhibitedTarget: informerCollection.AzureIngressProhibitedTarget.GetStore(),
+		AzureApplicationGatewayLoadDistributionPolicy: informerCollection.AzureApplicationGatewayLoadDistributionPolicy.GetStore(),
+		AzureApplicationGatewayBackendPool:            informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
+		AzureApplicationGatewayInstanceUpdateStatus:   informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
 		IstioGateway:        informerCollection.IstioGateway.GetStore(),
 		IstioVirtualService: informerCollection.IstioVirtualService.GetStore(),
 	}
@@ -135,6 +138,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
+	informerCollection.AzureApplicationGatewayLoadDistributionPolicy.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -153,9 +157,10 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		return e
 	}
 	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget: nil,
-		c.informers.IstioGateway:                 nil,
-		c.informers.IstioVirtualService:          nil,
+		c.informers.AzureIngressProhibitedTarget:                  nil,
+		c.informers.IstioGateway:                                  nil,
+		c.informers.IstioVirtualService:                           nil,
+		c.informers.AzureApplicationGatewayLoadDistributionPolicy: nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
@@ -170,6 +175,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		//TODO: enabled by ccp feature flag
 		// c.informers.AzureApplicationGatewayBackendPool,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus,
+		c.informers.AzureApplicationGatewayLoadDistributionPolicy,
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -244,6 +250,35 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	}
 
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+}
+
+// GetLoadDistributionPolicy returns the load distribution policy identified by the key.
+func (c *Context) GetLoadDistributionPolicy(namespace string, ldpName string) (*appgwldp.AzureApplicationGatewayLoadDistributionPolicy, error) {
+	ldp, exist, err := c.Caches.AzureApplicationGatewayLoadDistributionPolicy.GetByKey(namespace + "/" + ldpName)
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingLoadDistributionPolicy,
+			"Load Distribution Policy CRD object not found for %s/%s",
+			namespace,
+			ldpName)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingLoadDistributionPolicy,
+			err,
+			"Error fetching Load Distribution Policy CRD object from store for %s/%s",
+			namespace,
+			ldpName)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return ldp.(*appgwldp.AzureApplicationGatewayLoadDistributionPolicy), nil
 }
 
 // GetInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
@@ -681,8 +716,21 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 			}
 			for _, path := range rule.HTTP.Paths {
 				// TODO(akshaysngupta) Use service ports
-				if path.Backend.Service.Name == service.Name {
+				if path.Backend.Service != nil && path.Backend.Service.Name == service.Name {
 					return true
+				}
+
+				if path.Backend.Resource != nil && path.Backend.Resource.Kind == "AzureApplicationGatewayLoadDistributionPolicy" {
+					ldp, err := c.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
+					if err != nil {
+						continue
+					}
+
+					for _, target := range ldp.Spec.Targets {
+						if target.Backend.Service.Name == service.Name {
+							return true
+						}
+					}
 				}
 			}
 		}

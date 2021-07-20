@@ -24,7 +24,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
 		if ingress.Spec.DefaultBackend != nil {
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)] = nil
+			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend, ingress.Spec.DefaultBackend.Service.Name)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -36,7 +36,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 					continue
 				}
 				path := &rule.HTTP.Paths[pathIdx]
-				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
+				backendIDs[generateBackendID(ingress, rule, path, &path.Backend, path.Backend.Service.Name)] = nil
 			}
 		}
 	}

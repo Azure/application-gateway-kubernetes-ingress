@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"fmt"
+
 	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
@@ -135,9 +137,21 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.DefaultBackend != nil {
-			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
-			klog.V(3).Info("Found default backend:", backendID.serviceKey())
-			backendIDs[backendID] = nil
+			if ingress.Spec.DefaultBackend.Resource != nil && ingress.Spec.DefaultBackend.Resource.Name == "AzureApplicationGatewayLoadDistributionPolicy" {
+				ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, ingress.Spec.DefaultBackend.Resource.Name)
+				if err != nil {
+					continue
+				}
+				for _, target := range ldp.Spec.Targets {
+					backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend, target.Backend.Service.Name)
+					klog.V(5).Info("Found backend:", target.Backend.Service.Name)
+					backendIDs[backendID] = nil
+				}
+			} else {
+				backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend, ingress.Spec.DefaultBackend.Service.Name)
+				klog.V(3).Info("Found default backend:", backendID.serviceKey())
+				backendIDs[backendID] = nil
+			}
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -148,21 +162,49 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
-				backendID := generateBackendID(ingress, rule, path, &path.Backend)
-				klog.V(5).Info("Found backend:", backendID.serviceKey())
-				backendIDs[backendID] = nil
+				if path.Backend.Resource != nil && path.Backend.Resource.Kind == "AzureApplicationGatewayLoadDistributionPolicy" {
+					ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
+					if err != nil {
+						continue
+					}
+					for _, target := range ldp.Spec.Targets {
+						if target.Backend.Service != nil {
+							backendID := generateBackendID(ingress, rule, path, &path.Backend, target.Backend.Service.Name)
+							klog.V(5).Info("Found backend:", target.Backend.Service.Name)
+							backendIDs[backendID] = nil
+						}
+					}
+				} else {
+					backendID := generateBackendID(ingress, rule, path, &path.Backend, path.Backend.Service.Name)
+					klog.V(5).Info("Found backend:", backendID.serviceKey())
+					backendIDs[backendID] = nil
+				}
 			}
 		}
 	}
 
 	finalBackendIDs := make(map[backendIdentifier]interface{})
 	serviceSet := newServiceSet(&cbCtx.ServiceList)
-	// Filter out backends, where Ingresses reference non-existent Services
+	// Filter out backends, where Ingresses reference non-existent Services, however LDP backends can have non existent Services
+	// TODO(draychev): Enable this filter when we are certain this won't break anything!
 	for be := range backendIDs {
-		if _, exists := serviceSet[be.serviceKey()]; !exists {
-			klog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
-			// TODO(draychev): Enable this filter when we are certain this won't break anything!
-			// continue
+		if be.isLDPBackend() {
+			ldp, err := c.k8sContext.GetLoadDistributionPolicy(be.Namespace, be.Backend.Resource.Name)
+			if err != nil {
+				continue
+			}
+			for _, ldpTarget := range ldp.Spec.Targets {
+				serviceKey := fmt.Sprintf("%v/%v", be.Namespace, ldpTarget.Backend.Service.Name)
+				if _, exists := serviceSet[serviceKey]; !exists {
+					klog.Errorf("Ingress %s/%s references non existent Service %s in its LoadDistributionPolicy backend. Please correct the AzureApplicationGatewayLoadDistributionPolicy & Service sections of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, serviceKey)
+					// continue
+				}
+			}
+		} else {
+			if _, exists := serviceSet[be.serviceKey()]; !exists {
+				klog.Errorf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
+				// continue
+			}
 		}
 		finalBackendIDs[be] = nil
 	}

@@ -21,8 +21,10 @@ import (
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
+	//gets routing rules and path maps
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
+	//megre path maps if brownfield
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
@@ -37,9 +39,11 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 		}
 	}
 
+	//sort and set URL Path maps
 	sort.Sort(sorter.ByPathMap(pathMaps))
 	c.appGw.URLPathMaps = &pathMaps
 
+	//merge RRR with previous if brownfield
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
@@ -61,19 +65,29 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 }
 
 func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayRequestRoutingRule, []n.ApplicationGatewayURLPathMap) {
+	// return from mem if possible
 	if c.mem.routingRules != nil && c.mem.pathMaps != nil {
 		return *c.mem.routingRules, *c.mem.pathMaps
 	}
+	//create maps
+	// 1) get map of listener by listenerIdentifier
+	// 2) empty array of appgw URLPathMaps
+	// 3) empty array of request routing rules
 	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)
 	pathMap := []n.ApplicationGatewayURLPathMap{}
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
+	//for every URLPath map...
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
+		//get request routing rule name
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
+		//check if exists in httplisteners
 		httpListener, exists := httpListenersMap[listenerID]
+		//if frontend listener DNE, skip
 		if !exists {
 			klog.Errorf("Routing rule %s will not be created; listener %+v does not exist", routingRuleName, listenerID)
 			continue
 		}
+		//if exists... generate request rule
 		rule := n.ApplicationGatewayRequestRoutingRule{
 			Etag: to.StringPtr("*"),
 			Name: to.StringPtr(routingRuleName),
@@ -82,6 +96,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				HTTPListener: &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.listenerID(*httpListener.Name))},
 			},
 		}
+		//if path map is empty, we have no path based rule
 		if urlPathMap.PathRules == nil || len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
 			rule.RuleType = n.Basic
@@ -89,11 +104,14 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 
 			// We setup the default backend address pools and default backend HTTP settings only if
 			// this rule does not have an `ssl-redirect` configuration.
+			//HOW ARE WE SUPPOSED TO KNOW IF BACKEND IF LDP OR BAP HERE
 			if rule.RedirectConfiguration == nil {
 				rule.BackendAddressPool = urlPathMap.DefaultBackendAddressPool
+				rule.LoadDistributionPolicy = urlPathMap.DefaultLoadDistributionPolicy
 				rule.BackendHTTPSettings = urlPathMap.DefaultBackendHTTPSettings
 			} else {
 				rule.BackendAddressPool = nil
+				rule.LoadDistributionPolicy = nil
 				rule.BackendHTTPSettings = nil
 			}
 		} else {
@@ -107,6 +125,8 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		} else {
 			if rule.RedirectConfiguration != nil {
 				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+			} else if rule.LoadDistributionPolicy != nil {
+				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for load distribution policy %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.LoadDistributionPolicy.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			} else {
 				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
@@ -124,7 +144,7 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 	if ingress.Spec.DefaultBackend == nil {
 		return
 	}
-	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
+	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend, ingress.Spec.DefaultBackend.Service.Name)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
 		klog.Error("Error fetching Backends and Settings: ", err)
@@ -226,13 +246,17 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	}
 
 	// get defaults provided by the rules if any
-	defaultAddressPoolID, defaultHTTPSettingsID, defaultRedirectConfigurationID := c.getDefaultFromRule(cbCtx, listenerID, listenerAzConfig, ingress, rule)
+	defaultAddressPoolID, defaultLoadDistributionPolicyID, defaultHTTPSettingsID, defaultRedirectConfigurationID := c.getDefaultFromRule(cbCtx, listenerID, listenerAzConfig, ingress, rule)
 	if defaultRedirectConfigurationID != nil {
 		pathMap.DefaultRedirectConfiguration = resourceRef(*defaultRedirectConfigurationID)
 		pathMap.DefaultBackendAddressPool = nil
 		pathMap.DefaultBackendHTTPSettings = nil
+		pathMap.DefaultLoadDistributionPolicy = nil
 	} else if defaultAddressPoolID != nil && defaultHTTPSettingsID != nil {
 		pathMap.DefaultBackendAddressPool = resourceRef(*defaultAddressPoolID)
+		pathMap.DefaultBackendHTTPSettings = resourceRef(*defaultHTTPSettingsID)
+	} else if defaultLoadDistributionPolicyID != nil && defaultHTTPSettingsID != nil {
+		pathMap.DefaultLoadDistributionPolicy = resourceRef(*defaultLoadDistributionPolicyID)
 		pathMap.DefaultBackendHTTPSettings = resourceRef(*defaultHTTPSettingsID)
 	}
 
@@ -241,7 +265,8 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	return &pathMap
 }
 
-func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
+//add a new return type. add function to backendID to see if it is LDP backend or not. can also have backendID.getLdp() -> call cache
+func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string, *string) {
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
@@ -252,7 +277,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 
 		if _, exists := redirectsSet[*redirectRef.ID]; exists {
 			klog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
-			return nil, nil, redirectRef.ID
+			return nil, nil, nil, redirectRef.ID
 		}
 		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
@@ -273,17 +298,30 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	if defBackend != nil {
 		// has default backend
-		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
+		defaultBackendService := defBackend.Service
+		if defBackend.Resource != nil && defBackend.Resource.Kind == "AzureApplicationGatewayLoadDistributionPolicy" {
+			ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, defBackend.Resource.Name)
+			if err != nil {
+				return nil, nil, nil, nil
+			}
+			defaultBackendService = ldp.Spec.Targets[0].Backend.Service
+		}
+		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend, defaultBackendService.Name)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
-		defaultAddressPool := backendPools[defaultBackendID]
-		if defaultAddressPool != nil && defaultHTTPSettings != nil {
-			poolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
+		defaultRoutingRuleTarget := backendPools[defaultBackendID]
+		if defaultRoutingRuleTarget != nil && defaultHTTPSettings != nil {
 			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
-			return poolID, settID, nil
+			if defaultBackendID.isLDPBackend() {
+				ldpName := generateLoadDistributionName(defaultBackendID.Namespace, defaultBackendID.Backend.Resource.Name)
+				defaultLdpResourceID := c.appGwIdentifier.LoadDistributionPolicyID(ldpName)
+				return nil, to.StringPtr(defaultLdpResourceID), settID, nil
+			}
+
+			return defaultRoutingRuleTarget.ID, nil, settID, nil
 		}
 	}
 
-	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
+	return cbCtx.DefaultAddressPoolID, nil, cbCtx.DefaultHTTPSettingsID, nil
 }
 
 func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
@@ -336,16 +374,38 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			}
 
 		}
-		backendID := generateBackendID(ingress, rule, path, &path.Backend)
+
+		backendService := networking.IngressServiceBackend{}
+		if path.Backend.Resource != nil && path.Backend.Resource.Kind == "AzureApplicationGatewayLoadDistributionPolicy" {
+			ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
+			if err != nil {
+				continue
+			} else {
+				backendService = *ldp.Spec.Targets[0].Backend.Service
+			}
+		} else {
+			backendService = *path.Backend.Service
+		}
+		backendID := generateBackendID(ingress, rule, path, &path.Backend, backendService.Name)
 		backendPool := backendPools[backendID]
 		backendHTTPSettings := backendHTTPSettingsMap[backendID]
 		if backendPool == nil || backendHTTPSettings == nil {
 			continue
 		}
-
-		pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
-		pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
-		klog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+		klog.V(5).Infof("Attaching targets to pool %s", *backendPool.Name)
+		if backendID.isLDPBackend() {
+			loadDistributionPolicyName := generateLoadDistributionName(backendID.Namespace, backendID.Backend.Resource.Name)
+			loadDistributionPolicyResourceID := c.appGwIdentifier.LoadDistributionPolicyID(loadDistributionPolicyName)
+			pathRule.LoadDistributionPolicy = &n.SubResource{ID: to.StringPtr(loadDistributionPolicyResourceID)}
+			pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
+			pathRule.BackendAddressPool = nil
+			klog.V(5).Infof("Attached load distribution policy %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+		} else {
+			pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
+			pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
+			pathRule.LoadDistributionPolicy = nil
+			klog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+		}
 
 		pathRules = append(pathRules, pathRule)
 	}
@@ -356,6 +416,9 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayURLPathMap, pathMapToMerge *n.ApplicationGatewayURLPathMap, cbCtx *ConfigBuilderContext) *n.ApplicationGatewayURLPathMap {
 	if pathMapToMerge.DefaultBackendAddressPool != nil && *pathMapToMerge.DefaultBackendAddressPool.ID != *cbCtx.DefaultAddressPoolID {
 		existingPathMap.DefaultBackendAddressPool = pathMapToMerge.DefaultBackendAddressPool
+	} else if existingPathMap.DefaultBackendAddressPool != nil && pathMapToMerge.DefaultLoadDistributionPolicy != nil {
+		existingPathMap.DefaultBackendAddressPool = nil
+		existingPathMap.DefaultLoadDistributionPolicy = pathMapToMerge.DefaultLoadDistributionPolicy
 	}
 	if pathMapToMerge.DefaultBackendHTTPSettings != nil && *pathMapToMerge.DefaultBackendHTTPSettings.ID != *cbCtx.DefaultHTTPSettingsID {
 		existingPathMap.DefaultBackendHTTPSettings = pathMapToMerge.DefaultBackendHTTPSettings
