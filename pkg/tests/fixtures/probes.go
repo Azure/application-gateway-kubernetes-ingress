@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )

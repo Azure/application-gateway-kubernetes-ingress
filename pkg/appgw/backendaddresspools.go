@@ -12,8 +12,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )

@@ -6,7 +6,7 @@
 package sorter
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 // ByFrontendPortName is a facility to sort slices of ApplicationGatewayFrontendPort by Name

@@ -11,7 +11,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 var _ = Describe("Test MergeCerts", func() {
