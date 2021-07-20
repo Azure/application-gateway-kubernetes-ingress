@@ -12,6 +12,8 @@ import (
 
 	"strings"
 
+	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1beta1"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,10 +41,28 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 	// Ingress "--name--" contains two rules with service port as 80 and 443
 	ingress := tests.NewIngressFixture()
+	ldpTargets := []appgwldp.Target{
+		{
+			Role:   "active",
+			Weight: 100,
+			Backend: appgwldp.Backend{
+				Service: &networking.IngressServiceBackend{
+					Name: service.Name,
+					Port: networking.ServiceBackendPort{
+						Number: 80,
+					},
+				},
+			},
+		},
+	}
+	loadDistributionPolicy := tests.NewLoadDistrbutionPolicyFixture(ldpTargets)
+	ingressWithLDP := tests.NewIngressWithLoadDistributionPolicyFixture()
 	_ = configBuilder.k8sContext.Caches.Pods.Add(&pod)
 	_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
 	_ = configBuilder.k8sContext.Caches.Service.Add(service)
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressWithLDP)
+	_ = configBuilder.k8sContext.Caches.AzureApplicationGatewayLoadDistributionPolicy.Add(loadDistributionPolicy)
 
 	// Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
 	ingressWithInvalidServices := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
@@ -165,6 +185,64 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 				} else {
 					// Dummy Failure, This should not happen
 					Expect(23).To(Equal(75), "setting %s is not expected to be created", *setting.Name)
+				}
+			}
+		})
+	})
+
+	Context("test backend port resolution for load distribution policy backend", func() {
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressWithLDP},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		configBuilder.mem = memoization{}
+
+		// !! Action !!
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("correct backend port is chosen by using first service from LDP targets", func() {
+			expectedhttpSettingsLen := 2
+			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
+
+			for _, setting := range httpSettings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
+					// http setting for ingress with service port as 80
+					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
+				}
+			}
+		})
+	})
+
+	Context("test backend port resolution for load distribution policy backend that doesnt exist", func() {
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressWithLDP},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		configBuilder.mem = memoization{}
+
+		_ = configBuilder.k8sContext.Caches.AzureApplicationGatewayLoadDistributionPolicy.Delete(loadDistributionPolicy)
+
+		// !! Action !!
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("correct backend port is chosen by using first service from LDP targets", func() {
+			// should generate defaultHTTPsettings
+			expectedhttpSettingsLen := 1
+			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
+
+			for _, setting := range httpSettings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
 				}
 			}
 		})

@@ -14,6 +14,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 
+	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1beta1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -149,9 +150,92 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		}
 
 		// -- Action --
-		actual := cb.getBackendAddressPool(backendID, serviceBackendPair, addressPools)
+		actual := cb.getBackendAddressPool(backendID, backendID.serviceIdentifier, serviceBackendPair, addressPools)
 
 		It("should have constructed correct ApplicationGatewayBackendAddressPool", func() {
+			// The order here is deliberate -- ensure this is properly sorted
+			expectedPoolName := "pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"
+			expected := n.ApplicationGatewayBackendAddressPool{
+				Name: to.StringPtr(expectedPoolName),
+				ID:   to.StringPtr(cb.appGwIdentifier.AddressPoolID(expectedPoolName)),
+				Etag: to.StringPtr("*"),
+				ApplicationGatewayBackendAddressPoolPropertiesFormat: &n.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+					BackendIPConfigurations: nil,
+					BackendAddresses: &[]n.ApplicationGatewayBackendAddress{
+						{
+							Fqdn:      nil,
+							IPAddress: to.StringPtr("10.9.8.7"),
+						},
+					},
+					ProvisioningState: "",
+				},
+			}
+			Expect(*actual).To(Equal(expected))
+		})
+	})
+
+	Context("ensure correct creation of ApplicationGatewayBackendAddress with LDP backends", func() {
+		ingressList := []*networking.Ingress{tests.NewIngressWithLoadDistributionPolicyFixture()}
+		cb := newConfigBuilderFixture(nil)
+		for _, ingress := range ingressList {
+			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
+		}
+		cbCtx := &ConfigBuilderContext{
+			ServiceList:           serviceList,
+			IngressList:           cb.k8sContext.ListHTTPIngresses(),
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		_ = cb.BackendAddressPools(cbCtx)
+
+		endpoints := tests.NewEndpointsFixture()
+		_ = cb.k8sContext.Caches.Endpoints.Add(endpoints)
+
+		// TODO(draychev): Move to test fixtures
+		backendID := backendIdentifier{
+			serviceIdentifier: serviceIdentifier{
+				Namespace: tests.Namespace,
+				Name:      tests.ServiceName,
+			},
+			Backend: tests.NewIngressBackendFixture(tests.ServiceName, int32(4321)),
+			Ingress: tests.NewIngressFixture(),
+		}
+		serviceBackendPair := serviceBackendPortPair{
+			// TODO(draychev): Move to test fixtures
+			ServicePort: Port(4321),
+			BackendPort: Port(tests.ContainerPort),
+		}
+
+		pool := tests.GetApplicationGatewayBackendAddressPool()
+		addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
+			*pool.Name: pool,
+		}
+
+		ldpTargets := []appgwldp.Target{
+			{
+				Role:   "active",
+				Weight: 100,
+				Backend: appgwldp.Backend{
+					Service: &networking.IngressServiceBackend{
+						Name: tests.ServiceName,
+						Port: networking.ServiceBackendPort{
+							Number: 80,
+						},
+					},
+				},
+			},
+		}
+		loadDistributionPolicy := tests.NewLoadDistrbutionPolicyFixture(ldpTargets)
+		cb.k8sContext.Caches.AzureApplicationGatewayLoadDistributionPolicy.Add(loadDistributionPolicy)
+		serviceIdentifier := serviceIdentifier{
+			Namespace: loadDistributionPolicy.Namespace,
+			Name:      loadDistributionPolicy.Spec.Targets[0].Backend.Service.Name,
+		}
+
+		// -- Action --
+		actual := cb.getBackendAddressPool(backendID, serviceIdentifier, serviceBackendPair, addressPools)
+
+		It("should have constructed correct ApplicationGatewayBackendAddressPool from LDP", func() {
 			// The order here is deliberate -- ensure this is properly sorted
 			expectedPoolName := "pool-" + tests.Namespace + "-" + tests.ServiceName + "-4321-bp-9876"
 			expected := n.ApplicationGatewayBackendAddressPool{
