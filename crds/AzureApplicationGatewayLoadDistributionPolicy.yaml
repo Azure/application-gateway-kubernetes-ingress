@@ -50,7 +50,10 @@ spec:
                         description: "Weight specifies the proportion of HTTP requests forwarded to the backend."
                         type: integer
                         default: 1
+                        minimum: 1
+                        maximum: 1000
                       role:
                         description: "Specifies whether a server should be active or passive. Passive backends will receive HTTP requests only when all active backends are marked unhealthy by the Application Gateway's heath probe."
                         type: string
                         default: "active"
+                        pattern: "^active$|^passive$"
