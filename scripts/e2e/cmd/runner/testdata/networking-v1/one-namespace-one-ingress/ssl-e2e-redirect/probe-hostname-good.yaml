@@ -18,11 +18,13 @@ spec:
           backend:
             service:
               name: ssl-redirect-service
-              port: 443
+              port:
+                number: 443
           pathType: Exact
         - path: /*
           backend:
             service:
               name: ssl-redirect-service
-              port: 443
+              port:
+                number: 443
           pathType: Prefix

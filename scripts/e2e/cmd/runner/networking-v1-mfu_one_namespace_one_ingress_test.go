@@ -8,6 +8,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = Describe("MFU", func() {
+var _ = Describe("networking-v1-MFU", func() {
 	var (
 		clientset *kubernetes.Clientset
 		err       error
@@ -30,6 +31,10 @@ var _ = Describe("MFU", func() {
 		BeforeEach(func() {
 			clientset, err = getClient()
 			Expect(err).To(BeNil())
+
+			UseNetworkingV1Ingress = supportsNetworkingV1IngressPackage(clientset)
+			skipIfNetworkingV1NotSupport()
+
 			cleanUp(clientset)
 		})
 
@@ -41,10 +46,10 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
 			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
@@ -68,7 +73,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			//start to configure with bad hostname, 502 is expected
-			healthConfigProbeBadHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-bad.yaml"
+			healthConfigProbeBadHostnameYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-bad.yaml"
 			klog.Info("Updating ingress with bad hostname annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeBadHostnameYamlPath)
 			Expect(err).To(BeNil())
@@ -77,7 +82,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with good hostname, 200 is expected
-			healthConfigProbeGoodHostnameYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-good.yaml"
+			healthConfigProbeGoodHostnameYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-good.yaml"
 			klog.Info("Updating ingress with good hostname annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodHostnameYamlPath)
 			Expect(err).To(BeNil())
@@ -95,10 +100,10 @@ var _ = Describe("MFU", func() {
 					},
 				}
 				klog.Info("Creating namespace: ", nm)
-				_, err = clientset.CoreV1().Namespaces().Create(ns)
+				_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 				Expect(err).To(BeNil())
 			}
-			threeNamespacesYamlPath := "testdata/one-namespace-one-ingress/three-namespaces/app.yaml"
+			threeNamespacesYamlPath := "testdata/networking-v1/one-namespace-one-ingress/three-namespaces/app.yaml"
 			klog.Info("Applying yaml: ", threeNamespacesYamlPath)
 			err = applyYaml(clientset, "", threeNamespacesYamlPath)
 			Expect(err).To(BeNil())
@@ -125,10 +130,10 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			healthConfigProbeYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/app.yaml"
+			healthConfigProbeYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/app.yaml"
 			klog.Info("Applying yaml: ", healthConfigProbeYamlPath)
 			err = applyYaml(clientset, namespaceName, healthConfigProbeYamlPath)
 			Expect(err).To(BeNil())
@@ -145,7 +150,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with bad path, 502 is expected
-			healthConfigProbeBadPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-bad.yaml"
+			healthConfigProbeBadPathYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-path-bad.yaml"
 			klog.Info("Updating ingress with bad path annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeBadPathYamlPath)
 			Expect(err).To(BeNil())
@@ -154,7 +159,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with good path, 200 is expected
-			healthConfigProbeGoodPathYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-path-good.yaml"
+			healthConfigProbeGoodPathYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-path-good.yaml"
 			klog.Info("Updating ingress with good path annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodPathYamlPath)
 			Expect(err).To(BeNil())
@@ -163,7 +168,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with bad port, 502 is expected
-			healthConfigProbeBadPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-bad.yaml"
+			healthConfigProbeBadPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-port-bad.yaml"
 			klog.Info("Updating ingress with bad port annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeBadPortYamlPath)
 			Expect(err).To(BeNil())
@@ -172,7 +177,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with good port, 200 is expected
-			healthConfigProbeGoodPortYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-port-good.yaml"
+			healthConfigProbeGoodPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-port-good.yaml"
 			klog.Info("Updating ingress with good port annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodPortYamlPath)
 			Expect(err).To(BeNil())
@@ -181,7 +186,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with bad status, 502 is expected
-			healthConfigProbeBadStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-bad.yaml"
+			healthConfigProbeBadStatusYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-status-bad.yaml"
 			klog.Info("Updating ingress with bad status annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeBadStatusYamlPath)
 			Expect(err).To(BeNil())
@@ -190,7 +195,7 @@ var _ = Describe("MFU", func() {
 			Expect(err).To(BeNil())
 
 			// start to configure with good status, 200 is expected
-			healthConfigProbeGoodStatusYamlPath := "testdata/one-namespace-one-ingress/health-probe-configurations/probe-status-good.yaml"
+			healthConfigProbeGoodStatusYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-status-good.yaml"
 			klog.Info("Updating ingress with good status annotation")
 			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodStatusYamlPath)
 			Expect(err).To(BeNil())
@@ -208,10 +213,10 @@ var _ = Describe("MFU", func() {
 					},
 				}
 				klog.Info("Creating namespace: ", nm)
-				_, err = clientset.CoreV1().Namespaces().Create(ns)
+				_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 				Expect(err).To(BeNil())
 			}
-			containerReadinessProbeYamlPath := "testdata/one-namespace-one-ingress/container-readiness-probe/app.yaml"
+			containerReadinessProbeYamlPath := "testdata/networking-v1/one-namespace-one-ingress/container-readiness-probe/app.yaml"
 			klog.Info("Applying yaml: ", containerReadinessProbeYamlPath)
 			err = applyYaml(clientset, "", containerReadinessProbeYamlPath)
 			Expect(err).To(BeNil())
@@ -270,10 +275,10 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
 			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
@@ -297,10 +302,10 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			OverrideFrontendPortYamlPath := "testdata/one-namespace-one-ingress/override-frontend-port/app.yaml"
+			OverrideFrontendPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/override-frontend-port/app.yaml"
 			klog.Info("Applying yaml: ", OverrideFrontendPortYamlPath)
 			err = applyYaml(clientset, namespaceName, OverrideFrontendPortYamlPath)
 			Expect(err).To(BeNil())
@@ -329,10 +334,10 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			InvalidConfigYamlPath := "testdata/one-namespace-one-ingress/invalid-configuration/app.yaml"
+			InvalidConfigYamlPath := "testdata/networking-v1/one-namespace-one-ingress/invalid-configuration/app.yaml"
 			klog.Info("Applying yaml: ", InvalidConfigYamlPath)
 			err = applyYaml(clientset, namespaceName, InvalidConfigYamlPath)
 			Expect(err).To(BeNil())
@@ -367,22 +372,22 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			EmptySecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/empty-secret.yaml"
+			EmptySecretYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/empty-secret.yaml"
 			klog.Info("Applying empty secret yaml: ", EmptySecretYamlPath)
 			err = applyYaml(clientset, namespaceName, EmptySecretYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
-			AppYamlPath := "testdata/one-namespace-one-ingress/empty-secret/app.yaml"
+			AppYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/app.yaml"
 			klog.Info("Applying App yaml: ", AppYamlPath)
 			err = applyYaml(clientset, namespaceName, AppYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
-			SecretYamlPath := "testdata/one-namespace-one-ingress/empty-secret/populated-secret.yaml"
+			SecretYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/populated-secret.yaml"
 			klog.Info("Update secret yaml: ", SecretYamlPath)
 			err = updateYaml(clientset, namespaceName, SecretYamlPath)
 			Expect(err).To(BeNil())

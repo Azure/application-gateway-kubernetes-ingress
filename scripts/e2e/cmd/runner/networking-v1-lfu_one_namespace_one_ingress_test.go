@@ -8,6 +8,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -22,7 +23,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = Describe("LFU", func() {
+var _ = Describe("networking-v1-LFU", func() {
 	var (
 		clientset *kubernetes.Clientset
 		err       error
@@ -32,6 +33,10 @@ var _ = Describe("LFU", func() {
 		BeforeEach(func() {
 			clientset, err = getClient()
 			Expect(err).To(BeNil())
+
+			UseNetworkingV1Ingress = supportsNetworkingV1IngressPackage(clientset)
+			skipIfNetworkingV1NotSupport()
+
 			cleanUp(clientset)
 		})
 
@@ -47,12 +52,12 @@ var _ = Describe("LFU", func() {
 			Expect(err).To(BeNil())
 
 			//delete namespaces for blacklist testing
-			deleteOptions := &metav1.DeleteOptions{
+			deleteOptions := metav1.DeleteOptions{
 				GracePeriodSeconds: to.Int64Ptr(0),
 			}
 
 			klog.Info("Delete namespaces test-brownfield-ns after blacklist testing...")
-			err = clientset.CoreV1().Namespaces().Delete("test-brownfield-ns", deleteOptions)
+			err = clientset.CoreV1().Namespaces().Delete(context.TODO(), "test-brownfield-ns", deleteOptions)
 			Expect(err).To(BeNil())
 		})
 
@@ -68,10 +73,10 @@ var _ = Describe("LFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			SSLE2ERedirectYamlPath := "testdata/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
 			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())

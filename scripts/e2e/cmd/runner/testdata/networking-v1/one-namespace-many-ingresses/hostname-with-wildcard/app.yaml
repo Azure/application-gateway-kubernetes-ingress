@@ -41,6 +41,7 @@ spec:
             port:
               name: pp
         path: /status*
+        pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment

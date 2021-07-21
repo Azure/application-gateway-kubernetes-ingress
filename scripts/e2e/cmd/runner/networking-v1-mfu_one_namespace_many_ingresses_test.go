@@ -8,6 +8,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -21,7 +22,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = Describe("MFU", func() {
+var _ = Describe("networking-v1-MFU", func() {
 	var (
 		clientset *kubernetes.Clientset
 		err       error
@@ -33,6 +34,10 @@ var _ = Describe("MFU", func() {
 		BeforeEach(func() {
 			clientset, err = getClient()
 			Expect(err).To(BeNil())
+
+			UseNetworkingV1Ingress = supportsNetworkingV1IngressPackage(clientset)
+			skipIfNetworkingV1NotSupport()
+
 			cleanUp(clientset)
 		})
 
@@ -45,11 +50,11 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-many-ingresses/three-ingresses-slash-sth/app.yaml"
+			path := "testdata/networking-v1/one-namespace-many-ingresses/three-ingresses-slash-sth/app.yaml"
 			klog.Info("Applying yaml: ", path)
 			err = applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
@@ -89,11 +94,11 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-many-ingresses/fifty-ingresses-with-services/generated.yaml"
+			path := "testdata/networking-v1/one-namespace-many-ingresses/fifty-ingresses-with-services/generated.yaml"
 			klog.Info("Applying yaml: ", path)
 			err = applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())
@@ -128,11 +133,11 @@ var _ = Describe("MFU", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			// create objects in the yaml
-			path := "testdata/one-namespace-many-ingresses/hostname-with-wildcard/app.yaml"
+			path := "testdata/networking-v1/one-namespace-many-ingresses/hostname-with-wildcard/app.yaml"
 			klog.Info("Applying yaml: ", path)
 			err = applyYaml(clientset, namespaceName, path)
 			Expect(err).To(BeNil())

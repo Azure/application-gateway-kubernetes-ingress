@@ -8,6 +8,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = Describe("IngressClass", func() {
+var _ = Describe("networking-v1-IngressClass", func() {
 	var (
 		clientset *kubernetes.Clientset
 		err       error
@@ -30,6 +31,9 @@ var _ = Describe("IngressClass", func() {
 		BeforeEach(func() {
 			clientset, err = getClient()
 			Expect(err).To(BeNil())
+
+			UseNetworkingV1Ingress = supportsNetworkingV1IngressPackage(clientset)
+			skipIfNetworkingV1NotSupport()
 
 			cleanUp(clientset)
 		})
@@ -42,14 +46,14 @@ var _ = Describe("IngressClass", func() {
 				},
 			}
 			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(ns)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
 			// This application has two ingresses:
 			// 1. One Ingress: uses "azure/application-gateway" as ingress class
 			// 2. Two Ingress: uses "custom-ingress-class" as ingress class
 			// We expect that AGIC will use ingress with "custom-ingress-class"
-			SSLIngressClassYamlPath := "testdata/ingress-class/app.yaml"
+			SSLIngressClassYamlPath := "testdata/networking-v1/ingress-class/app.yaml"
 			klog.Info("Applying yaml: ", SSLIngressClassYamlPath)
 			err = applyYaml(clientset, namespaceName, SSLIngressClassYamlPath)
 			Expect(err).To(BeNil())
