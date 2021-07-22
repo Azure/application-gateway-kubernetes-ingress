@@ -8,7 +8,7 @@ package azure
 import (
 	"github.com/Azure/go-autorest/autorest"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 // GetGatewayFunc is a function type
