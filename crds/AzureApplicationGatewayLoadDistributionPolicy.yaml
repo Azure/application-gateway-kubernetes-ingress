@@ -23,6 +23,7 @@ spec:
               type: object
               properties:
                 targets:
+                  minItems: 1
                   description: "An array of services that contains information for how the service should be used for load balancing in Application Gateway"
                   type: array
                   items:
