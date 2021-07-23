@@ -5,6 +5,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	multicluster_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
@@ -24,6 +25,8 @@ type InformerCollection struct {
 	AzureApplicationGatewayBackendPool            cache.SharedInformer
 	AzureApplicationGatewayInstanceUpdateStatus   cache.SharedInformer
 	AzureApplicationGatewayLoadDistributionPolicy cache.SharedInformer
+	GlobalService                                 cache.SharedInformer
+	AzureMultiClusterIngress                      cache.SharedInformer
 	IstioGateway                                  cache.SharedIndexInformer
 	IstioVirtualService                           cache.SharedIndexInformer
 }
@@ -41,6 +44,8 @@ type CacheCollection struct {
 	AzureApplicationGatewayLoadDistributionPolicy cache.Store
 	AzureApplicationGatewayBackendPool            cache.Store
 	AzureApplicationGatewayInstanceUpdateStatus   cache.Store
+	GlobalService                                 cache.Store
+	AzureMultiClusterIngress                      cache.Store
 	IstioGateway                                  cache.Store
 	IstioVirtualService                           cache.Store
 }
@@ -48,9 +53,10 @@ type CacheCollection struct {
 // Context : cache and listener for k8s resources.
 type Context struct {
 	// k8s Clients
-	kubeClient     kubernetes.Interface
-	crdClient      versioned.Interface
-	istioCrdClient istio_versioned.Interface
+	kubeClient            kubernetes.Interface
+	crdClient             versioned.Interface
+	istioCrdClient        istio_versioned.Interface
+	multiClusterCrdClient multicluster_versioned.Interface
 
 	informers              *InformerCollection
 	Caches                 *CacheCollection
