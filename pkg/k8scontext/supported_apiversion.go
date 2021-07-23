@@ -19,6 +19,8 @@ var (
 
 	// IsNetworkingV1PackageSupported is flag that indicates whether networking/v1beta ingress should be used instead.
 	IsNetworkingV1PackageSupported bool
+
+	IsInMultiClusterMode bool
 )
 
 func init() {

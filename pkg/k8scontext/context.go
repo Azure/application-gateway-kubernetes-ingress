@@ -25,12 +25,16 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	globalService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureglobalservice/v1alpha1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azuremulticlusteringress/v1alpha1"
 	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
+	multicluster_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned"
+	multicluster_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/informers/externalversions"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -50,9 +54,10 @@ var namespacesToIgnore = map[string]interface{}{
 }
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, multiClusterCrdClient multicluster_versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
+	multiClusterCrdInformerFactory := multicluster_externalversions.NewSharedInformerFactory(multiClusterCrdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
@@ -65,6 +70,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
 		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		LoadDistributionPolicy:                      crdInformerFactory.Loaddistributionpolicies().V1beta1().LoadDistributionPolicies().Informer(),
+		GlobalService:                               multiClusterCrdInformerFactory.Multiclusterservices().V1alpha1().MultiClusterServices().Informer(),
+		AzureMultiClusterIngress:                    multiClusterCrdInformerFactory.Multiclusteringresses().V1alpha1().MultiClusterIngresses().Informer(),
 		IstioGateway:                                istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService:                         istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
@@ -85,14 +92,17 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		LoadDistributionPolicy:             informerCollection.LoadDistributionPolicy.GetStore(),
 		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
 		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
-		IstioGateway:        informerCollection.IstioGateway.GetStore(),
-		IstioVirtualService: informerCollection.IstioVirtualService.GetStore(),
+		GlobalService:            informerCollection.GlobalService.GetStore(),
+		AzureMultiClusterIngress: informerCollection.AzureMultiClusterIngress.GetStore(),
+		IstioGateway:             informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:      informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
-		kubeClient:     kubeClient,
-		crdClient:      crdClient,
-		istioCrdClient: istioCrdClient,
+		kubeClient:            kubeClient,
+		crdClient:             crdClient,
+		multiClusterCrdClient: multiClusterCrdClient,
+		istioCrdClient:        istioCrdClient,
 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
@@ -139,6 +149,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 	informerCollection.LoadDistributionPolicy.AddEventHandler(resourceHandler)
+	informerCollection.GlobalService.AddEventHandler(resourceHandler)
+	informerCollection.AzureMultiClusterIngress.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -161,6 +173,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.IstioGateway:                 nil,
 		c.informers.IstioVirtualService:          nil,
 		c.informers.LoadDistributionPolicy:       nil,
+		c.informers.GlobalService:                nil,
+		c.informers.AzureMultiClusterIngress:     nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
@@ -181,6 +195,14 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment {
 		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
+	}
+
+	// For AGIC to watch for these CRDs the MultiClusterMode env variable must be set to true
+	if envVariables.MultiClusterMode {
+		sharedInformers = []cache.SharedInformer{} //only need to monitor 3 resources
+		sharedInformers = append(sharedInformers, c.informers.AzureMultiClusterIngress)
+		sharedInformers = append(sharedInformers, c.informers.GlobalService)
+		sharedInformers = append(sharedInformers, c.informers.LoadDistributionPolicy)
 	}
 
 	if envVariables.EnableIstioIntegration {
@@ -321,19 +343,36 @@ func (c *Context) GetProhibitedTarget(namespace string, targetName string) *proh
 // ListServices returns a list of all the Services from cache.
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
-	for _, serviceInterface := range c.Caches.Service.List() {
-		service := serviceInterface.(*v1.Service)
-		if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
-			continue
+	if IsInMultiClusterMode {
+		for _, globalServiceInterface := range c.Caches.GlobalService.List() {
+			globalService := globalServiceInterface.(*globalService.GlobalService)
+			service, exists := convert.FromGlobalService(globalService)
+			if !exists {
+				continue
+			}
+			if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			if hasTCPPort(service) {
+				serviceList = append(serviceList, service)
+			}
 		}
-		if hasTCPPort(service) {
-			serviceList = append(serviceList, service)
+	} else {
+		for _, serviceInterface := range c.Caches.Service.List() {
+			service := serviceInterface.(*v1.Service)
+			if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			if hasTCPPort(service) {
+				serviceList = append(serviceList, service)
+			}
 		}
 	}
 	return serviceList
 }
 
 // GetEndpointsByService returns the endpoints associated with a specific service.
+//NEEDS TO BE CHANGED
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
@@ -409,12 +448,26 @@ func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool
 // ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
 func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 	var ingressList []*networking.Ingress
-	for _, ingressInterface := range c.Caches.Ingress.List() {
-		ingress, _ := convert.ToIngressV1(ingressInterface)
-		if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
-			continue
+	if IsInMultiClusterMode {
+		for _, mciInterface := range c.Caches.AzureMultiClusterIngress.List() {
+			mci := mciInterface.(*multiClusterIngress.AzureMultiClusterIngress)
+			ingress, exists := convert.FromMultiClusterIngress(mci)
+			if !exists {
+				continue
+			}
+			if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			ingressList = append(ingressList, ingress)
 		}
-		ingressList = append(ingressList, ingress)
+	} else {
+		for _, ingressInterface := range c.Caches.Ingress.List() {
+			ingress, _ := convert.ToIngressV1(ingressInterface)
+			if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			ingressList = append(ingressList, ingress)
+		}
 	}
 	return filterAndSort(ingressList)
 }
@@ -581,6 +634,7 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status
+// Do we need to change?
 func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
 	if IsNetworkingV1PackageSupported {
 		ingressClient := c.kubeClient.NetworkingV1().Ingresses(ingressToUpdate.Namespace)
