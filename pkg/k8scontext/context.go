@@ -372,14 +372,43 @@ func (c *Context) ListServices() []*v1.Service {
 }
 
 // GetEndpointsByService returns the endpoints associated with a specific service.
-//NEEDS TO BE CHANGED
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
-	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
+	if IsInMultiClusterMode {
+		return c.generateEndpointsFromGlobalService(serviceKey)
+	} else {
+		endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
+
+		if !exist {
+			e := controllererrors.NewErrorf(
+				controllererrors.ErrorFetchingEnpdoints,
+				"Endpoint not found for %s",
+				serviceKey)
+			klog.Error(e.Error())
+			c.MetricStore.IncErrorCount(e.Code)
+			return nil, e
+		}
+
+		if err != nil {
+			e := controllererrors.NewErrorWithInnerErrorf(
+				controllererrors.ErrorFetchingEnpdoints,
+				err,
+				"Error fetching endpoints from store for %s",
+				serviceKey)
+			klog.Error(e.Error())
+			c.MetricStore.IncErrorCount(e.Code)
+			return nil, e
+		}
+		return endpointsInterface.(*v1.Endpoints), nil
+	}
+}
+
+func (c *Context) generateEndpointsFromGlobalService(serviceKey string) (*v1.Endpoints, error) {
+	globalServiceInterface, exist, err := c.Caches.GlobalService.GetByKey(serviceKey)
 
 	if !exist {
 		e := controllererrors.NewErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
-			"Endpoint not found for %s",
+			controllererrors.ErrorFetchingGlobalService,
+			"Global service not found for %s",
 			serviceKey)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
@@ -388,16 +417,27 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
+			controllererrors.ErrorFetchingGlobalService,
 			err,
-			"Error fetching endpoints from store for %s",
+			"Error fetching global service from store for %s",
 			serviceKey)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
 
-	return endpointsInterface.(*v1.Endpoints), nil
+	globalService := globalServiceInterface.(*globalService.GlobalService)
+	endpoints := &v1.Endpoints{}
+
+	for _, globalEndpoint := range globalService.Status.Endpoints {
+		subset := v1.EndpointSubset{}
+		for _, endpointStr := range globalEndpoint.Endpoints {
+			address := v1.EndpointAddress{IP: endpointStr}
+			subset.Addresses = append(subset.Addresses, address)
+		}
+		endpoints.Subsets = append(endpoints.Subsets, subset)
+	}
+	return endpoints, nil
 }
 
 // ListPodsByServiceSelector returns pods that are associated with a specific service.
@@ -634,86 +674,138 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 }
 
 // UpdateIngressStatus adds IP address in Ingress Status
-// Do we need to change?
 func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
-	if IsNetworkingV1PackageSupported {
-		ingressClient := c.kubeClient.NetworkingV1().Ingresses(ingressToUpdate.Namespace)
-		ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
-		if err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
-
-		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-			existingIP := lbi.IP
-			if existingIP == string(newIP) {
-				klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-				return nil
-			}
-		}
-
-		loadBalancerIngresses := []v1.LoadBalancerIngress{}
-		if newIP != "" {
-			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-				IP: string(newIP),
-			})
-		}
-		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
-
-		if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
+	if IsNetworkingV1PackageSupported && !IsInMultiClusterMode {
+		return c.updateV1IngressStatus(ingressToUpdate, newIP)
+	} else if IsInMultiClusterMode {
+		return c.updateMultiClusterIngressStatus(ingressToUpdate, newIP)
 	} else {
-		ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
-		ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
-		if err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
+		return c.updateV1beta1IngressStatus(ingressToUpdate, newIP)
+	}
 
-		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-			existingIP := lbi.IP
-			if existingIP == string(newIP) {
-				klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-				return nil
-			}
-		}
+}
 
-		loadBalancerIngresses := []v1.LoadBalancerIngress{}
-		if newIP != "" {
-			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-				IP: string(newIP),
-			})
-		}
-		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+func (c *Context) updateV1IngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.kubeClient.NetworkingV1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
 
-		if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
 		}
 	}
 
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	return nil
+}
+
+func (c *Context) updateV1beta1IngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
+		}
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+	return nil
+}
+
+func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.multiClusterCrdClient.AzuremulticlusteringressesV1alpha1().AzureMultiClusterIngresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
+		}
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
 	return nil
 }
 
