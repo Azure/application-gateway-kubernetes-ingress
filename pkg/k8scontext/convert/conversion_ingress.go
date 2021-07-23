@@ -43,6 +43,7 @@ func FromMultiClusterIngress(mci *multiClusterIngress.AzureMultiClusterIngress) 
 	v1Ing := &networkingv1.Ingress{}
 	v1Ing.ObjectMeta = mci.ObjectMeta
 	v1Ing.Spec = mci.Spec
+	v1Ing.Status = mci.Status
 	v1Ing.APIVersion = networkingv1.SchemeGroupVersion.String()
 	v1Ing.Kind = "Ingress"
 	return v1Ing, true
