@@ -1,0 +1,11 @@
+apiVersion: networking.aks.io/v1alpha1
+kind: GlobalService # defined by MCS POC
+metadata:
+  name: service-2 # multiClusterService should match the service name / namespace in Child clusters.
+  namespace: default
+spec:
+  clusterSet: cluster-set-1
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
