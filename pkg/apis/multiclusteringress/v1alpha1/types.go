@@ -27,7 +27,7 @@ type MultiClusterIngress struct {
 
 // MultiClusterIngressSpec is the Spec for MultiClusterIngress Resource
 type MultiClusterIngressSpec struct {
-	Spec v1.IngressSpec `json:"ingressSpec"`
+	IngressSpec v1.IngressSpec `json:"ingressSpec"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
