@@ -33,7 +33,7 @@ To use the example release pipeline,
 1. Download the [template](./continuous-deployment-pipeline.json) and import it to your project's release pipeline.
 ![import pipeline](../images/pipeline-import.png)
 1. Now provide the required settings for all tasks:
-    1. Select the correct `Agent Pool`
+    1. Select the correct `Agent Pool` and Agent Specification (ubuntu-18.04)
     ![import pipeline](../images/pipeline-settings.png)
     1. Select the newly created service connection for the `Create Kubernetes Cluster` and `Create AGIC Identity` tasks.
     ![import pipeline](../images/pipeline-set-connection.png)
