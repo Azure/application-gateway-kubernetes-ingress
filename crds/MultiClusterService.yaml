@@ -1,0 +1,151 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: multiclusterservices.networking.aks.io
+spec:
+  group: networking.aks.io
+  names:
+    kind: MultiClusterService
+    listKind: MultiClusterServiceList
+    plural: multiclusterservices
+    singular: multiclusterservice
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.ports[*].port
+      name: Ports
+      type: string
+    - jsonPath: .status.vip
+      name: VIP
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MultiClusterService is the Schema for the multiclusterservices API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MultiClusterServiceSpec defines the desired state of MultiClusterService
+            properties:
+              clusterSet:
+                description: ClusterSet for the multicluster service.
+                type: string
+              ports:
+                description: Ports for the multicluster service.
+                items:
+                  description: MultiClusterServicePort defines the spec for MultiClusterService
+                    port
+                  properties:
+                    name:
+                      type: string
+                    port:
+                      type: integer
+                    protocol:
+                      type: string
+                    targetPort:
+                      type: integer
+                  type: object
+                type: array
+              selector:
+                description: LabelSelector for the multicluster service. Services with the
+                  same name of MultiClusterService would be selected if the selector is
+                  not set.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+            type: object
+          status:
+            description: MultiClusterServiceStatus defines the observed state of MultiClusterService
+            properties:
+              endpoints:
+                description: Endpoints represents a list of endpoint for the multicluster
+                  service.
+                items:
+                  description: MultiClusterEndpoint defines the endpoints for the multicluster
+                    service.
+                  properties:
+                    cluster:
+                      type: string
+                    endpoints:
+                      items:
+                        type: string
+                      type: array
+                    ip:
+                      type: string
+                    service:
+                      type: string
+                  type: object
+                type: array
+              state:
+                type: string
+              vip:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
