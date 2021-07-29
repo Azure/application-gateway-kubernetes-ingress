@@ -8,6 +8,7 @@ package appgw
 import (
 	"fmt"
 
+	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
 	"github.com/Azure/go-autorest/autorest/to"
 	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
@@ -87,6 +88,9 @@ func keyFunc(obj interface{}) (string, error) {
 	if ingress, ok := obj.(*networking.Ingress); ok {
 		return fmt.Sprintf("%s/%s", ingress.Namespace, ingress.Name), nil
 	}
+	if ldp, ok := obj.(*appgwldp.LoadDistributionPolicy); ok {
+		return fmt.Sprintf("%s/%s", ldp.Namespace, ldp.Name), nil
+	}
 	return fmt.Sprintf("%s/%s", tests.Namespace, tests.ServiceName), nil
 }
 
@@ -101,11 +105,12 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 		appGw: n.ApplicationGateway{ApplicationGatewayPropertiesFormat: appGwConfig},
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(keyFunc),
-				Secret:    cache.NewStore(keyFunc),
-				Service:   cache.NewStore(keyFunc),
-				Pods:      cache.NewStore(keyFunc),
-				Ingress:   cache.NewStore(keyFunc),
+				Endpoints:              cache.NewStore(keyFunc),
+				Secret:                 cache.NewStore(keyFunc),
+				Service:                cache.NewStore(keyFunc),
+				Pods:                   cache.NewStore(keyFunc),
+				Ingress:                cache.NewStore(keyFunc),
+				LoadDistributionPolicy: cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 			MetricStore:            metricstore.NewFakeMetricStore(),

@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	. "github.com/onsi/ginkgo"
@@ -167,6 +169,56 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 	})
 
+	Context("use first service for LDP Backends", func() {
+		cb := newConfigBuilderFixture(nil)
+
+		pod := tests.NewPodFixture(tests.ServiceName, tests.Namespace, tests.ContainerName, tests.ContainerPort)
+		_ = cb.k8sContext.Caches.Pods.Add(pod)
+
+		ldpTargets := []appgwldp.Target{
+			{
+				Role:   "active",
+				Weight: 100,
+				Backend: appgwldp.Backend{
+					Service: &networking.IngressServiceBackend{
+						Name: tests.ServiceName,
+						Port: networking.ServiceBackendPort{
+							Number: 80,
+						},
+					},
+				},
+			},
+		}
+		ldp := tests.NewLoadDistrbutionPolicyFixture(ldpTargets)
+
+		cb.k8sContext.Caches.LoadDistributionPolicy.Add(ldp)
+
+		ing2 := tests.NewIngressWithLoadDistributionPolicyFixture()
+		ingressList := []*networking.Ingress{
+			ing2,
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		// !! Action !!
+		_ = cb.HealthProbesCollection(cbCtx)
+		actual := cb.appGw.Probes
+
+		It("should have exactly 2 record", func() {
+			Expect(len(*actual)).To(Equal(2), fmt.Sprintf("Actual probes: %+v", *actual))
+		})
+
+		It("should have created 2 default probes", func() {
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
+		})
+	})
+
 	Context("test generateHealthProbe()", func() {
 		cb := newConfigBuilderFixture(nil)
 		be := backendIdentifier{
@@ -226,7 +278,11 @@ var _ = Describe("configure App Gateway health probes", func() {
 					},
 				},
 			},
-			Backend: &networking.IngressBackend{},
+			Backend: &networking.IngressBackend{
+				Service: &networking.IngressServiceBackend{
+					Name: "--service-name--",
+				},
+			},
 		}
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)

@@ -91,6 +91,13 @@ var _ = Describe("Test internal types", func() {
 			Expect(actual).To(Equal(expected))
 		})
 
+		It("generateLoadDistributionName returns expected key", func() {
+			ldpName := "load-dist-policy"
+			actual := generateLoadDistributionName(tests.Namespace, ldpName)
+			expected := agPrefix + "ldp-" + tests.Namespace + "-" + ldpName
+			Expect(actual).To(Equal(expected))
+		})
+
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
 			actual := generateSSLRedirectConfigurationName(targetListener)
 			expected := "sslr-fl-" + targetListenerHashCode
