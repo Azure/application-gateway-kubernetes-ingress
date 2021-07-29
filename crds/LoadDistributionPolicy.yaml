@@ -1,14 +1,14 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: azureapplicationgatewayloaddistributionpolicies.appgw.ingress.azure.io
+  name: loaddistributionpolicies.appgw.ingress.azure.io
 spec:
   group: appgw.ingress.azure.io
   scope: Namespaced
   names:
-    kind: AzureApplicationGatewayLoadDistributionPolicy
-    plural: azureapplicationgatewayloaddistributionpolicies
-    singular: azureapplicationgatewayloaddistributionpolicy
+    kind: LoadDistributionPolicy
+    plural: loaddistributionpolicies
+    singular: loaddistributionpolicy
     shortNames:
       - agldp
   versions:
@@ -51,7 +51,7 @@ spec:
                         description: "Weight specifies the proportion of HTTP requests forwarded to the backend."
                         type: integer
                         default: 1
-                        minimum: 1
+                        minimum: 0
                         maximum: 1000
                       role:
                         description: "Specifies whether a server should be active or passive. Passive backends will receive HTTP requests only when all active backends are marked unhealthy by the Application Gateway's heath probe."

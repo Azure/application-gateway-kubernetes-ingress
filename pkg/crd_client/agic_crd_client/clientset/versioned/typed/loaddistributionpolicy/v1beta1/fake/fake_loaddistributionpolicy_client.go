@@ -19,22 +19,22 @@ limitations under the License.
 package fake
 
 import (
-	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayloaddistributionpolicy/v1beta1"
+	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeAzureapplicationgatewayloaddistributionpoliciesV1beta1 struct {
+type FakeLoaddistributionpoliciesV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAzureapplicationgatewayloaddistributionpoliciesV1beta1) AzureApplicationGatewayLoadDistributionPolicies(namespace string) v1beta1.AzureApplicationGatewayLoadDistributionPolicyInterface {
-	return &FakeAzureApplicationGatewayLoadDistributionPolicies{c, namespace}
+func (c *FakeLoaddistributionpoliciesV1beta1) LoadDistributionPolicies(namespace string) v1beta1.LoadDistributionPolicyInterface {
+	return &FakeLoadDistributionPolicies{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeAzureapplicationgatewayloaddistributionpoliciesV1beta1) RESTClient() rest.Interface {
+func (c *FakeLoaddistributionpoliciesV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

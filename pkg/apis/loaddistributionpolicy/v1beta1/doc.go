@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen=package,register
-// +groupName=azureapplicationgatewayloaddistributionpolicies.appgw.ingress.azure.io
+// +groupName=loaddistributionpolicies.appgw.ingress.azure.io
 
 // Package v1beta1 is the v1beta1 version of the API.
 package v1beta1
