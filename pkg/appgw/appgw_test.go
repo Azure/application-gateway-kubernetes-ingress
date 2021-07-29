@@ -237,7 +237,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress))
-		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend, fmt.Sprintf("%s-%s", ingress.Namespace, expectedBackend.Service.Name)).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
+		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend, expectedBackend.Service.Name).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
 		httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
