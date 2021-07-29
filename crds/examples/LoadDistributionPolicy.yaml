@@ -1,7 +1,7 @@
 # This shows a setup for HA
 ---
 apiVersion: appgw.ingress.azure.io/v1beta1
-kind: LoadDistribitionPolicy
+kind: LoadDistributionPolicy
 metadata:
   name: load-distribution-policy-with-high-availability
 spec:
