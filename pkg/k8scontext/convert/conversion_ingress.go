@@ -1,7 +1,7 @@
 package convert
 
 import (
-	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azuremulticlusteringress/v1alpha1"
+	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
@@ -35,15 +35,22 @@ func ToIngressV1(obj interface{}) (*networkingv1.Ingress, bool) {
 	return nil, false
 }
 
-func FromMultiClusterIngress(mci *multiClusterIngress.AzureMultiClusterIngress) (*networkingv1.Ingress, bool) {
+func FromMultiClusterIngress(mci *multiClusterIngress.MultiClusterIngress) (*networkingv1.Ingress, bool) {
 	if mci == nil {
 		klog.Errorf("Unexpected, attempted converting nil MultiClusterIngresss to Ingress")
 		return nil, false
 	}
 	v1Ing := &networkingv1.Ingress{}
-	v1Ing.ObjectMeta = mci.ObjectMeta
-	v1Ing.Spec = mci.Spec
-	v1Ing.Status = mci.Status
+	// remove last applied config, object model does not match
+	for k := range mci.ObjectMeta.Annotations {
+		if k == "kubectl.kubernetes.io/last-applied-configuration" {
+			delete(mci.ObjectMeta.Annotations, k)
+		}
+	}
+	mci.ObjectMeta.DeepCopyInto(&v1Ing.ObjectMeta)
+	mci.Spec.IngressSpec.DeepCopyInto(&v1Ing.Spec)
+	mci.Status.DeepCopyInto(&v1Ing.Status)
+
 	v1Ing.APIVersion = networkingv1.SchemeGroupVersion.String()
 	v1Ing.Kind = "Ingress"
 	return v1Ing, true

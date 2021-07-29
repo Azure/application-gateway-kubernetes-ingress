@@ -1,7 +1,7 @@
 package convert
 
 import (
-	azureglobalservice "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureglobalservice/v1alpha1"
+	azureglobalservice "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/globalservice/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -32,5 +32,5 @@ func FromGlobalService(gs *azureglobalservice.GlobalService) (*v1.Service, bool)
 
 	v1Serv.APIVersion = v1.SchemeGroupVersion.String()
 	v1Serv.Kind = "Service"
-	return v1Serv, false
+	return v1Serv, true
 }

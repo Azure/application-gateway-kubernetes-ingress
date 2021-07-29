@@ -95,6 +95,7 @@ func main() {
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	k8scontext.IsNetworkingV1PackageSupported = k8scontext.SupportsNetworkingPackage(kubeClient)
+	k8scontext.IsInMultiClusterMode = env.MultiClusterMode
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	multiClusterCrdClient := multicluster.NewForConfigOrDie(apiConfig)
