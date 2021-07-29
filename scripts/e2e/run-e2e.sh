@@ -11,7 +11,7 @@ SetupSharedBackend
 
 # run test
 go mod init || true
-go test -v -timeout 60m -tags e2e ./... >testoutput.txt || true
+go test -v -timeout 120m -tags e2e ./... >testoutput.txt || true
 mv ./cmd/runner/report.xml report.e2e.xml
 
 # install with custom tag
