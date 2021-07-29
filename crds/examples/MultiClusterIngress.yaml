@@ -3,15 +3,16 @@ kind: MultiClusterIngress
 metadata:
   name: multi-cluster-ingress
   annotations:
-    kubernetes.io/ingress.class: azure/load-balancer
+    kubernetes.io/ingress.class: azure/application-gateway
 spec:
-  rules:
-    - host: www.multi-cluster-app-with-failover.com
-      http:
-        paths:
-          - path: /
-            backend:
-              resource:
-                apiGroup: appgw.ingress.azure.io/v1alpha1
-                kind: LoadDistributionPolicy
-                name: multi-cluster-service-with-failover
+  template:
+    rules:
+        - http:
+            paths:
+              - path: /
+                backend:
+                  service:
+                    name: nginx
+                    port:
+                      number: 80
+                pathType: Exact

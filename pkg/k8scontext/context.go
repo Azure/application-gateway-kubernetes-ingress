@@ -26,9 +26,9 @@ import (
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1beta1"
-	globalService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureglobalservice/v1alpha1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
-	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azuremulticlusteringress/v1alpha1"
+	globalService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/globalservice/v1alpha1"
+	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
@@ -71,7 +71,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureApplicationGatewayInstanceUpdateStatus:   crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		AzureApplicationGatewayLoadDistributionPolicy: crdInformerFactory.Azureapplicationgatewayloaddistributionpolicies().V1beta1().AzureApplicationGatewayLoadDistributionPolicies().Informer(),
 		GlobalService:            multiClusterCrdInformerFactory.Azureglobalservices().V1alpha1().GlobalServices().Informer(),
-		AzureMultiClusterIngress: multiClusterCrdInformerFactory.Azuremulticlusteringresses().V1alpha1().AzureMultiClusterIngresses().Informer(),
+		AzureMultiClusterIngress: multiClusterCrdInformerFactory.Multiclusteringresses().V1alpha1().MultiClusterIngresses().Informer(),
 		IstioGateway:             istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService:      istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
@@ -428,15 +428,19 @@ func (c *Context) generateEndpointsFromGlobalService(serviceKey string) (*v1.End
 
 	globalService := globalServiceInterface.(*globalService.GlobalService)
 	endpoints := &v1.Endpoints{}
+	subset := v1.EndpointSubset{}
 
 	for _, globalEndpoint := range globalService.Status.Endpoints {
-		subset := v1.EndpointSubset{}
-		for _, endpointStr := range globalEndpoint.Endpoints {
-			address := v1.EndpointAddress{IP: endpointStr}
-			subset.Addresses = append(subset.Addresses, address)
-		}
-		endpoints.Subsets = append(endpoints.Subsets, subset)
+		address := v1.EndpointAddress{IP: globalEndpoint.IP}
+		subset.Addresses = append(subset.Addresses, address)
 	}
+
+	for _, ports := range globalService.Spec.Ports {
+		v1Port := v1.EndpointPort{Port: int32(ports.Port), Protocol: v1.Protocol(ports.Protocol)}
+		subset.Ports = append(subset.Ports, v1Port)
+	}
+
+	endpoints.Subsets = []v1.EndpointSubset{subset}
 	return endpoints, nil
 }
 
@@ -489,8 +493,9 @@ func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool
 func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 	var ingressList []*networking.Ingress
 	if IsInMultiClusterMode {
+		klog.V(9).Infof("Fetching MultiCluster Ingresses")
 		for _, mciInterface := range c.Caches.AzureMultiClusterIngress.List() {
-			mci := mciInterface.(*multiClusterIngress.AzureMultiClusterIngress)
+			mci := mciInterface.(*multiClusterIngress.MultiClusterIngress)
 			ingress, exists := convert.FromMultiClusterIngress(mci)
 			if !exists {
 				continue
@@ -553,20 +558,43 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
-	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
+	if IsInMultiClusterMode {
+		serviceInterface, exist, err := c.Caches.GlobalService.GetByKey(serviceKey)
 
-	if err != nil {
-		klog.V(3).Infof("unable to get service from store, error occurred %s", err)
-		return nil
+		if err != nil {
+			klog.V(3).Infof("unable to get global service from store, error occurred %s", err)
+			return nil
+		}
+
+		if !exist {
+			klog.V(9).Infof("Global Service %s does not exist", serviceKey)
+			return nil
+		}
+
+		globalService := serviceInterface.(*globalService.GlobalService)
+		service, exists := convert.FromGlobalService(globalService)
+
+		if !exists {
+			klog.V(3).Infof("unable to convert global service from store to service, error occurred %s", err)
+			return nil
+		}
+		return service
+	} else {
+		serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
+
+		if err != nil {
+			klog.V(3).Infof("unable to get service from store, error occurred %s", err)
+			return nil
+		}
+
+		if !exist {
+			klog.V(9).Infof("Service %s does not exist", serviceKey)
+			return nil
+		}
+
+		service := serviceInterface.(*v1.Service)
+		return service
 	}
-
-	if !exist {
-		klog.V(9).Infof("Service %s does not exist", serviceKey)
-		return nil
-	}
-
-	service := serviceInterface.(*v1.Service)
-	return service
 }
 
 // GetSecret returns the secret identified by the key
@@ -769,7 +797,7 @@ func (c *Context) updateV1beta1IngressStatus(ingressToUpdate networking.Ingress,
 }
 
 func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
-	ingressClient := c.multiClusterCrdClient.AzuremulticlusteringressesV1alpha1().AzureMultiClusterIngresses(ingressToUpdate.Namespace)
+	ingressClient := c.multiClusterCrdClient.MulticlusteringressesV1alpha1().MultiClusterIngresses(ingressToUpdate.Namespace)
 	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(

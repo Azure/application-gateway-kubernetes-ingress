@@ -41,91 +41,109 @@ spec:
               description: MultiClusterIngressSpec defines the desired state of MultiClusterIngress
               type: object
               properties:
-                defaultBackend:
+                template:
                   type: object
                   properties:
-                    resource:
+                    defaultBackend:
                       type: object
                       properties:
-                        apiGroup:
-                          type: string
-                        kind:
-                          type: string
-                        name:
-                          type: string
-                    service:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        port:
+                        resource:
+                          type: object
+                          properties:
+                            apiGroup:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: string
+                        service:
                           type: object
                           properties:
                             name:
                               type: string
-                            number:
-                              type: integer
-                ingressClassName:
-                  type: string
-                rules:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      host:
-                        type: string
-                      http:
-                        type: object
-                        properties:
-                          paths:
-                            type: array
-                            items:
+                            port:
                               type: object
                               properties:
-                                backend:
+                                name:
+                                  type: string
+                                number:
+                                  type: integer
+                    ingressClassName:
+                      type: string
+                    rules:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          host:
+                            type: string
+                          http:
+                            type: object
+                            properties:
+                              paths:
+                                type: array
+                                items:
                                   type: object
                                   properties:
-                                    resource:
+                                    backend:
                                       type: object
                                       properties:
-                                        apiGroup:
-                                          type: string
-                                        kind:
-                                          type: string
-                                        name:
-                                          type: string
-                                    service:
-                                      type: object
-                                      properties:
-                                        name:
-                                          type: string
-                                        port:
+                                        resource:
+                                          type: object
+                                          properties:
+                                            apiGroup:
+                                              type: string
+                                            kind:
+                                              type: string
+                                            name:
+                                              type: string
+                                        service:
                                           type: object
                                           properties:
                                             name:
                                               type: string
-                                            number:
-                                              type: integer
-                                path:
-                                  type: string
-                                pathType:
-                                  type: string
-                tls:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      hosts:
-                        type: array
-                        items:
-                          type: string
-                      secretName:
-                        type: string
+                                            port:
+                                              type: object
+                                              properties:
+                                                name:
+                                                  type: string
+                                                number:
+                                                  type: integer
+                                    path:
+                                      type: string
+                                    pathType:
+                                      type: string
+                    tls:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          hosts:
+                            type: array
+                            items:
+                              type: string
+                          secretName:
+                            type: string
             status:
               type: object
               properties:
                 loadBalancer:
                   type: object
                   properties:
-                    name:
-                      type: string
+                    ingress:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          hostname:
+                            type: string
+                          ip:
+                            type: string
+      subresources:
+        status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
