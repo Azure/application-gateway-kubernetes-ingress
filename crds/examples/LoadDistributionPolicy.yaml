@@ -1,22 +1,22 @@
-# This shows a setup for Blue/Green deployment
+# This shows a setup for HA
 ---
 apiVersion: appgw.ingress.azure.io/v1beta1
-kind: AzureApplicationGatewayLoadDistribitionPolicy
+kind: LoadDistributionPolicy
 metadata:
-  name: load-distribution-policy-blue-green
+  name: load-distribution-policy-with-high-availability
 spec:
   targets:
     - backend:
         service:
-          name: old-service
+          name: service-1
           port:
             number: 80
       role: active
       weight: 8
     - backend:
         service:
-          name: new-service
+          name: service-2
           port:
             number: 80
-      role: passive
+      role: active
       weight: 2
