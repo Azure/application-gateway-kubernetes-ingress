@@ -237,7 +237,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress))
-		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
+		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend, fmt.Sprintf("%s-%s", ingress.Namespace, expectedBackend.Service.Name)).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
 		httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
@@ -262,7 +262,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultBackendAddressPoolChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		addressPoolName := generateAddressPoolName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort))
+		addressPoolName := generateAddressPoolName(generateBackendID(ingress, nil, nil, expectedBackend, expectedBackend.Service.Name).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort))
 		addressPoolAddresses := []n.ApplicationGatewayBackendAddress{{IPAddress: &endpoint1}, {IPAddress: &endpoint2}, {IPAddress: &endpoint3}}
 
 		addressPool := &n.ApplicationGatewayBackendAddressPool{
@@ -532,7 +532,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(servicePort), ingress.Name)
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend, expectedBackend.Service.Name).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(servicePort), ingress.Name)
 				httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
@@ -769,7 +769,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			annotationsHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
 				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress))
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend, expectedBackend.Service.Name).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
 				httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
