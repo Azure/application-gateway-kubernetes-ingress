@@ -16,5 +16,6 @@ data:
   APPGW_RESOURCE_GROUP:  "resgp"
   APPGW_NAME:            "gateway"
   APPGW_SUBNET_NAME: "gateway-subnet"
+  MULTI_CLUSTER_MODE: "false"
   AZURE_CLIENT_ID: "0000-0000-0000-0000-00000000"
   USE_MANAGED_IDENTITY_FOR_POD: "true"
