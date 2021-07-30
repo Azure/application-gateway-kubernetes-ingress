@@ -20,6 +20,7 @@ var (
 	// IsNetworkingV1PackageSupported is flag that indicates whether networking/v1beta ingress should be used instead.
 	IsNetworkingV1PackageSupported bool
 
+	// IsInMultiClusterMode is a flag to indicate that AGIC should monitor MutliCluster CRDs
 	IsInMultiClusterMode bool
 )
 

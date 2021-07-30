@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// FromMultiClusterService converts MutliClusterService CRD into k8s.io/api/core/v1/Service
 func FromMultiClusterService(gs *multiclusterservice.MultiClusterService) (*v1.Service, bool) {
 	if gs == nil {
 		return nil, false

@@ -35,6 +35,7 @@ func ToIngressV1(obj interface{}) (*networkingv1.Ingress, bool) {
 	return nil, false
 }
 
+// FromMultiClusterIngress converts MultiClusterIngress CRD into neworking.k8s.io/v1/Ingress
 func FromMultiClusterIngress(mci *multiClusterIngress.MultiClusterIngress) (*networkingv1.Ingress, bool) {
 	if mci == nil {
 		klog.Errorf("Unexpected, attempted converting nil MultiClusterIngresss to Ingress")

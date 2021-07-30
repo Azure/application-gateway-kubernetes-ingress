@@ -378,31 +378,31 @@ func (c *Context) ListServices() []*v1.Service {
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
 	if IsInMultiClusterMode {
 		return c.generateEndpointsFromMultiClusterService(serviceKey)
-	} else {
-		endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
-
-		if !exist {
-			e := controllererrors.NewErrorf(
-				controllererrors.ErrorFetchingEnpdoints,
-				"Endpoint not found for %s",
-				serviceKey)
-			klog.Error(e.Error())
-			c.MetricStore.IncErrorCount(e.Code)
-			return nil, e
-		}
-
-		if err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorFetchingEnpdoints,
-				err,
-				"Error fetching endpoints from store for %s",
-				serviceKey)
-			klog.Error(e.Error())
-			c.MetricStore.IncErrorCount(e.Code)
-			return nil, e
-		}
-		return endpointsInterface.(*v1.Endpoints), nil
 	}
+	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
+
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			"Endpoint not found for %s",
+			serviceKey)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingEnpdoints,
+			err,
+			"Error fetching endpoints from store for %s",
+			serviceKey)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+	return endpointsInterface.(*v1.Endpoints), nil
+
 }
 
 func (c *Context) generateEndpointsFromMultiClusterService(serviceKey string) (*v1.Endpoints, error) {
@@ -582,22 +582,22 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 			return nil
 		}
 		return service
-	} else {
-		serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
-
-		if err != nil {
-			klog.V(3).Infof("unable to get service from store, error occurred %s", err)
-			return nil
-		}
-
-		if !exist {
-			klog.V(9).Infof("Service %s does not exist", serviceKey)
-			return nil
-		}
-
-		service := serviceInterface.(*v1.Service)
-		return service
 	}
+	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
+
+	if err != nil {
+		klog.V(3).Infof("unable to get service from store, error occurred %s", err)
+		return nil
+	}
+
+	if !exist {
+		klog.V(9).Infof("Service %s does not exist", serviceKey)
+		return nil
+	}
+
+	service := serviceInterface.(*v1.Service)
+	return service
+
 }
 
 // GetSecret returns the secret identified by the key
