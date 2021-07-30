@@ -99,7 +99,7 @@ const (
 	IngressClass = "INGRESS_CLASS"
 
 	// MultiClusterModeVarName is an environment variable to control whether AGIC monitors Ingresses or MutliClusterIngresses
-	MultiClusterModeVarName = "MULTICLUSTER_MODE"
+	MultiClusterModeVarName = "MULTI_CLUSTER_MODE"
 )
 
 var (
