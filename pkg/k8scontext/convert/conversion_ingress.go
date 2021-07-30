@@ -48,7 +48,7 @@ func FromMultiClusterIngress(mci *multiClusterIngress.MultiClusterIngress) (*net
 		}
 	}
 	mci.ObjectMeta.DeepCopyInto(&v1Ing.ObjectMeta)
-	mci.Spec.IngressSpec.DeepCopyInto(&v1Ing.Spec)
+	mci.Spec.Template.DeepCopyInto(&v1Ing.Spec)
 	mci.Status.DeepCopyInto(&v1Ing.Status)
 
 	v1Ing.APIVersion = networkingv1.SchemeGroupVersion.String()

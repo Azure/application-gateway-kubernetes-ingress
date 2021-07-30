@@ -163,8 +163,10 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
 				if path.Backend.Resource != nil && path.Backend.Resource.Kind == "LoadDistributionPolicy" {
+					fmt.Println("GOT LDP BACKEND")
 					ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
 					if err != nil {
+						fmt.Println("DIDNT GET LDP")
 						continue
 					}
 					for _, target := range ldp.Spec.Targets {

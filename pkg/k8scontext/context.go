@@ -26,9 +26,9 @@ import (
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
-	globalService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/globalservice/v1alpha1"
 	appgwldp "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
 	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
+	multiClusterService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusterservice/v1alpha1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
@@ -70,7 +70,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
 		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		LoadDistributionPolicy:                      crdInformerFactory.Loaddistributionpolicies().V1beta1().LoadDistributionPolicies().Informer(),
-		GlobalService:                               multiClusterCrdInformerFactory.Multiclusterservices().V1alpha1().MultiClusterServices().Informer(),
+		MultiClusterService:                         multiClusterCrdInformerFactory.Multiclusterservices().V1alpha1().MultiClusterServices().Informer(),
 		AzureMultiClusterIngress:                    multiClusterCrdInformerFactory.Multiclusteringresses().V1alpha1().MultiClusterIngresses().Informer(),
 		IstioGateway:                                istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
 		IstioVirtualService:                         istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
@@ -92,10 +92,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		LoadDistributionPolicy:             informerCollection.LoadDistributionPolicy.GetStore(),
 		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
 		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
-		GlobalService:            informerCollection.GlobalService.GetStore(),
-		AzureMultiClusterIngress: informerCollection.AzureMultiClusterIngress.GetStore(),
-		IstioGateway:             informerCollection.IstioGateway.GetStore(),
-		IstioVirtualService:      informerCollection.IstioVirtualService.GetStore(),
+		MultiClusterService:                         informerCollection.MultiClusterService.GetStore(),
+		AzureMultiClusterIngress:                    informerCollection.AzureMultiClusterIngress.GetStore(),
+		IstioGateway:                                informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:                         informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
@@ -149,7 +149,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 	informerCollection.LoadDistributionPolicy.AddEventHandler(resourceHandler)
-	informerCollection.GlobalService.AddEventHandler(resourceHandler)
+	informerCollection.MultiClusterService.AddEventHandler(resourceHandler)
 	informerCollection.AzureMultiClusterIngress.AddEventHandler(resourceHandler)
 
 	return context
@@ -173,7 +173,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.IstioGateway:                 nil,
 		c.informers.IstioVirtualService:          nil,
 		c.informers.LoadDistributionPolicy:       nil,
-		c.informers.GlobalService:                nil,
+		c.informers.MultiClusterService:          nil,
 		c.informers.AzureMultiClusterIngress:     nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
@@ -201,7 +201,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	if envVariables.MultiClusterMode {
 		sharedInformers = []cache.SharedInformer{} //only need to monitor 3 resources
 		sharedInformers = append(sharedInformers, c.informers.AzureMultiClusterIngress)
-		sharedInformers = append(sharedInformers, c.informers.GlobalService)
+		sharedInformers = append(sharedInformers, c.informers.MultiClusterService)
 		sharedInformers = append(sharedInformers, c.informers.LoadDistributionPolicy)
 	}
 
@@ -276,6 +276,7 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 
 // GetLoadDistributionPolicy returns the load distribution policy identified by the key.
 func (c *Context) GetLoadDistributionPolicy(namespace string, ldpName string) (*appgwldp.LoadDistributionPolicy, error) {
+	fmt.Println("GETTING LDP")
 	ldp, exist, err := c.Caches.LoadDistributionPolicy.GetByKey(namespace + "/" + ldpName)
 	if !exist {
 		e := controllererrors.NewErrorf(
@@ -285,6 +286,7 @@ func (c *Context) GetLoadDistributionPolicy(namespace string, ldpName string) (*
 			ldpName)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
+		fmt.Println("FAILED TO GET LDP")
 		return nil, e
 	}
 
@@ -297,6 +299,7 @@ func (c *Context) GetLoadDistributionPolicy(namespace string, ldpName string) (*
 			ldpName)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
+		fmt.Println("FAILED TO GET LDP")
 		return nil, e
 	}
 
@@ -344,9 +347,9 @@ func (c *Context) GetProhibitedTarget(namespace string, targetName string) *proh
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
 	if IsInMultiClusterMode {
-		for _, globalServiceInterface := range c.Caches.GlobalService.List() {
-			globalService := globalServiceInterface.(*globalService.GlobalService)
-			service, exists := convert.FromGlobalService(globalService)
+		for _, multiClusterServiceInterface := range c.Caches.MultiClusterService.List() {
+			multiClusterService := multiClusterServiceInterface.(*multiClusterService.MultiClusterService)
+			service, exists := convert.FromMultiClusterService(multiClusterService)
 			if !exists {
 				continue
 			}
@@ -374,7 +377,7 @@ func (c *Context) ListServices() []*v1.Service {
 // GetEndpointsByService returns the endpoints associated with a specific service.
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
 	if IsInMultiClusterMode {
-		return c.generateEndpointsFromGlobalService(serviceKey)
+		return c.generateEndpointsFromMultiClusterService(serviceKey)
 	} else {
 		endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
@@ -402,13 +405,13 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 	}
 }
 
-func (c *Context) generateEndpointsFromGlobalService(serviceKey string) (*v1.Endpoints, error) {
-	globalServiceInterface, exist, err := c.Caches.GlobalService.GetByKey(serviceKey)
+func (c *Context) generateEndpointsFromMultiClusterService(serviceKey string) (*v1.Endpoints, error) {
+	multiClusterServiceInterface, exist, err := c.Caches.MultiClusterService.GetByKey(serviceKey)
 
 	if !exist {
 		e := controllererrors.NewErrorf(
-			controllererrors.ErrorFetchingGlobalService,
-			"Global service not found for %s",
+			controllererrors.ErrorFetchingMultiClusterService,
+			"MultiCluster service not found for %s",
 			serviceKey)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
@@ -417,25 +420,25 @@ func (c *Context) generateEndpointsFromGlobalService(serviceKey string) (*v1.End
 
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorFetchingGlobalService,
+			controllererrors.ErrorFetchingMultiClusterService,
 			err,
-			"Error fetching global service from store for %s",
+			"Error fetching MultiCluster service from store for %s",
 			serviceKey)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
 
-	globalService := globalServiceInterface.(*globalService.GlobalService)
+	multiClusterService := multiClusterServiceInterface.(*multiClusterService.MultiClusterService)
 	endpoints := &v1.Endpoints{}
 	subset := v1.EndpointSubset{}
 
-	for _, globalEndpoint := range globalService.Status.Endpoints {
+	for _, globalEndpoint := range multiClusterService.Status.Endpoints {
 		address := v1.EndpointAddress{IP: globalEndpoint.IP}
 		subset.Addresses = append(subset.Addresses, address)
 	}
 
-	for _, ports := range globalService.Spec.Ports {
+	for _, ports := range multiClusterService.Spec.Ports {
 		v1Port := v1.EndpointPort{Port: int32(ports.Port), Protocol: v1.Protocol(ports.Protocol)}
 		subset.Ports = append(subset.Ports, v1Port)
 	}
@@ -559,23 +562,23 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
 	if IsInMultiClusterMode {
-		serviceInterface, exist, err := c.Caches.GlobalService.GetByKey(serviceKey)
+		serviceInterface, exist, err := c.Caches.MultiClusterService.GetByKey(serviceKey)
 
 		if err != nil {
-			klog.V(3).Infof("unable to get global service from store, error occurred %s", err)
+			klog.V(3).Infof("unable to get multicluster service from store, error occurred %s", err)
 			return nil
 		}
 
 		if !exist {
-			klog.V(9).Infof("Global Service %s does not exist", serviceKey)
+			klog.V(9).Infof("MultiCluster Service %s does not exist", serviceKey)
 			return nil
 		}
 
-		globalService := serviceInterface.(*globalService.GlobalService)
-		service, exists := convert.FromGlobalService(globalService)
+		multiClusterService := serviceInterface.(*multiClusterService.MultiClusterService)
+		service, exists := convert.FromMultiClusterService(multiClusterService)
 
 		if !exists {
-			klog.V(3).Infof("unable to convert global service from store to service, error occurred %s", err)
+			klog.V(3).Infof("unable to convert multicluster service from store to service, error occurred %s", err)
 			return nil
 		}
 		return service

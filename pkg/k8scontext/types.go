@@ -25,7 +25,7 @@ type InformerCollection struct {
 	AzureApplicationGatewayBackendPool          cache.SharedInformer
 	AzureApplicationGatewayInstanceUpdateStatus cache.SharedInformer
 	LoadDistributionPolicy                      cache.SharedInformer
-	GlobalService                               cache.SharedInformer
+	MultiClusterService                         cache.SharedInformer
 	AzureMultiClusterIngress                    cache.SharedInformer
 	IstioGateway                                cache.SharedIndexInformer
 	IstioVirtualService                         cache.SharedIndexInformer
@@ -44,7 +44,7 @@ type CacheCollection struct {
 	LoadDistributionPolicy                      cache.Store
 	AzureApplicationGatewayBackendPool          cache.Store
 	AzureApplicationGatewayInstanceUpdateStatus cache.Store
-	GlobalService                               cache.Store
+	MultiClusterService                         cache.Store
 	AzureMultiClusterIngress                    cache.Store
 	IstioGateway                                cache.Store
 	IstioVirtualService                         cache.Store

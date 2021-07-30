@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -78,6 +79,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	//for every URLPath map...
 	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
+		fmt.Println("GETTING RULE FOR", *urlPathMap)
 		//get request routing rule name
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		//check if exists in httplisteners

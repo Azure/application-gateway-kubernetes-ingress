@@ -17,7 +17,11 @@ spec:
       - mci
   scope: Namespaced
   versions:
-    - name: v1alpha1
+    - additionalPrinterColumns:
+      - jsonPath: .status.loadBalancer.ingress[*].ip
+        name: IP
+        type: string
+      name: v1alpha1
       served: true
       storage: true
       schema:

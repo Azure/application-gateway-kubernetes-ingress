@@ -1,12 +1,12 @@
 package convert
 
 import (
-	azureglobalservice "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/globalservice/v1alpha1"
+	multiclusterservice "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusterservice/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func FromGlobalService(gs *azureglobalservice.GlobalService) (*v1.Service, bool) {
+func FromMultiClusterService(gs *multiclusterservice.MultiClusterService) (*v1.Service, bool) {
 	if gs == nil {
 		return nil, false
 	}
