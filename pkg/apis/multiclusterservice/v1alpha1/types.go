@@ -48,13 +48,13 @@ type MultiClusterServiceStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Endpoints represents a list of endpoint for the multi cluster service.
-	Endpoints []GlobalEndpoint `json:"endpoints,omitempty"`
-	VIP       string           `json:"vip,omitempty"`
-	State     string           `json:"state,omitempty"`
+	Endpoints []MultiClusterEndpoint `json:"endpoints,omitempty"`
+	VIP       string                 `json:"vip,omitempty"`
+	State     string                 `json:"state,omitempty"`
 }
 
-// GlobalEndpoint defines the endpoints for the multi cluster service.
-type GlobalEndpoint struct {
+// MultiClusterEndpoint defines the endpoints for the multi cluster service.
+type MultiClusterEndpoint struct {
 	Cluster   string   `json:"cluster,omitempty"`
 	Service   string   `json:"service,omitempty"`
 	IP        string   `json:"ip,omitempty"`

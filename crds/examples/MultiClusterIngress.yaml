@@ -5,13 +5,14 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/load-balancer
 spec:
-  rules:
-    - host: www.multi-cluster-app-with-failover.com
-      http:
-        paths:
-          - path: /
-            backend:
-              resource:
-                apiGroup: appgw.ingress.azure.io/v1alpha1
-                kind: LoadDistributionPolicy
-                name: multi-cluster-service-with-failover
+  template:
+    rules:
+      - host: www.multi-cluster-app-with-failover.com
+        http:
+          paths:
+            - path: /
+              backend:
+                resource:
+                  apiGroup: appgw.ingress.azure.io/v1alpha1
+                  kind: LoadDistributionPolicy
+                  name: multi-cluster-service-with-failover
