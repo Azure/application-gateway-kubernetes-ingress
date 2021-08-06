@@ -26,10 +26,14 @@ import (
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
+	multiClusterService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusterservice/v1alpha1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions"
+	multicluster_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned"
+	multicluster_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/informers/externalversions"
 	istio_versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	istio_externalversions "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/informers/externalversions"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -49,9 +53,10 @@ var namespacesToIgnore = map[string]interface{}{
 }
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, multiClusterCrdClient multicluster_versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
+	multiClusterCrdInformerFactory := multicluster_externalversions.NewSharedInformerFactory(multiClusterCrdClient, resyncPeriod)
 	istioCrdInformerFactory := istio_externalversions.NewSharedInformerFactoryWithOptions(istioCrdClient, resyncPeriod)
 
 	informerCollection := InformerCollection{
@@ -63,8 +68,10 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
 		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
-		IstioGateway:        istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
-		IstioVirtualService: istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
+		MultiClusterService:                         multiClusterCrdInformerFactory.Multiclusterservices().V1alpha1().MultiClusterServices().Informer(),
+		MultiClusterIngress:                         multiClusterCrdInformerFactory.Multiclusteringresses().V1alpha1().MultiClusterIngresses().Informer(),
+		IstioGateway:                                istioCrdInformerFactory.Networking().V1alpha3().Gateways().Informer(),
+		IstioVirtualService:                         istioCrdInformerFactory.Networking().V1alpha3().VirtualServices().Informer(),
 	}
 
 	if IsNetworkingV1PackageSupported {
@@ -82,14 +89,17 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		AzureIngressProhibitedTarget:       informerCollection.AzureIngressProhibitedTarget.GetStore(),
 		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
 		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
-		IstioGateway:        informerCollection.IstioGateway.GetStore(),
-		IstioVirtualService: informerCollection.IstioVirtualService.GetStore(),
+		MultiClusterService:                         informerCollection.MultiClusterService.GetStore(),
+		MultiClusterIngress:                         informerCollection.MultiClusterIngress.GetStore(),
+		IstioGateway:                                informerCollection.IstioGateway.GetStore(),
+		IstioVirtualService:                         informerCollection.IstioVirtualService.GetStore(),
 	}
 
 	context := &Context{
-		kubeClient:     kubeClient,
-		crdClient:      crdClient,
-		istioCrdClient: istioCrdClient,
+		kubeClient:            kubeClient,
+		crdClient:             crdClient,
+		multiClusterCrdClient: multiClusterCrdClient,
+		istioCrdClient:        istioCrdClient,
 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
@@ -135,6 +145,8 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
+	informerCollection.MultiClusterService.AddEventHandler(resourceHandler)
+	informerCollection.MultiClusterIngress.AddEventHandler(resourceHandler)
 
 	return context
 }
@@ -156,6 +168,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.AzureIngressProhibitedTarget: nil,
 		c.informers.IstioGateway:                 nil,
 		c.informers.IstioVirtualService:          nil,
+		c.informers.MultiClusterService:          nil,
+		c.informers.MultiClusterIngress:          nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
@@ -175,6 +189,13 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
 	if envVariables.EnableBrownfieldDeployment {
 		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
+	}
+
+	// For AGIC to watch for these CRDs the MultiClusterMode env variable must be set to true
+	if envVariables.MultiClusterMode {
+		sharedInformers = []cache.SharedInformer{} //only need to monitor 3 resources
+		sharedInformers = append(sharedInformers, c.informers.MultiClusterIngress)
+		sharedInformers = append(sharedInformers, c.informers.MultiClusterService)
 	}
 
 	if envVariables.EnableIstioIntegration {
@@ -286,13 +307,29 @@ func (c *Context) GetProhibitedTarget(namespace string, targetName string) *proh
 // ListServices returns a list of all the Services from cache.
 func (c *Context) ListServices() []*v1.Service {
 	var serviceList []*v1.Service
-	for _, serviceInterface := range c.Caches.Service.List() {
-		service := serviceInterface.(*v1.Service)
-		if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
-			continue
+	if IsInMultiClusterMode {
+		for _, multiClusterServiceInterface := range c.Caches.MultiClusterService.List() {
+			multiClusterService := multiClusterServiceInterface.(*multiClusterService.MultiClusterService)
+			service, exists := convert.FromMultiClusterService(multiClusterService)
+			if !exists {
+				continue
+			}
+			if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			if hasTCPPort(service) {
+				serviceList = append(serviceList, service)
+			}
 		}
-		if hasTCPPort(service) {
-			serviceList = append(serviceList, service)
+	} else {
+		for _, serviceInterface := range c.Caches.Service.List() {
+			service := serviceInterface.(*v1.Service)
+			if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			if hasTCPPort(service) {
+				serviceList = append(serviceList, service)
+			}
 		}
 	}
 	return serviceList
@@ -300,6 +337,9 @@ func (c *Context) ListServices() []*v1.Service {
 
 // GetEndpointsByService returns the endpoints associated with a specific service.
 func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error) {
+	if IsInMultiClusterMode {
+		return c.generateEndpointsFromMultiClusterService(serviceKey)
+	}
 	endpointsInterface, exist, err := c.Caches.Endpoints.GetByKey(serviceKey)
 
 	if !exist {
@@ -322,8 +362,50 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
 	}
-
 	return endpointsInterface.(*v1.Endpoints), nil
+
+}
+
+func (c *Context) generateEndpointsFromMultiClusterService(serviceKey string) (*v1.Endpoints, error) {
+	multiClusterServiceInterface, exist, err := c.Caches.MultiClusterService.GetByKey(serviceKey)
+
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingMultiClusterService,
+			"MultiCluster service not found for %s",
+			serviceKey)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingMultiClusterService,
+			err,
+			"Error fetching MultiCluster service from store for %s",
+			serviceKey)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	multiClusterService := multiClusterServiceInterface.(*multiClusterService.MultiClusterService)
+	endpoints := &v1.Endpoints{}
+	subset := v1.EndpointSubset{}
+
+	for _, globalEndpoint := range multiClusterService.Status.Endpoints {
+		address := v1.EndpointAddress{IP: globalEndpoint.IP}
+		subset.Addresses = append(subset.Addresses, address)
+	}
+
+	for _, ports := range multiClusterService.Spec.Ports {
+		v1Port := v1.EndpointPort{Port: int32(ports.Port), Protocol: v1.Protocol(ports.Protocol)}
+		subset.Ports = append(subset.Ports, v1Port)
+	}
+
+	endpoints.Subsets = []v1.EndpointSubset{subset}
+	return endpoints, nil
 }
 
 // ListPodsByServiceSelector returns pods that are associated with a specific service.
@@ -374,12 +456,27 @@ func (c *Context) IsEndpointReferencedByAnyIngress(endpoints *v1.Endpoints) bool
 // ListHTTPIngresses returns a list of all the ingresses for HTTP from cache.
 func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 	var ingressList []*networking.Ingress
-	for _, ingressInterface := range c.Caches.Ingress.List() {
-		ingress, _ := convert.ToIngressV1(ingressInterface)
-		if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
-			continue
+	if IsInMultiClusterMode {
+		klog.V(9).Infof("Fetching MultiCluster Ingresses")
+		for _, mciInterface := range c.Caches.MultiClusterIngress.List() {
+			mci := mciInterface.(*multiClusterIngress.MultiClusterIngress)
+			ingress, exists := convert.FromMultiClusterIngress(mci)
+			if !exists {
+				continue
+			}
+			if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			ingressList = append(ingressList, ingress)
 		}
-		ingressList = append(ingressList, ingress)
+	} else {
+		for _, ingressInterface := range c.Caches.Ingress.List() {
+			ingress, _ := convert.ToIngressV1(ingressInterface)
+			if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
+				continue
+			}
+			ingressList = append(ingressList, ingress)
+		}
 	}
 	return filterAndSort(ingressList)
 }
@@ -425,6 +522,28 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 
 // GetService returns the service identified by the key.
 func (c *Context) GetService(serviceKey string) *v1.Service {
+	if IsInMultiClusterMode {
+		serviceInterface, exist, err := c.Caches.MultiClusterService.GetByKey(serviceKey)
+
+		if err != nil {
+			klog.V(3).Infof("unable to get multicluster service from store, error occurred %s", err)
+			return nil
+		}
+
+		if !exist {
+			klog.V(9).Infof("MultiCluster Service %s does not exist", serviceKey)
+			return nil
+		}
+
+		multiClusterService := serviceInterface.(*multiClusterService.MultiClusterService)
+		service, exists := convert.FromMultiClusterService(multiClusterService)
+
+		if !exists {
+			klog.V(3).Infof("unable to convert multicluster service from store to service, error occurred %s", err)
+			return nil
+		}
+		return service
+	}
 	serviceInterface, exist, err := c.Caches.Service.GetByKey(serviceKey)
 
 	if err != nil {
@@ -439,6 +558,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 
 	service := serviceInterface.(*v1.Service)
 	return service
+
 }
 
 // GetSecret returns the secret identified by the key
@@ -547,84 +667,137 @@ func (c *Context) GetInfrastructureResourceGroupID() (azure.SubscriptionID, azur
 
 // UpdateIngressStatus adds IP address in Ingress Status
 func (c *Context) UpdateIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
-	if IsNetworkingV1PackageSupported {
-		ingressClient := c.kubeClient.NetworkingV1().Ingresses(ingressToUpdate.Namespace)
-		ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
-		if err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
-
-		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-			existingIP := lbi.IP
-			if existingIP == string(newIP) {
-				klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-				return nil
-			}
-		}
-
-		loadBalancerIngresses := []v1.LoadBalancerIngress{}
-		if newIP != "" {
-			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-				IP: string(newIP),
-			})
-		}
-		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
-
-		if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
+	if IsNetworkingV1PackageSupported && !IsInMultiClusterMode {
+		return c.updateV1IngressStatus(ingressToUpdate, newIP)
+	} else if IsInMultiClusterMode {
+		return c.updateMultiClusterIngressStatus(ingressToUpdate, newIP)
 	} else {
-		ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
-		ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
-		if err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
-		}
+		return c.updateV1beta1IngressStatus(ingressToUpdate, newIP)
+	}
 
-		for _, lbi := range ingress.Status.LoadBalancer.Ingress {
-			existingIP := lbi.IP
-			if existingIP == string(newIP) {
-				klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
-				return nil
-			}
-		}
+}
 
-		loadBalancerIngresses := []v1.LoadBalancerIngress{}
-		if newIP != "" {
-			loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
-				IP: string(newIP),
-			})
-		}
-		ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+func (c *Context) updateV1IngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.kubeClient.NetworkingV1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
 
-		if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
-			e := controllererrors.NewErrorWithInnerErrorf(
-				controllererrors.ErrorUpdatingIngressStatus,
-				err,
-				"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
-			)
-			c.MetricStore.IncErrorCount(e.Code)
-			return e
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
 		}
 	}
 
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	return nil
+}
+
+func (c *Context) updateV1beta1IngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.kubeClient.ExtensionsV1beta1().Ingresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
+		}
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+	return nil
+}
+
+func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ingress, newIP IPAddress) error {
+	ingressClient := c.multiClusterCrdClient.MulticlusteringressesV1alpha1().MultiClusterIngresses(ingressToUpdate.Namespace)
+	ingress, err := ingressClient.Get(context.TODO(), ingressToUpdate.Name, metav1.GetOptions{})
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to get ingress %s/%s", ingressToUpdate.Namespace, ingressToUpdate.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
+
+	for _, lbi := range ingress.Status.LoadBalancer.Ingress {
+		existingIP := lbi.IP
+		if existingIP == string(newIP) {
+			klog.Infof("IP %s already set on Ingress %s/%s", lbi.IP, ingress.Namespace, ingress.Name)
+			return nil
+		}
+	}
+
+	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	if newIP != "" {
+		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+			IP: string(newIP),
+		})
+	}
+	ingress.Status.LoadBalancer.Ingress = loadBalancerIngresses
+
+	if _, err := ingressClient.UpdateStatus(context.TODO(), ingress, metav1.UpdateOptions{}); err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorUpdatingIngressStatus,
+			err,
+			"Unable to update ingress %s/%s status", ingress.Namespace, ingress.Name,
+		)
+		c.MetricStore.IncErrorCount(e.Code)
+		return e
+	}
 	return nil
 }
 

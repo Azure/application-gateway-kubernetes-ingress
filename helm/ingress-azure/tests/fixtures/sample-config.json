@@ -16,6 +16,7 @@
         "enabled": false
     },
     "kubernetes": {
+        "multiClusterMode": false,
         "watchNamespace": "a,b,c",
         "securityContext": {
             "runAsUser": 3000,
