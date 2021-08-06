@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/go-autorest/autorest/to"
 	n "github.com/akshaysngupta/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
+	"k8s.io/klog/v2"
 )
 
 func (c *appGwConfigBuilder) LoadDistributionPolicy(cbCtx *ConfigBuilderContext) error {
@@ -34,13 +35,18 @@ func (c appGwConfigBuilder) getLoadDistributionPolicies(cbCtx *ConfigBuilderCont
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		if backendID.isLDPBackend() {
 			ldpName := backendID.Backend.Resource.Name
+			//dont process if already in map
+			if _, exists := appGwLoadDistributionPoliciesMap[ldpName]; exists {
+				continue
+			}
 			ldp, err := c.k8sContext.GetLoadDistributionPolicy(backendID.Namespace, backendID.Backend.Resource.Name)
 			if err != nil {
+				klog.Error("Unable to fetch Load Distribution Policy", err)
 				continue
 			}
 			//NEED TO ADD NS
 			ldpResourceName := generateLoadDistributionName(backendID.Namespace, ldpName)
-			ldpResourceID := c.appGwIdentifier.LoadDistributionPolicyID(ldpResourceName)
+			ldpResourceID := c.appGwIdentifier.loadDistributionPolicyID(ldpResourceName)
 			targets := c.getTargets(backendID, ldp)
 			appGWLdp := n.ApplicationGatewayLoadDistributionPolicy{
 				Name: &ldpResourceName,
@@ -70,6 +76,7 @@ func (c appGwConfigBuilder) getTargets(backendID backendIdentifier, k8sLDP *v1.L
 	var appGWTargets []n.ApplicationGatewayLoadDistributionTarget
 	serviceBackendPortMap := *c.mem.serviceBackendPairsByBackend
 	serviceBackendPortPair := serviceBackendPortMap[backendID]
+	targetMap := make(map[string]n.ApplicationGatewayLoadDistributionTarget)
 	for targetIdx, target := range k8sLDP.Spec.Targets {
 		weight := int32(target.Weight)
 		//appgw does not support weights less than 1, so we exclude it.
@@ -90,7 +97,11 @@ func (c appGwConfigBuilder) getTargets(backendID backendIdentifier, k8sLDP *v1.L
 				},
 			},
 		}
-		appGWTargets = append(appGWTargets, newTarget)
+		targetMap[targetName] = newTarget
+	}
+	//transform map into list
+	for _, target := range targetMap {
+		appGWTargets = append(appGWTargets, target)
 	}
 	return appGWTargets
 }

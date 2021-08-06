@@ -299,7 +299,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	if defBackend != nil {
 		// has default backend
 		defaultBackendService := defBackend.Service
-		if defBackend.Resource != nil && defBackend.Resource.Kind == "LoadDistributionPolicy" {
+		if defBackend.Resource != nil && defBackend.Resource.Kind == LoadDistributionPolicy {
 			ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, defBackend.Resource.Name)
 			if err != nil {
 				return nil, nil, nil, nil
@@ -313,7 +313,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
 			if defaultBackendID.isLDPBackend() {
 				ldpName := generateLoadDistributionName(defaultBackendID.Namespace, defaultBackendID.Backend.Resource.Name)
-				defaultLdpResourceID := c.appGwIdentifier.LoadDistributionPolicyID(ldpName)
+				defaultLdpResourceID := c.appGwIdentifier.loadDistributionPolicyID(ldpName)
 				return nil, to.StringPtr(defaultLdpResourceID), settID, nil
 			}
 
@@ -376,7 +376,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		}
 
 		backendService := networking.IngressServiceBackend{}
-		if path.Backend.Resource != nil && path.Backend.Resource.Kind == "LoadDistributionPolicy" {
+		if path.Backend.Resource != nil && path.Backend.Resource.Kind == LoadDistributionPolicy {
 			ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
 			if err != nil {
 				continue
@@ -395,7 +395,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 		klog.V(5).Infof("Attaching targets to pool %s", *backendPool.Name)
 		if backendID.isLDPBackend() {
 			loadDistributionPolicyName := generateLoadDistributionName(backendID.Namespace, backendID.Backend.Resource.Name)
-			loadDistributionPolicyResourceID := c.appGwIdentifier.LoadDistributionPolicyID(loadDistributionPolicyName)
+			loadDistributionPolicyResourceID := c.appGwIdentifier.loadDistributionPolicyID(loadDistributionPolicyName)
 			pathRule.LoadDistributionPolicy = &n.SubResource{ID: to.StringPtr(loadDistributionPolicyResourceID)}
 			pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
 			pathRule.BackendAddressPool = nil

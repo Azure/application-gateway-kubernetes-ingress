@@ -91,18 +91,7 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		backendPoolMap[backendID] = &defaultPool
 		if backendID.isLDPBackend() {
-			ldpName := backendID.Backend.Resource.Name
-			ldp, err := c.k8sContext.GetLoadDistributionPolicy(backendID.Namespace, ldpName)
-			if err != nil { //skip if we cannot get LDP
-				continue
-			}
-			for _, target := range ldp.Spec.Targets {
-				serviceID := secretIdentifier{
-					Namespace: backendID.Namespace,
-					Name:      target.Backend.Service.Name,
-				}
-				c.getBackendAddressPool(backendID, serviceIdentifier(serviceID), serviceBackendPair, addressPools)
-			}
+			continue
 		} else if pool := c.getBackendAddressPool(backendID, backendID.serviceIdentifier, serviceBackendPair, addressPools); pool != nil {
 			backendPoolMap[backendID] = pool
 		}

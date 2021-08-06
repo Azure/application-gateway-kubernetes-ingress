@@ -43,6 +43,7 @@ import (
 
 const providerPrefix = "azure://"
 const workBuffer = 1024
+const LoadDistributionPolicy = "LoadDistributionPolicy"
 
 var namespacesToIgnore = map[string]interface{}{
 	"kube-system": nil,
@@ -720,7 +721,7 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 					return true
 				}
 
-				if path.Backend.Resource != nil && path.Backend.Resource.Kind == "LoadDistributionPolicy" {
+				if path.Backend.Resource != nil && path.Backend.Resource.Kind == LoadDistributionPolicy {
 					ldp, err := c.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
 					if err != nil {
 						continue

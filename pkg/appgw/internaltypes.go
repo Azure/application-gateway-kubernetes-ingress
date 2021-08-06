@@ -77,6 +77,8 @@ type secretIdentifier struct {
 	Name      string
 }
 
+const LoadDistributionPolicy = "LoadDistributionPolicy"
+
 // Max length for a property name is 80 characters. We hash w/ MD5 when length is > 80, which is 32 characters
 var agPrefixValidator = regexp.MustCompile(`^[0-9a-zA-Z\-]{0,47}$`)
 var agPrefix = environment.GetEnvironmentVariable("APPGW_CONFIG_NAME_PREFIX", "", agPrefixValidator)
@@ -109,7 +111,7 @@ func (s serviceIdentifier) serviceFullName() string {
 }
 
 func (be backendIdentifier) isLDPBackend() bool {
-	if be.Backend.Resource != nil && be.Backend.Resource.Kind == "LoadDistributionPolicy" {
+	if be.Backend.Resource != nil && be.Backend.Resource.Kind == LoadDistributionPolicy {
 		return true
 	}
 	return false

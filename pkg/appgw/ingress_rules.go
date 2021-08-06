@@ -137,7 +137,7 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.DefaultBackend != nil {
-			if ingress.Spec.DefaultBackend.Resource != nil && ingress.Spec.DefaultBackend.Resource.Name == "LoadDistributionPolicy" {
+			if ingress.Spec.DefaultBackend.Resource != nil && ingress.Spec.DefaultBackend.Resource.Name == LoadDistributionPolicy {
 				ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, ingress.Spec.DefaultBackend.Resource.Name)
 				if err != nil {
 					continue
@@ -162,7 +162,7 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
-				if path.Backend.Resource != nil && path.Backend.Resource.Kind == "LoadDistributionPolicy" {
+				if path.Backend.Resource != nil && path.Backend.Resource.Kind == LoadDistributionPolicy {
 					ldp, err := c.k8sContext.GetLoadDistributionPolicy(ingress.Namespace, path.Backend.Resource.Name)
 					if err != nil {
 						continue
