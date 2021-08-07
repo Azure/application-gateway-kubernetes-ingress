@@ -24,7 +24,7 @@ kubernetes:
   # Port for AGIC's HTTP API endpoint
   httpServicePort: 8123
 
-  #Enables monitoring of MultiClusterIngress instead of Ingress resources
+  # Enables monitoring of MultiClusterIngress instead of Ingress resources
   multiClusterMode: false
 
   # Specify the scheduling options

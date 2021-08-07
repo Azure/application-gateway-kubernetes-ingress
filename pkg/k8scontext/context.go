@@ -312,6 +312,7 @@ func (c *Context) ListServices() []*v1.Service {
 			multiClusterService := multiClusterServiceInterface.(*multiClusterService.MultiClusterService)
 			service, exists := convert.FromMultiClusterService(multiClusterService)
 			if !exists {
+				klog.Error("Unable to convert MultiClusterService to Service")
 				continue
 			}
 			if _, exists := c.namespaces[service.Namespace]; len(c.namespaces) > 0 && !exists {
@@ -344,7 +345,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 
 	if !exist {
 		e := controllererrors.NewErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
+			controllererrors.ErrorFetchingEndpoints,
 			"Endpoint not found for %s",
 			serviceKey)
 		klog.Error(e.Error())
@@ -354,7 +355,7 @@ func (c *Context) GetEndpointsByService(serviceKey string) (*v1.Endpoints, error
 
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
-			controllererrors.ErrorFetchingEnpdoints,
+			controllererrors.ErrorFetchingEndpoints,
 			err,
 			"Error fetching endpoints from store for %s",
 			serviceKey)
@@ -394,8 +395,8 @@ func (c *Context) generateEndpointsFromMultiClusterService(serviceKey string) (*
 	endpoints := &v1.Endpoints{}
 	subset := v1.EndpointSubset{}
 
-	for _, globalEndpoint := range multiClusterService.Status.Endpoints {
-		address := v1.EndpointAddress{IP: globalEndpoint.IP}
+	for _, multiClusterEndpoint := range multiClusterService.Status.Endpoints {
+		address := v1.EndpointAddress{IP: multiClusterEndpoint.IP}
 		subset.Addresses = append(subset.Addresses, address)
 	}
 
@@ -462,6 +463,7 @@ func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 			mci := mciInterface.(*multiClusterIngress.MultiClusterIngress)
 			ingress, exists := convert.FromMultiClusterIngress(mci)
 			if !exists {
+				klog.Error("Unable to convert MultiClusterIngress to Ingress")
 				continue
 			}
 			if _, exists := c.namespaces[ingress.Namespace]; len(c.namespaces) > 0 && !exists {
@@ -539,7 +541,7 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 		service, exists := convert.FromMultiClusterService(multiClusterService)
 
 		if !exists {
-			klog.V(3).Infof("unable to convert multicluster service from store to service, error occurred %s", err)
+			klog.V(3).Infof("unable to convert multicluster service from store to service")
 			return nil
 		}
 		return service
@@ -558,7 +560,6 @@ func (c *Context) GetService(serviceKey string) *v1.Service {
 
 	service := serviceInterface.(*v1.Service)
 	return service
-
 }
 
 // GetSecret returns the secret identified by the key

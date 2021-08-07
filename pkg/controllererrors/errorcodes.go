@@ -30,7 +30,7 @@ const (
 
 	// k8sContext package
 	ErrorEnpdointsNotFound              ErrorCode = "ErrorEnpdointsNotFound"
-	ErrorFetchingEnpdoints              ErrorCode = "ErrorFetchingEndpoints"
+	ErrorFetchingEndpoints              ErrorCode = "ErrorFetchingEndpoints"
 	ErrorFetchingMultiClusterService    ErrorCode = "ErrorFetchingMultiClusterService"
 	ErrorFetchingBackendAddressPool     ErrorCode = "ErrorFetchingBackendAddressPool"
 	ErrorFetchingInstanceUpdateStatus   ErrorCode = "ErrorFetchingInstanceUpdateStatus"
