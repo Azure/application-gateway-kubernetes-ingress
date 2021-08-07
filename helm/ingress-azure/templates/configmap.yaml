@@ -19,6 +19,7 @@ metadata:
     release: {{ .Release.Name }}
 data:
   APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel | quote }}
+  MULTI_CLUSTER_MODE: {{ .Values.kubernetes.multiClusterMode | quote }}
   HTTP_SERVICE_PORT:     {{ .Values.kubernetes.httpServicePort | quote }}
 {{- if .Values.appgw.usePrivateIP }}
   USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}

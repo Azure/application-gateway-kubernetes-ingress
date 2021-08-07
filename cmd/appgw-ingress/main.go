@@ -28,6 +28,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	multicluster "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned"
 	istio "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -94,13 +95,15 @@ func main() {
 	apiConfig := getKubeClientConfig()
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	k8scontext.IsNetworkingV1PackageSupported = k8scontext.SupportsNetworkingPackage(kubeClient)
+	k8scontext.IsInMultiClusterMode = env.MultiClusterMode
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
+	multiClusterCrdClient := multicluster.NewForConfigOrDie(apiConfig)
 	recorder := getEventRecorder(kubeClient)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	metricStore := metricstore.NewMetricStore(env)
 	metricStore.Start()
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, multiClusterCrdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
 	agicPod := k8sContext.GetAGICPod(env)
 
 	if err := environment.ValidateEnv(env); err != nil {

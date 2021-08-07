@@ -21,6 +21,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
@@ -80,6 +81,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		k8sClient = testclient.NewSimpleClientset()
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istioFake.NewSimpleClientset()
+		multiClusterCrdClient := multiClusterFake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
@@ -90,7 +92,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 		// Create a `k8scontext` to start listening to ingress resources.
 		IsNetworkingV1PackageSupported = true
-		ctxt = NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})

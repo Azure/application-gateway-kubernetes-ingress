@@ -24,6 +24,9 @@ kubernetes:
   # Port for AGIC's HTTP API endpoint
   httpServicePort: 8123
 
+  # Enables monitoring of MultiClusterIngress instead of Ingress resources
+  multiClusterMode: false
+
   # Specify the scheduling options
   nodeSelector: {}
     # disktype: dentro
@@ -32,7 +35,7 @@ kubernetes:
 
   securityContext:
     runAsUser: 0
-  
+
   # Add pod level annotations
   podAnnotations: {}
 
@@ -83,7 +86,7 @@ appgw: {}
 ################################################################################
 # (Legacy: use `kubernetes.nodeSelector` instead) Specify the scheduling options
 nodeSelector: {}
-    
+
 ################################################################################
 # Specify if the cluster is RBAC enabled or not
 rbac:
