@@ -100,6 +100,27 @@ In the example above we have defined an ingress resource named `go-server-ingres
 
 ***NOTE:*** In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths specified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.
 
+If your incoming path is /hello/test/health but your backend requires /health you will want to ensure you have /* on your path
+
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/test/*
+        backend:
+          serviceName: go-server-service
+    
+
 ## Backend Hostname
 
 This annotations allows us to specify the host name that Application Gateway should use while talking to the Pods.
