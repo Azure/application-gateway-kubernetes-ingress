@@ -1,0 +1,9 @@
+---
+# Source: ingress-azure/templates/crds.yaml
+apiVersion: appgw.ingress.k8s.io/v1
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibit-backend-ns
+spec:
+  paths:
+  - /blacklist/*
