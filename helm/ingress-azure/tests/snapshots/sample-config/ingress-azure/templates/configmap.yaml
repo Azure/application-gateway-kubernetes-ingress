@@ -6,7 +6,7 @@ metadata:
   name: RELEASE-NAME-cm-ingress-azure
   labels:
     app: ingress-azure
-    chart: ingress-azure-1.2.1
+    chart: ingress-azure-1.4.0
     heritage: Helm
     release: RELEASE-NAME
 data:
