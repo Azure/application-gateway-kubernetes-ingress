@@ -40,7 +40,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /aspnet
+      - path: /
         pathType: Prefix
         backend:
           service:
