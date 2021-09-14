@@ -1,9 +1,10 @@
 # This shows a setup for Blue/Green deployment
 ---
 apiVersion: appgw.ingress.azure.io/v1beta1
-kind: AzureApplicationGatewayLoadDistribitionPolicy
+kind: LoadDistributionPolicy
 metadata:
   name: load-distribution-policy-blue-green
+spec:
   targets:
     - backend:
         service:
