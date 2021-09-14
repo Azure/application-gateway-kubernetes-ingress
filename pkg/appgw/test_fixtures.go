@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
@@ -51,7 +51,7 @@ func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	return &n.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
 		Sku: &n.ApplicationGatewaySku{
-			Name:     n.StandardV2,
+			Name:     n.ApplicationGatewaySkuNameStandardV2,
 			Tier:     n.ApplicationGatewayTierStandardV2,
 			Capacity: to.Int32Ptr(3),
 		},

@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"k8s.io/klog/v2"
 )
@@ -34,7 +34,7 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 					FrontendPort: Port(server.Port.Number),
 					HostNames:    [5]string{host},
 				}
-				allListeners[listenerID] = listenerAzConfig{Protocol: n.HTTP}
+				allListeners[listenerID] = listenerAzConfig{Protocol: n.ApplicationGatewayProtocolHTTP}
 			}
 		}
 	}
@@ -44,7 +44,7 @@ func (c *appGwConfigBuilder) getListenerConfigsFromIstio(istioGateways []*v1alph
 		// TODO(aksgupta): refactor to get environment variable
 		allListeners[defaultFrontendListenerIdentifier(false)] = listenerAzConfig{
 			// Default protocol
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 		}
 	}
 

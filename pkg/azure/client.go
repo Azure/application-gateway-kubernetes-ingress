@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"k8s.io/klog/v2"

@@ -8,7 +8,7 @@ package brownfield
 import (
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"k8s.io/klog/v2"
 )
 

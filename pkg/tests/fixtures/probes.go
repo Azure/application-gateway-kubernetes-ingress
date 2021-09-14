@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -42,7 +42,7 @@ func GetApplicationGatewayProbe(host *string, path *string) n.ApplicationGateway
 
 	return n.ApplicationGatewayProbe{
 		ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-			Protocol: n.HTTPS,
+			Protocol: n.ApplicationGatewayProtocolHTTPS,
 			Host:     host,
 			Path:     path,
 		},

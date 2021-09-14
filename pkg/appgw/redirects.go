@@ -8,7 +8,7 @@ package appgw
 import (
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/klog/v2"
 
@@ -33,7 +33,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 			continue
 		}
 
-		isHTTPS := listenerConfig.Protocol == n.HTTPS
+		isHTTPS := listenerConfig.Protocol == n.ApplicationGatewayProtocolHTTPS
 		// What if multiple namespaces have a redirect configured?
 		hasSslRedirect := listenerConfig.SslRedirectConfigurationName != ""
 
@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) getRedirectConfigurations(cbCtx *ConfigBuilderConte
 func (c *appGwConfigBuilder) newSSLRedirectConfig(listenerConfig listenerAzConfig, targetListener *n.SubResource) n.ApplicationGatewayRedirectConfiguration {
 	props := n.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 		// RedirectType could be one of: 301/Permanent, 302/Found, 303/See Other, 307/Temporary
-		RedirectType: n.Permanent,
+		RedirectType: n.ApplicationGatewayRedirectTypePermanent,
 
 		// To what listener we are redirecting.
 		TargetListener: targetListener,

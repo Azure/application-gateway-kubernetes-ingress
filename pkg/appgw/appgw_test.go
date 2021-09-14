@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -213,7 +213,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &probeName,
 			ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -230,7 +230,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(len(probes)).To(Equal(3))
 
 		// Test the default health probe.
-		Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.HTTP)))
+		Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress health probe that we installed.
 		Expect(probes).To(ContainElement(*probe))
 	}
@@ -244,19 +244,19 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name: &httpSettingsName,
 			ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Protocol:                       n.HTTP,
+				Protocol:                       n.ApplicationGatewayProtocolHTTP,
 				Port:                           to.Int32Ptr(int32(backendPort)),
 				Path:                           nil,
 				HostName:                       nil,
 				Probe:                          resourceRef(probeID),
 				PickHostNameFromBackendAddress: to.BoolPtr(false),
-				CookieBasedAffinity:            n.Disabled,
+				CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 				RequestTimeout:                 to.Int32Ptr(30),
 			},
 		}
 
 		// Test the default backend HTTP settings.
-		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)))
+		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress backend HTTP setting that we installed.
 		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(*httpSettings))
 	}
@@ -292,7 +292,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration:     resourceRef("--front-end-ip-id-1--"),
 				FrontendPort:                resourceRef(frontendPortID),
-				Protocol:                    n.HTTP,
+				Protocol:                    n.ApplicationGatewayProtocolHTTP,
 				HostNames:                   &[]string{domainName},
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
@@ -304,7 +304,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
 		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
 		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerID)))
-		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.PathBasedRouting))
+		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting))
 	}
 
 	defaultRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
@@ -531,7 +531,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressList := testIngress()
 
 			EmptyHealthProbeChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
-				Expect((*appGW.Probes)[0]).To(Equal(defaultProbe(appGwIdentifier, n.HTTP)))
+				Expect((*appGW.Probes)[0]).To(Equal(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 			}
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
@@ -542,18 +542,18 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &httpSettingsName,
 					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol:                       n.HTTP,
+						Protocol:                       n.ApplicationGatewayProtocolHTTP,
 						Port:                           to.Int32Ptr(int32(servicePort)),
 						Path:                           nil,
-						Probe:                          resourceRef(appGwIdentifier.probeID(defaultProbeName(n.HTTP))),
+						Probe:                          resourceRef(appGwIdentifier.probeID(defaultProbeName(n.ApplicationGatewayProtocolHTTP))),
 						PickHostNameFromBackendAddress: to.BoolPtr(false),
-						CookieBasedAffinity:            n.Disabled,
+						CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 						RequestTimeout:                 to.Int32Ptr(30),
 					},
 				}
 
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)))
+				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(*httpSettings))
 			}
@@ -669,7 +669,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						FrontendIPConfiguration: resourceRef("--front-end-ip-id-1--"),
 						FrontendPort:            resourceRef(frontendPortID),
 						SslCertificate:          resourceRef(sslCert),
-						Protocol:                n.HTTPS,
+						Protocol:                n.ApplicationGatewayProtocolHTTPS,
 
 						// RequireServerNameIndication is not used in Application Gateway v2
 						RequireServerNameIndication: to.BoolPtr(false),
@@ -779,12 +779,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &httpSettingsName,
 					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol:            n.HTTP,
+						Protocol:            n.ApplicationGatewayProtocolHTTP,
 						Port:                to.Int32Ptr(int32(backendPort)),
 						Path:                to.StringPtr("/test"),
 						Probe:               resourceRef(probeID),
 						HostName:            to.StringPtr("www.backend.com"),
-						CookieBasedAffinity: n.Enabled,
+						CookieBasedAffinity: n.ApplicationGatewayCookieBasedAffinityEnabled,
 						ConnectionDraining: &n.ApplicationGatewayConnectionDraining{
 							Enabled:           to.BoolPtr(true),
 							DrainTimeoutInSec: to.Int32Ptr(10),
@@ -796,7 +796,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 				backendSettings := *appGW.BackendHTTPSettingsCollection
 
-				defaultHTTPSettings := defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)
+				defaultHTTPSettings := defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
 
 				Expect(len(backendSettings)).To(Equal(2))
 				// Test the default backend HTTP settings.
@@ -812,7 +812,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &probeName,
 					ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
 					ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-						Protocol:                            n.HTTP,
+						Protocol:                            n.ApplicationGatewayProtocolHTTP,
 						Host:                                to.StringPtr("www.backend.com"),
 						Path:                                to.StringPtr("/test"),
 						Interval:                            to.Int32Ptr(30),
@@ -828,7 +828,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(len(probes)).To(Equal(3))
 
 				// Test the default health probe.
-				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.HTTP)))
+				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress health probe that we installed.
 				Expect(probes).To(ContainElement(*probe))
 			}
