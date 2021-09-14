@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
@@ -211,7 +211,7 @@ func generateBackendID(ingress *networking.Ingress, rule *networking.IngressRule
 
 func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRule, protocol n.ApplicationGatewayProtocol, overridePort *Port, usePrivateIP bool) listenerIdentifier {
 	frontendPort := Port(80)
-	if protocol == n.HTTPS {
+	if protocol == n.ApplicationGatewayProtocolHTTPS {
 		frontendPort = Port(443)
 	}
 	if overridePort != nil {

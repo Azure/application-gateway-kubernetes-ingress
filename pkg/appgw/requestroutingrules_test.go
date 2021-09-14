@@ -8,7 +8,7 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -82,7 +82,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool", func() {
 			Expect(generatedPathMap.DefaultBackendAddressPool).To(Not(BeNil()))
@@ -162,7 +162,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		backendIDBasic := generateBackendID(ingressBasic, &ruleBasic, pathBasic, backendBasic)
 		It("has default backend pool coming from basic ingress", func() {
@@ -231,7 +231,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMap := configBuilder.getPathMaps(cbCtx)
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})
@@ -274,26 +274,26 @@ var _ = Describe("Test routing rules generations", func() {
 		rule := &ingress.Spec.Rules[0]
 
 		It("frontend port is default to 80", func() {
-			listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
 		It("frontend port is default to 80 when no annotation", func() {
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
-			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
 		It("frontend port is default to 443 when https", func() {
-			listenerID := generateListenerID(ingress, rule, n.HTTPS, nil, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
 		It("frontend port is default to 443 when https with no annotation", func() {
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
-			listenerID := generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPort, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTPS, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(443)))
 		})
 
@@ -301,7 +301,7 @@ var _ = Describe("Test routing rules generations", func() {
 			ingress.Annotations[annotations.OverrideFrontendPortKey] = "777"
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
-			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(777)))
 		})
 
@@ -309,7 +309,7 @@ var _ = Describe("Test routing rules generations", func() {
 			ingress.Annotations[annotations.OverrideFrontendPortKey] = "65000"
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
-			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 
@@ -317,7 +317,7 @@ var _ = Describe("Test routing rules generations", func() {
 			ingress.Annotations[annotations.OverrideFrontendPortKey] = "0"
 			overrideFrontendPortFromAnnotation, _ := annotations.OverrideFrontendPort(ingress)
 			overrideFrontendPort := Port(overrideFrontendPortFromAnnotation)
-			listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPort, false)
+			listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, &overrideFrontendPort, false)
 			Expect(listenerID.FrontendPort).To(Equal(Port(80)))
 		})
 	})
@@ -356,7 +356,7 @@ var _ = Describe("Test routing rules generations", func() {
 		pathMap := configBuilder.getPathMaps(cbCtx)
 
 		rule := &ingress.Spec.Rules[0]
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 		It("has waf policy in pathRule", func() {
 			prs := pathMap[listenerID].ApplicationGatewayURLPathMapPropertiesFormat
 			for _, r := range *prs.PathRules {
@@ -393,7 +393,7 @@ var _ = Describe("Test routing rules generations", func() {
 		pathMap := configBuilder.getPathMaps(cbCtx)
 
 		rule := &ingress.Spec.Rules[0]
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 		It("has no waf policy in pathRule", func() {
 			prs := pathMap[listenerID].ApplicationGatewayURLPathMapPropertiesFormat
 			Expect(prs.PathRules).To(BeNil())
@@ -433,7 +433,7 @@ var _ = Describe("Test routing rules generations", func() {
 		pathMap := configBuilder.getPathMaps(cbCtx)
 
 		rule := &ingress.Spec.Rules[0]
-		listenerID := generateListenerID(ingress, rule, n.HTTP, nil, false)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 		It("has no default backend pool", func() {
 			Expect(pathMap[listenerID].DefaultBackendAddressPool).To(BeNil())
 		})
@@ -579,7 +579,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool coming from path-based ingress", func() {
 			Expect(*generatedPathMap.DefaultBackendAddressPool.ID).To(Equal("xx"))
@@ -655,7 +655,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool coming from path-based ingress", func() {
 			Expect(*generatedPathMap.DefaultBackendAddressPool.ID).To(Equal("xx"))
@@ -746,7 +746,7 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		// !! Action !! -- will mutate pathMap struct
 		pathMaps := configBuilder.getPathMaps(cbCtx)
-		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.HTTPS, nil, false)
+		sharedListenerID := generateListenerID(ingressPathBased1, rule, n.ApplicationGatewayProtocolHTTPS, nil, false)
 		generatedPathMap := pathMaps[sharedListenerID]
 		It("has default backend pool", func() {
 			Expect(generatedPathMap.DefaultBackendAddressPool).To(Not(BeNil()))

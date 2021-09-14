@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -47,8 +47,8 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 	healthProbeCollection := make(map[string]n.ApplicationGatewayProbe)
 	probesMap := make(map[backendIdentifier]*n.ApplicationGatewayProbe)
-	defaultHTTPProbe := defaultProbe(c.appGwIdentifier, n.HTTP)
-	defaultHTTPSProbe := defaultProbe(c.appGwIdentifier, n.HTTPS)
+	defaultHTTPProbe := defaultProbe(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
+	defaultHTTPSProbe := defaultProbe(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTPS)
 
 	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
 	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
@@ -81,7 +81,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	if service == nil || backendID.Path == nil {
 		return nil
 	}
-	probe := defaultProbe(c.appGwIdentifier, n.HTTP)
+	probe := defaultProbe(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
 	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.Service.Name, serviceBackendPortToStr(backendID.Path.Backend.Service.Port), backendID.Ingress))
 	probe.ID = to.StringPtr(c.appGwIdentifier.probeID(*probe.Name))
 
@@ -90,7 +90,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	probe.PickHostNameFromBackendHTTPSettings = to.BoolPtr(false)
 	probe.MinServers = to.Int32Ptr(0)
 
-	listenerID := generateListenerID(backendID.Ingress, backendID.Rule, n.HTTP, nil, false)
+	listenerID := generateListenerID(backendID.Ingress, backendID.Rule, n.ApplicationGatewayProtocolHTTP, nil, false)
 	hostName := listenerID.getHostNameForProbes()
 	if hostName != nil {
 		probe.Host = hostName
@@ -109,7 +109,7 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 
 	// nil check on Service
 	if backendID.Backend.Service != nil && serviceBackendPortToStr(backendID.Backend.Service.Port) == "443" {
-		probe.Protocol = n.HTTPS
+		probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 	}
 
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
@@ -124,14 +124,14 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal)
 		}
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
-			probe.Protocol = n.HTTPS
+			probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 		}
 		// httpGet schema is default to Http if not specified, double check with the port in case for Https
 		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTP {
 			if k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal == 443 {
-				probe.Protocol = n.HTTPS
+				probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 			} else {
-				probe.Protocol = n.HTTP
+				probe.Protocol = n.ApplicationGatewayProtocolHTTP
 			}
 		}
 		if k8sProbeForServiceContainer.PeriodSeconds != 0 {
@@ -154,9 +154,9 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 	// backend protocol must match http settings protocol
 	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
 	if err == nil && backendProtocol == annotations.HTTPS {
-		probe.Protocol = n.HTTPS
+		probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 	} else if err == nil && backendProtocol == annotations.HTTP {
-		probe.Protocol = n.HTTP
+		probe.Protocol = n.ApplicationGatewayProtocolHTTP
 	}
 
 	// override healthcheck probe host with host defined in annotation if exists

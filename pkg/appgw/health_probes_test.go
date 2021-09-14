@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -54,7 +54,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeName := agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-443---name--"
 		probeForHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -75,7 +75,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeName = agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-80---name--"
 		probeForOtherHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -98,7 +98,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		})
 
 		It("should have created 1 probe for Host", func() {
@@ -136,7 +136,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
 		probeName := generateProbeName(backend.Service.Name, serviceBackendPortToStr(backend.Service.Port), ingressList[0])
 		It("uses the readiness probe to set the protocol on the probe", func() {
-			Expect(probeMap[probeName].Protocol).To(Equal(n.HTTPS))
+			Expect(probeMap[probeName].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS))
 		})
 	})
 
@@ -162,8 +162,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 
 		It("should have created 2 default probes", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTPS)))
 		})
 	})
 

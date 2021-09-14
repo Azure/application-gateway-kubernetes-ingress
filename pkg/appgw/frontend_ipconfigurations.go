@@ -1,7 +1,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 // LookupIPConfigurationByType gets the public or private address depending upon privateIP parameter.

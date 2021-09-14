@@ -16,7 +16,7 @@ import (
 	"regexp"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
@@ -185,7 +185,7 @@ func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.Applicati
 
 			// setting to default
 			PickHostNameFromBackendAddress: to.BoolPtr(false),
-			CookieBasedAffinity:            n.Disabled,
+			CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}

@@ -6,7 +6,7 @@
 package fixtures
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -39,7 +39,7 @@ func GetListenerBasic() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTP,
+			Protocol:                    n.ApplicationGatewayProtocolHTTP,
 			HostName:                    to.StringPtr(tests.OtherHost),
 			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName1)},
 			RequireServerNameIndication: to.BoolPtr(true),
@@ -54,7 +54,7 @@ func GetDefaultListener() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration: &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultIPName)},
 			FrontendPort:            &n.SubResource{ID: to.StringPtr("/x/y/z/" + DefaultPortName)},
-			Protocol:                n.HTTP,
+			Protocol:                n.ApplicationGatewayProtocolHTTP,
 		},
 	}
 }
@@ -66,7 +66,7 @@ func GetListenerPathBased1() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTPS,
+			Protocol:                    n.ApplicationGatewayProtocolHTTPS,
 			HostName:                    to.StringPtr(tests.Host),
 			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName2)},
 			RequireServerNameIndication: to.BoolPtr(true),
@@ -81,7 +81,7 @@ func GetListenerPathBased2() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTP,
+			Protocol:                    n.ApplicationGatewayProtocolHTTP,
 			HostName:                    to.StringPtr(tests.OtherHost),
 			SslCertificate:              &n.SubResource{ID: to.StringPtr(CertificateName3)},
 			RequireServerNameIndication: to.BoolPtr(true),
@@ -96,7 +96,7 @@ func GetListenerUnassociated() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTP,
+			Protocol:                    n.ApplicationGatewayProtocolHTTP,
 			HostName:                    to.StringPtr(tests.HostUnassociated),
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
@@ -110,7 +110,7 @@ func GetListenerWildcard() *n.ApplicationGatewayHTTPListener {
 		ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 			FrontendIPConfiguration:     &n.SubResource{ID: to.StringPtr("")},
 			FrontendPort:                &n.SubResource{ID: to.StringPtr("")},
-			Protocol:                    n.HTTP,
+			Protocol:                    n.ApplicationGatewayProtocolHTTP,
 			HostNames:                   &[]string{tests.WildcardHost1, tests.WildcardHost2},
 			RequireServerNameIndication: to.BoolPtr(true),
 		},
