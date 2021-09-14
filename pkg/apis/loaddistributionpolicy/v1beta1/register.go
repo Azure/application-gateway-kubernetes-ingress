@@ -4,9 +4,9 @@
 // --------------------------------------------------------------------------------------------
 
 // +k8s:deepcopy-gen=package,register
-// +groupName=azureapplicationgatewayloaddistributionpolicies.appgw.ingress.azure.io
+// +groupName=loaddistributionpolicies.appgw.ingress.azure.io
 
-// Package v1beta1 contains API Schema definitions for the AzureApplicationGatewayLoadDistributionPolicy v1beta1 API group
+// Package v1beta1 contains API Schema definitions for the LoadDistributionPolicy v1beta1 API group
 package v1beta1
 
 import (
@@ -42,8 +42,8 @@ func Resource(resource string) schema.GroupResource {
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&AzureApplicationGatewayLoadDistributionPolicy{},
-		&AzureApplicationGatewayLoadDistributionPolicyList{},
+		&LoadDistributionPolicy{},
+		&LoadDistributionPolicyList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
