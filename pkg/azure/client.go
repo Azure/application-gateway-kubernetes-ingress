@@ -278,7 +278,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	return nil
 }
 
-// DeployGateway is a method that deploy the appgw and related resources
+// DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
 func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix, skuName string) (err error) {
 	vnet, err := az.getVnet(resourceGroupName, vnetName)
 	if err != nil {
@@ -304,7 +304,7 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 	return
 }
 
-// DeployGateway is a method that deploy the appgw and related resources
+// DeployGatewayWithSubnet creates Application Gateway within the specifid subnet. Implements AzClient interface.
 func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
 	klog.Infof("Deploying Gateway")
 
