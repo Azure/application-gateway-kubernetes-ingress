@@ -350,6 +350,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "loadDistributionPolicies": [],
 --        "probes": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
@@ -598,6 +599,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "loadDistributionPolicies": [],
 --        "probes": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
@@ -863,6 +865,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "loadDistributionPolicies": [],
 --        "probes": [
 --            {
 --                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",

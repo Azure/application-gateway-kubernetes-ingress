@@ -26,8 +26,9 @@ type ConfigBuilderContext struct {
 	IstioGateways        []*v1alpha3.Gateway
 	IstioVirtualServices []*v1alpha3.VirtualService
 
-	DefaultAddressPoolID  *string
-	DefaultHTTPSettingsID *string
+	DefaultAddressPoolID            *string
+	DefaultLoadDistributionPolicyID *string
+	DefaultHTTPSettingsID           *string
 
 	ExistingPortsByNumber map[Port]n.ApplicationGatewayFrontendPort
 }

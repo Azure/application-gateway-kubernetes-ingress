@@ -59,9 +59,19 @@ func (agw Identifier) urlPathMapID(urlPathMapName string) string {
 	return agw.gatewayResourceID("urlPathMaps", urlPathMapName)
 }
 
+func (agw Identifier) ldpTargetID(ldpName string, targetName string) string {
+	targetSuffix := fmt.Sprintf("%s/loadDistributionTargets/%s", ldpName, targetName)
+	return agw.loadDistributionPolicyID(targetSuffix)
+}
+
 func (agw Identifier) pathRuleID(pathMapName string, pathRuleName string) string {
 	pathRuleSuffix := fmt.Sprintf("%s/pathRules/%s", pathMapName, pathRuleName)
 	return agw.urlPathMapID(pathRuleSuffix)
+}
+
+// LoadDistributionPolicyID generates an ID for App Gateway Load Distribution Policy Resource
+func (agw Identifier) loadDistributionPolicyID(ldpName string) string {
+	return agw.gatewayResourceID("loadDistributionPolicies", ldpName)
 }
 
 func (agw Identifier) listenerID(listenerName string) string {

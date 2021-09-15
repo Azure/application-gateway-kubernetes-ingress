@@ -58,7 +58,7 @@ var (
 	// UseNetworkingV1Ingress specifies whether to use ingress networking/v1 to parse the ingress resource
 	UseNetworkingV1Ingress bool
 
-	// UseNetworkingV1Ingress specifies whether to use ingress extensions/v1beta1 to parse the ingress resource
+	// UseExtensionsV1Beta1Ingress specifies whether to use ingress extensions/v1beta1 to parse the ingress resource
 	UseExtensionsV1Beta1Ingress bool
 )
 
@@ -511,9 +511,9 @@ func cleanUp(clientset *clientset.Clientset) error {
 func getPublicIP(clientset *clientset.Clientset, namespaceName string) (string, error) {
 	if UseNetworkingV1Ingress {
 		return getPublicIPForNetworkingV1Ingress(clientset, namespaceName)
-	} else {
-		return getPublicIPForExtensionsV1Beta1Ingress(clientset, namespaceName)
 	}
+
+	return getPublicIPForExtensionsV1Beta1Ingress(clientset, namespaceName)
 }
 
 func getPublicIPForNetworkingV1Ingress(clientset *clientset.Clientset, namespaceName string) (string, error) {
