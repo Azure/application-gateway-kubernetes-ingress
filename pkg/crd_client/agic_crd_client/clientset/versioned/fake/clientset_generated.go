@@ -24,10 +24,10 @@ import (
 	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	fakeazureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1/fake"
-	azureapplicationgatewayloaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayloaddistributionpolicy/v1beta1"
-	fakeazureapplicationgatewayloaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayloaddistributionpolicy/v1beta1/fake"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	fakeazureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1/fake"
+	loaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1"
+	fakeloaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -94,12 +94,12 @@ func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureap
 	return &fakeazureapplicationgatewayinstanceupdatestatusv1beta1.FakeAzureapplicationgatewayinstanceupdatestatusV1beta1{Fake: &c.Fake}
 }
 
-// AzureapplicationgatewayloaddistributionpoliciesV1beta1 retrieves the AzureapplicationgatewayloaddistributionpoliciesV1beta1Client
-func (c *Clientset) AzureapplicationgatewayloaddistributionpoliciesV1beta1() azureapplicationgatewayloaddistributionpoliciesv1beta1.AzureapplicationgatewayloaddistributionpoliciesV1beta1Interface {
-	return &fakeazureapplicationgatewayloaddistributionpoliciesv1beta1.FakeAzureapplicationgatewayloaddistributionpoliciesV1beta1{Fake: &c.Fake}
-}
-
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
 func (c *Clientset) AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface {
 	return &fakeazureingressprohibitedtargetsv1.FakeAzureingressprohibitedtargetsV1{Fake: &c.Fake}
+}
+
+// LoaddistributionpoliciesV1beta1 retrieves the LoaddistributionpoliciesV1beta1Client
+func (c *Clientset) LoaddistributionpoliciesV1beta1() loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Interface {
+	return &fakeloaddistributionpoliciesv1beta1.FakeLoaddistributionpoliciesV1beta1{Fake: &c.Fake}
 }

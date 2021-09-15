@@ -23,8 +23,8 @@ import (
 
 	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
-	azureapplicationgatewayloaddistributionpolicyv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayloaddistributionpolicy/v1beta1"
 	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
+	loaddistributionpolicyv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -63,13 +63,13 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	case azureapplicationgatewayinstanceupdatestatusv1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewayinstanceupdatestatuses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer()}, nil
 
-		// Group=azureapplicationgatewayloaddistributionpolicies.appgw.ingress.azure.io, Version=v1beta1
-	case azureapplicationgatewayloaddistributionpolicyv1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewayloaddistributionpolicies"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureapplicationgatewayloaddistributionpolicies().V1beta1().AzureApplicationGatewayLoadDistributionPolicies().Informer()}, nil
-
 		// Group=azureingressprohibitedtargets.appgw.ingress.k8s.io, Version=v1
 	case v1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer()}, nil
+
+		// Group=loaddistributionpolicies.appgw.ingress.azure.io, Version=v1beta1
+	case loaddistributionpolicyv1beta1.SchemeGroupVersion.WithResource("loaddistributionpolicies"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Loaddistributionpolicies().V1beta1().LoadDistributionPolicies().Informer()}, nil
 
 	}
 
