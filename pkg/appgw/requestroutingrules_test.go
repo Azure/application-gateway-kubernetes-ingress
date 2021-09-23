@@ -549,7 +549,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		// 2 path based rules with path - /api1, /api2
 		ingressPathBased := tests.NewIngressFixture()
-		ingressPathBased.Annotations[annotations.SslRedirectKey] = "false"
+		ingressPathBased.Annotations[annotations.SslRedirectKey] = "true"
 		backendBasic := tests.NewIngressBackendFixture(service2.Name, 80)
 
 		// Adding duplicate path /api for a different service in same ingress
@@ -628,7 +628,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		// 2 path based rules with path - /api1, /api2
 		ingressPathBased := tests.NewIngressFixture()
-		ingressPathBased.Annotations[annotations.SslRedirectKey] = "false"
+		ingressPathBased.Annotations[annotations.SslRedirectKey] = "true"
 		backendBasic := tests.NewIngressBackendFixture(tests.ServiceName, 80)
 		// Adding duplicate path /api3 for a same service in same ingress
 		duplicatePathRule := tests.NewIngressRuleWithPathsFixture(tests.Host, []string{"/api3", "/api3"}, *backendBasic)
