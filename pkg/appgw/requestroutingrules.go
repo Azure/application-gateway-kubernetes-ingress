@@ -6,6 +6,7 @@
 package appgw
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -383,7 +384,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		addRuleToMergeList := true
 		for _, path := range *pathRule.Paths {
 			if _, exists := pathMap[path]; exists {
-				klog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
+				klog.Errorf("A path-rule with path '%s' already exists'. Existing path rule {%s} and new path rule {%s}.", path, printPathRule(pathMap[path]), printPathRule(pathRule))
 				addRuleToMergeList = false
 			} else {
 				pathMap[path] = pathRule
@@ -397,4 +398,22 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 	existingPathMap.PathRules = &mergedPathRules
 
 	return existingPathMap
+}
+
+func printPathRule(pathRule n.ApplicationGatewayPathRule) string {
+	s := fmt.Sprintf("pathMapName=%s", *pathRule.Name)
+
+	if pathRule.BackendAddressPool != nil && pathRule.BackendAddressPool.ID != nil {
+		s = fmt.Sprintf("%s poolID=%s", s, *pathRule.BackendAddressPool.ID)
+	}
+
+	if pathRule.RedirectConfiguration != nil && pathRule.RedirectConfiguration.ID != nil {
+		s = fmt.Sprintf("%s redirectID=%s", s, *pathRule.RedirectConfiguration.ID)
+	}
+
+	if pathRule.LoadDistributionPolicy != nil && pathRule.LoadDistributionPolicy.ID != nil {
+		s = fmt.Sprintf("%s ldpID=%s", s, *pathRule.LoadDistributionPolicy.ID)
+	}
+
+	return s
 }
