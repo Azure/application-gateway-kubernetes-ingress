@@ -45,6 +45,7 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 		// Set active directory endpoint using environment
 		azureEnv, _ := azure.EnvironmentFromName(cpConfig.Cloud)
 		credAuthorizer.AADEndpoint = azureEnv.ActiveDirectoryEndpoint
+		credAuthorizer.Resource = azureEnv.ResourceManagerEndpoint
 
 		return credAuthorizer.Authorizer()
 	}
