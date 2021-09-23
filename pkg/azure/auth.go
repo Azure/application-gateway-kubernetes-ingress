@@ -10,6 +10,7 @@ import (
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"k8s.io/klog/v2"
 
@@ -40,6 +41,11 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 	if !useManagedidentity && cpConfig != nil {
 		klog.V(1).Info("Creating authorizer using Cluster Service Principal.")
 		credAuthorizer := auth.NewClientCredentialsConfig(cpConfig.ClientID, cpConfig.ClientSecret, cpConfig.TenantID)
+
+		// Set active directory endpoint using environment
+		azureEnv, _ := azure.EnvironmentFromName(cpConfig.Cloud)
+		credAuthorizer.AADEndpoint = azureEnv.ActiveDirectoryEndpoint
+
 		return credAuthorizer.Authorizer()
 	}
 
