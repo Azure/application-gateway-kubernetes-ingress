@@ -8,7 +8,7 @@ package appgw
 import (
 	"strconv"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 
 	"strings"
 
@@ -72,8 +72,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
 					continue
 				}
 
@@ -83,11 +83,11 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		}
 
 		It("should have all but default backend http settings with https", func() {
-			checkBackendProtocolAnnotation("HttPS", annotations.HTTPS, n.HTTPS)
+			checkBackendProtocolAnnotation("HttPS", annotations.HTTPS, n.ApplicationGatewayProtocolHTTPS)
 		})
 
 		It("should have all backend http settings with http", func() {
-			checkBackendProtocolAnnotation("HttP", annotations.HTTP, n.HTTP)
+			checkBackendProtocolAnnotation("HttP", annotations.HTTP, n.ApplicationGatewayProtocolHTTP)
 		})
 	})
 
@@ -114,8 +114,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
 					continue
 				}
 
@@ -131,7 +131,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		}
 
 		It("should have all but default backend http settings with https and trusted root certificates", func() {
-			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.HTTPS)
+			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.ApplicationGatewayProtocolHTTPS)
 		})
 
 	})

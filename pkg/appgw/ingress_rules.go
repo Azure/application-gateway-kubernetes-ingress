@@ -6,7 +6,7 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
@@ -89,7 +89,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 	// If a certificate is available we enable only HTTPS; unless ingress is annotated with ssl-redirect - then
 	// we enable HTTPS as well as HTTP, and redirect HTTP to HTTPS;
 	if hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTPS, &overrideFrontendPortForIngress, usePrivateIPForIngress)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTPS, &overrideFrontendPortForIngress, usePrivateIPForIngress)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		// Only associate the Listener with a Redirect if redirect is enabled
 		redirect := ""
@@ -98,7 +98,7 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 		}
 
 		azConf := listenerAzConfig{
-			Protocol:                     n.HTTPS,
+			Protocol:                     n.ApplicationGatewayProtocolHTTPS,
 			SslRedirectConfigurationName: redirect,
 		}
 		// appgw-ssl-certificate annotation will be ignored if TLS spec found
@@ -118,10 +118,10 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 	}
 	// Enable HTTP only if HTTPS is not configured OR if ingress annotated with 'ssl-redirect'
 	if sslRedirect || !hasTLS {
-		listenerID := generateListenerID(ingress, rule, n.HTTP, &overrideFrontendPortForIngress, usePrivateIPForIngress)
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, &overrideFrontendPortForIngress, usePrivateIPForIngress)
 		frontendPorts[Port(listenerID.FrontendPort)] = nil
 		listeners[listenerID] = listenerAzConfig{
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 		}
 	}
 	return frontendPorts, listeners

@@ -14,7 +14,7 @@ echo -e "Generate Application Gateway CRDs..."
     all \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis \
-    "azureapplicationgatewayinstanceupdatestatus:v1beta1 azureapplicationgatewaybackendpool:v1beta1 azureingressprohibitedtarget:v1 azureapplicationgatewayloaddistributionpolicy:v1beta1" \
+    "azureapplicationgatewayinstanceupdatestatus:v1beta1 azureapplicationgatewaybackendpool:v1beta1 azureingressprohibitedtarget:v1 loaddistributionpolicy:v1beta1" \
     --go-header-file ../code-generator/hack/boilerplate.go.txt
 
 echo -e "Generate Azure Multi-Cluster CRDs..."

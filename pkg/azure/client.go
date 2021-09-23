@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"k8s.io/klog/v2"
@@ -278,7 +278,7 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	return nil
 }
 
-// DeployGateway is a method that deploy the appgw and related resources
+// DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
 func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix, skuName string) (err error) {
 	vnet, err := az.getVnet(resourceGroupName, vnetName)
 	if err != nil {
@@ -304,7 +304,7 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 	return
 }
 
-// DeployGateway is a method that deploy the appgw and related resources
+// DeployGatewayWithSubnet creates Application Gateway within the specifid subnet. Implements AzClient interface.
 func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
 	klog.Infof("Deploying Gateway")
 

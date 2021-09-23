@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
@@ -84,7 +84,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		}
 		if urlPathMap.PathRules == nil || len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
-			rule.RuleType = n.Basic
+			rule.RuleType = n.ApplicationGatewayRequestRoutingRuleTypeBasic
 			rule.RedirectConfiguration = urlPathMap.DefaultRedirectConfiguration
 
 			// We setup the default backend address pools and default backend HTTP settings only if
@@ -98,11 +98,11 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			}
 		} else {
 			// Path-based Rule
-			rule.RuleType = n.PathBasedRouting
+			rule.RuleType = n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting
 			rule.URLPathMap = &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))}
 			pathMap = append(pathMap, *urlPathMap)
 		}
-		if rule.RuleType == n.PathBasedRouting {
+		if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
 			klog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
 		} else {
 			if rule.RedirectConfiguration != nil {
@@ -242,7 +242,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 }
 
 func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
-	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
+	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
 
@@ -316,7 +316,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
-		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
+		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
 			targetListener := listenerID
 			targetListener.FrontendPort = 443
 

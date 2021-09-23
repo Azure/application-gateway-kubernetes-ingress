@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -73,7 +73,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
 	}
 
-	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
+	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
 	serviceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -226,12 +226,12 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		Name: &httpSettingsName,
 		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 			Port:     to.Int32Ptr(int32(port)),
 
 			// setting to default
 			PickHostNameFromBackendAddress: to.BoolPtr(false),
-			CookieBasedAffinity:            n.Disabled,
+			CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
@@ -270,7 +270,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
-		httpSettings.CookieBasedAffinity = n.Enabled
+		httpSettings.CookieBasedAffinity = n.ApplicationGatewayCookieBasedAffinityEnabled
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
@@ -283,15 +283,15 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	// when ingress is defined with backend at port 443 but without annotation backend-protocol set to https.
 	if int32(port) == 443 {
-		httpSettings.Protocol = n.HTTPS
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
 	}
 
 	// backend protocol take precedence over port
 	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
 	if err == nil && backendProtocol == annotations.HTTPS {
-		httpSettings.Protocol = n.HTTPS
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
 	} else if err == nil && backendProtocol == annotations.HTTP {
-		httpSettings.Protocol = n.HTTP
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTP
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
@@ -313,7 +313,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
 	if httpSettings.TrustedRootCertificates != nil {
-		if httpSettings.Protocol == n.HTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
+		if httpSettings.Protocol == n.ApplicationGatewayProtocolHTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
 			if httpSettings.HostName != nil && len(*httpSettings.HostName) > 0 {
 				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
 			} else {

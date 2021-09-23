@@ -13,18 +13,18 @@ import (
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// AzureApplicationGatewayLoadDistributionPolicy is the resource AGIC is watching on for any backend address change
-type AzureApplicationGatewayLoadDistributionPolicy struct {
+// LoadDistributionPolicy is the resource AGIC is watching on for any backend address change
+type LoadDistributionPolicy struct {
 	metav1.TypeMeta `json:",inline"`
 
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
-	Spec AzureApplicationGatewayLoadDistributionPolicySpec `json:"spec"`
+	Spec LoadDistributionPolicySpec `json:"spec"`
 }
 
-// AzureApplicationGatewayLoadDistributionPolicySpec defines a list of backend pool addresses
-type AzureApplicationGatewayLoadDistributionPolicySpec struct {
+// LoadDistributionPolicySpec defines a list of backend pool addresses
+type LoadDistributionPolicySpec struct {
 	metav1.TypeMeta `json:",inline"`
 
 	// +optional
@@ -48,10 +48,10 @@ type Backend struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// AzureApplicationGatewayLoadDistributionPolicyList is the list of LDP
-type AzureApplicationGatewayLoadDistributionPolicyList struct {
+// LoadDistributionPolicyList is the list of LDP
+type LoadDistributionPolicyList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 
-	Items []AzureApplicationGatewayLoadDistributionPolicy `json:"items"`
+	Items []LoadDistributionPolicy `json:"items"`
 }

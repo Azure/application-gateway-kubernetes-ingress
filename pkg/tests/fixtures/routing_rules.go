@@ -6,7 +6,7 @@
 package fixtures
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
 
@@ -30,7 +30,7 @@ func GetRequestRoutingRulePathBased1() *n.ApplicationGatewayRequestRoutingRule {
 		Name: to.StringPtr(RequestRoutingRuleName1),
 		ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 			// RuleType - Rule type. Possible values include: 'Basic', 'PathBasedRouting'
-			RuleType: n.PathBasedRouting,
+			RuleType: n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting,
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &n.SubResource{
@@ -71,7 +71,7 @@ func GetRequestRoutingRulePathBased2() *n.ApplicationGatewayRequestRoutingRule {
 		Name: to.StringPtr(RequestRoutingRuleName2),
 		ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 			// RuleType - Rule type. Possible values include: 'Basic', 'PathBasedRouting'
-			RuleType: n.PathBasedRouting,
+			RuleType: n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting,
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &n.SubResource{
@@ -112,7 +112,7 @@ func GetRequestRoutingRulePathBased3() *n.ApplicationGatewayRequestRoutingRule {
 		Name: to.StringPtr(RequestRoutingRuleName3),
 		ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 			// RuleType - Rule type. Possible values include: 'Basic', 'PathBasedRouting'
-			RuleType: n.PathBasedRouting,
+			RuleType: n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting,
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &n.SubResource{
@@ -153,7 +153,7 @@ func GetRequestRoutingRuleBasic() *n.ApplicationGatewayRequestRoutingRule {
 		Name: to.StringPtr("RequestRoutingRule-2"),
 		ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 			// RuleType - Rule type. Possible values include: 'Basic', 'PathBasedRouting'
-			RuleType: n.Basic,
+			RuleType: n.ApplicationGatewayRequestRoutingRuleTypeBasic,
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &n.SubResource{
@@ -192,7 +192,7 @@ func GetDefaultRoutingRule() *n.ApplicationGatewayRequestRoutingRule {
 		Name: to.StringPtr(DefaultRequestRoutingRuleName),
 		ApplicationGatewayRequestRoutingRulePropertiesFormat: &n.ApplicationGatewayRequestRoutingRulePropertiesFormat{
 			// RuleType - Rule type. Possible values include: 'Basic', 'PathBasedRouting'
-			RuleType: n.Basic,
+			RuleType: n.ApplicationGatewayRequestRoutingRuleTypeBasic,
 
 			// BackendAddressPool - Backend address pool resource of the application gateway.
 			BackendAddressPool: &n.SubResource{
