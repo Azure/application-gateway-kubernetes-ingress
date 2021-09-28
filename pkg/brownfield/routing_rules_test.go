@@ -12,6 +12,7 @@ import (
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 var _ = Describe("Test blacklist request routing rules", func() {
@@ -99,6 +100,106 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			Expect(blacklisted).To(ContainElement(rulePathBased2))
 			Expect(blacklisted).To(ContainElement(ruleDefault))
 			Expect(blacklisted).To(ContainElement(rulePathBased3))
+		})
+	})
+
+	Context("Test MergeRules", func() {
+		It("should merge correctly when same set of routing rules need to be merged", func() {
+			Expect(len(*appGw.RequestRoutingRules)).To(Equal(5))
+			Expect(len(*appGw.URLPathMaps)).To(Equal(4))
+
+			requestRoutingRules := MergeRules(&appGw, *appGw.RequestRoutingRules, *appGw.RequestRoutingRules)
+
+			// No change
+			Expect(len(requestRoutingRules)).To(Equal(5))
+			Expect(len(*appGw.URLPathMaps)).To(Equal(4))
+
+			pathBasedRuleCount := 0
+			basicRuleCount := 0
+			for _, rule := range *appGw.RequestRoutingRules {
+				if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
+					pathBasedRuleCount++
+					Expect(lookupPathMap(appGw.URLPathMaps, rule.URLPathMap.ID)).ToNot(BeNil())
+				}
+
+				if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypeBasic {
+					basicRuleCount++
+				}
+			}
+
+			Expect(pathBasedRuleCount).To(Equal(3))
+			Expect(basicRuleCount).To(Equal(2))
+		})
+
+		It("should merge correctly when different set of routing rules need to be merged", func() {
+			requestRoutingRules := MergeRules(
+				&appGw,
+				[]n.ApplicationGatewayRequestRoutingRule{
+					ruleBasic,
+					ruleDefault,
+					rulePathBased1,
+				},
+				[]n.ApplicationGatewayRequestRoutingRule{
+					rulePathBased2,
+					rulePathBased3,
+				})
+
+			Expect(len(requestRoutingRules)).To(Equal(5))
+			Expect(len(*appGw.URLPathMaps)).To(Equal(4))
+
+			pathBasedRuleCount := 0
+			basicRuleCount := 0
+			for _, rule := range *appGw.RequestRoutingRules {
+				if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
+					pathBasedRuleCount++
+					Expect(lookupPathMap(appGw.URLPathMaps, rule.URLPathMap.ID)).ToNot(BeNil())
+				}
+
+				if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypeBasic {
+					basicRuleCount++
+				}
+			}
+
+			Expect(pathBasedRuleCount).To(Equal(3))
+			Expect(basicRuleCount).To(Equal(2))
+		})
+
+		It("should merge correctly when 2 routing rule use the same http listener but different url paths", func() {
+			// When routing rule uses same listener but different url path maps, they need to be merged together
+			// as AppGw doesn't allow 2 rules using same listener
+
+			// Setup 2 path maps
+			pathMap1 := (*appGw.URLPathMaps)[0]
+			pathMap2 := (*appGw.URLPathMaps)[1]
+			urlPathMap := &[]n.ApplicationGatewayURLPathMap{
+				pathMap1,
+				pathMap2,
+			}
+			appGw.URLPathMaps = urlPathMap
+
+			// Setup first rule to use first path map
+			rulePathBased1.URLPathMap.ID = pathMap1.ID
+
+			// Setup second rule to use the same listener but second url path map
+			rulePathBased2.HTTPListener.ID = rulePathBased1.HTTPListener.ID
+			rulePathBased2.URLPathMap.ID = pathMap2.ID
+
+			// Merge the two rule sets
+			requestRoutingRules := MergeRules(
+				&appGw,
+				[]n.ApplicationGatewayRequestRoutingRule{
+					rulePathBased1,
+				},
+				[]n.ApplicationGatewayRequestRoutingRule{
+					rulePathBased2,
+				})
+
+			// Since both rules are using same listener, they should have been merged to 1 rule and 1 path map
+			Expect(len(requestRoutingRules)).To(Equal(1))
+			Expect(len(*appGw.URLPathMaps)).To(Equal(1))
+
+			pathRules := *(*appGw.URLPathMaps)[0].PathRules
+			Expect(len(pathRules)).To(Equal(2))
 		})
 	})
 })

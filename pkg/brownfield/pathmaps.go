@@ -109,6 +109,10 @@ func mergePathMapsWithBasicRule(pathMap *n.ApplicationGatewayURLPathMap, rule *n
 func mergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.ApplicationGatewayPathRule {
 	uniq := make(pathRulesByName)
 	for _, bucket := range pathRulesBucket {
+		if bucket == nil {
+			continue
+		}
+
 		for _, pathRule := range *bucket {
 			uniq[pathRuleName(*pathRule.Name)] = pathRule
 		}
