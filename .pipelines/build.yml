@@ -39,12 +39,14 @@ steps:
         exit 1
     fi
 
+    cd ./scripts/e2e
     if go vet -tags=e2e ./...; then
         echo -e "\e[42;97m govet SUCCEEDED \e[0m"
     else
         echo -e "\e[101;97m govet FAILED \e[0m"``
         exit 1
     fi
+    cd ../..
   workingDirectory: '$(modulePath)'
   displayName: 'Go vet'
 
