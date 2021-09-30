@@ -162,6 +162,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 
 			Expect(pathBasedRuleCount).To(Equal(3))
 			Expect(basicRuleCount).To(Equal(2))
+			Expect(len(*appGw.URLPathMaps)).To(Equal(4))
 		})
 
 		It("should merge correctly when 2 routing rule use the same http listener but different url paths", func() {
@@ -169,13 +170,15 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			// as AppGw doesn't allow 2 rules using same listener
 
 			// Setup 2 path maps
-			pathMap1 := (*appGw.URLPathMaps)[0]
-			pathMap2 := (*appGw.URLPathMaps)[1]
+			pathMap1 := (*appGw.URLPathMaps)[1]
+			pathMap2 := (*appGw.URLPathMaps)[2]
 			urlPathMap := &[]n.ApplicationGatewayURLPathMap{
 				pathMap1,
 				pathMap2,
 			}
 			appGw.URLPathMaps = urlPathMap
+			Expect(len(*pathMap1.PathRules)).To(Equal(2))
+			Expect(len(*pathMap2.PathRules)).To(Equal(1))
 
 			// Setup first rule to use first path map
 			rulePathBased1.URLPathMap.ID = pathMap1.ID
@@ -199,7 +202,7 @@ var _ = Describe("Test blacklist request routing rules", func() {
 			Expect(len(*appGw.URLPathMaps)).To(Equal(1))
 
 			pathRules := *(*appGw.URLPathMaps)[0].PathRules
-			Expect(len(pathRules)).To(Equal(2))
+			Expect(len(pathRules)).To(Equal(3))
 		})
 	})
 })

@@ -119,6 +119,7 @@ func mergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.App
 	}
 	var merged []n.ApplicationGatewayPathRule
 	for _, pathRule := range uniq {
+		klog.V(5).Infof("[brownfield] Appending %s with paths %v", *pathRule.Name, pathRule.Paths)
 		merged = append(merged, pathRule)
 	}
 	return &merged

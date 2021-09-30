@@ -68,7 +68,7 @@ func GetURLPathMap1() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased1 creates a new struct for use in unit tests.
 func GetPathRulePathBased1() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName1),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
@@ -181,7 +181,7 @@ func GetURLPathMap2() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased2 creates a new struct for use in unit tests.
 func GetPathRulePathBased2() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName2),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
@@ -248,7 +248,7 @@ func GetURLPathMap3() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased3 creates a new struct for use in unit tests.
 func GetPathRulePathBased3() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName3),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
