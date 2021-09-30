@@ -276,8 +276,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if distinctName, err := annotations.IsCookieBasedAffinityDistinctName(backendID.Ingress); err == nil && distinctName {
-		klog.V(5).Infof("Try to set unique cookie name")
-		httpSettings.AffinityCookieName = to.StringPtr("test")
+		httpSettings.AffinityCookieName = to.StringPtr(backendID.serviceFullNameHash())
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
