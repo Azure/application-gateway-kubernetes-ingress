@@ -392,6 +392,38 @@ spec:
           serviceName: go-server-service
           servicePort: 80
 ```
+### distinct cookie name
+In addition to cookie-based-affinity, you can set `cookie-based-affinity-distinct-name: "true"` to ensure a different affinity cookie is set per backend.
+###
+
+```yaml
+appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
+```
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-affinity
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
+    appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /affinity1/
+        backend:
+          serviceName: affinity-service
+          servicePort: 80
+      - path: /affinity2/
+        backend:
+          serviceName: other-affinity-service
+          servicePort: 80          
+```
 
 ## Request Timeout
 
