@@ -6,7 +6,6 @@
 package appgw
 
 import (
-	"crypto/md5"
 	"fmt"
 	"sort"
 	"strings"
@@ -277,9 +276,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if distinctName, err := annotations.IsCookieBasedAffinityDistinctName(backendID.Ingress); err == nil && distinctName {
-		hash := fmt.Sprintf("%x", md5.Sum([]byte(backendID.serviceFullName())))
-		//finalVal := fmt.Sprintf("%s%s%s", hash, "-", "affinity")
-		httpSettings.AffinityCookieName = to.StringPtr(hash)
+		httpSettings.AffinityCookieName = to.StringPtr(backendID.serviceFullNameHash())
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
