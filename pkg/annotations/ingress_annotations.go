@@ -51,6 +51,9 @@ const (
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
+	// CookieBasedAffinityDistinctNameKey defines the key to enable/disable distinct cookie names per backend for client connection.
+	CookieBasedAffinityDistinctNameKey = ApplicationGatewayPrefix + "/cookie-based-affinity-distinct-name"
+
 	// RequestTimeoutKey defines the request timeout to the backend.
 	RequestTimeoutKey = ApplicationGatewayPrefix + "/request-timeout"
 
@@ -228,6 +231,11 @@ func ConnectionDrainingTimeout(ing *networking.Ingress) (int32, error) {
 // IsCookieBasedAffinity provides value to enable/disable cookie based affinity for client connection.
 func IsCookieBasedAffinity(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
+}
+
+// IsCookieBasedAffinityDistinctName provides value to enable/disable distinct cookie name based affinity for client connection.
+func IsCookieBasedAffinityDistinctName(ing *networking.Ingress) (bool, error) {
+	return parseBool(ing, CookieBasedAffinityDistinctNameKey)
 }
 
 // UsePrivateIP determines whether to use private IP with the ingress
