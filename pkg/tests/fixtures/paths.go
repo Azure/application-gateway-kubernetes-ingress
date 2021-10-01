@@ -34,6 +34,7 @@ const (
 func GetURLPathMap1() *n.ApplicationGatewayURLPathMap {
 	return &n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr(URLPathMapName1),
+		ID:   to.StringPtr("x/y/z/" + URLPathMapName1),
 		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			// DefaultBackendAddressPool - Default backend address pool resource of URL path map.
 			DefaultBackendAddressPool: &n.SubResource{
@@ -67,7 +68,7 @@ func GetURLPathMap1() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased1 creates a new struct for use in unit tests.
 func GetPathRulePathBased1() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName1),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
@@ -135,6 +136,7 @@ func GetDefaultURLPathMap() *n.ApplicationGatewayURLPathMap {
 	return &n.ApplicationGatewayURLPathMap{
 		Etag: to.StringPtr("*"),
 		Name: to.StringPtr(DefaultPathMapName),
+		ID:   to.StringPtr("x/y/z/" + DefaultPathMapName),
 		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			DefaultBackendAddressPool:  &n.SubResource{ID: to.StringPtr("/" + DefaultBackendPoolName)},
 			DefaultBackendHTTPSettings: &n.SubResource{ID: to.StringPtr("/" + DefaultBackendHTTPSettingsName)},
@@ -146,6 +148,7 @@ func GetDefaultURLPathMap() *n.ApplicationGatewayURLPathMap {
 func GetURLPathMap2() *n.ApplicationGatewayURLPathMap {
 	return &n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr(URLPathMapName2),
+		ID:   to.StringPtr("x/y/z/" + URLPathMapName2),
 		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			// DefaultBackendAddressPool - Default backend address pool resource of URL path map.
 			DefaultBackendAddressPool: &n.SubResource{
@@ -178,7 +181,7 @@ func GetURLPathMap2() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased2 creates a new struct for use in unit tests.
 func GetPathRulePathBased2() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName2),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{
@@ -212,6 +215,7 @@ func GetPathRulePathBased2() *n.ApplicationGatewayPathRule {
 func GetURLPathMap3() *n.ApplicationGatewayURLPathMap {
 	return &n.ApplicationGatewayURLPathMap{
 		Name: to.StringPtr(URLPathMapName3),
+		ID:   to.StringPtr("x/y/z/" + URLPathMapName3),
 		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
 			// DefaultBackendAddressPool - Default backend address pool resource of URL path map.
 			DefaultBackendAddressPool: &n.SubResource{
@@ -244,7 +248,7 @@ func GetURLPathMap3() *n.ApplicationGatewayURLPathMap {
 // GetPathRulePathBased3 creates a new struct for use in unit tests.
 func GetPathRulePathBased3() *n.ApplicationGatewayPathRule {
 	return &n.ApplicationGatewayPathRule{
-		Name: to.StringPtr(PathRuleName),
+		Name: to.StringPtr(PathRuleName + URLPathMapName3),
 		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
 			// Paths - Path rules of URL path map.
 			Paths: &[]string{

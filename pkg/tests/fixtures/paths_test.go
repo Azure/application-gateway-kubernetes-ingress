@@ -21,7 +21,7 @@ var _ = Describe("Test Fixtures", func() {
 	Context("Testing GetPathRulePathBased1", func() {
 		It("should work as expected", func() {
 			actual := GetPathRulePathBased1()
-			Expect(*actual.Name).To(Equal("PathRule-1"))
+			Expect(*actual.Name).To(Equal("PathRule-1URLPathMap-1"))
 		})
 	})
 
@@ -49,7 +49,7 @@ var _ = Describe("Test Fixtures", func() {
 	Context("Testing GetPathRulePathBased2", func() {
 		It("should work as expected", func() {
 			actual := GetPathRulePathBased2()
-			Expect(*actual.Name).To(Equal("PathRule-1"))
+			Expect(*actual.Name).To(Equal("PathRule-1URLPathMap-2"))
 		})
 	})
 })
