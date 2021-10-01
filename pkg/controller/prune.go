@@ -46,8 +46,12 @@ func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGatew
 	// Mutate the list of Ingresses by removing ones that AGIC should not be creating configuration.
 	for idx, ingress := range ingressList {
 		klog.V(5).Infof("Original Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
-		ingressList[idx].Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
-		klog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingress.Spec.Rules)
+
+		ingressClone := ingressList[idx].DeepCopy()
+		ingressClone.Spec.Rules = brownfield.PruneIngressRules(ingress, cbCtx.ProhibitedTargets)
+		ingressList[idx] = ingressClone
+
+		klog.V(5).Infof("Sanitized Ingress[%d] Rules: %+v", idx, ingressList[idx].Spec.Rules)
 	}
 
 	return ingressList
