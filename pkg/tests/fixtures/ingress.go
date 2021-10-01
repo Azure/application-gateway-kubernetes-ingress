@@ -60,3 +60,52 @@ func GetIngress() *networking.Ingress {
 		},
 	}
 }
+
+// GetIngressWithProhibitedTargetConflict returns ingress with /foo and /fox as paths
+func GetIngressWithProhibitedTargetConflict() *networking.Ingress {
+	return &networking.Ingress{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
+				{
+					// Rule with no Paths
+					Host: tests.OtherHost,
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{},
+					},
+				},
+				{
+					// Rule with Paths
+					Host: tests.Host,
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
+								{
+									Path: PathFoo,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: tests.ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									Path: PathFox,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: tests.ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 443,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
