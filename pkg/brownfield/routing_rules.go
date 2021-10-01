@@ -116,6 +116,12 @@ func mergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.Applicat
 			return firstRoutingRule
 		}
 
+		if *firstRoutingRule.URLPathMap.ID == *secondRoutingRule.URLPathMap.ID {
+			// No merge needed as both routing rule point to the same URL Path map
+			klog.V(5).Infof("[brownfield] Rule %s and rule %s share the same path map %s; Skipping merge", *firstRoutingRule.Name, *secondRoutingRule.Name, *firstPathMap.Name)
+			return firstRoutingRule
+		}
+
 		// Get the url path map for the second rule
 		secondPathMap := lookupPathMap(appGw.URLPathMaps, secondRoutingRule.URLPathMap.ID)
 

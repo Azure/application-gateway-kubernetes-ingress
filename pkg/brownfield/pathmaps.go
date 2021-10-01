@@ -109,12 +109,17 @@ func mergePathMapsWithBasicRule(pathMap *n.ApplicationGatewayURLPathMap, rule *n
 func mergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.ApplicationGatewayPathRule {
 	uniq := make(pathRulesByName)
 	for _, bucket := range pathRulesBucket {
+		if bucket == nil {
+			continue
+		}
+
 		for _, pathRule := range *bucket {
 			uniq[pathRuleName(*pathRule.Name)] = pathRule
 		}
 	}
 	var merged []n.ApplicationGatewayPathRule
 	for _, pathRule := range uniq {
+		klog.V(5).Infof("[brownfield] Appending %s with paths %v", *pathRule.Name, pathRule.Paths)
 		merged = append(merged, pathRule)
 	}
 	return &merged
