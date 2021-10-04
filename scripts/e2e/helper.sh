@@ -64,7 +64,6 @@ function InstallAGIC() {
         --version ${version}
 
     # apply backends to test prohibited target, wait for 90s to apply appgw config
-    kubectl apply -f cmd/runner/testdata/extensions-v1beta1/prohibited-target/test-prohibit-backend.yaml || true
     kubectl apply -f cmd/runner/testdata/networking-v1/prohibited-target/test-prohibit-backend.yaml || true
     sleep 90
 }
