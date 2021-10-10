@@ -30,6 +30,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
 
 ## Override Frontend Port
 
@@ -785,4 +786,35 @@ spec:
             port:
               number: 8080
         pathType: Exact
+```
+
+## Rewrite Rule Set
+
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/rewrite-rule-set: <rewrite rule set>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set: add-custom-response-header
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: go-server-service
+          servicePort: 8080
 ```

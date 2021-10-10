@@ -805,4 +805,136 @@ var _ = Describe("Test routing rules generations", func() {
 			}
 		})
 	})
+
+	Context("test ingress rewrite rule set with 2 ingresses one with rule set and another without", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingressPathBased1 := tests.NewIngressFixture()
+		rewriteRuleSetName := "custom-response-header"
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName
+
+		ingressPathBased2 := tests.NewIngressFixture()
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
+		ingressPathBased2.Spec.Rules = []networking.IngressRule{
+			testRule,
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.Listeners(cbCtx)
+
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+
+		sharedRule := &ingressPathBased1.Spec.Rules[0]
+
+		sharedListenerID := generateListenerID(ingressPathBased1, sharedRule, n.ApplicationGatewayProtocolHTTPS, nil, false)
+
+		It("has pathrules", func() {
+			Expect(*pathMaps[sharedListenerID].PathRules).To(Not(BeNil()))
+		})
+		It("has exactly three path rule", func() {
+			Expect(len(*pathMaps[sharedListenerID].PathRules)).To(Equal(3))
+		})
+		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetName))
+
+		// the paths defined in both ingresses have rewrite rules since the annotation in the first ingress takes
+		// precendence
+		It("has rewrite rule set in first path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+		It("has rewrite rule set in second path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[1].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+
+		// the path that is only declared in ingress2 doesn't have rewrite rules
+		It("has no rewrite rule set", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[2].RewriteRuleSet).To(BeNil())
+		})
+	})
+
+	Context("test ingress rewrite rule set with two ingresses with different rule sets", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingressPathBased1 := tests.NewIngressFixture()
+		rewriteRuleSetName1 := "custom-response-header1"
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName1
+
+		ingressPathBased2 := tests.NewIngressFixture()
+		rewriteRuleSetName2 := "custom-response-header2"
+		ingressPathBased2.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName2
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
+
+		ingressPathBased2.Spec.Rules = []networking.IngressRule{
+			testRule,
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.Listeners(cbCtx)
+
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+
+		sharedRule := &ingressPathBased1.Spec.Rules[0]
+
+		sharedListenerID := generateListenerID(ingressPathBased1, sharedRule, n.ApplicationGatewayProtocolHTTPS, nil, false)
+
+		It("has pathrules", func() {
+			Expect(*pathMaps[sharedListenerID].PathRules).To(Not(BeNil()))
+		})
+		It("has exactly three path rule", func() {
+			Expect(len(*pathMaps[sharedListenerID].PathRules)).To(Equal(3))
+		})
+		expectedRewriteRuleSet1 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetName1))
+
+		// the paths defined in both ingresses have rewrite rules declared in the first ingress since it takes
+		// precendence
+		It("has rewrite rule set in first path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet1))
+		})
+		It("has rewrite rule set in second path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[1].RewriteRuleSet).To(Equal(expectedRewriteRuleSet1))
+		})
+
+		expectedRewriteRuleSet2 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetName2))
+		// the path that is only declared in ingress2 has the rewrite rule declared in ingress2
+		It("has rewrite rule set from ingress 2", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[2].RewriteRuleSet).To(Equal(expectedRewriteRuleSet2))
+		})
+	})
+
+	Context("test ingress rewrite rule set in basic ingress", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
+		rewriteRuleSetName := "custom-response-header"
+		ingress.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		requestRoutingRules, _ := configBuilder.getRules(cbCtx)
+
+		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetName))
+
+		It("has rewrite rule set", func() {
+			Expect(requestRoutingRules[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+
+	})
 })

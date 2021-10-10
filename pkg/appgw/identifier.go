@@ -93,6 +93,10 @@ func (agw Identifier) requestRoutingRuleID(settingsName string) string {
 	return agw.gatewayResourceID("requestRoutingRules", settingsName)
 }
 
+func (agw Identifier) rewriteRuleSetID(rewriteName string) string {
+	return agw.gatewayResourceID("rewriteRuleSets", rewriteName)
+}
+
 func resourceRef(id string) *n.SubResource {
 	return &n.SubResource{ID: to.StringPtr(id)}
 }
