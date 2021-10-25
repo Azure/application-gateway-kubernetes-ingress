@@ -40,7 +40,7 @@ az network application-gateway ssl-cert create \
 ```
 
 ## Configure certificate from Key Vault to AppGw
-To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault. 
+To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault.
 
 ```bash
 # Configure your resources
@@ -126,7 +126,7 @@ spec:
 
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: aspnetapp
@@ -139,7 +139,10 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: aspnetapp
-          servicePort: 80
+          service:
+            name: aspnetapp
+            port:
+              number: 80
+        pathType: Exact
 EOF
 ```
