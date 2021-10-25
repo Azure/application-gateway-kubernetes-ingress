@@ -1,0 +1,22 @@
+# This shows a setup for HA
+---
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: LoadDistributionPolicy
+metadata:
+  name: load-distribution-policy-with-high-availability
+spec:
+  targets:
+    - backend:
+        service:
+          name: service-1
+          port:
+            number: 80
+      role: active
+      weight: 8
+    - backend:
+        service:
+          name: service-2
+          port:
+            number: 80
+      role: active
+      weight: 2

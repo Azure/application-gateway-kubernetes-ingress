@@ -101,7 +101,7 @@ func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 				Namespace:   PrometheusNamespace,
 				ConstLabels: constLabels,
 				Name:        "error_counter",
-				Help:        "This guage changes represents an error on AGIC",
+				Help:        "This gauge changes represents an error on AGIC",
 			},
 			[]string{ErrorCode},
 		),
@@ -134,7 +134,7 @@ func (ms *AGICMetricStore) SetUpdateLatencySec(duration time.Duration) {
 	ms.updateLatency.Set(duration.Seconds())
 }
 
-// IncK8sAPIEventCounter increases the counter after recieving a k8s Event
+// IncK8sAPIEventCounter increases the counter after receiving a k8s Event
 func (ms *AGICMetricStore) IncK8sAPIEventCounter() {
 	ms.k8sAPIEventCounter.Inc()
 }

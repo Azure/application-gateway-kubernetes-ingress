@@ -8,7 +8,7 @@ package appgw
 import (
 	"sort"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/klog/v2"
 
@@ -56,7 +56,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			portsByNumber[Port(*port.Port)] = *port
 		}
 
-		if config.Protocol == n.HTTPS {
+		if config.Protocol == n.ApplicationGatewayProtocolHTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
 		}
@@ -129,7 +129,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 	if len(allListeners) == 0 {
 		listenerConfig := listenerAzConfig{
 			// Default protocol
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 		}
 		// See if we have an ingress annotated with a Firewall Policy; Attach it to the listener
 		for _, ingress := range cbCtx.IngressList {

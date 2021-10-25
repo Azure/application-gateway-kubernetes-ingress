@@ -6,7 +6,7 @@
 package sorter
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
 
 // ByBackendPoolName is a facility to sort slices of ApplicationGatewayBackendAddressPool by Name

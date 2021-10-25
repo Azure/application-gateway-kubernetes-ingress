@@ -106,6 +106,27 @@ In the example above we have defined an ingress resource named `go-server-ingres
 
 ***NOTE:*** In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths specified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.
 
+If your incoming path is /hello/test/health but your backend requires /health you will want to ensure you have /* on your path
+
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /hello/test/*
+        backend:
+          serviceName: go-server-service
+    
+
 ## Backend Hostname
 
 This annotations allows us to specify the host name that Application Gateway should use while talking to the Pods.
@@ -273,7 +294,7 @@ spec:
 
 ## AppGW Trusted Root Certificate
 Users now can [configure their own root certificates to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest) to be trusted via AGIC.
-The annotaton `appgw-trusted-root-certificate` shall be used together with annotation `backend-protocol` to indicate end-to-end ssl encryption, mulitple root certificates, seperated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".
+The annotaton `appgw-trusted-root-certificate` shall be used together with annotation `backend-protocol` to indicate end-to-end ssl encryption, multiple root certificates, separated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".
 
 ### Use Azure CLI to install your root certificate to Application Gateway
 * Create your public root certificate for testing
@@ -632,7 +653,7 @@ spec:
 
 ## Health Probe Status Codes
 
-This annotation defines healthy status codes returned by the health probe. The values are comma seperated list of individual status codes or ranges defined as `<start of the range>-<end of the range>`.
+This annotation defines healthy status codes returned by the health probe. The values are comma separated list of individual status codes or ranges defined as `<start of the range>-<end of the range>`.
 
 ### Usage
 

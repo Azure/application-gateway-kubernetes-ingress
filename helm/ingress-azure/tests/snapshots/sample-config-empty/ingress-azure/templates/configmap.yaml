@@ -6,11 +6,12 @@ metadata:
   name: RELEASE-NAME-cm-ingress-azure
   labels:
     app: ingress-azure
-    chart: ingress-azure-1.2.1
+    chart: ingress-azure-1.4.0
     heritage: Helm
     release: RELEASE-NAME
 data:
   APPGW_VERBOSITY_LEVEL: "3"
+  MULTI_CLUSTER_MODE: "false"
   HTTP_SERVICE_PORT:     "8123"
   APPGW_SUBSCRIPTION_ID: "0000-0000-0000-0000-00000000"
   APPGW_RESOURCE_GROUP:  "resgp"

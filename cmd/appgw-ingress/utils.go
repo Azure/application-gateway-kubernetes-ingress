@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"k8s.io/klog/v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,6 +20,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"

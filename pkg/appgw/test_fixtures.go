@@ -8,10 +8,10 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 
@@ -51,7 +51,7 @@ func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	return &n.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
 		Sku: &n.ApplicationGatewaySku{
-			Name:     n.StandardV2,
+			Name:     n.ApplicationGatewaySkuNameStandardV2,
 			Tier:     n.ApplicationGatewayTierStandardV2,
 			Capacity: to.Int32Ptr(3),
 		},
@@ -84,7 +84,7 @@ func keyFunc(obj interface{}) (string, error) {
 	if endpoints, ok := obj.(*v1.Endpoints); ok {
 		return fmt.Sprintf("%s/%s", endpoints.Namespace, endpoints.Name), nil
 	}
-	if ingress, ok := obj.(*v1beta1.Ingress); ok {
+	if ingress, ok := obj.(*networking.Ingress); ok {
 		return fmt.Sprintf("%s/%s", ingress.Namespace, ingress.Name), nil
 	}
 	return fmt.Sprintf("%s/%s", tests.Namespace, tests.ServiceName), nil

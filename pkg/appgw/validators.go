@@ -8,9 +8,9 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 
@@ -19,12 +19,12 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 )
 
-func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*networking.Ingress, serviceList []*v1.Service) error {
 	// TODO(draychev): reuse newBackendIds() to get backendIDs oncehttps://github.com/Azure/application-gateway-kubernetes-ingress/pull/262 is merged
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
-		if ingress.Spec.Backend != nil {
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
+		if ingress.Spec.DefaultBackend != nil {
+			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -32,7 +32,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
-				if ingress.Spec.Backend == nil {
+				if ingress.Spec.DefaultBackend == nil {
 					continue
 				}
 				path := &rule.HTTP.Paths[pathIdx]
@@ -47,14 +47,14 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 			logLine := fmt.Sprintf("Ingress %s/%s references non existent Service %s. Please correct the Service section of your Kubernetes YAML", be.Ingress.Namespace, be.Ingress.Name, be.serviceKey())
 			eventRecorder.Event(be.Ingress, v1.EventTypeWarning, events.ReasonIngressServiceTargetMatch, logLine)
 			// NOTE: We could and should return a new error here.
-			// However this could be enabled at a later point in time once we know with certainty taht there are no valid
+			// However this could be enabled at a later point in time once we know with certainty that there are no valid
 			// scenarios where one could have Ingress pointing to a missing Service targets.
 		}
 	}
 	return nil
 }
 
-func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*v1beta1.Ingress, serviceList []*v1.Service) error {
+func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*networking.Ingress, serviceList []*v1.Service) error {
 	if config.URLPathMaps == nil {
 		return nil
 	}

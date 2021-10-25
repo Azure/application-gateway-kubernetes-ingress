@@ -3,7 +3,7 @@
 
 {{- if not .Values.appgw.applicationGatewayID }}
   {{- if not .Values.appgw.name }}
-    {{- if required "Please either provide appgw.applicationGatewayID or appgw.name. If application gateway doesn't exist already and you want AGIC to create a new one, specify appgw.name with appgw.subnetPrefix (ex: 10.1.0.0/16). AGIC requires these to create a new applicaiton gateway." .Values.appgw.applicationGatewayID }}
+    {{- if required "Please either provide appgw.applicationGatewayID or appgw.name. If application gateway doesn't exist already and you want AGIC to create a new one, specify appgw.name with appgw.subnetPrefix (ex: 10.1.0.0/16). AGIC requires these to create a new application gateway." .Values.appgw.applicationGatewayID }}
     {{- end }}
   {{- end }}
 {{- end }}
@@ -19,6 +19,7 @@ metadata:
     release: {{ .Release.Name }}
 data:
   APPGW_VERBOSITY_LEVEL: {{ .Values.verbosityLevel | quote }}
+  MULTI_CLUSTER_MODE: {{ .Values.kubernetes.multiClusterMode | quote }}
   HTTP_SERVICE_PORT:     {{ .Values.kubernetes.httpServicePort | quote }}
 {{- if .Values.appgw.usePrivateIP }}
   USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}

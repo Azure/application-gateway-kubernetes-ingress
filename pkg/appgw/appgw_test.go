@@ -11,12 +11,12 @@ import (
 	"io/ioutil"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/tags"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	multiCluster_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -98,7 +99,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	// Create the Ingress resource.
-	ingress := &v1beta1.Ingress{
+	ingress := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ingressName,
 			Namespace: ingressNS,
@@ -106,20 +107,21 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
 			},
 		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
 					Host: domainName,
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: hiPath,
-									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: int32(servicePort),
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: serviceName,
+											Port: networking.ServiceBackendPort{
+												Number: int32(servicePort),
+											},
 										},
 									},
 								},
@@ -193,7 +195,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	pod := tests.NewPodFixture(serviceName, ingressNS, backendName, int32(backendPort))
 
 	// Method to test all the ingress that have been added to the K8s context.
-	testIngress := func() []*v1beta1.Ingress {
+	testIngress := func() []*networking.Ingress {
 		// Get all the ingresses
 		ingressList := ctxt.ListHTTPIngresses()
 		// There should be only one ingress
@@ -206,12 +208,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultHealthProbesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress)
+		probeName := generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress)
 		probe := &n.ApplicationGatewayProbe{
 			Name: &probeName,
 			ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -228,33 +230,33 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(len(probes)).To(Equal(3))
 
 		// Test the default health probe.
-		Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.HTTP)))
+		Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress health probe that we installed.
 		Expect(probes).To(ContainElement(*probe))
 	}
 
 	defaultBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
+		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress))
 		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
 		httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
 			ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Protocol:                       n.HTTP,
+				Protocol:                       n.ApplicationGatewayProtocolHTTP,
 				Port:                           to.Int32Ptr(int32(backendPort)),
 				Path:                           nil,
 				HostName:                       nil,
 				Probe:                          resourceRef(probeID),
 				PickHostNameFromBackendAddress: to.BoolPtr(false),
-				CookieBasedAffinity:            n.Disabled,
+				CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 				RequestTimeout:                 to.Int32Ptr(30),
 			},
 		}
 
 		// Test the default backend HTTP settings.
-		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)))
+		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress backend HTTP setting that we installed.
 		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(*httpSettings))
 	}
@@ -290,7 +292,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
 				FrontendIPConfiguration:     resourceRef("--front-end-ip-id-1--"),
 				FrontendPort:                resourceRef(frontendPortID),
-				Protocol:                    n.HTTP,
+				Protocol:                    n.ApplicationGatewayProtocolHTTP,
 				HostNames:                   &[]string{domainName},
 				RequireServerNameIndication: to.BoolPtr(false),
 			},
@@ -302,7 +304,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
 		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
 		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerID)))
-		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.PathBasedRouting))
+		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting))
 	}
 
 	defaultRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
@@ -333,7 +335,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		baseURLPathMapsChecker(appGW, 443, domainName)
 	}
 
-	testAGConfig := func(ingressList []*v1beta1.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
+	testAGConfig := func(ingressList []*networking.Ingress, serviceList []*v1.Service, settings appGwConfigSettings) {
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           ingressList,
 			ServiceList:           serviceList,
@@ -399,7 +401,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			select {
 			case event := <-ctxt.Work:
 				// Check if we got an event of type secret.
-				if _, ok := event.Value.(*v1beta1.Ingress); ok {
+				if _, ok := event.Value.(*networking.Ingress); ok {
 					return
 				}
 			}
@@ -423,7 +425,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		_, err = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create node resource due to: %v", err)
 
-		_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
+		_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingress, metav1.CreateOptions{})
 		Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 		// Create the service.
@@ -444,9 +446,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		// Create a mock Istio CRD Client
 		istioCrdClient := istio_fake.NewSimpleClientset()
 
-		// Create a `k8scontext` to start listiening to ingress resources.
+		//create a mock multiCluster CRD Client
+		multiClusterCrdClient := multiCluster_fake.NewSimpleClientset()
 
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		// Create a `k8scontext` to start listiening to ingress resources.
+		k8scontext.IsNetworkingV1PackageSupported = true
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`
@@ -526,7 +531,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingressList := testIngress()
 
 			EmptyHealthProbeChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
-				Expect((*appGW.Probes)[0]).To(Equal(defaultProbe(appGwIdentifier, n.HTTP)))
+				Expect((*appGW.Probes)[0]).To(Equal(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 			}
 
 			EmptyBackendHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
@@ -537,18 +542,18 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					Name: &httpSettingsName,
 					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol:                       n.HTTP,
+						Protocol:                       n.ApplicationGatewayProtocolHTTP,
 						Port:                           to.Int32Ptr(int32(servicePort)),
 						Path:                           nil,
-						Probe:                          resourceRef(appGwIdentifier.probeID(defaultProbeName(n.HTTP))),
+						Probe:                          resourceRef(appGwIdentifier.probeID(defaultProbeName(n.ApplicationGatewayProtocolHTTP))),
 						PickHostNameFromBackendAddress: to.BoolPtr(false),
-						CookieBasedAffinity:            n.Disabled,
+						CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 						RequestTimeout:                 to.Int32Ptr(30),
 					},
 				}
 
 				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)))
+				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(*httpSettings))
 			}
@@ -614,20 +619,20 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Ω(err).ToNot(HaveOccurred(), "Unable to create the secret object in K8s: %v", err)
 
 			// 2. Update the ingress TLS spec with a secret from the k8s secret store.
-			ingressTLS := v1beta1.IngressTLS{
+			ingressTLS := networking.IngressTLS{
 				SecretName: "test-ag-secret",
 			}
 
 			// Currently, when TLS spec is specified for an ingress the expectation is that we will not have any HTTP listeners configured for that ingress.
 			// TODO: This statement will not hold true once we introduce the `ssl-redirect` annotation. Will need to rethink this test-case, or introduce a new one.
 			// after the introduction of the `ssl-redirect` annotation.
-			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.NetworkingV1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to create ingress resource due to: %v", err)
 
 			ingress.Spec.TLS = append(ingress.Spec.TLS, ingressTLS)
 
 			// Update the ingress.
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
+			_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			// Start the informers. This will sync the cache with the latest ingress.
@@ -664,7 +669,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						FrontendIPConfiguration: resourceRef("--front-end-ip-id-1--"),
 						FrontendPort:            resourceRef(frontendPortID),
 						SslCertificate:          resourceRef(sslCert),
-						Protocol:                n.HTTPS,
+						Protocol:                n.ApplicationGatewayProtocolHTTPS,
 
 						// RequireServerNameIndication is not used in Application Gateway v2
 						RequireServerNameIndication: to.BoolPtr(false),
@@ -676,7 +681,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			}
 
 			// Method to test all the ingress that have been added to the K8s context.
-			testTLSIngress := func() []*v1beta1.Ingress {
+			testTLSIngress := func() []*networking.Ingress {
 				// Get all the ingresses
 				ingressList := ctxt.ListHTTPIngresses()
 				// There should be only one ingress
@@ -722,7 +727,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Ingress Controller Annotations", func() {
 		BeforeEach(func() {
-			ingress, err := k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
+			ingress, err := k8sClient.NetworkingV1().Ingresses(ingressNS).Get(context.TODO(), ingressName, metav1.GetOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to get ingress resource due to: %v", err)
 
 			// Set the ingress annotations for this ingress.
@@ -734,7 +739,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			ingress.Annotations[annotations.RequestTimeoutKey] = "10"
 
 			// Update the ingress.
-			_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
+			_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
 			Ω(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err)
 
 			pod, err := k8sClient.CoreV1().Pods(ingressNS).Get(context.TODO(), serviceName, metav1.GetOptions{})
@@ -767,19 +772,19 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			annotationsHTTPSettingsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
+				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress))
 				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), Port(backendPort), ingress.Name)
 				httpSettings := &n.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
 					ID:   to.StringPtr(appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 					ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-						Protocol:            n.HTTP,
+						Protocol:            n.ApplicationGatewayProtocolHTTP,
 						Port:                to.Int32Ptr(int32(backendPort)),
 						Path:                to.StringPtr("/test"),
 						Probe:               resourceRef(probeID),
 						HostName:            to.StringPtr("www.backend.com"),
-						CookieBasedAffinity: n.Enabled,
+						CookieBasedAffinity: n.ApplicationGatewayCookieBasedAffinityEnabled,
 						ConnectionDraining: &n.ApplicationGatewayConnectionDraining{
 							Enabled:           to.BoolPtr(true),
 							DrainTimeoutInSec: to.Int32Ptr(10),
@@ -791,7 +796,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 				backendSettings := *appGW.BackendHTTPSettingsCollection
 
-				defaultHTTPSettings := defaultBackendHTTPSettings(appGwIdentifier, n.HTTP)
+				defaultHTTPSettings := defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
 
 				Expect(len(backendSettings)).To(Equal(2))
 				// Test the default backend HTTP settings.
@@ -802,12 +807,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			annotationHealthProbesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress)
+				probeName := generateProbeName(expectedBackend.Service.Name, serviceBackendPortToStr(expectedBackend.Service.Port), ingress)
 				probe := &n.ApplicationGatewayProbe{
 					Name: &probeName,
 					ID:   to.StringPtr(appGwIdentifier.probeID(probeName)),
 					ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-						Protocol:                            n.HTTP,
+						Protocol:                            n.ApplicationGatewayProtocolHTTP,
 						Host:                                to.StringPtr("www.backend.com"),
 						Path:                                to.StringPtr("/test"),
 						Interval:                            to.Int32Ptr(30),
@@ -823,7 +828,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Expect(len(probes)).To(Equal(3))
 
 				// Test the default health probe.
-				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.HTTP)))
+				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress health probe that we installed.
 				Expect(probes).To(ContainElement(*probe))
 			}

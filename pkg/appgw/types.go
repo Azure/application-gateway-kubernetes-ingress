@@ -6,10 +6,10 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 
@@ -19,7 +19,7 @@ import (
 // ConfigBuilderContext holds the structs we have fetches from Kubernetes + environment, based on which
 // we will construct App Gateway config.
 type ConfigBuilderContext struct {
-	IngressList          []*v1beta1.Ingress
+	IngressList          []*networking.Ingress
 	ServiceList          []*v1.Service
 	ProhibitedTargets    []*ptv1.AzureIngressProhibitedTarget
 	EnvVariables         environment.EnvVariables
@@ -33,7 +33,7 @@ type ConfigBuilderContext struct {
 }
 
 // InIngressList returns true if an ingress is in the ingress list
-func (cbCtx *ConfigBuilderContext) InIngressList(ingress *v1beta1.Ingress) bool {
+func (cbCtx *ConfigBuilderContext) InIngressList(ingress *networking.Ingress) bool {
 	for _, prunedIngress := range cbCtx.IngressList {
 		if ingress.Name == prunedIngress.Name && ingress.Namespace == prunedIngress.Namespace {
 			return true

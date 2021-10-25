@@ -25,12 +25,28 @@ steps:
   displayName: 'Go lint'
 
 - script: |
-    if go vet -v ./...; then
+    if go vet ./...; then
         echo -e "\e[42;97m govet SUCCEEDED \e[0m"
     else
         echo -e "\e[101;97m govet FAILED \e[0m"``
         exit 1
     fi
+
+    if go vet -tags=unittest ./...; then
+        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
+    else
+        echo -e "\e[101;97m govet FAILED \e[0m"``
+        exit 1
+    fi
+
+    cd ./scripts/e2e
+    if go vet -tags=e2e ./...; then
+        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
+    else
+        echo -e "\e[101;97m govet FAILED \e[0m"``
+        exit 1
+    fi
+    cd ../..
   workingDirectory: '$(modulePath)'
   displayName: 'Go vet'
 

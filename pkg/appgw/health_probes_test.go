@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
@@ -24,7 +24,7 @@ import (
 // appgw_suite_test.go launches these Ginkgo tests
 
 var _ = Describe("configure App Gateway health probes", func() {
-	ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+	ingressList := []*networking.Ingress{tests.NewIngressFixture()}
 	serviceList := []*v1.Service{tests.NewServiceFixture()}
 
 	Context("create probes", func() {
@@ -54,7 +54,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeName := agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-443---name--"
 		probeForHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -75,7 +75,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeName = agPrefix + "pb-" + tests.Namespace + "-" + tests.ServiceName + "-80---name--"
 		probeForOtherHost := n.ApplicationGatewayProbe{
 			ApplicationGatewayProbePropertiesFormat: &n.ApplicationGatewayProbePropertiesFormat{
-				Protocol:                            n.HTTP,
+				Protocol:                            n.ApplicationGatewayProtocolHTTP,
 				Host:                                to.StringPtr(tests.Host),
 				Path:                                to.StringPtr(tests.HealthPath),
 				Interval:                            to.Int32Ptr(20),
@@ -98,7 +98,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 
 		It("should have created 1 default probe", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		})
 
 		It("should have created 1 probe for Host", func() {
@@ -134,9 +134,9 @@ var _ = Describe("configure App Gateway health probes", func() {
 		probeMap, _ := cb.newProbesMap(cbCtx)
 
 		backend := ingressList[0].Spec.Rules[0].HTTP.Paths[0].Backend
-		probeName := generateProbeName(backend.ServiceName, backend.ServicePort.String(), ingressList[0])
+		probeName := generateProbeName(backend.Service.Name, serviceBackendPortToStr(backend.Service.Port), ingressList[0])
 		It("uses the readiness probe to set the protocol on the probe", func() {
-			Expect(probeMap[probeName].Protocol).To(Equal(n.HTTPS))
+			Expect(probeMap[probeName].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS))
 		})
 	})
 
@@ -162,8 +162,8 @@ var _ = Describe("configure App Gateway health probes", func() {
 		})
 
 		It("should have created 2 default probes", func() {
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTP)))
-			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.HTTPS)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
+			Expect(*actual).To(ContainElement(defaultProbe(cb.appGwIdentifier, n.ApplicationGatewayProtocolHTTPS)))
 		})
 	})
 
@@ -177,7 +177,7 @@ var _ = Describe("configure App Gateway health probes", func() {
 			Ingress: fixtures.GetIngress(),
 			Rule:    nil,
 			Path:    nil,
-			Backend: &v1beta1.IngressBackend{},
+			Backend: &networking.IngressBackend{},
 		}
 		pb := cb.generateHealthProbe(be)
 		It("should return nil and not crash", func() {
@@ -218,13 +218,15 @@ var _ = Describe("configure App Gateway health probes", func() {
 			},
 			Ingress: ingress,
 			Rule:    nil,
-			Path: &v1beta1.HTTPIngressPath{
+			Path: &networking.HTTPIngressPath{
 				Path: "/test",
-				Backend: v1beta1.IngressBackend{
-					ServiceName: "--service-name--",
+				Backend: networking.IngressBackend{
+					Service: &networking.IngressServiceBackend{
+						Name: "--service-name--",
+					},
 				},
 			},
-			Backend: &v1beta1.IngressBackend{},
+			Backend: &networking.IngressBackend{},
 		}
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		_ = cb.k8sContext.Caches.Service.Add(service)

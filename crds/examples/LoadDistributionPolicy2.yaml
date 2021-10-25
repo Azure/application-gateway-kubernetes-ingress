@@ -1,0 +1,22 @@
+# This shows a setup for Blue/Green deployment
+---
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: LoadDistributionPolicy
+metadata:
+  name: load-distribution-policy-blue-green
+spec:
+  targets:
+    - backend:
+        service:
+          name: old-service
+          port:
+            number: 80
+      role: active
+      weight: 8
+    - backend:
+        service:
+          name: new-service
+          port:
+            number: 80
+      role: passive
+      weight: 2

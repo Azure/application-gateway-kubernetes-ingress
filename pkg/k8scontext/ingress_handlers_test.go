@@ -17,6 +17,7 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -53,7 +54,8 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 		_, err = k8sClient.CoreV1().Secrets("ns1").Create(context.TODO(), secret, metav1.CreateOptions{})
 		Expect(err).To(BeNil())
 
-		ctx = NewContext(k8sClient, fake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		IsNetworkingV1PackageSupported = true
+		ctx = NewContext(k8sClient, fake.NewSimpleClientset(), multiClusterFake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{"ns"}, 1000*time.Second, metricstore.NewFakeMetricStore())
 		h = handlers{
 			context: ctx,
 		}
@@ -105,6 +107,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			secKey := utils.GetResourceKey(secret.Namespace, secret.Name)
 			secretInterface, exists, err := h.context.Caches.Secret.GetByKey(secKey)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(exists).To(BeTrue())
 			cachedSecret := secretInterface.(*v1.Secret)
 			Expect(cachedSecret.Data).To(Equal(data))

@@ -8,9 +8,9 @@ package controller
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -50,7 +50,7 @@ func (c AppGwIngressController) ResetAllIngress(appGw *n.ApplicationGateway, cbC
 	}
 }
 
-func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *v1beta1.Ingress, ips map[ipResource]ipAddress) {
+func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingress *networking.Ingress, ips map[ipResource]ipAddress) {
 
 	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)

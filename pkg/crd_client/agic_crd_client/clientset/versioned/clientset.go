@@ -21,13 +21,13 @@ package versioned
 import (
 	"fmt"
 
-	discovery "k8s.io/client-go/discovery"
-	rest "k8s.io/client-go/rest"
-	flowcontrol "k8s.io/client-go/util/flowcontrol"
-
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
+	loaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1"
+	discovery "k8s.io/client-go/discovery"
+	rest "k8s.io/client-go/rest"
+	flowcontrol "k8s.io/client-go/util/flowcontrol"
 )
 
 type Interface interface {
@@ -35,6 +35,7 @@ type Interface interface {
 	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
 	AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
+	LoaddistributionpoliciesV1beta1() loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
@@ -44,6 +45,7 @@ type Clientset struct {
 	azureapplicationgatewaybackendpoolsV1beta1         *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
 	azureapplicationgatewayinstanceupdatestatusV1beta1 *azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Client
 	azureingressprohibitedtargetsV1                    *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
+	loaddistributionpoliciesV1beta1                    *loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Client
 }
 
 // AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
@@ -59,6 +61,11 @@ func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureap
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
 func (c *Clientset) AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface {
 	return c.azureingressprohibitedtargetsV1
+}
+
+// LoaddistributionpoliciesV1beta1 retrieves the LoaddistributionpoliciesV1beta1Client
+func (c *Clientset) LoaddistributionpoliciesV1beta1() loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Interface {
+	return c.loaddistributionpoliciesV1beta1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -94,6 +101,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.loaddistributionpoliciesV1beta1, err = loaddistributionpoliciesv1beta1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 
 	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfig(&configShallowCopy)
 	if err != nil {
@@ -109,6 +120,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
+	cs.loaddistributionpoliciesV1beta1 = loaddistributionpoliciesv1beta1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -120,6 +132,7 @@ func New(c rest.Interface) *Clientset {
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
+	cs.loaddistributionpoliciesV1beta1 = loaddistributionpoliciesv1beta1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

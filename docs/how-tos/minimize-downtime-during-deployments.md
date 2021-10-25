@@ -7,7 +7,7 @@ This document outlines a Kubernetes and Ingress controller configuration, which 
 It is not uncommon for Kubernetes operators to observe Application Gateway 502 errors while performing a Kubernets rolling update on an AKS cluster fronted by Application Gateway and AGIC. This document offers a method to alleviate this problem. Since the method described in this document relies on correctly aligning the timing of deployment events it is not possible to guarantee 100% elimination of the probability of running into a 502 error. Even with this method there will be a non-zero chance for a period of time where Application Gateway backends could lag behind the most recent updates applied by a rolling update to the Kubernetes pods.
 
 ## Understanding 502 Errors
-At a high level there are 3 scenarious in which one could observe 502 errors on an AKS cluster fronted with App Gateway and AGIC. In all of these the root cause is the delay one could observe in applying a IP address changes to the Application Gateway's backend pools.
+At a high level there are 3 scenarios in which one could observe 502 errors on an AKS cluster fronted with App Gateway and AGIC. In all of these the root cause is the delay one could observe in applying a IP address changes to the Application Gateway's backend pools.
 
   - Scaling down a Kubernetes cluster:
     - Kubernetes is instructed to lower the number of pod replicas (perhaps manually, or via Horizontal Pod Autoscaler, or some other mechanism)

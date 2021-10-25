@@ -26,7 +26,7 @@ choose to use another environment, please ensure the following command line tool
 Here are the steps to instal aks-preview CLI and register Windows preview feature.
 
 > [!IMPORTANT]
-> AKS preview features are self-service opt-in. Previews are provided "as-is" and "as available" and are excluded from the service level agreements and limited warranty. AKS Previews are partially covered by customer support on best effort basis. As such, these features are not meant for production use. For additional infromation, please see the following support articles:
+> AKS preview features are self-service opt-in. Previews are provided "as-is" and "as available" and are excluded from the service level agreements and limited warranty. AKS Previews are partially covered by customer support on best effort basis. As such, these features are not meant for production use. For additional information, please see the following support articles:
 >
 > * [AKS Support Policies][aks-support-policies]
 > * [Azure Support FAQ][aks-faq]

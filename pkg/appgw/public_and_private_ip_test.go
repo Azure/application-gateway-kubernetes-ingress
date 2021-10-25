@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -23,6 +23,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	multiCluster_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -58,7 +59,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 	}
 
-	ingressPublicIP := &v1beta1.Ingress{
+	ingressPublicIP := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
@@ -66,19 +67,20 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Namespace: ingressNS,
 			Name:      "external-ingress-resource",
 		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/*",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: tests.ServiceName,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 443,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: tests.ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 443,
+											},
 										},
 									},
 								},
@@ -87,7 +89,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-			TLS: []v1beta1.IngressTLS{
+			TLS: []networking.IngressTLS{
 				{
 					Hosts: []string{
 						"pub.lic",
@@ -107,7 +109,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	// Create the Ingress resource.
-	ingressPrivateIP := &v1beta1.Ingress{
+	ingressPrivateIP := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
@@ -116,19 +118,20 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Namespace: ingressNS,
 			Name:      "internal-ingress-resource",
 		},
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/*",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: tests.ServiceName,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: tests.ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
 										},
 									},
 								},
@@ -221,7 +224,9 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	crdClient := fake.NewSimpleClientset()
 	istioCrdClient := istio_fake.NewSimpleClientset()
-	ctxt := k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+	multiClusterCrdClient := multiCluster_fake.NewSimpleClientset()
+	k8scontext.IsNetworkingV1PackageSupported = true
+	ctxt := k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 	secret := tests.NewSecretTestFixture()
 
@@ -242,16 +247,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	_, err = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingressPublicIP, metav1.CreateOptions{})
+	_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingressPublicIP, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingressPublicIP, metav1.UpdateOptions{})
+	_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingressPublicIP, metav1.UpdateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(context.TODO(), ingressPrivateIP, metav1.CreateOptions{})
+	_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingressPrivateIP, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	_, err = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Update(context.TODO(), ingressPrivateIP, metav1.UpdateOptions{})
+	_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingressPrivateIP, metav1.UpdateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred(), "Unable to update ingress resource due to: %v", err) })
 
 	_, err = k8sClient.CoreV1().Services(ingressNS).Create(context.TODO(), service, metav1.CreateOptions{})
@@ -275,7 +280,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Application Gateway config creation", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				ingressPrivateIP,
 				ingressPublicIP,
 			},

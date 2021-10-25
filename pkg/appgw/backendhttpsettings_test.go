@@ -8,7 +8,7 @@ package appgw
 import (
 	"strconv"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 
 	"strings"
 
@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -45,7 +45,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 	// Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
-	ingressWithInvalidServices, _ := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
+	ingressWithInvalidServices := tests.GetIngressWithMissingServiceAndServiceWithInvalidPort()
 	_ = configBuilder.k8sContext.Caches.Ingress.Add(ingressWithInvalidServices)
 
 	Context("test backend protocol annotation configures protocol on httpsettings and probes when no readiness probe on the pods", func() {
@@ -59,7 +59,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			Expect(annotations.BackendProtocol(ingress)).To(Equal(protocolEnum))
 
 			cbCtx := &ConfigBuilderContext{
-				IngressList:           []*v1beta1.Ingress{ingress},
+				IngressList:           []*networking.Ingress{ingress},
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -72,8 +72,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
 					continue
 				}
 
@@ -83,25 +83,25 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		}
 
 		It("should have all but default backend http settings with https", func() {
-			checkBackendProtocolAnnotation("HttPS", annotations.HTTPS, n.HTTPS)
+			checkBackendProtocolAnnotation("HttPS", annotations.HTTPS, n.ApplicationGatewayProtocolHTTPS)
 		})
 
 		It("should have all backend http settings with http", func() {
-			checkBackendProtocolAnnotation("HttP", annotations.HTTP, n.HTTP)
+			checkBackendProtocolAnnotation("HttP", annotations.HTTP, n.ApplicationGatewayProtocolHTTP)
 		})
 	})
 
 	Context("test appgw trusted root certificate annotation configures trusted root certificate(s) on httpsettings", func() {
 
 		checkTrustedRootCertificateAnnotation := func(protocol string, trustedRootCertificate string, protocolEnum annotations.ProtocolEnum, expectedProtocolValue n.ApplicationGatewayProtocol) {
-			// appgw trusted root certificate needs to be used together with backend protocal annotation, and protocal "https" should be used.
+			// appgw trusted root certificate needs to be used together with backend protocol annotation, and protocol "https" should be used.
 			// PickHostNameFromBackendAddress will be true given backend hostname is not specified
 			ingress.Annotations[annotations.BackendProtocolKey] = protocol
 			ingress.Annotations[annotations.AppGwTrustedRootCertificate] = trustedRootCertificate
 			_ = configBuilder.k8sContext.Caches.Ingress.Update(ingress)
 
 			cbCtx := &ConfigBuilderContext{
-				IngressList:           []*v1beta1.Ingress{ingress},
+				IngressList:           []*networking.Ingress{ingress},
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -114,8 +114,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.HTTP), "default backend %s should have %s", *setting.Name, n.HTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.HTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
 					continue
 				}
 
@@ -131,14 +131,14 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		}
 
 		It("should have all but default backend http settings with https and trusted root certificates", func() {
-			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.HTTPS)
+			checkTrustedRootCertificateAnnotation("Https", "rootcert1,rootcert2", annotations.HTTPS, n.ApplicationGatewayProtocolHTTPS)
 		})
 
 	})
 
 	Context("test backend ports for the http settings", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -148,7 +148,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		configBuilder.newProbesMap(cbCtx)
 		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
 
-		It("correct backend port is choosen in case of target port is resolved to multiple ports", func() {
+		It("correct backend port is chosen in case of target port is resolved to multiple ports", func() {
 			expectedhttpSettingsLen := 3
 			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
 
@@ -173,7 +173,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 	Context("make sure all backends are processed", func() {
 		// ingress1 : Ingress "ingress-with-missing-service-and-service-with-invalid-port" with service missing "missing-service"
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingressWithInvalidServices, ingress},
+			IngressList:           []*networking.Ingress{ingressWithInvalidServices, ingress},
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),

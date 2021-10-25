@@ -8,12 +8,12 @@ package appgw
 import (
 	"fmt"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 )
@@ -196,7 +196,7 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 		Name: &httpSettingsName,
 		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 			Port:     to.Int32Ptr(int32(port)),
 		},
 	}

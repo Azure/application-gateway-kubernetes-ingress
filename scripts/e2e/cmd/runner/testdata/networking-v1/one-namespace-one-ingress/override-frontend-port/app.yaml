@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: backend-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/201
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /status/202
+              port: 80
+              scheme: HTTP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: ws-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-http
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+    appgw.ingress.kubernetes.io/override-frontend-port: "8080"
+spec:
+  rules:
+    - host: app.http
+      http:
+        paths:
+          - path: /good
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+            pathType: Exact
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-https
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+    appgw.ingress.kubernetes.io/override-frontend-port: "8443"
+spec:
+  tls:
+    - secretName: testsecret-tls
+  rules:
+    - host: app.https
+      http:
+        paths:
+          - path: /good
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+            pathType: Exact
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testsecret-tls
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJEVENCdEFJSkFLWTlOYkJMVjlJTE1Bb0dDQ3FHU000OUJBTUNNQTh4RFRBTEJnTlZCQU1NQkhSbGMzUXcKSGhjTk1qQXdOVEU0TWpFeU1UUXpXaGNOTWpFd05URTRNakV5TVRReldqQVBNUTB3Q3dZRFZRUUREQVIwWlhOMApNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUU2eHlzV0lhZUFkenYveXdUNTl5NDNreXppUGViCmMvaEpLOCt1Nm9uMmtOYjJpZ2tuTDZndU9PYWxsamQxOVB1dTYwYmh4aEpobGJpcHpBcWZCcFYzYnpBS0JnZ3EKaGtqT1BRUURBZ05JQURCRkFpRUFzbGNmNjNId0hxUDZoMHJTdjg3TXlBRVVoWmRoUlNZdm5sMGQyazRxZGtZQwpJRG1qNWdDcFAzTldmZWRVZHh6bTlsOEtxRUl2c1VxL1hXYWxUODhTWitWQQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: LS0tLS1CRUdJTiBFQyBQQVJBTUVURVJTLS0tLS0KQmdncWhrak9QUU1CQnc9PQotLS0tLUVORCBFQyBQQVJBTUVURVJTLS0tLS0KLS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUdQeE1qSytnOEd1dWhlMW1PQUZHY1V3V09xdHZRbjZCTHBQZVJGUTZUNHhvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFNnh5c1dJYWVBZHp2L3l3VDU5eTQza3l6aVBlYmMvaEpLOCt1Nm9uMmtOYjJpZ2tuTDZndQpPT2FsbGpkMTlQdXU2MGJoeGhKaGxiaXB6QXFmQnBWM2J3PT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=

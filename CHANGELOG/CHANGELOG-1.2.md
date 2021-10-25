@@ -35,7 +35,7 @@ Same as [v1.2.0-rc3](#v120-rc3).
 * [#867](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/867) Set UnhealthyThreshold on Application Gateway to 20 when readiness/liveness probe has UnhealthyThreshold > 20
 * [#876](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/876) Allow using shared feature in both helm 2 and helm 3
 * [#887](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/887) Update shared feature code to use new listener's hostnames during prohibited list filtering
-* [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme contruction for k8s event recorder
+* [#890](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/890) Correct scheme construction for k8s event recorder
 
 ## Known Issues:
 * When upgrading an existing helm release, you will see **conflict** when helm tries to update the deployment object.
@@ -52,7 +52,7 @@ Same as [v1.2.0-rc3](#v120-rc3).
 * [#766](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/766): Apply WAF policy to listener when path is any of "/", "/*", "". This is in regards to the usage of `waf-policy-for-path` annotation.
 * [#850](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/850): helm: update deployment when config changes by using a checksum.
 * Switch from `hostname` to `hostnames` property in HTTP Listener on Application Gateway.
-* helm: remove replica count setting from supported helm values. This will be added back when AGIC will recieve support for leader election.
+* helm: remove replica count setting from supported helm values. This will be added back when AGIC will receive support for leader election.
 
 ## Known Issues:
 * This release has known issues related to enabling `shared` feature with helm. This has been addressed in 1.2.0-rc3.

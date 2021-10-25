@@ -6,8 +6,8 @@
 package appgw
 
 import (
-	"k8s.io/klog/v2"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
+	"k8s.io/klog/v2"
 )
 
 func (c *appGwConfigBuilder) resolveIstioPortName(portName string, destinationID *istioDestinationIdentifier) map[Port]interface{} {

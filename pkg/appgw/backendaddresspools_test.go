@@ -6,13 +6,13 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
@@ -44,7 +44,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	Context("build a list of BackendAddressPools", func() {
 		ing1 := tests.NewIngressFixture()
 		ing2 := tests.NewIngressFixture()
-		ingressList := []*v1beta1.Ingress{
+		ingressList := []*networking.Ingress{
 			ing1,
 			ing2,
 		}
@@ -74,7 +74,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	})
 
 	Context("ensure unique IP addresses", func() {
-		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+		ingressList := []*networking.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
@@ -112,7 +112,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 	})
 
 	Context("ensure correct creation of ApplicationGatewayBackendAddress", func() {
-		ingressList := []*v1beta1.Ingress{tests.NewIngressFixture()}
+		ingressList := []*networking.Ingress{tests.NewIngressFixture()}
 		cb := newConfigBuilderFixture(nil)
 		for _, ingress := range ingressList {
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)

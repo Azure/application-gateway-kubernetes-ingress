@@ -6,12 +6,12 @@
 package appgw
 
 import (
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/record"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -25,7 +25,7 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 	Context("test validateURLPathMaps", func() {
 
 		eventRecorder := record.NewFakeRecorder(100)
-		ingressList := []*v1beta1.Ingress{}
+		ingressList := []*networking.Ingress{}
 		serviceList := []*v1.Service{}
 		envVariables := environment.GetFakeEnv()
 

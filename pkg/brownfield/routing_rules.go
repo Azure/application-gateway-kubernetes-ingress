@@ -8,7 +8,7 @@ package brownfield
 import (
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -99,20 +99,26 @@ func LogRules(existingBlacklisted []n.ApplicationGatewayRequestRoutingRule, exis
 
 // mergeRoutingRules merges two routing rules by merging their pathRules
 func mergeRoutingRules(appGw *n.ApplicationGateway, firstRoutingRule *n.ApplicationGatewayRequestRoutingRule, secondRoutingRule *n.ApplicationGatewayRequestRoutingRule) *n.ApplicationGatewayRequestRoutingRule {
-	if firstRoutingRule.RuleType == n.Basic &&
-		secondRoutingRule.RuleType == n.PathBasedRouting {
+	if firstRoutingRule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypeBasic &&
+		secondRoutingRule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
 		return mergeRoutingRules(appGw, secondRoutingRule, firstRoutingRule)
 	}
 
-	if firstRoutingRule.RuleType == n.PathBasedRouting {
+	if firstRoutingRule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
 		// Get the url path map of the first rule
 		klog.V(5).Infof("[brownfield] Merging path based rule %s with rule %s", *firstRoutingRule.Name, *secondRoutingRule.Name)
 		firstPathMap := lookupPathMap(appGw.URLPathMaps, firstRoutingRule.URLPathMap.ID)
 
-		if secondRoutingRule.RuleType == n.Basic {
+		if secondRoutingRule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypeBasic {
 			// Replace the default values from the second rule
 			klog.V(5).Infof("[brownfield] Merging path map %s with rule %s", *firstPathMap.Name, *secondRoutingRule.Name)
 			mergePathMapsWithBasicRule(firstPathMap, secondRoutingRule)
+			return firstRoutingRule
+		}
+
+		if *firstRoutingRule.URLPathMap.ID == *secondRoutingRule.URLPathMap.ID {
+			// No merge needed as both routing rule point to the same URL Path map
+			klog.V(5).Infof("[brownfield] Rule %s and rule %s share the same path map %s; Skipping merge", *firstRoutingRule.Name, *secondRoutingRule.Name, *firstPathMap.Name)
 			return firstRoutingRule
 		}
 

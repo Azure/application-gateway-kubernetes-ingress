@@ -1,27 +1,33 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: azureingressprohibitedtargets.appgw.ingress.k8s.io
-  annotations:	  
+  annotations:
     "helm.sh/hook": crd-install
+    "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1272"
 spec:
   group: appgw.ingress.k8s.io
-  version: v1
   names:
     kind: AzureIngressProhibitedTarget
     plural: azureingressprohibitedtargets
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      properties:
-        spec:
+  versions:
+    - name: v1
+      served: true 
+      storage: true 
+      schema: 
+        openAPIV3Schema:
+          type: object
           properties:
-            hostname:
-              description: "(optional) Hostname of the prohibited target"
-              type: string
-            paths:
-              description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
-              type: array
-              items:
+            spec:
+              type: object
+              properties:
+                hostname:
+                  description: "(optional) Hostname of the prohibited target"
                   type: string
-                  pattern: '^\/(?:.+\/)?\*$'
+                paths:
+                  description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
+                  type: array
+                  items:
+                      type: string
+                      pattern: '^\/(?:.+\/)?\*$'

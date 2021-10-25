@@ -16,9 +16,9 @@ import (
 	"regexp"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -48,10 +48,10 @@ const (
 
 type backendIdentifier struct {
 	serviceIdentifier
-	Ingress *v1beta1.Ingress
-	Rule    *v1beta1.IngressRule
-	Path    *v1beta1.HTTPIngressPath
-	Backend *v1beta1.IngressBackend
+	Ingress *networking.Ingress
+	Rule    *networking.IngressRule
+	Path    *networking.HTTPIngressPath
+	Backend *networking.IngressBackend
 }
 
 type serviceBackendPortPair struct {
@@ -130,7 +130,7 @@ func generateHTTPSettingsName(serviceName string, servicePort string, backendPor
 	return formatPropName(fmt.Sprintf("%s%s-%v-%v-%v-%s", agPrefix, prefixHTTPSettings, serviceName, servicePort, backendPort, ingress))
 }
 
-func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
+func generateProbeName(serviceName string, servicePort string, ingress *networking.Ingress) string {
 	return formatPropName(fmt.Sprintf("%s%s-%s-%v-%v-%s", agPrefix, prefixProbe, ingress.Namespace, serviceName, servicePort, ingress.Name))
 }
 
@@ -185,7 +185,7 @@ func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.Applicati
 
 			// setting to default
 			PickHostNameFromBackendAddress: to.BoolPtr(false),
-			CookieBasedAffinity:            n.Disabled,
+			CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}

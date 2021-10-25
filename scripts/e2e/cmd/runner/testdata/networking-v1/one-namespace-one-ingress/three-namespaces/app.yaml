@@ -1,0 +1,189 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zagora-deployment
+  namespace: e2e-ns-x
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: zagora-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zagora-service
+  namespace: e2e-ns-x
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zagora-ingress
+  namespace: e2e-ns-x
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+    - host: ws-e2e-ns-x.mis.li
+      http:
+        paths:
+        - path: /*
+          backend:
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zagora-deployment
+  namespace: e2e-ns-y
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: zagora-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zagora-service
+  namespace: e2e-ns-y
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zagora-ingress
+  namespace: e2e-ns-y
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+    - host: ws-e2e-ns-y.mis.li
+      http:
+        paths:
+        - path: /*
+          backend:
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zagora-deployment
+  namespace: e2e-ns-z
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: zagora-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zagora-service
+  namespace: e2e-ns-z
+spec:
+  selector:
+    app: ws-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zagora-ingress
+  namespace: e2e-ns-z
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+    - host: ws-e2e-ns-z.mis.li
+      http:
+        paths:
+        - path: /*
+          backend:
+            service:
+              name: zagora-service
+              port:
+                number: 80
+          pathType: Prefix

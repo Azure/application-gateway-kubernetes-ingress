@@ -6,12 +6,13 @@
 package appgw
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
@@ -84,7 +85,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 		}
 		if urlPathMap.PathRules == nil || len(*urlPathMap.PathRules) == 0 {
 			// Basic Rule, because we have no path-based rule
-			rule.RuleType = n.Basic
+			rule.RuleType = n.ApplicationGatewayRequestRoutingRuleTypeBasic
 			rule.RedirectConfiguration = urlPathMap.DefaultRedirectConfiguration
 
 			// We setup the default backend address pools and default backend HTTP settings only if
@@ -98,11 +99,11 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			}
 		} else {
 			// Path-based Rule
-			rule.RuleType = n.PathBasedRouting
+			rule.RuleType = n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting
 			rule.URLPathMap = &n.SubResource{ID: to.StringPtr(c.appGwIdentifier.urlPathMapID(*urlPathMap.Name))}
 			pathMap = append(pathMap, *urlPathMap)
 		}
-		if rule.RuleType == n.PathBasedRouting {
+		if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
 			klog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
 		} else {
 			if rule.RedirectConfiguration != nil {
@@ -119,18 +120,18 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	return requestRoutingRules, pathMap
 }
 
-func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *v1beta1.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
+func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
-	if ingress.Spec.Backend == nil {
+	if ingress.Spec.DefaultBackend == nil {
 		return
 	}
-	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
 	_, _, serviceBackendPairMap, err := c.getBackendsAndSettingsMap(cbCtx)
 	if err != nil {
 		klog.Error("Error fetching Backends and Settings: ", err)
 	}
 	if serviceBackendPair, exists := serviceBackendPairMap[backendID]; exists {
-		poolName := generateAddressPoolName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), serviceBackendPair.BackendPort)
+		poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
@@ -215,7 +216,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	return urlPathMaps
 }
 
-func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *n.ApplicationGatewayURLPathMap {
+func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *n.ApplicationGatewayURLPathMap {
 	// initialize a path map for this listener if doesn't exists
 	pathMapName := generateURLPathMapName(listenerID)
 	pathMap := n.ApplicationGatewayURLPathMap{
@@ -241,8 +242,8 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	return &pathMap
 }
 
-func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule) (*string, *string, *string) {
-	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
+func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
+	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
 
@@ -257,9 +258,9 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
 
-	var defRule *v1beta1.IngressRule
-	var defPath *v1beta1.HTTPIngressPath
-	defBackend := ingress.Spec.Backend
+	var defRule *networking.IngressRule
+	var defPath *networking.HTTPIngressPath
+	defBackend := ingress.Spec.DefaultBackend
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		if path.Path == "" || path.Path == "/*" || path.Path == "/" {
@@ -286,7 +287,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
 }
 
-func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *v1beta1.Ingress, rule *v1beta1.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
+func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)
@@ -316,7 +317,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
-		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.HTTP {
+		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
 			targetListener := listenerID
 			targetListener.FrontendPort = 443
 
@@ -383,7 +384,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		addRuleToMergeList := true
 		for _, path := range *pathRule.Paths {
 			if _, exists := pathMap[path]; exists {
-				klog.Errorf("A path-rule with path '%s' already exists in config for BackendPool '%s'. Duplicate path-rule with BackendPool '%s' will not be applied.", path, *pathMap[path].BackendAddressPool.ID, *pathRule.BackendAddressPool.ID)
+				klog.Errorf("A path-rule with path '%s' already exists'. Existing path rule {%s} and new path rule {%s}.", path, printPathRule(pathMap[path]), printPathRule(pathRule))
 				addRuleToMergeList = false
 			} else {
 				pathMap[path] = pathRule
@@ -397,4 +398,22 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 	existingPathMap.PathRules = &mergedPathRules
 
 	return existingPathMap
+}
+
+func printPathRule(pathRule n.ApplicationGatewayPathRule) string {
+	s := fmt.Sprintf("pathMapName=%s", *pathRule.Name)
+
+	if pathRule.BackendAddressPool != nil && pathRule.BackendAddressPool.ID != nil {
+		s = fmt.Sprintf("%s poolID=%s", s, *pathRule.BackendAddressPool.ID)
+	}
+
+	if pathRule.RedirectConfiguration != nil && pathRule.RedirectConfiguration.ID != nil {
+		s = fmt.Sprintf("%s redirectID=%s", s, *pathRule.RedirectConfiguration.ID)
+	}
+
+	if pathRule.LoadDistributionPolicy != nil && pathRule.LoadDistributionPolicy.ID != nil {
+		s = fmt.Sprintf("%s ldpID=%s", s, *pathRule.LoadDistributionPolicy.ID)
+	}
+
+	return s
 }

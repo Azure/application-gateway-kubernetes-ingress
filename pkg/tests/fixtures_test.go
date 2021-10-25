@@ -10,7 +10,7 @@ package tests
 import (
 	"testing"
 
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -82,7 +82,7 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test getIngress", func() {
 		It("should throw an error because the file does not exist", func() {
-			_, err := getIngress("blahBlahBlah")
+			_, err := GetIngressV1FromFile("blahBlahBlah")
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -97,13 +97,13 @@ var _ = Describe("Test Fixture Object Factories", func() {
 	Context("Test NewIngressBackendFixture", func() {
 		It("should work", func() {
 			actual := NewIngressBackendFixture("service-name", int32(123))
-			Expect(actual.ServiceName).To(Equal("service-name"))
+			Expect(actual.Service.Name).To(Equal("service-name"))
 		})
 	})
 
 	Context("Test NewIngressRuleFixture", func() {
 		It("should work", func() {
-			actual := NewIngressRuleFixture("host", "urlPath", v1beta1.IngressBackend{})
+			actual := NewIngressRuleFixture("host", "urlPath", networking.IngressBackend{})
 			Expect(actual.Host).To(Equal("host"))
 		})
 	})
@@ -131,7 +131,7 @@ var _ = Describe("Test Fixture Object Factories", func() {
 
 	Context("Test NewPodFixture", func() {
 		It("should work", func() {
-			actual := NewPodFixture("service-name", "namespace", "conatiner-name", int32(80))
+			actual := NewPodFixture("service-name", "namespace", "container-name", int32(80))
 			Expect(actual.Name).To(Equal("service-name"))
 		})
 	})

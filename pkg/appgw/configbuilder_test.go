@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -25,6 +25,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	multiCluster_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istio_fake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
@@ -76,21 +77,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	// Create the Ingress resource.
-	ingress := &v1beta1.Ingress{
-		Spec: v1beta1.IngressSpec{
-			Rules: []v1beta1.IngressRule{
+	ingress := &networking.Ingress{
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
 				{
 					Host: "foo.baz",
-					IngressRuleValue: v1beta1.IngressRuleValue{
-						HTTP: &v1beta1.HTTPIngressRuleValue{
-							Paths: []v1beta1.HTTPIngressPath{
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
 								{
 									Path: "/",
-									Backend: v1beta1.IngressBackend{
-										ServiceName: serviceName,
-										ServicePort: intstr.IntOrString{
-											Type:   intstr.Int,
-											IntVal: 80,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: serviceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
 										},
 									},
 								},
@@ -99,7 +101,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-			TLS: []v1beta1.IngressTLS{
+			TLS: []networking.IngressTLS{
 				{
 					Hosts: []string{
 						"www.contoso.com",
@@ -193,14 +195,16 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		options := metav1.CreateOptions{}
 		_, _ = k8sClient.CoreV1().Namespaces().Create(ctx, ns, options)
 		_, _ = k8sClient.CoreV1().Nodes().Create(ctx, node, options)
-		_, _ = k8sClient.ExtensionsV1beta1().Ingresses(ingressNS).Create(ctx, ingress, options)
+		_, _ = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(ctx, ingress, options)
 		_, _ = k8sClient.CoreV1().Services(ingressNS).Create(ctx, service, options)
 		_, _ = k8sClient.CoreV1().Endpoints(ingressNS).Create(ctx, endpoints, options)
 		_, _ = k8sClient.CoreV1().Pods(ingressNS).Create(ctx, pod, options)
 
 		crdClient := fake.NewSimpleClientset()
 		istioCrdClient := istio_fake.NewSimpleClientset()
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		multiClusterCrdClient := multiCluster_fake.NewSimpleClientset()
+		k8scontext.IsNetworkingV1PackageSupported = true
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
 
 		appGwy := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
@@ -215,7 +219,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	Context("Tests Application Gateway config creation", func() {
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingress},
+			IngressList:           []*networking.Ingress{ingress},
 			ServiceList:           serviceList,
 			EnvVariables:          environment.GetFakeEnv(),
 			DefaultAddressPoolID:  to.StringPtr("xx"),
@@ -441,13 +445,14 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Application Gateway config creation with the SIMPLEST possible K8s YAML", func() {
-		ingressNoRules := &v1beta1.Ingress{
-			Spec: v1beta1.IngressSpec{
-				Backend: &v1beta1.IngressBackend{
-					ServiceName: serviceName,
-					ServicePort: intstr.IntOrString{
-						Type:   intstr.Int,
-						IntVal: 80,
+		ingressNoRules := &networking.Ingress{
+			Spec: networking.IngressSpec{
+				DefaultBackend: &networking.IngressBackend{
+					Service: &networking.IngressServiceBackend{
+						Name: serviceName,
+						Port: networking.ServiceBackendPort{
+							Number: 80,
+						},
 					},
 				},
 			},
@@ -461,7 +466,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList: []*v1beta1.Ingress{
+			IngressList: []*networking.Ingress{
 				// ingress,
 				ingressNoRules,
 			},
@@ -673,21 +678,22 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	Context("Tests Application Gateway config creation with hostname extensions", func() {
-		ingressWithHostNameExtension := &v1beta1.Ingress{
-			Spec: v1beta1.IngressSpec{
-				Rules: []v1beta1.IngressRule{
+		ingressWithHostNameExtension := &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
 					{
 						Host: "foo.baz",
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
 									{
 										Path: "/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: serviceName,
-											ServicePort: intstr.IntOrString{
-												Type:   intstr.Int,
-												IntVal: 80,
+										Backend: networking.IngressBackend{
+											Service: &networking.IngressServiceBackend{
+												Name: serviceName,
+												Port: networking.ServiceBackendPort{
+													Number: 80,
+												},
 											},
 										},
 									},
@@ -696,7 +702,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-				TLS: []v1beta1.IngressTLS{
+				TLS: []networking.IngressTLS{
 					{
 						Hosts: []string{
 							"www.contoso.com",
@@ -724,7 +730,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           []*v1beta1.Ingress{ingressWithHostNameExtension},
+			IngressList:           []*networking.Ingress{ingressWithHostNameExtension},
 			ServiceList:           serviceList,
 			EnvVariables:          environment.GetFakeEnv(),
 			DefaultAddressPoolID:  to.StringPtr("xx"),

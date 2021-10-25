@@ -19,12 +19,6 @@ limitations under the License.
 package fake
 
 import (
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/discovery"
-	fakediscovery "k8s.io/client-go/discovery/fake"
-	"k8s.io/client-go/testing"
-
 	clientset "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
@@ -32,6 +26,13 @@ import (
 	fakeazureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1/fake"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	fakeazureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1/fake"
+	loaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1"
+	fakeloaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1/fake"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/discovery"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	"k8s.io/client-go/testing"
 )
 
 // NewSimpleClientset returns a clientset that will respond with the provided objects.
@@ -79,7 +80,9 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
-var _ clientset.Interface = &Clientset{}
+var (
+	_ clientset.Interface = &Clientset{}
+)
 
 // AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
 func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
@@ -94,4 +97,9 @@ func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureap
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
 func (c *Clientset) AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface {
 	return &fakeazureingressprohibitedtargetsv1.FakeAzureingressprohibitedtargetsV1{Fake: &c.Fake}
+}
+
+// LoaddistributionpoliciesV1beta1 retrieves the LoaddistributionpoliciesV1beta1Client
+func (c *Clientset) LoaddistributionpoliciesV1beta1() loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Interface {
+	return &fakeloaddistributionpoliciesv1beta1.FakeLoaddistributionpoliciesV1beta1{Fake: &c.Fake}
 }

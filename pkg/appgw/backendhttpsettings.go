@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -73,7 +73,7 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 		return *c.mem.settings, *c.mem.settingsByBackend, *c.mem.serviceBackendPairsByBackend, nil
 	}
 
-	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.HTTP)
+	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
 	serviceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)
@@ -120,15 +120,15 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			backendID.serviceKey())
 
 		backendPort := Port(80)
-		if backendID.Backend.ServicePort.Type == intstr.Int && backendID.Backend.ServicePort.IntVal < 65536 {
-			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		if backendID.Backend.Service.Port.Name == "" && backendID.Backend.Service.Port.Number < 65536 {
+			backendPort = Port(backendID.Backend.Service.Port.Number)
 		}
 
 		return backendPort, e
 	}
 
 	// find the target port number for service port specified in the ingress manifest
-	servicePortInIngress := backendID.Backend.ServicePort.String()
+	servicePortInIngress := fmt.Sprint(backendID.Backend.Service.Port.Number)
 	resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 	for _, servicePort := range service.Spec.Ports {
 		// ignore UDP ports
@@ -167,7 +167,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 
 		// if target port is port name, then resolve the port number for the port name
 		// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
-		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendID.Ingress.Name)
+		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendID.Ingress.Name)
 		targetPortsResolved := c.resolvePortName(servicePort.Name, &backendID)
 		for targetPort := range targetPortsResolved {
 			pair := serviceBackendPortPair{
@@ -184,8 +184,8 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			controllererrors.ErrorUnableToResolveBackendPortFromServicePort,
 			"No port matched %s",
 			backendID.serviceKey())
-		if backendID.Backend.ServicePort.Type == intstr.Int {
-			backendPort = Port(backendID.Backend.ServicePort.IntVal)
+		if backendID.Backend.Service.Port.Name == "" {
+			backendPort = Port(backendID.Backend.Service.Port.Number)
 		}
 	} else {
 		var ports []string
@@ -201,7 +201,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 			e = controllererrors.NewErrorf(
 				controllererrors.ErrorMultipleServiceBackendPortBinding,
 				"service %s and service port %s has more than one service-backend port binding which is not an ideal scenario, choosing the smallest service-backend port %d. Ports found %s.",
-				backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort, strings.Join(ports, ","),
+				backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendPort, strings.Join(ports, ","),
 			)
 		}
 	}
@@ -210,7 +210,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 		e = controllererrors.NewErrorf(
 			controllererrors.ErrorServiceResolvedToInvalidPort,
 			"service %s and service port %s was resolved to an invalid service-backend port %d, defaulting to port 80",
-			backendID.serviceKey(), backendID.Backend.ServicePort.String(), backendPort,
+			backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendPort,
 		)
 		backendPort = Port(80)
 	}
@@ -219,19 +219,19 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 }
 
 func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, port Port, cbCtx *ConfigBuilderContext) n.ApplicationGatewayBackendHTTPSettings {
-	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), port, backendID.Ingress.Name)
+	httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), port, backendID.Ingress.Name)
 
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,
 		ID:   to.StringPtr(c.appGwIdentifier.HTTPSettingsID(httpSettingsName)),
 		ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &n.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-			Protocol: n.HTTP,
+			Protocol: n.ApplicationGatewayProtocolHTTP,
 			Port:     to.Int32Ptr(int32(port)),
 
 			// setting to default
 			PickHostNameFromBackendAddress: to.BoolPtr(false),
-			CookieBasedAffinity:            n.Disabled,
+			CookieBasedAffinity:            n.ApplicationGatewayCookieBasedAffinityDisabled,
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
@@ -270,7 +270,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
-		httpSettings.CookieBasedAffinity = n.Enabled
+		httpSettings.CookieBasedAffinity = n.ApplicationGatewayCookieBasedAffinityEnabled
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
@@ -283,15 +283,15 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	// when ingress is defined with backend at port 443 but without annotation backend-protocol set to https.
 	if int32(port) == 443 {
-		httpSettings.Protocol = n.HTTPS
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
 	}
 
 	// backend protocol take precedence over port
 	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
 	if err == nil && backendProtocol == annotations.HTTPS {
-		httpSettings.Protocol = n.HTTPS
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
 	} else if err == nil && backendProtocol == annotations.HTTP {
-		httpSettings.Protocol = n.HTTP
+		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTP
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
@@ -313,7 +313,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
 	if httpSettings.TrustedRootCertificates != nil {
-		if httpSettings.Protocol == n.HTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
+		if httpSettings.Protocol == n.ApplicationGatewayProtocolHTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
 			if httpSettings.HostName != nil && len(*httpSettings.HostName) > 0 {
 				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
 			} else {

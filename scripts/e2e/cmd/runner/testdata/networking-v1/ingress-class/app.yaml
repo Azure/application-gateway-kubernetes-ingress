@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl
+spec:
+  selector:
+    matchLabels:
+      app: app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      imagePullSecrets:
+        - name: acr-creds
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc
+spec:
+  selector:
+    app: app
+  ports:
+  - name: pp
+    protocol: TCP
+    port: 80
+    targetPort: port
+
+---
+# This ingress is using "custom: custom-ingress-class" ingress class
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: custom-ingress-class
+  name: custom-ingress-class
+spec:
+  rules:
+  - host: www.custom.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: svc
+            port:
+              name: pp
+        path: /status*
+        pathType: Prefix
+
+---
+# This ingress is using "default: azure/application-gateway" ingress class
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+  name: default-ingress-class
+spec:
+  rules:
+  - host: www.default.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: svc
+            port:
+              name: pp
+        path: /status*
+        pathType: Prefix
