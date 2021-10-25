@@ -1,6 +1,6 @@
 # Multiple Gateways Single Cluster
 
-##### Deploying multiple ingress controller instances to the same cluster 
+##### Deploying multiple ingress controller instances to the same cluster
 
 
 ### Document Purpose
@@ -38,8 +38,10 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
 ```
 
 ### Option 2: Enforce a prefix unique to AGIC
@@ -64,7 +66,8 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
 ```
-
