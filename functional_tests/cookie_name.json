@@ -63,7 +63,7 @@
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--SlashNothingSlashSomething",
                 "name": "bp---namespace---hello-world-b-80-80---name--SlashNothingSlashSomething",
                 "properties": {
-                    "affinityCookieName": "ef38541db88f854ddb5b951dd04b333d",
+                    "affinityCookieName": "appgw-affinity-ef38541db88f854ddb5b951dd04b333d",
                     "cookieBasedAffinity": "Enabled",
                     "pickHostNameFromBackendAddress": false,
                     "port": 80,
