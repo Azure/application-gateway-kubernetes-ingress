@@ -122,7 +122,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	return requestRoutingRules, pathMap
 }
 
-func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap, listenerIngress *map[listenerIdentifier]*networking.Ingress) {
+func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
 	if ingress.Spec.DefaultBackend == nil {
 		return
@@ -148,18 +148,16 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 				PathRules:                  &[]n.ApplicationGatewayPathRule{},
 			},
 		}
-		(*listenerIngress)[listenerID] = ingress
 	}
 }
 
 func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*n.ApplicationGatewayURLPathMap {
 	urlPathMaps := make(map[listenerIdentifier]*n.ApplicationGatewayURLPathMap)
-	listenerIngress := make(map[listenerIdentifier]*networking.Ingress)
 	for ingressIdx := range cbCtx.IngressList {
 		ingress := cbCtx.IngressList[ingressIdx]
 
 		if len(ingress.Spec.Rules) == 0 {
-			c.noRulesIngress(cbCtx, ingress, &urlPathMaps, &listenerIngress)
+			c.noRulesIngress(cbCtx, ingress, &urlPathMaps)
 		}
 
 		for ruleIdx := range ingress.Spec.Rules {
