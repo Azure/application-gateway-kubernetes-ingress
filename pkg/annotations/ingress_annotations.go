@@ -102,6 +102,9 @@ const (
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
 	// Multiple root certificates separated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
+
+	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
+	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
 )
 
 var (
@@ -283,6 +286,11 @@ func GetHostNameExtensions(ing *networking.Ingress) ([]string, error) {
 // WAFPolicy override path
 func WAFPolicy(ing *networking.Ingress) (string, error) {
 	return parseString(ing, FirewallPolicy)
+}
+
+// RewriteRuleSet name
+func RewriteRuleSet(ing *networking.Ingress) (string, error) {
+	return parseString(ing, RewriteRuleSetKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {
