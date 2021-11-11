@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build unittest
 // +build unittest
 
 package functests
@@ -1002,6 +1003,26 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Cookie Name", func() {
+			annotatedIngress := ingressSlashNothingSlashSomething
+			annotatedIngress.Annotations[annotations.CookieBasedAffinityKey] = "true"
+			annotatedIngress.Annotations[annotations.CookieBasedAffinityDistinctNameKey] = "true"
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:  serviceList,
+				EnvVariables: environment.GetFakeEnv(),
+				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
+					Port(80): fixtures.GetDefaultPort(),
+				},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "cookie_name.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("Health Probes: same container labels; different namespaces", func() {
