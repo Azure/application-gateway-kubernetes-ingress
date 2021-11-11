@@ -43,6 +43,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/override-frontend-port":           "444",
 		"appgw.ingress.kubernetes.io/connection-draining":              "true",
 		"appgw.ingress.kubernetes.io/cookie-based-affinity":            "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name":            "true",
 		"appgw.ingress.kubernetes.io/ssl-redirect":                     "true",
 		"appgw.ingress.kubernetes.io/request-timeout":                  "123456",
 		"appgw.ingress.kubernetes.io/connection-draining-timeout":      "3456",
@@ -83,6 +84,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			Expect(actual).To(Equal(true))
 		})
 	})
+
+	Context("test IsCookieBasedAffinityDistinctName", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := IsCookieBasedAffinityDistinctName(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true", func() {
+			actual, err := IsCookieBasedAffinityDistinctName(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})	
 
 	Context("test appgwSslCertificate", func() {
 		It("returns error when ingress has no annotations", func() {
