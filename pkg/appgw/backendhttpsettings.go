@@ -275,6 +275,12 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
+	if distinctName, err := annotations.IsCookieBasedAffinityDistinctName(backendID.Ingress); err == nil && distinctName {
+		httpSettings.AffinityCookieName = to.StringPtr(fmt.Sprintf("%s%s", "appgw-affinity-", backendID.serviceFullNameHash()))
+	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
 	if reqTimeout, err := annotations.RequestTimeout(backendID.Ingress); err == nil {
 		httpSettings.RequestTimeout = to.Int32Ptr(reqTimeout)
 	} else if !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
