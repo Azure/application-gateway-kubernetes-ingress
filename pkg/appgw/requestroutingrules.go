@@ -68,7 +68,8 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	httpListenersMap := c.groupListenersByListenerIdentifier(cbCtx)
 	pathMap := []n.ApplicationGatewayURLPathMap{}
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
-	for listenerID, urlPathMap := range c.getPathMaps(cbCtx) {
+	urlPathMaps := c.getPathMaps(cbCtx)
+	for listenerID, urlPathMap := range urlPathMaps {
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener, exists := httpListenersMap[listenerID]
 		if !exists {
@@ -97,6 +98,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				rule.BackendAddressPool = nil
 				rule.BackendHTTPSettings = nil
 			}
+			rule.RewriteRuleSet = urlPathMap.DefaultRewriteRuleSet
 		} else {
 			// Path-based Rule
 			rule.RuleType = n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting
@@ -166,6 +168,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 			}
 
 			_, azListenerConfig := c.processIngressRuleWithTLS(rule, ingress, cbCtx.EnvVariables)
+
 			for listenerID, listenerAzConfig := range azListenerConfig {
 				if _, exists := urlPathMaps[listenerID]; !exists {
 					pathMapName := generateURLPathMapName(listenerID)
@@ -227,7 +230,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	}
 
 	// get defaults provided by the rules if any
-	defaultAddressPoolID, defaultHTTPSettingsID, defaultRedirectConfigurationID := c.getDefaultFromRule(cbCtx, listenerID, listenerAzConfig, ingress, rule)
+	defaultAddressPoolID, defaultHTTPSettingsID, defaultRedirectConfigurationID, defaultRewriteRuleSetID := c.getDefaultFromRule(cbCtx, listenerID, listenerAzConfig, ingress, rule)
 	if defaultRedirectConfigurationID != nil {
 		pathMap.DefaultRedirectConfiguration = resourceRef(*defaultRedirectConfigurationID)
 		pathMap.DefaultBackendAddressPool = nil
@@ -236,13 +239,16 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 		pathMap.DefaultBackendAddressPool = resourceRef(*defaultAddressPoolID)
 		pathMap.DefaultBackendHTTPSettings = resourceRef(*defaultHTTPSettingsID)
 	}
+	if defaultRewriteRuleSetID != nil {
+		pathMap.DefaultRewriteRuleSet = resourceRef(*defaultRewriteRuleSetID)
+	}
 
 	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule, ruleIdx)
 
 	return &pathMap
 }
 
-func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string) {
+func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule) (*string, *string, *string, *string) {
 	if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
 		targetListener := listenerID
 		targetListener.FrontendPort = 443
@@ -253,7 +259,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 
 		if _, exists := redirectsSet[*redirectRef.ID]; exists {
 			klog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
-			return nil, nil, redirectRef.ID
+			return nil, nil, redirectRef.ID, nil
 		}
 		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 	}
@@ -272,19 +278,23 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
+	var defaultRewriteRuleSet *string
 	if defBackend != nil {
 		// has default backend
 		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
+		if rewriteRuleSet, err := annotations.RewriteRuleSet(ingress); err == nil && rewriteRuleSet != "" {
+			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
+		}
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
 			poolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
 			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
-			return poolID, settID, nil
+			return poolID, settID, nil, defaultRewriteRuleSet
 		}
 	}
 
-	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil
+	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil, defaultRewriteRuleSet
 }
 
 func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, listenerAzConfig listenerAzConfig, ingress *networking.Ingress, rule *networking.IngressRule, ruleIdx int) *[]n.ApplicationGatewayPathRule {
@@ -315,6 +325,15 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
+		}
+
+		if rewriteRule, err := annotations.RewriteRuleSet(ingress); err == nil {
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRule))
+			var paths string
+			if pathRule.Paths != nil {
+				paths = strings.Join(*pathRule.Paths, ",")
+			}
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRule, paths)
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
@@ -365,6 +384,9 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 		existingPathMap.DefaultRedirectConfiguration = pathMapToMerge.DefaultRedirectConfiguration
 		existingPathMap.DefaultBackendAddressPool = nil
 		existingPathMap.DefaultBackendHTTPSettings = nil
+	}
+	if pathMapToMerge.DefaultRewriteRuleSet != nil {
+		existingPathMap.DefaultRewriteRuleSet = pathMapToMerge.DefaultRewriteRuleSet
 	}
 
 	if pathMapToMerge.PathRules == nil || len(*pathMapToMerge.PathRules) == 0 {
