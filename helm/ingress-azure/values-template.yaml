@@ -44,9 +44,9 @@ kubernetes:
     #  cpu: 100m
     #  memory: 100Mi
 
-# Set this to override the default ingress class value. DEFAULT: azure/application-gateway
-# This can be used to segregate ingress controllers in the same namespace
-# ingressClass: agic-2
+  # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
+  # This can be used to segregate ingress controllers in the same namespace
+  # ingressClass: agic-2
 
 ################################################################################
 # Specify which application gateway the ingress controller will manage
