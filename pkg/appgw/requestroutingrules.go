@@ -242,7 +242,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	if defaultRewriteRuleSetID != nil {
 		pathMap.DefaultRewriteRuleSet = resourceRef(*defaultRewriteRuleSetID)
 	}
-
+	//rules = c.appGw.ApplicationGatewayPropertiesFormat.RequestRoutingRules[0]
 	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule, ruleIdx)
 
 	return &pathMap
@@ -293,7 +293,22 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 			return poolID, settID, nil, defaultRewriteRuleSet
 		}
 	}
+	corsEnabled, _ := annotations.IsCORSEnabled(ingress)
+	if corsEnabled {
+		var ruleSets *[]n.ApplicationGatewayRewriteRuleSet = c.appGw.ApplicationGatewayPropertiesFormat.RewriteRuleSets
+		for i := 0; i < len(*ruleSets); i++ {
+			var rewriteRules = (*(*ruleSets)[i].ApplicationGatewayRewriteRuleSetPropertiesFormat).RewriteRules
+			for j := 0; j < len(*rewriteRules); j++ {
+				var actionSet *n.ApplicationGatewayRewriteRuleActionSet = (*rewriteRules)[j].ActionSet
+				var responseHeaderConfig = actionSet.ResponseHeaderConfigurations
+				var corsHeader n.ApplicationGatewayHeaderConfiguration
+				corsHeader.HeaderName = to.StringPtr("Access-Control-Allow-Origin")
+				corsHeader.HeaderValue = to.StringPtr("*")
+				append(responseHeaderConfig, corsHeader)
+			}
+		}
 
+	}
 	return cbCtx.DefaultAddressPoolID, cbCtx.DefaultHTTPSettingsID, nil, defaultRewriteRuleSet
 }
 
