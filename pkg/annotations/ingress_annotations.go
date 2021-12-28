@@ -105,6 +105,9 @@ const (
 
 	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
 	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
+
+	// EnableCORSKey indicates if CORS is enabled and the domains which allows it
+	EnableCORSKey = ApplicationGatewayPrefix + "/appgw-cors-enable"
 )
 
 var (
@@ -291,6 +294,11 @@ func WAFPolicy(ing *networking.Ingress) (string, error) {
 // RewriteRuleSet name
 func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetKey)
+}
+
+// EnableCORS name
+func IsCORSEnabled(ing *networking.Ingress) (bool, error) {
+	return parseBool(ing, EnableCORSKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {
