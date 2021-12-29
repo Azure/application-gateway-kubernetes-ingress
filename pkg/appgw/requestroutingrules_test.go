@@ -935,6 +935,50 @@ var _ = Describe("Test routing rules generations", func() {
 		It("has rewrite rule set", func() {
 			Expect(requestRoutingRules[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
 		})
+	})
 
+	Context("test ingress cors annotation", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
+		corsAnnotation := "appgw-cors-enable"
+		ingress.Annotations[annotations.EnableCORSKey] = corsAnnotation
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.BackendHTTPSettingsCollection(cbCtx)
+		_ = configBuilder.BackendAddressPools(cbCtx)
+		_ = configBuilder.Listeners(cbCtx)
+
+		pathMap := configBuilder.getPathMaps(cbCtx)
+
+		rule := &ingress.Spec.Rules[0]
+		listenerID := generateListenerID(ingress, rule, n.ApplicationGatewayProtocolHTTP, nil, false)
+		var ruleSets *[]n.ApplicationGatewayRewriteRuleSet = configBuilder.appGw.ApplicationGatewayPropertiesFormat.RewriteRuleSets
+		var corsEnabled bool
+		for i := 0; i < len(*ruleSets); i++ {
+			var ruleId string = to.String((*ruleSets)[i].ID)
+			if &ruleId == pathMap[listenerID].DefaultRewriteRuleSet.ID {
+				var rewriteRules *[]n.ApplicationGatewayRewriteRule = (*(*ruleSets)[i].ApplicationGatewayRewriteRuleSetPropertiesFormat).RewriteRules
+				for j := 0; j < len(*rewriteRules); j++ {
+					var actionSet *n.ApplicationGatewayRewriteRuleActionSet = (*rewriteRules)[j].ActionSet
+					var responseHeader *[]n.ApplicationGatewayHeaderConfiguration = actionSet.ResponseHeaderConfigurations
+					for k := 0; k < len(*responseHeader); k++ {
+						if (*responseHeader)[k].HeaderName == to.StringPtr("Access-Control-Allow-Origin") && (*responseHeader)[k].HeaderValue == to.StringPtr("*") {
+							corsEnabled = true
+							break
+						}
+					}
+				}
+			}
+		}
+		It("has cors headers set", func() {
+			Expect(corsEnabled).To(Equal(true))
+		})
 	})
 })
