@@ -297,8 +297,8 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	if corsEnabled {
 		var ruleSets *[]n.ApplicationGatewayRewriteRuleSet = c.appGw.ApplicationGatewayPropertiesFormat.RewriteRuleSets
 		for i := 0; i < len(*ruleSets); i++ {
-			var ruleId string = to.String((*ruleSets)[i].ID)
-			if &ruleId == defaultRewriteRuleSet {
+			var ruleID string = to.String((*ruleSets)[i].ID)
+			if &ruleID == defaultRewriteRuleSet {
 				var rewriteRules *[]n.ApplicationGatewayRewriteRule = (*(*ruleSets)[i].ApplicationGatewayRewriteRuleSetPropertiesFormat).RewriteRules
 				for j := 0; j < len(*rewriteRules); j++ {
 					var actionSet *n.ApplicationGatewayRewriteRuleActionSet = (*rewriteRules)[j].ActionSet

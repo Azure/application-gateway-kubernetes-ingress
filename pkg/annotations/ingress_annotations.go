@@ -296,7 +296,7 @@ func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetKey)
 }
 
-// EnableCORS name
+// IsCORSEnabled name
 func IsCORSEnabled(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, EnableCORSKey)
 }

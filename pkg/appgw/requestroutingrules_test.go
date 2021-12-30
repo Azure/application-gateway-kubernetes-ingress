@@ -962,8 +962,8 @@ var _ = Describe("Test routing rules generations", func() {
 		var ruleSets *[]n.ApplicationGatewayRewriteRuleSet = configBuilder.appGw.ApplicationGatewayPropertiesFormat.RewriteRuleSets
 		var corsEnabled bool
 		for i := 0; i < len(*ruleSets); i++ {
-			var ruleId string = to.String((*ruleSets)[i].ID)
-			if &ruleId == pathMap[listenerID].DefaultRewriteRuleSet.ID {
+			var ruleID string = to.String((*ruleSets)[i].ID)
+			if &ruleID == pathMap[listenerID].DefaultRewriteRuleSet.ID {
 				var rewriteRules *[]n.ApplicationGatewayRewriteRule = (*(*ruleSets)[i].ApplicationGatewayRewriteRuleSetPropertiesFormat).RewriteRules
 				for j := 0; j < len(*rewriteRules); j++ {
 					var actionSet *n.ApplicationGatewayRewriteRuleActionSet = (*rewriteRules)[j].ActionSet
