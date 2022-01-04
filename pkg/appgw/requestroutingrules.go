@@ -242,7 +242,7 @@ func (c *appGwConfigBuilder) getPathMap(cbCtx *ConfigBuilderContext, listenerID 
 	if defaultRewriteRuleSetID != nil {
 		pathMap.DefaultRewriteRuleSet = resourceRef(*defaultRewriteRuleSetID)
 	}
-	//rules = c.appGw.ApplicationGatewayPropertiesFormat.RequestRoutingRules[0]
+
 	pathMap.PathRules = c.getPathRules(cbCtx, listenerID, listenerAzConfig, ingress, rule, ruleIdx)
 
 	return &pathMap
