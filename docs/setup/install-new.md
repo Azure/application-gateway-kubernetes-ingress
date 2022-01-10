@@ -3,7 +3,7 @@
 The instructions below assume Application Gateway Ingress Controller (AGIC) will be
 installed in an environment with no pre-existing components.
 
-### Required Command Line Tools
+## Required Command Line Tools
 
 We recommend the use of [Azure Cloud Shell](https://shell.azure.com/) for all command line operations below. Launch your shell from shell.azure.com or by clicking the link:
 
@@ -21,8 +21,7 @@ choose to use another environment, please ensure the following command line tool
 1. `helm` - Kubernetes package manager: [installation instructions](https://github.com/helm/helm/releases/latest)
 1. `jq` - command-line JSON processor: [installation instructions](https://stedolan.github.io/jq/download/)
 
-
-### Create an Identity
+## Create an Identity
 
 Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
@@ -33,7 +32,6 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
     password=$(jq -r ".password" auth.json)
     ```
         These commands will create `appId` and `password` bash variables, which will be used in the steps below. You can view the value of these with `echo $appId` and `echo $password`.
-
 
 1. Execute the next command in [Cloud Shell](https://shell.azure.com/) to create the `objectId` bash variable, which is the new Service Princpial:
     ```bash
@@ -54,7 +52,8 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
     ```
     To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`. View the contents of the newly created file with `cat parameters.json`. It will contain the values of the `appId`, `password`, and `objectId` bash variables from the previous steps.
 
-### Deploy Components
+## Deploy Components
+
 The next few steps will add the following list of components to your Azure subscription:
 
 - [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
@@ -127,10 +126,12 @@ an App Gateway. We are now ready to deploy a sample app and an ingress controlle
 Kubernetes infrastructure.
 
 ### Setup Kubernetes Credentials
+
 For the following steps we need setup [kubectl](https://kubectl.docs.kubernetes.io/) command,
 which we will use to connect to our new Kubernetes cluster. [Cloud Shell](https://shell.azure.com/) has `kubectl` already installed. We will use `az` CLI to obtain credentials for Kubernetes.
 
 Get credentials for your newly deployed AKS ([read more](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough#connect-to-the-cluster)):
+
 ```bash
 # use the deployment-outputs.json created after deployment to get the cluster name and resource group name
 aksClusterName=$(jq -r ".aksClusterName.value" deployment-outputs.json)
@@ -140,6 +141,7 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 ```
 
 ### Install AAD Pod Identity
+
   Azure Active Directory Pod Identity provides token-based access to
   [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
@@ -148,25 +150,25 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
    1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controller) component
    1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identity) component
 
-
   To install AAD Pod Identity to your cluster:
 
    - *RBAC enabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment-rbac.yaml
   ```
 
    - *RBAC disabled* AKS cluster
 
   ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
+  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment.yaml
   ```
   ***Note:*** AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive, for any AAD Pod Identity version >= 1.6.0 or you plan to apply from master branch such as https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml, AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) will be required, more details please refer to [troubleshooting](../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange.md).
 
 ### Install Helm
+
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
-Kubernetes. This document will use version 3 of helm, which is not backwards compatbile with previous versions.
+Kubernetes. This document will use version 3 of helm, which is not backwards compatible with previous versions.
 
 1. Add the AGIC Helm repository:
     ```bash
@@ -184,12 +186,15 @@ Kubernetes. This document will use version 3 of helm, which is not backwards com
     identityClientId=$(jq -r ".identityClientId.value" deployment-outputs.json)
     identityResourceId=$(jq -r ".identityResourceId.value" deployment-outputs.json)
     ```
+
 2. Download [helm-config.yaml](../examples/sample-helm-config.yaml), which will configure AGIC:
+
     ```bash
     wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
     ```
 
 3. Edit the newly downloaded [helm-config.yaml](../examples/sample-helm-config.yaml) and fill out the sections `appgw` and `armAuth`.
+
     ```bash
     sed -i "s|<subscriptionId>|${subscriptionId}|g" helm-config.yaml
     sed -i "s|<resourceGroupName>|${resourceGroupName}|g" helm-config.yaml
@@ -218,12 +223,13 @@ Values:
    Note on Identity: The `identityResourceID` and `identityClientID` are values that were created
    during the [Create an Identity](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity)
    steps, and could be obtained again using the following command:
+
    ```bash
    az identity show -g <resource-group> -n <identity-name>
    ```
+
 - `<resource-group>` in the command above is the resource group of your App Gateway.
 - `<identity-name>` is the name of the created identity. All identities for a given subscription can be listed using: `az identity list`
-
 
 4. Install the Application Gateway ingress controller package:
 
@@ -231,12 +237,13 @@ Values:
     helm install ingress-azure \
       -f helm-config.yaml \
       application-gateway-kubernetes-ingress/ingress-azure \
-      --version 1.3.0
+      --version 1.4.0
     ```
 
-    >Note: Use at least version 1.2.0-rc1, i.e. `--version 1.2.0-rc1`, when installing on k8s version >= 1.16
+    >Note: Use at least version 1.4.0, i.e. `--version 1.4.0`, when installing on k8s version >= 1.16. Kubernetes >= 1.22 requires version 1.5.0 (or higher).
 
 ### Install a Sample App
+
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via [Azure Cloud Shell](https://shell.azure.com/):
 
@@ -295,16 +302,17 @@ EOF
 Alternatively you can:
 
 1. Download the YAML file above:
+
 ```bash
 curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
 ```
 
 2. Apply the YAML file:
+
 ```bash
 kubectl apply -f aspnetapp.yaml
 ```
 
-
 ## Other Examples
-The **[tutorials](../tutorials/tutorial.general.md)** document contains more examples on how toexpose an AKS
-service via HTTP or HTTPS, to the Internet with App Gateway.
+
+The **[tutorials](../tutorials/tutorial.general.md)** document contains more examples on how to expose an AKS service via HTTP or HTTPS, to the Internet with App Gateway.
