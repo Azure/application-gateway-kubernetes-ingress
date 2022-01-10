@@ -26,20 +26,25 @@ choose to use another environment, please ensure the following command line tool
 Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
 1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)). Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
+
     ```bash
     az ad sp create-for-rbac --skip-assignment -o json > auth.json
     appId=$(jq -r ".appId" auth.json)
     password=$(jq -r ".password" auth.json)
     ```
-        These commands will create `appId` and `password` bash variables, which will be used in the steps below. You can view the value of these with `echo $appId` and `echo $password`.
 
-1. Execute the next command in [Cloud Shell](https://shell.azure.com/) to create the `objectId` bash variable, which is the new Service Princpial:
+      These commands will create `appId` and `password` bash variables, which will be used in the steps below. You can view the value of these with `echo $appId` and `echo $password`.
+
+1. Execute the next command in [Cloud Shell](https://shell.azure.com/) to create the `objectId` bash variable, which is the new Service Principal:
+
     ```bash
     objectId=$(az ad sp show --id $appId --query "objectId" -o tsv)
     ```
+
     The `objectId` bash variable will be used in the ARM template below. View the value with `echo $objectId`.
 
-1. Paste the entire command below (it is a single command on multiple lines) in [Cloud Shell](https://shell.azure.com/) to create the parameters.json file. It will be used in the ARM template deployment.
+1. Paste the entire command below (it is a single command on multiple lines) in [Cloud Shell](https://shell.azure.com/) to create the `parameters.json` file. It will be used in the ARM template deployment.
+
     ```bash
     cat <<EOF > parameters.json
     {
@@ -50,6 +55,7 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
     }
     EOF
     ```
+
     To deploy an **RBAC** enabled cluster, set the `aksEnabledRBAC` field to `true`. View the contents of the newly created file with `cat parameters.json`. It will contain the values of the `appId`, `password`, and `objectId` bash variables from the previous steps.
 
 ## Deploy Components
@@ -62,12 +68,14 @@ The next few steps will add the following list of components to your Azure subsc
 - [Public IP Address](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address)
 - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), which will be used by [AAD Pod Identity](https://github.com/Azure/aad-pod-identity/blob/master/README.md)
 
-1. Download the ARM template into template.json file. Paste the following in your [shell](https://shell.azure.com/):
+1. Download the ARM template into `template.json` file. Paste the following in your [shell](https://shell.azure.com/):
+
     ```bash
     wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploy.json -O template.json
     ```
 
 1. Deploy the ARM template via [Azure Cloud Shell](https://shell.azure.com/) and the `az` tool. Modify the name of the resource group and region/location, then paste each of the following lines into your [shell](https://shell.azure.com/):
+
     ```bash
     resourceGroupName="MyResourceGroup"
 
@@ -79,13 +87,17 @@ The next few steps will add the following list of components to your Azure subsc
 
     az group deployment create -g $resourceGroupName -n $deploymentName --template-file template.json --parameters parameters.json
     ```
+
     Note: The last command may take a few minutes to complete.
 
 1. Once the deployment finished, download the deployment output into a file named `deployment-outputs.json`.
+
     ```bash
     az group deployment show -g $resourceGroupName -n $deploymentName --query "properties.outputs" -o json > deployment-outputs.json
     ```
+
     View the content of the newly created file with: `cat deployment-outputs.json`. The file will have the following shape (example):
+
     ```json
     {
       "aksApiServerAddress": {
@@ -142,27 +154,28 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 
 ### Install AAD Pod Identity
 
-  Azure Active Directory Pod Identity provides token-based access to
-  [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
+Azure Active Directory Pod Identity provides token-based access to [Azure Resource Manager (ARM)](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview).
 
-  [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
-   1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
-   1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controller) component
-   1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identity) component
+[AAD Pod Identity](https://github.com/Azure/aad-pod-identity) will add the following components to your Kubernetes cluster:
 
-  To install AAD Pod Identity to your cluster:
+1. Kubernetes [CRDs](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/): `AzureIdentity`, `AzureAssignedIdentity`, `AzureIdentityBinding`
+1. [Managed Identity Controller (MIC)](https://github.com/Azure/aad-pod-identity#managed-identity-controller) component
+1. [Node Managed Identity (NMI)](https://github.com/Azure/aad-pod-identity#node-managed-identity) component
 
-   - *RBAC enabled* AKS cluster
+To install AAD Pod Identity to your cluster:
 
-  ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment-rbac.yaml
-  ```
+- *RBAC enabled* AKS cluster
 
-   - *RBAC disabled* AKS cluster
+    ```bash
+    kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment-rbac.yaml
+    ```
 
-  ```bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment.yaml
-  ```
+- *RBAC disabled* AKS cluster
+
+    ```bash
+    kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment.yaml
+    ```
+
   ***Note:*** AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive, for any AAD Pod Identity version >= 1.6.0 or you plan to apply from master branch such as https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml, AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) will be required, more details please refer to [troubleshooting](../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange.md).
 
 ### Install Helm
@@ -171,6 +184,7 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksClusterNam
 Kubernetes. This document will use version 3 of helm, which is not backwards compatible with previous versions.
 
 1. Add the AGIC Helm repository:
+
     ```bash
     helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
     helm repo update
@@ -179,6 +193,7 @@ Kubernetes. This document will use version 3 of helm, which is not backwards com
 ### Install Ingress Controller Helm Chart
 
 1. Use the `deployment-outputs.json` file created above and create the following variables.
+
     ```bash
     applicationGatewayName=$(jq -r ".applicationGatewayName.value" deployment-outputs.json)
     resourceGroupName=$(jq -r ".resourceGroupName.value" deployment-outputs.json)
