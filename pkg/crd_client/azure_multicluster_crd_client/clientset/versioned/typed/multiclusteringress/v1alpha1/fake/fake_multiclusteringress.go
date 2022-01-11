@@ -117,7 +117,7 @@ func (c *FakeMultiClusterIngresses) UpdateStatus(ctx context.Context, multiClust
 // Delete takes name of the multiClusterIngress and deletes it. Returns an error if one occurs.
 func (c *FakeMultiClusterIngresses) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(multiclusteringressesResource, c.ns, name), &v1alpha1.MultiClusterIngress{})
+		Invokes(testing.NewDeleteActionWithOptions(multiclusteringressesResource, c.ns, name, opts), &v1alpha1.MultiClusterIngress{})
 
 	return err
 }

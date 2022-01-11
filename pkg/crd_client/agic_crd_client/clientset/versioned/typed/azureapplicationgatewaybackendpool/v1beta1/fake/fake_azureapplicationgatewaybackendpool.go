@@ -99,7 +99,7 @@ func (c *FakeAzureApplicationGatewayBackendPools) Update(ctx context.Context, az
 // Delete takes name of the azureApplicationGatewayBackendPool and deletes it. Returns an error if one occurs.
 func (c *FakeAzureApplicationGatewayBackendPools) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(azureapplicationgatewaybackendpoolsResource, name), &v1beta1.AzureApplicationGatewayBackendPool{})
+		Invokes(testing.NewRootDeleteActionWithOptions(azureapplicationgatewaybackendpoolsResource, name, opts), &v1beta1.AzureApplicationGatewayBackendPool{})
 	return err
 }
 

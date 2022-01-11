@@ -22,6 +22,8 @@ import (
 	clientset "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	fakeazureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1/fake"
+	azureapplicationgatewayheaderrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayheaderrewrite/v1beta1"
+	fakeazureapplicationgatewayheaderrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayheaderrewrite/v1beta1/fake"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	fakeazureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1/fake"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
@@ -82,11 +84,17 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 
 var (
 	_ clientset.Interface = &Clientset{}
+	_ testing.FakeClient  = &Clientset{}
 )
 
 // AzureapplicationgatewaybackendpoolsV1beta1 retrieves the AzureapplicationgatewaybackendpoolsV1beta1Client
 func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface {
 	return &fakeazureapplicationgatewaybackendpoolsv1beta1.FakeAzureapplicationgatewaybackendpoolsV1beta1{Fake: &c.Fake}
+}
+
+// AzureapplicationgatewayheaderrewriteV1beta1 retrieves the AzureapplicationgatewayheaderrewriteV1beta1Client
+func (c *Clientset) AzureapplicationgatewayheaderrewriteV1beta1() azureapplicationgatewayheaderrewritev1beta1.AzureapplicationgatewayheaderrewriteV1beta1Interface {
+	return &fakeazureapplicationgatewayheaderrewritev1beta1.FakeAzureapplicationgatewayheaderrewriteV1beta1{Fake: &c.Fake}
 }
 
 // AzureapplicationgatewayinstanceupdatestatusV1beta1 retrieves the AzureapplicationgatewayinstanceupdatestatusV1beta1Client

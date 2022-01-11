@@ -105,7 +105,7 @@ func (c *FakeLoadDistributionPolicies) Update(ctx context.Context, loadDistribut
 // Delete takes name of the loadDistributionPolicy and deletes it. Returns an error if one occurs.
 func (c *FakeLoadDistributionPolicies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(loaddistributionpoliciesResource, c.ns, name), &v1beta1.LoadDistributionPolicy{})
+		Invokes(testing.NewDeleteActionWithOptions(loaddistributionpoliciesResource, c.ns, name, opts), &v1beta1.LoadDistributionPolicy{})
 
 	return err
 }

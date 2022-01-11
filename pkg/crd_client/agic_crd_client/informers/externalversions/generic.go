@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	v1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	azureapplicationgatewayheaderrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayheaderrewrite/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	v1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	loaddistributionpolicyv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
@@ -58,6 +59,10 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	// Group=azureapplicationgatewaybackendpools.appgw.ingress.azure.io, Version=v1beta1
 	case v1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewaybackendpools"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer()}, nil
+
+		// Group=azureapplicationgatewayheaderrewrite.appgw.ingress.azure.io, Version=v1beta1
+	case azureapplicationgatewayheaderrewritev1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewayheaderrewrites"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Azureapplicationgatewayheaderrewrite().V1beta1().AzureApplicationGatewayHeaderRewrites().Informer()}, nil
 
 		// Group=azureapplicationgatewayinstanceupdatestatus.appgw.ingress.azure.io, Version=v1beta1
 	case azureapplicationgatewayinstanceupdatestatusv1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewayinstanceupdatestatuses"):

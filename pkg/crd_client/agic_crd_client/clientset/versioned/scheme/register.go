@@ -20,6 +20,7 @@ package scheme
 
 import (
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	azureapplicationgatewayheaderrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayheaderrewrite/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	loaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/loaddistributionpolicy/v1beta1"
@@ -35,6 +36,7 @@ var Codecs = serializer.NewCodecFactory(Scheme)
 var ParameterCodec = runtime.NewParameterCodec(Scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
 	azureapplicationgatewaybackendpoolsv1beta1.AddToScheme,
+	azureapplicationgatewayheaderrewritev1beta1.AddToScheme,
 	azureapplicationgatewayinstanceupdatestatusv1beta1.AddToScheme,
 	azureingressprohibitedtargetsv1.AddToScheme,
 	loaddistributionpoliciesv1beta1.AddToScheme,

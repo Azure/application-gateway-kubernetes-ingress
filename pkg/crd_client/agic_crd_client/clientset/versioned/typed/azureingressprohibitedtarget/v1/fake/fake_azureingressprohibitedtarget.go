@@ -105,7 +105,7 @@ func (c *FakeAzureIngressProhibitedTargets) Update(ctx context.Context, azureIng
 // Delete takes name of the azureIngressProhibitedTarget and deletes it. Returns an error if one occurs.
 func (c *FakeAzureIngressProhibitedTargets) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(azureingressprohibitedtargetsResource, c.ns, name), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
+		Invokes(testing.NewDeleteActionWithOptions(azureingressprohibitedtargetsResource, c.ns, name, opts), &azureingressprohibitedtargetv1.AzureIngressProhibitedTarget{})
 
 	return err
 }

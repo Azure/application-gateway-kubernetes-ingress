@@ -78,6 +78,7 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 
 var (
 	_ clientset.Interface = &Clientset{}
+	_ testing.FakeClient  = &Clientset{}
 )
 
 // MulticlusteringressesV1alpha1 retrieves the MulticlusteringressesV1alpha1Client
