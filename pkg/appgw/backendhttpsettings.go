@@ -129,6 +129,10 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 
 	// find the target port number for service port specified in the ingress manifest
 	servicePortInIngress := fmt.Sprint(backendID.Backend.Service.Port.Number)
+	if backendID.Backend.Service.Port.Name != "" {
+		servicePortInIngress = fmt.Sprint(backendID.Backend.Service.Port.Name)
+	}
+
 	resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 	for _, servicePort := range service.Spec.Ports {
 		// ignore UDP ports
