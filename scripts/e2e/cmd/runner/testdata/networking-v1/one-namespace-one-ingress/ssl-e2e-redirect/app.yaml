@@ -57,7 +57,8 @@ spec:
   selector:
     app: ssl-redirect
   ports:
-  - protocol: TCP
+  - name: https
+    protocol: TCP
     port: 443
     targetPort: 443
 ---
@@ -82,14 +83,14 @@ spec:
             service:
               name: ssl-redirect-service
               port:
-                number: 443
+                name: https
           pathType: Exact
         - path: /*
           backend:
             service:
               name: ssl-redirect-service
               port:
-                number: 443
+                name: https
           pathType: Prefix
 ---
 apiVersion: v1
