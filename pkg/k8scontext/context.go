@@ -270,7 +270,7 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 
 // GetRewriteRules returns rewrite rule
 func (c *Context) GetRewriteRules(rewrteRule string) (*agheadercrud.AzureApplicationGatewayHeaderRewrite, error) {
-	agpool, exist, err := c.Caches.AzureApplicationGatewayHeaderRewrite.GetStore().GetByKey(rewrteRule)
+	agpool, exist, err := c.Caches.AzureApplicationGatewayHeaderRewrite.GetByKey(rewrteRule)
 	if !exist {
 		e := controllererrors.NewErrorf(
 			controllererrors.ErrorFetchingRewriteRules,

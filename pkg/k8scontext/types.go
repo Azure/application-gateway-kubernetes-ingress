@@ -42,7 +42,7 @@ type CacheCollection struct {
 	AzureIngressManagedLocation                 cache.Store
 	AzureIngressProhibitedTarget                cache.Store
 	AzureApplicationGatewayBackendPool          cache.Store
-	AzureApplicationGatewayHeaderRewrite        cache.SharedInformer
+	AzureApplicationGatewayHeaderRewrite        cache.Store
 	AzureApplicationGatewayInstanceUpdateStatus cache.Store
 	MultiClusterService                         cache.Store
 	MultiClusterIngress                         cache.Store
