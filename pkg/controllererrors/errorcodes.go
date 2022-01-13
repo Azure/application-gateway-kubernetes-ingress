@@ -33,6 +33,7 @@ const (
 	ErrorFetchingEndpoints              ErrorCode = "ErrorFetchingEndpoints"
 	ErrorFetchingMultiClusterService    ErrorCode = "ErrorFetchingMultiClusterService"
 	ErrorFetchingBackendAddressPool     ErrorCode = "ErrorFetchingBackendAddressPool"
+	ErrorFetchingRewriteRules           ErrorCode = "ErrorFetchingRewriteRules"
 	ErrorFetchingInstanceUpdateStatus   ErrorCode = "ErrorFetchingInstanceUpdateStatus"
 	ErrorInformersNotInitialized        ErrorCode = "ErrorInformersNotInitialized"
 	ErrorFailedInitialCacheSync         ErrorCode = "ErrorFailedInitialCacheSync"

@@ -24,6 +24,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
+	agheadercrud "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayheaderrewrite/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
@@ -265,6 +266,33 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	}
 
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+}
+
+// GetRewriteRules returns rewrite rule
+func (c *Context) GetRewriteRules(rewrteRule string) (*agheadercrud.AzureApplicationGatewayHeaderRewrite, error) {
+	agpool, exist, err := c.Caches.AzureApplicationGatewayHeaderRewrite.GetStore().GetByKey(rewrteRule)
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingRewriteRules,
+			"Rewrite rules CRD object not found for %s",
+			rewrteRule)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingRewriteRules,
+			err,
+			"Error fetching rewrite rule CRD object from store for %s",
+			rewrteRule)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return agpool.(*agheadercrud.AzureApplicationGatewayHeaderRewrite), nil
 }
 
 // GetInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
