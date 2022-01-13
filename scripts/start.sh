@@ -20,7 +20,7 @@ BUILD_DATE=$(date +%Y-%m-%d-%H:%MT%z)
 GIT_HASH=$(git rev-parse --short HEAD)
 
 echo -e "Compiling..."
-go install -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -v ./cmd/appgw-ingress
+go build -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -o ./bin/appgw-ingress -v ./cmd/appgw-ingress
 RESULT=$?
 if [ "$RESULT" -eq "0" ]; then
     chmod -R 777 bin
