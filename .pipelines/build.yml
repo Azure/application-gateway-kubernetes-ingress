@@ -1,129 +1,57 @@
 # This contains common build steps
 
 steps:
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-  displayName: 'Set up the Go workspace'
+  - script: |
+      mkdir -p '$(GOBIN)'
+      mkdir -p '$(GOPATH)/pkg'
+      mkdir -p '$(modulePath)'
+      shopt -s extglob
+      shopt -s dotglob
+      mv !(gopath) '$(modulePath)'
+      echo '##vso[task.prependpath]$(GOBIN)'
+      echo '##vso[task.prependpath]$(GOROOT)/bin'
+    displayName: "Set up the Go workspace"
 
-- script: |
-    go get -u golang.org/x/lint/golint
-    golint $(go list ./... | grep -v /vendor/) | tee /tmp/lint.out
-    if [ -s /tmp/lint.out ]; then
-        echo -e "\e[101;97m golint FAILED \e[0m"``
-        exit 1
-    else
-        echo -e "\e[42;97m golint SUCCEEDED \e[0m"
-    fi
-  workingDirectory: '$(modulePath)'
-  displayName: 'Go lint'
+  - script: make lint-all
+    workingDirectory: "$(modulePath)"
+    displayName: "Go and Helm lint check"
 
-- script: |
-    if go vet ./...; then
-        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
-    else
-        echo -e "\e[101;97m govet FAILED \e[0m"``
-        exit 1
-    fi
+  - script: make vet-all
+    workingDirectory: "$(modulePath)"
+    displayName: "Go vet"
 
-    if go vet -tags=unittest ./...; then
-        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
-    else
-        echo -e "\e[101;97m govet FAILED \e[0m"``
-        exit 1
-    fi
+  - script: make build
+    workingDirectory: "$(modulePath)"
+    displayName: "Get dependencies and build"
 
-    cd ./scripts/e2e
-    if go vet -tags=e2e ./...; then
-        echo -e "\e[42;97m govet SUCCEEDED \e[0m"
-    else
-        echo -e "\e[101;97m govet FAILED \e[0m"``
-        exit 1
-    fi
-    cd ../..
-  workingDirectory: '$(modulePath)'
-  displayName: 'Go vet'
+  - script: make unittest
+    workingDirectory: "$(modulePath)"
+    displayName: "Run unit tests with code coverage"
 
-- script: |
-    set -u
-    go version
-    echo -e "\e[44;97m Compiling ... \e[0m"
+  - task: PublishTestResults@2
+    continueOnError: true
+    condition: succeededOrFailed()
+    inputs:
+      failTaskOnFailedTests: true
+      testRunner: JUnit
+      testResultsFiles: $(System.DefaultWorkingDirectory)/**/report.xml
 
-    # set version
-    ORG_PATH="github.com/Azure"
-    PROJECT_NAME="application-gateway-kubernetes-ingress"
-    REPO_PATH="${ORG_PATH}/${PROJECT_NAME}"
-    VERSION_VAR="${REPO_PATH}/pkg/version.Version"
-    VERSION=$(git describe --abbrev=0 --tags)
-    DATE_VAR="${REPO_PATH}/pkg/version.BuildDate"
-    BUILD_DATE=$(date +%Y-%m-%d-%H:%MT%z)
-    COMMIT_VAR="${REPO_PATH}/pkg/version.GitCommit"
-    GIT_HASH=$(git rev-parse --short HEAD)
+  - task: PublishCodeCoverageResults@1
+    continueOnError: true
+    condition: succeededOrFailed()
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: $(modulePath)/coverage.xml
+      reportDirectory: $(modulePath)/coverage
 
-    echo "VERSION $VERSION_VAR:$VERSION, BUILD_DATE $DATE_VAR:$BUILD_DATE, GIT_HASH $COMMIT_VAR:$GIT_HASH"
-    if  go install -ldflags "-s -X ${VERSION_VAR}=${VERSION} -X ${DATE_VAR}=${BUILD_DATE} -X ${COMMIT_VAR}=${GIT_HASH}" -v ./cmd/appgw-ingress; then
-        chmod -R 777 $(GOBIN)
-        $(GOBIN)/appgw-ingress --version
-        echo -e "\e[42;97m Build SUCCEEDED \e[0m"
-    else
-        echo -e "\e[101;97m Build FAILED \e[0m"
-        exit 1
-    fi
-  workingDirectory: '$(modulePath)'
-  displayName: 'Get dependencies and build'
+  - task: CopyFiles@2
+    inputs:
+      contents: |
+        $(modulePath)/scripts/**
+        $(modulePath)/helm/**
+      targetFolder: $(Build.ArtifactStagingDirectory)
 
-- script: |
-    go get github.com/jstemmer/go-junit-report
-    go get github.com/axw/gocov/gocov
-    go get github.com/AlekSi/gocov-xml
-    go get github.com/matm/gocov-html
-    go test -timeout 80s -v -coverprofile=coverage.txt -covermode count -tags unittest ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
-    cat testoutput.txt | go-junit-report > report.xml
-    gocov convert coverage.txt > coverage.json
-    gocov-xml < coverage.json > coverage.xml
-    mkdir coverage
-    gocov-html < coverage.json > coverage/index.html
-  workingDirectory: '$(modulePath)'
-  displayName: 'Run unit tests with code coverage'
-
-- script: |
-    helm lint ./helm/ingress-azure
-  workingDirectory: '$(modulePath)'    
-  displayName: 'Helm lint'
-
-- task: PublishTestResults@2
-  continueOnError: true
-  condition: succeededOrFailed()
-  inputs:
-    failTaskOnFailedTests: true
-    testRunner: JUnit
-    testResultsFiles: $(System.DefaultWorkingDirectory)/**/report.xml
-
-
-- task: PublishCodeCoverageResults@1
-  continueOnError: true
-  condition: succeededOrFailed()
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: $(modulePath)/coverage.xml
-    reportDirectory: $(modulePath)/coverage
-
-- task: CopyFiles@2
-  inputs:
-    contents: |
-     $(GOBIN)/appgw-ingress
-     $(modulePath)/dockerfiles/deploy.Dockerfile
-     $(modulePath)/scripts/**
-     $(modulePath)/helm/**
-    targetFolder: $(Build.ArtifactStagingDirectory)
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: $(Build.ArtifactStagingDirectory)
-    artifactName: drop
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: drop
