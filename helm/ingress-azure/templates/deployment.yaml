@@ -62,6 +62,8 @@ spec:
 {{ toYaml . | indent 10 }}
         {{- end }}
         env:
+        - name: allowSystemNamespaces
+          value: {{ default .Values.appgw.allowSystemNamespaces "false" }}
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
         - name: AGIC_POD_NAME
