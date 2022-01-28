@@ -885,15 +885,21 @@ func (c *Context) getIngressClassResource(ingressClassName string) *networking.I
 // IsIngressClass checks if the Ingress resource can be handled by the Application Gateway ingress controller.
 func (c *Context) IsIngressClass(ing *networking.Ingress) bool {
 
-	// match by annotation
+	// match by annotation (for Backward compatibility)
 	if className, err := annotations.IngressClass(ing); err == nil && className != "" {
 		return className == c.ingressClassControllerName
 	}
 
 	// match by ingress class resource
-	if c.ingressClassResourceEnabled && ing.Spec.IngressClassName != nil {
-		ingressClass := c.getIngressClassResource(*ing.Spec.IngressClassName)
-		return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName
+	if c.ingressClassResourceEnabled {
+		// if IngressClassName in ingress that compare it with the controller type
+		if ing.Spec.IngressClassName != nil {
+			ingressClass := c.getIngressClassResource(*ing.Spec.IngressClassName)
+			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName
+		}
+
+		// if IngressClassName is nil, then match if AGIC is default ingress
+		return c.ingressClassResourceDefault
 	}
 
 	return false
