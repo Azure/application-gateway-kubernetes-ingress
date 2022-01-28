@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/getlantern/deepcopy"
+	"github.com/knative/pkg/apis/istio/v1alpha3"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -92,7 +93,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 		// Create a `k8scontext` to start listening to ingress resources.
 		IsNetworkingV1PackageSupported = true
-		ctxt = NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 	})
@@ -182,7 +183,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 			nonAppGWIngress.Name = ingressName + "123"
 			// Change the `Annotation` so that the controller doesn't see this Ingress.
-			nonAppGWIngress.Annotations[annotations.IngressClassKey] = annotations.ApplicationGatewayIngressClass + "123"
+			nonAppGWIngress.Annotations[annotations.IngressClassKey] = environment.DefaultIngressClassController + "123"
 
 			_, err = k8sClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), nonAppGWIngress, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred(), "Unable to create non-Application Gateway ingress resource due to: %v", err)
@@ -437,8 +438,64 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			ingrList := []*networking.Ingress{
 				ingr,
 			}
-			finalList := filterAndSort(ingrList)
+			finalList := ctxt.filterAndSort(ingrList)
 			Expect(finalList).To(ContainElement(ingr))
 		})
 	})
+
+	ginkgo.Context("Check IsIstioGatewayIngress", func() {
+		ginkgo.BeforeEach(func() {
+			ctxt.ingressClassControllerName = environment.DefaultIngressClassController
+		})
+
+		ginkgo.It("returns error when gateway has no annotations", func() {
+			gateway := &v1alpha3.Gateway{}
+			actual := ctxt.IsIstioGatewayIngress(gateway)
+			Expect(actual).To(Equal(false))
+		})
+
+		ginkgo.It("returns true with correct annotation", func() {
+			gateway := &v1alpha3.Gateway{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IstioGatewayKey: environment.DefaultIngressClassController,
+					},
+				},
+			}
+			actual := ctxt.IsIstioGatewayIngress(gateway)
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	ginkgo.Context("Check IsApplicationGatewayIngress", func() {
+		ginkgo.BeforeEach(func() {
+			ctxt.ingressClassControllerName = environment.DefaultIngressClassController
+		})
+
+		ginkgo.It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual := ctxt.IsIngressClass(ing)
+			Expect(actual).To(Equal(false))
+		})
+
+		ginkgo.It("returns true with correct annotation", func() {
+			actual := ctxt.IsIngressClass(ingress)
+			Expect(actual).To(Equal(true))
+		})
+
+		ginkgo.It("returns true with correct annotation", func() {
+			ingress.Annotations[annotations.IngressClassKey] = "custom-class"
+			ctxt.ingressClassControllerName = "custom-class"
+			actual := ctxt.IsIngressClass(ingress)
+			Expect(actual).To(Equal(true))
+		})
+
+		ginkgo.It("returns false with incorrect annotation", func() {
+			ingress.Annotations[annotations.IngressClassKey] = "custom-class"
+			actual := ctxt.IsIngressClass(ingress)
+			Expect(ctxt.ingressClassControllerName).To(Equal(environment.DefaultIngressClassController))
+			Expect(actual).To(Equal(false))
+		})
+	})
+
 })

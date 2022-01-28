@@ -119,7 +119,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: ingressNS,
@@ -204,7 +204,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		istioCrdClient := istio_fake.NewSimpleClientset()
 		multiClusterCrdClient := multiCluster_fake.NewSimpleClientset()
 		k8scontext.IsNetworkingV1PackageSupported = true
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 
 		appGwy := &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
@@ -458,7 +458,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Name:      serviceName,
 				Namespace: ingressNS,
@@ -720,7 +720,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey:      environment.DefaultIngressClassController,
 					annotations.SslRedirectKey:       "true",
 					annotations.HostNameExtensionKey: "bye.com, test.com",
 				},
