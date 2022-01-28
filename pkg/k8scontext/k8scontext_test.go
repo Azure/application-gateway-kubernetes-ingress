@@ -27,6 +27,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var _ = ginkgo.Describe("K8scontext", func() {
@@ -498,4 +499,95 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 	})
 
+	ginkgo.Context("Check Ingress Class Resource is used correctly for filtering ingress", func() {
+		ginkgo.BeforeEach(func() {
+			// create and ingress class in k8s
+			ingressClass := tests.GetIngressClass()
+			ctxt.kubeClient.NetworkingV1().IngressClasses().Create(context.TODO(), ingressClass, metav1.CreateOptions{})
+
+			// update ingress resource to use ingress class name
+			delete(ingress.Annotations, annotations.IngressClassKey)
+			ingress.Spec.IngressClassName = to.StringPtr(environment.DefaultIngressClassResourceName)
+			_, err := k8sClient.NetworkingV1().Ingresses(ingressNS).Update(context.TODO(), ingress, metav1.UpdateOptions{})
+			Expect(err).ToNot(HaveOccurred(), "Unabled to update stored ingresses resource due to: %v", err)
+
+			// configure context to enable ingress class resource
+			ctxt.ingressClassResourceEnabled = true
+			ctxt.ingressClassResourceName = tests.IngressClassResourceName
+			ctxt.ingressClassControllerName = tests.IngressClassController
+		})
+
+		ginkgo.It("Should not match if ingress class resource is disabled", func() {
+			// start the informers. This will sync the cache with the latest ingress.
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
+
+			ctxt.ingressClassResourceEnabled = false
+
+			// ensure that ingress is present in the informer cache
+			ingressListInterface := ctxt.Caches.Ingress.List()
+			Expect(len(ingressListInterface)).To(Equal(1), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
+
+			// check that IsIngressClass is true for ingress
+			Expect(ctxt.IsIngressClass(ingress)).To(BeFalse(), "Expected to not match ingress filter")
+
+			// check that ListHTTPIngresses is able to filter the ingress with the ingress class
+			testIngresses := ctxt.ListHTTPIngresses()
+			Expect(len(testIngresses)).To(Equal(0), "Expected no ingress in the k8scontext but found: %d ingresses", len(testIngresses))
+		})
+
+		ginkgo.It("Should be able to filter both Ingress class annotation and Ingress Resources", func() {
+			// add another ingress that doesn't match the expected ingress class
+			ingressWithIngressClassAnnotation := tests.NewIngressTestFixture(ingressNS, "other-ingress")
+			_, err := ctxt.kubeClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), &ingressWithIngressClassAnnotation, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			// start the informers. This will sync the cache with the latest ingress.
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
+
+			// ensure that ingress is present in the informer cache
+			ingressListInterface := ctxt.Caches.Ingress.List()
+			Expect(len(ingressListInterface)).To(Equal(2), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
+
+			// check that IsIngressClass is true for ingress
+			Expect(ctxt.IsIngressClass(ingress)).To(BeTrue(), "Expected ingress to be of matching ingress class")
+			Expect(ctxt.IsIngressClass(&ingressWithIngressClassAnnotation)).To(BeTrue(), "Expected ingress to be of matching ingress class")
+
+			// check that ListHTTPIngresses is able to filter the ingress with the ingress class
+			testIngresses := ctxt.ListHTTPIngresses()
+			Expect(len(testIngresses)).To(Equal(2), "Expected to have a single ingress in the k8scontext but found: %d ingresses", len(testIngresses))
+
+			// make sure the ingress we got is the ingress we stored.
+			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
+			Expect(testIngresses[1]).To(Equal(&ingressWithIngressClassAnnotation), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[1])
+		})
+
+		ginkgo.It("Should only filter matching ingress", func() {
+			// add another ingress that doesn't match the expected ingress class
+			ingressForOtherIngressClass := tests.GetVerySimpleIngress()
+			ingressForOtherIngressClass.Spec.IngressClassName = to.StringPtr("other-ingress-class")
+			delete(ingressForOtherIngressClass.Annotations, annotations.IngressClassKey)
+			_, err := ctxt.kubeClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingressForOtherIngressClass, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			// start the informers. This will sync the cache with the latest ingress.
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
+
+			// ensure that ingress is present in the informer cache
+			ingressListInterface := ctxt.Caches.Ingress.List()
+			Expect(len(ingressListInterface)).To(Equal(2), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
+
+			// check that IsIngressClass is true for ingress
+			Expect(ctxt.IsIngressClass(ingressForOtherIngressClass)).To(BeFalse(), "Expected ingress to not match ingress class")
+
+			// check that ListHTTPIngresses is able to filter the ingress with the ingress class
+			testIngresses := ctxt.ListHTTPIngresses()
+			Expect(len(testIngresses)).To(Equal(1), "Expected to have a single ingress in the k8scontext but found: %d ingresses", len(testIngresses))
+
+			// make sure the ingress we got is the ingress we stored.
+			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
+		})
+	})
 })

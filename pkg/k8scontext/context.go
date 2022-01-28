@@ -886,7 +886,7 @@ func (c *Context) getIngressClassResource(ingressClassName string) *networking.I
 func (c *Context) IsIngressClass(ing *networking.Ingress) bool {
 
 	// match by annotation
-	if className, err := annotations.IngressClass(ing); err == nil {
+	if className, err := annotations.IngressClass(ing); err == nil && className != "" {
 		return className == c.ingressClassControllerName
 	}
 

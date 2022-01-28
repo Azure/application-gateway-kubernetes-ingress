@@ -52,7 +52,7 @@ func GetIngress() *networking.Ingress {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: tests.IngressClass,
+				annotations.IngressClassKey: tests.IngressClassController,
 				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: tests.Namespace,

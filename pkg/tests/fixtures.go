@@ -58,8 +58,20 @@ const (
 	PrivateIPID                  = "--front-end-ip-id-2--"
 	ServiceHTTPPort              = "--service-http-port--"
 	ServiceHTTPSPort             = "--service-https-port--"
-	IngressClass                 = "azure/application-gateway"
+	IngressClassController       = "azure/application-gateway"
+	IngressClassResourceName     = "azure-application-gateway"
 )
+
+func GetIngressClass() *networking.IngressClass {
+	return &networking.IngressClass{
+		Spec: networking.IngressClassSpec{
+			Controller: IngressClassController,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: IngressClassResourceName,
+		},
+	}
+}
 
 // GetIngress creates an Ingress test fixture.
 func GetIngress() (*networking.Ingress, error) {
@@ -81,7 +93,7 @@ func GetVerySimpleIngress() *networking.Ingress {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 			},
 			Name: "websocket-ingress",
 		},
@@ -112,7 +124,7 @@ func GetIngressWithMissingServiceAndServiceWithInvalidPort() *networking.Ingress
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 			},
 			Namespace: Namespace,
 			Name:      "ingress-with-invalid-services",
@@ -255,7 +267,7 @@ func NewIngressFixture() *networking.Ingress {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: Namespace,
@@ -293,7 +305,7 @@ func NewIngressFixtureSingleSlashPath() *networking.Ingress {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: Namespace,
@@ -606,7 +618,7 @@ func NewIngressTestFixture(namespace string, ingressName string) networking.Ingr
 			Name:      ingressName,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 			},
 		},
 		Spec: networking.IngressSpec{
@@ -643,7 +655,7 @@ func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) 
 			Name:      ingressName,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				annotations.IngressClassKey: IngressClass,
+				annotations.IngressClassKey: IngressClassController,
 			},
 		},
 		Spec: networking.IngressSpec{
