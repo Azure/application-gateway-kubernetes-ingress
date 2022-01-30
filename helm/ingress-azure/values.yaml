@@ -52,6 +52,7 @@ kubernetes:
   # This can be used to segregate ingress controllers in the same namespace
   # ingressClass: agic-2
 
+  # Set Ingress class resource to use the IngressClass V1 resource with Ingress V1
   ingressClassResource:
     name: azure-application-gateway
     enabled: true

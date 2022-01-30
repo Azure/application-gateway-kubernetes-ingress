@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  selector:
+    matchLabels:
+      app: ws-app
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: ws-app
+    spec:
+      containers:
+        - name: backend-app
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/201
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /status/202
+              port: 80
+              scheme: HTTP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: ws-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-http
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+    - host: app.http
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+            pathType: Exact
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: other-http
+spec:
+  ingressClassName: other-gateway
+  rules:
+    - host: other.http
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+            pathType: Exact
