@@ -210,4 +210,48 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			}
 		})
 	})
+
+	Context("test backend port referenced with name", func() {
+		It("should have multiple rules", func() {
+			Expect(2).To(Equal(len(ingress.Spec.Rules)), "expects 2 rules")
+		})
+
+		ingress.Spec.Rules[0].HTTP.Paths[0].Backend.Service.Port.Name = tests.ServiceHTTPPort
+		ingress.Spec.Rules[0].HTTP.Paths[0].Backend.Service.Port.Number = 0
+		ingress.Spec.Rules[1].HTTP.Paths[0].Backend.Service.Port.Name = tests.ServiceHTTPSPort
+		ingress.Spec.Rules[1].HTTP.Paths[0].Backend.Service.Port.Number = 0
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		configBuilder.mem = memoization{}
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("correct backend port is chosen in case of target port is resolved to multiple ports", func() {
+			expectedhttpSettingsLen := 3
+			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
+
+			for _, setting := range httpSettings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
+					// http setting for ingress with service port as 80
+					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
+				} else if strings.Contains(*setting.Name, "75") {
+					// http setting for the ingress with service port as 443. Target port is https-port which resolves to multiple backend port
+					// and the smallest backend port is chosen
+					Expect(int32(75)).To(Equal(*setting.Port), "setting %s backend port %d should be 75", *setting.Name, *setting.Port)
+				} else {
+					// Dummy Failure, This should not happen
+					Expect(23).To(Equal(75), "setting %s is not expected to be created", *setting.Name)
+				}
+			}
+		})
+	})
+
 })
