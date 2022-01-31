@@ -436,6 +436,37 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
+		It("[rewrite-rule] rewrite-rule annotation attaches a rule set to routing rule", func() {
+			namespaceName := "e2e-rewrite-rule"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/rewrite-rule/app.yaml"
+			klog.Info("Applying empty secret yaml: ", yamlPath)
+			err = applyYaml(clientset, namespaceName, yamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("https://%s", publicIP)
+			// http get to return 200 ok
+			resp, err := makeGetRequest(urlHttps, "example.com", 200, true)
+			Expect(err).To(BeNil())
+
+			testHeader := resp.Header.Get("test-header")
+			Expect(testHeader).To(Equal("test-value"))
+		})
+
 		AfterEach(func() {
 			// clear all namespaces
 			cleanUp(clientset)
