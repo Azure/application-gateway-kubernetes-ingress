@@ -463,6 +463,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			resp, err := makeGetRequest(urlHttps, "example.com", 200, true)
 			Expect(err).To(BeNil())
 
+			// check that rewrite rule is adding a response header "test-header: test-value"
 			testHeader := resp.Header.Get("test-header")
 			Expect(testHeader).To(Equal("test-value"))
 		})
