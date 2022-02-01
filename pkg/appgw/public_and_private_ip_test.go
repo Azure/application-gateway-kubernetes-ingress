@@ -62,7 +62,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ingressPublicIP := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 			},
 			Namespace: ingressNS,
 			Name:      "external-ingress-resource",
@@ -112,7 +112,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	ingressPrivateIP := &networking.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 				annotations.UsePrivateIPKey: "true",
 			},
 			Namespace: ingressNS,
@@ -226,7 +226,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	istioCrdClient := istio_fake.NewSimpleClientset()
 	multiClusterCrdClient := multiCluster_fake.NewSimpleClientset()
 	k8scontext.IsNetworkingV1PackageSupported = true
-	ctxt := k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+	ctxt := k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 
 	secret := tests.NewSecretTestFixture()
 

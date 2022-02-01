@@ -23,7 +23,7 @@ func (h handlers) ingressAdd(obj interface{}) {
 		return
 	}
 
-	if !IsIngressApplicationGateway(ing) {
+	if !h.context.IsIngressClass(ing) {
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 	if ing == nil {
 		return
 	}
-	if !IsIngressApplicationGateway(ing) {
+	if !h.context.IsIngressClass(ing) {
 		return
 	}
 	ingKey := utils.GetResourceKey(ing.Namespace, ing.Name)
@@ -100,7 +100,7 @@ func (h handlers) ingressUpdate(oldObj, newObj interface{}) {
 		return
 	}
 	oldIng, _ := convert.ToIngressV1(oldObj)
-	if !IsIngressApplicationGateway(ing) && !IsIngressApplicationGateway(oldIng) {
+	if !h.context.IsIngressClass(ing) && !h.context.IsIngressClass(oldIng) {
 		return
 	}
 	if ing.Spec.TLS != nil && len(ing.Spec.TLS) > 0 {
