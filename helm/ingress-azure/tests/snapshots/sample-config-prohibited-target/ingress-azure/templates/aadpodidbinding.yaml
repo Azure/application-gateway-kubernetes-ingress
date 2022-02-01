@@ -4,7 +4,7 @@
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentityBinding
 metadata:
-  name: RELEASE-NAME-azidbinding-ingress-azure
+  name: release-name-azidbinding-ingress-azure
 spec: 
-  azureIdentity: RELEASE-NAME-azid-ingress-azure
-  selector: RELEASE-NAME-ingress-azure
+  azureIdentity: release-name-azid-ingress-azure
+  selector: release-name-ingress-azure

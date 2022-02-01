@@ -4,7 +4,7 @@
 apiVersion: "aadpodidentity.k8s.io/v1"
 kind: AzureIdentity
 metadata:
-  name: RELEASE-NAME-azid-ingress-azure
+  name: release-name-azid-ingress-azure
 spec:
   type: 0
   resourceID: /a/b/c
