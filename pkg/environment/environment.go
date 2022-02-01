@@ -95,11 +95,31 @@ const (
 	// ReconcilePeriodSecondsVarName is an environment variable to control reconcile period for the AGIC.
 	ReconcilePeriodSecondsVarName = "RECONCILE_PERIOD_SECONDS"
 
-	// IngressClass is an environment variable
-	IngressClass = "INGRESS_CLASS"
+	// IngressClassVarName is an environment variable
+	IngressClassVarName = "INGRESS_CLASS"
+
+	// IngressClassResourceEnabledVarName is an environment variable to enable V1 Ingress class.
+	IngressClassResourceEnabledVarName = "INGRESS_CLASS_RESOURCE_ENABLED"
+
+	// IngressClassResourceNameVarName is an environment variable which specifies the name of the ingress class object to watch.
+	IngressClassResourceNameVarName = "INGRESS_CLASS_RESOURCE_NAME"
+
+	// IngressClassResourceDefaultVarName is an environment variable to enable AGIC as default ingress.
+	IngressClassResourceDefaultVarName = "INGRESS_CLASS_RESOURCE_DEFAULT"
+
+	// IngressClassControllerNameVarName is an environment variable to specify controller class.
+	IngressClassControllerNameVarName = "INGRESS_CLASS_RESOURCE_CONTROLLER"
 
 	// MultiClusterModeVarName is an environment variable to control whether AGIC monitors Ingresses or MutliClusterIngresses
 	MultiClusterModeVarName = "MULTI_CLUSTER_MODE"
+)
+
+const (
+	//DefaultIngressClassController defines the default app gateway ingress value
+	DefaultIngressClassController = "azure/application-gateway"
+
+	//DefaultIngressClassResourceName defines the default app gateway ingress class object name
+	DefaultIngressClassResourceName = "azure-application-gateway"
 )
 
 var (
@@ -122,6 +142,10 @@ type EnvVariables struct {
 	AppGwSkuName                string
 	AuthLocation                string
 	IngressClass                string
+	IngressClassControllerName  string
+	IngressClassResourceEnabled bool
+	IngressClassResourceName    string
+	IngressClassResourceDefault bool
 	WatchNamespace              string
 	UsePrivateIP                bool
 	VerbosityLevel              string
@@ -165,6 +189,18 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 	if env.AppGwSubnetName == "" {
 		env.AppGwSubnetName = env.AppGwName + "-subnet"
 	}
+
+	if env.IngressClass != "" {
+		env.IngressClassControllerName = env.IngressClass
+	}
+
+	if env.IngressClassControllerName == "" {
+		env.IngressClassControllerName = DefaultIngressClassController
+	}
+
+	if env.IngressClassResourceName == "" {
+		env.IngressClassResourceName = DefaultIngressClassResourceName
+	}
 }
 
 // GetEnv returns values for defined environment variables for Ingress Controller.
@@ -184,7 +220,11 @@ func GetEnv() EnvVariables {
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
 		AppGwSkuName:                GetEnvironmentVariable(AppGwSkuVarName, "Standard_v2", skuValidator),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
-		IngressClass:                os.Getenv(IngressClass),
+		IngressClass:                os.Getenv(IngressClassVarName),
+		IngressClassResourceEnabled: GetEnvironmentVariable(IngressClassResourceEnabledVarName, "false", boolValidator) == "true",
+		IngressClassResourceName:    os.Getenv(IngressClassResourceNameVarName),
+		IngressClassResourceDefault: GetEnvironmentVariable(IngressClassResourceDefaultVarName, "false", boolValidator) == "true",
+		IngressClassControllerName:  os.Getenv(IngressClassControllerNameVarName),
 		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
 		UsePrivateIP:                usePrivateIP,
 		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),

@@ -7,6 +7,7 @@ import (
 	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
@@ -129,7 +130,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		// annotation settings below should be ignored
 		newAnnotation := map[string]string{
 			annotations.AppGwSslCertificate: "appgw-installed-cert",
-			annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+			annotations.IngressClassKey:     environment.DefaultIngressClassController,
 			annotations.SslRedirectKey:      "true",
 		}
 

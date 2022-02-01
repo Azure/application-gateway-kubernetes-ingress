@@ -22,7 +22,6 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	agiccrdscheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -86,7 +85,7 @@ func getKubeClientConfig() *rest.Config {
 	return config
 }
 
-func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
+func getEventRecorder(kubeClient kubernetes.Interface, ingressClassControllerName string) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(klog.V(5).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
@@ -97,7 +96,7 @@ func getEventRecorder(kubeClient kubernetes.Interface) record.EventRecorder {
 		hostname = "unknown-hostname"
 	}
 	source := v1.EventSource{
-		Component: annotations.ApplicationGatewayIngressClass,
+		Component: ingressClassControllerName,
 		Host:      hostname,
 	}
 
@@ -114,10 +113,4 @@ func getVerbosity(flagVerbosity int, envVerbosity string) int {
 	}
 	klog.Infof("Using verbosity level %d from environment variable %s", envVerbosityInt, environment.VerbosityLevelVarName)
 	return envVerbosityInt
-}
-
-func setIngressClass(customIngressClass string) {
-	if customIngressClass != "" {
-		annotations.ApplicationGatewayIngressClass = customIngressClass
-	}
 }
