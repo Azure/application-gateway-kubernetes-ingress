@@ -3,12 +3,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: RELEASE-NAME-cm-ingress-azure
+  name: release-name-cm-ingress-azure
   labels:
     app: ingress-azure
     chart: ingress-azure-1.4.0
     heritage: Helm
-    release: RELEASE-NAME
+    release: release-name
 data:
   APPGW_VERBOSITY_LEVEL: "3"
   MULTI_CLUSTER_MODE: "false"
