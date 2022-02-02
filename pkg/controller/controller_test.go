@@ -35,7 +35,7 @@ var _ = Describe("test NewAppGwIngressController", func() {
 		recorder := record.NewFakeRecorder(0)
 		controller := NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, nil, false)
 		It("should have created the AppGwIngressController struct", func() {
-			err := controller.Start(environment.GetEnv())
+			err := controller.Start(environment.GetFakeEnv())
 			Expect(err).To(HaveOccurred())
 			controller.Stop()
 		})
@@ -52,7 +52,7 @@ var _ = Describe("test NewAppGwIngressController", func() {
 			multiClusterCrdClient := multiClusterFake.NewSimpleClientset()
 			// Create a `k8scontext` to start listening to ingress resources.
 			k8scontext.IsNetworkingV1PackageSupported = true
-			k8sContext := k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{}, 1000*time.Second, metricstore.NewFakeMetricStore())
+			k8sContext := k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 
 			azClient := azure.NewFakeAzClient()
 			appGwIdentifier := appgw.Identifier{}

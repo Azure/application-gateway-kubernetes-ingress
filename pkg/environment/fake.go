@@ -8,13 +8,14 @@ package environment
 // GetFakeEnv returns fake values for defined environment variables for Ingress Controller.
 func GetFakeEnv() EnvVariables {
 	env := EnvVariables{
-		SubscriptionID:    "--SubscriptionID--",
-		ResourceGroupName: "--ResourceGroupName--",
-		AppGwName:         "--AppGwName--",
-		AuthLocation:      "--AuthLocation--",
-		WatchNamespace:    "--WatchNamespace--",
-		UsePrivateIP:      false,
-		VerbosityLevel:    "123456789",
+		SubscriptionID:             "--SubscriptionID--",
+		ResourceGroupName:          "--ResourceGroupName--",
+		AppGwName:                  "--AppGwName--",
+		AuthLocation:               "--AuthLocation--",
+		WatchNamespace:             "--WatchNamespace--",
+		UsePrivateIP:               false,
+		VerbosityLevel:             "123456789",
+		IngressClassControllerName: DefaultIngressClassController,
 	}
 
 	return env

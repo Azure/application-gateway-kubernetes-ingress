@@ -129,6 +129,10 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 
 	// find the target port number for service port specified in the ingress manifest
 	servicePortInIngress := fmt.Sprint(backendID.Backend.Service.Port.Number)
+	if backendID.Backend.Service.Port.Name != "" {
+		servicePortInIngress = fmt.Sprint(backendID.Backend.Service.Port.Name)
+	}
+
 	resolvedBackendPorts := make(map[serviceBackendPortPair]interface{})
 	for _, servicePort := range service.Spec.Ports {
 		// ignore UDP ports
@@ -271,6 +275,12 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 
 	if affinity, err := annotations.IsCookieBasedAffinity(backendID.Ingress); err == nil && affinity {
 		httpSettings.CookieBasedAffinity = n.ApplicationGatewayCookieBasedAffinityEnabled
+	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	}
+
+	if distinctName, err := annotations.IsCookieBasedAffinityDistinctName(backendID.Ingress); err == nil && distinctName {
+		httpSettings.AffinityCookieName = to.StringPtr(fmt.Sprintf("%s%s", "appgw-affinity-", backendID.serviceFullNameHash()))
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}

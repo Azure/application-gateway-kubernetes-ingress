@@ -51,6 +51,9 @@ const (
 	// CookieBasedAffinityKey defines the key to enable/disable cookie based affinity for client connection.
 	CookieBasedAffinityKey = ApplicationGatewayPrefix + "/cookie-based-affinity"
 
+	// CookieBasedAffinityDistinctNameKey defines the key to enable/disable distinct cookie names per backend for client connection.
+	CookieBasedAffinityDistinctNameKey = ApplicationGatewayPrefix + "/cookie-based-affinity-distinct-name"
+
 	// RequestTimeoutKey defines the request timeout to the backend.
 	RequestTimeoutKey = ApplicationGatewayPrefix + "/request-timeout"
 
@@ -85,9 +88,6 @@ const (
 	// that this is a gateway meant for the application gateway ingress controller.
 	IstioGatewayKey = "appgw.ingress.istio.io/v1alpha3"
 
-	//DefaultIngressClass defines the default app gateway ingress value
-	DefaultIngressClass = "azure/application-gateway"
-
 	// FirewallPolicy is the key part of a key/value Ingress annotation.
 	// The value of this is an ID of a Firewall Policy. The Firewall Policy must be already defined in Azure.
 	// The policy will be attached to all URL paths declared in the annotated Ingress resource.
@@ -99,12 +99,9 @@ const (
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
 	// Multiple root certificates separated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
-)
 
-var (
-	// ApplicationGatewayIngressClass defines the value of the `IngressClassKey` and `IstioGatewayKey`
-	// annotations that will tell the ingress controller whether it should act on this ingress resource or not.
-	ApplicationGatewayIngressClass = DefaultIngressClass
+	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
+	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
 )
 
 // ProtocolEnum is the type for protocol
@@ -124,21 +121,22 @@ var ProtocolEnumLookup = map[string]ProtocolEnum{
 	"https": HTTPS,
 }
 
-// IsApplicationGatewayIngress checks if the Ingress resource can be handled by the Application Gateway ingress controller.
-func IsApplicationGatewayIngress(ing *networking.Ingress) (bool, error) {
-	controllerName, err := parseString(ing, IngressClassKey)
-	return controllerName == ApplicationGatewayIngressClass, err
+// IngressClass returns ingress class annotation value if set
+func IngressClass(ing *networking.Ingress) (string, error) {
+	return parseString(ing, IngressClassKey)
 }
 
-// IsIstioGatewayIngress checks if this gateway should be handled by AGIC or not
-func IsIstioGatewayIngress(gateway *v1alpha3.Gateway) (bool, error) {
+// IngressClass returns istio ingress class annotation value if set
+func IstioGatewayIngressClass(gateway *v1alpha3.Gateway) (string, error) {
 	val, ok := gateway.Annotations[IstioGatewayKey]
 	if ok {
-		return val == ApplicationGatewayIngressClass, nil
+		return val, nil
 	}
-	return false, controllererrors.NewError(
+
+	return "", controllererrors.NewErrorf(
 		controllererrors.ErrorMissingAnnotation,
-		"appgw.ingress.istio.io/v1alpha3 not set")
+		"%s is not set in Ingress %s/%s", IstioGatewayKey, gateway.Namespace, gateway.Name,
+	)
 }
 
 // IsSslRedirect for HTTP end points.
@@ -230,6 +228,11 @@ func IsCookieBasedAffinity(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, CookieBasedAffinityKey)
 }
 
+// IsCookieBasedAffinityDistinctName provides value to enable/disable distinct cookie name based affinity for client connection.
+func IsCookieBasedAffinityDistinctName(ing *networking.Ingress) (bool, error) {
+	return parseBool(ing, CookieBasedAffinityDistinctNameKey)
+}
+
 // UsePrivateIP determines whether to use private IP with the ingress
 func UsePrivateIP(ing *networking.Ingress) (bool, error) {
 	return parseBool(ing, UsePrivateIPKey)
@@ -275,6 +278,11 @@ func GetHostNameExtensions(ing *networking.Ingress) ([]string, error) {
 // WAFPolicy override path
 func WAFPolicy(ing *networking.Ingress) (string, error) {
 	return parseString(ing, FirewallPolicy)
+}
+
+// RewriteRuleSet name
+func RewriteRuleSet(ing *networking.Ingress) (string, error) {
+	return parseString(ing, RewriteRuleSetKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {

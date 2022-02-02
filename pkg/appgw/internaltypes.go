@@ -106,6 +106,10 @@ func (s serviceIdentifier) serviceFullName() string {
 	return fmt.Sprintf("%v-%v", s.Namespace, s.Name)
 }
 
+func (s serviceIdentifier) serviceFullNameHash() string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(s.serviceFullName())))
+}
+
 func (s serviceIdentifier) serviceKey() string {
 	return fmt.Sprintf("%v/%v", s.Namespace, s.Name)
 }

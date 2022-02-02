@@ -104,7 +104,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Name:      ingressName,
 			Namespace: ingressNS,
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 			},
 		},
 		Spec: networking.IngressSpec{
@@ -451,7 +451,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		// Create a `k8scontext` to start listiening to ingress resources.
 		k8scontext.IsNetworkingV1PackageSupported = true
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 		Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
 
 		// Initialize the `ConfigBuilder`

@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/knative/pkg/apis/istio/v1alpha3"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	networking "k8s.io/api/networking/v1"
@@ -39,29 +37,30 @@ func TestIt(t *testing.T) {
 
 var _ = Describe("Test ingress annotation functions", func() {
 	annotations := map[string]string{
-		"appgw.ingress.kubernetes.io/use-private-ip":                   "true",
-		"appgw.ingress.kubernetes.io/override-frontend-port":           "444",
-		"appgw.ingress.kubernetes.io/connection-draining":              "true",
-		"appgw.ingress.kubernetes.io/cookie-based-affinity":            "true",
-		"appgw.ingress.kubernetes.io/ssl-redirect":                     "true",
-		"appgw.ingress.kubernetes.io/request-timeout":                  "123456",
-		"appgw.ingress.kubernetes.io/connection-draining-timeout":      "3456",
-		"appgw.ingress.kubernetes.io/backend-path-prefix":              "prefix-here",
-		"appgw.ingress.kubernetes.io/backend-hostname":                 "www.backend.com",
-		"appgw.ingress.kubernetes.io/hostname-extension":               "www.bye.com, www.b*.com",
-		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":            "appgw-cert",
-		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate":   "appgw-root-cert1,appgw-root-cert2",
-		"appgw.ingress.kubernetes.io/health-probe-hostname":            "myhost.mydomain.com",
-		"appgw.ingress.kubernetes.io/health-probe-port":                "8080",
-		"appgw.ingress.kubernetes.io/health-probe-path":                "/healthz",
-		"appgw.ingress.kubernetes.io/health-probe-status-codes":        "200-399, 401",
-		"appgw.ingress.kubernetes.io/health-probe-interval":            "15",
-		"appgw.ingress.kubernetes.io/health-probe-timeout":             "10",
-		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold": "3",
-		"kubernetes.io/ingress.class":                                  "azure/application-gateway",
-		"appgw.ingress.istio.io/v1alpha3":                              "azure/application-gateway",
-		"falseKey":                                                     "false",
-		"errorKey":                                                     "234error!!",
+		"appgw.ingress.kubernetes.io/use-private-ip":                      "true",
+		"appgw.ingress.kubernetes.io/override-frontend-port":              "444",
+		"appgw.ingress.kubernetes.io/connection-draining":                 "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity":               "true",
+		"appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name": "true",
+		"appgw.ingress.kubernetes.io/ssl-redirect":                        "true",
+		"appgw.ingress.kubernetes.io/request-timeout":                     "123456",
+		"appgw.ingress.kubernetes.io/connection-draining-timeout":         "3456",
+		"appgw.ingress.kubernetes.io/backend-path-prefix":                 "prefix-here",
+		"appgw.ingress.kubernetes.io/backend-hostname":                    "www.backend.com",
+		"appgw.ingress.kubernetes.io/hostname-extension":                  "www.bye.com, www.b*.com",
+		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":               "appgw-cert",
+		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate":      "appgw-root-cert1,appgw-root-cert2",
+		"appgw.ingress.kubernetes.io/health-probe-hostname":               "myhost.mydomain.com",
+		"appgw.ingress.kubernetes.io/health-probe-port":                   "8080",
+		"appgw.ingress.kubernetes.io/health-probe-path":                   "/healthz",
+		"appgw.ingress.kubernetes.io/health-probe-status-codes":           "200-399, 401",
+		"appgw.ingress.kubernetes.io/health-probe-interval":               "15",
+		"appgw.ingress.kubernetes.io/health-probe-timeout":                "10",
+		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold":    "3",
+		"kubernetes.io/ingress.class":                                     "azure/application-gateway",
+		"appgw.ingress.istio.io/v1alpha3":                                 "azure/application-gateway",
+		"falseKey":                                                        "false",
+		"errorKey":                                                        "234error!!",
 	}
 
 	ing := &networking.Ingress{
@@ -79,6 +78,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 		It("returns true", func() {
 			actual, err := IsCookieBasedAffinity(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal(true))
+		})
+	})
+
+	Context("test IsCookieBasedAffinityDistinctName", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := IsCookieBasedAffinityDistinctName(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(false))
+		})
+		It("returns true", func() {
+			actual, err := IsCookieBasedAffinityDistinctName(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
 		})
@@ -292,60 +305,6 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := IsSslRedirect(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
-		})
-	})
-
-	Context("test IsIstioGatewayIngress", func() {
-		It("returns error when gateway has no annotations", func() {
-			gateway := &v1alpha3.Gateway{}
-			actual, err := IsIstioGatewayIngress(gateway)
-			Expect(err).To(HaveOccurred())
-			Expect(actual).To(Equal(false))
-		})
-		It("returns true with correct annotation", func() {
-			gateway := &v1alpha3.Gateway{
-				ObjectMeta: v1.ObjectMeta{
-					Annotations: annotations,
-				},
-			}
-			actual, err := IsIstioGatewayIngress(gateway)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal(true))
-		})
-	})
-
-	Context("test IsApplicationGatewayIngress", func() {
-
-		BeforeEach(func() {
-			ApplicationGatewayIngressClass = DefaultIngressClass
-		})
-
-		It("returns error when ingress has no annotations", func() {
-			ing := &networking.Ingress{}
-			actual, err := IsApplicationGatewayIngress(ing)
-			Expect(err).To(HaveOccurred())
-			Expect(actual).To(Equal(false))
-		})
-		It("returns true with correct annotation", func() {
-			actual, err := IsApplicationGatewayIngress(ing)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal(true))
-		})
-
-		It("returns true with correct annotation", func() {
-			ing.Annotations[IngressClassKey] = "custom-class"
-			ApplicationGatewayIngressClass = "custom-class"
-			actual, err := IsApplicationGatewayIngress(ing)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal(true))
-		})
-
-		It("returns false with incorrect annotation", func() {
-			ing.Annotations[IngressClassKey] = "custom-class"
-			actual, err := IsApplicationGatewayIngress(ing)
-			Expect(ApplicationGatewayIngressClass).To(Equal(DefaultIngressClass))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal(false))
 		})
 	})
 

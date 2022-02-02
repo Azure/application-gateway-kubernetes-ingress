@@ -1,7 +1,7 @@
 # Tutorial: Setting up E2E SSL
 In this this tutorial, we will learn how to setup E2E SSL with AGIC on Application Gateway.
 
-We will 
+We will
 1. Generate the frontend and the backend certificates
 1. Deploy a simple application with HTTPS
 1. Upload the backend certificate's root certificate to Application Gateway
@@ -145,7 +145,7 @@ Now, we will configure our ingress to use the `frontend` certificate for fronten
 
 ```bash
 cat << EOF | kubectl apply -f -
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: website-ingress
@@ -166,8 +166,11 @@ spec:
         paths:
         - path: /
           backend:
-            serviceName: website-service
-            servicePort: 8443
+            service:
+              name: website-service
+              port:
+                number: 8443
+          pathType: Exact
 EOF
 ```
 

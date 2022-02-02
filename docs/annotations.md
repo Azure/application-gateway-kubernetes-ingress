@@ -30,6 +30,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-interval](#health-probe-interval) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
 
 ## Override Frontend Port
 
@@ -46,7 +47,7 @@ appgw.ingress.kubernetes.io/override-frontend-port: "port"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-overridefrontendport
@@ -60,8 +61,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 External request will need to target http://somehost:8080 instead of http://somehost.
@@ -79,7 +83,7 @@ appgw.ingress.kubernetes.io/backend-path-prefix: <path prefix>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -93,8 +97,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 In the example above we have defined an ingress resource named `go-server-ingress-bkprefix` with an annotation `appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"` . The annotation tells application gateway to create an HTTP setting which will have a path prefix override for the path `/hello` to `/test/`.
 
@@ -132,7 +139,7 @@ appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -146,8 +153,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 ## Backend Protocol
@@ -164,7 +174,7 @@ appgw.ingress.kubernetes.io/backend-protocol: "https"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -178,8 +188,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 443
+          service:
+            name: go-server-service
+            port:
+              number: 443
+        pathType: Exact
 ```
 
 ## SSL Redirect
@@ -199,7 +212,7 @@ appgw.ingress.kubernetes.io/ssl-redirect: "true"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-redirect
@@ -217,8 +230,10 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: websocket-repeater
-          servicePort: 80
+          service:
+            name: websocket-repeater
+            port:
+              number: 80
 ```
 
 ## AppGw SSL Certificate
@@ -258,7 +273,7 @@ appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-cert
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-certificate
@@ -272,8 +287,10 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: websocket-repeater
-          servicePort: 80
+          service:
+            name: websocket-repeater
+            port:
+              number: 80
 ```
 
 ## AppGW Trusted Root Certificate
@@ -309,7 +326,7 @@ appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cer
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-certificate
@@ -324,8 +341,10 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: websocket-repeater
-          servicePort: 80
+          service:
+            name: websocket-repeater
+            port:
+              number: 80
 ```
 
 ## Connection Draining
@@ -343,7 +362,7 @@ appgw.ingress.kubernetes.io/connection-draining-timeout: "60"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-drain
@@ -358,8 +377,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 ## Cookie Based Affinity
@@ -375,7 +397,7 @@ appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-affinity
@@ -389,8 +411,43 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
+```
+### distinct cookie name
+In addition to cookie-based-affinity, you can set `cookie-based-affinity-distinct-name: "true"` to ensure a different affinity cookie is set per backend.
+###
+
+```yaml
+appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
+```
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-affinity
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
+    appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /affinity1/
+        backend:
+          serviceName: affinity-service
           servicePort: 80
+      - path: /affinity2/
+        backend:
+          serviceName: other-affinity-service
+          servicePort: 80          
 ```
 
 ## Request Timeout
@@ -406,7 +463,7 @@ appgw.ingress.kubernetes.io/request-timeout: "20"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -420,8 +477,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 ## Use Private IP
@@ -440,7 +500,7 @@ appgw.ingress.kubernetes.io/use-private-ip: "true"
 
 ### Example
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
@@ -454,8 +514,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 ## Azure Waf Policy For Path
@@ -482,9 +545,9 @@ appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGr
 ```
 
 ### Example
-The example below will apply the WAF policy 
+The example below will apply the WAF policy
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ad-server-ingress
@@ -498,13 +561,18 @@ spec:
       paths:
       - path: /ad-server
         backend:
-          serviceName: ad-server
-          servicePort: 80
-          
+          service:
+            name: ad-server
+            port:
+              number: 80
+        pathType: Exact
       - path: /auth
         backend:
-          serviceName: auth-server
-          servicePort: 80
+          service:
+            name: auth-server
+            port:
+              number: 80
+        pathType: Exact
 ```
 Note that the WAF policy will be applied to both `/ad-server` and `/auth` URLs.
 
@@ -521,7 +589,7 @@ appgw.ingress.kubernetes.io/health-probe-hostname: <hostname>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -535,8 +603,11 @@ spec:
       paths:
       - path: /hello/
         backend:
-          serviceName: go-server-service
-          servicePort: 80
+          service:
+            name: go-server-service
+            port:
+              number: 80
+        pathType: Exact
 ```
 
 ## Health Probe Port
@@ -552,7 +623,7 @@ appgw.ingress.kubernetes.io/health-probe-port: <port number>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -571,8 +642,11 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: go-server-service
-          servicePort: 443
+          service:
+            name: go-server-service
+            port:
+              number: 443
+        pathType: Exact
 ```
 
 ## Health Probe Path
@@ -588,7 +662,7 @@ appgw.ingress.kubernetes.io/health-probe-path: <URI path>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -604,8 +678,10 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: go-server-service
-          servicePort: 8080
+          service:
+            name: go-server-service
+            port:
+              number: 8080
 ```
 
 ## Health Probe Status Codes
@@ -621,7 +697,7 @@ appgw.ingress.kubernetes.io/health-probe-status-codes: <status codes>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -635,8 +711,11 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: go-server-service
-          servicePort: 8080
+          service:
+            name: go-server-service
+            port:
+              number: 8080
+        pathType: Exact
 ```
 
 ## Health Probe Interval
@@ -652,7 +731,7 @@ appgw.ingress.kubernetes.io/health-probe-interval: <interval seconds>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -666,8 +745,11 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: go-server-service
-          servicePort: 8080
+          service:
+            name: go-server-service
+            port:
+              number: 8080
+        pathType: Exact
 ```
 
 ## Health Probe Timeout
@@ -683,7 +765,7 @@ appgw.ingress.kubernetes.io/health-probe-timeout: <timeout seconds>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -697,8 +779,11 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: go-server-service
-          servicePort: 8080
+          service:
+            name: go-server-service
+            port:
+              number: 8080
+        pathType: Exact
 ```
 
 ## Health Probe Unhealthy Threshold
@@ -714,7 +799,7 @@ appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: <unhealthy thresho
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -722,6 +807,40 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "5"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          service:
+            name: go-server-service
+            port:
+              number: 8080
+        pathType: Exact
+```
+
+## Rewrite Rule Set
+
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/rewrite-rule-set: <rewrite rule set>
+```
+
+### Example
+
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set: add-custom-response-header
 spec:
   rules:
   - http:
