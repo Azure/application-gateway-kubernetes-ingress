@@ -17,6 +17,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -77,6 +78,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	pathMap := []n.ApplicationGatewayURLPathMap{}
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	urlPathMaps := c.getPathMaps(cbCtx)
+	priorities := c.getListenerPriorities(cbCtx)
 	for listenerID, urlPathMap := range urlPathMaps {
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener, exists := httpListenersMap[listenerID]
@@ -122,6 +124,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
 		}
+
+		rule.Priority = priorities[listenerID]
+
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}
 
@@ -457,6 +462,34 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 	existingPathMap.PathRules = &mergedPathRules
 
 	return existingPathMap
+}
+
+func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*int32 {
+	prioritySet, priorityNil := false, false
+	allPriorities := make(map[listenerIdentifier]*int32)
+	for _, ingress := range cbCtx.IngressList {
+		klog.V(5).Infof("Getting Request Routing Rules Priority for Ingress: %s/%s", ingress.Namespace, ingress.Name)
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
+		for listenerID := range azListenerConfigs {
+			if priority, err := annotations.GetRequestRoutingRulePriority(ingress); err == nil {
+				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: %d", ingress.Namespace, ingress.Name, *priority)
+				prioritySet = true
+				allPriorities[listenerID] = priority
+			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: nil", ingress.Namespace, ingress.Name)
+				priorityNil = true
+				allPriorities[listenerID] = nil
+			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
+				klog.Errorf("%s for Ingress: %s/%s", err.Error(), ingress.Namespace, ingress.Name)
+			}
+		}
+	}
+
+	if priorityNil && prioritySet {
+		klog.Error("Either all or no Ingress should have the priority specified.")
+	}
+
+	return allPriorities
 }
 
 func printPathRule(pathRule n.ApplicationGatewayPathRule) string {

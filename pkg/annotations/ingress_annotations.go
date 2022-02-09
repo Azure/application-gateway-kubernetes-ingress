@@ -108,6 +108,9 @@ const (
 
 	// RewriteRuleSetCustomResourceKey indicates the name of the rule set CRD to use for header CRD and URL Config.
 	RewriteRuleSetCustomResourceKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
+
+	// RequestRoutingRulePriority indicates the priority of the Request Routing Rules.
+	RequestRoutingRulePriority = ApplicationGatewayPrefix + "/rule-priority"
 )
 
 // ProtocolEnum is the type for protocol
@@ -301,6 +304,24 @@ func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 // RewriteRuleSetCustomResource name
 func RewriteRuleSetCustomResource(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetCustomResourceKey)
+}
+
+// GetRequestRoutingRulePriority gets the request routing rule priority
+func GetRequestRoutingRulePriority(ing *networking.Ingress) (*int32, error) {
+	min := int32(1)
+	max := int32(20000)
+	val, err := parseInt32(ing, RequestRoutingRulePriority)
+	if err == nil {
+		if val >= min && val <= max {
+			return &val, nil
+		} else {
+			val = 0
+			return &val, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+				"Priority must be a value from %d to %d", min, max)
+		}
+	}
+
+	return nil, err
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {
