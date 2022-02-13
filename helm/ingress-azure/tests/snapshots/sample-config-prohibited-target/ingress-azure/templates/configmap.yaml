@@ -3,12 +3,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: RELEASE-NAME-cm-ingress-azure
+  name: release-name-cm-ingress-azure
   labels:
     app: ingress-azure
     chart: ingress-azure-1.4.0
     heritage: Helm
-    release: RELEASE-NAME
+    release: release-name
 data:
   APPGW_VERBOSITY_LEVEL: "3"
   MULTI_CLUSTER_MODE: "false"
@@ -20,3 +20,6 @@ data:
   APPGW_ENABLE_SHARED_APPGW: "true"
   AZURE_CLIENT_ID: "0000-0000-0000-0000-00000000"
   USE_MANAGED_IDENTITY_FOR_POD: "true"
+  INGRESS_CLASS_RESOURCE_ENABLED: "true"
+  INGRESS_CLASS_RESOURCE_NAME: "azure-application-gateway"
+  INGRESS_CLASS_RESOURCE_CONTROLLER: "azure/application-gateway"

@@ -3,29 +3,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: RELEASE-NAME-ingress-azure
+  name: release-name-ingress-azure
   labels:
     app: ingress-azure
     chart: ingress-azure-1.4.0
     heritage: Helm
-    release: RELEASE-NAME
+    release: release-name
 spec:
   replicas: 1 # TODO: Make configurable when leader election is supported.
   selector:
     matchLabels:
       app: ingress-azure
-      release: RELEASE-NAME
+      release: release-name
   template:
     metadata:
       labels:
         app: ingress-azure
-        release: RELEASE-NAME
-        aadpodidbinding: RELEASE-NAME-ingress-azure
+        release: release-name
+        aadpodidbinding: release-name-ingress-azure
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8123"
     spec:
-      serviceAccountName: RELEASE-NAME-sa-ingress-azure
+      serviceAccountName: release-name-sa-ingress-azure
       securityContext:
         runAsUser: 0
       containers:
@@ -57,7 +57,7 @@ spec:
               fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
-            name: RELEASE-NAME-cm-ingress-azure
+            name: release-name-cm-ingress-azure
         volumeMounts:
         - name: azure
           mountPath: /etc/appgw/

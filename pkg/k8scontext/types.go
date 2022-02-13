@@ -16,6 +16,7 @@ import (
 type InformerCollection struct {
 	Endpoints                                   cache.SharedIndexInformer
 	Ingress                                     cache.SharedIndexInformer
+	IngressClass                                cache.SharedIndexInformer
 	Pods                                        cache.SharedIndexInformer
 	Secret                                      cache.SharedIndexInformer
 	Service                                     cache.SharedIndexInformer
@@ -35,6 +36,7 @@ type InformerCollection struct {
 type CacheCollection struct {
 	Endpoints                                   cache.Store
 	Ingress                                     cache.Store
+	IngressClass                                cache.Store
 	Pods                                        cache.Store
 	Secret                                      cache.Store
 	Service                                     cache.Store
@@ -70,6 +72,11 @@ type Context struct {
 
 	MetricStore metricstore.MetricStore
 	namespaces  map[string]interface{}
+
+	ingressClassControllerName  string
+	ingressClassResourceName    string
+	ingressClassResourceEnabled bool
+	ingressClassResourceDefault bool
 }
 
 // IPAddress is type for IP address string

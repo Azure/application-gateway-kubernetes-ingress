@@ -135,7 +135,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 				annotations.SslRedirectKey:  "true",
 			},
 			Namespace: tests.Namespace,
@@ -173,7 +173,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 			},
 			Namespace: tests.Namespace,
 			Name:      tests.Name + "FooBazNoTLS",
@@ -206,7 +206,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey:      environment.DefaultIngressClassController,
 				annotations.HostNameExtensionKey: "foo.baz",
 			},
 			Namespace: tests.Namespace,
@@ -241,7 +241,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey: environment.DefaultIngressClassController,
 			},
 			Namespace: tests.OtherNamespace,
 			Name:      tests.Name + "OtherNamespace",
@@ -523,7 +523,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			tests.OtherNamespace,
 		}
 		k8scontext.IsNetworkingV1PackageSupported = true
-		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, namespaces, 1000*time.Second, metricstore.NewFakeMetricStore())
+		ctxt = k8scontext.NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, namespaces, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
 
 		secKey := utils.GetResourceKey(ingressSecret.Namespace, ingressSecret.Name)
 		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
@@ -568,7 +568,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name + "A",
@@ -602,7 +602,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name + "B",
@@ -636,7 +636,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey:             annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey:             environment.DefaultIngressClassController,
 					annotations.AppGwSslCertificate:         "ssl-certificate",
 					annotations.BackendProtocolKey:          "https",
 					annotations.AppGwTrustedRootCertificate: "root-certificate",
@@ -674,7 +674,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey:      annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey:      environment.DefaultIngressClassController,
 					annotations.HostNameExtensionKey: "test.com, t*.com",
 				},
 				Namespace: tests.Namespace,
@@ -709,7 +709,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name + "SlashNothing",
@@ -754,7 +754,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name + "SlashNothingSlashSomething",
@@ -817,7 +817,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{
-					annotations.IngressClassKey: annotations.ApplicationGatewayIngressClass,
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
 				},
 				Namespace: tests.Namespace,
 				Name:      tests.Name + "MultiplePathRules",
@@ -854,7 +854,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		ginkgo.It("Https Backend Ingress Resources without backend-protocol specified", func() {
 			newAnnotation := map[string]string{
-				annotations.IngressClassKey:     annotations.ApplicationGatewayIngressClass,
+				annotations.IngressClassKey:     environment.DefaultIngressClassController,
 				annotations.AppGwSslCertificate: "ssl-certificate",
 			}
 

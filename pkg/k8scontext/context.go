@@ -54,7 +54,7 @@ var namespacesToIgnore = map[string]interface{}{
 }
 
 // NewContext creates a context based on a Kubernetes client instance.
-func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, multiClusterCrdClient multicluster_versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore) *Context {
+func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, multiClusterCrdClient multicluster_versioned.Interface, istioCrdClient istio_versioned.Interface, namespaces []string, resyncPeriod time.Duration, metricStore metricstore.MetricStore, envVariables environment.EnvVariables) *Context {
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	crdInformerFactory := externalversions.NewSharedInformerFactory(crdClient, resyncPeriod)
 	multiClusterCrdInformerFactory := multicluster_externalversions.NewSharedInformerFactory(multiClusterCrdClient, resyncPeriod)
@@ -77,6 +77,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 	if IsNetworkingV1PackageSupported {
 		informerCollection.Ingress = informerFactory.Networking().V1().Ingresses().Informer()
+		informerCollection.IngressClass = informerFactory.Networking().V1().IngressClasses().Informer()
 	} else {
 		informerCollection.Ingress = informerFactory.Extensions().V1beta1().Ingresses().Informer()
 	}
@@ -84,6 +85,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	cacheCollection := CacheCollection{
 		Endpoints:                          informerCollection.Endpoints.GetStore(),
 		Ingress:                            informerCollection.Ingress.GetStore(),
+		IngressClass:                       informerCollection.IngressClass.GetStore(),
 		Pods:                               informerCollection.Pods.GetStore(),
 		Secret:                             informerCollection.Secret.GetStore(),
 		Service:                            informerCollection.Service.GetStore(),
@@ -111,6 +113,11 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 		MetricStore: metricStore,
 		namespaces:  make(map[string]interface{}),
+
+		ingressClassControllerName:  envVariables.IngressClassControllerName,
+		ingressClassResourceName:    envVariables.IngressClassResourceName,
+		ingressClassResourceEnabled: envVariables.IngressClassResourceEnabled,
+		ingressClassResourceDefault: envVariables.IngressClassResourceDefault,
 	}
 
 	for _, ns := range namespaces {
@@ -140,6 +147,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	// Register event handlers.
 	informerCollection.Endpoints.AddEventHandler(resourceHandler)
 	informerCollection.Ingress.AddEventHandler(ingressResourceHandler)
+	informerCollection.IngressClass.AddEventHandler(resourceHandler)
 	informerCollection.Pods.AddEventHandler(resourceHandler)
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
@@ -181,6 +189,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
+		c.informers.IngressClass,
 
 		//TODO: enabled by ccp feature flag
 		// c.informers.AzureApplicationGatewayBackendPool,
@@ -508,13 +517,13 @@ func (c *Context) ListHTTPIngresses() []*networking.Ingress {
 			ingressList = append(ingressList, ingress)
 		}
 	}
-	return filterAndSort(ingressList)
+	return c.filterAndSort(ingressList)
 }
 
-func filterAndSort(ingList []*networking.Ingress) []*networking.Ingress {
+func (c *Context) filterAndSort(ingList []*networking.Ingress) []*networking.Ingress {
 	var ingressList []*networking.Ingress
 	for _, ingress := range ingList {
-		if !IsIngressApplicationGateway(ingress) {
+		if !c.IsIngressClass(ingress) {
 			continue
 		}
 		if len(ingress.Spec.Rules) > 0 && !hasHTTPRule(ingress) {
@@ -654,7 +663,7 @@ func (c *Context) GetEndpointsForVirtualService(virtualService v1alpha3.VirtualS
 func (c *Context) GetGateways() []*v1alpha3.Gateway {
 	annotatedGateways := make([]*v1alpha3.Gateway, 0)
 	for _, gateway := range c.ListIstioGateways() {
-		if annotated, _ := annotations.IsIstioGatewayIngress(gateway); annotated {
+		if annotated := c.IsIstioGatewayIngress(gateway); annotated {
 			annotatedGateways = append(annotatedGateways, gateway)
 		}
 	}
@@ -830,12 +839,6 @@ func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ing
 	return nil
 }
 
-// IsIngressApplicationGateway checks if application gateway annotation is present on the ingress
-func IsIngressApplicationGateway(ingress *networking.Ingress) bool {
-	val, _ := annotations.IsApplicationGatewayIngress(ingress)
-	return val
-}
-
 func hasHTTPRule(ingress *networking.Ingress) bool {
 	for _, rule := range ingress.Spec.Rules {
 		if rule.HTTP != nil {
@@ -891,4 +894,51 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 	}
 
 	return false
+}
+
+// getIngressClassResource gets ingress class object with specified name
+func (c *Context) getIngressClassResource(ingressClassName string) *networking.IngressClass {
+	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
+	if err != nil {
+		return nil
+	}
+
+	if !exist {
+		return nil
+	}
+
+	return ingressClassInterface.(*networking.IngressClass)
+}
+
+// IsIngressClass checks if the Ingress resource can be handled by the Application Gateway ingress controller.
+func (c *Context) IsIngressClass(ing *networking.Ingress) bool {
+
+	// match by annotation (for Backward compatibility)
+	if className, err := annotations.IngressClass(ing); err == nil && className != "" {
+		return className == c.ingressClassControllerName
+	}
+
+	// match by ingress class resource
+	if c.ingressClassResourceEnabled {
+		// if IngressClassName in ingress that compare it with the controller type
+		if ing.Spec.IngressClassName != nil {
+			ingressClass := c.getIngressClassResource(*ing.Spec.IngressClassName)
+			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName
+		}
+
+		// if IngressClassName is nil, then match if AGIC is default ingress
+		return c.ingressClassResourceDefault
+	}
+
+	return false
+}
+
+// IsIstioGatewayIngress checks if this gateway should be handled by AGIC or not
+func (c *Context) IsIstioGatewayIngress(gateway *v1alpha3.Gateway) bool {
+	className, err := annotations.IstioGatewayIngressClass(gateway)
+	if err != nil {
+		return false
+	}
+
+	return className == c.ingressClassControllerName
 }

@@ -91,3 +91,19 @@ data:
 {{- if .Values.kubernetes.ingressClass}}
   INGRESS_CLASS: "{{ .Values.kubernetes.ingressClass }}"
 {{- end}}
+
+{{- if .Values.kubernetes.ingressClassResource.controllerValue}}
+  INGRESS_CLASS_RESOURCE_ENABLED: "{{ .Values.kubernetes.ingressClassResource.enabled }}"
+{{- end}}
+
+{{- if .Values.kubernetes.ingressClassResource.name}}
+  INGRESS_CLASS_RESOURCE_NAME: "{{ .Values.kubernetes.ingressClassResource.name }}"
+{{- end}}
+
+{{- if .Values.kubernetes.ingressClassResource.default}}
+  INGRESS_CLASS_RESOURCE_DEFAULT: "{{ .Values.kubernetes.ingressClassResource.default }}"
+{{- end}}
+
+{{- if .Values.kubernetes.ingressClassResource.controllerValue}}
+  INGRESS_CLASS_RESOURCE_CONTROLLER: "{{ .Values.kubernetes.ingressClassResource.controllerValue }}"
+{{- end}}

@@ -1,0 +1,14 @@
+{{- if .Values.kubernetes.ingressClassResource.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+  name: {{ .Values.kubernetes.ingressClassResource.name }}
+{{- if .Values.kubernetes.ingressClassResource.default }}
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+{{- end }}
+spec:
+  controller: {{ .Values.kubernetes.ingressClassResource.controllerValue }}
+{{- end }}
