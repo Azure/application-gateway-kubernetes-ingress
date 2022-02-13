@@ -67,6 +67,6 @@ func SupportsNetworkingPackage(client clientset.Interface) bool {
 		klog.Errorf("unexpected error parsing running Kubernetes version: %v", err)
 		return false
 	}
-
+	klog.V(1).Infof("server version is: %s", runningVersion.String())
 	return runningVersion.AtLeast(version119)
 }
