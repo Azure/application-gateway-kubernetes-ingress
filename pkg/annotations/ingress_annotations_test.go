@@ -380,6 +380,46 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
+	Context("test GetRequestRoutingRulePriority", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(priority).To(BeNil())
+		})
+
+		It("returns value with correct annotation", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "1",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*priority).To(Equal(int32(1)))
+		})
+
+		It("returns error with incorrect annotation", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "0",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(*priority).To(Equal(int32(0)))
+		})
+
+		It("returns error with incorrect annotation value > 20000", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "20001",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(*priority).To(Equal(int32(0)))
+		})
+
+	})
+
 	Context("test GetHostNameExtensions", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &networking.Ingress{}
