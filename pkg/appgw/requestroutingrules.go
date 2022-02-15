@@ -466,6 +466,7 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 
 func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*int32 {
 	prioritySet, priorityNil := false, false
+	priorityExists := make(map[int32]bool)
 	allPriorities := make(map[listenerIdentifier]*int32)
 	for _, ingress := range cbCtx.IngressList {
 		klog.V(5).Infof("Getting Request Routing Rules Priority for Ingress: %s/%s", ingress.Namespace, ingress.Name)
@@ -474,6 +475,14 @@ func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) 
 			if priority, err := annotations.GetRequestRoutingRulePriority(ingress); err == nil {
 				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: %d", ingress.Namespace, ingress.Name, *priority)
 				prioritySet = true
+				if _, value := priorityExists[*priority]; !value {
+					priorityExists[*priority] = true
+				} else {
+					klog.Errorf(
+						"Request Routing Rules Priority for Ingress: %s/%s is duplicated. Priority must be unique across all the request routing rules.",
+						ingress.Namespace,
+						ingress.Name)
+				}
 				allPriorities[listenerID] = priority
 			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: nil", ingress.Namespace, ingress.Name)
