@@ -33,7 +33,7 @@ The file will contain a JSON blob with the following shape:
 {
   "clientId": "...",
   "clientSecret": "...",
-  "subscriptionId": "<your-azure-resource-group>",
+  "subscriptionId": "<your-azure-subscription-id>",
   "tenantId": "...",
   "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
   "resourceManagerEndpointUrl": "https://management.azure.com/",
