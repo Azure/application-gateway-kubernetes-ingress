@@ -12,6 +12,11 @@ steps:
       echo '##vso[task.prependpath]$(GOROOT)/bin'
     displayName: "Set up the Go workspace"
 
+  - task: HelmInstaller@1
+    displayName: Helm installer
+    inputs: 
+      helmVersionToInstall: latest
+
   - script: make lint-all
     workingDirectory: "$(modulePath)"
     displayName: "Go and Helm lint check"

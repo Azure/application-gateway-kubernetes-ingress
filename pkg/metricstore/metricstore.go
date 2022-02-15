@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
@@ -56,7 +55,7 @@ type AGICMetricStore struct {
 // NewMetricStore returns a new metric store
 func NewMetricStore(envVariable environment.EnvVariables) MetricStore {
 	constLabels := prometheus.Labels{
-		"controller_class":                annotations.ApplicationGatewayIngressClass,
+		"controller_class":                envVariable.IngressClassControllerName,
 		"controller_namespace":            envVariable.AGICPodNamespace,
 		"controller_pod":                  envVariable.AGICPodName,
 		"controller_appgw_subscription":   envVariable.SubscriptionID,

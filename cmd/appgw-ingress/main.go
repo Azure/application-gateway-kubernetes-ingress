@@ -83,9 +83,6 @@ func main() {
 
 	env.Consolidate(cpConfig)
 
-	// adjust ingress class value if overridden by environment variable
-	setIngressClass(env.IngressClass)
-
 	// Workaround for "ERROR: logging before flag.Parse"
 	// See: https://github.com/kubernetes/kubernetes/issues/17162#issuecomment-225596212
 	_ = flag.CommandLine.Parse([]string{})
@@ -99,11 +96,11 @@ func main() {
 	crdClient := versioned.NewForConfigOrDie(apiConfig)
 	istioCrdClient := istio.NewForConfigOrDie(apiConfig)
 	multiClusterCrdClient := multicluster.NewForConfigOrDie(apiConfig)
-	recorder := getEventRecorder(kubeClient)
+	recorder := getEventRecorder(kubeClient, env.IngressClassControllerName)
 	namespaces := getNamespacesToWatch(env.WatchNamespace)
 	metricStore := metricstore.NewMetricStore(env)
 	metricStore.Start()
-	k8sContext := k8scontext.NewContext(kubeClient, crdClient, multiClusterCrdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore)
+	k8sContext := k8scontext.NewContext(kubeClient, crdClient, multiClusterCrdClient, istioCrdClient, namespaces, *resyncPeriod, metricStore, env)
 	agicPod := k8sContext.GetAGICPod(env)
 
 	if err := environment.ValidateEnv(env); err != nil {
