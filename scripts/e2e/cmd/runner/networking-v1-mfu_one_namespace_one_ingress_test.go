@@ -405,7 +405,7 @@ var _ = Describe("networking-v1-MFU", func() {
 		})
 
 		It("[ingress-class-resource] ingress class resource should work with ingress v1", func() {
-			namespaceName := "ingress-class-resource"
+			namespaceName := "e2e-ingress-class-resource"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -466,6 +466,54 @@ var _ = Describe("networking-v1-MFU", func() {
 			// check that rewrite rule is adding a response header "test-header: test-value"
 			testHeader := resp.Header.Get("test-header")
 			Expect(testHeader).To(Equal("test-value"))
+		})
+
+		It("[path-type] Path Type should correctly convert path to app gateway and respond correctly", func() {
+			namespaceName := "e2e-path-type"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/path-type/app.yaml"
+			klog.Info("Applying yaml: ", yamlPath)
+			err = applyYaml(clientset, namespaceName, yamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(10 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("http://%s", publicIP)
+
+			respondedWithColor := func(path string, body string) {
+				resp, err := makeGetRequest(urlHttps+path, "example.com", 200, true)
+				Expect(readBody(resp)).To(ContainSubstring(body), "path: %s", path)
+				Expect(err).To(BeNil())
+			}
+
+			// PathType:Prefix
+			respondedWithColor("/prefix", "correct-app")
+			respondedWithColor("/prefixSuffix", "correct-app")
+
+			// PathType:Exact
+			respondedWithColor("/exact", "correct-app")
+			respondedWithColor("/exact/asd", "catch-all")
+
+			// PathType:ImplementationSpecific
+			respondedWithColor("/ims", "correct-app")
+			respondedWithColor("/imsSuffix", "correct-app")
+
+			// Path / with pathType:exact
+			// AppGW doesn't allow / with pathType:exact
+			respondedWithColor("/", "catch-all")
+			respondedWithColor("/Suffix", "catch-all")
 		})
 
 		AfterEach(func() {
