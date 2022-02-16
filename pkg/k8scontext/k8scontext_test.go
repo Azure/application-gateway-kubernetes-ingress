@@ -21,9 +21,12 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
-	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
-	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
+	agiccrd "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	agiccrdFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
+	mcscrd "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned"
+	mcsfake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
+	istiocrd "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned"
+	istiofake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -32,6 +35,9 @@ import (
 
 var _ = ginkgo.Describe("K8scontext", func() {
 	var k8sClient kubernetes.Interface
+	var crdClient agiccrd.Interface
+	var istioCrdClient istiocrd.Interface
+	var multiClusterCrdClient mcscrd.Interface
 	var ctxt *Context
 	ingressNS := "test-ingress-controller"
 	ingressName := "hello-world"
@@ -81,9 +87,9 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 		// Create the mock K8s client.
 		k8sClient = testclient.NewSimpleClientset()
-		crdClient := fake.NewSimpleClientset()
-		istioCrdClient := istioFake.NewSimpleClientset()
-		multiClusterCrdClient := multiClusterFake.NewSimpleClientset()
+		crdClient = agiccrdFake.NewSimpleClientset()
+		istioCrdClient = istiofake.NewSimpleClientset()
+		multiClusterCrdClient = mcsfake.NewSimpleClientset()
 
 		_, err := k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred(), "Unable to create the namespace %s: %v", ingressNS, err)
@@ -621,6 +627,28 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// make sure the ingress we got is the ingress we stored.
 			Expect(testIngresses[0]).To(Equal(ingress), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[0])
 			Expect(testIngresses[1]).To(Equal(&ingressWithoutIngressClass), "Expected to retrieve the same ingress that we inserted, but it seems we found the following ingress: %v", testIngresses[1])
+		})
+	})
+
+	ginkgo.Context("Checking when server doesn't support v1/ingress", func() {
+
+		ginkgo.BeforeEach(func() {
+			// Create a `k8scontext` to start listening to ingress resources.
+			IsNetworkingV1PackageSupported = false
+			ctxt = NewContext(k8sClient, crdClient, multiClusterCrdClient, istioCrdClient, []string{ingressNS}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
+
+			Expect(ctxt).ShouldNot(BeNil(), "Unable to create `k8scontext`")
+		})
+
+		// e2e covers tests that make sure that v1beta1/ingress works with AGIC
+		ginkgo.It("should start context successfully", func() {
+			// start the informers. This will sync the cache with the latest ingress.
+			runErr := ctxt.Run(stopChannel, true, environment.GetFakeEnv())
+			Expect(runErr).ToNot(HaveOccurred())
+
+			// ingress class informer should be nil
+			Expect(ctxt.informers.IngressClass).To(BeNil())
+			Expect(ctxt.Caches.IngressClass).To(BeNil())
 		})
 	})
 })
