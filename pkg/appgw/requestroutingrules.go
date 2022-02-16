@@ -314,7 +314,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			Name: to.StringPtr(pathRuleName),
 			ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 			ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
-				Paths: &[]string{path.Path},
+				Paths: &[]string{preparePathFromPathType(path.Path, path.PathType)},
 			},
 		}
 
@@ -438,4 +438,20 @@ func printPathRule(pathRule n.ApplicationGatewayPathRule) string {
 	}
 
 	return s
+}
+
+// preparePathFromPathType uses pathType property to modify ingress.Path to append/remove "*"
+// if pathType == Prefix, "*" is appended if not provided by the user
+// if pathType == Exact, "*" is trimmed
+func preparePathFromPathType(path string, pathType *networking.PathType) string {
+	if pathType != nil {
+		if *pathType == networking.PathTypeExact {
+			return strings.TrimSuffix(path, "*")
+		}
+
+		if *pathType == networking.PathTypePrefix && !strings.HasSuffix(path, "*") {
+			return path + "*"
+		}
+	}
+	return path
 }

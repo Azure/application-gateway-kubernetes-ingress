@@ -937,4 +937,86 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 
 	})
+
+	Context("test pathType in basic ingress", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestWithVariousPathTypeFixture(tests.Namespace, "random")
+		rewriteRuleSetName := "custom-response-header"
+		ingress.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{&ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_, urlPathMaps := configBuilder.getRules(cbCtx)
+		pathRules := *urlPathMaps[0].PathRules
+
+		It("should have 8 paths", func() {
+			Expect(len(pathRules)).To(Equal(8))
+		})
+
+		It("should add * to paths with pathType:prefix", func() {
+			paths := *(pathRules[0].Paths)
+			Expect(paths[0]).To(Equal("/prefix0*"))
+
+			paths = *(pathRules[1].Paths)
+			Expect(paths[0]).To(Equal("/prefix1*"))
+		})
+
+		It("should trim * from paths with pathType:exact", func() {
+			paths := *(pathRules[2].Paths)
+			Expect(paths[0]).To(Equal("/exact2"))
+
+			paths = *(pathRules[3].Paths)
+			Expect(paths[0]).To(Equal("/exact3"))
+		})
+
+		It("should not modify paths with pathType:implementationSpecific", func() {
+			paths := *(pathRules[4].Paths)
+			Expect(paths[0]).To(Equal("/ims4*"))
+
+			paths = *(pathRules[5].Paths)
+			Expect(paths[0]).To(Equal("/ims5"))
+		})
+
+		It("should not modify paths with pathType:nil", func() {
+			paths := *(pathRules[6].Paths)
+			Expect(paths[0]).To(Equal("/nil6*"))
+
+			paths = *(pathRules[7].Paths)
+			Expect(paths[0]).To(Equal("/nil7"))
+		})
+	})
+
+	Context("test preparePathFromPathType", func() {
+		It("should append * when pathType is Prefix", func() {
+			pathType := networking.PathTypePrefix
+
+			Expect(preparePathFromPathType("/path", &pathType)).To(Equal("/path*"))
+			Expect(preparePathFromPathType("/path*", &pathType)).To(Equal("/path*"))
+		})
+
+		It("should trim when pathType is Exact", func() {
+			pathType := networking.PathTypeExact
+
+			Expect(preparePathFromPathType("/path", &pathType)).To(Equal("/path"))
+			Expect(preparePathFromPathType("/path*", &pathType)).To(Equal("/path"))
+		})
+
+		It("should not modify when pathType is ImplementationSpecific", func() {
+			pathType := networking.PathTypeImplementationSpecific
+
+			Expect(preparePathFromPathType("/path", &pathType)).To(Equal("/path"))
+			Expect(preparePathFromPathType("/path*", &pathType)).To(Equal("/path*"))
+		})
+
+		It("should not modify when pathType is nil", func() {
+			Expect(preparePathFromPathType("/path", nil)).To(Equal("/path"))
+			Expect(preparePathFromPathType("/path*", nil)).To(Equal("/path*"))
+		})
+	})
 })
