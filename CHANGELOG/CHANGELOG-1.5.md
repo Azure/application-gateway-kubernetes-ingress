@@ -16,6 +16,7 @@
 
 ## Fixes
 * [#1347](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1347) fix(v1/ingress): fix panic due to ingress class when k8s <= 1.19
+* [#1344](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1344) fix(v1/ingress): retry getting server version to get past transient issues
 
 # v1.5.0
 
