@@ -52,7 +52,7 @@ func (c *appGwConfigBuilder) applyToListener(rule *networking.IngressRule) bool 
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
 		// if there is path that is /, /* , empty string, then apply the waf policy to the listener.
-		if len(path.Path) == 0 || path.Path == "/" || path.Path == "/*" {
+		if isPathCatchAll(path.Path, path.PathType) {
 			return true
 		}
 	}

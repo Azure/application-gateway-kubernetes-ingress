@@ -217,8 +217,9 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 	if overridePort != nil {
 		if *overridePort > 0 && *overridePort < 65000 {
 			frontendPort = *overridePort
+			klog.V(5).Infof("Using custom port specified in the override annotation: %d", *overridePort)
 		} else {
-			klog.V(5).Infof("Invalid custom port configuration (%d). Setting listener port to default : %d", *overridePort, frontendPort)
+			klog.V(5).Infof("Derived listener port from ingress: %d", frontendPort)
 		}
 
 	}
