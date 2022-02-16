@@ -480,7 +480,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 
 			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/path-type/app.yaml"
-			klog.Info("Applying empty secret yaml: ", yamlPath)
+			klog.Info("Applying yaml: ", yamlPath)
 			err = applyYaml(clientset, namespaceName, yamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(10 * time.Second)
@@ -494,7 +494,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			respondedWithColor := func(path string, body string) {
 				resp, err := makeGetRequest(urlHttps+path, "example.com", 200, true)
-				Expect(readBody(resp)).To(ContainSubstring(body))
+				Expect(readBody(resp)).To(ContainSubstring(body), "path: %s", path)
 				Expect(err).To(BeNil())
 			}
 
@@ -509,6 +509,11 @@ var _ = Describe("networking-v1-MFU", func() {
 			// PathType:ImplementationSpecific
 			respondedWithColor("/ims", "correct-app")
 			respondedWithColor("/imsSuffix", "correct-app")
+
+			// Path / with pathType:exact
+			// AppGW doesn't allow / with pathType:exact
+			respondedWithColor("/", "catch-all")
+			respondedWithColor("/Suffix", "catch-all")
 		})
 
 		AfterEach(func() {

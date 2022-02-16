@@ -938,12 +938,15 @@ var _ = Describe("Test routing rules generations", func() {
 
 	})
 
-	Context("test pathType in basic ingress", func() {
+	Context("test pathType in ingress", func() {
 		configBuilder := newConfigBuilderFixture(nil)
+		endpoint := tests.NewEndpointsFixture()
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
-		ingress := tests.NewIngressTestWithVariousPathTypeFixture(tests.Namespace, "random")
-		rewriteRuleSetName := "custom-response-header"
-		ingress.Annotations[annotations.RewriteRuleSetKey] = rewriteRuleSetName
+		ingress := tests.NewIngressTestWithVariousPathTypeFixture(tests.Namespace, "ingress-with-path-type")
+
+		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
+		_ = configBuilder.k8sContext.Caches.Service.Add(service)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           []*networking.Ingress{&ingress},
@@ -953,6 +956,7 @@ var _ = Describe("Test routing rules generations", func() {
 		}
 
 		_, urlPathMaps := configBuilder.getRules(cbCtx)
+		urlPathMap := urlPathMaps[0]
 		pathRules := *urlPathMaps[0].PathRules
 
 		It("should have 8 paths", func() {
@@ -990,6 +994,11 @@ var _ = Describe("Test routing rules generations", func() {
 			paths = *(pathRules[7].Paths)
 			Expect(paths[0]).To(Equal("/nil7"))
 		})
+
+		It("should have default matching /*", func() {
+			Expect(*urlPathMap.DefaultBackendAddressPool.ID).To(HaveSuffix("pool---namespace-----service-name---80-bp-9876"))
+			Expect(*urlPathMap.DefaultBackendHTTPSettings.ID).To(HaveSuffix("bp---namespace-----service-name---80-9876-ingress-with-path-type"))
+		})
 	})
 
 	Context("test preparePathFromPathType", func() {
@@ -1017,6 +1026,32 @@ var _ = Describe("Test routing rules generations", func() {
 		It("should not modify when pathType is nil", func() {
 			Expect(preparePathFromPathType("/path", nil)).To(Equal("/path"))
 			Expect(preparePathFromPathType("/path*", nil)).To(Equal("/path*"))
+		})
+	})
+
+	Context("test isPathCatchAll", func() {
+		// Application Gateway doesn't allow exact path for "/"
+		It("should be false if / and pathType:exact", func() {
+			pathTypeExact := networking.PathTypeExact
+			Expect(isPathCatchAll("/", &pathTypeExact)).To(BeTrue())
+			Expect(isPathCatchAll("/*", &pathTypeExact)).To(BeTrue())
+		})
+
+		It("should be true if / and pathType:nil", func() {
+			Expect(isPathCatchAll("/", nil)).To(BeTrue())
+			Expect(isPathCatchAll("/*", nil)).To(BeTrue())
+		})
+
+		It("should be true if / and pathType:prefix", func() {
+			pathTypePrefix := networking.PathTypePrefix
+			Expect(isPathCatchAll("/", &pathTypePrefix)).To(BeTrue())
+			Expect(isPathCatchAll("/*", &pathTypePrefix)).To(BeTrue())
+		})
+
+		It("should be true if / and pathType:implementationSpecific", func() {
+			pathTypeIMS := networking.PathTypeImplementationSpecific
+			Expect(isPathCatchAll("/", &pathTypeIMS)).To(BeTrue())
+			Expect(isPathCatchAll("/*", &pathTypeIMS)).To(BeTrue())
 		})
 	})
 })

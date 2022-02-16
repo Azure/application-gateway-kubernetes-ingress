@@ -820,6 +820,32 @@ func NewIngressTestWithVariousPathTypeFixture(namespace string, ingressName stri
 										},
 									},
 								},
+								{
+									// "/" path with pathType:prefix
+									Path:     "/",
+									PathType: &prefixType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// "/*" path with pathType:exact
+									Path:     "/*",
+									PathType: &exactType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
 							},
 						},
 					},
