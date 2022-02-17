@@ -76,7 +76,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 	if IsNetworkingV1PackageSupported {
 		informerCollection.Ingress = informerFactory.Networking().V1().Ingresses().Informer()
-		informerCollection.IngressClass = informerFactory.Networking().V1().IngressClasses().Informer()
 	} else {
 		informerCollection.Ingress = informerFactory.Extensions().V1beta1().Ingresses().Informer()
 	}
@@ -84,7 +83,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	cacheCollection := CacheCollection{
 		Endpoints:                          informerCollection.Endpoints.GetStore(),
 		Ingress:                            informerCollection.Ingress.GetStore(),
-		IngressClass:                       informerCollection.IngressClass.GetStore(),
 		Pods:                               informerCollection.Pods.GetStore(),
 		Secret:                             informerCollection.Secret.GetStore(),
 		Service:                            informerCollection.Service.GetStore(),
@@ -146,7 +144,6 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	// Register event handlers.
 	informerCollection.Endpoints.AddEventHandler(resourceHandler)
 	informerCollection.Ingress.AddEventHandler(ingressResourceHandler)
-	informerCollection.IngressClass.AddEventHandler(resourceHandler)
 	informerCollection.Pods.AddEventHandler(resourceHandler)
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
@@ -155,6 +152,12 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 	informerCollection.MultiClusterService.AddEventHandler(resourceHandler)
 	informerCollection.MultiClusterIngress.AddEventHandler(resourceHandler)
+
+	if IsNetworkingV1PackageSupported {
+		informerCollection.IngressClass = informerFactory.Networking().V1().IngressClasses().Informer()
+		informerCollection.IngressClass.AddEventHandler(resourceHandler)
+		cacheCollection.IngressClass = informerCollection.IngressClass.GetStore()
+	}
 
 	return context
 }
@@ -188,11 +191,14 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
-		c.informers.IngressClass,
 
 		//TODO: enabled by ccp feature flag
 		// c.informers.AzureApplicationGatewayBackendPool,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus,
+	}
+
+	if IsNetworkingV1PackageSupported {
+		sharedInformers = append(sharedInformers, c.informers.IngressClass)
 	}
 
 	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
@@ -870,6 +876,10 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 
 // getIngressClassResource gets ingress class object with specified name
 func (c *Context) getIngressClassResource(ingressClassName string) *networking.IngressClass {
+	if c.Caches.IngressClass == nil {
+		return nil
+	}
+
 	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
 	if err != nil {
 		return nil
