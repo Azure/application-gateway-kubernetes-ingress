@@ -3,11 +3,11 @@
   - [Features](#features)
   - [Fixes](#fixes)
 - [v1.5.0](#v150)
-  - [Features](#features)
-  - [Fixes](#fixes)
-- [v1.5.0-rc1](#v150-rc1)
   - [Features](#features-1)
   - [Fixes](#fixes-1)
+- [v1.5.0-rc1](#v150-rc1)
+  - [Features](#features-2)
+  - [Fixes](#fixes-2)
 
 # v1.5.1
 
@@ -44,3 +44,26 @@
 * [#1273](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1273) fix(config): panic when processing duplicate paths in urlpathmap
 * [#1220](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1220) fix(crd): Upgrade prohibited target CRD api-version and add tests
 * [#1278](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1278) fix(prohibited target): incorrect merge when rules being merged reference the same path map
+
+## How to try:
+```bash
+# Add helm repo / update AGIC repo
+helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update
+
+# Install
+helm install \
+  <release-name> \
+  -f helm-config.yaml \
+  application-gateway-kubernetes-ingress/ingress-azure \
+
+# or 
+
+# Upgrade
+# https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
+# --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
+helm upgrade \
+  <release-name> \
+  application-gateway-kubernetes-ingress/ingress-azure \
+  --reuse-values
+```
