@@ -696,6 +696,165 @@ func NewIngressTestFixtureBasic(namespace string, ingressName string, tls bool) 
 	return ingress
 }
 
+// NewIngressTestFixture creates a new Ingress struct for testing.
+func NewIngressTestWithVariousPathTypeFixture(namespace string, ingressName string) networking.Ingress {
+	prefixType := networking.PathTypePrefix
+	exactType := networking.PathTypeExact
+	implementationSpecificType := networking.PathTypeImplementationSpecific
+	return networking.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ingressName,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				annotations.IngressClassKey: IngressClassController,
+			},
+		},
+		Spec: networking.IngressSpec{
+			Rules: []networking.IngressRule{
+				{
+					Host: "hello.com",
+					IngressRuleValue: networking.IngressRuleValue{
+						HTTP: &networking.HTTPIngressRuleValue{
+							Paths: []networking.HTTPIngressPath{
+								{
+									// type:prefix with *
+									Path:     "/prefix0*",
+									PathType: &prefixType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:prefix without *
+									Path:     "/prefix1",
+									PathType: &prefixType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:exact with *
+									Path:     "/exact2*",
+									PathType: &exactType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:exact without *
+									Path:     "/exact3",
+									PathType: &implementationSpecificType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:implementationSpecific with *
+									Path:     "/ims4*",
+									PathType: &implementationSpecificType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:implementationSpecific without *
+									Path:     "/ims5",
+									PathType: &implementationSpecificType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:nil with *
+									Path:     "/nil6*",
+									PathType: nil,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// type:nil without *
+									Path:     "/nil7",
+									PathType: nil,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// "/" path with pathType:prefix
+									Path:     "/",
+									PathType: &prefixType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+								{
+									// "/*" path with pathType:exact
+									Path:     "/*",
+									PathType: &exactType,
+									Backend: networking.IngressBackend{
+										Service: &networking.IngressServiceBackend{
+											Name: ServiceName,
+											Port: networking.ServiceBackendPort{
+												Number: 80,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 // NewPodTestFixture creates a new Pod struct for testing.
 func NewPodTestFixture(namespace string, podName string) v1.Pod {
 	return v1.Pod{

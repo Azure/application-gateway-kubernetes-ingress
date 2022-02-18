@@ -269,7 +269,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	defBackend := ingress.Spec.DefaultBackend
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
-		if path.Path == "" || path.Path == "/*" || path.Path == "/" {
+		if isPathCatchAll(path.Path, path.PathType) {
 			defBackend = &path.Backend
 			defPath = path
 			defRule = rule
@@ -303,7 +303,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 	pathRules := make([]n.ApplicationGatewayPathRule, 0)
 	for pathIdx := range rule.HTTP.Paths {
 		path := &rule.HTTP.Paths[pathIdx]
-		if len(path.Path) == 0 || path.Path == "/*" || path.Path == "/" {
+		if isPathCatchAll(path.Path, path.PathType) {
 			continue
 		}
 
@@ -314,7 +314,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			Name: to.StringPtr(pathRuleName),
 			ID:   to.StringPtr(c.appGwIdentifier.pathRuleID(pathMapName, pathRuleName)),
 			ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
-				Paths: &[]string{path.Path},
+				Paths: &[]string{preparePathFromPathType(path.Path, path.PathType)},
 			},
 		}
 
@@ -438,4 +438,28 @@ func printPathRule(pathRule n.ApplicationGatewayPathRule) string {
 	}
 
 	return s
+}
+
+// preparePathFromPathType uses pathType property to modify ingress.Path to append/remove "*"
+// if pathType == Prefix, "*" is appended if not provided by the user
+// if pathType == Exact, "*" is trimmed
+func preparePathFromPathType(path string, pathType *networking.PathType) string {
+	if pathType != nil {
+		if *pathType == networking.PathTypeExact {
+			return strings.TrimSuffix(path, "*")
+		}
+
+		if *pathType == networking.PathTypePrefix && !strings.HasSuffix(path, "*") {
+			return path + "*"
+		}
+	}
+	return path
+}
+
+// Application Gateway doesn't allow exact path for "/"
+// Code="ApplicationGatewayPathRulePathShouldHaveNonEmptyMatchValue" Message="Path / should have a nonempty match value followed by '/'  in PathRule xxxx
+// So, Path "/" with pathType:Exact cannot be added into the path rule. Thus, we don't support it.
+// "/" for any path type will be treated as a prefix match.
+func isPathCatchAll(path string, pathType *networking.PathType) bool {
+	return len(path) == 0 || path == "/*" || path == "/"
 }
