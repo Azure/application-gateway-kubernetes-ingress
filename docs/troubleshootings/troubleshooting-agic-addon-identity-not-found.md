@@ -16,7 +16,7 @@ aksClusterName="YOUR_AKS_CLUSTER_NAME"
 resourceGroup="YOUR_RESOURCEGROUP_NAME"
 nodeResourceGroup=$(az aks show -n $aksClusterName -g $resourceGroup --query "nodeResourceGroup" -o tsv)
 aksVmssId=$(az vmss list -g $nodeResourceGroup --query "[0].id" -o tsv)
-agicIdentity=$(az aks show -n $aksClusterName -g $resourceGroup --query "addonProfiles.IngressApplicationGateway.identity.resourceId" -o tsv)
+agicIdentity=$(az aks show -n $aksClusterName -g $resourceGroup --query "addonProfiles.ingressApplicationGateway.identity.resourceId" -o tsv)
 
 az vmss identity remove --ids $aksVmssId --identities $agicIdentity
 az vmss identity assign --ids $aksVmssId --identities $agicIdentity
