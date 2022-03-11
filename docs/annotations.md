@@ -129,7 +129,6 @@ spec:
           service:
             name: go-server-service
 
-
 ## Backend Hostname
 
 This annotations allows us to specify the host name that Application Gateway should use while talking to the Pods.
