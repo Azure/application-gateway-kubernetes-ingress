@@ -111,7 +111,7 @@ If your incoming path is /hello/test/health but your backend requires /health yo
 
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -124,9 +124,11 @@ spec:
   - http:
       paths:
       - path: /hello/test/*
+        pathType: Prefix
         backend:
-          serviceName: go-server-service
-    
+          service:
+            name: go-server-service
+
 
 ## Backend Hostname
 
@@ -427,7 +429,7 @@ appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-affinity
@@ -441,13 +443,19 @@ spec:
   - http:
       paths:
       - path: /affinity1/
+        pathType: Exact
         backend:
-          serviceName: affinity-service
-          servicePort: 80
+          service:
+            name: affinity-service
+            port:
+              number: 80
       - path: /affinity2/
+        pathType: Exact
         backend:
-          serviceName: other-affinity-service
-          servicePort: 80          
+          service:
+            name: affinity-service
+            port:
+              number: 80
 ```
 
 ## Request Timeout
@@ -833,7 +841,7 @@ appgw.ingress.kubernetes.io/rewrite-rule-set: <rewrite rule set>
 ### Example
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
@@ -846,7 +854,10 @@ spec:
   - http:
       paths:
       - path: /
+        pathType: Exact
         backend:
-          serviceName: go-server-service
-          servicePort: 8080
+          service:
+            name: go-server-service
+            port:
+              number: 8080
 ```
