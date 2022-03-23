@@ -47,6 +47,15 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		SslRedirectConfigurationName: "sslr-" + expectedListener443Name,
 	}
 
+	expectedListenerAzConfigSSLProfile := listenerAzConfig{
+		Protocol: "Https",
+		Secret: secretIdentifier{
+			Namespace: tests.Namespace,
+			Name:      tests.NameOfSecret,
+		},
+		SslProfile: "legacy-tls",
+	}
+
 	Context("ingress rules without certificates", func() {
 		certs := newCertsFixture()
 		cb := newConfigBuilderFixture(&certs)
@@ -161,6 +170,47 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 
 			actualVal := httpListenersAzureConfigMap[expectedListener443]
 			Expect(actualVal).To(Equal(expectedListenerAzConfigSSL))
+		})
+	})
+
+	Context("ingress rules with TLS Spec, ssl profile", func() {
+		certs := newCertsFixture()
+		cb := newConfigBuilderFixture(&certs)
+		ingress := tests.NewIngressFixture()
+
+		// annotation settings below should be ignored
+		newAnnotation := map[string]string{
+			annotations.AppGwSslProfile: "legacy-tls",
+			annotations.IngressClassKey: environment.DefaultIngressClassController,
+		}
+
+		ingress.SetAnnotations(newAnnotation)
+
+		It("should have 2 annotations set up", func() {
+			Expect(len(ingress.GetAnnotations())).To(Equal(2))
+		})
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		It("should have setup tests with some TLS certs", func() {
+			Ω(len(ingress.Spec.TLS)).Should(BeNumerically(">=", 2))
+		})
+
+		// !! Action !!
+		httpListenersAzureConfigMap := cb.getListenerConfigs(cbCtx)
+
+		It("should configure App Gateway listeners correctly with SSL", func() {
+			azConfigMapKeys := getMapKeys(&httpListenersAzureConfigMap)
+
+			Expect(len(azConfigMapKeys)).To(Equal(1))
+			Expect(azConfigMapKeys).To(ContainElement(expectedListener443))
+
+			actualVal := httpListenersAzureConfigMap[expectedListener443]
+			Expect(actualVal).To(Equal(expectedListenerAzConfigSSLProfile))
 		})
 	})
 

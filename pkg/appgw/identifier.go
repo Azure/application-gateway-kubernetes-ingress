@@ -46,6 +46,10 @@ func (agw Identifier) sslCertificateID(certname string) string {
 	return agw.gatewayResourceID("sslCertificates", certname)
 }
 
+func (agw Identifier) sslProfileID(profilename string) string {
+	return agw.gatewayResourceID("sslProfiles", profilename)
+}
+
 func (agw Identifier) trustedRootCertificateID(certname string) string {
 	return agw.gatewayResourceID("trustedRootCertificates", certname)
 }

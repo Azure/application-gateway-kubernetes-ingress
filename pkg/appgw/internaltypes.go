@@ -84,6 +84,7 @@ type listenerAzConfig struct {
 	Protocol                     n.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
+	SslProfile                   string
 	FirewallPolicy               string
 }
 
