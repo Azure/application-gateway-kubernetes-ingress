@@ -46,6 +46,7 @@ AGIC now supports [PathType](https://kubernetes.io/docs/concepts/services-networ
 * To continue using the old behaviour, use `PathType: ImplementationSpecific` match type in AGIC 1.5.1+ to ensure backwards compatibility.
 
 Here is a table illustrating some corner cases where behaviour has changed:
+
 | AGIC Version | < 1.5.1 | < 1.5.1 | >= 1.5.1 | >= 1.5.1 |
 | - | - | - | - | - |
 | PathType | Exact | Prefix | Exact | Prefix |
