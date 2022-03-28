@@ -29,13 +29,41 @@ AGIC supports [wildcard hostnames](https://kubernetes.io/docs/concepts/services-
 * Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. `*.foo.com` is valid but `*foo.com`, `foo*.com`, `foo.*.com` are not.
 `*` is also not a valid hostname.
 
-### PathType property (ingress.rules.http.paths.pathType)
-> **Breaking Change Notice**
-> * PathType property is now a required property in Ingress/V1. Before AGIC 1.5.1, path match types were ignored and path matching was performed with a AGIC/AppGW-specific implementation.
-> * Paths prefixed with `*` were treated as Prefix and without were treated as Exact.
-> * This behavior is preserved in the `ImplementationSpecific` match type in AGIC 1.5.1+ to ensure backwards compatibility.
+### PathType property is now mandatory
 
 AGIC now supports [PathType](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) in Ingress V1.
 * `Exact` path matches will now result in matching requests to the given path exactly.
 * `Prefix` patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix `/foo/bar` will match requests with paths `/foo/bar`, `/foo/bar/`, and `/foo/bar/baz`, but not `/foo/barbaz`).
 * `ImplementationSpecific` patch match type preserves the old path behaviour of AGIC < 1.5.1 and allows to backwards compatibility.
+
+### Behavioural Change Notice
+* Starting with AGIC 1.5.1,
+  * AGIC will now **strip** `*` from the path if `PathType: Exact`
+  * AGIC will now **append** `*` to path if `PathType: Prefix`
+* Before AGIC 1.5.1,
+  * `PathType` property was ignored and path matching was performed with AppGW-specific implementation.
+  * Paths prefixed with `*` were treated as `Prefix` match and without were treated as `Exact` match.
+* To continue using the old behaviour, use `PathType: ImplementationSpecific` match type in AGIC 1.5.1+ to ensure backwards compatibility.
+
+Here is a table illustrating some corner cases where behaviour has changed:
+| AGIC Version | < 1.5.1 | < 1.5.1 | >= 1.5.1 | >= 1.5.1 |
+| - | - | - | - | - |
+| PathType | Exact | Prefix | Exact | Prefix |
+| Path | /foo* | /foo | /foo* | /foo |
+| Applied Path | /foo* | /foo | /foo (* is stripped) | /foo* (* is appended) |
+
+#### Mitigation
+In case you are affected by this behaviour change in treating the paths, You can modify your ingress rules to use `PathType: ImplementationSpecific` so that to retain the old behaviour.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopping-app
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /path*
+        pathType: ImplementationSpecific
+```
