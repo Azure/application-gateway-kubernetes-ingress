@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Ingress v1 - Application Gateway Ingress Controller</title>
+    <title>Ingress V1 Support - Application Gateway Ingress Controller</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Ingress v1";
+        var mkdocs_page_name = "Ingress V1 Support";
         var mkdocs_page_input_path = "ingress-v1.md";
         var mkdocs_page_url = null;
       </script>
@@ -55,6 +55,24 @@
               </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Ingress V1 Support</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#kubernetes-versions">Kubernetes Versions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ingressclass-and-ingressclass-name">IngressClass and IngressClass Name</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ingress-rules">Ingress Rules</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#wildcard-hostnames">Wildcard Hostnames</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pathtype-property-ingressruleshttppathspathtype">PathType property (ingress.rules.http.paths.pathType)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
               </ul>
               <p class="caption"><span class="caption-text">Setup</span></p>
@@ -128,10 +146,6 @@
                   <li class="toctree-l1"><a class="reference internal" href="../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
                   </li>
               </ul>
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">Ingress v1</a>
-                </li>
-              </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../logging-levels/">Logging Levels</a>
                 </li>
@@ -164,7 +178,7 @@
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Ingress v1</li>
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Ingress V1 Support</li>
     <li class="wy-breadcrumbs-aside">
         <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/ingress-v1.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
     </li>
@@ -175,13 +189,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                
+                <h1 id="ingress-v1-support">Ingress V1 Support</h1>
+<p>This document describes AGIC's implementation of specific Ingress resource fields and features.
+As the Ingress specification has evolved between v1beta1 and v1, any differences between versions are highlighted to ensure clarity for AGIC users.</p>
+<p><strong>Note: Ingress/V1 is fully supported with AGIC &gt;= 1.5.1</strong></p>
+<h2 id="kubernetes-versions">Kubernetes Versions</h2>
+<p>For Kubernetes version 1.19+, the API server translates any Ingress v1beta1 resources to Ingress v1 and AGIC watches Ingress v1 resources.</p>
+<h2 id="ingressclass-and-ingressclass-name">IngressClass and IngressClass Name</h2>
+<p>AGIC now supports using <code>ingressClassName</code> property along with <code>kubernetes.io/ingress.class: azure/application-gateway</code> to indicate that a specific ingress should processed by AGIC.</p>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ingressClassName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure-application-gateway</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+</pre></div>
+<h2 id="ingress-rules">Ingress Rules</h2>
+<h3 id="wildcard-hostnames">Wildcard Hostnames</h3>
+<p>AGIC supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">wildcard hostnames</a> as documented by the upstream API as well as precise hostnames.
+* Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. <code>*.foo.com</code> is valid but <code>*foo.com</code>, <code>foo*.com</code>, <code>foo.*.com</code> are not.
+<code>*</code> is also not a valid hostname.</p>
+<h3 id="pathtype-property-ingressruleshttppathspathtype">PathType property (ingress.rules.http.paths.pathType)</h3>
+<blockquote>
+<p><strong>Breaking Change Notice</strong>
+* PathType property is now a required property in Ingress/V1. Before AGIC 1.5.1, path match types were ignored and path matching was performed with a AGIC/AppGW-specific implementation.
+* Paths prefixed with <code>*</code> were treated as Prefix and without were treated as Exact.
+* This behavior is preserved in the <code>ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</p>
+</blockquote>
+<p>AGIC now supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types">PathType</a> in Ingress V1.
+* <code>Exact</code> path matches will now result in matching requests to the given path exactly.
+* <code>Prefix</code> patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix <code>/foo/bar</code> will match requests with paths <code>/foo/bar</code>, <code>/foo/bar/</code>, and <code>/foo/bar/baz</code>, but not <code>/foo/barbaz</code>).
+* <code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../troubleshootings/troubleshooting-installing-a-simple-application/" class="btn btn-neutral float-left" title="Troubleshooting installing a simple application"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../logging-levels/" class="btn btn-neutral float-right" title="Logging Levels">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../helm-values-documenation/" class="btn btn-neutral float-left" title="Helm Values Configuration Options"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../setup/install-existing/" class="btn btn-neutral float-right" title="Brownfield Deployment">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -204,10 +249,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../troubleshootings/troubleshooting-installing-a-simple-application/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../helm-values-documenation/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../logging-levels/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../setup/install-existing/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
