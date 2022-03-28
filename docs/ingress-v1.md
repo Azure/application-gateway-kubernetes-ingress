@@ -38,11 +38,11 @@ AGIC now supports [PathType](https://kubernetes.io/docs/concepts/services-networ
 
 ### Behavioural Change Notice
 * Starting with AGIC 1.5.1,
-  * AGIC will now **strip** `*` from the path if `PathType: Exact`
-  * AGIC will now **append** `*` to path if `PathType: Prefix`
+    * AGIC will now **strip** `*` from the path if `PathType: Exact`
+    * AGIC will now **append** `*` to path if `PathType: Prefix`
 * Before AGIC 1.5.1,
-  * `PathType` property was ignored and path matching was performed with AppGW-specific implementation.
-  * Paths prefixed with `*` were treated as `Prefix` match and without were treated as `Exact` match.
+    * `PathType` property was ignored and path matching was performed with AppGW-specific implementation.
+    * Paths prefixed with `*` were treated as `Prefix` match and without were treated as `Exact` match.
 * To continue using the old behaviour, use `PathType: ImplementationSpecific` match type in AGIC 1.5.1+ to ensure backwards compatibility.
 
 Here is a table illustrating some corner cases where behaviour has changed:
