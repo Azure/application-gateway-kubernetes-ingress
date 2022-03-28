@@ -229,12 +229,41 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 <li>Paths prefixed with <code>*</code> were treated as <code>Prefix</code> match and without were treated as <code>Exact</code> match.</li>
 <li>To continue using the old behaviour, use <code>PathType: ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</li>
 </ul>
-<p>Here is a table illustrating some corner cases where behaviour has changed:
-| AGIC Version | &lt; 1.5.1 | &lt; 1.5.1 | &gt;= 1.5.1 | &gt;= 1.5.1 |
-| - | - | - | - | - |
-| PathType | Exact | Prefix | Exact | Prefix |
-| Path | /foo* | /foo | /foo* | /foo |
-| Applied Path | /foo* | /foo | /foo (* is stripped) | /foo* (* is appended) |</p>
+<p>Here is a table illustrating some corner cases where behaviour has changed:</p>
+<table>
+<thead>
+<tr>
+<th>AGIC Version</th>
+<th>&lt; 1.5.1</th>
+<th>&lt; 1.5.1</th>
+<th>&gt;= 1.5.1</th>
+<th>&gt;= 1.5.1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PathType</td>
+<td>Exact</td>
+<td>Prefix</td>
+<td>Exact</td>
+<td>Prefix</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>/foo*</td>
+<td>/foo</td>
+<td>/foo*</td>
+<td>/foo</td>
+</tr>
+<tr>
+<td>Applied Path</td>
+<td>/foo*</td>
+<td>/foo</td>
+<td>/foo (* is stripped)</td>
+<td>/foo* (* is appended)</td>
+</tr>
+</tbody>
+</table>
 <h4 id="mitigation">Mitigation</h4>
 <p>In case you are affected by this behaviour change in treating the paths, You can modify your ingress rules to use <code>PathType: ImplementationSpecific</code> so that to retain the old behaviour.</p>
 <div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
