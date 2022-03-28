@@ -26,12 +26,14 @@ spec:
 
 ### Wildcard Hostnames
 AGIC supports [wildcard hostnames](https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards) as documented by the upstream API as well as precise hostnames.
+
 * Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. `*.foo.com` is valid but `*foo.com`, `foo*.com`, `foo.*.com` are not.
 `*` is also not a valid hostname.
 
 ### PathType property is now mandatory
 
 AGIC now supports [PathType](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) in Ingress V1.
+
 * `Exact` path matches will now result in matching requests to the given path exactly.
 * `Prefix` patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix `/foo/bar` will match requests with paths `/foo/bar`, `/foo/bar/`, and `/foo/bar/baz`, but not `/foo/barbaz`).
 * `ImplementationSpecific` patch match type preserves the old path behaviour of AGIC < 1.5.1 and allows to backwards compatibility.
