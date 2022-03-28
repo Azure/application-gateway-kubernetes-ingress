@@ -1,311 +1,221 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Preview - Greenfield Deployment (Windows Cluster) - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
-  <link href="../../css/extra.css" rel="stylesheet">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Preview - Greenfield Deployment (Windows Cluster)";
-    var mkdocs_page_input_path = "setup/install-new-windows-cluster.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Preview - Greenfield Deployment (Windows Cluster) - Application Gateway Ingress Controller</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link href="../../css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Preview - Greenfield Deployment (Windows Cluster)";
+        var mkdocs_page_input_path = "setup/install-new-windows-cluster.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/go.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
-        <div role="search">
+          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
+        </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Introduction</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../annotations/">Annotations</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Setup</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../install-existing/">Brownfield Deployment</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                 </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Preview - Greenfield Deployment (Windows Cluster)</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#preview-greenfield-deployment-windows-cluster">Preview - Greenfield Deployment (Windows Cluster)</a></li>
-    
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Setup</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../install-existing/">Brownfield Deployment</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Preview - Greenfield Deployment (Windows Cluster)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#required-command-line-tools">Required Command Line Tools</a>
         <ul>
-        
-            <li><a class="toctree-l4" href="#required-command-line-tools">Required Command Line Tools</a></li>
-        
-            <li><a class="toctree-l4" href="#enable-you-subscription-to-support-preview-features-for-kubernetes">Enable you Subscription to support preview features for Kubernetes</a></li>
-        
-            <li><a class="toctree-l4" href="#create-an-identity">Create an Identity</a></li>
-        
-            <li><a class="toctree-l4" href="#deploy-components">Deploy Components</a></li>
-        
-            <li><a class="toctree-l4" href="#set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</a></li>
-        
-            <li><a class="toctree-l4" href="#other-examples">Other Examples</a></li>
-        
+    <li class="toctree-l3"><a class="reference internal" href="#enable-you-subscription-to-support-preview-features-for-kubernetes">Enable you Subscription to support preview features for Kubernetes</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#install-aks-preview-cli-extension">Install aks-preview CLI extension</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#register-windows-preview-feature">Register Windows preview feature</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#limitations">Limitations</a>
+    </li>
         </ul>
-    
-
-    </ul>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../install-new/">Greenfield Deployment</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Tutorials</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Features</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../features/agic-reconcile/">Agic reconcile</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/cookie-affinity/">Cookie affinity</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../features/probes/">Probes</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">How tos</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/dns/">Automate DNS updates</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../how-tos/websockets/">Websockets</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Troubleshootings</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../troubleshootings/">Troubleshooting Guide</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="../../logging-levels/">Logging Levels</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Developers</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../../developers/build/">Building the controller</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/contribute/">Contribution Guidelines</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/nightly/">Install the latest nightly build</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../../developers/test/">Testing the controller</a>
-                </li>
-    </ul>
-	    </li>
-          
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#create-an-identity">Create an Identity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#deploy-components">Deploy Components</a>
+    </li>
         </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#setup-kubernetes-credentials">Setup Kubernetes Credentials</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-aad-pod-identity">Install AAD Pod Identity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-helm">Install Helm</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-ingress-controller-helm-chart">Install Ingress Controller Helm Chart</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-a-sample-app">Install a Sample App</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#other-examples">Other Examples</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../install-new/">Greenfield Deployment</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">How tos</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/update-website/">Install MKDocs and plugins</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress v1</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                  </li>
+              </ul>
       </div>
-      &nbsp;
+    </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Application Gateway Ingress Controller</a>
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Application Gateway Ingress Controller</a>
+        
       </nav>
-
-      
       <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>Setup &raquo;</li>
-        
-      
-    
-    <li>Preview - Greenfield Deployment (Windows Cluster)</li>
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Setup &raquo;</li><li>Preview - Greenfield Deployment (Windows Cluster)</li>
     <li class="wy-breadcrumbs-aside">
-      
         <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/setup/install-new-windows-cluster.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
-      
     </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
               
                 <h1 id="preview-greenfield-deployment-windows-cluster">Preview - Greenfield Deployment (Windows Cluster)</h1>
 <p>The instructions below assume Application Gateway Ingress Controller (AGIC) will be
 installed in an environment with no pre-existing components.</p>
-<h3 id="required-command-line-tools">Required Command Line Tools</h3>
+<h2 id="required-command-line-tools">Required Command Line Tools</h2>
 <p>We recommend the use of <a href="https://shell.azure.com/">Azure Cloud Shell</a> for all command line operations below. Launch your shell from shell.azure.com or by clicking the link:</p>
 <p><a href="https://shell.azure.com"><img alt="Embed launch" src="https://shell.azure.com/images/launchcloudshell.png" title="Launch Azure Cloud Shell" /></a></p>
 <p>Alternatively, launch Cloud Shell from Azure portal using the following icon:</p>
@@ -319,7 +229,7 @@ choose to use another environment, please ensure the following command line tool
 <li><code>jq</code> - command-line JSON processor: <a href="https://stedolan.github.io/jq/download/">installation instructions</a></li>
 </ol>
 <h3 id="enable-you-subscription-to-support-preview-features-for-kubernetes">Enable you Subscription to support preview features for Kubernetes</h3>
-<p>Here are the steps to instal aks-preview CLI and register Windows preview feature.</p>
+<p>Here are the steps to install aks-preview CLI and register Windows preview feature.</p>
 <blockquote>
 <p>[!IMPORTANT]
 AKS preview features are self-service opt-in. Previews are provided "as-is" and "as available" and are excluded from the service level agreements and limited warranty. AKS Previews are partially covered by customer support on best effort basis. As such, these features are not meant for production use. For additional information, please see the following support articles:</p>
@@ -365,22 +275,22 @@ Any AKS cluster you create after you've successfully registered the <em>WindowsP
 <p>Follow the steps below to create an Azure Active Directory (AAD) <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object">service principal object</a>. Please record the <code>appId</code>, <code>password</code>, and <code>objectId</code> values - these will be used in the following steps.</p>
 <ol>
 <li>
-<p>Create AD service principal (<a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/overview">Read more about RBAC</a>). Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:
-    <div class="highlight"><pre><span></span>az ad sp create-for-rbac --skip-assignment -o json &gt; auth.json
+<p>Create AD service principal (<a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/overview">Read more about RBAC</a>). Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
+<div class="highlight"><pre><span></span>az ad sp create-for-rbac --skip-assignment -o json &gt; auth.json
 <span class="nv">appId</span><span class="o">=</span><span class="k">$(</span>jq -r <span class="s2">&quot;.appId&quot;</span> auth.json<span class="k">)</span>
 <span class="nv">password</span><span class="o">=</span><span class="k">$(</span>jq -r <span class="s2">&quot;.password&quot;</span> auth.json<span class="k">)</span>
 </pre></div>
-        These commands will create <code>appId</code> and <code>password</code> bash variables, which will be used in the steps below. You can view the value of these with <code>echo $appId</code> and <code>echo $password</code>.</p>
+<p>These commands will create <code>appId</code> and <code>password</code> bash variables, which will be used in the steps below. You can view the value of these with <code>echo $appId</code> and <code>echo $password</code>.</p>
 </li>
 <li>
-<p>Execute the next command in <a href="https://shell.azure.com/">Cloud Shell</a> to create the <code>objectId</code> bash variable, which is the new Service Princpial:
-    <div class="highlight"><pre><span></span><span class="nv">objectId</span><span class="o">=</span><span class="k">$(</span>az ad sp show --id <span class="nv">$appId</span> --query <span class="s2">&quot;objectId&quot;</span> -o tsv<span class="k">)</span>
+<p>Execute the next command in <a href="https://shell.azure.com/">Cloud Shell</a> to create the <code>objectId</code> bash variable, which is the new Service Principal:</p>
+<div class="highlight"><pre><span></span><span class="nv">objectId</span><span class="o">=</span><span class="k">$(</span>az ad sp show --id <span class="nv">$appId</span> --query <span class="s2">&quot;objectId&quot;</span> -o tsv<span class="k">)</span>
 </pre></div>
-    The <code>objectId</code> bash variable will be used in the ARM template below. View the value with <code>echo $objectId</code>.</p>
+<p>The <code>objectId</code> bash variable will be used in the ARM template below. View the value with <code>echo $objectId</code>.</p>
 </li>
 <li>
-<p>Paste the entire command below (it is a single command on multiple lines) in <a href="https://shell.azure.com/">Cloud Shell</a> to create the parameters.json file. It will be used in the ARM template deployment.
-    <div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF &gt; parameters.json</span>
+<p>Paste the entire command below (it is a single command on multiple lines) in <a href="https://shell.azure.com/">Cloud Shell</a> to create the <code>parameters.json</code> file. It will be used in the ARM template deployment.</p>
+<div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF &gt; parameters.json</span>
 <span class="s">{</span>
 <span class="s">  &quot;aksServicePrincipalAppId&quot;: { &quot;value&quot;: &quot;$appId&quot; },</span>
 <span class="s">  &quot;aksServicePrincipalClientSecret&quot;: { &quot;value&quot;: &quot;$password&quot; },</span>
@@ -389,7 +299,7 @@ Any AKS cluster you create after you've successfully registered the <em>WindowsP
 <span class="s">}</span>
 <span class="s">EOF</span>
 </pre></div>
-    To deploy an <strong>RBAC</strong> enabled cluster, set the <code>aksEnabledRBAC</code> field to <code>true</code>. View the contents of the newly created file with <code>cat parameters.json</code>. It will contain the values of the <code>appId</code>, <code>password</code>, and <code>objectId</code> bash variables from the previous steps.</p>
+<p>To deploy an <strong>RBAC</strong> enabled cluster, set the <code>aksEnabledRBAC</code> field to <code>true</code>. View the contents of the newly created file with <code>cat parameters.json</code>. It will contain the values of the <code>appId</code>, <code>password</code>, and <code>objectId</code> bash variables from the previous steps.</p>
 </li>
 </ol>
 <h3 id="deploy-components">Deploy Components</h3>
@@ -403,9 +313,9 @@ Any AKS cluster you create after you've successfully registered the <em>WindowsP
 <p><a href="https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview">Managed Identity</a>, which will be used by <a href="https://github.com/Azure/aad-pod-identity/blob/master/README.md">AAD Pod Identity</a></p>
 </li>
 <li>
-<p>Download the ARM template into template.json file. Paste the following in your <a href="https://shell.azure.com/">shell</a>:
-    <div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploywindowscluster.json -O template.json
-</pre></div></p>
+<p>Download the ARM template into <code>template.json</code> file. Paste the following in your <a href="https://shell.azure.com/">shell</a>:</p>
+<div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/deploy/azuredeploywindowscluster.json -O template.json
+</pre></div>
 </li>
 <li>
 <p>Deploy the ARM template via <a href="https://shell.azure.com/">Azure Cloud Shell</a> and the <code>az</code> tool. Modify the name of the resource group and region/location, then paste each of the following lines into your <a href="https://shell.azure.com/">shell</a>:
@@ -418,15 +328,15 @@ Any AKS cluster you create after you've successfully registered the <em>WindowsP
 az group create -n <span class="nv">$resourceGroupName</span> -l <span class="nv">$location</span>
 
 az group deployment create -g <span class="nv">$resourceGroupName</span> -n <span class="nv">$deploymentName</span> --template-file template.json --parameters parameters.json
-</pre></div>
-    Note: The last command may take a few minutes to complete.</p>
+</pre></div></p>
+<p>Note: The last command may take a few minutes to complete.</p>
 </li>
 <li>
-<p>Once the deployment finished, download the deployment output into a file named <code>deployment-outputs.json</code>.
-    <div class="highlight"><pre><span></span>az group deployment show -g <span class="nv">$resourceGroupName</span> -n <span class="nv">$deploymentName</span> --query <span class="s2">&quot;properties.outputs&quot;</span> -o json &gt; deployment-outputs.json
+<p>Once the deployment finished, download the deployment output into a file named <code>deployment-outputs.json</code>.</p>
+<div class="highlight"><pre><span></span>az group deployment show -g <span class="nv">$resourceGroupName</span> -n <span class="nv">$deploymentName</span> --query <span class="s2">&quot;properties.outputs&quot;</span> -o json &gt; deployment-outputs.json
 </pre></div>
-    View the content of the newly created file with: <code>cat deployment-outputs.json</code>. The file will have the following shape (example):
-    <div class="highlight"><pre><span></span><span class="p">{</span>
+<p>View the content of the newly created file with: <code>cat deployment-outputs.json</code>. The file will have the following shape (example):</p>
+<div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;aksApiServerAddress&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;String&quot;</span><span class="p">,</span>
     <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;aks-abcd41e9.hcp.westus2.azmk8s.io&quot;</span>
@@ -456,7 +366,7 @@ az group deployment create -g <span class="nv">$resourceGroupName</span> -n <spa
     <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;a6466a81-bf0d-147e-2acb-a0ba50f6456e&quot;</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</pre></div></p>
+</pre></div>
 </li>
 </ul>
 <h2 id="set-up-application-gateway-ingress-controller">Set up Application Gateway Ingress Controller</h2>
@@ -475,30 +385,34 @@ az aks get-credentials --resource-group <span class="nv">$resourceGroupName</spa
 </pre></div></p>
 <h3 id="install-aad-pod-identity">Install AAD Pod Identity</h3>
 <p>Azure Active Directory Pod Identity provides token-based access to
-  <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
-<p><a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> will add the following components to your Kubernetes cluster:
-   1. Kubernetes <a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/">CRDs</a>: <code>AzureIdentity</code>, <code>AzureAssignedIdentity</code>, <code>AzureIdentityBinding</code>
-   1. <a href="https://github.com/Azure/aad-pod-identity#managed-identity-controller">Managed Identity Controller (MIC)</a> component
-   1. <a href="https://github.com/Azure/aad-pod-identity#node-managed-identity">Node Managed Identity (NMI)</a> component</p>
+<a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">Azure Resource Manager (ARM)</a>.</p>
+<p><a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> will add the following components to your Kubernetes cluster:</p>
+<ol>
+<li>Kubernetes <a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/">CRDs</a>: <code>AzureIdentity</code>, <code>AzureAssignedIdentity</code>, <code>AzureIdentityBinding</code></li>
+<li><a href="https://github.com/Azure/aad-pod-identity#managed-identity-controller">Managed Identity Controller (MIC)</a> component</li>
+<li><a href="https://github.com/Azure/aad-pod-identity#node-managed-identity">Node Managed Identity (NMI)</a> component</li>
+</ol>
 <p>To install AAD Pod Identity to your cluster:</p>
 <ul>
 <li><em>RBAC enabled</em> AKS cluster</li>
 </ul>
-<div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
+<div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment-rbac.yaml
 </pre></div>
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
-<div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
+<div class="highlight"><pre><span></span>kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.8.6/deploy/infra/deployment.yaml
 </pre></div>
 <h3 id="install-helm">Install Helm</h3>
 <p><a href="https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm">Helm</a> is a package manager for
-Kubernetes. This document will use version 3 of helm, which is not backwards compatbile with previous versions.</p>
+Kubernetes. This document will use version 3 of helm, which is not backwards compatible with previous versions.</p>
 <ol>
-<li>Add the AGIC Helm repository:
-    <div class="highlight"><pre><span></span>helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+<li>
+<p>Add the AGIC Helm repository:</p>
+<div class="highlight"><pre><span></span>helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
 helm repo update
-</pre></div></li>
+</pre></div>
+</li>
 </ol>
 <h3 id="install-ingress-controller-helm-chart">Install Ingress Controller Helm Chart</h3>
 <ol>
@@ -515,8 +429,8 @@ helm repo update
 </pre></div></p>
 </li>
 <li>
-<p>Edit the newly downloaded <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill out the sections <code>appgw</code> and <code>armAuth</code>.
-    <div class="highlight"><pre><span></span>sed -i <span class="s2">&quot;s|&lt;subscriptionId&gt;|</span><span class="si">${</span><span class="nv">subscriptionId</span><span class="si">}</span><span class="s2">|g&quot;</span> helm-config.yaml
+<p>Edit the newly downloaded <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> and fill out the sections <code>appgw</code> and <code>armAuth</code>.</p>
+<div class="highlight"><pre><span></span>sed -i <span class="s2">&quot;s|&lt;subscriptionId&gt;|</span><span class="si">${</span><span class="nv">subscriptionId</span><span class="si">}</span><span class="s2">|g&quot;</span> helm-config.yaml
 sed -i <span class="s2">&quot;s|&lt;resourceGroupName&gt;|</span><span class="si">${</span><span class="nv">resourceGroupName</span><span class="si">}</span><span class="s2">|g&quot;</span> helm-config.yaml
 sed -i <span class="s2">&quot;s|&lt;applicationGatewayName&gt;|</span><span class="si">${</span><span class="nv">applicationGatewayName</span><span class="si">}</span><span class="s2">|g&quot;</span> helm-config.yaml
 sed -i <span class="s2">&quot;s|&lt;identityResourceId&gt;|</span><span class="si">${</span><span class="nv">identityResourceId</span><span class="si">}</span><span class="s2">|g&quot;</span> helm-config.yaml
@@ -524,7 +438,7 @@ sed -i <span class="s2">&quot;s|&lt;identityClientId&gt;|</span><span class="si"
 
 <span class="c1"># You can further modify the helm config to enable/disable features</span>
 nano helm-config.yaml
-</pre></div></p>
+</pre></div>
 </li>
 </ol>
 <p>Values:
@@ -542,25 +456,27 @@ nano helm-config.yaml
 - <code>rbac.enabled</code>: Make sure to set this to true if you have a AKS cluster that is RBAC enabled.</p>
 <p>Note on Identity: The <code>identityResourceID</code> and <code>identityClientID</code> are values that were created
    during the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity">Create an Identity</a>
-   steps, and could be obtained again using the following command:
-   <div class="highlight"><pre><span></span>az identity show -g &lt;resource-group&gt; -n &lt;identity-name&gt;
+   steps, and could be obtained again using the following command:</p>
+<div class="highlight"><pre><span></span>az identity show -g &lt;resource-group&gt; -n &lt;identity-name&gt;
 </pre></div>
-- <code>&lt;resource-group&gt;</code> in the command above is the resource group of your App Gateway. 
-- <code>&lt;identity-name&gt;</code> is the name of the created identity. All identities for a given subscription can be listed using: <code>az identity list</code></p>
-<ol>
+<ul>
+<li><code>&lt;resource-group&gt;</code> in the command above is the resource group of your App Gateway.</li>
+<li>
+<p><code>&lt;identity-name&gt;</code> is the name of the created identity. All identities for a given subscription can be listed using: <code>az identity list</code></p>
+</li>
 <li>
 <p>Install the Application Gateway ingress controller package:</p>
 <div class="highlight"><pre><span></span>helm install ingress-azure <span class="se">\</span>
   -f helm-config.yaml <span class="se">\</span>
   application-gateway-kubernetes-ingress/ingress-azure <span class="se">\</span>
   --set nodeSelector.<span class="s2">&quot;beta\.kubernetes\.io/os&quot;</span><span class="o">=</span>linux <span class="se">\</span>
-  --version <span class="m">1</span>.3.0
+  --version <span class="m">1</span>.4.0
 </pre></div>
 <blockquote>
-<p>Note: Use at least version 1.2.0-rc3, e.g. <code>--version 1.2.0-rc3</code>, when installing on k8s version &gt;= 1.16</p>
+<p>Note: Use at least version 1.4.0, i.e. <code>--version 1.4.0</code>, when installing on k8s version &gt;= 1.16. Kubernetes &gt;= 1.22 requires version 1.5.0 (or higher).</p>
 </blockquote>
 </li>
-</ol>
+</ul>
 <h3 id="install-a-sample-app">Install a Sample App</h3>
 <p>Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
@@ -597,7 +513,7 @@ via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
 
 <span class="nn">---</span>
 
-<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
@@ -609,51 +525,43 @@ via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
       <span class="nt">paths</span><span class="p">:</span>
       <span class="p p-Indicator">-</span> <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/</span>
         <span class="nt">backend</span><span class="p">:</span>
-          <span class="nt">serviceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-          <span class="nt">servicePort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+          <span class="nt">service</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
+            <span class="nt">port</span><span class="p">:</span>
+              <span class="nt">number</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+        <span class="nt">pathType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Exact</span>
 <span class="l l-Scalar l-Scalar-Plain">EOF</span>
 </pre></div>
 <p>Alternatively you can:</p>
 <ol>
-<li>
-<p>Download the YAML file above:
-<div class="highlight"><pre><span></span>curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetappwin.yaml -o aspnetapp.yaml
-</pre></div></p>
-</li>
-<li>
-<p>Apply the YAML file:
-<div class="highlight"><pre><span></span>kubectl apply -f aspnetapp.yaml
-</pre></div></p>
-</li>
+<li>Download the YAML file above:</li>
 </ol>
+<div class="highlight"><pre><span></span>curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetappwin.yaml -o aspnetapp.yaml
+</pre></div>
+<ol>
+<li>Apply the YAML file:</li>
+</ol>
+<div class="highlight"><pre><span></span>kubectl apply -f aspnetapp.yaml
+</pre></div>
 <h2 id="other-examples">Other Examples</h2>
-<p>The <strong><a href="../../tutorials/tutorial.general/">tutorials</a></strong> document contains more examples on how to expose an AKS
-service via HTTP or HTTPS, to the Internet with App Gateway.</p>
+<p>The <strong><a href="../../tutorials/tutorial.general/">tutorials</a></strong> document contains more examples on how to expose an AKS service via HTTP or HTTPS, to the Internet with App Gateway.</p>
               
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../install-existing/" class="btn btn-neutral float-left" title="Brownfield Deployment"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../install-new/" class="btn btn-neutral float-right" title="Greenfield Deployment">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../install-existing/" class="btn btn-neutral" title="Brownfield Deployment"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-    
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+          
         </div>
       </div>
 
@@ -661,20 +569,26 @@ service via HTTP or HTTPS, to the Internet with App Gateway.</p>
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../install-existing/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../install-new/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../install-existing/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../install-new/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
 </div>
     <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
 
 </body>
 </html>
