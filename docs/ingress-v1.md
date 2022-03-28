@@ -13,7 +13,7 @@ For Kubernetes version 1.19+, the API server translates any Ingress v1beta1 reso
 AGIC now supports using `ingressClassName` property along with `kubernetes.io/ingress.class: azure/application-gateway` to indicate that a specific ingress should processed by AGIC.
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: shopping-app
