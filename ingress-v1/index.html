@@ -124,8 +124,6 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../how-tos/update-website/">Install MKDocs and plugins</a>
-                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../how-tos/websockets/">Websockets</a>
                   </li>
               </ul>
@@ -197,7 +195,7 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 <p>For Kubernetes version 1.19+, the API server translates any Ingress v1beta1 resources to Ingress v1 and AGIC watches Ingress v1 resources.</p>
 <h2 id="ingressclass-and-ingressclass-name">IngressClass and IngressClass Name</h2>
 <p>AGIC now supports using <code>ingressClassName</code> property along with <code>kubernetes.io/ingress.class: azure/application-gateway</code> to indicate that a specific ingress should processed by AGIC.</p>
-<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
