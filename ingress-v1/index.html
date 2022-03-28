@@ -211,14 +211,18 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 </pre></div>
 <h2 id="ingress-rules">Ingress Rules</h2>
 <h3 id="wildcard-hostnames">Wildcard Hostnames</h3>
-<p>AGIC supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">wildcard hostnames</a> as documented by the upstream API as well as precise hostnames.
-* Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. <code>*.foo.com</code> is valid but <code>*foo.com</code>, <code>foo*.com</code>, <code>foo.*.com</code> are not.
-<code>*</code> is also not a valid hostname.</p>
+<p>AGIC supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">wildcard hostnames</a> as documented by the upstream API as well as precise hostnames.</p>
+<ul>
+<li>Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. <code>*.foo.com</code> is valid but <code>*foo.com</code>, <code>foo*.com</code>, <code>foo.*.com</code> are not.
+<code>*</code> is also not a valid hostname.</li>
+</ul>
 <h3 id="pathtype-property-is-now-mandatory">PathType property is now mandatory</h3>
-<p>AGIC now supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types">PathType</a> in Ingress V1.
-* <code>Exact</code> path matches will now result in matching requests to the given path exactly.
-* <code>Prefix</code> patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix <code>/foo/bar</code> will match requests with paths <code>/foo/bar</code>, <code>/foo/bar/</code>, and <code>/foo/bar/baz</code>, but not <code>/foo/barbaz</code>).
-* <code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</p>
+<p>AGIC now supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types">PathType</a> in Ingress V1.</p>
+<ul>
+<li><code>Exact</code> path matches will now result in matching requests to the given path exactly.</li>
+<li><code>Prefix</code> patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix <code>/foo/bar</code> will match requests with paths <code>/foo/bar</code>, <code>/foo/bar/</code>, and <code>/foo/bar/baz</code>, but not <code>/foo/barbaz</code>).</li>
+<li><code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</li>
+</ul>
 <h3 id="behavioural-change-notice">Behavioural Change Notice</h3>
 <ul>
 <li>Starting with AGIC 1.5.1,<ul>
