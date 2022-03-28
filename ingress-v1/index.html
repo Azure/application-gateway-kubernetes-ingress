@@ -68,7 +68,13 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#wildcard-hostnames">Wildcard Hostnames</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#pathtype-property-ingressruleshttppathspathtype">PathType property (ingress.rules.http.paths.pathType)</a>
+    <li class="toctree-l3"><a class="reference internal" href="#pathtype-property-is-now-mandatory">PathType property is now mandatory</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#behavioural-change-notice">Behavioural Change Notice</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#mitigation">Mitigation</a>
+    </li>
+        </ul>
     </li>
         </ul>
     </li>
@@ -208,17 +214,40 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 <p>AGIC supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">wildcard hostnames</a> as documented by the upstream API as well as precise hostnames.
 * Wildcard hostnames are limited to the whole first DNS label of the hostname, e.g. <code>*.foo.com</code> is valid but <code>*foo.com</code>, <code>foo*.com</code>, <code>foo.*.com</code> are not.
 <code>*</code> is also not a valid hostname.</p>
-<h3 id="pathtype-property-ingressruleshttppathspathtype">PathType property (ingress.rules.http.paths.pathType)</h3>
-<blockquote>
-<p><strong>Breaking Change Notice</strong>
-* PathType property is now a required property in Ingress/V1. Before AGIC 1.5.1, path match types were ignored and path matching was performed with a AGIC/AppGW-specific implementation.
-* Paths prefixed with <code>*</code> were treated as Prefix and without were treated as Exact.
-* This behavior is preserved in the <code>ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</p>
-</blockquote>
+<h3 id="pathtype-property-is-now-mandatory">PathType property is now mandatory</h3>
 <p>AGIC now supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types">PathType</a> in Ingress V1.
 * <code>Exact</code> path matches will now result in matching requests to the given path exactly.
 * <code>Prefix</code> patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix <code>/foo/bar</code> will match requests with paths <code>/foo/bar</code>, <code>/foo/bar/</code>, and <code>/foo/bar/baz</code>, but not <code>/foo/barbaz</code>).
 * <code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</p>
+<h3 id="behavioural-change-notice">Behavioural Change Notice</h3>
+<ul>
+<li>Starting with AGIC 1.5.1,</li>
+<li>AGIC will now <strong>strip</strong> <code>*</code> from the path if <code>PathType: Exact</code></li>
+<li>AGIC will now <strong>append</strong> <code>*</code> to path if <code>PathType: Prefix</code></li>
+<li>Before AGIC 1.5.1,</li>
+<li><code>PathType</code> property was ignored and path matching was performed with AppGW-specific implementation.</li>
+<li>Paths prefixed with <code>*</code> were treated as <code>Prefix</code> match and without were treated as <code>Exact</code> match.</li>
+<li>To continue using the old behaviour, use <code>PathType: ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</li>
+</ul>
+<p>Here is a table illustrating some corner cases where behaviour has changed:
+| AGIC Version | &lt; 1.5.1 | &lt; 1.5.1 | &gt;= 1.5.1 | &gt;= 1.5.1 |
+| - | - | - | - | - |
+| PathType | Exact | Prefix | Exact | Prefix |
+| Path | /foo* | /foo | /foo* | /foo |
+| Applied Path | /foo* | /foo | /foo (* is stripped) | /foo* (* is appended) |</p>
+<h4 id="mitigation">Mitigation</h4>
+<p>In case you are affected by this behaviour change in treating the paths, You can modify your ingress rules to use <code>PathType: ImplementationSpecific</code> so that to retain the old behaviour.</p>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">rules</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">http</span><span class="p">:</span>
+      <span class="nt">paths</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/path*</span>
+        <span class="nt">pathType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ImplementationSpecific</span>
+</pre></div>
               
             </div>
           </div><footer>
