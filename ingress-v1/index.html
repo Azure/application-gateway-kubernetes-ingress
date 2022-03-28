@@ -221,12 +221,16 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 * <code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</p>
 <h3 id="behavioural-change-notice">Behavioural Change Notice</h3>
 <ul>
-<li>Starting with AGIC 1.5.1,</li>
+<li>Starting with AGIC 1.5.1,<ul>
 <li>AGIC will now <strong>strip</strong> <code>*</code> from the path if <code>PathType: Exact</code></li>
 <li>AGIC will now <strong>append</strong> <code>*</code> to path if <code>PathType: Prefix</code></li>
-<li>Before AGIC 1.5.1,</li>
+</ul>
+</li>
+<li>Before AGIC 1.5.1,<ul>
 <li><code>PathType</code> property was ignored and path matching was performed with AppGW-specific implementation.</li>
 <li>Paths prefixed with <code>*</code> were treated as <code>Prefix</code> match and without were treated as <code>Exact</code> match.</li>
+</ul>
+</li>
 <li>To continue using the old behaviour, use <code>PathType: ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</li>
 </ul>
 <p>Here is a table illustrating some corner cases where behaviour has changed:</p>
