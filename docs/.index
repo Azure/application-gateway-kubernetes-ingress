@@ -4,10 +4,11 @@ arrange:
     - index.md
     - annotations.md
     - helm-values-documenation.md
+    - ingress-v1.md
     - setup
     - tutorials
     - features
     - how-tos
     - faq.md
-    - troubleshooting.md
+    - troubleshootings
 theme: readthedocs
