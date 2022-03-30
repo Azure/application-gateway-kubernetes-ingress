@@ -50,7 +50,7 @@ spec:
       paths:
       - path: /foo             # this would stay /foo since pathType is Exact
         pathType: Exact
-      - path: /bar*            # this would stay /bar* since pathType is Prefix
+      - path: /bar             # this would be converted to /bar* since pathType is Prefix
         pathType: Prefix
       - path: /baz             # this would stay /baz since pathType is ImplementationSpecific
         pathType: ImplementationSpecific
@@ -88,6 +88,8 @@ spec:
       - path: /foo*            # this would be converted to /foo since pathType is Exact
         pathType: Exact
       - path: /bar             # this would be converted to /bar* since pathType is Prefix
+        pathType: Prefix
+      - path: /baz*             # this would stay /baz* since pathType is Prefix
         pathType: Prefix
 ```
 
