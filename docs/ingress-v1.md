@@ -38,16 +38,36 @@ AGIC now supports [PathType](https://kubernetes.io/docs/concepts/services-networ
 * `Prefix` patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix `/foo/bar` will match requests with paths `/foo/bar`, `/foo/bar/`, and `/foo/bar/baz`, but not `/foo/barbaz`).
 * `ImplementationSpecific` patch match type preserves the old path behaviour of AGIC < 1.5.1 and allows to backwards compatibility.
 
+Example Ingress YAML with different pathTypes defined: 
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopping-app
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /foo             # this would stay /foo since pathType is Exact
+        pathType: Exact
+      - path: /bar             # this would be converted to /bar* since pathType is Prefix
+        pathType: Prefix
+      - path: /baz             # this would stay /baz since pathType is ImplementationSpecific
+        pathType: ImplementationSpecific
+      - path: /buzz*           # this would stay /buzz* since pathType is ImplementationSpecific
+        pathType: ImplementationSpecific
+```
+
 ### Behavioural Change Notice
 * Starting with AGIC 1.5.1,
     * AGIC will now **strip** `*` from the path if `PathType: Exact`
     * AGIC will now **append** `*` to path if `PathType: Prefix`
 * Before AGIC 1.5.1,
-    * `PathType` property was ignored and path matching was performed with AppGW-specific implementation.
+    * `PathType` property was ignored and path matching was performed using Application Gateway [wildcard path patterns](https://docs.microsoft.com/en-us/azure/application-gateway/url-route-overview#pathpattern).
     * Paths prefixed with `*` were treated as `Prefix` match and without were treated as `Exact` match.
 * To continue using the old behaviour, use `PathType: ImplementationSpecific` match type in AGIC 1.5.1+ to ensure backwards compatibility.
 
-Here is a table illustrating some corner cases where behaviour has changed:
+Here is a table illustrating the **corner cases** where the behaviour has changed:
 
 | AGIC Version | < 1.5.1 | < 1.5.1 | >= 1.5.1 | >= 1.5.1 |
 | - | - | - | - | - |
@@ -55,8 +75,26 @@ Here is a table illustrating some corner cases where behaviour has changed:
 | Path | /foo* | /foo | /foo* | /foo |
 | Applied Path | /foo* | /foo | /foo (* is stripped) | /foo* (* is appended) |
 
+Example YAML illustrating the corner cases above:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopping-app
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /foo*            # this would be converted to /foo since pathType is Exact
+        pathType: Exact
+      - path: /bar             # this would be converted to /bar* since pathType is Prefix
+        pathType: Prefix
+      - path: /baz*             # this would stay /baz* since pathType is Prefix
+        pathType: Prefix
+```
+
 #### Mitigation
-In case you are affected by this behaviour change in treating the paths, You can modify your ingress rules to use `PathType: ImplementationSpecific` so that to retain the old behaviour.
+In case you are affected by this behaviour change in mapping the paths, You can modify your ingress rules to use `PathType: ImplementationSpecific` so to retain the old behaviour.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -67,6 +105,6 @@ spec:
   rules:
   - http:
       paths:
-      - path: /path*
+      - path: /path*         # this would stay /path* since pathType is ImplementationSpecific
         pathType: ImplementationSpecific
 ```
