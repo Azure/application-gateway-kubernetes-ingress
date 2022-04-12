@@ -83,10 +83,10 @@ kubernetes:
     volumes:
         extraVolumes:
         - name: tmp
-        emptyDir: {}
+          emptyDir: {}
         extraVolumeMounts:
         - name: tmp
-        mountPath: /tmp
+          mountPath: /tmp
 ```
 
 > **Note:** AGIC needs to be able to write to the `/tmp` directory.
