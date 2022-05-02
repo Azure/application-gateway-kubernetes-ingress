@@ -23,6 +23,7 @@ import (
 
 	azureapplicationgatewaybackendpoolsv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewaybackendpool/v1beta1"
 	azureapplicationgatewayinstanceupdatestatusv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	azureapplicationgatewayrewritesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureapplicationgatewayrewrite/v1beta1"
 	azureingressprohibitedtargetsv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/azureingressprohibitedtarget/v1"
 	loaddistributionpoliciesv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/typed/loaddistributionpolicy/v1beta1"
 	discovery "k8s.io/client-go/discovery"
@@ -34,6 +35,7 @@ type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	AzureapplicationgatewaybackendpoolsV1beta1() azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Interface
 	AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface
+	AzureapplicationgatewayrewritesV1beta1() azureapplicationgatewayrewritesv1beta1.AzureapplicationgatewayrewritesV1beta1Interface
 	AzureingressprohibitedtargetsV1() azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Interface
 	LoaddistributionpoliciesV1beta1() loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Interface
 }
@@ -44,6 +46,7 @@ type Clientset struct {
 	*discovery.DiscoveryClient
 	azureapplicationgatewaybackendpoolsV1beta1         *azureapplicationgatewaybackendpoolsv1beta1.AzureapplicationgatewaybackendpoolsV1beta1Client
 	azureapplicationgatewayinstanceupdatestatusV1beta1 *azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Client
+	azureapplicationgatewayrewritesV1beta1             *azureapplicationgatewayrewritesv1beta1.AzureapplicationgatewayrewritesV1beta1Client
 	azureingressprohibitedtargetsV1                    *azureingressprohibitedtargetsv1.AzureingressprohibitedtargetsV1Client
 	loaddistributionpoliciesV1beta1                    *loaddistributionpoliciesv1beta1.LoaddistributionpoliciesV1beta1Client
 }
@@ -56,6 +59,11 @@ func (c *Clientset) AzureapplicationgatewaybackendpoolsV1beta1() azureapplicatio
 // AzureapplicationgatewayinstanceupdatestatusV1beta1 retrieves the AzureapplicationgatewayinstanceupdatestatusV1beta1Client
 func (c *Clientset) AzureapplicationgatewayinstanceupdatestatusV1beta1() azureapplicationgatewayinstanceupdatestatusv1beta1.AzureapplicationgatewayinstanceupdatestatusV1beta1Interface {
 	return c.azureapplicationgatewayinstanceupdatestatusV1beta1
+}
+
+// AzureapplicationgatewayrewritesV1beta1 retrieves the AzureapplicationgatewayrewritesV1beta1Client
+func (c *Clientset) AzureapplicationgatewayrewritesV1beta1() azureapplicationgatewayrewritesv1beta1.AzureapplicationgatewayrewritesV1beta1Interface {
+	return c.azureapplicationgatewayrewritesV1beta1
 }
 
 // AzureingressprohibitedtargetsV1 retrieves the AzureingressprohibitedtargetsV1Client
@@ -97,6 +105,10 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
+	cs.azureapplicationgatewayrewritesV1beta1, err = azureapplicationgatewayrewritesv1beta1.NewForConfig(&configShallowCopy)
+	if err != nil {
+		return nil, err
+	}
 	cs.azureingressprohibitedtargetsV1, err = azureingressprohibitedtargetsv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
@@ -119,6 +131,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.NewForConfigOrDie(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.NewForConfigOrDie(c)
+	cs.azureapplicationgatewayrewritesV1beta1 = azureapplicationgatewayrewritesv1beta1.NewForConfigOrDie(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.NewForConfigOrDie(c)
 	cs.loaddistributionpoliciesV1beta1 = loaddistributionpoliciesv1beta1.NewForConfigOrDie(c)
 
@@ -131,6 +144,7 @@ func New(c rest.Interface) *Clientset {
 	var cs Clientset
 	cs.azureapplicationgatewaybackendpoolsV1beta1 = azureapplicationgatewaybackendpoolsv1beta1.New(c)
 	cs.azureapplicationgatewayinstanceupdatestatusV1beta1 = azureapplicationgatewayinstanceupdatestatusv1beta1.New(c)
+	cs.azureapplicationgatewayrewritesV1beta1 = azureapplicationgatewayrewritesv1beta1.New(c)
 	cs.azureingressprohibitedtargetsV1 = azureingressprohibitedtargetsv1.New(c)
 	cs.loaddistributionpoliciesV1beta1 = loaddistributionpoliciesv1beta1.New(c)
 
