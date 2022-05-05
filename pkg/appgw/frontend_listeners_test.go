@@ -523,4 +523,69 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			Expect(*listeners).To(ContainElement(expectedListener80))
 		})
 	})
+
+	Context("LookupListenerByID tests", func() {
+		It("should return nil when listener for ID is not found", func() {
+			listeners := []n.ApplicationGatewayHTTPListener{
+				expectedListener443,
+				expectedListener80,
+			}
+
+			listener := LookupListenerByID(&listeners, to.StringPtr("missing-listener"))
+			Expect(listener).To(BeNil())
+		})
+
+		It("should return listener when listener for ID is found", func() {
+			listeners := []n.ApplicationGatewayHTTPListener{
+				expectedListener443,
+				expectedListener80,
+			}
+
+			listener443ID := to.StringPtr(resPref + "httpListeners/" + listenerID443Name)
+
+			listener := LookupListenerByID(&listeners, listener443ID)
+			Expect(*listener).To(Equal(expectedListener443))
+		})
+	})
+
+	Context("IsMutliSiteListener tests", func() {
+		It("should return false for basic listener", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeFalse())
+
+			listener = &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostName:  to.StringPtr(""),
+					HostNames: to.StringSlicePtr([]string{}),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeFalse())
+		})
+
+		It("should return true if listener has hostname populated", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostName: to.StringPtr("foo"),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeTrue())
+		})
+
+		It("should return true if listener has hostnames populated", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostNames: to.StringSlicePtr([]string{
+						"foo",
+					}),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeTrue())
+		})
+	})
 })

@@ -496,6 +496,7 @@ var _ = Describe("Test routing rules generations", func() {
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 							"/redirectConfigurations/sslr-" + expectedListenerID443Name)},
 					ProvisioningState: "",
+					Priority:          to.Int32Ptr(19000),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID80)),
 				Etag: to.StringPtr("*"),
@@ -524,6 +525,7 @@ var _ = Describe("Test routing rules generations", func() {
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     "",
+					Priority:              to.Int32Ptr(19010),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID443)),
 				Etag: to.StringPtr("*"),

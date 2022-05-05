@@ -56,6 +56,10 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	}
 
 	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+
+	// Apply rule priority after sorting to come up with stable priority.
+	requestRoutingRules = c.assignPriorityWhereMissing(requestRoutingRules)
+
 	c.appGw.RequestRoutingRules = &requestRoutingRules
 
 	return nil
@@ -462,4 +466,26 @@ func preparePathFromPathType(path string, pathType *networking.PathType) string 
 // "/" for any path type will be treated as a prefix match.
 func isPathCatchAll(path string, pathType *networking.PathType) bool {
 	return len(path) == 0 || path == "/*" || path == "/"
+}
+
+// assignPriorityWhereMissing assigns priority to rules that don't have rule priority assigned
+// by the user.
+// This logic is similar to how AppGW populates rule priority internally.
+// Multisite rule is given higher priority than basic rule.
+func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
+	var lastMultiSiteRulePriority int32 = 19000
+	var lastBasicRulePriority int32 = 19500
+	for _, rule := range rules {
+		listener := LookupListenerByID(c.appGw.HTTPListeners, rule.HTTPListener.ID)
+
+		if IsMutliSiteListener(listener) {
+			rule.Priority = to.Int32Ptr(lastMultiSiteRulePriority)
+			lastMultiSiteRulePriority += 10
+		} else {
+			rule.Priority = to.Int32Ptr(lastBasicRulePriority)
+			lastBasicRulePriority += 10
+		}
+	}
+
+	return rules
 }
