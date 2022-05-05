@@ -30,6 +30,14 @@ spec:
                 type: object
                 properties: 
 
+                  name: 
+                    type: string
+                    description: Name of the Application Gateway rewrite rule
+          
+                  ruleSequence: 
+                    type: integer
+                    description: Sequence number (priority) of the Application Gateway rewrite rule
+                
                   actions: 
                     type: object
                     description: A list of Application Gateway rewrite rule actions
@@ -99,10 +107,3 @@ spec:
                           type: string
                           description: Variable to compare
           
-                  name: 
-                    type: string
-                    description: Name of the Application Gateway rewrite rule
-          
-                  ruleSequence: 
-                    type: integer
-                    description: Sequence number (priority) of the Application Gateway rewrite rule

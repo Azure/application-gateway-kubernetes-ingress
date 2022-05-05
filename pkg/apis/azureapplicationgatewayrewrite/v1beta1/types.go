@@ -34,12 +34,12 @@ type AzureApplicationGatewayRewriteSpec struct {
 	RewriteRules []RewriteRule `json:"rewriteRules,omitempty"`
 }
 
-// RewriteRule defines a rewrite rule name, rule sequence, a list of conditions and a list of actions
+// RewriteRule defines a rewrite rule name, rule sequence, a list of conditions and actions
 type RewriteRule struct {
 	Name         string      `json:"name,omitempty"`
 	RuleSequence int         `json:"ruleSequence,omitempty"`
+	Actions      Actions     `json:"actions,omitempty"`
 	Conditions   []Condition `json:"conditions,omitempty"`
-	Actions      []Action    `json:"actions,omitempty"`
 }
 
 // Condition includes IgnoreCase, Negate, Variable and Pattern
@@ -50,8 +50,8 @@ type Condition struct {
 	Pattern    string `json:"pattern,omitempty"`
 }
 
-// Action includes RequestHeaderConfigurations, ResponseHeaderConfigurations and UrlConfiguration
-type Action struct {
+// Actions includes RequestHeaderConfigurations, ResponseHeaderConfigurations and UrlConfiguration
+type Actions struct {
 	RequestHeaderConfigurations  []RequestHeaderConfiguration  `json:"requestHeaderConfigurations,omitempty"`
 	ResponseHeaderConfigurations []ResponseHeaderConfiguration `json:"responseHeaderConfigurations,omitempty"`
 	UrlConfiguration             UrlConfiguration              `json:"urlConfiguration,omitempty"`
