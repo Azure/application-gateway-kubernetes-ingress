@@ -1003,6 +1003,104 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
+	Describe("test auto assigning missing routing rule prirority", func() {
+		var configBuilder appGwConfigBuilder
+		var ingress *networking.Ingress
+		var cbCtx *ConfigBuilderContext
+		// var prohibitedTargets []*ptv1.AzureIngressProhibitedTarget
+		var ruleCount int
+		var ingresses []*networking.Ingress
+
+		BeforeEach(func() {
+			configBuilder = newConfigBuilderFixture(nil)
+			backend := tests.NewIngressBackendFixture(tests.ServiceName, int32(80))
+
+			endpoint := tests.NewEndpointsFixture()
+			service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
+			Expect(configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)).To(Succeed())
+			Expect(configBuilder.k8sContext.Caches.Service.Add(service)).To(Succeed())
+
+			// The upper bound for rule priority defined as 20000 in NRP.
+			// With multisite listeners, we auto generate priority starting from
+			// 19000 with an increment of 10. Thus, AGIC's bahivor in
+			// scenarios where customers define over 50 rules for basic
+			// listeners is undefined.
+			ruleCount = 50
+			for i := 0; i < ruleCount; i++ {
+				ingress = tests.NewIngressFixture()
+				ingress.Annotations = map[string]string{
+					annotations.OverrideFrontendPortKey: fmt.Sprint(i),
+					annotations.IngressClassKey:         tests.IngressClassController,
+				}
+				rule := tests.NewIngressRuleFixture("", "/", *backend)
+				ingress.Spec.Rules = append(ingress.Spec.Rules, rule)
+
+				// Turn off TLS so we have better control over the number of
+				// generated request routing rules.
+				ingress.Spec.TLS = nil
+				ingresses = append(ingresses, ingress)
+				Expect(configBuilder.k8sContext.Caches.Ingress.Add(ingress)).To(Succeed())
+			}
+
+			// prohibitedTargets = fixtures.GetAzureIngressProhibitedTargets()
+
+			cbCtx = &ConfigBuilderContext{
+				IngressList: ingresses,
+				// ProhibitedTargets:     prohibitedTargets,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+		})
+
+		Context("when listeners are of multi-site type", func() {
+			var minPriority, maxPriority int32 = 19000, 19500
+
+			BeforeEach(func() {
+				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
+				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
+			})
+
+			It("should have the expected number of request routing rules", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveLen(ruleCount))
+			})
+
+			It("should all have unique priorities assigned", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(Satisfy(haveUniquePriorities))
+			})
+
+			It("should all have priorities in range", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveEach(Satisfy(func(r n.ApplicationGatewayRequestRoutingRule) bool {
+					return minPriority <= *r.Priority && *r.Priority < maxPriority
+				})))
+			})
+		})
+
+		FContext("when listeners are of basic type", func() {
+			var minPriority, maxPriority int32 = 19500, 20000
+
+			BeforeEach(func() {
+				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
+				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
+			})
+
+			FIt("should have the expected number of request routing rules", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveLen(ruleCount))
+			})
+
+			It("should all have unique priorities assigned", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(Satisfy(haveUniquePriorities))
+			})
+
+			It("should all have priorities in range", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveEach(Satisfy(func(r n.ApplicationGatewayRequestRoutingRule) bool {
+					return minPriority <= *r.Priority && *r.Priority < maxPriority
+				})))
+			})
+		})
+
+	})
+
 	Context("test preparePathFromPathType", func() {
 		It("should append * when pathType is Prefix", func() {
 			pathType := networking.PathTypePrefix
@@ -1057,3 +1155,13 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 })
+
+func haveUniquePriorities(rules []n.ApplicationGatewayRequestRoutingRule) bool {
+	priorities := make(map[int32]bool)
+	for _, r := range rules {
+		if _, ok := priorities[*r.Priority]; ok {
+			return false
+		}
+	}
+	return true
+}

@@ -234,7 +234,13 @@ func LookupListenerByID(listeners *[]n.ApplicationGatewayHTTPListener, ID *strin
 }
 
 func IsMutliSiteListener(listener *n.ApplicationGatewayHTTPListener) bool {
-	return listener != nil &&
-		((listener.HostName != nil && *listener.HostName != "") ||
-			(listener.HostNames != nil && len(*listener.HostNames) > 0))
+	if listener == nil {
+		return false
+	}
+
+	if listener.HostName != nil && *listener.HostName != "" {
+		return true
+	}
+
+	return listener.HostNames != nil && len(*listener.HostNames) > 0
 }
