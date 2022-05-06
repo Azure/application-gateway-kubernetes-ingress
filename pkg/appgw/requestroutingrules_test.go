@@ -1048,11 +1048,8 @@ var _ = Describe("Test routing rules generations", func() {
 				Expect(configBuilder.k8sContext.Caches.Ingress.Add(ingress)).To(Succeed())
 			}
 
-			// prohibitedTargets = fixtures.GetAzureIngressProhibitedTargets()
-
 			cbCtx = &ConfigBuilderContext{
-				IngressList: ingresses,
-				// ProhibitedTargets:     prohibitedTargets,
+				IngressList:           ingresses,
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
@@ -1063,7 +1060,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 			BeforeEach(func() {
 				for idx, ingress := range ingresses {
-					ingress.Annotations[annotations.HostNameExtensionKey] = fmt.Sprintf("host%d", idx)
+					ingress.Annotations[annotations.HostNameExtensionKey] = fmt.Sprintf("host-%d", idx)
 				}
 
 				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
