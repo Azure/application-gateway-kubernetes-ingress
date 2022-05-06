@@ -218,7 +218,7 @@
                     "httpListener": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-175bc9385b96d7116527143f35cdfdea"
                     },
-                    "priority": 19010,
+                    "priority": 19005,
                     "ruleType": "Basic"
                 }
             }

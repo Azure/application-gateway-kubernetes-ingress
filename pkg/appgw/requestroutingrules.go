@@ -487,7 +487,7 @@ func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGat
 
 	var lastMultiSiteRulePriority int32 = 19000
 	var lastBasicRulePriority int32 = 19500
-	var jump int32 = 10
+	var priorityJump int32 = 5
 	for _, rule := range rules {
 		listener := LookupListenerByID(c.appGw.HTTPListeners, rule.HTTPListener.ID)
 
@@ -499,10 +499,10 @@ func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGat
 		// find priority to assign to the rule
 		var priority int32
 		if IsMutliSiteListener(listener) {
-			priority = findNextFreePriority(usedUpPriorities, lastMultiSiteRulePriority, jump)
+			priority = findNextFreePriority(usedUpPriorities, lastMultiSiteRulePriority, priorityJump)
 			lastMultiSiteRulePriority = priority
 		} else {
-			priority = findNextFreePriority(usedUpPriorities, lastBasicRulePriority, jump)
+			priority = findNextFreePriority(usedUpPriorities, lastBasicRulePriority, priorityJump)
 			lastBasicRulePriority = priority
 		}
 

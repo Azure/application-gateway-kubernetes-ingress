@@ -23,6 +23,8 @@ import (
 )
 
 var _ = Describe("Test routing rules generations", func() {
+	defer GinkgoRecover()
+
 	checkPathRules := func(urlPathMap *n.ApplicationGatewayURLPathMap, pathRuleCount int) {
 		if pathRuleCount == 0 {
 			Expect(urlPathMap.PathRules).To(BeNil())
@@ -525,7 +527,7 @@ var _ = Describe("Test routing rules generations", func() {
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     "",
-					Priority:              to.Int32Ptr(19010),
+					Priority:              to.Int32Ptr(19005),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID443)),
 				Etag: to.StringPtr("*"),
@@ -1012,6 +1014,7 @@ var _ = Describe("Test routing rules generations", func() {
 		var ingresses []*networking.Ingress
 
 		BeforeEach(func() {
+			ingresses = make([]*networking.Ingress, 0)
 			configBuilder = newConfigBuilderFixture(nil)
 			backend := tests.NewIngressBackendFixture(tests.ServiceName, int32(80))
 
@@ -1028,13 +1031,15 @@ var _ = Describe("Test routing rules generations", func() {
 			// listeners is undefined.
 			ruleCount = 50
 			for i := 0; i < ruleCount; i++ {
-				ingress = tests.NewIngressFixture()
+				ingress = &networking.Ingress{}
+				ingress.Name = fmt.Sprint(i)
+				ingress.Namespace = tests.Namespace
 				ingress.Annotations = map[string]string{
 					annotations.OverrideFrontendPortKey: fmt.Sprint(i),
 					annotations.IngressClassKey:         tests.IngressClassController,
 				}
 				rule := tests.NewIngressRuleFixture("", "/", *backend)
-				ingress.Spec.Rules = append(ingress.Spec.Rules, rule)
+				ingress.Spec.Rules = []networking.IngressRule{rule}
 
 				// Turn off TLS so we have better control over the number of
 				// generated request routing rules.
@@ -1057,6 +1062,10 @@ var _ = Describe("Test routing rules generations", func() {
 			var minPriority, maxPriority int32 = 19000, 19500
 
 			BeforeEach(func() {
+				for idx, ingress := range ingresses {
+					ingress.Annotations[annotations.HostNameExtensionKey] = fmt.Sprintf("host%d", idx)
+				}
+
 				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
 				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
 			})
@@ -1076,7 +1085,7 @@ var _ = Describe("Test routing rules generations", func() {
 			})
 		})
 
-		FContext("when listeners are of basic type", func() {
+		Context("when listeners are of basic type", func() {
 			var minPriority, maxPriority int32 = 19500, 20000
 
 			BeforeEach(func() {
@@ -1084,7 +1093,7 @@ var _ = Describe("Test routing rules generations", func() {
 				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
 			})
 
-			FIt("should have the expected number of request routing rules", func() {
+			It("should have the expected number of request routing rules", func() {
 				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveLen(ruleCount))
 			})
 
