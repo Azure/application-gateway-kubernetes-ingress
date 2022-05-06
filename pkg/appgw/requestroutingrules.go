@@ -21,6 +21,10 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
+const (
+	MaxAllowedPriority = 20000
+)
+
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
@@ -473,8 +477,17 @@ func isPathCatchAll(path string, pathType *networking.PathType) bool {
 // This logic is similar to how AppGW populates rule priority internally.
 // Multisite rule is given higher priority than basic rule.
 func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
+
+	usedUpPriorities := make(map[int32]interface{})
+	for _, rule := range rules {
+		if rule.Priority != nil {
+			usedUpPriorities[*rule.Priority] = nil
+		}
+	}
+
 	var lastMultiSiteRulePriority int32 = 19000
 	var lastBasicRulePriority int32 = 19500
+	var jump int32 = 10
 	for _, rule := range rules {
 		listener := LookupListenerByID(c.appGw.HTTPListeners, rule.HTTPListener.ID)
 
@@ -483,14 +496,33 @@ func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGat
 			continue
 		}
 
+		// find priority to assign to the rule
+		var priority int32
 		if IsMutliSiteListener(listener) {
-			rule.Priority = to.Int32Ptr(lastMultiSiteRulePriority)
-			lastMultiSiteRulePriority += 10
+			priority = findNextFreePriority(usedUpPriorities, lastMultiSiteRulePriority, jump)
+			lastMultiSiteRulePriority = priority
 		} else {
-			rule.Priority = to.Int32Ptr(lastBasicRulePriority)
-			lastBasicRulePriority += 10
+			priority = findNextFreePriority(usedUpPriorities, lastBasicRulePriority, jump)
+			lastBasicRulePriority = priority
 		}
+
+		rule.Priority = to.Int32Ptr(priority)
+		usedUpPriorities[priority] = nil
 	}
 
 	return rules
+}
+
+func findNextFreePriority(usedUpPriorities map[int32]interface{}, lastPriority int32, jump int32) int32 {
+	priority := lastPriority
+	for {
+		if _, exists := usedUpPriorities[priority]; !exists {
+			return priority
+		}
+
+		priority = priority + jump
+		if priority > MaxAllowedPriority {
+			return MaxAllowedPriority
+		}
+	}
 }
