@@ -29,8 +29,13 @@ kubernetes:
   tolerations: []
   affinity: {}
 
+  # Pod security context
   securityContext:
     runAsUser: 0
+
+  # Container security context
+  containerSecurityContext: {}
+    #readOnlyRootFilesystem: true
 
   # Add pod level annotations
   podAnnotations: {}
@@ -43,6 +48,15 @@ kubernetes:
     #requests:
     #  cpu: 100m
     #  memory: 100Mi
+
+  # Add additional volumes and volume mounts to the pod
+  volumes: {}
+    #extraVolumes:
+    #- name: tmp
+    #  emptyDir: {}
+    #extraVolumeMounts:
+    #- name: tmp
+    #  mountPath: /tmp
 
   # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
   # This can be used to segregate ingress controllers in the same namespace
