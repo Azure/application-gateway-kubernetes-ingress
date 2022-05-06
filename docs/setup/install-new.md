@@ -236,7 +236,7 @@ Values:
 - `rbac.enabled`: Make sure to set this to true if you have a AKS cluster that is RBAC enabled.
 
    Note on Identity: The `identityResourceID` and `identityClientID` are values that were created
-   during the [Create an Identity](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/072626cb4e37f7b7a1b0c4578c38d1eadc3e8701/docs/setup/install-new.md#create-an-identity)
+   during the [Create an Identity](#create-an-identity)
    steps, and could be obtained again using the following command:
 
    ```bash
