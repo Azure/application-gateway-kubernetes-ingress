@@ -222,3 +222,25 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 
 	return listenersByID
 }
+
+// LookupListener gets by ID.
+func LookupListenerByID(listeners *[]n.ApplicationGatewayHTTPListener, ID *string) *n.ApplicationGatewayHTTPListener {
+	for _, listener := range *listeners {
+		if *listener.ID == *ID {
+			return &listener
+		}
+	}
+	return nil
+}
+
+func IsMutliSiteListener(listener *n.ApplicationGatewayHTTPListener) bool {
+	if listener == nil {
+		return false
+	}
+
+	if listener.HostName != nil && *listener.HostName != "" {
+		return true
+	}
+
+	return listener.HostNames != nil && len(*listener.HostNames) > 0
+}
