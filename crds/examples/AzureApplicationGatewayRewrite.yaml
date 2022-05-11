@@ -11,7 +11,7 @@ spec:
     conditions:
     - ignoreCase: true
       negate: false
-      variable: keep-alive
+      variable: http_req_Connection
       pattern: keep-alive
                             
     actions:

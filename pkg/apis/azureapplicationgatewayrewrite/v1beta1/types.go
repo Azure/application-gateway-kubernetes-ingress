@@ -11,7 +11,6 @@ import (
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +genclient:nonNamespaced
 
 // AzureApplicationGatewayRewrite is the resource AGIC is watching on for any rewrite rule change
 type AzureApplicationGatewayRewrite struct {

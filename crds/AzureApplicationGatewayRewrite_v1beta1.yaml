@@ -6,7 +6,7 @@ metadata:
 spec: 
   group: appgw.ingress.azure.io
   version: v1beta1
-  scope: Cluster
+  scope: Namespaced
   names: 
     plural: azureapplicationgatewayrewrites
     singular: azureapplicationgatewayrewrite
