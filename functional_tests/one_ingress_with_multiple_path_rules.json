@@ -248,6 +248,7 @@
                     "httpListener": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a"
                     },
+                    "priority": 19500,
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-e1903c8aa3446b7b3207aec6d6ecba8a"

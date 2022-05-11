@@ -412,6 +412,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "httpListener": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-08ba2bb7da9df5927d900fca8ce96ba5"
 --                    },
+--                    "priority": 19000,
 --                    "ruleType": "Basic"
 --                }
 --            }
@@ -645,6 +646,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "httpListener": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a"
 --                    },
+--                    "priority": 19500,
 --                    "ruleType": "Basic"
 --                }
 --            }
@@ -925,6 +927,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "httpListener": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-b2dba5a02f61d8615cc23d8df120ac20"
 --                    },
+--                    "priority": 19000,
 --                    "ruleType": "Basic"
 --                }
 --            }
