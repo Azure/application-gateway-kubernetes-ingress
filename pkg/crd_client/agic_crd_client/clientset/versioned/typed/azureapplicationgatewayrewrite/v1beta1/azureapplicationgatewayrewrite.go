@@ -33,7 +33,7 @@ import (
 // AzureApplicationGatewayRewritesGetter has a method to return a AzureApplicationGatewayRewriteInterface.
 // A group's client should implement this interface.
 type AzureApplicationGatewayRewritesGetter interface {
-	AzureApplicationGatewayRewrites() AzureApplicationGatewayRewriteInterface
+	AzureApplicationGatewayRewrites(namespace string) AzureApplicationGatewayRewriteInterface
 }
 
 // AzureApplicationGatewayRewriteInterface has methods to work with AzureApplicationGatewayRewrite resources.
@@ -52,12 +52,14 @@ type AzureApplicationGatewayRewriteInterface interface {
 // azureApplicationGatewayRewrites implements AzureApplicationGatewayRewriteInterface
 type azureApplicationGatewayRewrites struct {
 	client rest.Interface
+	ns     string
 }
 
 // newAzureApplicationGatewayRewrites returns a AzureApplicationGatewayRewrites
-func newAzureApplicationGatewayRewrites(c *AzureapplicationgatewayrewritesV1beta1Client) *azureApplicationGatewayRewrites {
+func newAzureApplicationGatewayRewrites(c *AzureapplicationgatewayrewritesV1beta1Client, namespace string) *azureApplicationGatewayRewrites {
 	return &azureApplicationGatewayRewrites{
 		client: c.RESTClient(),
+		ns:     namespace,
 	}
 }
 
@@ -65,6 +67,7 @@ func newAzureApplicationGatewayRewrites(c *AzureapplicationgatewayrewritesV1beta
 func (c *azureApplicationGatewayRewrites) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	result = &v1beta1.AzureApplicationGatewayRewrite{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -81,6 +84,7 @@ func (c *azureApplicationGatewayRewrites) List(ctx context.Context, opts v1.List
 	}
 	result = &v1beta1.AzureApplicationGatewayRewriteList{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -97,6 +101,7 @@ func (c *azureApplicationGatewayRewrites) Watch(ctx context.Context, opts v1.Lis
 	}
 	opts.Watch = true
 	return c.client.Get().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -107,6 +112,7 @@ func (c *azureApplicationGatewayRewrites) Watch(ctx context.Context, opts v1.Lis
 func (c *azureApplicationGatewayRewrites) Create(ctx context.Context, azureApplicationGatewayRewrite *v1beta1.AzureApplicationGatewayRewrite, opts v1.CreateOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	result = &v1beta1.AzureApplicationGatewayRewrite{}
 	err = c.client.Post().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(azureApplicationGatewayRewrite).
@@ -119,6 +125,7 @@ func (c *azureApplicationGatewayRewrites) Create(ctx context.Context, azureAppli
 func (c *azureApplicationGatewayRewrites) Update(ctx context.Context, azureApplicationGatewayRewrite *v1beta1.AzureApplicationGatewayRewrite, opts v1.UpdateOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	result = &v1beta1.AzureApplicationGatewayRewrite{}
 	err = c.client.Put().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		Name(azureApplicationGatewayRewrite.Name).
 		VersionedParams(&opts, scheme.ParameterCodec).
@@ -131,6 +138,7 @@ func (c *azureApplicationGatewayRewrites) Update(ctx context.Context, azureAppli
 // Delete takes name of the azureApplicationGatewayRewrite and deletes it. Returns an error if one occurs.
 func (c *azureApplicationGatewayRewrites) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		Name(name).
 		Body(&opts).
@@ -145,6 +153,7 @@ func (c *azureApplicationGatewayRewrites) DeleteCollection(ctx context.Context, 
 		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -157,6 +166,7 @@ func (c *azureApplicationGatewayRewrites) DeleteCollection(ctx context.Context, 
 func (c *azureApplicationGatewayRewrites) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	result = &v1beta1.AzureApplicationGatewayRewrite{}
 	err = c.client.Patch(pt).
+		Namespace(c.ns).
 		Resource("azureapplicationgatewayrewrites").
 		Name(name).
 		SubResource(subresources...).

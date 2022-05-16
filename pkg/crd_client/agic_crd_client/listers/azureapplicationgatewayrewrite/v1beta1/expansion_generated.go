@@ -21,3 +21,7 @@ package v1beta1
 // AzureApplicationGatewayRewriteListerExpansion allows custom methods to be added to
 // AzureApplicationGatewayRewriteLister.
 type AzureApplicationGatewayRewriteListerExpansion interface{}
+
+// AzureApplicationGatewayRewriteNamespaceListerExpansion allows custom methods to be added to
+// AzureApplicationGatewayRewriteNamespaceLister.
+type AzureApplicationGatewayRewriteNamespaceListerExpansion interface{}

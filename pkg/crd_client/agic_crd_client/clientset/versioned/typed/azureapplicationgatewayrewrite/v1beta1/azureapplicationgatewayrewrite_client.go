@@ -34,8 +34,8 @@ type AzureapplicationgatewayrewritesV1beta1Client struct {
 	restClient rest.Interface
 }
 
-func (c *AzureapplicationgatewayrewritesV1beta1Client) AzureApplicationGatewayRewrites() AzureApplicationGatewayRewriteInterface {
-	return newAzureApplicationGatewayRewrites(c)
+func (c *AzureapplicationgatewayrewritesV1beta1Client) AzureApplicationGatewayRewrites(namespace string) AzureApplicationGatewayRewriteInterface {
+	return newAzureApplicationGatewayRewrites(c, namespace)
 }
 
 // NewForConfig creates a new AzureapplicationgatewayrewritesV1beta1Client for the given config.

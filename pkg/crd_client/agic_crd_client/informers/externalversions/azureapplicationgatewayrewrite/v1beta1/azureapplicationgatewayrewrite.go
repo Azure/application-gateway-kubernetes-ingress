@@ -42,32 +42,33 @@ type AzureApplicationGatewayRewriteInformer interface {
 type azureApplicationGatewayRewriteInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
+	namespace        string
 }
 
 // NewAzureApplicationGatewayRewriteInformer constructs a new informer for AzureApplicationGatewayRewrite type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewAzureApplicationGatewayRewriteInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredAzureApplicationGatewayRewriteInformer(client, resyncPeriod, indexers, nil)
+func NewAzureApplicationGatewayRewriteInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredAzureApplicationGatewayRewriteInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredAzureApplicationGatewayRewriteInformer constructs a new informer for AzureApplicationGatewayRewrite type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredAzureApplicationGatewayRewriteInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredAzureApplicationGatewayRewriteInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites().List(context.TODO(), options)
+				return client.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites().Watch(context.TODO(), options)
+				return client.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&azureapplicationgatewayrewritev1beta1.AzureApplicationGatewayRewrite{},
@@ -77,7 +78,7 @@ func NewFilteredAzureApplicationGatewayRewriteInformer(client versioned.Interfac
 }
 
 func (f *azureApplicationGatewayRewriteInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredAzureApplicationGatewayRewriteInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredAzureApplicationGatewayRewriteInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *azureApplicationGatewayRewriteInformer) Informer() cache.SharedIndexInformer {

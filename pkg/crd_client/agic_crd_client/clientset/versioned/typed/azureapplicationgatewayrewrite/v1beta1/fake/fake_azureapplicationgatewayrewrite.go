@@ -33,6 +33,7 @@ import (
 // FakeAzureApplicationGatewayRewrites implements AzureApplicationGatewayRewriteInterface
 type FakeAzureApplicationGatewayRewrites struct {
 	Fake *FakeAzureapplicationgatewayrewritesV1beta1
+	ns   string
 }
 
 var azureapplicationgatewayrewritesResource = schema.GroupVersionResource{Group: "azureapplicationgatewayrewrites.appgw.ingress.azure.io", Version: "v1beta1", Resource: "azureapplicationgatewayrewrites"}
@@ -42,7 +43,8 @@ var azureapplicationgatewayrewritesKind = schema.GroupVersionKind{Group: "azurea
 // Get takes name of the azureApplicationGatewayRewrite, and returns the corresponding azureApplicationGatewayRewrite object, and an error if there is any.
 func (c *FakeAzureApplicationGatewayRewrites) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(azureapplicationgatewayrewritesResource, name), &v1beta1.AzureApplicationGatewayRewrite{})
+		Invokes(testing.NewGetAction(azureapplicationgatewayrewritesResource, c.ns, name), &v1beta1.AzureApplicationGatewayRewrite{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -52,7 +54,8 @@ func (c *FakeAzureApplicationGatewayRewrites) Get(ctx context.Context, name stri
 // List takes label and field selectors, and returns the list of AzureApplicationGatewayRewrites that match those selectors.
 func (c *FakeAzureApplicationGatewayRewrites) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.AzureApplicationGatewayRewriteList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(azureapplicationgatewayrewritesResource, azureapplicationgatewayrewritesKind, opts), &v1beta1.AzureApplicationGatewayRewriteList{})
+		Invokes(testing.NewListAction(azureapplicationgatewayrewritesResource, azureapplicationgatewayrewritesKind, c.ns, opts), &v1beta1.AzureApplicationGatewayRewriteList{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -73,13 +76,15 @@ func (c *FakeAzureApplicationGatewayRewrites) List(ctx context.Context, opts v1.
 // Watch returns a watch.Interface that watches the requested azureApplicationGatewayRewrites.
 func (c *FakeAzureApplicationGatewayRewrites) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewRootWatchAction(azureapplicationgatewayrewritesResource, opts))
+		InvokesWatch(testing.NewWatchAction(azureapplicationgatewayrewritesResource, c.ns, opts))
+
 }
 
 // Create takes the representation of a azureApplicationGatewayRewrite and creates it.  Returns the server's representation of the azureApplicationGatewayRewrite, and an error, if there is any.
 func (c *FakeAzureApplicationGatewayRewrites) Create(ctx context.Context, azureApplicationGatewayRewrite *v1beta1.AzureApplicationGatewayRewrite, opts v1.CreateOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(azureapplicationgatewayrewritesResource, azureApplicationGatewayRewrite), &v1beta1.AzureApplicationGatewayRewrite{})
+		Invokes(testing.NewCreateAction(azureapplicationgatewayrewritesResource, c.ns, azureApplicationGatewayRewrite), &v1beta1.AzureApplicationGatewayRewrite{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -89,7 +94,8 @@ func (c *FakeAzureApplicationGatewayRewrites) Create(ctx context.Context, azureA
 // Update takes the representation of a azureApplicationGatewayRewrite and updates it. Returns the server's representation of the azureApplicationGatewayRewrite, and an error, if there is any.
 func (c *FakeAzureApplicationGatewayRewrites) Update(ctx context.Context, azureApplicationGatewayRewrite *v1beta1.AzureApplicationGatewayRewrite, opts v1.UpdateOptions) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(azureapplicationgatewayrewritesResource, azureApplicationGatewayRewrite), &v1beta1.AzureApplicationGatewayRewrite{})
+		Invokes(testing.NewUpdateAction(azureapplicationgatewayrewritesResource, c.ns, azureApplicationGatewayRewrite), &v1beta1.AzureApplicationGatewayRewrite{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -99,13 +105,14 @@ func (c *FakeAzureApplicationGatewayRewrites) Update(ctx context.Context, azureA
 // Delete takes name of the azureApplicationGatewayRewrite and deletes it. Returns an error if one occurs.
 func (c *FakeAzureApplicationGatewayRewrites) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(azureapplicationgatewayrewritesResource, name), &v1beta1.AzureApplicationGatewayRewrite{})
+		Invokes(testing.NewDeleteAction(azureapplicationgatewayrewritesResource, c.ns, name), &v1beta1.AzureApplicationGatewayRewrite{})
+
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeAzureApplicationGatewayRewrites) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(azureapplicationgatewayrewritesResource, listOpts)
+	action := testing.NewDeleteCollectionAction(azureapplicationgatewayrewritesResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.AzureApplicationGatewayRewriteList{})
 	return err
@@ -114,7 +121,8 @@ func (c *FakeAzureApplicationGatewayRewrites) DeleteCollection(ctx context.Conte
 // Patch applies the patch and returns the patched azureApplicationGatewayRewrite.
 func (c *FakeAzureApplicationGatewayRewrites) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.AzureApplicationGatewayRewrite, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(azureapplicationgatewayrewritesResource, name, pt, data, subresources...), &v1beta1.AzureApplicationGatewayRewrite{})
+		Invokes(testing.NewPatchSubresourceAction(azureapplicationgatewayrewritesResource, c.ns, name, pt, data, subresources...), &v1beta1.AzureApplicationGatewayRewrite{})
+
 	if obj == nil {
 		return nil, err
 	}

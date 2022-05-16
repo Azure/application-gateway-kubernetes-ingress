@@ -28,8 +28,8 @@ type FakeAzureapplicationgatewayrewritesV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAzureapplicationgatewayrewritesV1beta1) AzureApplicationGatewayRewrites() v1beta1.AzureApplicationGatewayRewriteInterface {
-	return &FakeAzureApplicationGatewayRewrites{c}
+func (c *FakeAzureapplicationgatewayrewritesV1beta1) AzureApplicationGatewayRewrites(namespace string) v1beta1.AzureApplicationGatewayRewriteInterface {
+	return &FakeAzureApplicationGatewayRewrites{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

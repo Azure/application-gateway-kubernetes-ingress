@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // AzureApplicationGatewayRewrites returns a AzureApplicationGatewayRewriteInformer.
 func (v *version) AzureApplicationGatewayRewrites() AzureApplicationGatewayRewriteInformer {
-	return &azureApplicationGatewayRewriteInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+	return &azureApplicationGatewayRewriteInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

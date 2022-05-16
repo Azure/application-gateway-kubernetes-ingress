@@ -51,22 +51,13 @@ type Condition struct {
 
 // Actions includes RequestHeaderConfigurations, ResponseHeaderConfigurations and UrlConfiguration
 type Actions struct {
-	RequestHeaderConfigurations  []RequestHeaderConfiguration  `json:"requestHeaderConfigurations,omitempty"`
-	ResponseHeaderConfigurations []ResponseHeaderConfiguration `json:"responseHeaderConfigurations,omitempty"`
-	UrlConfiguration             UrlConfiguration              `json:"urlConfiguration,omitempty"`
+	RequestHeaderConfigurations  []HeaderConfiguration `json:"requestHeaderConfigurations,omitempty"`
+	ResponseHeaderConfigurations []HeaderConfiguration `json:"responseHeaderConfigurations,omitempty"`
+	UrlConfiguration             UrlConfiguration      `json:"urlConfiguration,omitempty"`
 }
 
-// RequestHeaderConfiguration and ResponseHeaderConfiguration can be same
-
-// RequestHeaderConfiguration includes ActionType, HeaderName and HeaderValue
-type RequestHeaderConfiguration struct {
-	ActionType  string `json:"actionType,omitempty"`
-	HeaderName  string `json:"headerName,omitempty"`
-	HeaderValue string `json:"headerValue,omitempty"`
-}
-
-// ResponseHeaderConfiguration includes ActionType, HeaderName and HeaderValue
-type ResponseHeaderConfiguration struct {
+// HeaderConfiguration includes ActionType, HeaderName and HeaderValue
+type HeaderConfiguration struct {
 	ActionType  string `json:"actionType,omitempty"`
 	HeaderName  string `json:"headerName,omitempty"`
 	HeaderValue string `json:"headerValue,omitempty"`
