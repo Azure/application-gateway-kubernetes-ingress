@@ -186,7 +186,7 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.MultiClusterService:          nil,
 		c.informers.MultiClusterIngress:          nil,
 
-		// c.informers.AzureApplicationGatewayRewrite: 				nil,
+		c.informers.AzureApplicationGatewayRewrite: nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
@@ -290,10 +290,10 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
 }
 
-// GetRewrite returns rewrite with specified name
-func (c *Context) GetRewrite(rewriteName string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
+// GetRewrite returns rewrite with specified name and namespace
+func (c *Context) GetRewrite(namespace string, rewriteName string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
 
-	agrewrite, exist, err := c.Caches.AzureApplicationGatewayBackendPool.GetByKey(rewriteName)
+	agrewrite, exist, err := c.Caches.AzureApplicationGatewayRewrite.GetByKey(namespace + "/" + rewriteName)
 	if !exist {
 		e := controllererrors.NewErrorf(
 			controllererrors.ErrorFetchingRewrite,
