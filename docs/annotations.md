@@ -31,6 +31,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
+| [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
 
@@ -857,6 +858,40 @@ spec:
         backend:
           service:
             name: go-server-service
+            port:
+              number: 8080
+```
+
+## Hostname Extension
+This annotation allows to append additional hostnames to the `host` specified in the ingress resource. This applies to all the rules in the ingress resource.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/hostname-extension: "hostname1, hostname2"
+```
+
+### Example
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: store-app-ingress
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/hostname-extension: "prod-store.app.com"
+spec:
+  rules:
+  - host: "store.app.com"
+    http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: store-service
             port:
               number: 8080
 ```
