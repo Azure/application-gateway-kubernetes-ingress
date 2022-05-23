@@ -9,11 +9,17 @@ spec:
     ruleSequence: 100
 
     conditions:
-    - ignoreCase: true
+    - ignoreCase: false
       negate: false
       variable: http_req_Connection
       pattern: keep-alive
-                            
+
+    - ignoreCase: true
+      negate: true
+      variable: http_req_Connection2
+      pattern: keep-alive2
+    
+
     actions:
       requestHeaderConfigurations:
       - actionType: set
@@ -28,8 +34,8 @@ spec:
         headerName: custom-header3
         headerValue: value3
       - actionType: set
-        headerName: custom-header3
-        headerValue: value3
+        headerName: custom-header4
+        headerValue: value4
         
       urlConfiguration:
         modifiedPath: "/api/"
