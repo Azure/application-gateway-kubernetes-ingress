@@ -48,6 +48,7 @@ type memoization struct {
 	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
 	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
 	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	rewrites                     *[]n.ApplicationGatewayRewriteRuleSet
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
@@ -132,6 +133,18 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			controllererrors.ErrorGeneratingRoutingRules,
 			err,
 			"unable to generate request routing rules",
+		)
+		klog.Errorf(e.Error())
+		return nil, e
+	}
+
+	// Builder Rewrites configuration
+	err = c.Rewrites(cbCtx)
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingBackendPools,
+			err,
+			"unable to generate rewrites",
 		)
 		klog.Errorf(e.Error())
 		return nil, e

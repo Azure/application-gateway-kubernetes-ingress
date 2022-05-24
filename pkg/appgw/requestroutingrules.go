@@ -292,7 +292,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
-		if rewriteRuleSet, err := annotations.RewriteRuleSet(ingress); err == nil && rewriteRuleSet != "" {
+		if rewriteRuleSet, err := annotations.RewriteRuleSetCRD(ingress); err == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
 		}
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
@@ -335,7 +335,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
-		if rewriteRule, err := annotations.RewriteRuleSet(ingress); err == nil {
+		if rewriteRule, err := annotations.RewriteRuleSetCRD(ingress); err == nil {
 			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRule))
 			var paths string
 			if pathRule.Paths != nil {
