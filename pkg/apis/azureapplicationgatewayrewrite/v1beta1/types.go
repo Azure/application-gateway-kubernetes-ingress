@@ -63,7 +63,7 @@ type HeaderConfiguration struct {
 	HeaderValue string `json:"headerValue,omitempty"`
 }
 
-// ResponseHeaderConfiguration includes ModifiedPath, ModifiedQueryString and Reroute
+// UrlConfiguration includes ModifiedPath, ModifiedQueryString and Reroute
 type UrlConfiguration struct {
 	ModifiedPath        string `json:"modifiedPath,omitempty"`
 	ModifiedQueryString string `json:"modifiedQueryString,omitempty"`
