@@ -292,9 +292,20 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
-		if rewriteRuleSet, err := annotations.RewriteRuleSetCRD(ingress); err == nil && rewriteRuleSet != "" {
+
+		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
+		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
+		rewriteRuleSetCRD, err2 := annotations.RewriteRuleSetCRD(ingress)
+
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCRD != "" {
+			klog.Error("rewrite-rule-set and rewrite-rule-set-crd both annotations are defined. Please use one.")
+		} else if err1 == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
+		} else if err2 == nil && rewriteRuleSetCRD != "" {
+			rewriteRuleSetCRD = fmt.Sprintf("crd-%s", rewriteRuleSetCRD)
+			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRD))
 		}
+
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
 			poolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
 			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
@@ -335,13 +346,31 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
-		if rewriteRule, err := annotations.RewriteRuleSetCRD(ingress); err == nil {
-			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRule))
+		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
+		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
+		rewriteRuleSetCRD, err2 := annotations.RewriteRuleSetCRD(ingress)
+
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCRD != "" {
+			klog.Error("rewrite-rule-set and rewrite-rule-set-crd both annotations are defined. Please use one.")
+		} else if err1 == nil && rewriteRuleSet != "" {
+
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
 			var paths string
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRule, paths)
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSet, paths)
+
+		} else if err2 == nil && rewriteRuleSetCRD != "" {
+
+			rewriteRuleSetCRD = fmt.Sprintf("crd-%s", rewriteRuleSetCRD)
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRD))
+			var paths string
+			if pathRule.Paths != nil {
+				paths = strings.Join(*pathRule.Paths, ",")
+			}
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCRD, paths)
+
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
