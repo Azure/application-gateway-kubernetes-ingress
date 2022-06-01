@@ -126,6 +126,18 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, e
 	}
 
+	// Build RewriteRuleSets configuration
+	err = c.Rewrites(cbCtx)
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingBackendPools,
+			err,
+			"unable to generate rewrites",
+		)
+		klog.Errorf(e.Error())
+		return nil, e
+	}
+
 	// SSL redirection configurations created elsewhere will be attached to the appropriate rule in this step.
 	err = c.RequestRoutingRules(cbCtx)
 	if err != nil {
@@ -133,18 +145,6 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			controllererrors.ErrorGeneratingRoutingRules,
 			err,
 			"unable to generate request routing rules",
-		)
-		klog.Errorf(e.Error())
-		return nil, e
-	}
-
-	// Builder Rewrites configuration
-	err = c.Rewrites(cbCtx)
-	if err != nil {
-		e := controllererrors.NewErrorWithInnerError(
-			controllererrors.ErrorCreatingBackendPools,
-			err,
-			"unable to generate rewrites",
 		)
 		klog.Errorf(e.Error())
 		return nil, e
