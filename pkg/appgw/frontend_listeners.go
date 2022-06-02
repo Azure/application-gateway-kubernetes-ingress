@@ -59,6 +59,10 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		if config.Protocol == n.ApplicationGatewayProtocolHTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
+			if config.SslProfile != "" {
+				sslProfileID := c.appGwIdentifier.sslProfileID(config.SslProfile)
+				listener.SslProfile = resourceRef(sslProfileID)
+			}
 		}
 		if config.FirewallPolicy != "" {
 			listener.FirewallPolicy = &n.SubResource{ID: to.StringPtr(config.FirewallPolicy)}

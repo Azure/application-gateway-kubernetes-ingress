@@ -16,6 +16,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | | `1.2.0` |
 | [appgw.ingress.kubernetes.io/appgw-trusted-root-certificate](#appgw-trusted-root-certificate) | `string` | `nil` | | `1.2.0` |
+| [appgw.ingress.kubernetes.io/appgw-ssl-profile](#appgw-ssl-profile) | `string` | `nil` | | `1.x.y` |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | | `1.0.0` |
@@ -349,6 +350,11 @@ spec:
             port:
               number: 80
 ```
+
+## AppGw Ssl Profile
+
+Users can configure [a ssl profile on the Application Gateway per listener](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-configure-listener-specific-ssl-policy).
+When the annotation is present with a profile name and the profile is pre-installed in the Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
 
 ## Connection Draining
 

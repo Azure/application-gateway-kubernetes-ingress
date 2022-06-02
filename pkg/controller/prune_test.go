@@ -110,6 +110,42 @@ var _ = Describe("prune function tests", func() {
 		})
 	})
 
+	Context("ensure pruneNoSslProfile prunes ingress", func() {
+		ingressSslProfileAnnotated := tests.NewIngressFixture()
+		ingressSslProfileAnnotated.Annotations = map[string]string{
+			annotations.AppGwSslProfile: "legacy-tls",
+		}
+		ingressNoSslProfileAnnotated := tests.NewIngressFixture()
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*networking.Ingress{
+				ingressSslProfileAnnotated,
+				ingressNoSslProfileAnnotated,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using appgw-ssl-profile and keeps others", func() {
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslProfile(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+		})
+
+		It("keeps the ingress using appgw-ssl-certificate when annotated ssl profile is pre-installed", func() {
+			ingressSslProfileAnnotated.Annotations = map[string]string{
+				annotations.AppGwSslProfile: *fixtures.GetSslProfile1().Name,
+			}
+
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
 	Context("ensure pruneNoTrustedRootCertificate prunes ingress", func() {
 		ingressRootCertAnnotated := tests.NewIngressFixture()
 		ingressRootCertAnnotated.Annotations = map[string]string{
