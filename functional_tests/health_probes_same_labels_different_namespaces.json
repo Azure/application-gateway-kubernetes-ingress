@@ -244,6 +244,7 @@
                     "httpListener": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-08ba2bb7da9df5927d900fca8ce96ba5"
                     },
+                    "priority": 19000,
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-08ba2bb7da9df5927d900fca8ce96ba5"
@@ -263,6 +264,7 @@
                     "httpListener": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-175bc9385b96d7116527143f35cdfdea"
                     },
+                    "priority": 19005,
                     "ruleType": "Basic"
                 }
             }
