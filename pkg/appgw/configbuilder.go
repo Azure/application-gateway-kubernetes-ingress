@@ -130,7 +130,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	err = c.Rewrites(cbCtx)
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerError(
-			controllererrors.ErrorCreatingBackendPools,
+			controllererrors.ErrorCreatingRewrites,
 			err,
 			"unable to generate rewrites",
 		)
