@@ -417,6 +417,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "rewriteRuleSets": [],
 --        "sku": {
 --            "capacity": 3,
 --            "name": "Standard_v2",
@@ -651,6 +652,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "rewriteRuleSets": [],
 --        "sku": {
 --            "capacity": 3,
 --            "name": "Standard_v2",
@@ -932,6 +934,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                }
 --            }
 --        ],
+--        "rewriteRuleSets": [],
 --        "sku": {
 --            "capacity": 3,
 --            "name": "Standard_v2",
