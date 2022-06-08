@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build unittest
 // +build unittest
 
 package annotations
@@ -57,6 +58,8 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/health-probe-interval":               "15",
 		"appgw.ingress.kubernetes.io/health-probe-timeout":                "10",
 		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold":    "3",
+		"appgw.ingress.kubernetes.io/rewrite-rule-set":                    "my-rewrite-rule-set",
+		"appgw.ingress.kubernetes.io/rewrite-rule-set-crd":                "my-rewrite-rule-set-crd",
 		"kubernetes.io/ingress.class":                                     "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                                 "azure/application-gateway",
 		"falseKey":                                                        "false",
@@ -221,6 +224,34 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := HealthProbeUnhealthyThreshold(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(int32(3)))
+		})
+	})
+
+	Context("test rewrite-rule-set", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := RewriteRuleSet(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns rewrite rule set", func() {
+			actual, err := RewriteRuleSet(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("my-rewrite-rule-set"))
+		})
+	})
+
+	Context("test rewrite-rule-set-crd", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := RewriteRuleSetCRD(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns rewrite rule set", func() {
+			actual, err := RewriteRuleSetCRD(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("my-rewrite-rule-set-crd"))
 		})
 	})
 
