@@ -22,6 +22,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
+// appgw_suite_test.go launches these Ginkgo tests
+
 var _ = Describe("Test routing rules generations", func() {
 	defer GinkgoRecover()
 
