@@ -30,6 +30,9 @@ const (
 	// ReasonNoPreInstalledSslCertificate is a reason for an event to be emitted.
 	ReasonNoPreInstalledSslCertificate = "NoPreInstalledSslCertificate"
 
+	// ReasonNoPreInstalledSslProfile is a reason for an event to be emitted.
+	ReasonNoPreInstalledSslProfile = "NoPreInstalledSslProfile"
+
 	// ReasonNoPreInstalledRootCertificate is a reason for an event to be emitted.
 	ReasonNoPreInstalledRootCertificate = "NoPreInstalledRootCertificate"
 

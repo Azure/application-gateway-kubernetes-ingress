@@ -96,6 +96,9 @@ const (
 	// AppGwSslCertificate indicates the name of ssl certificate installed by AppGw
 	AppGwSslCertificate = ApplicationGatewayPrefix + "/appgw-ssl-certificate"
 
+	// AppGwSslProfile indicates the name of the ssl profile installed by AppGw
+	AppGwSslProfile = ApplicationGatewayPrefix + "/appgw-ssl-profile"
+
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
 	// Multiple root certificates separated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
@@ -209,6 +212,11 @@ func GetAppGwSslCertificate(ing *networking.Ingress) (string, error) {
 // GetAppGwTrustedRootCertificate refer to appgw installed root certificate
 func GetAppGwTrustedRootCertificate(ing *networking.Ingress) (string, error) {
 	return parseString(ing, AppGwTrustedRootCertificate)
+}
+
+// GetAppGwSslProfile refer to appgw installed certificate
+func GetAppGwSslProfile(ing *networking.Ingress) (string, error) {
+	return parseString(ing, AppGwSslProfile)
 }
 
 // RequestTimeout provides value for request timeout on the backend connection

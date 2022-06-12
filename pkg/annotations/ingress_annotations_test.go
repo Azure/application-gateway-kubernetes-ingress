@@ -50,6 +50,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/backend-hostname":                    "www.backend.com",
 		"appgw.ingress.kubernetes.io/hostname-extension":                  "www.bye.com, www.b*.com",
 		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":               "appgw-cert",
+		"appgw.ingress.kubernetes.io/appgw-ssl-profile":                   "legacy-tls",
 		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate":      "appgw-root-cert1,appgw-root-cert2",
 		"appgw.ingress.kubernetes.io/health-probe-hostname":               "myhost.mydomain.com",
 		"appgw.ingress.kubernetes.io/health-probe-port":                   "8080",
@@ -111,6 +112,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := GetAppGwSslCertificate(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("appgw-cert"))
+		})
+	})
+
+	Context("test appgwSslProfile", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := GetAppGwSslProfile(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns true", func() {
+			actual, err := GetAppGwSslProfile(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("legacy-tls"))
 		})
 	})
 

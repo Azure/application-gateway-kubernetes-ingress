@@ -31,6 +31,7 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)
 		pruneFuncList = append(pruneFuncList, pruneRedirectWithNoTLS)
 		pruneFuncList = append(pruneFuncList, pruneNoSslCertificate)
+		pruneFuncList = append(pruneFuncList, pruneNoSslProfile)
 		pruneFuncList = append(pruneFuncList, pruneNoTrustedRootCertificate)
 	})
 	prunedIngresses := cbCtx.IngressList
@@ -106,6 +107,38 @@ func pruneNoSslCertificate(c *AppGwIngressController, appGw *n.ApplicationGatewa
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPreInstalledSslCertificate, errorLine)
 			if c.agicPod != nil {
 				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPreInstalledSslCertificate, errorLine)
+			}
+		} else {
+			prunedIngresses = append(prunedIngresses, ingress)
+		}
+	}
+
+	return prunedIngresses
+}
+
+// pruneNoSslProfile filters ingresses which use appgw-ssl-profile annotation when AppGw doesn't have annotated ssl profile installed
+func pruneNoSslProfile(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
+	set := make(map[string]bool)
+	for _, installedSslProfile := range *appGw.SslProfiles {
+		set[*installedSslProfile.Name] = true
+	}
+
+	for _, ingress := range ingressList {
+		annotatedSslProfile, err := annotations.GetAppGwSslProfile(ingress)
+		// if annotation is not specified, add the ingress and go check next
+		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+			prunedIngresses = append(prunedIngresses, ingress)
+			continue
+		}
+
+		// given empty string is a valid annotation value, we error out with a message if no match
+		if _, exists := set[annotatedSslProfile]; !exists {
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s to have pre-installed ssl profile '%s'", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName, annotatedSslProfile)
+			klog.Error(errorLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPreInstalledSslProfile, errorLine)
+			if c.agicPod != nil {
+				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPreInstalledSslProfile, errorLine)
 			}
 		} else {
 			prunedIngresses = append(prunedIngresses, ingress)
