@@ -1056,5 +1056,86 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "empty_cluster_with_private_ip.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slashnothing", func() {
+			annotatedIngress := ingressSlashNothing
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_one_ingress_slashnothing.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slash_slashnothing", func() {
+			annotatedIngress := ingressSlashNothingSlashSomething
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in 2 ingresses", func() {
+			annotatedIngress := ingressSlashNothing
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+					ingressA,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_two_ingress.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in path based rules ingress without a default backend", func() {
+			annotatedIngress := ingressMultiplePathRules
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_path-based_rules_without_default_backend.json", stopChannel, ctxt, configBuilder)
+		})
+
 	})
 })

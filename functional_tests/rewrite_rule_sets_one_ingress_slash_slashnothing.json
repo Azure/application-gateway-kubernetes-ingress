@@ -210,7 +210,47 @@
                 }
             }
         ],
-        "rewriteRuleSets": [{ "something": "something" }],
+        "rewriteRuleSets": [
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---my-rewrite-rule-set-crd--",
+                "name": "crd---my-rewrite-rule-set-crd--",
+                "properties": {
+                    "rewriteRules": [
+                        {
+                            "actionSet": {
+                                "requestHeaderConfigurations": [
+                                    {
+                                        "headerName": "aa",
+                                        "headerValue": "bb"
+                                    }
+                                ],
+                                "responseHeaderConfigurations": [
+                                    {
+                                        "headerName": "cc",
+                                        "headerValue": "dd"
+                                    }
+                                ],
+                                "urlConfiguration": {
+                                    "modifiedPath": "ff",
+                                    "modifiedQueryString": "gg",
+                                    "reroute": false
+                                }
+                            },
+                            "conditions": [
+                                {
+                                    "ignoreCase": false,
+                                    "negate": false,
+                                    "pattern": "yy",
+                                    "variable": "xx"
+                                }
+                            ],
+                            "name": "test-rule",
+                            "ruleSequence": 101
+                        }
+                    ]
+                }
+            }
+        ],
         "sku": {
             "capacity": 3,
             "name": "Standard_v2",
@@ -229,7 +269,7 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--SlashNothingSlashSomething"
                     },
                     "defaultRewriteRuleSet": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rrs-test-crd"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---my-rewrite-rule-set-crd--"
                     },
                     "pathRules": [
                         {
@@ -246,7 +286,7 @@
                                     "/A"
                                 ],
                                 "rewriteRuleSet": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rrs-test-crd"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---my-rewrite-rule-set-crd--"
                                 }
                             }
                         }
