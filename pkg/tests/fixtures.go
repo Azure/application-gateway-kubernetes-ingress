@@ -20,6 +20,8 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+
+	agrewrite "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
 )
 
 // constant values to be used for testing
@@ -60,6 +62,7 @@ const (
 	ServiceHTTPSPort             = "--service-https-port--"
 	IngressClassController       = "azure/application-gateway"
 	IngressClassResourceName     = "azure-application-gateway"
+	RewriteRuleSetName           = "--my-rewrite-rule-set-crd--"
 )
 
 func GetIngressClass() *networking.IngressClass {
@@ -171,6 +174,53 @@ func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
 		return nil, err
 	}
 	return obj.(*extensions.Ingress), nil
+}
+
+// NewRewriteRuleSetFixture makes a new rewrite rule set with the given name
+func NewRewriteRuleSetFixture(name string) *agrewrite.AzureApplicationGatewayRewrite {
+	return &agrewrite.AzureApplicationGatewayRewrite{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: Namespace,
+			Name:      name,
+		},
+		Spec: agrewrite.AzureApplicationGatewayRewriteSpec{
+			RewriteRules: []agrewrite.RewriteRule{
+				{
+					Name:         "test-rule",
+					RuleSequence: 101,
+					Actions: agrewrite.Actions{
+						RequestHeaderConfigurations: []agrewrite.HeaderConfiguration{
+							{
+								ActionType:  "set",
+								HeaderName:  "aa",
+								HeaderValue: "bb",
+							},
+						},
+						ResponseHeaderConfigurations: []agrewrite.HeaderConfiguration{
+							{
+								ActionType:  "delete",
+								HeaderName:  "cc",
+								HeaderValue: "dd",
+							},
+						},
+						UrlConfiguration: agrewrite.UrlConfiguration{
+							ModifiedPath:        "ff",
+							ModifiedQueryString: "gg",
+							Reroute:             false,
+						},
+					},
+					Conditions: []agrewrite.Condition{
+						{
+							IgnoreCase: false,
+							Negate:     false,
+							Variable:   "xx",
+							Pattern:    "yy",
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 // GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
