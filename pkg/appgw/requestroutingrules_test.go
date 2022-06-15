@@ -1098,7 +1098,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
 		_ = configBuilder.k8sContext.Caches.Service.Add(service)
-		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(&ingress)
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           []*networking.Ingress{&ingress},
