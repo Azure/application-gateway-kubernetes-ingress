@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -39,7 +40,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 		}
 
 		cbCtx := &ConfigBuilderContext{
-			IngressList:           cb.k8sContext.ListHTTPIngresses(),
+			IngressList:           ingressList,
 			ServiceList:           serviceList,
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
@@ -49,6 +50,40 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 
 		It("should contain correct number of rewrite rule sets", func() {
 			Expect(len(*cb.appGw.RewriteRuleSets)).To(Equal(0))
+		})
+	})
+
+	Context("1 ingress with rewrite rule set", func() {
+		ing := tests.NewIngressFixture()
+		ing.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+
+		ingressList := []*networking.Ingress{
+			ing,
+		}
+
+		cb := newConfigBuilderFixture(nil)
+		for _, ingress := range ingressList {
+			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
+		}
+
+		rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+		cb.k8sContext.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+		serviceList := []*v1.Service{
+			tests.NewServiceFixture(),
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           ingressList,
+			ServiceList:           serviceList,
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = cb.Rewrites(cbCtx)
+
+		It("should contain correct number of rewrite rule sets", func() {
+			Expect(len(*cb.appGw.RewriteRuleSets)).To(Equal(1))
 		})
 	})
 
