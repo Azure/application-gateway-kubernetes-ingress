@@ -32,6 +32,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set-crd](#rewrite-rule-set-crd) | `string` | `nil`  |   | `1.5.2-rc1` |
 | [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
@@ -843,7 +844,7 @@ spec:
 
 ## Rewrite Rule Set
 
-This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule.
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s).
 
 ### Usage
 
@@ -862,6 +863,72 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/rewrite-rule-set: add-custom-response-header
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: go-server-service
+            port:
+              number: 8080
+```
+
+## Rewrite Rule Set CRD
+
+This annotation allows to assign an existing rewrite rule set create via the AzureApplicationGatewayRewrite CRD to the corresponding request routing rule(s).
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/rewrite-rule-set-crd: <name of rewrite rule set crd>
+```
+
+### Example
+
+```yaml
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayRewrite
+metadata:
+  name: my-rewrite-rule-set
+spec:
+  rewriteRules:
+  - name: rule1
+    ruleSequence: 21
+
+    conditions:
+    - ignoreCase: false
+      negate: false
+      variable: http_req_Host
+      pattern: example.com
+
+    actions:
+      requestHeaderConfigurations:
+      - actionType: set
+        headerName: incoming-test-header
+        headerValue: incoming-test-value
+      
+      responseHeaderConfigurations:
+      - actionType: set
+        headerName: outgoing-test-header
+        headerValue: outgoing-test-value
+
+      urlConfiguration:
+        modifiedPath: "/api/"
+        modifiedQueryString: "query=test-value"
+        reroute: false
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set-crd: my-rewrite-rule-set
 spec:
   rules:
   - http:
