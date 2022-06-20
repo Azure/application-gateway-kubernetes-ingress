@@ -16,6 +16,10 @@ import (
 	"strings"
 	"time"
 
+	agrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
+	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
+	agiccrdscheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
+
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/Azure/go-autorest/autorest"
@@ -62,24 +66,30 @@ var (
 	UseExtensionsV1Beta1Ingress bool
 )
 
-func getClient() (*clientset.Clientset, error) {
+func getClients() (*clientset.Clientset, *versioned.Clientset, error) {
 	var kubeConfig *rest.Config
 	var err error
 	kubeConfigFile := GetEnv().KubeConfigFilePath
 	if kubeConfigFile == "" {
-		return nil, fmt.Errorf("KUBECONFIG is not set")
+		return nil, nil, fmt.Errorf("KUBECONFIG is not set")
 	}
 
 	kubeConfig, err = clientcmd.BuildConfigFromFlags("", kubeConfigFile)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	clientset, err := clientset.NewForConfig(kubeConfig)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return clientset, nil
+
+	crdClient, err := versioned.NewForConfig(kubeConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return clientset, crdClient, nil
 }
 
 func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
@@ -226,7 +236,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 		return nil, err
 	}
 
-	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap|Pod)`)
+	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap|Pod|AzureApplicationGatewayRewrite)`)
 	fileAsString := string(fileR[:])
 	sepYamlfiles := strings.Split(fileAsString, "---")
 	retVal := make([]runtime.Object, 0, len(sepYamlfiles))
@@ -238,7 +248,10 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 
 		obj, groupVersionKind, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(f), nil, nil)
 		if err != nil {
-			return nil, err
+			obj, groupVersionKind, err = agiccrdscheme.Codecs.UniversalDeserializer().Decode([]byte(f), nil, nil)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if !acceptedK8sTypes.MatchString(groupVersionKind.Kind) {
@@ -251,7 +264,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 	return retVal, nil
 }
 
-func updateYaml(clientset *clientset.Clientset, namespaceName string, fileName string) error {
+func updateYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, namespaceName string, fileName string) error {
 
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
@@ -351,6 +364,19 @@ func updateYaml(clientset *clientset.Clientset, namespaceName string, fileName s
 			} else {
 				return errors.New("namespace is not defined for pods when update")
 			}
+		} else if rewrite, ok := objs.(*agrewritev1beta1.AzureApplicationGatewayRewrite); ok {
+			nm := rewrite.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(namespaceName).Update(context.TODO(), rewrite, metav1.UpdateOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(nm).Update(context.TODO(), rewrite, metav1.UpdateOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for agrewrite when update")
+			}
 		} else {
 			return fmt.Errorf("unable to update YAML. Unknown object type: %v", objs)
 		}
@@ -358,7 +384,7 @@ func updateYaml(clientset *clientset.Clientset, namespaceName string, fileName s
 	return nil
 }
 
-func applyYaml(clientset *clientset.Clientset, namespaceName string, fileName string) error {
+func applyYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, namespaceName string, fileName string) error {
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
 	if err != nil {
@@ -455,7 +481,20 @@ func applyYaml(clientset *clientset.Clientset, namespaceName string, fileName st
 					return err
 				}
 			} else {
-				return errors.New("namespace is not defined for pods")
+				return errors.New("namespace is not defined for pods when create")
+			}
+		} else if rewrite, ok := objs.(*agrewritev1beta1.AzureApplicationGatewayRewrite); ok {
+			nm := rewrite.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if _, err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(namespaceName).Create(context.TODO(), rewrite, metav1.CreateOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if _, err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(nm).Create(context.TODO(), rewrite, metav1.CreateOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for agrewrite when create")
 			}
 		} else {
 			return fmt.Errorf("unable to apply YAML. Unknown object type: %v", objs)
