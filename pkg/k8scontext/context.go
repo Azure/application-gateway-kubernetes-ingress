@@ -912,20 +912,13 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 
 // getIngressClassResource gets ingress class object with specified name
 func (c *Context) getIngressClassResource(ingressClassName string) *networking.IngressClass {
-	if c.Caches.IngressClass == nil {
-		return nil
-	}
-
-	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
+	ingressClass, err := c.kubeClient.NetworkingV1().IngressClasses().Get(context.TODO(), ingressClassName, metav1.GetOptions{})
 	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s'. Error: %s", ingressClassName, err)
 		return nil
 	}
 
-	if !exist {
-		return nil
-	}
-
-	return ingressClassInterface.(*networking.IngressClass)
+	return ingressClass
 }
 
 // IsIngressClass checks if the Ingress resource can be handled by the Application Gateway ingress controller.

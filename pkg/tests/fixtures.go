@@ -20,8 +20,8 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
-
 	agrewrite "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
 // constant values to be used for testing
@@ -984,4 +984,16 @@ func NewSecretTestFixture() *v1.Secret {
 		"-----END CERTIFICATE-----\n")
 
 	return secret
+}
+
+// NewIngressClassFixture creates a new ingress class for testing.
+func NewIngressClassFixture() *networking.IngressClass {
+	return &networking.IngressClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: environment.DefaultIngressClassResourceName,
+		},
+		Spec: networking.IngressClassSpec{
+			Controller: environment.DefaultIngressClassController,
+		},
+	}
 }
