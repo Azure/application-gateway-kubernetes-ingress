@@ -878,7 +878,7 @@ spec:
 
 ## Rewrite Rule Set CRD
 
-This annotation allows to assign an existing rewrite rule set create via the AzureApplicationGatewayRewrite CRD to the corresponding request routing rule(s).
+This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.
 
 ### Usage
 

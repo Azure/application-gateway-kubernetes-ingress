@@ -127,12 +127,12 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 	}
 
 	// Build RewriteRuleSets configuration
-	err = c.Rewrites(cbCtx)
+	err = c.RewriteRuleSets(cbCtx)
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerError(
 			controllererrors.ErrorCreatingRewrites,
 			err,
-			"unable to generate rewrites",
+			"unable to generate rewrite rule sets",
 		)
 		klog.Errorf(e.Error())
 		return nil, e

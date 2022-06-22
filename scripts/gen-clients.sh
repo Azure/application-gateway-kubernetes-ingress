@@ -4,7 +4,11 @@ set -auexo pipefail
 
 # This script requres a checkout of https://github.com/kubernetes/code-generator release-1.21 in ../
 # For more information read https://blog.openshift.com/kubernetes-deep-dive-code-generation-customresources/
-# To generate crds, run this in the base directory of AGIC repo. Generated files will be in ~/go/src/ dir. Copy them over.
+# To generate CRDs, run this in the base directory of AGIC repo. Generated files will be in ~/go/src/ dir. Copy them over to ./pkg folder.
+
+# Commands to copy:
+# cp ~/go/src/github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis           ./pkg -r
+# cp ~/go/src/github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client     ./pkg -r
 
 # echo -e "Cleanup previously generated code..."
 # rm -rf pkg/client $(find ./pkg -name 'zz_*.go')

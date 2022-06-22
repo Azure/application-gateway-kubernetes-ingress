@@ -46,7 +46,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
-		_ = cb.Rewrites(cbCtx)
+		_ = cb.RewriteRuleSets(cbCtx)
 
 		It("should contain correct number of rewrite rule sets", func() {
 			Expect(len(*cb.appGw.RewriteRuleSets)).To(Equal(0))
@@ -80,7 +80,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
 
-		_ = cb.Rewrites(cbCtx)
+		_ = cb.RewriteRuleSets(cbCtx)
 
 		It("should contain correct number of rewrite rule sets", func() {
 			Expect(len(*cb.appGw.RewriteRuleSets)).To(Equal(1))
@@ -107,7 +107,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
 		}
-		_ = cb.Rewrites(cbCtx)
+		_ = cb.RewriteRuleSets(cbCtx)
 
 		It("should contain correct number of rewrite rule sets", func() {
 			Expect(len(*cb.appGw.RewriteRuleSets)).To(Equal(0))

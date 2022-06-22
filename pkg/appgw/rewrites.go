@@ -16,8 +16,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// Rewrites builds the RewriteRuleSets part of the configBuilder
-func (c *appGwConfigBuilder) Rewrites(cbCtx *ConfigBuilderContext) error {
+// RewriteRuleSets builds the RewriteRuleSets part of the configBuilder
+func (c *appGwConfigBuilder) RewriteRuleSets(cbCtx *ConfigBuilderContext) error {
 
 	if c.appGw.RewriteRuleSets == nil {
 		c.appGw.RewriteRuleSets = &[]n.ApplicationGatewayRewriteRuleSet{}
