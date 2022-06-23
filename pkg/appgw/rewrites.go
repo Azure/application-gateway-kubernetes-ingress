@@ -53,7 +53,7 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 
 	type rewriteCRDInfo struct {
 		ingressNamespace string
-		CRDName          string
+		crdName          string
 	}
 
 	uniqueRewriteRuleSetCRD := map[string]rewriteCRDInfo{}
@@ -61,7 +61,7 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 	// insert all referenced rewrite rule sets into a map to avoid duplicates
 	for _, ingress := range cbCtx.IngressList {
 
-		klog.V(9).Infof("Looking for rewrite-rule-set-crd annotation in %s/%s", ingress.Namespace, ingress.Name)
+		klog.V(9).Infof("Looking for %s annotation in %s/%s", annotations.RewriteRuleSetCRDKey, ingress.Namespace, ingress.Name)
 		rewriteRuleSetCRDName, err := annotations.RewriteRuleSetCRD(ingress)
 
 		// if there is error fetching CRD name or if the value is "", move onto the next ingress
@@ -71,7 +71,7 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 
 		uniqueRewriteRuleSetCRD[ingress.Namespace+"/"+rewriteRuleSetCRDName] = rewriteCRDInfo{
 			ingressNamespace: ingress.Namespace,
-			CRDName:          rewriteRuleSetCRDName,
+			crdName:          rewriteRuleSetCRDName,
 		}
 	}
 
@@ -80,14 +80,14 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 	// get details of all the unique rewrite rule sets referenced in various ingress manifest
 	for _, rewriteRuleSetCRDInfo := range uniqueRewriteRuleSetCRD {
 
-		rewrite, err := c.k8sContext.GetRewrite(rewriteRuleSetCRDInfo.ingressNamespace, rewriteRuleSetCRDInfo.CRDName)
+		rewrite, err := c.k8sContext.GetRewrite(rewriteRuleSetCRDInfo.ingressNamespace, rewriteRuleSetCRDInfo.crdName)
 
 		if err != nil {
-			klog.Errorf("Error occured while fetching rewrite CRD for %s. Please register CRD.", rewriteRuleSetCRDInfo.CRDName)
+			klog.Errorf("Error occured while fetching rewrite CRD for %s. Please register CRD.", rewriteRuleSetCRDInfo.crdName)
 			continue
 		}
 
-		appGwRewriteRuleSet = append(appGwRewriteRuleSet, c.makeRewrite(rewriteRuleSetCRDInfo.CRDName, rewrite))
+		appGwRewriteRuleSet = append(appGwRewriteRuleSet, c.makeRewrite(rewriteRuleSetCRDInfo.crdName, rewrite))
 	}
 
 	return appGwRewriteRuleSet

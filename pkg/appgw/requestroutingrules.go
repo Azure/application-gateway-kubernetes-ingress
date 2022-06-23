@@ -295,15 +295,15 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 
 		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
 		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
-		rewriteRuleSetCRD, err2 := annotations.RewriteRuleSetCRD(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCRD(ingress)
 
-		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCRD != "" {
-			klog.Error("rewrite-rule-set and rewrite-rule-set-crd both annotations are defined. Please use one.")
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCRDKey)
 		} else if err1 == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
-		} else if err2 == nil && rewriteRuleSetCRD != "" {
-			rewriteRuleSetCRD = fmt.Sprintf("crd-%s", rewriteRuleSetCRD)
-			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRD))
+		} else if err2 == nil && rewriteRuleSetCR != "" {
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s", rewriteRuleSetCR)
+			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
 		}
 
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
@@ -348,10 +348,10 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 
 		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
 		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
-		rewriteRuleSetCRD, err2 := annotations.RewriteRuleSetCRD(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCRD(ingress)
 
-		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCRD != "" {
-			klog.Error("rewrite-rule-set and rewrite-rule-set-crd both annotations are defined. Please use one.")
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCRDKey)
 		} else if err1 == nil && rewriteRuleSet != "" {
 
 			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
@@ -361,15 +361,15 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			}
 			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSet, paths)
 
-		} else if err2 == nil && rewriteRuleSetCRD != "" {
+		} else if err2 == nil && rewriteRuleSetCR != "" {
 
-			rewriteRuleSetCRD = fmt.Sprintf("crd-%s", rewriteRuleSetCRD)
-			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRD))
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s", rewriteRuleSetCR)
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
 			var paths string
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCRD, paths)
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCR, paths)
 
 		}
 

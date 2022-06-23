@@ -1002,17 +1002,17 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
-	Context("test ingress rewrite rule set crd with two ingresses with different rule sets", func() {
+	Context("test ingress rewrite rule set custom resource with two ingresses with different rule sets", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 
 		ingressPathBased1 := tests.NewIngressFixture()
-		rewriteRuleSetCRDName1 := "test-rewrite-crd-1"
-		ingressPathBased1.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRDName1
+		rewriteRuleSetCRName1 := "test-rewrite-cr-1"
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName1
 
 		ingressPathBased2 := tests.NewIngressFixture()
-		rewriteRuleSetCRDName2 := "test-rewrite-crd-2"
-		ingressPathBased2.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRDName2
+		rewriteRuleSetCRName2 := "test-rewrite-cr-2"
+		ingressPathBased2.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName2
 
 		testBackend := tests.NewIngressBackendFixture("test", 80)
 		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
@@ -1044,10 +1044,10 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 
 		// agic prefixes rewrite rule sets created via rewrite CRD with `crd-`
-		rewriteRuleSetCRDName1 = fmt.Sprintf("crd-%s", rewriteRuleSetCRDName1)
-		rewriteRuleSetCRDName2 = fmt.Sprintf("crd-%s", rewriteRuleSetCRDName2)
-		expectedRewriteRuleSet1 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRDName1))
-		expectedRewriteRuleSet2 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRDName2))
+		rewriteRuleSetCRName1 = fmt.Sprintf("crd-%s", rewriteRuleSetCRName1)
+		rewriteRuleSetCRName2 = fmt.Sprintf("crd-%s", rewriteRuleSetCRName2)
+		expectedRewriteRuleSet1 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName1))
+		expectedRewriteRuleSet2 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName2))
 
 		// the paths defined in both ingresses (common paths) have rewrite rules declared in the first ingress since it
 		// takes precendence
@@ -1064,12 +1064,12 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 
-	Context("test ingress rewrite rule set crd in basic ingress", func() {
+	Context("test ingress rewrite rule set custom resource in basic ingress", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
-		rewriteRuleSetCRDName := "test-rewrite-crd"
-		ingress.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRDName
+		rewriteRuleSetCRName := "test-rewrite-cr"
+		ingress.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           []*networking.Ingress{ingress},
@@ -1080,9 +1080,9 @@ var _ = Describe("Test routing rules generations", func() {
 
 		requestRoutingRules, _ := configBuilder.getRules(cbCtx)
 
-		// agic prefixes rewrite rule sets created via rewrite CRD with `crd-`
-		rewriteRuleSetCRDName = fmt.Sprintf("crd-%s", rewriteRuleSetCRDName)
-		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRDName))
+		// agic prefixes rewrite rule sets created via rewrite CR with `crd-`
+		rewriteRuleSetCRName = fmt.Sprintf("crd-%s", rewriteRuleSetCRName)
+		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName))
 
 		It("has rewrite rule set", func() {
 			Expect(requestRoutingRules[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))

@@ -60,7 +60,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/health-probe-timeout":                "10",
 		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold":    "3",
 		"appgw.ingress.kubernetes.io/rewrite-rule-set":                    "my-rewrite-rule-set",
-		"appgw.ingress.kubernetes.io/rewrite-rule-set-crd":                "my-rewrite-rule-set-crd",
+		"appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource":    "my-rewrite-rule-set-cr",
 		"kubernetes.io/ingress.class":                                     "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                                 "azure/application-gateway",
 		"falseKey":                                                        "false",
@@ -256,7 +256,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
-	Context("test rewrite-rule-set-crd", func() {
+	Context("test rewrite-rule-set-custom-resource", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &networking.Ingress{}
 			actual, err := RewriteRuleSetCRD(ing)
@@ -266,7 +266,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		It("returns rewrite rule set", func() {
 			actual, err := RewriteRuleSetCRD(ing)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal("my-rewrite-rule-set-crd"))
+			Expect(actual).To(Equal("my-rewrite-rule-set-cr"))
 		})
 	})
 

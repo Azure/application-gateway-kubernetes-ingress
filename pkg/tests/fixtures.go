@@ -62,7 +62,7 @@ const (
 	ServiceHTTPSPort             = "--service-https-port--"
 	IngressClassController       = "azure/application-gateway"
 	IngressClassResourceName     = "azure-application-gateway"
-	RewriteRuleSetName           = "--my-rewrite-rule-set-crd--"
+	RewriteRuleSetName           = "my-rewrite-rule-set-custom-resource"
 )
 
 func GetIngressClass() *networking.IngressClass {

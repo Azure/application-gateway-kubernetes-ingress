@@ -164,7 +164,7 @@
                     },
                     "priority": 19500,
                     "rewriteRuleSet": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---my-rewrite-rule-set-crd--"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rewrite-rule-set-custom-resource"
                     },
                     "ruleType": "Basic"
                 }
@@ -172,8 +172,8 @@
         ],
         "rewriteRuleSets": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---my-rewrite-rule-set-crd--",
-                "name": "crd---my-rewrite-rule-set-crd--",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rewrite-rule-set-custom-resource",
+                "name": "crd-my-rewrite-rule-set-custom-resource",
                 "properties": {
                     "rewriteRules": [
                         {

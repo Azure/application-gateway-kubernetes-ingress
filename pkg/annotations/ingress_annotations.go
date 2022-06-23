@@ -107,7 +107,7 @@ const (
 	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
 
 	// RewriteRuleSetCRDKey indicates the name of the rule set CRD to use for header CRD and URL Config.
-	RewriteRuleSetCRDKey = ApplicationGatewayPrefix + "/rewrite-rule-set-crd"
+	RewriteRuleSetCRDKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
 )
 
 // ProtocolEnum is the type for protocol

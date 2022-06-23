@@ -471,8 +471,8 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(testHeader).To(Equal("test-value"))
 		})
 
-		It("[rewrite-rule-set-crd] rewrite-rule-set-crd annotation attaches a rule set to routing rule", func() {
-			namespaceName := "e2e-rewrite-rule-set-crd"
+		It("[rewrite-rule-set-custom-resource] rewrite-rule-set-custom-resource annotation attaches a rule set to routing rule", func() {
+			namespaceName := "e2e-rewrite-rule-set-custom-resource"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -483,7 +483,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/rewrite-rule-set-crd/app.yaml"
+			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/rewrite-rule-set-custom-resource/app.yaml"
 			klog.Info("Applying yaml: ", yamlPath)
 			err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
 			Expect(err).To(BeNil())

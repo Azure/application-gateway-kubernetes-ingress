@@ -139,7 +139,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 	})
 
 	// The below test uses c.makeRewrite as well as makeConditions, makeActionSet, makeHeaderConfig, makeURLConfig
-	Context("ensure correct converion of *v1beta1.AzureApplicationGatewayRewrite to n.ApplicationGatewayRewriteRuleSet", func() {
+	Context("ensure correct conversion of *v1beta1.AzureApplicationGatewayRewrite to n.ApplicationGatewayRewriteRuleSet", func() {
 
 		inputSpec := v1beta1.AzureApplicationGatewayRewrite{
 			Spec: v1beta1.AzureApplicationGatewayRewriteSpec{
