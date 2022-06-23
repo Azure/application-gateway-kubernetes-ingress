@@ -1084,7 +1084,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slashnothing", func() {
 			annotatedIngress := newIngressSlashNothing()
-			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
@@ -1104,7 +1104,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slash_slashnothing", func() {
 			annotatedIngress := newIngressSlashNothingSlashSomething()
-			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
@@ -1124,7 +1124,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		ginkgo.It("Rewrite Rule Set CRD in 2 ingresses", func() {
 			annotatedIngress := newIngressSlashNothing()
-			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
@@ -1145,7 +1145,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		ginkgo.It("Rewrite Rule Set CRD in path based rules ingress without a default backend", func() {
 			annotatedIngress := newIngressMultiplePathRules()
-			annotatedIngress.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{

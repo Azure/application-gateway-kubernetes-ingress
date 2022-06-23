@@ -295,10 +295,10 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 
 		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
 		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
-		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCRD(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCustomResource(ingress)
 
 		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
-			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCRDKey)
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCustomResourceKey)
 		} else if err1 == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
 		} else if err2 == nil && rewriteRuleSetCR != "" {
@@ -348,10 +348,10 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 
 		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
 		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
-		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCRD(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCustomResource(ingress)
 
 		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
-			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCRDKey)
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCustomResourceKey)
 		} else if err1 == nil && rewriteRuleSet != "" {
 
 			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))

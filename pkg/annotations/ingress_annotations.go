@@ -106,8 +106,8 @@ const (
 	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
 	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
 
-	// RewriteRuleSetCRDKey indicates the name of the rule set CRD to use for header CRD and URL Config.
-	RewriteRuleSetCRDKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
+	// RewriteRuleSetCustomResourceKey indicates the name of the rule set CRD to use for header CRD and URL Config.
+	RewriteRuleSetCustomResourceKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
 )
 
 // ProtocolEnum is the type for protocol
@@ -296,9 +296,9 @@ func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetKey)
 }
 
-// RewriteRuleSetCRD name
-func RewriteRuleSetCRD(ing *networking.Ingress) (string, error) {
-	return parseString(ing, RewriteRuleSetCRDKey)
+// RewriteRuleSetCustomResource name
+func RewriteRuleSetCustomResource(ing *networking.Ingress) (string, error) {
+	return parseString(ing, RewriteRuleSetCustomResourceKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {

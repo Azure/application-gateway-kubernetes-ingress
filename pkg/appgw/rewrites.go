@@ -61,8 +61,8 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 	// insert all referenced rewrite rule sets into a map to avoid duplicates
 	for _, ingress := range cbCtx.IngressList {
 
-		klog.V(9).Infof("Looking for %s annotation in %s/%s", annotations.RewriteRuleSetCRDKey, ingress.Namespace, ingress.Name)
-		rewriteRuleSetCRDName, err := annotations.RewriteRuleSetCRD(ingress)
+		klog.V(9).Infof("Looking for %s annotation in %s/%s", annotations.RewriteRuleSetCustomResourceKey, ingress.Namespace, ingress.Name)
+		rewriteRuleSetCRDName, err := annotations.RewriteRuleSetCustomResource(ingress)
 
 		// if there is error fetching CRD name or if the value is "", move onto the next ingress
 		if err != nil || rewriteRuleSetCRDName == "" {

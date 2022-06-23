@@ -259,12 +259,12 @@ var _ = Describe("Test ingress annotation functions", func() {
 	Context("test rewrite-rule-set-custom-resource", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &networking.Ingress{}
-			actual, err := RewriteRuleSetCRD(ing)
+			actual, err := RewriteRuleSetCustomResource(ing)
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
 		})
 		It("returns rewrite rule set", func() {
-			actual, err := RewriteRuleSetCRD(ing)
+			actual, err := RewriteRuleSetCustomResource(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("my-rewrite-rule-set-cr"))
 		})

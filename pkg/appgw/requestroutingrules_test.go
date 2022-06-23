@@ -950,7 +950,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		ingressPathBased1 := tests.NewIngressFixture()
 		rewriteRuleSetCRName := "test-rewrite-cr"
-		ingressPathBased1.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName
 
 		ingressPathBased2 := tests.NewIngressFixture()
 
@@ -1008,11 +1008,11 @@ var _ = Describe("Test routing rules generations", func() {
 
 		ingressPathBased1 := tests.NewIngressFixture()
 		rewriteRuleSetCRName1 := "test-rewrite-cr-1"
-		ingressPathBased1.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName1
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName1
 
 		ingressPathBased2 := tests.NewIngressFixture()
 		rewriteRuleSetCRName2 := "test-rewrite-cr-2"
-		ingressPathBased2.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName2
+		ingressPathBased2.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName2
 
 		testBackend := tests.NewIngressBackendFixture("test", 80)
 		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
@@ -1069,7 +1069,7 @@ var _ = Describe("Test routing rules generations", func() {
 		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
 		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
 		rewriteRuleSetCRName := "test-rewrite-cr"
-		ingress.Annotations[annotations.RewriteRuleSetCRDKey] = rewriteRuleSetCRName
+		ingress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           []*networking.Ingress{ingress},

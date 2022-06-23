@@ -57,7 +57,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 
 	Context("1 ingress with rewrite rule set", func() {
 		ing := tests.NewIngressFixture()
-		ing.Annotations[annotations.RewriteRuleSetCRDKey] = tests.RewriteRuleSetName
+		ing.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
 
 		ingressList := []*networking.Ingress{
 			ing,
