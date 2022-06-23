@@ -290,8 +290,8 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
 }
 
-// GetRewrite returns rewrite with specified name and namespace
-func (c *Context) GetRewrite(namespace string, rewriteName string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
+// GetRewriteRuleSetCustomResource returns rewrite with specified name and namespace
+func (c *Context) GetRewriteRuleSetCustomResource(namespace string, rewriteName string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
 
 	agrewrite, exist, err := c.Caches.AzureApplicationGatewayRewrite.GetByKey(namespace + "/" + rewriteName)
 	if !exist {

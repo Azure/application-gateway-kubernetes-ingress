@@ -302,7 +302,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		} else if err1 == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
 		} else if err2 == nil && rewriteRuleSetCR != "" {
-			rewriteRuleSetCR = fmt.Sprintf("crd-%s", rewriteRuleSetCR)
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s-%s", ingress.Namespace, rewriteRuleSetCR)
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
 		}
 
@@ -363,7 +363,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 
 		} else if err2 == nil && rewriteRuleSetCR != "" {
 
-			rewriteRuleSetCR = fmt.Sprintf("crd-%s", rewriteRuleSetCR)
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s-%s", ingress.Namespace, rewriteRuleSetCR)
 			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
 			var paths string
 			if pathRule.Paths != nil {

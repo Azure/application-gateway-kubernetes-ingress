@@ -176,8 +176,8 @@ func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
 	return obj.(*extensions.Ingress), nil
 }
 
-// NewRewriteRuleSetFixture makes a new rewrite rule set with the given name
-func NewRewriteRuleSetFixture(name string) *agrewrite.AzureApplicationGatewayRewrite {
+// NewRewriteRuleSetCustomResourceFixture makes a new rewrite rule set custom resource with the given name
+func NewRewriteRuleSetCustomResourceFixture(name string) *agrewrite.AzureApplicationGatewayRewrite {
 	return &agrewrite.AzureApplicationGatewayRewrite{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: Namespace,

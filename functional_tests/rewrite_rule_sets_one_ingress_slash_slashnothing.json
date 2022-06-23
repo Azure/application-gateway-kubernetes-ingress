@@ -212,8 +212,8 @@
         ],
         "rewriteRuleSets": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rewrite-rule-set-custom-resource",
-                "name": "crd-my-rewrite-rule-set-custom-resource",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---namespace---my-rewrite-rule-set-custom-resource",
+                "name": "crd---namespace---my-rewrite-rule-set-custom-resource",
                 "properties": {
                     "rewriteRules": [
                         {
@@ -269,7 +269,7 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-b-80-80---name--SlashNothingSlashSomething"
                     },
                     "defaultRewriteRuleSet": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rewrite-rule-set-custom-resource"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---namespace---my-rewrite-rule-set-custom-resource"
                     },
                     "pathRules": [
                         {
@@ -286,7 +286,7 @@
                                     "/A"
                                 ],
                                 "rewriteRuleSet": {
-                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd-my-rewrite-rule-set-custom-resource"
+                                    "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/rewriteRuleSets/crd---namespace---my-rewrite-rule-set-custom-resource"
                                 }
                             }
                         }

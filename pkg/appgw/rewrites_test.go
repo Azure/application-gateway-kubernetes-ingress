@@ -6,6 +6,8 @@
 package appgw
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -66,7 +68,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			_ = cb.k8sContext.Caches.Ingress.Add(ingress)
 		}
 
-		rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+		rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
 		cb.k8sContext.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 		serviceList := []*v1.Service{
@@ -116,11 +118,11 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 
 	Context("ensure correct removal of AGICGeneratedRewriteRuleSets", func() {
 		inputRewriteRuleSet := []n.ApplicationGatewayRewriteRuleSet{
-			{Name: to.StringPtr("crd-myrrs1")},
+			{Name: to.StringPtr("crd-mynamespace-myrrs1")},
 			{Name: to.StringPtr("myrrs2")},
-			{Name: to.StringPtr("crd-myrrs3")},
+			{Name: to.StringPtr("crd-mynamespace-myrrs3")},
 			{Name: to.StringPtr("myrrs4")},
-			{Name: to.StringPtr("crd-myrrs5")},
+			{Name: to.StringPtr("crd-mynamespace-myrrs5")},
 		}
 
 		actualRewriteRuleSet := removeAGICGeneratedRewriteRuleSets(&inputRewriteRuleSet)
@@ -242,11 +244,12 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			},
 		}
 
+		ns := "mynamespace"
 		actualRewriteRuleSetCRDName := "test-rewrite-rule-set"
-		expectedRewriteRuleSetCRDName := "crd-" + actualRewriteRuleSetCRDName
+		expectedRewriteRuleSetCRDName := fmt.Sprintf("crd-%s-%s", ns, actualRewriteRuleSetCRDName)
 
 		cb := newConfigBuilderFixture(nil)
-		actualOutput := cb.makeRewrite(actualRewriteRuleSetCRDName, &inputSpec)
+		actualOutput := cb.makeRewrite(ns, actualRewriteRuleSetCRDName, &inputSpec)
 
 		expectedOuput := n.ApplicationGatewayRewriteRuleSet{
 			Name: to.StringPtr(expectedRewriteRuleSetCRDName),
@@ -357,9 +360,4 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 			Expect(actualOutput).To(Equal(expectedOuput))
 		})
 	})
-
-	// TODO: Write a test for getAGICRewriteRuleSets
-	// getAGICRewriteRuleSets goes over cbCtx.IngressList and checkes for rewriteRuleSetCRD annotation
-	// it uses c.k8sContext.GetRewrite to get all the CRD that are referenced by atleast 1 ingress
-	// it returns []n.ApplicationGatewayRewriteRuleSet
 })

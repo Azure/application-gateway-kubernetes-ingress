@@ -1096,7 +1096,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
 			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 			check(cbCtx, "rewrite_rule_sets_one_ingress_slashnothing.json", stopChannel, ctxt, configBuilder)
@@ -1116,7 +1116,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
 			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 			check(cbCtx, "rewrite_rule_sets_one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
@@ -1137,7 +1137,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
 			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 			check(cbCtx, "rewrite_rule_sets_two_ingress.json", stopChannel, ctxt, configBuilder)
@@ -1157,7 +1157,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			rewriteRuleSet := tests.NewRewriteRuleSetFixture(tests.RewriteRuleSetName)
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
 			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 			check(cbCtx, "rewrite_rule_sets_path-based_rules_without_default_backend.json", stopChannel, ctxt, configBuilder)
