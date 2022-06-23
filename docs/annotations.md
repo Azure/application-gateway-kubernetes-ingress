@@ -32,7 +32,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
-| [appgw.ingress.kubernetes.io/rewrite-rule-set-crd](#rewrite-rule-set-crd) | `string` | `nil`  |   | `1.5.2-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | `1.5.2-rc1` |
 | [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
@@ -883,7 +883,7 @@ This annotation allows to assign a header/URL rewrite rule set created via the A
 ### Usage
 
 ```yaml
-appgw.ingress.kubernetes.io/rewrite-rule-set-crd: <name of rewrite rule set crd>
+appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: <name of rewrite rule set custom resource>
 ```
 
 ### Example
@@ -928,7 +928,7 @@ metadata:
   namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/rewrite-rule-set-crd: my-rewrite-rule-set
+    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
 spec:
   rules:
   - http:
