@@ -56,48 +56,48 @@ func (c appGwConfigBuilder) getAGICRewriteRuleSets(cbCtx *ConfigBuilderContext) 
 		crdName          string
 	}
 
-	uniqueRewriteRuleSetCRD := map[string]rewriteCRDInfo{}
+	uniqueRewriteRuleSetCR := map[string]rewriteCRDInfo{}
 
 	// insert all referenced rewrite rule sets into a map to avoid duplicates
 	for _, ingress := range cbCtx.IngressList {
 
 		klog.V(9).Infof("Looking for %s annotation in %s/%s", annotations.RewriteRuleSetCustomResourceKey, ingress.Namespace, ingress.Name)
-		rewriteRuleSetCRDName, err := annotations.RewriteRuleSetCustomResource(ingress)
+		rewriteRuleSetCRName, err := annotations.RewriteRuleSetCustomResource(ingress)
 
-		// if there is error fetching CRD name or if the value is "", move onto the next ingress
-		if err != nil || rewriteRuleSetCRDName == "" {
+		// if there is error fetching CR or if the value is "", move onto the next ingress
+		if err != nil || rewriteRuleSetCRName == "" {
 			continue
 		}
 
-		uniqueRewriteRuleSetCRD[ingress.Namespace+"/"+rewriteRuleSetCRDName] = rewriteCRDInfo{
+		uniqueRewriteRuleSetCR[ingress.Namespace+"/"+rewriteRuleSetCRName] = rewriteCRDInfo{
 			ingressNamespace: ingress.Namespace,
-			crdName:          rewriteRuleSetCRDName,
+			crdName:          rewriteRuleSetCRName,
 		}
 	}
 
 	var appGwRewriteRuleSet []n.ApplicationGatewayRewriteRuleSet
 
 	// get details of all the unique rewrite rule sets referenced in various ingress manifest
-	for _, rewriteRuleSetCRDInfo := range uniqueRewriteRuleSetCRD {
+	for _, rewriteRuleSetCRInfo := range uniqueRewriteRuleSetCR {
 
-		rewrite, err := c.k8sContext.GetRewriteRuleSetCustomResource(rewriteRuleSetCRDInfo.ingressNamespace, rewriteRuleSetCRDInfo.crdName)
+		rewrite, err := c.k8sContext.GetRewriteRuleSetCustomResource(rewriteRuleSetCRInfo.ingressNamespace, rewriteRuleSetCRInfo.crdName)
 
 		if err != nil {
-			klog.Errorf("Error occured while fetching rewrite rule set custom resource named %s.", rewriteRuleSetCRDInfo.crdName)
+			klog.Errorf("Error occured while fetching rewrite rule set custom resource named %s.", rewriteRuleSetCRInfo.crdName)
 			continue
 		}
 
-		appGwRewriteRuleSet = append(appGwRewriteRuleSet, c.makeRewrite(rewriteRuleSetCRDInfo.ingressNamespace, rewriteRuleSetCRDInfo.crdName, rewrite))
+		appGwRewriteRuleSet = append(appGwRewriteRuleSet, c.makeRewrite(rewriteRuleSetCRInfo.ingressNamespace, rewriteRuleSetCRInfo.crdName, rewrite))
 	}
 
 	return appGwRewriteRuleSet
 }
 
 // c.makeRewrite converts *v1beta1.AzureApplicationGatewayRewrite to n.ApplicationGatewayRewriteRuleSet
-func (c appGwConfigBuilder) makeRewrite(namespace string, rewriteRuleSetCRDName string, rewrite *v1beta1.AzureApplicationGatewayRewrite) n.ApplicationGatewayRewriteRuleSet {
+func (c appGwConfigBuilder) makeRewrite(namespace string, rewriteRuleSetCRName string, rewrite *v1beta1.AzureApplicationGatewayRewrite) n.ApplicationGatewayRewriteRuleSet {
 
 	// prefix AGIC built rewriteRuleSets by crd- to help differentiate from user created rewrite rule sets
-	rewriteRuleSetCRDName = fmt.Sprintf("crd-%s-%s", namespace, rewriteRuleSetCRDName)
+	rewriteRuleSetCRName = fmt.Sprintf("crd-%s-%s", namespace, rewriteRuleSetCRName)
 
 	appGwRewriteRules := []n.ApplicationGatewayRewriteRule{}
 
@@ -114,8 +114,8 @@ func (c appGwConfigBuilder) makeRewrite(namespace string, rewriteRuleSetCRDName 
 	}
 
 	return n.ApplicationGatewayRewriteRuleSet{
-		Name: to.StringPtr(rewriteRuleSetCRDName),
-		ID:   to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRDName)),
+		Name: to.StringPtr(rewriteRuleSetCRName),
+		ID:   to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName)),
 
 		ApplicationGatewayRewriteRuleSetPropertiesFormat: &n.ApplicationGatewayRewriteRuleSetPropertiesFormat{
 			RewriteRules: &appGwRewriteRules,
