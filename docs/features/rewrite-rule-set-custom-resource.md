@@ -61,7 +61,7 @@ spec:
         pathType: Exact
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```

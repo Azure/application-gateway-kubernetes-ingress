@@ -291,14 +291,14 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 }
 
 // GetRewriteRuleSetCustomResource returns rewrite with specified name and namespace
-func (c *Context) GetRewriteRuleSetCustomResource(namespace string, rewriteName string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
+func (c *Context) GetRewriteRuleSetCustomResource(namespace string, name string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
 
-	agrewrite, exist, err := c.Caches.AzureApplicationGatewayRewrite.GetByKey(namespace + "/" + rewriteName)
+	agrewrite, exist, err := c.Caches.AzureApplicationGatewayRewrite.GetByKey(namespace + "/" + name)
 	if !exist {
 		e := controllererrors.NewErrorf(
 			controllererrors.ErrorFetchingRewrite,
-			"Rewrite CRD object not found for %s",
-			rewriteName)
+			"Rewrite rule set custom resource object not found for %s",
+			name)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e
@@ -308,8 +308,8 @@ func (c *Context) GetRewriteRuleSetCustomResource(namespace string, rewriteName 
 		e := controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorFetchingRewrite,
 			err,
-			"Error fetching rewrite CRD object from store for %s",
-			rewriteName)
+			"Error fetching rewrite rule set custom resource object from store for %s",
+			name)
 		klog.Error(e.Error())
 		c.MetricStore.IncErrorCount(e.Code)
 		return nil, e

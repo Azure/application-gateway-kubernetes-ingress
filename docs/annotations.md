@@ -65,7 +65,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -101,7 +101,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -130,7 +130,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: go-server-service
+            name: store-service
 ```
 
 ## Backend Hostname
@@ -159,7 +159,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -194,7 +194,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -388,7 +388,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -422,7 +422,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -498,7 +498,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -537,7 +537,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -626,7 +626,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -665,7 +665,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -701,7 +701,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```
@@ -734,7 +734,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -768,7 +768,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -802,7 +802,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -836,7 +836,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -871,12 +871,12 @@ spec:
         pathType: Exact
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```
 
-## Rewrite Rule Set CRD
+## Rewrite Rule Set Custom Resource
 
 This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.
 
@@ -937,7 +937,7 @@ spec:
         pathType: Exact
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```
