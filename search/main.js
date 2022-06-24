@@ -21,15 +21,8 @@ function joinUrl (base, path) {
   return base + "/" + path;
 }
 
-function escapeHtml (value) {
-  return value.replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
 function formatResult (location, title, summary) {
-  return '<article><h3><a href="' + joinUrl(base_url, location) + '">'+ escapeHtml(title) + '</a></h3><p>' + escapeHtml(summary) +'</p></article>';
+  return '<article><h3><a href="' + joinUrl(base_url, location) + '">'+ title + '</a></h3><p>' + summary +'</p></article>';
 }
 
 function displayResults (results) {
@@ -44,17 +37,13 @@ function displayResults (results) {
       search_results.insertAdjacentHTML('beforeend', html);
     }
   } else {
-    var noResultsText = search_results.getAttribute('data-no-results-text');
-    if (!noResultsText) {
-      noResultsText = "No results found";
-    }
-    search_results.insertAdjacentHTML('beforeend', '<p>' + noResultsText + '</p>');
+    search_results.insertAdjacentHTML('beforeend', "<p>No results found</p>");
   }
 }
 
 function doSearch () {
   var query = document.getElementById('mkdocs-search-query').value;
-  if (query.length > min_search_length) {
+  if (query.length > 2) {
     if (!window.Worker) {
       displayResults(search(query));
     } else {
@@ -84,8 +73,6 @@ function onWorkerMessage (e) {
   } else if (e.data.results) {
     var results = e.data.results;
     displayResults(results);
-  } else if (e.data.config) {
-    min_search_length = e.data.config.min_search_length-1;
   }
 }
 
