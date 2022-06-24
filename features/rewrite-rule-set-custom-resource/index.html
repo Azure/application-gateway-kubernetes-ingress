@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Cookie affinity - Application Gateway Ingress Controller</title>
+  <title>Rewrite rule set custom resource - Application Gateway Ingress Controller</title>
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
@@ -16,8 +16,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Cookie affinity";
-    var mkdocs_page_input_path = "features/cookie-affinity.md";
+    var mkdocs_page_name = "Rewrite rule set custom resource";
+    var mkdocs_page_input_path = "features/rewrite-rule-set-custom-resource.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -117,21 +117,9 @@
                     
     <a class="" href="../appgw-ssl-certificate/">Appgw ssl certificate</a>
                 </li>
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">Cookie affinity</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#enable-cookie-based-affinity">Enable Cookie based Affinity</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#example">Example</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="../cookie-affinity/">Cookie affinity</a>
                 </li>
                 <li class="">
                     
@@ -149,9 +137,36 @@
                     
     <a class="" href="../probes/">Probes</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+    <a class="current" href="./">Rewrite rule set custom resource</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#rewrite-rule-set-custom-resource">Rewrite Rule Set Custom Resource</a></li>
+    
+
+    <li class="toctree-l3"><a href="#usage">Usage</a></li>
+    
+
+    <li class="toctree-l3"><a href="#important-points-to-note">Important points to note:</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#metadata-name">metadata &amp; name</a></li>
+        
+            <li><a class="toctree-l4" href="#rulesequence">RuleSequence</a></li>
+        
+            <li><a class="toctree-l4" href="#conditions">Conditions:</a></li>
+        
+            <li><a class="toctree-l4" href="#actions">Actions:</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l3"><a href="#example">Example:</a></li>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -289,10 +304,10 @@
         
       
     
-    <li>Cookie affinity</li>
+    <li>Rewrite rule set custom resource</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/cookie-affinity.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/rewrite-rule-set-custom-resource.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
       
     </li>
   </ul>
@@ -301,25 +316,105 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="enable-cookie-based-affinity">Enable Cookie based Affinity</h2>
-<p>As outlined in the <a href="https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-components#http-settings">Azure Application Gateway Documentation</a>, Application Gateway supports cookie based affinity enabling which it can direct subsequent traffic from a user session to the same server for processing.</p>
-<h3 id="example">Example</h3>
-<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+                <h2 id="rewrite-rule-set-custom-resource">Rewrite Rule Set Custom Resource</h2>
+<p>Application Gateway allows you to rewrite selected content of requests and responses. With this feature, you can translate URLs, query string parameters as well as modify request and response headers. It also allows you to add conditions to ensure that the URL or the specified headers are rewritten only when certain conditions are met. These conditions are based on the request and response information. Rewrite Rule Set Custom Resource brings this feature to AGIC.</p>
+<p>HTTP headers allow a client and server to pass additional information with a request or response. By rewriting these headers, you can accomplish important tasks, such as adding security-related header fields like HSTS/ X-XSS-Protection, removing response header fields that might reveal sensitive information, and removing port information from X-Forwarded-For headers.</p>
+<p>With URL rewrite capability, you can:
+- Rewrite the host name, path and query string of the request URL
+- Choose to rewrite the URL of all requests or only those requests which match one or more of the conditions you set. These conditions are based on the request and response properties (request header, response header and server variables).
+- Choose to route the request based on either the original URL or the rewritten URL</p>
+<h2 id="usage">Usage</h2>
+<p>To use the feature, the customer must define a Custom Resource of the type <strong>AzureApplicationGatewayRewrite</strong> which must have a name in the metadata section. The ingress manifest must refer this Custom Resource via the <strong><code>appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</code></strong> annotation.</p>
+<h2 id="important-points-to-note">Important points to note:</h2>
+<h3 id="metadata-name">metadata &amp; name</h3>
+<ul>
+<li>In the metadata section, name of the AzureApplicationGatewayRewrite custom resource should match the custom resource referred in the annotation.</li>
+</ul>
+<h3 id="rulesequence">RuleSequence</h3>
+<ul>
+<li>The rule sequence must be unique for every rewrite rule</li>
+</ul>
+<h3 id="conditions">Conditions:</h3>
+<p>You can use rewrite conditions, an optional configuration, to evaluate the content of HTTP(S) requests and responses and perform a rewrite only when one or more conditions are met. </p>
+<p>The following types of variables can be used to define a condition:
+- HTTP headers in the request
+- HTTP headers in the response
+- Application Gateway server variables</p>
+<p><strong>Note:</strong>
+- While defining conditions, request headers must be prefixed with <code>http_req_</code>, response headers must be prefixed with <code>http_res_</code> and list of server variables can be found <a href="https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#server-variables">here</a></p>
+<h3 id="actions">Actions:</h3>
+<p>You use rewrite actions to specify the URL, request headers or response headers that you want to rewrite and the new value to which you intend to rewrite them to. The value of a URL or a new or existing header can be set to these types of values:</p>
+<ul>
+<li>Text</li>
+<li>Request header</li>
+<li>Response header</li>
+<li>Server Variable</li>
+<li>Combination of the any of the above</li>
+</ul>
+<p><strong>Note:</strong>
+- To specify a request header, you need to use the syntax <code>http_req_headerName</code>
+- To specify a response header, you need to use the syntax <code>http_resp_headerName</code>
+- To specify a server variable, you need to use the syntax <code>var_serverVariable</code>. See the list of supported server variables <a href="https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#server-variables">here</a></p>
+<h4 id="url-rewrite-configuration">URL Rewrite Configuration</h4>
+<ul>
+<li>URL path: The value to which the path is to be rewritten to.</li>
+<li>URL Query String: The value to which the query string is to be rewritten to.</li>
+<li>Re-evaluate path map: Used to determine whether the URL path map is to be re-evaluated or not. If set to <strong>false</strong>, the original URL path will be used to match the path-pattern in the URL path map. If set to <strong>true</strong>, the URL path map will be re-evaluated to check the match with the rewritten path. </li>
+</ul>
+<p><strong>Recommended:</strong> More information about Application Gateway's Rewrite feature can be found <a href="https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url">here</a></p>
+<h2 id="example">Example:</h2>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">appgw.ingress.azure.io/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AzureApplicationGatewayRewrite</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set-custom-resource</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">rewriteRules</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rule1</span>
+    <span class="nt">ruleSequence</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">21</span>
+
+    <span class="nt">conditions</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">ignoreCase</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+      <span class="nt">negate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+      <span class="nt">variable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http_req_Host</span>
+      <span class="nt">pattern</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">example.com</span>
+
+    <span class="nt">actions</span><span class="p">:</span>
+      <span class="nt">requestHeaderConfigurations</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">actionType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">set</span>
+        <span class="nt">headerName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">incoming-test-header</span>
+        <span class="nt">headerValue</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">incoming-test-value</span>
+
+      <span class="nt">responseHeaderConfigurations</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">actionType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">set</span>
+        <span class="nt">headerName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">outgoing-test-header</span>
+        <span class="nt">headerValue</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">outgoing-test-value</span>
+
+      <span class="nt">urlConfiguration</span><span class="p">:</span>
+        <span class="nt">modifiedPath</span><span class="p">:</span> <span class="s">&quot;/api/&quot;</span>
+        <span class="nt">modifiedQueryString</span><span class="p">:</span> <span class="s">&quot;query=test-value&quot;</span>
+        <span class="nt">reroute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+
+<span class="nn">---</span>
+
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
 <span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-ingress</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">test-ag</span>
   <span class="nt">annotations</span><span class="p">:</span>
     <span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-    <span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
+    <span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set</span>
 <span class="nt">spec</span><span class="p">:</span>
   <span class="nt">rules</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">http</span><span class="p">:</span>
       <span class="nt">paths</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">backend</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/</span>
+        <span class="nt">pathType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Exact</span>
+        <span class="nt">backend</span><span class="p">:</span>
           <span class="nt">service</span><span class="p">:</span>
-            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">frontend</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">store-service</span>
             <span class="nt">port</span><span class="p">:</span>
-              <span class="nt">number</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+              <span class="nt">number</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
 </pre></div>
               
             </div>
@@ -328,10 +423,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../custom-ingress-class/" class="btn btn-neutral float-right" title="Custom Ingress Class">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../how-tos/continuous-deployment/" class="btn btn-neutral float-right" title="Continuous Deployment with AKS and AGIC using Azure Pipelines">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../appgw-ssl-certificate/" class="btn btn-neutral" title="Appgw ssl certificate"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../probes/" class="btn btn-neutral" title="Probes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -357,10 +452,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../appgw-ssl-certificate/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../probes/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../custom-ingress-class/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../../how-tos/continuous-deployment/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
