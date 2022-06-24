@@ -48,6 +48,7 @@ type memoization struct {
 	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
 	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
 	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	rewrites                     *[]n.ApplicationGatewayRewriteRuleSet
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
@@ -120,6 +121,18 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			controllererrors.ErrorGeneratingListeners,
 			err,
 			"unable to generate frontend listeners",
+		)
+		klog.Errorf(e.Error())
+		return nil, e
+	}
+
+	// Build RewriteRuleSets configuration
+	err = c.RewriteRuleSets(cbCtx)
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingRewrites,
+			err,
+			"unable to generate rewrite rule sets",
 		)
 		klog.Errorf(e.Error())
 		return nil, e

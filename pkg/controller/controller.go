@@ -113,12 +113,13 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	processEventStart := time.Now()
 
 	appGw, cbCtx, err := c.GetAppGw()
+
 	if err != nil {
 		klog.Error("Error Retrieving AppGw for k8s event. ", err)
 		return err
 	}
 
-	// Reset all ingress Ips and igore mutating appgw if gateway is in stopped state
+	// Reset all ingress Ips and ignore mutating appgw if gateway is in stopped state
 	if !c.isApplicationGatewayMutable(appGw) {
 		klog.Info("Reset all ingress ip")
 		c.ResetAllIngress(appGw, cbCtx)

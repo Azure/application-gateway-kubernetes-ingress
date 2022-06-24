@@ -32,6 +32,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | `1.5.2-rc1` |
 | [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
@@ -64,7 +65,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -100,7 +101,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -129,7 +130,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: go-server-service
+            name: store-service
 ```
 
 ## Backend Hostname
@@ -158,7 +159,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -193,7 +194,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -387,7 +388,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -421,7 +422,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -497,7 +498,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -536,7 +537,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -625,7 +626,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -664,7 +665,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -700,7 +701,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```
@@ -733,7 +734,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -767,7 +768,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -801,7 +802,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -835,7 +836,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -843,7 +844,7 @@ spec:
 
 ## Rewrite Rule Set
 
-This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule.
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s).
 
 ### Usage
 
@@ -870,7 +871,73 @@ spec:
         pathType: Exact
         backend:
           service:
-            name: go-server-service
+            name: store-service
+            port:
+              number: 8080
+```
+
+## Rewrite Rule Set Custom Resource
+
+This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: <name of rewrite rule set custom resource>
+```
+
+### Example
+
+```yaml
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayRewrite
+metadata:
+  name: my-rewrite-rule-set
+spec:
+  rewriteRules:
+  - name: rule1
+    ruleSequence: 21
+
+    conditions:
+    - ignoreCase: false
+      negate: false
+      variable: http_req_Host
+      pattern: example.com
+
+    actions:
+      requestHeaderConfigurations:
+      - actionType: set
+        headerName: incoming-test-header
+        headerValue: incoming-test-value
+      
+      responseHeaderConfigurations:
+      - actionType: set
+        headerName: outgoing-test-header
+        headerValue: outgoing-test-value
+
+      urlConfiguration:
+        modifiedPath: "/api/"
+        modifiedQueryString: "query=test-value"
+        reroute: false
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: store-service
             port:
               number: 8080
 ```

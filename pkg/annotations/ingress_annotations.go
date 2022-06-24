@@ -105,6 +105,9 @@ const (
 
 	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
 	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
+
+	// RewriteRuleSetCustomResourceKey indicates the name of the rule set CRD to use for header CRD and URL Config.
+	RewriteRuleSetCustomResourceKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
 )
 
 // ProtocolEnum is the type for protocol
@@ -291,6 +294,11 @@ func WAFPolicy(ing *networking.Ingress) (string, error) {
 // RewriteRuleSet name
 func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetKey)
+}
+
+// RewriteRuleSetCustomResource name
+func RewriteRuleSetCustomResource(ing *networking.Ingress) (string, error) {
+	return parseString(ing, RewriteRuleSetCustomResourceKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {

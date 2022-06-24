@@ -7,11 +7,10 @@ package appgw
 
 import (
 	"fmt"
+	"reflect"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	v1 "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 
@@ -78,16 +77,10 @@ func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeep
 }
 
 func keyFunc(obj interface{}) (string, error) {
-	if service, ok := obj.(*v1.Service); ok {
-		return fmt.Sprintf("%s/%s", service.Namespace, service.Name), nil
-	}
-	if endpoints, ok := obj.(*v1.Endpoints); ok {
-		return fmt.Sprintf("%s/%s", endpoints.Namespace, endpoints.Name), nil
-	}
-	if ingress, ok := obj.(*networking.Ingress); ok {
-		return fmt.Sprintf("%s/%s", ingress.Namespace, ingress.Name), nil
-	}
-	return fmt.Sprintf("%s/%s", tests.Namespace, tests.ServiceName), nil
+	namespace := reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
+	name := reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Name").String()
+
+	return fmt.Sprintf("%s/%s", namespace, name), nil
 }
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
@@ -101,11 +94,12 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 		appGw: n.ApplicationGateway{ApplicationGatewayPropertiesFormat: appGwConfig},
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(keyFunc),
-				Secret:    cache.NewStore(keyFunc),
-				Service:   cache.NewStore(keyFunc),
-				Pods:      cache.NewStore(keyFunc),
-				Ingress:   cache.NewStore(keyFunc),
+				AzureApplicationGatewayRewrite: cache.NewStore(keyFunc),
+				Endpoints:                      cache.NewStore(keyFunc),
+				Secret:                         cache.NewStore(keyFunc),
+				Service:                        cache.NewStore(keyFunc),
+				Pods:                           cache.NewStore(keyFunc),
+				Ingress:                        cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 			MetricStore:            metricstore.NewFakeMetricStore(),

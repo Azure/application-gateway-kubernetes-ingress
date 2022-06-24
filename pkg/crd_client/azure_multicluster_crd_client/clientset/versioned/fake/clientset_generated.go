@@ -76,9 +76,7 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
-var (
-	_ clientset.Interface = &Clientset{}
-)
+var _ clientset.Interface = &Clientset{}
 
 // MulticlusteringressesV1alpha1 retrieves the MulticlusteringressesV1alpha1Client
 func (c *Clientset) MulticlusteringressesV1alpha1() multiclusteringressesv1alpha1.MulticlusteringressesV1alpha1Interface {

@@ -1,0 +1,43 @@
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayRewrite
+metadata:
+  name: test-crd
+spec:
+  rewriteRules:
+  - name: test-rewrite-rule
+    
+    ruleSequence: 100
+
+    conditions:
+    - ignoreCase: false
+      negate: false
+      variable: http_req_Connection
+      pattern: keep-alive
+
+    - ignoreCase: true
+      negate: true
+      variable: http_req_Connection2
+      pattern: keep-alive2
+    
+
+    actions:
+      requestHeaderConfigurations:
+      - actionType: set
+        headerName: custom-header1
+        headerValue: value1
+      - actionType: set
+        headerName: custom-header2
+        headerValue: value2
+        
+      responseHeaderConfigurations:
+      - actionType: set
+        headerName: custom-header3
+        headerValue: value3
+      - actionType: set
+        headerName: custom-header4
+        headerValue: value4
+        
+      urlConfiguration:
+        modifiedPath: "/api/"
+        modifiedQueryString: "query=test-value"
+        reroute: false
