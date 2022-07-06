@@ -12,12 +12,13 @@ for example, Test Suite or context "One Namespace One Ingress" defines a Test ca
 var _ = Describe("MFU", func() {
 	var (
 		clientset *kubernetes.Clientset
+		crdClient *versioned.Clientset
 		err       error
 	)
     // test suite, 1N1I
 	Context("One Namespace One Ingress", func() {
 		BeforeEach(func() {
-			clientset, err = getClient()
+			clientset, crdClient, err = getClients()
 			Expect(err).To(BeNil())
 			cleanUp(clientset)
 		})

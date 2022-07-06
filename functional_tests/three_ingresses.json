@@ -344,6 +344,7 @@
                 }
             }
         ],
+        "rewriteRuleSets": [],
         "sku": {
             "capacity": 3,
             "name": "Standard_v2",

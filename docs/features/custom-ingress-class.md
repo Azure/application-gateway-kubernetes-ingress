@@ -30,7 +30,7 @@ To use a custom ingress class,
         - path: /hello/
             backend:
             service:
-                name: go-server-service
+                name: store-service
                 port:
                     number: 80
     ```

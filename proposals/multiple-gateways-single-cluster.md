@@ -39,7 +39,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
 ```
@@ -67,7 +67,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
 ```
