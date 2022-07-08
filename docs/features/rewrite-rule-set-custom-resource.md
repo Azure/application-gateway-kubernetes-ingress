@@ -1,4 +1,7 @@
-## Rewrite Rule Set Custom Resource
+## Rewrite Rule Set Custom Resource (not released yet)
+
+> Note: This feature is not released yet. Please use [`appgw.ingress.kubernetes.io/rewrite-rule-set`](../annotations.md#rewrite-rule-set) which allows using an existing rewrite rule set on Application Gateway.
+
 Application Gateway allows you to rewrite selected content of requests and responses. With this feature, you can translate URLs, query string parameters as well as modify request and response headers. It also allows you to add conditions to ensure that the URL or the specified headers are rewritten only when certain conditions are met. These conditions are based on the request and response information. Rewrite Rule Set Custom Resource brings this feature to AGIC.
 
 HTTP headers allow a client and server to pass additional information with a request or response. By rewriting these headers, you can accomplish important tasks, such as adding security-related header fields like HSTS/ X-XSS-Protection, removing response header fields that might reveal sensitive information, and removing port information from X-Forwarded-For headers.
