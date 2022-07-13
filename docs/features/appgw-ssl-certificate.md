@@ -39,8 +39,8 @@ az network application-gateway ssl-cert create \
   --cert-password "test"
 ```
 
-## Configure certificate from Key Vault to AppGw
-To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault.
+## Configure certificate from Azure Key Vault to AppGw
+To configure a certificate from Azure Key Vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to Azure Key Vault.
 
 ```bash
 # Configure your resources
@@ -48,7 +48,14 @@ appgwName=""
 resgp=""
 vaultName=""
 location=""
-agicIdentityPrincipalId=""
+aksClusterName=""
+
+# get the resource group name of the AKS cluster
+aksResourceGroupName=$(az aks show --name $aksClusterName --resource-group $resgp --query nodeResourceGroup --output tsv)
+
+# get principalId of the AGIC managed identity
+identityName="ingressapplicationgateway-$aksClusterName"
+agicIdentityPrincipalId=$(az identity show --name ingressapplicationgateway-$aksClusterName --resource-group $aksResourceGroupName)
 
 # One time operation, create Azure key vault and certificate (can done through portal as well)
 az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
@@ -78,7 +85,7 @@ az keyvault set-policy \
 az keyvault certificate create \
 --vault-name $vaultName \
 -n mycert \
--p "$(az keyvault certificate get-default-policy)"
+-p "$(az keyvault certificate get-default-policy -o json)"
 versionedSecretId=$(az keyvault certificate show -n mycert --vault-name $vaultName --query "sid" -o tsv)
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
 
