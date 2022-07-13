@@ -48,7 +48,16 @@ appgwName=""
 resgp=""
 vaultName=""
 location=""
-agicIdentityPrincipalId=""
+aksClusterName=""
+aksResourceGroupName=""
+appgwName=""
+
+# get the resource group name of the AKS cluster
+nrg=$(az aks show --name SallyAks --resource-group SallyRG --query nodeResourceGroup --output tsv)
+
+# get principalId of the AGIC managed identity
+identityName="ingressapplicationgateway-$aksClusterName"
+agicIdentityPrincipalId=$(az identity show --name ingressapplicationgateway-sallyaks --resource-group $nrg)
 
 # One time operation, create Azure key vault and certificate (can done through portal as well)
 az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
