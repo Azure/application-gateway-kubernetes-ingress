@@ -53,7 +53,7 @@ aksResourceGroupName=""
 appgwName=""
 
 # get the resource group name of the AKS cluster
-nrg=$(az aks show --name SallyAks --resource-group SallyRG --query nodeResourceGroup --output tsv)
+nrg=$(az aks show --name $aksClusterName --resource-group $aksResourceGroupName --query nodeResourceGroup --output tsv)
 
 # get principalId of the AGIC managed identity
 identityName="ingressapplicationgateway-$aksClusterName"
