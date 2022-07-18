@@ -52,6 +52,9 @@ aksClusterName=""
 aksResourceGroupName=""
 appgwName=""
 
+# IMPORTANT: the following way to retrieve the object id of the AGIC managed identity
+# only applies when AGIC is deployed via the AGIC addon for AKS
+
 # get the resource group name of the AKS cluster
 nrg=$(az aks show --name $aksClusterName --resource-group $aksResourceGroupName --query nodeResourceGroup --output tsv)
 
