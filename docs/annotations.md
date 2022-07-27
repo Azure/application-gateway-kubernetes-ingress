@@ -16,7 +16,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | | `1.2.0` |
 | [appgw.ingress.kubernetes.io/appgw-trusted-root-certificate](#appgw-trusted-root-certificate) | `string` | `nil` | | `1.2.0` |
-| [appgw.ingress.kubernetes.io/appgw-ssl-profile](#appgw-ssl-profile) | `string` | `nil` | | `1.x.y` |
+| [appgw.ingress.kubernetes.io/appgw-ssl-profile](#appgw-ssl-profile) | `string` | `nil` | | not released yet |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | | `1.0.0` |
@@ -32,7 +32,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
-| [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | `1.5.2-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | not released yet |
 | [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
@@ -353,6 +353,8 @@ spec:
 ```
 
 ## AppGw Ssl Profile
+
+> Note: This annotation is not yet released.
 
 Users can configure [a ssl profile on the Application Gateway per listener](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-configure-listener-specific-ssl-policy).
 When the annotation is present with a profile name and the profile is pre-installed in the Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
@@ -844,7 +846,7 @@ spec:
 
 ## Rewrite Rule Set
 
-This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s).
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s). Rewrite rule set is managed via Azure Portal / CLI / PS.
 
 ### Usage
 
@@ -877,6 +879,8 @@ spec:
 ```
 
 ## Rewrite Rule Set Custom Resource
+
+> Note: This annotation is not yet released.
 
 This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.
 
