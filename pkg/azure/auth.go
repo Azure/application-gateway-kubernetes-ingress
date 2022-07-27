@@ -25,7 +25,10 @@ func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, cpConf
 			authorizer, err = getAuthorizer(authLocation, useManagedidentity, cpConfig)
 			return utils.Retriable(true), err
 		})
-	return authorizer, nil
+	if err != nil {
+		klog.Errorf("Error getting an authorizer %s", err.Error())
+	}
+	return authorizer, err
 }
 
 func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (autorest.Authorizer, error) {

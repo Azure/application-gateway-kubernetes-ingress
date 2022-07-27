@@ -26,7 +26,7 @@ type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 
 	ApplyRouteTable(string, string) error
-	WaitForGetAccessOnGateway() error
+	WaitForGetAccessOnGateway(maxRetryCount int) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
@@ -114,9 +114,9 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.deploymentsClient.Authorizer = authorizer
 }
 
-func (az *azClient) WaitForGetAccessOnGateway() (err error) {
+func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 	klog.V(5).Info("Getting Application Gateway configuration.")
-	err = utils.Retry(-1, retryPause,
+	err = utils.Retry(maxRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			response, err := az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 			if err == nil {
@@ -165,10 +165,14 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 						string(az.resourceGroupName),
 					)
 				}
+				if response.Response.StatusCode == 400 || response.Response.StatusCode == 401 {
+					klog.Errorf("configuration error (bad request) or unauthorized error while performing a GET using the authorizer")
+					klog.Errorf("stopping GET retries")
+					return utils.Retriable(false), e
+				}
 			}
 
 			klog.Errorf(e.Error())
-
 			if controllererrors.IsErrorCode(e, controllererrors.ErrorApplicationGatewayNotFound) {
 				return utils.Retriable(false), e
 			}
