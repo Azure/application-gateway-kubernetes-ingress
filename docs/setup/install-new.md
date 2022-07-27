@@ -25,10 +25,10 @@ choose to use another environment, please ensure the following command line tool
 
 Follow the steps below to create an Azure Active Directory (AAD) [service principal object](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object). Please record the `appId`, `password`, and `objectId` values - these will be used in the following steps.
 
-1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)). Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
+1. Create AD service principal ([Read more about RBAC](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)). Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/) in a bash environment:
 
     ```bash
-    az ad sp create-for-rbac --skip-assignment -o json > auth.json
+    az ad sp create-for-rbac -o json > auth.json
     appId=$(jq -r ".appId" auth.json)
     password=$(jq -r ".password" auth.json)
     ```
@@ -43,6 +43,12 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
 
     The `objectId` bash variable will be used in the ARM template below. View the value with `echo $objectId`.
 
+1. Execute the commands below on the  [Cloud Shell](https://shell.azure.com/) too. This will create the `kubernetesVersion` variable and save the latest version of kubernetes that is available in the location specified. 
+    ```bash
+    location="westus2"
+    kubernetesVersion=$(az aks get-versions --location $location --query "orchestrators[-1].orchestratorVersion" -o tsv)
+    ```
+
 1. Paste the entire command below (it is a single command on multiple lines) in [Cloud Shell](https://shell.azure.com/) to create the `parameters.json` file. It will be used in the ARM template deployment.
 
     ```bash
@@ -51,7 +57,8 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
       "aksServicePrincipalAppId": { "value": "$appId" },
       "aksServicePrincipalClientSecret": { "value": "$password" },
       "aksServicePrincipalObjectId": { "value": "$objectId" },
-      "aksEnableRBAC": { "value": false }
+      "aksEnableRBAC": { "value": false },
+      "kubernetesVersion":{"value":"$kubernetesVersion"}
     }
     EOF
     ```
@@ -79,13 +86,11 @@ The next few steps will add the following list of components to your Azure subsc
     ```bash
     resourceGroupName="MyResourceGroup"
 
-    location="westus2"
-
     deploymentName="ingress-appgw"
 
     az group create -n $resourceGroupName -l $location
 
-    az group deployment create -g $resourceGroupName -n $deploymentName --template-file template.json --parameters parameters.json
+    az deployment group create -g $resourceGroupName -n $deploymentName --template-file template.json --parameters parameters.json
     ```
 
     Note: The last command may take a few minutes to complete.
@@ -178,7 +183,7 @@ To install AAD Pod Identity to your cluster:
 
   ***Note:*** AAD Pod Identity introduced a [breaking change](https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change) after v1.5.5 regarding CRD fields become case sensitive, for any AAD Pod Identity version >= 1.6.0 or you plan to apply from master branch such as https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml, AGIC version at least [v1.2.0-rc2](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/CHANGELOG/CHANGELOG-1.2.md#v120-rc2) will be required, more details please refer to [troubleshooting](../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange.md).
 
-### Install Helm
+### Install AGIC with Helm
 
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
 Kubernetes. This document will use version 3 of helm, which is not backwards compatible with previous versions.
