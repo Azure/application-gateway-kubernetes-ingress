@@ -53,7 +53,7 @@ func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 }
 
 // WaitForGetAccessOnGateway runs GetGatewayFunc until it returns a gateway
-func (az *FakeAzClient) WaitForGetAccessOnGateway() error {
+func (az *FakeAzClient) WaitForGetAccessOnGateway(maxRetryCount int) error {
 	if az.GetGatewayFunc != nil {
 		for {
 			_, err := az.GetGatewayFunc()
