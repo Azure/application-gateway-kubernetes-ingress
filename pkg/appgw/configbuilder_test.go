@@ -962,4 +962,24 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 		})
 	})
+
+	Context("hostname extension includes hostname from config rule", func() {
+		ingressAnnotations := make(map[string]string)
+		ingressAnnotations[annotations.HostNameExtensionKey] = "foo.baz, foo.bar, foo.bar"
+		ingress := &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
+					{
+						Host: "foo.baz",
+					},
+				},
+			},
+			ObjectMeta: metav1.ObjectMeta{Annotations: ingressAnnotations},
+		}
+
+		It("should not include the duplicate host in the listener", func() {
+			listener := generateListenerID(ingress, &ingress.Spec.Rules[0], n.ApplicationGatewayProtocolHTTP, nil, false)
+			Expect(listener.getHostNames()).To(Equal([]string{"foo.baz", "foo.bar"}))
+		})
+	})
 })
