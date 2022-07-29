@@ -44,6 +44,10 @@ func NewFakeAzClient() *FakeAzClient {
 func (az *FakeAzClient) SetAuthorizer(authorizer autorest.Authorizer) {
 }
 
+// SetSender is an empty function
+func (az *FakeAzClient) SetSender(sender autorest.Sender) {
+}
+
 // GetGateway runs GetGatewayFunc and return a gateway
 func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 	if az.GetGatewayFunc != nil {

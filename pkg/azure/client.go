@@ -24,6 +24,7 @@ import (
 // AzClient is an interface for client to Azure
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
+	SetSender(sender autorest.Sender)
 
 	ApplyRouteTable(string, string) error
 	WaitForGetAccessOnGateway(maxRetryCount int) error
@@ -112,6 +113,10 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.routeTablesClient.Authorizer = authorizer
 	az.groupsClient.Authorizer = authorizer
 	az.deploymentsClient.Authorizer = authorizer
+}
+
+func (az *azClient) SetSender(sender autorest.Sender) {
+	az.appGatewaysClient.Client.Sender = sender
 }
 
 func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
