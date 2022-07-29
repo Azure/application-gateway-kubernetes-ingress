@@ -941,7 +941,8 @@ func (c *Context) IsIngressClass(ing *networking.Ingress) bool {
 		// if IngressClassName in ingress that compare it with the controller type
 		if ing.Spec.IngressClassName != nil {
 			ingressClass := c.getIngressClassResource(*ing.Spec.IngressClassName)
-			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName
+			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName &&
+				c.ingressClassResourceName == *ing.Spec.IngressClassName
 		}
 
 		// if IngressClassName is nil, then match if AGIC is default ingress
