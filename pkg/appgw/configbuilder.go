@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -247,12 +248,16 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 		hostNames = append(hostNames, rule.Host)
 	}
 
-	if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
+	extendedHostNames, err := annotations.GetHostNameExtensions(ingress)
+	if err != nil {
+		klog.V(5).Infof("Error while parsing hostname extension: %s", err)
+	} else {
 		if extendedHostNames != nil {
 			hostNames = append(hostNames, extendedHostNames...)
 		}
 	}
 
+	hostNames = utils.RemoveDuplicateStrings(hostNames)
 	listenerID.setHostNames(hostNames)
 	return listenerID
 }

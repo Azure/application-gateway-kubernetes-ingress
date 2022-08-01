@@ -276,10 +276,12 @@ func GetHostNameExtensions(ing *networking.Ingress) ([]string, error) {
 	if err == nil {
 		var hostnames []string
 		for _, hostname := range strings.Split(val, ",") {
-			if len(hostname) > 0 {
-				hostnames = append(hostnames, strings.TrimSpace(hostname))
+			trimmed := strings.TrimSpace(hostname)
+			if len(trimmed) > 0 {
+				hostnames = append(hostnames, trimmed)
 			}
 		}
+
 		return hostnames, nil
 	}
 
