@@ -64,6 +64,18 @@ spec:
             pathType: Exact
 
 ---
+# A second ingress class
+# no controller will be running for this class but the resource will exist in kubernetes
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  annotations:
+    app.kubernetes.io/component: controller
+  name: other-gateway
+spec:
+  controller: azure/application-gateway
+
+---
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
