@@ -10,7 +10,7 @@ package utils
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -72,5 +72,31 @@ var _ = Describe("Utils", func() {
 				Expect(len(RandStringRunes(0))).To(Equal(0))
 			})
 		})
+
+		DescribeTable("Test RemoveDuplicateStrings",
+			func(input []string, expected []string) {
+				Expect(RemoveDuplicateStrings(input)).To(Equal(expected))
+			},
+			Entry(
+				"Should remove duplicate strings",
+				[]string{"1", "1", "2", "3", "4", "3", "5", "1"},
+				[]string{"1", "2", "3", "4", "5"},
+			),
+			Entry(
+				"Should handle slices with no duplicates",
+				[]string{"1", "1", "2", "3", "4", "3", "5", "1"},
+				[]string{"1", "2", "3", "4", "5"},
+			),
+			Entry(
+				"Should return empty slice if input is empty",
+				[]string{},
+				[]string{},
+			),
+			Entry(
+				"Should return nil if input is nil",
+				[]string(nil),
+				[]string(nil),
+			),
+		)
 	})
 })

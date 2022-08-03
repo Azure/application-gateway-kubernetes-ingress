@@ -78,3 +78,22 @@ func RandStringRunes(n int) string {
 	}
 	return string(b)
 }
+
+// RemoveDuplicates returns a copy of a slice with duplicates removed
+func RemoveDuplicateStrings(list []string) []string {
+	if list == nil {
+		return list
+	}
+
+	result := []string{}
+	// use a map to enforce uniqueness
+	dupeChecker := make(map[string]interface{})
+	for _, val := range list {
+		if _, ok := dupeChecker[val]; !ok {
+			result = append(result, val)
+			dupeChecker[val] = nil
+		}
+	}
+
+	return result
+}

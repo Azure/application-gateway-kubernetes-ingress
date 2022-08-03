@@ -572,11 +572,18 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		})
 
 		ginkgo.It("Should not match other ingress classes", func() {
-			// add another ingress that doesn't match the expected ingress class
+			// add a second ingress class
+			otherIngressClass := tests.GetIngressClass()
+			otherIngressClass.Name = "other-ingress-class"
+			_, err := ctxt.kubeClient.NetworkingV1().IngressClasses().Create(context.TODO(), otherIngressClass, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			// add a new ingress for this other class
 			ingressForOtherIngressClass := tests.GetVerySimpleIngress()
-			ingressForOtherIngressClass.Spec.IngressClassName = to.StringPtr("other-ingress-class")
+			ingressForOtherIngressClass.Spec.IngressClassName = to.StringPtr(otherIngressClass.Name)
+
 			delete(ingressForOtherIngressClass.Annotations, annotations.IngressClassKey)
-			_, err := ctxt.kubeClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingressForOtherIngressClass, metav1.CreateOptions{})
+			_, err = ctxt.kubeClient.NetworkingV1().Ingresses(ingressNS).Create(context.TODO(), ingressForOtherIngressClass, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			// start the informers. This will sync the cache with the latest ingress.
@@ -586,6 +593,10 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			// ensure that ingress is present in the informer cache
 			ingressListInterface := ctxt.Caches.Ingress.List()
 			Expect(len(ingressListInterface)).To(Equal(2), "Expected to have a single ingress in the cache but found: %d ingresses", len(ingressListInterface))
+
+			// check that both ingress classes are present in the informer cache
+			classList := ctxt.Caches.IngressClass.List()
+			Expect(len(classList)).To(Equal(2), "Expected two ingress classess but found: %d", len(classList))
 
 			// check that IsIngressClass is true for ingress
 			Expect(ctxt.IsIngressClass(ingressForOtherIngressClass)).To(BeFalse(), "Expected ingress to not match ingress class")
