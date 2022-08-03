@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"

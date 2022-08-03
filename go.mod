@@ -6,6 +6,7 @@ require (
 	github.com/AlekSi/gocov-xml v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go v57.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.19
+	github.com/Azure/go-autorest/autorest/adal v0.9.13 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.8
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
@@ -16,8 +17,8 @@ require (
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
 	github.com/kylelemons/godebug v1.1.0
 	github.com/matm/gocov-html v0.0.0-20200509184451-71874e2e203b // indirect
-	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/ginkgo/v2 v2.1.3 // indirect
+	github.com/onsi/ginkgo v1.16.4 // indirect
+	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spf13/pflag v1.0.5
