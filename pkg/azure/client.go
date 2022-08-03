@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -25,6 +26,7 @@ import (
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 	SetSender(sender autorest.Sender)
+	SetDuration(retryDuration int)
 
 	ApplyRouteTable(string, string) error
 	WaitForGetAccessOnGateway(maxRetryCount int) error
@@ -117,6 +119,10 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 
 func (az *azClient) SetSender(sender autorest.Sender) {
 	az.appGatewaysClient.Client.Sender = sender
+}
+
+func (az *azClient) SetDuration(retryDuration int) {
+	az.appGatewaysClient.Client.RetryDuration = time.Duration(retryDuration)
 }
 
 func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
