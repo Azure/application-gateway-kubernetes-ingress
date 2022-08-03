@@ -48,8 +48,7 @@ steps:
   - task: CopyFiles@2
     inputs:
       contents: |
-        $(modulePath)/scripts/**
-        $(modulePath)/helm/**
+        $(modulePath)/**
       targetFolder: $(Build.ArtifactStagingDirectory)
 
   - task: PublishBuildArtifacts@1
