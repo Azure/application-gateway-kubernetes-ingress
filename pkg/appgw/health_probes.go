@@ -107,8 +107,10 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 		probe.Path = to.StringPtr(backendID.Path.Path)
 	}
 
-	// nil check on Service
+	// check if backend is using port 443
 	if backendID.Backend.Service != nil && serviceBackendPortToStr(backendID.Backend.Service.Port) == "443" {
+		probe.Protocol = n.ApplicationGatewayProtocolHTTPS
+	} else if port, err := c.resolveBackendPort(backendID); err == nil && port == Port(443) {
 		probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 	}
 
