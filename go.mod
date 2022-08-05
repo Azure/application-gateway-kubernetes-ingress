@@ -28,10 +28,3 @@ require (
 	k8s.io/client-go v0.21.2
 	k8s.io/klog/v2 v2.9.0
 )
-
-//	github.com/golang/mock v1.4.1
-//	github.com/jstemmer/go-junit-report v1.0.0 // indirect
-//github.com/AlekSi/gocov-xml v1.1.0 // indirect
-//	github.com/axw/gocov v1.1.0 // indirect
-//	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
-//	github.com/matm/gocov-html v0.0.0-20200509184451-71874e2e203b // indirect
