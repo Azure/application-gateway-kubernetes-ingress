@@ -17,7 +17,6 @@ type FakeSender struct {
 func (fs FakeSender) Do(request *http.Request) (response *http.Response, err error) {
 	response = &http.Response{
 		StatusCode: fs.statusCode,
-		// cap:        time.Second * 1,
 	}
 	if fs.statusCode != 200 {
 		err = errors.New("Error while making a GET for the gateway")
