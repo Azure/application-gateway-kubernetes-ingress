@@ -9,17 +9,20 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/klog/v2"
 )
 
 var _ = Describe("Auth Tests", func() {
 	When("test getAuthorizer fails", func() {
 		It("getAuthorizer should try and get some authorizer but fail", func() {
 			authorizer, err := getAuthorizer("", false, nil)
+			klog.Error(err.Error())
 			Ω(err).To(HaveOccurred())
 			Ω(authorizer).To(BeNil())
 		})
 		It("getAuthorizerWithRetry should try and get some authorizer but fail", func() {
 			authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
+			klog.Error(err.Error())
 			Ω(err).To(HaveOccurred())
 			Ω(authorizer).To(BeNil())
 		})

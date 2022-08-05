@@ -29,9 +29,9 @@ var _ = DescribeTable("Az Application Gateway failures using authorizer", func(s
 	var fakeSender = FakeSender{
 		statusCode: statusCodeArg,
 	}
-	azClient.SetDuration(10)
+	azClient.SetDuration(3)
 	azClient.SetSender(fakeSender)
-	err := azClient.WaitForGetAccessOnGateway(5)
+	err := azClient.WaitForGetAccessOnGateway(3)
 	Expect(err).NotTo(Equal(nil))
 },
 	Entry("400 Error", 400),
