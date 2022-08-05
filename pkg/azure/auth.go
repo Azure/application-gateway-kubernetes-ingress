@@ -27,8 +27,9 @@ func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, cpConf
 		})
 	if err != nil {
 		klog.Errorf("Error getting an authorizer %s", err.Error())
+		return nil, err
 	}
-	return authorizer, err
+	return authorizer, nil
 }
 
 func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (autorest.Authorizer, error) {
@@ -54,5 +55,9 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 	}
 
 	klog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
-	return auth.NewAuthorizerFromEnvironment()
+	authorizer, err := auth.NewAuthorizerFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+	return authorizer, nil
 }
