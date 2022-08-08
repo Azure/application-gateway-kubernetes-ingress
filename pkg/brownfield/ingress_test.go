@@ -6,7 +6,7 @@
 package brownfield
 
 import (
-	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	networking "k8s.io/api/networking/v1"
 

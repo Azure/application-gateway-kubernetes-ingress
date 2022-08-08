@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
