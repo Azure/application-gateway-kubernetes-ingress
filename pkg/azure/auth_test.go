@@ -12,10 +12,14 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = FDescribe("Auth Tests", func() {
+var azureClientID = os.Getenv("AZURE_CLIENT_ID")
+var _ = Describe("Auth Tests", func() {
 	When("test getAuthorizer fails", func() {
 		BeforeEach(func() {
+			os.Unsetenv("AZURE_CLIENT_ID")
 			os.Unsetenv(auth.ClientID)
+			os.Unsetenv(auth.TenantID)
+			os.Unsetenv(auth.ClientSecret)
 		})
 		It("getAuthorizer should try and get some authorizer but fail", func() {
 			authorizer, err := getAuthorizer("", false, nil)
@@ -32,6 +36,7 @@ var _ = FDescribe("Auth Tests", func() {
 	})
 	When("authorizer succeeds", func() {
 		BeforeEach(func() {
+			os.Setenv("AZURE_CLIENT_ID", azureClientID)
 			os.Setenv(auth.ClientID, "guid1")
 			os.Setenv(auth.TenantID, "guid2")
 			os.Setenv(auth.ClientSecret, "fake-secret")
