@@ -236,7 +236,7 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 		return nil, err
 	}
 
-	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|Secret|ConfigMap|Pod|AzureApplicationGatewayRewrite)`)
+	acceptedK8sTypes := regexp.MustCompile(`(Namespace|Deployment|Service|Ingress|IngressClass|Secret|ConfigMap|Pod|AzureApplicationGatewayRewrite)`)
 	fileAsString := string(fileR[:])
 	sepYamlfiles := strings.Split(fileAsString, "---")
 	retVal := make([]runtime.Object, 0, len(sepYamlfiles))
@@ -265,7 +265,6 @@ func parseK8sYaml(fileName string) ([]runtime.Object, error) {
 }
 
 func updateYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, namespaceName string, fileName string) error {
-
 	// create objects in the yaml
 	fileObjects, err := parseK8sYaml(fileName)
 	if err != nil {
@@ -298,6 +297,10 @@ func updateYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, 
 				}
 			} else {
 				return errors.New("namespace is not defined for ingress when update")
+			}
+		} else if ingressClass, ok := objs.(*networkingv1.IngressClass); ok && UseNetworkingV1Ingress {
+			if _, err := clientset.NetworkingV1().IngressClasses().Update(context.TODO(), ingressClass, metav1.UpdateOptions{}); err != nil {
+				return err
 			}
 		} else if ingress, ok := objs.(*extensionsv1beta1.Ingress); ok && UseExtensionsV1Beta1Ingress {
 			nm := ingress.Namespace
@@ -418,6 +421,10 @@ func applyYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, n
 			} else {
 				return errors.New("namespace is not defined for ingress when create")
 			}
+		} else if ingressClass, ok := objs.(*networkingv1.IngressClass); ok && UseNetworkingV1Ingress {
+			if _, err := clientset.NetworkingV1().IngressClasses().Create(context.TODO(), ingressClass, metav1.CreateOptions{}); err != nil {
+				return err
+			}
 		} else if ingress, ok := objs.(*extensionsv1beta1.Ingress); ok && UseExtensionsV1Beta1Ingress {
 			nm := ingress.Namespace
 			if len(nm) == 0 && len(namespaceName) != 0 {
@@ -491,6 +498,129 @@ func applyYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, n
 				}
 			} else if len(nm) != 0 {
 				if _, err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(nm).Create(context.TODO(), rewrite, metav1.CreateOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for agrewrite when create")
+			}
+		} else {
+			return fmt.Errorf("unable to apply YAML. Unknown object type: %v", objs)
+		}
+	}
+	return nil
+}
+
+func deleteYaml(clientset *clientset.Clientset, crdClient *versioned.Clientset, namespaceName string, fileName string) error {
+	// create objects in the yaml
+	fileObjects, err := parseK8sYaml(fileName)
+	if err != nil {
+		return err
+	}
+
+	for _, objs := range fileObjects {
+		if secret, ok := objs.(*v1.Secret); ok {
+			nm := secret.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.CoreV1().Secrets(namespaceName).Delete(context.TODO(), secret.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.CoreV1().Secrets(nm).Delete(context.TODO(), secret.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for secrets when create")
+			}
+		} else if ingress, ok := objs.(*networkingv1.Ingress); ok && UseNetworkingV1Ingress {
+			nm := ingress.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.NetworkingV1().Ingresses(namespaceName).Delete(context.TODO(), ingress.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.NetworkingV1().Ingresses(nm).Delete(context.TODO(), ingress.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for ingress when create")
+			}
+		} else if ingressClass, ok := objs.(*networkingv1.IngressClass); ok && UseNetworkingV1Ingress {
+			if err := clientset.NetworkingV1().IngressClasses().Delete(context.TODO(), ingressClass.Name, metav1.DeleteOptions{}); err != nil {
+				return err
+			}
+		} else if ingress, ok := objs.(*extensionsv1beta1.Ingress); ok && UseExtensionsV1Beta1Ingress {
+			nm := ingress.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.ExtensionsV1beta1().Ingresses(namespaceName).Delete(context.TODO(), ingress.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.ExtensionsV1beta1().Ingresses(nm).Delete(context.TODO(), ingress.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for ingress when create")
+			}
+		} else if service, ok := objs.(*v1.Service); ok {
+			nm := service.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.CoreV1().Services(namespaceName).Delete(context.TODO(), service.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.CoreV1().Services(nm).Delete(context.TODO(), service.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for service when create")
+			}
+		} else if deployment, ok := objs.(*appsv1.Deployment); ok {
+			nm := deployment.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.AppsV1().Deployments(namespaceName).Delete(context.TODO(), deployment.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.AppsV1().Deployments(nm).Delete(context.TODO(), deployment.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for deployment when create")
+			}
+		} else if cm, ok := objs.(*v1.ConfigMap); ok {
+			nm := cm.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.CoreV1().ConfigMaps(namespaceName).Delete(context.TODO(), cm.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.CoreV1().ConfigMaps(nm).Delete(context.TODO(), cm.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for configmaps when create")
+			}
+		} else if pod, ok := objs.(*v1.Pod); ok {
+			nm := pod.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := clientset.CoreV1().Pods(namespaceName).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := clientset.CoreV1().Pods(nm).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else {
+				return errors.New("namespace is not defined for pods when create")
+			}
+		} else if rewrite, ok := objs.(*agrewritev1beta1.AzureApplicationGatewayRewrite); ok {
+			nm := rewrite.Namespace
+			if len(nm) == 0 && len(namespaceName) != 0 {
+				if err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(namespaceName).Delete(context.TODO(), rewrite.Name, metav1.DeleteOptions{}); err != nil {
+					return err
+				}
+			} else if len(nm) != 0 {
+				if err := crdClient.AzureapplicationgatewayrewritesV1beta1().AzureApplicationGatewayRewrites(nm).Delete(context.TODO(), rewrite.Name, metav1.DeleteOptions{}); err != nil {
 					return err
 				}
 			} else {

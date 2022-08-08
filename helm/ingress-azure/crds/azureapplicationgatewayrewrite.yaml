@@ -1,0 +1,104 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: azureapplicationgatewayrewrites.appgw.ingress.azure.io
+  annotations:
+    "helm.sh/hook": crd-install
+    "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1272"
+spec:
+  group: appgw.ingress.azure.io
+  scope: Namespaced
+  names:
+    plural: azureapplicationgatewayrewrites
+    singular: azureapplicationgatewayrewrite
+    kind: AzureApplicationGatewayRewrite
+    shortNames:
+      - agrewrite
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                rewriteRules:
+                  type: array
+                  minItems: 1
+                  description: A list of Application Gateway rewrite rules
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the Application Gateway rewrite rule
+                      ruleSequence:
+                        type: integer
+                        description: Sequence number (priority) of the Application Gateway rewrite rule
+                      actions:
+                        type: object
+                        description: A list of Application Gateway rewrite rule actions
+                        properties:
+                          requestHeaderConfigurations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                actionType:
+                                  type: string
+                                  description: actionType can be set or delete only
+                                  pattern: ^set$|^delete$
+                                headerName:
+                                  type: string
+                                  description: Name of the header to be set or delete
+                                headerValue:
+                                  type: string
+                                  description: Value of header to change to if a header is being set. Not needed if actionType is delete
+                          responseHeaderConfigurations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                actionType:
+                                  type: string
+                                  description: actionType can be set or delete only
+                                  pattern: ^set$|^delete$
+                                headerName:
+                                  type: string
+                                  description: Name of the header to be set or delete
+                                headerValue:
+                                  type: string
+                                  description: Value of header to change to if a header is being set. Not needed if actionType is delete
+                          urlConfiguration:
+                            type: object
+                            properties:
+                              modifiedPath:
+                                type: string
+                                description: Resultant path
+                              modifiedQueryString:
+                                type: string
+                                description: Resultant query string
+                              reroute:
+                                type: boolean
+                                description: Should App Gw reroute the request based on modified path
+                      conditions:
+                        type: array
+                        description: A list of Application Gateway rewrite rule conditions
+                        items:
+                          type: object
+                          properties:
+                            ignoreCase:
+                              type: boolean
+                              description: Case sensitivity of comparison
+                            negate:
+                              type: boolean
+                              description: Negate the outcome of comparison
+                            pattern:
+                              type: string
+                              description: pattern to compare to
+                            variable:
+                              type: string
+                              description: Variable to compare

@@ -405,6 +405,45 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
+	Context("test BackendProtocol", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
+		})
+
+		It("parses http protocol correctly", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "http",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
+		})
+
+		It("parses https protocol correctly", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "https",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(protocol).To(Equal(HTTPS))
+		})
+
+		It("parses invalid and returns error", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "invalid-protocol",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
+		})
+	})
+
 	Context("test parseBol", func() {
 		It("returns true", func() {
 			actual, err := parseBool(ing, UsePrivateIPKey)
