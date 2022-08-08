@@ -12,17 +12,20 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var _ = Describe("Auth Tests", func() {
+var _ = FDescribe("Auth Tests", func() {
 	When("test getAuthorizer fails", func() {
+		BeforeEach(func() {
+			os.Unsetenv(auth.ClientID)
+		})
 		It("getAuthorizer should try and get some authorizer but fail", func() {
 			authorizer, err := getAuthorizer("", false, nil)
-			klog.Error(err.Error())
+			klog.Info(authorizer)
 			Ω(err).To(HaveOccurred())
 			Ω(authorizer).To(BeNil())
 		})
 		It("getAuthorizerWithRetry should try and get some authorizer but fail", func() {
 			authorizer, err := GetAuthorizerWithRetry("", false, nil, 0, time.Duration(10))
-			klog.Error(err.Error())
+			klog.Info(authorizer)
 			Ω(err).To(HaveOccurred())
 			Ω(authorizer).To(BeNil())
 		})
