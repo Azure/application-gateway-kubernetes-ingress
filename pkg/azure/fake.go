@@ -49,7 +49,7 @@ func (az *FakeAzClient) SetSender(sender autorest.Sender) {
 }
 
 // SetDuration is an empty function
-func (az *FakeAzClient) SetDuration(retryDuration int) {
+func (az *FakeAzClient) SetDuration(retryDuration string) {
 }
 
 // GetGateway runs GetGatewayFunc and return a gateway
