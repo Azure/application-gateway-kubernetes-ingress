@@ -16,6 +16,7 @@ var _ = Describe("Auth Tests", func() {
 	When("test getAuthorizer fails", func() {
 		BeforeEach(func() {
 			os.Setenv(auth.ClientID, "invalid-client-id")
+			os.Setenv(auth.Resource, "wwww.example.com")
 			os.Unsetenv(auth.TenantID)
 			os.Unsetenv(auth.ClientSecret)
 		})
@@ -36,6 +37,7 @@ var _ = Describe("Auth Tests", func() {
 		BeforeEach(func() {
 			os.Setenv(auth.ClientID, "guid1")
 			os.Setenv(auth.TenantID, "guid2")
+			os.Setenv(auth.Resource, "https://management.azure.com/")
 			os.Setenv(auth.ClientSecret, "fake-secret")
 		})
 		It("getAuthorizer should try and get some authorizer", func() {
