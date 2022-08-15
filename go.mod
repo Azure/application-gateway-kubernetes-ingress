@@ -3,6 +3,7 @@ module github.com/Azure/application-gateway-kubernetes-ingress
 go 1.16
 
 require (
+	github.com/AlekSi/gocov-xml v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.28
 	github.com/Azure/go-autorest/autorest/adal v0.9.21 // indirect
@@ -10,6 +11,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.6 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
+	github.com/axw/gocov v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/deckarep/golang-set v1.8.0
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
@@ -21,9 +23,11 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
+	github.com/matm/gocov-html v0.0.0-20200509184451-71874e2e203b // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/ginkgo/v2 v2.1.4
