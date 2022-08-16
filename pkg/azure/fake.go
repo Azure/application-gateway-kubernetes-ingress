@@ -6,6 +6,8 @@
 package azure
 
 import (
+	"time"
+
 	"github.com/Azure/go-autorest/autorest"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -49,7 +51,7 @@ func (az *FakeAzClient) SetSender(sender autorest.Sender) {
 }
 
 // SetDuration is an empty function
-func (az *FakeAzClient) SetDuration(retryDuration string) {
+func (az *FakeAzClient) SetDuration(retryDuration time.Duration) {
 }
 
 // GetGateway runs GetGatewayFunc and return a gateway

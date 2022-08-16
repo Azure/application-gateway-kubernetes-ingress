@@ -4,10 +4,11 @@ package azure
 
 import (
 	"errors"
-	"net/http"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/klog/v2"
+	"net/http"
+	"time"
 )
 
 type FakeSender struct {
@@ -29,9 +30,13 @@ var _ = DescribeTable("Az Application Gateway failures using authorizer", func(s
 	var fakeSender = FakeSender{
 		statusCode: statusCodeArg,
 	}
-	azClient.SetDuration("4ms")
+	retryDuration, err := time.ParseDuration("4ms")
+	if err != nil {
+		klog.Error("Invalid retry duration value")
+	}
+	azClient.SetDuration(retryDuration)
 	azClient.SetSender(fakeSender)
-	err := azClient.WaitForGetAccessOnGateway(3)
+	err = azClient.WaitForGetAccessOnGateway(3)
 	Expect(err).NotTo(Equal(nil))
 },
 	Entry("400 Error", 400),

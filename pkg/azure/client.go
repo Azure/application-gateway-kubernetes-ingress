@@ -26,7 +26,7 @@ import (
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
 	SetSender(sender autorest.Sender)
-	SetDuration(retryDuration string)
+	SetDuration(retryDuration time.Duration)
 
 	ApplyRouteTable(string, string) error
 	WaitForGetAccessOnGateway(maxRetryCount int) error
@@ -121,9 +121,8 @@ func (az *azClient) SetSender(sender autorest.Sender) {
 	az.appGatewaysClient.Client.Sender = sender
 }
 
-func (az *azClient) SetDuration(retryDuration string) {
-	var retryParsed, _ = time.ParseDuration(retryDuration)
-	az.appGatewaysClient.Client.RetryDuration = time.Duration(retryParsed)
+func (az *azClient) SetDuration(retryDuration time.Duration) {
+	az.appGatewaysClient.Client.RetryDuration = retryDuration
 }
 
 func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
