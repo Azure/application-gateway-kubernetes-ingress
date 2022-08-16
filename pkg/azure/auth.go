@@ -55,9 +55,5 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 	}
 
 	klog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
-	if err != nil {
-		return nil, err
-	}
-	return authorizer, nil
+	return auth.NewAuthorizerFromEnvironment()
 }
