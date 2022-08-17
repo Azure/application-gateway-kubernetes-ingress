@@ -6,6 +6,8 @@
 package azure
 
 import (
+	"time"
+
 	"github.com/Azure/go-autorest/autorest"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -44,6 +46,14 @@ func NewFakeAzClient() *FakeAzClient {
 func (az *FakeAzClient) SetAuthorizer(authorizer autorest.Authorizer) {
 }
 
+// SetSender is an empty function
+func (az *FakeAzClient) SetSender(sender autorest.Sender) {
+}
+
+// SetDuration is an empty function
+func (az *FakeAzClient) SetDuration(retryDuration time.Duration) {
+}
+
 // GetGateway runs GetGatewayFunc and return a gateway
 func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 	if az.GetGatewayFunc != nil {
@@ -53,7 +63,7 @@ func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
 }
 
 // WaitForGetAccessOnGateway runs GetGatewayFunc until it returns a gateway
-func (az *FakeAzClient) WaitForGetAccessOnGateway() error {
+func (az *FakeAzClient) WaitForGetAccessOnGateway(maxRetryCount int) error {
 	if az.GetGatewayFunc != nil {
 		for {
 			_, err := az.GetGatewayFunc()
