@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: sample-app
-        image: microsoft/dotnet-samples:aspnetapp
+        image: mcr.microsoft.com/dotnet/samples:aspnetapp
         resources:
           limits:
             memory: "128Mi"
