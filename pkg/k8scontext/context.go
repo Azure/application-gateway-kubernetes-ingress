@@ -925,12 +925,12 @@ func (c *Context) getIngressClassResourceFromCache(ingressClassName string) *net
 	}
 
 	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
-	if !exist {
+	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s' from cache. Error: %s", ingressClassName, err)
 		return nil
 	}
 
-	if err != nil {
-		klog.Errorf("Unable to fetch IngressClass '%s' from cache. Error: %s", ingressClassName, err)
+	if !exist {
 		return nil
 	}
 
