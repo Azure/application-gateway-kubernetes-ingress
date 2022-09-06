@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
 	istioFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/istio_crd_client/clientset/versioned/fake"
@@ -24,6 +25,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
@@ -53,6 +55,10 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 		_, err = k8sClient.CoreV1().Secrets("ns").Create(context.TODO(), secret, metav1.CreateOptions{})
 		Expect(err).To(BeNil())
 		_, err = k8sClient.CoreV1().Secrets("ns1").Create(context.TODO(), secret, metav1.CreateOptions{})
+		Expect(err).To(BeNil())
+
+		class := tests.NewIngressClassFixture()
+		_, err = k8sClient.NetworkingV1().IngressClasses().Create(context.TODO(), class, metav1.CreateOptions{})
 		Expect(err).To(BeNil())
 
 		IsNetworkingV1PackageSupported = true
@@ -120,6 +126,25 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			// check that map is updated with the new key
 			Expect(h.context.ingressSecretsMap.ContainsValue(secKey)).To(BeTrue())
+		})
+
+		ginkgo.When("using ingress class", func() {
+			ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
+				Expect(ctx.namespaces).ToNot(BeNil())
+				ing := fixtures.GetIngress()
+				ing.Namespace = "ns"
+
+				// use ingress class
+				ing.Annotations[annotations.IngressClassKey] = ""
+				ing.Spec.IngressClassName = to.StringPtr(environment.DefaultIngressClassResourceName)
+
+				h.ingressAdd(ing)
+				Expect(len(h.context.Work)).To(Equal(1))
+				h.ingressDelete(ing)
+				Expect(len(h.context.Work)).To(Equal(2))
+				h.ingressUpdate(ing, ing)
+				Expect(len(h.context.Work)).To(Equal(2))
+			})
 		})
 	})
 })

@@ -910,14 +910,23 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 	return false
 }
 
-// getIngressClassResource gets ingress class object with specified name
 func (c *Context) getIngressClassResource(ingressClassName string) *networking.IngressClass {
+	if class := c.getIngressClassResourceFromCache(ingressClassName); class != nil {
+		return class
+	}
+
+	return c.getIngressClassResourceFromCluster(ingressClassName)
+}
+
+// getIngressClassResource gets ingress class object with specified name
+func (c *Context) getIngressClassResourceFromCache(ingressClassName string) *networking.IngressClass {
 	if c.Caches.IngressClass == nil {
 		return nil
 	}
 
 	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
 	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s' from cache. Error: %s", ingressClassName, err)
 		return nil
 	}
 
@@ -926,6 +935,16 @@ func (c *Context) getIngressClassResource(ingressClassName string) *networking.I
 	}
 
 	return ingressClassInterface.(*networking.IngressClass)
+}
+
+func (c *Context) getIngressClassResourceFromCluster(ingressClassName string) *networking.IngressClass {
+	ingressClass, err := c.kubeClient.NetworkingV1().IngressClasses().Get(context.TODO(), ingressClassName, metav1.GetOptions{})
+	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s' from cluster. Error: %s", ingressClassName, err)
+		return nil
+	}
+
+	return ingressClass
 }
 
 // IsIngressClass checks if the Ingress resource can be handled by the Application Gateway ingress controller.
