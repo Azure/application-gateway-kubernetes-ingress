@@ -93,23 +93,6 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(0))
 		})
 
-		ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
-			Expect(ctx.namespaces).ToNot(BeNil())
-			ing := fixtures.GetIngress()
-			ing.Namespace = "ns"
-
-			// use ingress class
-			ing.Annotations[annotations.IngressClassKey] = ""
-			ing.Spec.IngressClassName = to.StringPtr(environment.DefaultIngressClassResourceName)
-
-			h.ingressAdd(ing)
-			Expect(len(h.context.Work)).To(Equal(1))
-			h.ingressDelete(ing)
-			Expect(len(h.context.Work)).To(Equal(2))
-			h.ingressUpdate(ing, ing)
-			Expect(len(h.context.Work)).To(Equal(2))
-		})
-
 		ginkgo.It("should update the ingressSecretsMap even when secret is malformed", func() {
 			namespace := "ns"
 			data := map[string][]byte{
@@ -143,6 +126,25 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			// check that map is updated with the new key
 			Expect(h.context.ingressSecretsMap.ContainsValue(secKey)).To(BeTrue())
+		})
+
+		ginkgo.When("using ingress class", func() {
+			ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
+				Expect(ctx.namespaces).ToNot(BeNil())
+				ing := fixtures.GetIngress()
+				ing.Namespace = "ns"
+
+				// use ingress class
+				ing.Annotations[annotations.IngressClassKey] = ""
+				ing.Spec.IngressClassName = to.StringPtr(environment.DefaultIngressClassResourceName)
+
+				h.ingressAdd(ing)
+				Expect(len(h.context.Work)).To(Equal(1))
+				h.ingressDelete(ing)
+				Expect(len(h.context.Work)).To(Equal(2))
+				h.ingressUpdate(ing, ing)
+				Expect(len(h.context.Work)).To(Equal(2))
+			})
 		})
 	})
 })
