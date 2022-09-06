@@ -93,7 +93,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(0))
 		})
 
-		ginkgo.FIt("add, delete, update ingress from cache for allowed namespace ns", func() {
+		ginkgo.It("add, delete, update ingress from cache for allowed namespace ns", func() {
 			Expect(ctx.namespaces).ToNot(BeNil())
 			ing := fixtures.GetIngress()
 			ing.Namespace = "ns"
