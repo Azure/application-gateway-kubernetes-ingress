@@ -151,7 +151,7 @@ func main() {
 	// If AGIC's service principal or managed identity doesn't have read access to the Application Gateway's resource group,
 	// then AGIC can't read it's role assignments to look for the needed permission.
 	// Instead we perform a simple GET request to check both that the Application Gateway exists as well as implicitly make sure that AGIC has read access to it.
-	err = azClient.WaitForGetAccessOnGateway()
+	err = azClient.WaitForGetAccessOnGateway(maxRetryCount)
 	if err != nil {
 		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
