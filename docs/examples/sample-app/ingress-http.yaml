@@ -8,8 +8,10 @@ spec:
   rules:
   - http:
       paths:
-      - backend:
+      - path: /
+        backend:
           service:
             name: sample-app
             port:
               number: 80
+        pathType: Exact
