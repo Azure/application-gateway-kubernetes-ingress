@@ -91,7 +91,7 @@ var _ = Describe("networking-v1-IngressClass", func() {
 
 			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
-			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
 
 			// get ip address for 1 ingress
