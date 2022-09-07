@@ -69,7 +69,7 @@ build:
 lint-all: lint lint-helm
 
 lint:
-	@go get -u golang.org/x/lint/golint
+	@go get -d -u golang.org/x/lint/golint
 	@golint $(go list ./... | grep -v /vendor/) | tee /tmp/lint.out
 	@if [ -s /tmp/lint.out ]; then \
 		echo "\e[101;97m golint FAILED \e[0m"; \
@@ -114,11 +114,11 @@ vet-e2e:
 test-all: unittest
 
 unittest:
-	@go get github.com/jstemmer/go-junit-report
-	@go get github.com/axw/gocov/gocov
-	@go get github.com/AlekSi/gocov-xml
-	@go get github.com/matm/gocov-html
-	@go get github.com/onsi/ginkgo/v2
+	@go get -d github.com/jstemmer/go-junit-report
+	@go get -d github.com/axw/gocov/gocov
+	@go get -d github.com/AlekSi/gocov-xml
+	@go get -d github.com/matm/gocov-html
+	@go get -d github.com/onsi/ginkgo/v2
 	@go test -timeout 80s -v -coverprofile=coverage.txt -covermode count -tags unittest ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
 	@cat testoutput.txt | go-junit-report > report.xml
 	@gocov convert coverage.txt > coverage.json
