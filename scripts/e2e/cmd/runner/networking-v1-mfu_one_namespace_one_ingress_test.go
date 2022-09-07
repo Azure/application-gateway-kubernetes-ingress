@@ -612,6 +612,37 @@ var _ = Describe("networking-v1-MFU", func() {
 			respondedWithColor("/Suffix", "catch-all")
 		})
 
+		It("[e2e-ssl-profile] ssl profile annotation should add profile to listener", func() {
+			namespaceName := "e2e-ssl-profile"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			YamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-profile/app.yaml"
+			klog.Info("Applying yaml: ", YamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, YamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+			// https get to return 400 BAD REQUEST
+			resp, err := makeGetRequest(urlHttps, "mtls-listener", 400, true)
+			Expect(err).To(BeNil())
+
+			// Requires a client certificate
+			Expect(readBody(resp)).To(ContainSubstring("No required SSL certificate was sent"))
+		})
+
 		AfterEach(func() {
 			// clear all namespaces
 			cleanUp(clientset)
