@@ -53,6 +53,8 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: "true"
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
