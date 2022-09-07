@@ -801,6 +801,15 @@ func readBody(resp *http.Response) (string, error) {
 		return string(bodyBytes), nil
 	}
 
+	if resp.StatusCode == http.StatusBadRequest {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+
+		return string(bodyBytes), nil
+	}
+
 	return "", nil
 }
 

@@ -94,6 +94,48 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
+		It("[ingress-class] redirect should work after AGIC pod is recreated", func() {
+			namespaceName := "e2e-ingress-class-redirect"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
+			Expect(err).To(BeNil())
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			// delete AGIC pod
+			klog.Info("Deleting AGIC Pod")
+			deleteAGICPod(clientset)
+			time.Sleep(30 * time.Second)
+
+			// check that redirect still works
+			urlHttp := fmt.Sprintf("http://%s/index.html", publicIP)
+			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+
+			// http get to return 301
+			resp, err := makeGetRequest(urlHttp, "", 301, true)
+			Expect(err).To(BeNil())
+			redirectLocation := resp.Header.Get("Location")
+			klog.Infof("redirect location: %s", redirectLocation)
+			Expect(redirectLocation).To(Equal(urlHttps))
+
+			// https get to return 200 ok
+			_, err = makeGetRequest(urlHttps, "", 200, true)
+			Expect(err).To(BeNil())
+		})
+
 		It("[three-namespaces] containers with the same probe and labels in 3 different namespaces should have unique and working health probes", func() {
 			// http get to return 200 ok
 			for _, nm := range []string{"e2e-ns-x", "e2e-ns-y", "e2e-ns-z"} {
@@ -568,6 +610,37 @@ var _ = Describe("networking-v1-MFU", func() {
 			// AppGW doesn't allow / with pathType:exact
 			respondedWithColor("/", "catch-all")
 			respondedWithColor("/Suffix", "catch-all")
+		})
+
+		It("[e2e-ssl-profile] ssl profile annotation should add profile to listener", func() {
+			namespaceName := "e2e-ssl-profile"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			YamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-profile/app.yaml"
+			klog.Info("Applying yaml: ", YamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, YamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+			// https get to return 400 BAD REQUEST
+			resp, err := makeGetRequest(urlHttps, "mtls-listener", 400, true)
+			Expect(err).To(BeNil())
+
+			// Requires a client certificate
+			Expect(readBody(resp)).To(ContainSubstring("No required SSL certificate was sent"))
 		})
 
 		AfterEach(func() {
