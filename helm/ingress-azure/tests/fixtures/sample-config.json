@@ -79,6 +79,24 @@
                     ]
                 }
             }
+        },
+        "volumes": {
+            "extraVolumes": [
+                {
+                    "name": "contoso",
+                    "hostPath": {
+                        "path": "/etc/contoso/",
+                        "type": "Directory"
+                    }
+                }
+            ],
+            "extraVolumeMounts": [
+                {
+                    "name": "contoso",
+                    "mountPath": "/etc/contoso/",
+                    "readOnly": true
+                }
+            ]
         }
     }
 }
