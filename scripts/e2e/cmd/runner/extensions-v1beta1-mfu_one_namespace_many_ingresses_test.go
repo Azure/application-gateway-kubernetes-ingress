@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-//go:build e2e
-// +build e2e
+//go:build e2eextensionv1beta1
+// +build e2eextensionv1beta1
 
 package runner
 
