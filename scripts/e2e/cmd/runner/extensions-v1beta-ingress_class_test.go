@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-//go:build e2eingressclass
-// +build e2eingressclass
+//go:build e2eextensionv1beta1ingressclass
+// +build e2eextensionv1beta1ingressclass
 
 package runner
 

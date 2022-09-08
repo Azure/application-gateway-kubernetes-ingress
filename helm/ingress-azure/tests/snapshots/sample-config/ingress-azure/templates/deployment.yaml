@@ -6,7 +6,7 @@ metadata:
   name: release-name-ingress-azure
   labels:
     app: ingress-azure
-    chart: ingress-azure-1.4.0
+    chart: ingress-azure-1.6.0
     heritage: Helm
     release: release-name
 spec:
@@ -32,7 +32,7 @@ spec:
         runAsUser: 3000
       containers:
       - name: ingress-azure
-        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.4.0
+        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
@@ -53,6 +53,8 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: "true"
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
@@ -71,11 +73,18 @@ spec:
         - name: azure
           mountPath: /etc/appgw/
           readOnly: true
+        - mountPath: /etc/contoso/
+          name: contoso
+          readOnly: true
       volumes:
       - name: azure
         hostPath:
           path: /etc/kubernetes/
           type: Directory
+      - hostPath:
+          path: /etc/contoso/
+          type: Directory
+        name: contoso
       nodeSelector:
         beta.kubernetes.io/os: linux
       affinity:
