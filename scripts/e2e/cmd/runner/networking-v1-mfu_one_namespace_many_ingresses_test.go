@@ -198,7 +198,8 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 			Expect(publicIP).ToNot(Equal(""))
 
-			url := fmt.Sprintf("https://%s/status/200", publicIP)
+			// test url that only works with *.extended.com
+			url := fmt.Sprintf("https://%s/anything/", publicIP)
 
 			// simple hostname
 			_, err = makeGetRequest(url, "www.extended.com", 200, true)
@@ -208,12 +209,15 @@ var _ = Describe("networking-v1-MFU", func() {
 			_, err = makeGetRequest(url, "app.extended.com", 200, true)
 			Expect(err).To(BeNil())
 
-			// simple hostname with 1 host name which is wildcard hostname with highest priority
-			_, err = makeGetRequest(url, "contoso.extended.com", 200, true)
-			Expect(err).To(BeNil())
-
 			// return 404 for random hostname
 			_, err = makeGetRequest(url, "random.com", 404, true)
+			Expect(err).To(BeNil())
+
+			// test url that only works with contoso.extended.com
+			url = fmt.Sprintf("https://%s/status/200", publicIP)
+
+			// simple hostname with 1 host name which is wildcard hostname with highest priority
+			_, err = makeGetRequest(url, "contoso.extended.com", 200, true)
 			Expect(err).To(BeNil())
 		})
 

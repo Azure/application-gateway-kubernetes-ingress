@@ -41,7 +41,7 @@ spec:
             name: svc
             port:
               name: pp
-        path: /status*
+        path: /anything*
         pathType: Prefix
 ---
 apiVersion: apps/v1
