@@ -485,7 +485,7 @@ func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) 
 				}
 				allPriorities[listenerID] = priority
 			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
-				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: nil", ingress.Namespace, ingress.Name)
+				klog.V(9).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: nil", ingress.Namespace, ingress.Name)
 				priorityNil = true
 				allPriorities[listenerID] = nil
 			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
