@@ -1031,7 +1031,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
 		})
 
-		ginkgo.It("WAF Priority Annotation", func() {
+		ginkgo.It("Rule Priority Annotation", func() {
 			annotatedIngress := newIngressSlashNothingSlashSomething()
 			annotatedIngress.Annotations[annotations.RequestRoutingRulePriority] = "100"
 
@@ -1047,7 +1047,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
-			check(cbCtx, "waf_priority_annotation.json", stopChannel, ctxt, configBuilder)
+			check(cbCtx, "rule_priority_annotation.json", stopChannel, ctxt, configBuilder)
 		})
 
 		ginkgo.It("Cookie Name", func() {
