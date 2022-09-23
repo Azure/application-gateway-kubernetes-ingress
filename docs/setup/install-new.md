@@ -38,7 +38,7 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
 1. Execute the next command in [Cloud Shell](https://shell.azure.com/) to create the `objectId` bash variable, which is the new Service Principal:
 
     ```bash
-    objectId=$(az ad sp show --id $appId --query "id" -o tsv)
+    objectId=$(az ad sp show --id $appId --query "objectId" -o tsv)
     ```
 
     The `objectId` bash variable will be used in the ARM template below. View the value with `echo $objectId`.

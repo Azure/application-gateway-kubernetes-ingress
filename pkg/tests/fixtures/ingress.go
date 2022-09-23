@@ -61,6 +61,13 @@ func GetIngress() *networking.Ingress {
 	}
 }
 
+// GetIngress creates an Ingress struct.
+func GetIngressWithPriority() *networking.Ingress {
+	ingress := GetIngress()
+	ingress.ObjectMeta.Annotations[annotations.RequestRoutingRulePriority] = "100"
+	return ingress
+}
+
 // GetIngressWithProhibitedTargetConflict returns ingress with /foo and /fox as paths
 func GetIngressWithProhibitedTargetConflict() *networking.Ingress {
 	return &networking.Ingress{
