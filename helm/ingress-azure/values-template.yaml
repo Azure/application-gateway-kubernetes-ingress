@@ -108,3 +108,11 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
+
+serviceAccount:
+  create: true
+  # If not set and create is true, a name is generated using the fullname template
+  name: null
+  annotations: {}
+  labels: {}
+  automountServiceAccountToken: true
