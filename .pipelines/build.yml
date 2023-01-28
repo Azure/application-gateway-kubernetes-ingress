@@ -16,6 +16,10 @@ steps:
     displayName: Helm installer
     inputs: 
       helmVersionToInstall: v3.11.0
+  
+  - task: GoTool@0
+    inputs:
+      version: '1.19.2'
 
   - script: make lint-all
     workingDirectory: "$(modulePath)"
