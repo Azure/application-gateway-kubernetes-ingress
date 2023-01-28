@@ -15,7 +15,7 @@ steps:
   - task: HelmInstaller@1
     displayName: Helm installer
     inputs: 
-      helmVersionToInstall: latest
+      helmVersionToInstall: v3.11.0
 
   - script: make lint-all
     workingDirectory: "$(modulePath)"
