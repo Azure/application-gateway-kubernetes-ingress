@@ -146,26 +146,3 @@ func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config 
 
 	return nil
 }
-
-// FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
-func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
-	if config == nil {
-		e := controllererrors.NewError(
-			controllererrors.ErrorEmptyConfig,
-			"Application Gateway configuration should not be empty.",
-		)
-		return e
-	}
-
-	validators := []func(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
-		validateFrontendIPConfiguration,
-	}
-
-	for _, fn := range validators {
-		if err := fn(eventRecorder, *config, envVariables); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}

@@ -188,10 +188,6 @@ func main() {
 
 	// fatal config validations
 	appGw, _ := azClient.GetGateway()
-	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
-		klog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
-	}
-
 	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
 		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s; (v0.10.0 supports App Gwy v1)", appGw.Sku.Tier, appgw.GetVersion())
 		if agicPod != nil {

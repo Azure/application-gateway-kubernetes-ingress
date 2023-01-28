@@ -222,6 +222,12 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 			klog.Errorf("Failed to find port '%s' referenced by listener '%s'", *listener.FrontendPort.ID, *listener.Name)
 		}
 		listenersByID[listenerID] = &((*listeners)[idx])
+
+		// add for public IP as well if only private IP is present
+		if len(*listeners) == 1 && listenerID.UsePrivateIP {
+			listenerID.UsePrivateIP = false
+			listenersByID[listenerID] = &((*listeners)[idx])
+		}
 	}
 
 	return listenersByID

@@ -109,17 +109,6 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		klog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
-	// Run fatal validations on the existing config of the Application Gateway.
-	if err := appgw.FatalValidateOnExistingConfig(c.recorder, appGw.ApplicationGatewayPropertiesFormat, cbCtx.EnvVariables); err != nil {
-		errorLine := fmt.Sprint("Got a fatal validation error on existing Application Gateway config. Will retry getting Application Gateway until error is resolved:", err)
-		klog.Error(errorLine)
-		if c.agicPod != nil {
-			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
-		}
-		return err
-	}
-	// -------------------------- //
-
 	// Generate App Gateway Phase //
 	// -------------------------- //
 	// Create a configbuilder based on current appgw config

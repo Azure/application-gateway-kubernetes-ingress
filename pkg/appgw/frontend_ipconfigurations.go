@@ -6,6 +6,13 @@ import (
 
 // LookupIPConfigurationByType gets the public or private address depending upon privateIP parameter.
 func LookupIPConfigurationByType(frontendIPConfigurations *[]n.ApplicationGatewayFrontendIPConfiguration, privateIP bool) *n.ApplicationGatewayFrontendIPConfiguration {
+	// If a private frontend is not requested, and there is
+	// only 1 frontend present on the gateway then return the
+	// frontend whether it is a public or private frontend.
+	if !privateIP && len(*frontendIPConfigurations) == 1 {
+		return &(*frontendIPConfigurations)[0]
+	}
+
 	for _, ip := range *frontendIPConfigurations {
 		if ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil &&
 			((privateIP && ip.PrivateIPAddress != nil) ||
