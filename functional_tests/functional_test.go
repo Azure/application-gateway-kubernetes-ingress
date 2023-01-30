@@ -1135,7 +1135,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
 			}
 
-			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixtureWithoutURLConfig(tests.RewriteRuleSetName)
 			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
 
 			check(cbCtx, "rewrite_rule_sets_one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)

@@ -72,7 +72,7 @@ type Actions struct {
 	ResponseHeaderConfigurations []HeaderConfiguration `json:"responseHeaderConfigurations,omitempty"`
 
 	// UrlConfiguration is the URL Configuration Action in the Action
-	UrlConfiguration UrlConfiguration `json:"urlConfiguration,omitempty"`
+	UrlConfiguration *UrlConfiguration `json:"urlConfiguration,omitempty"`
 }
 
 // HeaderConfiguration includes ActionType, HeaderName and HeaderValue
