@@ -7,6 +7,13 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+    {{- if .Values.armAuth }}
+    {{- if eq .Values.armAuth.type "aadPodIdentity" }}
+    {{- if .Values.armAuth.workloadIdentityEnabled }}
+    azure.workload.identity/use: "true"
+    {{- end }}
+    {{- end }}
+    {{- end }}
 spec:
   replicas: 1 # TODO: Make configurable when leader election is supported.
   selector:
@@ -19,8 +26,10 @@ spec:
         app: {{ template "application-gateway-kubernetes-ingress.name" . }}
         release: {{ .Release.Name }}
         {{- if .Values.armAuth }}
-        {{- if eq .Values.armAuth.type "aadPodIdentity"}}
+        {{- if eq .Values.armAuth.type "aadPodIdentity" }}
+        {{- if not .Values.armAuth.workloadIdentityEnabled }}
         aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+        {{- end }}
         {{- end }}
         {{- end }}
       annotations:

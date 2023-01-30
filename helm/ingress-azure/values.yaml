@@ -95,6 +95,7 @@ appgw: {}
 #   type: aadPodIdentity
 #   identityResourceID: <>
 #   identityClientID:  <>
+#   workloadIdentityEnabled: false # set true if AKS cluster is enabled with workload identity
 #
 # - Option 2: ServicePrincipal as a kubernetes secret
 # armAuth:

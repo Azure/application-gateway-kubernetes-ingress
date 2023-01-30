@@ -1,0 +1,22 @@
+{
+    "verbosityLevel": 3,
+    "appgw": {
+        "subscriptionId": "sub-id",
+        "resourceGroup": "resgp",
+        "name": "gateway",
+        "usePrivateIP": false,
+        "shared": false
+    },
+    "armAuth": {
+        "type": "aadPodIdentity",
+        "identityResourceID": "/a/b/c",
+        "identityClientID": "client-id",
+        "workloadIdentityEnabled": true
+    },
+    "rbac": {
+        "enabled": false
+    },
+    "kubernetes": {
+        "resources": {}
+    }
+}
