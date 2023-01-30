@@ -171,7 +171,11 @@ func makeHeaderConfigs(apiHeaderConfigs []v1beta1.HeaderConfiguration) *[]n.Appl
 }
 
 // makeURLConfig converts v1beta1.UrlConfiguration to *n.ApplicationGatewayURLConfiguration
-func makeURLConfig(apiURLConfig v1beta1.UrlConfiguration) *n.ApplicationGatewayURLConfiguration {
+func makeURLConfig(apiURLConfig *v1beta1.UrlConfiguration) *n.ApplicationGatewayURLConfiguration {
+	if apiURLConfig == nil {
+		return nil
+	}
+
 	return &n.ApplicationGatewayURLConfiguration{
 		ModifiedPath:        to.StringPtr(apiURLConfig.ModifiedPath),
 		ModifiedQueryString: to.StringPtr(apiURLConfig.ModifiedQueryString),

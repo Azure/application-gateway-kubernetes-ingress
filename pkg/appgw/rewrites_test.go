@@ -172,7 +172,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 									HeaderName: "h4",
 								},
 							},
-							UrlConfiguration: v1beta1.UrlConfiguration{
+							UrlConfiguration: &v1beta1.UrlConfiguration{
 								ModifiedPath:        "abc",
 								ModifiedQueryString: "def",
 								Reroute:             false,
@@ -219,7 +219,7 @@ var _ = Describe("Test the creation of Rewrite Rule Sets from Ingress definition
 									HeaderName: "h4",
 								},
 							},
-							UrlConfiguration: v1beta1.UrlConfiguration{
+							UrlConfiguration: &v1beta1.UrlConfiguration{
 								ModifiedPath:        "abc",
 								ModifiedQueryString: "def",
 								Reroute:             false,

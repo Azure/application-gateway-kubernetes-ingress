@@ -203,7 +203,7 @@ func NewRewriteRuleSetCustomResourceFixture(name string) *agrewrite.AzureApplica
 								HeaderValue: "dd",
 							},
 						},
-						UrlConfiguration: agrewrite.UrlConfiguration{
+						UrlConfiguration: &agrewrite.UrlConfiguration{
 							ModifiedPath:        "ff",
 							ModifiedQueryString: "gg",
 							Reroute:             false,
@@ -221,6 +221,12 @@ func NewRewriteRuleSetCustomResourceFixture(name string) *agrewrite.AzureApplica
 			},
 		},
 	}
+}
+
+func NewRewriteRuleSetCustomResourceFixtureWithoutURLConfig(name string) *agrewrite.AzureApplicationGatewayRewrite {
+	rewrite := NewRewriteRuleSetCustomResourceFixture(name)
+	rewrite.Spec.RewriteRules[0].Actions.UrlConfiguration = nil
+	return rewrite
 }
 
 // GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
