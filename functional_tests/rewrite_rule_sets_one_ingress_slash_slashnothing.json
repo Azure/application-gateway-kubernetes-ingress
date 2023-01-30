@@ -229,12 +229,7 @@
                                         "headerName": "cc",
                                         "headerValue": "dd"
                                     }
-                                ],
-                                "urlConfiguration": {
-                                    "modifiedPath": "ff",
-                                    "modifiedQueryString": "gg",
-                                    "reroute": false
-                                }
+                                ]
                             },
                             "conditions": [
                                 {
