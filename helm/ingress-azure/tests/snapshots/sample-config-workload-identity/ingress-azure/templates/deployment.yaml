@@ -9,7 +9,6 @@ metadata:
     chart: ingress-azure-1.6.0
     heritage: Helm
     release: release-name
-    azure.workload.identity/use: "true"
 spec:
   replicas: 1 # TODO: Make configurable when leader election is supported.
   selector:
@@ -21,6 +20,7 @@ spec:
       labels:
         app: ingress-azure
         release: release-name
+        azure.workload.identity/use: "true"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8123"

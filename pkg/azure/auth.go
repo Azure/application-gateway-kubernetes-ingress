@@ -35,14 +35,14 @@ func GetAuthorizerWithRetry(authLocation string, useManagedidentity bool, cpConf
 
 func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *CloudProviderConfig) (autorest.Authorizer, error) {
 	// Authorizer logic:
-	// 1. If User provided authLocation, then use the file.
-	// 2. If User provided a managed identity in ex: helm config, then use Environment
-	// 3. If User provided nothing and CloudProviderConfig has value, then use CloudProviderConfig
-	// 4. Fall back to environment
+	// 1. If a file location is provided, use file for authorizer.
+	// 2. If cloud provider is accessible and user didn't enable managed identity, then use cloud provider client id/secret.
+	// 3. Fallback is Default Azure Credentials which will try multiple credentials providers like MSI and Workload identity.
 	if authLocation != "" {
 		klog.V(1).Infof("Creating authorizer from file referenced by environment variable: %s", authLocation)
 		return auth.NewAuthorizerFromFile(n.DefaultBaseURI)
 	}
+
 	if !useManagedidentity && cpConfig != nil {
 		klog.V(1).Info("Creating authorizer using Cluster Service Principal.")
 		credAuthorizer := auth.NewClientCredentialsConfig(cpConfig.ClientID, cpConfig.ClientSecret, cpConfig.TenantID)
