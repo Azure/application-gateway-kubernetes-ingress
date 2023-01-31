@@ -36,12 +36,14 @@ type tokenCredentialWrapper struct {
 }
 
 func (w *tokenCredentialWrapper) OAuthToken() string {
+	klog.V(7).Info("Getting Azure token using DefaultAzureCredential")
+
 	token, err := w.cred.GetToken(context.Background(), policy.TokenRequestOptions{
 		Scopes: []string{"https://management.azure.com/.default"},
 	})
 
 	if err != nil {
-		klog.Error("Error getting bearer token: ", err)
+		klog.Error("Error getting Azure token: ", err)
 		return ""
 	}
 
