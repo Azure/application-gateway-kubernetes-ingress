@@ -78,7 +78,7 @@ data:
 {{- end }}
 
 {{- if .Values.armAuth -}}
-{{- if eq .Values.armAuth.type "aadPodIdentity"}}
+{{- if or (eq .Values.armAuth.type "aadPodIdentity") (eq .Values.armAuth.type "workloadIdentity") }}
   AZURE_CLIENT_ID: "{{ .Values.armAuth.identityClientID }}"
   USE_MANAGED_IDENTITY_FOR_POD: "true"
 {{- end }}

@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"k8s.io/klog/v2"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure/defaultazurecredential"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
@@ -54,6 +55,6 @@ func getAuthorizer(authLocation string, useManagedidentity bool, cpConfig *Cloud
 		return credAuthorizer.Authorizer()
 	}
 
-	klog.V(1).Info("Creating authorizer from Azure Managed Service Identity")
-	return auth.NewAuthorizerFromEnvironment()
+	klog.V(1).Info("Creating authorizer using Default Azure Credentials")
+	return defaultazurecredential.NewAuthorizer()
 }

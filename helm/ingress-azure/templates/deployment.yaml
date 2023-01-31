@@ -7,6 +7,11 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+    {{- if .Values.armAuth }}
+    {{- if eq .Values.armAuth.type "workloadIdentity" }}
+    azure.workload.identity/use: "true"
+    {{- end }}
+    {{- end }}
 spec:
   replicas: 1 # TODO: Make configurable when leader election is supported.
   selector:
