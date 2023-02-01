@@ -3,15 +3,19 @@ module github.com/Azure/application-gateway-kubernetes-ingress
 go 1.16
 
 require (
+	github.com/AlekSi/gocov-xml v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go v57.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.8
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
+	github.com/axw/gocov v1.1.0 // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
+	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/knative/pkg v0.0.0-20190619032946-d90a9bc97dde
 	github.com/kylelemons/godebug v1.1.0
+	github.com/matm/gocov-html v1.2.0 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.19.0
 	github.com/prometheus/client_golang v1.11.0
