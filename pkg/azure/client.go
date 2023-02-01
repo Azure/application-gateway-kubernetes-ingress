@@ -101,6 +101,10 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		klog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
 
+	// increase the polling duration to 60 minutes
+	az.appGatewaysClient.PollingDuration = 60 * time.Minute
+	az.deploymentsClient.PollingDuration = 60 * time.Minute
+
 	return az
 }
 
