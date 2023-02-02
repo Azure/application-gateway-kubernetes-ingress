@@ -22,6 +22,9 @@ spec:
         {{- if eq .Values.armAuth.type "aadPodIdentity"}}
         aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
         {{- end }}
+        {{- if eq .Values.armAuth.type "workloadIdentity" }}
+        azure.workload.identity/use: "true"
+        {{- end }}
         {{- end }}
       annotations:
         checksum/config: {{ print .Values | sha256sum }}
