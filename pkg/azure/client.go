@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -100,6 +101,10 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 	if err := az.deploymentsClient.AddToUserAgent(userAgent); err != nil {
 		klog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
+
+	// increase the polling duration to 60 minutes
+	az.appGatewaysClient.PollingDuration = 60 * time.Minute
+	az.deploymentsClient.PollingDuration = 60 * time.Minute
 
 	return az
 }

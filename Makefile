@@ -114,10 +114,11 @@ vet-e2e:
 test-all: unittest
 
 unittest:
-	@go get github.com/jstemmer/go-junit-report
-	@go get github.com/axw/gocov/gocov
-	@go get github.com/AlekSi/gocov-xml
-	@go get github.com/matm/gocov-html
+	@go install github.com/jstemmer/go-junit-report@latest
+	@go install github.com/axw/gocov/gocov@latest
+	@go install github.com/AlekSi/gocov-xml@latest
+	@go install github.com/matm/gocov-html/cmd/gocov-html@latest
+	@go mod tidy
 	@go test -timeout 80s -v -coverprofile=coverage.txt -covermode count -tags unittest ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
 	@cat testoutput.txt | go-junit-report > report.xml
 	@gocov convert coverage.txt > coverage.json
