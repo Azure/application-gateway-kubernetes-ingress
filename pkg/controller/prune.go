@@ -29,6 +29,7 @@ func (c *AppGwIngressController) PruneIngress(appGw *n.ApplicationGateway, cbCtx
 			pruneFuncList = append(pruneFuncList, pruneProhibitedIngress)
 		}
 		pruneFuncList = append(pruneFuncList, pruneNoPrivateIP)
+		pruneFuncList = append(pruneFuncList, pruneNoPublicIP)
 		pruneFuncList = append(pruneFuncList, pruneRedirectWithNoTLS)
 		pruneFuncList = append(pruneFuncList, pruneNoSslCertificate)
 		pruneFuncList = append(pruneFuncList, pruneNoSslProfile)
@@ -70,11 +71,42 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 
 		usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP
 		if usePrivateIP && !appGwHasPrivateIP {
-			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway %s has a private IP address", ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
+			errorLine := fmt.Sprintf("ignoring Ingress %s/%s as it requires Application Gateway '%s' to have a private IP address. "+
+				"Either add a private IP to Application Gateway or remvove 'appgw.ingress.kubernetes.io/use-private-ip' from the ingress.",
+				ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
 			klog.Error(errorLine)
 			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
 			if c.agicPod != nil {
 				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPrivateIPError, errorLine)
+			}
+		} else {
+			prunedIngresses = append(prunedIngresses, ingress)
+		}
+	}
+
+	return prunedIngresses
+}
+
+// pruneNoPublicIP filters ingresses which need public IP but AppGw doesn't have a public IP
+func pruneNoPublicIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
+	var prunedIngresses []*networking.Ingress
+	appGwHasPublicIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, false) != nil
+	for _, ingress := range ingressList {
+		usePrivateIP, err := annotations.UsePrivateIP(ingress)
+		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
+			klog.Errorf("Ingress %s/%s has invalid value for annotation %s", ingress.Namespace, ingress.Name, annotations.UsePrivateIPKey)
+		}
+
+		usePublicIP := !usePrivateIP && !cbCtx.EnvVariables.UsePrivateIP
+		if usePublicIP && !appGwHasPublicIP {
+			errorLine := fmt.Sprintf(
+				"ignoring Ingress %s/%s as it requires Application Gateway '%s' to have a public IP address. "+
+					"Either add a public IP to Application Gateway or annotate ingress with 'appgw.ingress.kubernetes.io/use-private-ip: true' to attach Ingress to private IP.",
+				ingress.Namespace, ingress.Name, c.appGwIdentifier.AppGwName)
+			klog.Error(errorLine)
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonNoPublicIPError, errorLine)
+			if c.agicPod != nil {
+				c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonNoPublicIPError, errorLine)
 			}
 		} else {
 			prunedIngresses = append(prunedIngresses, ingress)
