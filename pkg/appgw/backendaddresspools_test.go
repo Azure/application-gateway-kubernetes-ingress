@@ -14,6 +14,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -190,7 +191,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		})
 
 		It("Should get listener config from istio", func() {
-			actual := cb.getListenerConfigsFromIstio(istioGateways, istioVirtualServices)
+			actual := cb.getListenerConfigsFromIstio(istioGateways, istioVirtualServices, environment.GetFakeEnv())
 			expected := map[listenerIdentifier]listenerAzConfig{
 				{FrontendPort: 80, UsePrivateIP: false}: {
 					Protocol:                     "Http",

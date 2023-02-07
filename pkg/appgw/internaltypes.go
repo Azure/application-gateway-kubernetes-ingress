@@ -232,10 +232,19 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 	}
 }
 
-func defaultFrontendListenerIdentifier(usePrivateIP bool) listenerIdentifier {
+func defaultUsePrivateIP(appGw n.ApplicationGateway, env environment.EnvVariables) bool {
+	if env.UsePrivateIP {
+		return env.UsePrivateIP
+	}
+
+	publicIPPresent := LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
+	return !publicIPPresent
+}
+
+func defaultFrontendListenerIdentifier(appGw n.ApplicationGateway, env environment.EnvVariables) listenerIdentifier {
 	return listenerIdentifier{
 		FrontendPort: Port(80),
-		UsePrivateIP: usePrivateIP,
+		UsePrivateIP: defaultUsePrivateIP(appGw, env),
 	}
 }
 
