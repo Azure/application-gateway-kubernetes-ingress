@@ -64,15 +64,12 @@ metadata:
 spec:
   rewriteRules:
   - name: my-rewrite-rule
-    
     ruleSequence: 7
-
     conditions:
     - ignoreCase: false
       negate: false
       variable: http_req_Host
       pattern: example.com
-
     actions:
       responseHeaderConfigurations:
       - actionType: set

@@ -554,7 +554,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			publicIP, _ := getPublicIP(clientset, namespaceName)
 			Expect(publicIP).ToNot(Equal(""))
 
-			urlHttp := fmt.Sprintf("http://%s", publicIP)
+			urlHttp := fmt.Sprintf("http://%s/get", publicIP)
 			// https get to return 200 ok
 			resp, err := makeGetRequest(urlHttp, "example.com", 200, true)
 			Expect(err).To(BeNil())
