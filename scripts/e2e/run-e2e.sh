@@ -11,6 +11,7 @@ SetupSharedBackend
 
 # run test
 go mod init || true
+go mod tidy
 go test -v -timeout 240m -tags e2e ./... >testoutput.txt || true
 mv ./cmd/runner/report.xml report.e2e.xml
 

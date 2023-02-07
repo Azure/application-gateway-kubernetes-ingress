@@ -52,8 +52,7 @@ function InstallAGIC() {
         --set appgw.name=${applicationGatewayName} \
         --set appgw.subnetPrefix=${applicationGatewaySubnetPrefix} \
         --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
-        --set armAuth.type=aadPodIdentity \
-        --set armAuth.identityResourceID=${identityResourceId} \
+        --set armAuth.type=workloadIdentity \
         --set armAuth.identityClientID=${identityClientId} \
         --set rbac.enabled=true \
         --set appgw.shared=false \
@@ -66,7 +65,7 @@ function InstallAGIC() {
     # apply backends to test prohibited target, wait for 90s to apply appgw config
     kubectl apply -f cmd/runner/testdata/extensions-v1beta1/prohibited-target/test-prohibit-backend.yaml || true
     kubectl apply -f cmd/runner/testdata/networking-v1/prohibited-target/test-prohibit-backend.yaml || true
-    sleep 90
+    sleep 30
 }
 
 function SetupSharedBackend() {
@@ -92,8 +91,7 @@ function SetupSharedBackend() {
         -f ./helm-config-with-prohibited-rules.yaml \
         --set appgw.applicationGatewayID=${applicationGatewayId} \
         --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
-        --set armAuth.type=aadPodIdentity \
-        --set armAuth.identityResourceID=${identityResourceId} \
+        --set armAuth.type=workloadIdentity \
         --set armAuth.identityClientID=${identityClientId} \
         --set kubernetes.ingressClass="$1" \
         --timeout 120s \
