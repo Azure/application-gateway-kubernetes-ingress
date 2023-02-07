@@ -98,7 +98,7 @@ func (c *appGwConfigBuilder) getIstioPathMaps(cbCtx *ConfigBuilderContext) map[l
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
 		// TODO(aksgupta): refactor to get environment variable
-		listenerID := defaultFrontendListenerIdentifier(false)
+		listenerID := defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)
 		pathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),

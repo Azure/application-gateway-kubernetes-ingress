@@ -16,7 +16,7 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 	var listeners []n.ApplicationGatewayHTTPListener
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
-		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices) {
+		for listenerID, config := range c.getListenerConfigsFromIstio(cbCtx.IstioGateways, cbCtx.IstioVirtualServices, cbCtx.EnvVariables) {
 			listener, port, err := c.newListener(cbCtx, listenerID, config.Protocol, portsByNumber)
 			if err != nil {
 				klog.Errorf("Failed creating listener %+v: %s", listenerID, err)

@@ -8,6 +8,7 @@ package appgw
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -34,7 +35,10 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
-var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
+var _ = Describe("Public and Private IP tests", func() {
+	var configBuilder ConfigBuilder
+	var appGwy *n.ApplicationGateway
+	var cbCtx *ConfigBuilderContext
 	version.Version = "a"
 	version.GitCommit = "b"
 	version.BuildDate = "c"
@@ -271,26 +275,49 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	_, err = k8sClient.CoreV1().Pods(ingressNS).Create(context.TODO(), pod2, metav1.CreateOptions{})
 	It("should have not failed", func() { Expect(err).ToNot(HaveOccurred()) })
 
-	appGwy := &n.ApplicationGateway{
-		ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
-	}
+	Context("Both private ip and public ip are present on the Gateway", func() {
+		BeforeEach(func() {
+			appGwy = &n.ApplicationGateway{
+				ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
+			}
 
-	// Initialize the `ConfigBuilder`
-	configBuilder := NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+			appGwy.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				{
+					// Public IP
+					Name: to.StringPtr("public"),
+					ID:   to.StringPtr("public"),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PrivateIPAddress: nil,
+						PublicIPAddress: &n.SubResource{
+							ID: to.StringPtr("xyz"),
+						},
+					},
+				},
+				{
+					// Private IP
+					Name: to.StringPtr("private"),
+					ID:   to.StringPtr("private"),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PrivateIPAddress: to.StringPtr("abc"),
+						PublicIPAddress:  nil,
+					},
+				},
+			}
 
-	Context("Tests Application Gateway config creation", func() {
-		cbCtx := &ConfigBuilderContext{
-			IngressList: []*networking.Ingress{
-				ingressPrivateIP,
-				ingressPublicIP,
-			},
-			ServiceList:           serviceList,
-			EnvVariables:          environment.GetFakeEnv(),
-			DefaultAddressPoolID:  to.StringPtr("xx"),
-			DefaultHTTPSettingsID: to.StringPtr("yy"),
-		}
+			configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+			cbCtx = &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					ingressPrivateIP,
+					ingressPublicIP,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+		})
 
-		It("Should have created correct App Gateway config JSON blob", func() {
+		It("should use private ip for listener at port 80 as ingress is using use-private-ip annotation", func() {
 			appGW, err := configBuilder.Build(cbCtx)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -300,14 +327,69 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			Expect(appGW.HTTPListeners).ToNot(BeNil())
 
 			foundPrivateIPListener := false
+			foundPublicIPListener := false
 			for _, listener := range *appGW.HTTPListeners {
-				if *listener.FrontendPort.ID == "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80" {
+				// port 80 should be used with private ip
+				if strings.Contains(*listener.FrontendPort.ID, "fp-80") {
 					foundPrivateIPListener = true
-					Expect(*listener.FrontendIPConfiguration.ID).To(Equal("--front-end-ip-id-2--"), fmt.Sprintf("Expecting to find private IP frontend configuration attached here."))
+					Expect(*listener.FrontendIPConfiguration.ID).To(Equal("private"), "expecting to find private IP frontend configuration attached here")
+				}
+
+				// port 443 should be used with public ip
+				if strings.Contains(*listener.FrontendPort.ID, "fp-443") {
+					foundPublicIPListener = true
+					Expect(*listener.FrontendIPConfiguration.ID).To(Equal("public"), "expecting to find public IP frontend configuration attached here")
 				}
 			}
 
 			Expect(foundPrivateIPListener).To(BeTrue(), fmt.Sprintf("Expecting to find a listener using private IP. Actual JSON:\n%s\n", string(jsonBlob)))
+			Expect(foundPublicIPListener).To(BeTrue(), fmt.Sprintf("Expecting to find a listener using private IP. Actual JSON:\n%s\n", string(jsonBlob)))
+		})
+	})
+
+	Context("Only private ip present on the Gateway", func() {
+		BeforeEach(func() {
+			appGwy = &n.ApplicationGateway{
+				ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
+			}
+
+			appGwy.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				{
+					// Private IP
+					Name: to.StringPtr("private"),
+					ID:   to.StringPtr("private"),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PrivateIPAddress: to.StringPtr("abc"),
+						PublicIPAddress:  nil,
+					},
+				},
+			}
+
+			configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+			cbCtx = &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					ingressPrivateIP,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+		})
+
+		It("should use private ip for all listeners and for all ingresses", func() {
+			appGW, err := configBuilder.Build(cbCtx)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(appGW.HTTPListeners).ToNot(BeNil())
+			Expect(len(*appGW.HTTPListeners)).To(Equal(1))
+
+			for _, listener := range *appGW.HTTPListeners {
+				Expect(*listener.FrontendIPConfiguration.ID).To(Equal("private"), "expecting to find private IP frontend configuration attached here")
+			}
+
+			Expect(appGW.RequestRoutingRules).ToNot(BeNil())
+			Expect(len(*appGW.RequestRoutingRules)).To(Equal(1), "should have 2 rules")
 		})
 	})
 })

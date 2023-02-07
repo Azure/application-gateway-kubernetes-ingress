@@ -12,7 +12,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
@@ -108,64 +107,5 @@ func validateURLPathMaps(eventRecorder record.EventRecorder, config *n.Applicati
 
 		}
 	}
-	return nil
-}
-
-func validateFrontendIPConfiguration(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
-	privateIPPresent := false
-	publicIPPresent := false
-	var jsonConfigs []string
-	for _, ip := range *config.FrontendIPConfigurations {
-		if jsonConf, err := ip.MarshalJSON(); err != nil {
-			klog.Error("Could not marshall IP configuration:", *ip.ID, err)
-		} else {
-			jsonConfigs = append(jsonConfigs, string(jsonConf))
-		}
-
-		privateIPPresent = privateIPPresent ||
-			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PrivateIPAddress != nil)
-		publicIPPresent = publicIPPresent ||
-			(ip.ApplicationGatewayFrontendIPConfigurationPropertiesFormat != nil && ip.PublicIPAddress != nil)
-	}
-
-	if envVariables.UsePrivateIP && !privateIPPresent {
-		e := controllererrors.NewError(
-			controllererrors.ErrorNoPrivateIP,
-			"Applcation Gateway doesn't have a private IP. Either add a private IP or set usePrivateIP flag to false in helm config.",
-		)
-		return e
-	}
-
-	if !publicIPPresent {
-		e := controllererrors.NewError(
-			controllererrors.ErrorNoPublicIP,
-			"Applcation Gateway doesn't have a public IP",
-		)
-		return e
-	}
-
-	return nil
-}
-
-// FatalValidateOnExistingConfig validates the existing configuration is valid for the specified setting of the controller.
-func FatalValidateOnExistingConfig(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error {
-	if config == nil {
-		e := controllererrors.NewError(
-			controllererrors.ErrorEmptyConfig,
-			"Application Gateway configuration should not be empty.",
-		)
-		return e
-	}
-
-	validators := []func(eventRecorder record.EventRecorder, config n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables) error{
-		validateFrontendIPConfiguration,
-	}
-
-	for _, fn := range validators {
-		if err := fn(eventRecorder, *config, envVariables); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

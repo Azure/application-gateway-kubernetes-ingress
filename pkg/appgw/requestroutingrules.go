@@ -149,7 +149,7 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 		poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
-		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
+		listenerID := defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)
 		pathMapName := generateURLPathMapName(listenerID)
 		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
@@ -207,7 +207,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	if len(urlPathMaps) == 0 {
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
-		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
+		listenerID := defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)
 		pathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),

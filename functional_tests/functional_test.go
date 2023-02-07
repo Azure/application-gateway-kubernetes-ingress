@@ -50,9 +50,10 @@ func TestFunctional(t *testing.T) {
 	ginkgo.RunSpecs(t, "Appgw Suite")
 }
 
-var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
+var _ = ginkgo.Describe("Functional Tests", func() {
 	var stopChannel chan struct{}
 	var ctxt *k8scontext.Context
+	var appGwy *n.ApplicationGateway
 	var configBuilder ConfigBuilder
 
 	version.Version = "a"
@@ -537,7 +538,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
 		_ = ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
 
-		appGwy := &n.ApplicationGateway{
+		appGwy = &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
@@ -1182,5 +1183,35 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "rewrite_rule_sets_path-based_rules_without_default_backend.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("Application Gateway has private IP only; Should use private IP for all rules", func() {
+			appGwy.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				{
+					// Private IP
+					Name: to.StringPtr("yy3"),
+					Etag: to.StringPtr("yy2"),
+					Type: to.StringPtr("yy1"),
+					ID:   to.StringPtr(tests.PrivateIPID),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PrivateIPAddress: to.StringPtr("abc"),
+						PublicIPAddress:  nil,
+					},
+				},
+			}
+
+			configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+
+			privateingress := newIngress()
+			privateingress.Annotations[annotations.UsePrivateIPKey] = "true"
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					privateingress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "private-ip-only-gateway.json", stopChannel, ctxt, configBuilder)
+		})
 	})
 })
