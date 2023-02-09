@@ -1,7 +1,11 @@
 - [How to try](#how-to-try)
-- [v1.6.0-rc1](#v151)
+- [v1.6.0](#v160)
+- [v1.6.0-rc1](#v160-rc1)
   - [Features](#features)
   - [Fixes](#fixes)
+
+# v1.6.0
+Same as 1.6.0-rc1
 
 # v1.6.0-rc1
 
@@ -35,6 +39,10 @@ helm install \
 # Upgrade
 # https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md
 # --reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored
+
+# Install CRDs separately as helm upgrade doesn't install CRDs.
+kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/helm/ingress-azure/crds/azureapplicationgatewayrewrite.yaml
+
 helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
