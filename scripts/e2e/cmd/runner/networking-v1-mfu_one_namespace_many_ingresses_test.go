@@ -199,7 +199,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(publicIP).ToNot(Equal(""))
 
 			// test url that only works with *.extended.com
-			url := fmt.Sprintf("https://%s/anything/", publicIP)
+			url := fmt.Sprintf("https://%s/anything", publicIP)
 
 			// simple hostname
 			_, err = makeGetRequest(url, "www.extended.com", 200, true)
