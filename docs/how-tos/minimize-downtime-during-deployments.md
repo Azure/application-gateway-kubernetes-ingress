@@ -134,4 +134,4 @@ To achieve a near-zero-downtime deployments, we need to add a:
 Long term solutions to zero-downtime updates:
 
   1. Faster backend pool updates: The AGIC team is already working on the next iteration of the Ingress Controller, which will shorten the time to update App Gateway drastically. Faster backend pool updates will lower the probability to run into 502s.
-  2. Rolling updates with App Gateway feedback: AGIc team is looking into a deeper integration between AGIC and the Kubernetes' rolling updates feature.
+  2. Rolling updates with App Gateway feedback: AGIC team is looking into a deeper integration between AGIC and the Kubernetes' rolling updates feature.
