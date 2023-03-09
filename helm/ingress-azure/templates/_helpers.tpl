@@ -102,3 +102,14 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Override a secret name for service principal in case you have multiple AGIC controllers.
+*/}}
+{{- define "application-gateway-kubernetes-ingress.servicePrincipalSecretName" -}}
+{{- if .Values.armAuth.secretName -}}
+{{- .Values.armAuth.secretName -}}
+{{- else -}}
+{{- printf "networking-appgw-k8s-azure-service-principal" -}}
+{{- end -}}
+{{- end -}}

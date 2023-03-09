@@ -103,6 +103,7 @@ appgw: {}
 #   # Generate this value with:
 #   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
 #   secretJSON: <base64-encoded-JSON-blob>
+#   secretName: <your-secret-name>
 #
 # - Option 3: Workload Identity (https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
 # armAuth:
