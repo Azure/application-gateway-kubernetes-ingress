@@ -348,7 +348,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(actual).To(Equal(""))
 		})
-		It("returns the hostname", func() {
+		It("returns true with correct annotation", func() {
 			actual, err := OverrideBackendHostName(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal(true))
