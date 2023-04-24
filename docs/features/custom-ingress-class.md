@@ -15,7 +15,7 @@ To use a custom ingress class,
         --set kubernetes.ingressClass arbitrary-class
     ```
 
-2. Then, within the spec object, specify `ingressClassName` with the same value to provided to AGIC.
+2. Then, within the spec object, specify `ingressClassName` with the same value provided to AGIC.
     ```yaml
     kind: Ingress
     metadata:
