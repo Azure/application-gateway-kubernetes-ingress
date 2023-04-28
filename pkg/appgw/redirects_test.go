@@ -20,9 +20,9 @@ import (
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
 
-	listenerID1, _ := newTestListenerID(Port(80), []string{tests.Host}, false)
+	listenerID1, _ := newTestListenerID(Port(80), []string{tests.Host}, FrontendTypePublic)
 
-	listenerID2, listenerID2Name := newTestListenerID(Port(443), []string{tests.Host}, false)
+	listenerID2, listenerID2Name := newTestListenerID(Port(443), []string{tests.Host}, FrontendTypePublic)
 
 	expectedListenerConfigs := map[listenerIdentifier]listenerAzConfig{
 		listenerID1: {
