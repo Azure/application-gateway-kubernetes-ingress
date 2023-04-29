@@ -238,9 +238,14 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 
 	}
 
+	frontendType := FrontendTypePublic
+	if usePrivateIP {
+		frontendType = FrontendTypePrivate
+	}
+
 	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
-		UsePrivateIP: usePrivateIP,
+		FrontendType: frontendType,
 	}
 
 	var hostNames []string

@@ -333,8 +333,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "httpListeners": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-08ba2bb7da9df5927d900fca8ce96ba5",
---                "name": "fl-08ba2bb7da9df5927d900fca8ce96ba5",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-460bda00727325679d31c1f44e618448",
+--                "name": "fl-460bda00727325679d31c1f44e618448",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-1--"
@@ -400,8 +400,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-08ba2bb7da9df5927d900fca8ce96ba5",
---                "name": "rr-08ba2bb7da9df5927d900fca8ce96ba5",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-460bda00727325679d31c1f44e618448",
+--                "name": "rr-460bda00727325679d31c1f44e618448",
 --                "properties": {
 --                    "backendAddressPool": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
@@ -410,7 +410,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-08ba2bb7da9df5927d900fca8ce96ba5"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-460bda00727325679d31c1f44e618448"
 --                    },
 --                    "priority": 19000,
 --                    "ruleType": "Basic"
@@ -585,8 +585,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "httpListeners": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a",
---                "name": "fl-e1903c8aa3446b7b3207aec6d6ecba8a",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-452c578b4f742bd7a3927c3caf2b604e",
+--                "name": "fl-452c578b4f742bd7a3927c3caf2b604e",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-1--"
@@ -635,8 +635,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-e1903c8aa3446b7b3207aec6d6ecba8a",
---                "name": "rr-e1903c8aa3446b7b3207aec6d6ecba8a",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-452c578b4f742bd7a3927c3caf2b604e",
+--                "name": "rr-452c578b4f742bd7a3927c3caf2b604e",
 --                "properties": {
 --                    "backendAddressPool": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
@@ -645,7 +645,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-452c578b4f742bd7a3927c3caf2b604e"
 --                    },
 --                    "priority": 19500,
 --                    "ruleType": "Basic"
@@ -848,8 +848,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        ],
 --        "httpListeners": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-b2dba5a02f61d8615cc23d8df120ac20",
---                "name": "fl-b2dba5a02f61d8615cc23d8df120ac20",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-853f2cc01a700b4ca07424c3daf866cd",
+--                "name": "fl-853f2cc01a700b4ca07424c3daf866cd",
 --                "properties": {
 --                    "frontendIPConfiguration": {
 --                        "id": "--front-end-ip-id-1--"
@@ -917,8 +917,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --        "redirectConfigurations": [],
 --        "requestRoutingRules": [
 --            {
---                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-b2dba5a02f61d8615cc23d8df120ac20",
---                "name": "rr-b2dba5a02f61d8615cc23d8df120ac20",
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-853f2cc01a700b4ca07424c3daf866cd",
+--                "name": "rr-853f2cc01a700b4ca07424c3daf866cd",
 --                "properties": {
 --                    "backendAddressPool": {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool-test-ingress-controller-hello-world-80-bp-80"
@@ -927,7 +927,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp-test-ingress-controller-hello-world-80-80---name--"
 --                    },
 --                    "httpListener": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-b2dba5a02f61d8615cc23d8df120ac20"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-853f2cc01a700b4ca07424c3daf866cd"
 --                    },
 --                    "priority": 19000,
 --                    "ruleType": "Basic"

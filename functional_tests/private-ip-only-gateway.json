@@ -83,25 +83,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-99e28aff3b2f87fe177626b33f1d8d7c",
-                "name": "fl-99e28aff3b2f87fe177626b33f1d8d7c",
-                "properties": {
-                    "frontendIPConfiguration": {
-                        "id": "--front-end-ip-id-2--"
-                    },
-                    "frontendPort": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
-                    },
-                    "hostNames": [
-                        "foo.baz"
-                    ],
-                    "protocol": "Http",
-                    "requireServerNameIndication": false
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-fafc599c553da3501d29a7eb806da9c2",
-                "name": "fl-fafc599c553da3501d29a7eb806da9c2",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-7d921970c46dec616a00d964690bbab0",
+                "name": "fl-7d921970c46dec616a00d964690bbab0",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-2--"
@@ -117,6 +100,23 @@
                     "sslCertificate": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/sslCertificates/cert---namespace-----the-name-of-the-secret--"
                     }
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-857975d96f9b44e510fcc119947f9da0",
+                "name": "fl-857975d96f9b44e510fcc119947f9da0",
+                "properties": {
+                    "frontendIPConfiguration": {
+                        "id": "--front-end-ip-id-2--"
+                    },
+                    "frontendPort": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/frontendPorts/fp-80"
+                    },
+                    "hostNames": [
+                        "foo.baz"
+                    ],
+                    "protocol": "Http",
+                    "requireServerNameIndication": false
                 }
             }
         ],
@@ -169,36 +169,22 @@
         ],
         "redirectConfigurations": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-fafc599c553da3501d29a7eb806da9c2",
-                "name": "sslr-fl-fafc599c553da3501d29a7eb806da9c2",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-7d921970c46dec616a00d964690bbab0",
+                "name": "sslr-fl-7d921970c46dec616a00d964690bbab0",
                 "properties": {
                     "includePath": true,
                     "includeQueryString": true,
                     "redirectType": "Permanent",
                     "targetListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-fafc599c553da3501d29a7eb806da9c2"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-7d921970c46dec616a00d964690bbab0"
                     }
                 }
             }
         ],
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-99e28aff3b2f87fe177626b33f1d8d7c",
-                "name": "rr-99e28aff3b2f87fe177626b33f1d8d7c",
-                "properties": {
-                    "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-99e28aff3b2f87fe177626b33f1d8d7c"
-                    },
-                    "priority": 19000,
-                    "redirectConfiguration": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-fafc599c553da3501d29a7eb806da9c2"
-                    },
-                    "ruleType": "Basic"
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-fafc599c553da3501d29a7eb806da9c2",
-                "name": "rr-fafc599c553da3501d29a7eb806da9c2",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-7d921970c46dec616a00d964690bbab0",
+                "name": "rr-7d921970c46dec616a00d964690bbab0",
                 "properties": {
                     "backendAddressPool": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-80-bp-80"
@@ -207,9 +193,23 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/bp---namespace---hello-world-80-80---name--"
                     },
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-fafc599c553da3501d29a7eb806da9c2"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-7d921970c46dec616a00d964690bbab0"
+                    },
+                    "priority": 19000,
+                    "ruleType": "Basic"
+                }
+            },
+            {
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-857975d96f9b44e510fcc119947f9da0",
+                "name": "rr-857975d96f9b44e510fcc119947f9da0",
+                "properties": {
+                    "httpListener": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-857975d96f9b44e510fcc119947f9da0"
                     },
                     "priority": 19005,
+                    "redirectConfiguration": {
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/redirectConfigurations/sslr-fl-7d921970c46dec616a00d964690bbab0"
+                    },
                     "ruleType": "Basic"
                 }
             }

@@ -22,12 +22,12 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 				klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
-			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
+			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.FrontendType == FrontendTypePrivate {
 				klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
 				continue
 			}
 
-			if !listenerID.UsePrivateIP {
+			if listenerID.FrontendType == FrontendTypePublic {
 				publIPPorts[*port.Name] = *listener.Name
 			}
 
