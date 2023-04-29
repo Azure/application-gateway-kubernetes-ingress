@@ -254,7 +254,7 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 	}
 
 	extendedHostNames, err := annotations.GetHostNameExtensions(ingress)
-	if err != nil {
+	if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
 		klog.V(5).Infof("Error while parsing hostname extension: %s", err)
 	} else {
 		if extendedHostNames != nil {
