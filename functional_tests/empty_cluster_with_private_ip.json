@@ -54,8 +54,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-ac133916d522c571f2d9ef8f3b8a25d3",
-                "name": "fl-ac133916d522c571f2d9ef8f3b8a25d3",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-22ee2b2b23866544c9beb9eab8459a2b",
+                "name": "fl-22ee2b2b23866544c9beb9eab8459a2b",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-2--"
@@ -104,8 +104,8 @@
         "redirectConfigurations": [],
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-ac133916d522c571f2d9ef8f3b8a25d3",
-                "name": "rr-ac133916d522c571f2d9ef8f3b8a25d3",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-22ee2b2b23866544c9beb9eab8459a2b",
+                "name": "rr-22ee2b2b23866544c9beb9eab8459a2b",
                 "properties": {
                     "backendAddressPool": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool"
@@ -114,7 +114,7 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting"
                     },
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-ac133916d522c571f2d9ef8f3b8a25d3"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-22ee2b2b23866544c9beb9eab8459a2b"
                     },
                     "priority": 19500,
                     "ruleType": "Basic"

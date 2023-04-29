@@ -116,8 +116,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a",
-                "name": "fl-e1903c8aa3446b7b3207aec6d6ecba8a",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-452c578b4f742bd7a3927c3caf2b604e",
+                "name": "fl-452c578b4f742bd7a3927c3caf2b604e",
                 "properties": {
                     "firewallPolicy": {
                         "id": "/some/policy/here"
@@ -199,16 +199,16 @@
         "redirectConfigurations": [],
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-e1903c8aa3446b7b3207aec6d6ecba8a",
-                "name": "rr-e1903c8aa3446b7b3207aec6d6ecba8a",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-452c578b4f742bd7a3927c3caf2b604e",
+                "name": "rr-452c578b4f742bd7a3927c3caf2b604e",
                 "properties": {
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-e1903c8aa3446b7b3207aec6d6ecba8a"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-452c578b4f742bd7a3927c3caf2b604e"
                     },
                     "priority": 19500,
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-e1903c8aa3446b7b3207aec6d6ecba8a"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-452c578b4f742bd7a3927c3caf2b604e"
                     }
                 }
             }
@@ -222,8 +222,8 @@
         "sslCertificates": [],
         "urlPathMaps": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-e1903c8aa3446b7b3207aec6d6ecba8a",
-                "name": "url-e1903c8aa3446b7b3207aec6d6ecba8a",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-452c578b4f742bd7a3927c3caf2b604e",
+                "name": "url-452c578b4f742bd7a3927c3caf2b604e",
                 "properties": {
                     "defaultBackendAddressPool": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80"
@@ -233,7 +233,7 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-e1903c8aa3446b7b3207aec6d6ecba8a/pathRules/pr---namespace-----name--SlashNothingSlashSomething-rule-0-path-1",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-452c578b4f742bd7a3927c3caf2b604e/pathRules/pr---namespace-----name--SlashNothingSlashSomething-rule-0-path-1",
                             "name": "pr---namespace-----name--SlashNothingSlashSomething-rule-0-path-1",
                             "properties": {
                                 "backendAddressPool": {

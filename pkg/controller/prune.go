@@ -62,7 +62,7 @@ func pruneProhibitedIngress(c *AppGwIngressController, appGw *n.ApplicationGatew
 // pruneNoPrivateIP filters ingresses which use private IP annotation when AppGw doesn't have a private IP
 func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
 	var prunedIngresses []*networking.Ingress
-	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
+	appGwHasPrivateIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, appgw.FrontendTypePrivate) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, err := annotations.UsePrivateIP(ingress)
 		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
@@ -90,7 +90,7 @@ func pruneNoPrivateIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cb
 // pruneNoPublicIP filters ingresses which need public IP but AppGw doesn't have a public IP
 func pruneNoPublicIP(c *AppGwIngressController, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext, ingressList []*networking.Ingress) []*networking.Ingress {
 	var prunedIngresses []*networking.Ingress
-	appGwHasPublicIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, false) != nil
+	appGwHasPublicIP := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, appgw.FrontendTypePublic) != nil
 	for _, ingress := range ingressList {
 		usePrivateIP, err := annotations.UsePrivateIP(ingress)
 		if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {

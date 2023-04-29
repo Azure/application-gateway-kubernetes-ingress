@@ -42,12 +42,12 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 			continue
 		}
 
-		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
+		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.FrontendType == FrontendTypePrivate {
 			klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s; Will not create listener %+v", *port.Name, *listener.Name, listenerName, listenerID)
 			continue
 		}
 
-		if !listenerID.UsePrivateIP {
+		if listenerID.FrontendType == FrontendTypePublic {
 			publIPPorts[*port.Name] = *listener.Name
 		}
 
@@ -152,7 +152,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 }
 
 func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, portsByNumber map[Port]n.ApplicationGatewayFrontendPort) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {
-	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
+	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.FrontendType)
 	portNumber := listenerID.FrontendPort
 	var frontendPort n.ApplicationGatewayFrontendPort
 	var exists bool
@@ -204,10 +204,8 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
-		port, portExists := portsByID[*listener.FrontendPort.ID]
-
 		listenerID := listenerIdentifier{
-			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
+			FrontendType: DetermineFrontendType(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 
 		if listener.HostNames != nil && len(*listener.HostNames) > 0 {
@@ -216,6 +214,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 			listenerID.setHostNames([]string{*listener.HostName})
 		}
 
+		port, portExists := portsByID[*listener.FrontendPort.ID]
 		if portExists && port.Port != nil {
 			listenerID.FrontendPort = Port(*port.Port)
 		} else {

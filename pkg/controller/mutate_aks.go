@@ -55,8 +55,12 @@ func (c AppGwIngressController) updateIngressStatus(appGw *n.ApplicationGateway,
 	// determine what ipAddress to attach
 	usePrivateIP, _ := annotations.UsePrivateIP(ingress)
 	usePrivateIP = usePrivateIP || cbCtx.EnvVariables.UsePrivateIP
+	frontendType := appgw.FrontendTypePublic
+	if usePrivateIP {
+		frontendType = appgw.FrontendTypePrivate
+	}
 
-	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, usePrivateIP)
+	ipConf := appgw.LookupIPConfigurationByType(appGw.FrontendIPConfigurations, frontendType)
 	if ipConf == nil {
 		klog.V(9).Info("[mutate_aks] No IP config for App Gwy: ", appGw.Name)
 		return
