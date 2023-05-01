@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: ing-public
 spec:
+  ingressClassName: azure-application-gateway
   rules:
   - host: example.com
     http:
@@ -22,6 +23,7 @@ metadata:
   annotations:
     appgw.ingress.kubernetes.io/use-private-ip: "true"
 spec:
+  ingressClassName: azure-application-gateway
   rules:
   - host: example.com
     http:
