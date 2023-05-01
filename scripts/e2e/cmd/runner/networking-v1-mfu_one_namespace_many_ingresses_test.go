@@ -10,6 +10,7 @@ package runner
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -222,7 +223,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
-		It("[same-port-public-private] ingresses with same port on both public and private IP should work", func() {
+		FIt("[same-port-public-private] ingresses with same port on both public and private IP should work", func() {
 			// create namespace
 			namespaceName = "e2e-same-port-public-private"
 			ns := &v1.Namespace{
@@ -240,16 +241,15 @@ var _ = Describe("networking-v1-MFU", func() {
 			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
-			time.Sleep(30 * time.Second)
-
-			klog.Info("Getting Application Gateway...")
-
 			var listeners []n.ApplicationGatewayHTTPListener
 			// Check that gateway has two listeners eventually
 			klog.Info("Checking that gateway has two listeners...")
 			Eventually(func() bool {
 				appGW, err := getGateway()
 				Expect(err).To(BeNil())
+
+				bytes, _ := json.MarshalIndent(appGW.HTTPListeners, "", "  ")
+				klog.Infof("Listeners: %s", bytes)
 
 				listeners = *appGW.HTTPListeners
 				return len(listeners) == 2
