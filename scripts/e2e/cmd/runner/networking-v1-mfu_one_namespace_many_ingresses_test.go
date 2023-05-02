@@ -223,7 +223,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
-		FIt("[same-port-public-private] ingresses with same port on both public and private IP should work", func() {
+		It("[same-port-public-private] ingresses with same port on both public and private IP should work", func() {
 			// create namespace
 			namespaceName = "e2e-same-port-public-private"
 			ns := &v1.Namespace{
@@ -241,9 +241,9 @@ var _ = Describe("networking-v1-MFU", func() {
 			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
-			var listeners []n.ApplicationGatewayHTTPListener
+			var exampleComListeners []n.ApplicationGatewayHTTPListener
 			// Check that gateway has two listeners eventually
-			klog.Info("Checking that gateway has two listeners...")
+			klog.Info("Checking that gateway has two listeners for hostname example.com...")
 			Eventually(func() bool {
 				appGW, err := getGateway()
 				Expect(err).To(BeNil())
@@ -251,17 +251,31 @@ var _ = Describe("networking-v1-MFU", func() {
 				bytes, _ := json.MarshalIndent(appGW.HTTPListeners, "", "  ")
 				klog.Infof("Listeners: %s", bytes)
 
-				listeners = *appGW.HTTPListeners
-				return len(listeners) == 2
+				exampleComListeners = []n.ApplicationGatewayHTTPListener{}
+				for _, listener := range *appGW.HTTPListeners {
+					if listener.HostNames == nil {
+						continue
+					}
+
+					if len(*listener.HostNames) == 0 {
+						continue
+					}
+
+					if (*listener.HostNames)[0] == "example.com" {
+						exampleComListeners = append(exampleComListeners, listener)
+					}
+				}
+
+				return len(exampleComListeners) == 2
 			}, 60*time.Second, 5*time.Second).Should(BeTrue())
 
 			// Check that both listeners have the same frontend port
 			klog.Info("Checking that both listeners have the same frontend port...")
-			Expect(*listeners[0].FrontendPort.ID).To(Equal(*listeners[1].FrontendPort.ID))
+			Expect(exampleComListeners[0].FrontendPort.ID).To(Equal(exampleComListeners[1].FrontendPort.ID))
 
 			// Check that both listeners have the different frontend IP
 			klog.Info("Checking that both listeners have the different frontend IP...")
-			Expect(*listeners[0].FrontendIPConfiguration.ID).ToNot(Equal(*listeners[1].FrontendIPConfiguration.ID))
+			Expect(exampleComListeners[0].FrontendIPConfiguration.ID).ToNot(Equal(exampleComListeners[1].FrontendIPConfiguration.ID))
 		})
 
 		AfterEach(func() {
