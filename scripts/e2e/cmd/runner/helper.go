@@ -696,16 +696,23 @@ func getPublicIPForNetworkingV1Ingress(clientset *clientset.Clientset, namespace
 			return "", fmt.Errorf("Unable to find ingress in namespace %s", namespaceName)
 		}
 
-		ingress := (*ingresses).Items[0]
-		if len(ingress.Status.LoadBalancer.Ingress) == 0 {
-			klog.Warning("Trying again in 5 seconds...", i)
-			time.Sleep(5 * time.Second)
-			continue
-		}
+		for _, ingress := range (*ingresses).Items {
+			if ingress.Annotations["appgw.ingress.kubernetes.io/use-private-ip"] == "true" {
+				continue
+			}
 
-		publicIP := ingress.Status.LoadBalancer.Ingress[0].IP
-		if publicIP != "" {
-			return publicIP, nil
+			if len(ingress.Status.LoadBalancer.Ingress) == 0 {
+				klog.Warning("Trying again in 5 seconds...", i)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			publicIP := ingress.Status.LoadBalancer.Ingress[0].IP
+			if publicIP != "" {
+				return publicIP, nil
+			}
+
+			break
 		}
 
 		klog.Warning("getPublicIP: trying again in 5 seconds...", i)
