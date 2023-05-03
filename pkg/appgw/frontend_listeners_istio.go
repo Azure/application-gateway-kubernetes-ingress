@@ -10,8 +10,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, map[Port]n.ApplicationGatewayFrontendPort, map[string]string) {
-	publIPPorts := make(map[string]string)
+func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext) ([]n.ApplicationGatewayHTTPListener, map[Port]n.ApplicationGatewayFrontendPort) {
 	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
 
@@ -22,14 +21,6 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 				klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 				continue
 			}
-			if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.FrontendType == FrontendTypePrivate {
-				klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s", *port.Name, *listener.Name, listenerName)
-				continue
-			}
-
-			if listenerID.FrontendType == FrontendTypePublic {
-				publIPPorts[*port.Name] = *listener.Name
-			}
 
 			listeners = append(listeners, *listener)
 			if _, exists := portsByNumber[Port(*port.Port)]; !exists {
@@ -37,5 +28,5 @@ func (c *appGwConfigBuilder) getIstioListenersPorts(cbCtx *ConfigBuilderContext)
 			}
 		}
 	}
-	return listeners, portsByNumber, publIPPorts
+	return listeners, portsByNumber
 }

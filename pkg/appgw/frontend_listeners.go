@@ -23,7 +23,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		return c.mem.listeners, c.mem.ports
 	}
 
-	publIPPorts := make(map[string]string)
 	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
 
@@ -32,7 +31,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
-		listeners, portsByNumber, publIPPorts = c.getIstioListenersPorts(cbCtx)
+		listeners, portsByNumber = c.getIstioListenersPorts(cbCtx)
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
@@ -40,15 +39,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		if err != nil {
 			klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
-		}
-
-		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.FrontendType == FrontendTypePrivate {
-			klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s; Will not create listener %+v", *port.Name, *listener.Name, listenerName, listenerID)
-			continue
-		}
-
-		if listenerID.FrontendType == FrontendTypePublic {
-			publIPPorts[*port.Name] = *listener.Name
 		}
 
 		// newlistener created a new port; Add it to the set
@@ -64,6 +54,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 				listener.SslProfile = resourceRef(sslProfileID)
 			}
 		}
+
 		if config.FirewallPolicy != "" {
 			listener.FirewallPolicy = &n.SubResource{ID: to.StringPtr(config.FirewallPolicy)}
 		}
