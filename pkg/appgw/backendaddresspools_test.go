@@ -193,7 +193,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 		It("Should get listener config from istio", func() {
 			actual := cb.getListenerConfigsFromIstio(istioGateways, istioVirtualServices, environment.GetFakeEnv())
 			expected := map[listenerIdentifier]listenerAzConfig{
-				{FrontendPort: 80, UsePrivateIP: false}: {
+				{FrontendPort: 80, FrontendType: FrontendTypePublic}: {
 					Protocol:                     "Http",
 					Secret:                       secretIdentifier{Namespace: "", Name: ""},
 					SslRedirectConfigurationName: "",
@@ -216,7 +216,7 @@ var _ = Describe("Test the creation of Backend Pools from Ingress definition", f
 			}
 			actual := cb.getIstioPathMaps(cbCtx)
 
-			expectedListerID80, _ := newTestListenerID(Port(80), nil, false)
+			expectedListerID80, _ := newTestListenerID(Port(80), nil, FrontendTypePublic)
 			expected := map[listenerIdentifier]*n.ApplicationGatewayURLPathMap{
 				expectedListerID80: {
 					ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{

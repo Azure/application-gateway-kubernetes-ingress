@@ -16,7 +16,7 @@ import (
 var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() {
 	port443 := Port(443)
 
-	expectedListener80, _ := newTestListenerID(Port(80), []string{tests.Host}, false)
+	expectedListener80, _ := newTestListenerID(Port(80), []string{tests.Host}, FrontendTypePublic)
 
 	expectedListenerAzConfigNoSSL := listenerAzConfig{
 		Protocol: "Http",
@@ -36,7 +36,7 @@ var _ = Describe("MutateAppGateway ingress rules, listeners, and ports", func() 
 		SslRedirectConfigurationName: "",
 	}
 
-	expectedListener443, expectedListener443Name := newTestListenerID(Port(443), []string{tests.Host}, false)
+	expectedListener443, expectedListener443Name := newTestListenerID(Port(443), []string{tests.Host}, FrontendTypePublic)
 
 	expectedListenerAzConfigSSL := listenerAzConfig{
 		Protocol: "Https",

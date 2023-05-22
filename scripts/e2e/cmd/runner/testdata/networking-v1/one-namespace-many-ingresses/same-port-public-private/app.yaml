@@ -1,0 +1,87 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing-public
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: svc
+            port:
+              name: pp
+        path: /public
+        pathType: Prefix
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing1-private
+  annotations:
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: svc
+            port:
+              name: pp
+        path: /private
+        pathType: Prefix
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc
+spec:
+  selector:
+    app: app
+  ports:
+  - name: pp
+    protocol: TCP
+    port: 80
+    targetPort: port
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depl
+spec:
+  selector:
+    matchLabels:
+      app: app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: ctr
+          imagePullPolicy: Always
+          image: docker.io/kennethreitz/httpbin
+          ports:
+            - name: port
+              containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status/200
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+      imagePullSecrets:
+        - name: acr-creds

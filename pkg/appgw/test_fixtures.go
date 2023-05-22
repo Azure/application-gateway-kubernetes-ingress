@@ -22,30 +22,8 @@ import (
 // NewAppGwyConfigFixture creates a new struct for testing.
 func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
-		{
-			// Public IP
-			Name: to.StringPtr("xx3"),
-			Etag: to.StringPtr("xx2"),
-			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(tests.PublicIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: nil,
-				PublicIPAddress: &n.SubResource{
-					ID: to.StringPtr("xyz"),
-				},
-			},
-		},
-		{
-			// Private IP
-			Name: to.StringPtr("yy3"),
-			Etag: to.StringPtr("yy2"),
-			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr(tests.PrivateIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: to.StringPtr("abc"),
-				PublicIPAddress:  nil,
-			},
-		},
+		NewPublicIPFrontendIPConfiguration(),
+		NewPrivateIPFrontendIPConfiguration(),
 	}
 	return &n.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
@@ -53,6 +31,36 @@ func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 			Name:     n.ApplicationGatewaySkuNameStandardV2,
 			Tier:     n.ApplicationGatewayTierStandardV2,
 			Capacity: to.Int32Ptr(3),
+		},
+	}
+}
+
+func NewPublicIPFrontendIPConfiguration() n.ApplicationGatewayFrontendIPConfiguration {
+	return n.ApplicationGatewayFrontendIPConfiguration{
+		// Public IP
+		Name: to.StringPtr("xx3"),
+		Etag: to.StringPtr("xx2"),
+		Type: to.StringPtr("xx1"),
+		ID:   to.StringPtr(tests.PublicIPID),
+		ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			PrivateIPAddress: nil,
+			PublicIPAddress: &n.SubResource{
+				ID: to.StringPtr("xyz"),
+			},
+		},
+	}
+}
+
+func NewPrivateIPFrontendIPConfiguration() n.ApplicationGatewayFrontendIPConfiguration {
+	return n.ApplicationGatewayFrontendIPConfiguration{
+		// Private IP
+		Name: to.StringPtr("yy3"),
+		Etag: to.StringPtr("yy2"),
+		Type: to.StringPtr("yy1"),
+		ID:   to.StringPtr(tests.PrivateIPID),
+		ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			PrivateIPAddress: to.StringPtr("abc"),
+			PublicIPAddress:  nil,
 		},
 	}
 }
@@ -126,42 +134,10 @@ func newCertsFixture() map[string]interface{} {
 	return toAdd
 }
 
-func newURLPathMap() n.ApplicationGatewayURLPathMap {
-	rule := n.ApplicationGatewayPathRule{
-		ID:   to.StringPtr("-the-id-"),
-		Type: to.StringPtr("-the-type-"),
-		Etag: to.StringPtr("-the-etag-"),
-		Name: to.StringPtr("/some/path"),
-		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
-			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
-			RedirectConfiguration: nil,
-
-			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
-			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
-
-			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
-			ProvisioningState: "--provisionStateExpected--",
-		},
-	}
-
-	return n.ApplicationGatewayURLPathMap{
-		Name: to.StringPtr("-path-map-name-"),
-		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
-			DefaultRedirectConfiguration: nil,
-
-			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
-			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
-
-			PathRules: &[]n.ApplicationGatewayPathRule{rule},
-		},
-	}
-}
-
-func newTestListenerID(port Port, hostNames []string, usePrivateIP bool) (listenerIdentifier, string) {
+func newTestListenerID(port Port, hostNames []string, frontendType FrontendType) (listenerIdentifier, string) {
 	listener := listenerIdentifier{
 		FrontendPort: port,
-		UsePrivateIP: usePrivateIP,
+		FrontendType: frontendType,
 	}
 	listener.setHostNames(hostNames)
 	return listener, generateListenerName(listener)

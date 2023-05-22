@@ -238,9 +238,14 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 
 	}
 
+	frontendType := FrontendTypePublic
+	if usePrivateIP {
+		frontendType = FrontendTypePrivate
+	}
+
 	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
-		UsePrivateIP: usePrivateIP,
+		FrontendType: frontendType,
 	}
 
 	var hostNames []string
@@ -249,8 +254,8 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 	}
 
 	extendedHostNames, err := annotations.GetHostNameExtensions(ingress)
-	if err != nil {
-		klog.V(5).Infof("Error while parsing hostname extension: %s", err)
+	if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		klog.V(5).Infof("Error while parsing host name extensions: %s", err)
 	} else {
 		if extendedHostNames != nil {
 			hostNames = append(hostNames, extendedHostNames...)

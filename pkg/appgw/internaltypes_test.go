@@ -248,7 +248,7 @@ var _ = Describe("Test internal types", func() {
 			var hostnameValues = [5]string{"www.test1.com", "www.test2.com", "www.test3.com", "www.test4.com", "www.test5.com"}
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 				HostNames:    hostnameValues,
 			}
 			actualHostName := listenerID.getHostNames()
@@ -258,7 +258,7 @@ var _ = Describe("Test internal types", func() {
 		It("should return nil if the 'HostNames' field is not set", func() {
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 			}
 			actualHostName := listenerID.getHostNames()
 			Expect(actualHostName).To(BeNil())
@@ -269,7 +269,7 @@ var _ = Describe("Test internal types", func() {
 		It("should correctly update the listenerIdentifier", func() {
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 			}
 			hostNames := []string{"www.test.com", "www.t*.com"}
 			listenerID.setHostNames(hostNames)
@@ -284,7 +284,7 @@ var _ = Describe("Test internal types", func() {
 			var hostnameValues = [5]string{"www.test*.com", "www.test?.com", "www.test*?.com", "www.test4.com", "www.test5.com"}
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 				HostNames:    hostnameValues,
 			}
 			hostName := listenerID.getHostNameForProbes()
@@ -296,7 +296,7 @@ var _ = Describe("Test internal types", func() {
 			var hostnameValues = [5]string{"www.test*.com", "www.test?.com", "www.test*?.com"}
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 				HostNames:    hostnameValues,
 			}
 			hostName := listenerID.getHostNameForProbes()
@@ -306,7 +306,7 @@ var _ = Describe("Test internal types", func() {
 		It("should return nil if no hostname provided", func() {
 			listenerID := listenerIdentifier{
 				FrontendPort: Port(80),
-				UsePrivateIP: false,
+				FrontendType: FrontendTypePublic,
 			}
 			hostName := listenerID.getHostNameForProbes()
 			Expect(hostName).To(BeNil())

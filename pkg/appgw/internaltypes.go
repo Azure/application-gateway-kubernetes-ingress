@@ -62,7 +62,7 @@ type serviceBackendPortPair struct {
 type listenerIdentifier struct {
 	FrontendPort Port
 	HostNames    [MaxAllowedHostNames]string
-	UsePrivateIP bool
+	FrontendType FrontendType
 }
 
 type serviceIdentifier struct {
@@ -232,19 +232,27 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 	}
 }
 
-func defaultUsePrivateIP(appGw n.ApplicationGateway, env environment.EnvVariables) bool {
+// defaultFrontendType determines which frontend to use by default
+// if UsePrivateIP environment variable is set, then use private IP
+// if public IP is present, then use public IP as that was the default behavior before
+// otherwise use private IP
+func defaultFrontendType(appGw n.ApplicationGateway, env environment.EnvVariables) FrontendType {
 	if env.UsePrivateIP {
-		return env.UsePrivateIP
+		return FrontendTypePrivate
 	}
 
-	publicIPPresent := LookupIPConfigurationByType(appGw.FrontendIPConfigurations, true) != nil
-	return !publicIPPresent
+	publicIPPresent := LookupIPConfigurationByType(appGw.FrontendIPConfigurations, FrontendTypePublic) != nil
+	if publicIPPresent {
+		return FrontendTypePublic
+	}
+
+	return FrontendTypePrivate
 }
 
 func defaultFrontendListenerIdentifier(appGw n.ApplicationGateway, env environment.EnvVariables) listenerIdentifier {
 	return listenerIdentifier{
 		FrontendPort: Port(80),
-		UsePrivateIP: defaultUsePrivateIP(appGw, env),
+		FrontendType: defaultFrontendType(appGw, env),
 	}
 }
 

@@ -243,7 +243,7 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].DefaultBackendHTTPSettings).To(BeNil())
 		})
 
-		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, FrontendTypePublic)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
 			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
@@ -448,7 +448,7 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].PathRules).To(BeNil())
 		})
 
-		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, FrontendTypePublic)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
 			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
@@ -479,8 +479,8 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
-		expectedListenerID80, expectedListenerID80Name := newTestListenerID(Port(80), []string{"foo.baz"}, false)
-		expectedListenerID443, expectedListenerID443Name := newTestListenerID(Port(443), []string{"foo.baz"}, false)
+		expectedListenerID80, expectedListenerID80Name := newTestListenerID(Port(80), []string{"foo.baz"}, FrontendTypePublic)
+		expectedListenerID443, expectedListenerID443Name := newTestListenerID(Port(443), []string{"foo.baz"}, FrontendTypePublic)
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGw.RequestRoutingRules)).To(Equal(2))
 
@@ -500,7 +500,7 @@ var _ = Describe("Test routing rules generations", func() {
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 							"/redirectConfigurations/sslr-" + expectedListenerID443Name)},
 					ProvisioningState: "",
-					Priority:          to.Int32Ptr(19000),
+					Priority:          to.Int32Ptr(19005),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID80)),
 				Etag: to.StringPtr("*"),
@@ -529,7 +529,7 @@ var _ = Describe("Test routing rules generations", func() {
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     "",
-					Priority:              to.Int32Ptr(19005),
+					Priority:              to.Int32Ptr(19000),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID443)),
 				Etag: to.StringPtr("*"),
