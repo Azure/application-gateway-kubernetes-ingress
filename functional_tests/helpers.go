@@ -8,7 +8,6 @@ package functests
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -49,10 +48,10 @@ func check(cbCtx *appgw.ConfigBuilderContext, expectedFilename string, stopChan 
 
 	// Repair tests
 	if os.Getenv("RENDER_SNAPSHOTS") != "" {
-		ioutil.WriteFile(expectedFilename, []byte(actualJSONTxt), 0644)
+		os.WriteFile(expectedFilename, []byte(actualJSONTxt), 0644)
 	}
 
-	expectedBytes, err := ioutil.ReadFile(expectedFilename)
+	expectedBytes, err := os.ReadFile(expectedFilename)
 	expectedJSON := strings.Trim(string(expectedBytes), "\n")
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 

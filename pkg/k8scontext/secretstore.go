@@ -7,7 +7,6 @@ package k8scontext
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"sync"
@@ -81,7 +80,7 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 		)
 	}
 
-	tempfileCert, err := ioutil.TempFile("", "appgw-ingress-cert")
+	tempfileCert, err := os.CreateTemp("", "appgw-ingress-cert")
 	if err != nil {
 		return controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorCreatingFile,
@@ -91,7 +90,7 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 	}
 	defer os.Remove(tempfileCert.Name())
 
-	tempfileKey, err := ioutil.TempFile("", "appgw-ingress-key")
+	tempfileKey, err := os.CreateTemp("", "appgw-ingress-key")
 	if err != nil {
 		return controllererrors.NewErrorWithInnerErrorf(
 			controllererrors.ErrorCreatingFile,
