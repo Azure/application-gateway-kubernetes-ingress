@@ -174,7 +174,7 @@ func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 					)
 
 					e.Message += fmt.Sprintf(" You can use '%s' to assign permissions."+
-						" AGIC Identity needs atleast has 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
+						" AGIC Identity needs at least 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
 						roleAssignmentCmd,
 						string(az.appGwName),
 						string(az.resourceGroupName),
