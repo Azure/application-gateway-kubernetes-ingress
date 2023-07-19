@@ -2,11 +2,14 @@ package defaultazurecredential
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"k8s.io/klog/v2"
 )
 
@@ -26,20 +29,34 @@ func NewAuthorizer() (autorest.Authorizer, error) {
 		return nil, err
 	}
 
+	scope := tokenScopeFromEnvironment()
+	klog.V(7).Infof("Fetching token with scope %s", scope)
 	return autorest.NewBearerAuthorizer(&tokenCredentialWrapper{
-		cred: cred,
+		cred:  cred,
+		scope: scope,
 	}), nil
 }
 
+func tokenScopeFromEnvironment() string {
+	cloud := os.Getenv("AZURE_ENVIRONMENT")
+	env, err := azure.EnvironmentFromName(cloud)
+	if err != nil {
+		env = azure.PublicCloud
+	}
+
+	return fmt.Sprintf("%s.default", env.ResourceManagerEndpoint)
+}
+
 type tokenCredentialWrapper struct {
-	cred azcore.TokenCredential
+	cred  azcore.TokenCredential
+	scope string
 }
 
 func (w *tokenCredentialWrapper) OAuthToken() string {
 	klog.V(7).Info("Getting Azure token using DefaultAzureCredential")
 
 	token, err := w.cred.GetToken(context.Background(), policy.TokenRequestOptions{
-		Scopes: []string{"https://management.azure.com/.default"},
+		Scopes: []string{w.scope},
 	})
 
 	if err != nil {
