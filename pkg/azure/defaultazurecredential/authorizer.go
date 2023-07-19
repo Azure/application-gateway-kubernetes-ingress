@@ -44,7 +44,7 @@ func tokenScopeFromEnvironment() string {
 		env = azure.PublicCloud
 	}
 
-	return fmt.Sprintf("%s.default", env.ResourceManagerEndpoint)
+	return fmt.Sprintf("%s.default", env.TokenAudience)
 }
 
 type tokenCredentialWrapper struct {
