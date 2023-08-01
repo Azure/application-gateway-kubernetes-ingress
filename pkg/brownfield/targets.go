@@ -34,7 +34,7 @@ func (t Target) IsBlacklisted(blacklist TargetBlacklist) bool {
 		// An empty blacklist hostname indicates that any hostname would be blacklisted.
 		// If host names match - this target is in the blacklist.
 		// AGIC is allowed to create and modify App Gwy config for blank host.
-		hostIsBlacklisted := blTarget.Hostname == "" || strings.ToLower(t.Hostname) == strings.ToLower(blTarget.Hostname)
+		hostIsBlacklisted := blTarget.Hostname == "" || strings.EqualFold(t.Hostname, blTarget.Hostname)
 
 		pathIsBlacklisted := blTarget.Path == "" || blTarget.Path == "/*" || t.Path.lower() == blTarget.Path.lower() || blTarget.Path.contains(t.Path) // TODO(draychev): || t.Path.contains(blTarget.Path)
 
