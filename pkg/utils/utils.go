@@ -9,7 +9,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"math/rand"
 	"strings"
 	"time"
@@ -43,7 +43,7 @@ func GetLastChunkOfSlashed(s string) string {
 
 // SaveToFile saves the content into a file named "fileName" - a tool primarily used for debugging purposes.
 func SaveToFile(fileName string, content []byte) (string, error) {
-	tempFile, err := ioutil.TempFile("", fileName)
+	tempFile, err := os.CreateTemp("", fileName)
 	if err != nil {
 		klog.Error(err)
 		return tempFile.Name(), err

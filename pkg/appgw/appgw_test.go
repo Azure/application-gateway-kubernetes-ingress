@@ -8,7 +8,7 @@ package appgw
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -606,11 +606,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Data: make(map[string][]byte),
 			}
 
-			key, err := ioutil.ReadFile("../../tests/data/k8s.cert.key")
+			key, err := os.ReadFile("../../tests/data/k8s.cert.key")
 			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.key"] = key
 
-			cert, err := ioutil.ReadFile("../../tests/data/k8s.x509.cert")
+			cert, err := os.ReadFile("../../tests/data/k8s.x509.cert")
 			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.crt"] = cert
 
