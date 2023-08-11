@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -29,7 +29,7 @@ func (fs *FakeSender) Do(request *http.Request) (response *http.Response, err er
 		if fs.body != nil {
 			b, err := json.Marshal(fs.body)
 			if err == nil {
-				response.Body = ioutil.NopCloser(bytes.NewReader(b))
+				response.Body = io.NopCloser(bytes.NewReader(b))
 			}
 		}
 	}

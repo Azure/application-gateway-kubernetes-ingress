@@ -8,7 +8,7 @@ package azure
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // CloudProviderConfig represent the CloudProvider Context file such as Azure
@@ -29,7 +29,7 @@ type CloudProviderConfig struct {
 
 // NewCloudProviderConfig returns an CloudProviderConfig struct from file path
 func NewCloudProviderConfig(path string) (*CloudProviderConfig, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Reading Az Context file %q failed: %v", path, err)
 	}

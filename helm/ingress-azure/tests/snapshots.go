@@ -9,7 +9,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,7 +72,7 @@ func RenderChart(chart, values, dir string) error {
 
 // CaptureSnapshot renders a new snapshot from a given Helm chart and values file.
 func CaptureSnapshot(chart, values string) (*Snapshot, error) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, fmt.Errorf("creating tempdir: %v", err)
 	}
@@ -163,7 +162,7 @@ func StripNonDeterministic(path string) error {
 				lines = append(lines, text)
 			}
 
-			return ioutil.WriteFile(path, []byte(strings.Join(lines, "\n")), 0644)
+			return os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0644)
 		})
 }
 

@@ -136,7 +136,7 @@ func isSlice(v interface{}) bool {
 func deleteKey(m *map[string]interface{}, keyToDelete string) {
 	// Recursively search for the given keyToDelete
 	for k, v := range *m {
-		if strings.ToLower(k) == strings.ToLower(keyToDelete) {
+		if strings.EqualFold(k, keyToDelete) {
 			delete(*m, k)
 			continue
 		}
