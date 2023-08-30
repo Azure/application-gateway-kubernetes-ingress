@@ -1,7 +1,5 @@
 # How to deploy AGIC via Helm using Workload Identity
 
-[[_TOC_]]
-
 This assumes you have an existing Application Gateway. If not, you can create it with command:
 
 ```bash
