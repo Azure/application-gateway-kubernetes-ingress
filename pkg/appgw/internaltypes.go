@@ -62,7 +62,7 @@ type serviceBackendPortPair struct {
 type listenerIdentifier struct {
 	FrontendPort Port
 	HostNames    [MaxAllowedHostNames]string
-	UsePrivateIP bool
+	FrontendType FrontendType
 }
 
 type serviceIdentifier struct {
@@ -84,6 +84,7 @@ type listenerAzConfig struct {
 	Protocol                     n.ApplicationGatewayProtocol
 	Secret                       secretIdentifier
 	SslRedirectConfigurationName string
+	SslProfile                   string
 	FirewallPolicy               string
 }
 
@@ -231,10 +232,27 @@ func defaultBackendAddressPool(appGWIdentifier Identifier) n.ApplicationGatewayB
 	}
 }
 
-func defaultFrontendListenerIdentifier(usePrivateIP bool) listenerIdentifier {
+// defaultFrontendType determines which frontend to use by default
+// if UsePrivateIP environment variable is set, then use private IP
+// if public IP is present, then use public IP as that was the default behavior before
+// otherwise use private IP
+func defaultFrontendType(appGw n.ApplicationGateway, env environment.EnvVariables) FrontendType {
+	if env.UsePrivateIP {
+		return FrontendTypePrivate
+	}
+
+	publicIPPresent := LookupIPConfigurationByType(appGw.FrontendIPConfigurations, FrontendTypePublic) != nil
+	if publicIPPresent {
+		return FrontendTypePublic
+	}
+
+	return FrontendTypePrivate
+}
+
+func defaultFrontendListenerIdentifier(appGw n.ApplicationGateway, env environment.EnvVariables) listenerIdentifier {
 	return listenerIdentifier{
 		FrontendPort: Port(80),
-		UsePrivateIP: usePrivateIP,
+		FrontendType: defaultFrontendType(appGw, env),
 	}
 }
 

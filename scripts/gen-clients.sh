@@ -2,9 +2,13 @@
 
 set -auexo pipefail
 
-# This script requres a checkout of https://github.com/kubernetes/code-generator in ../
+# This script requres a checkout of https://github.com/kubernetes/code-generator release-1.21 in ../
 # For more information read https://blog.openshift.com/kubernetes-deep-dive-code-generation-customresources/
-# To generate crds, run this in the base directory of AGIC repo. Generated files will be in ~/go/src/ dir
+# To generate CRDs, run this in the base directory of AGIC repo. Generated files will be in ~/go/src/ dir. Copy them over to ./pkg folder.
+
+# Commands to copy:
+# cp ~/go/src/github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis           ./pkg -r
+# cp ~/go/src/github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client     ./pkg -r
 
 # echo -e "Cleanup previously generated code..."
 # rm -rf pkg/client $(find ./pkg -name 'zz_*.go')
@@ -14,7 +18,7 @@ echo -e "Generate Application Gateway CRDs..."
     all \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client \
     github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis \
-    "azureapplicationgatewayinstanceupdatestatus:v1beta1 azureapplicationgatewaybackendpool:v1beta1 azureingressprohibitedtarget:v1 loaddistributionpolicy:v1beta1" \
+    "azureapplicationgatewayinstanceupdatestatus:v1beta1 azureapplicationgatewaybackendpool:v1beta1 azureingressprohibitedtarget:v1 loaddistributionpolicy:v1beta1 azureapplicationgatewayrewrite:v1beta1" \
     --go-header-file ../code-generator/hack/boilerplate.go.txt
 
 echo -e "Generate Azure Multi-Cluster CRDs..."

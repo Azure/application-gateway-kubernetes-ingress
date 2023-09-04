@@ -7,7 +7,7 @@ package tests
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -20,6 +20,8 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	agrewrite "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 )
 
 // constant values to be used for testing
@@ -60,6 +62,7 @@ const (
 	ServiceHTTPSPort             = "--service-https-port--"
 	IngressClassController       = "azure/application-gateway"
 	IngressClassResourceName     = "azure-application-gateway"
+	RewriteRuleSetName           = "my-rewrite-rule-set-custom-resource"
 )
 
 func GetIngressClass() *networking.IngressClass {
@@ -147,7 +150,7 @@ func GetIngressNamespaced() (*[]networking.Ingress, error) {
 
 // GetIngressV1FromFile reads an ingress V1 from file
 func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
-	ingr, err := ioutil.ReadFile(fileName)
+	ingr, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -161,7 +164,7 @@ func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
 
 // GetIngressV1Beta1FromFile reads an ingress V1Beta1 from file
 func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
-	ingr, err := ioutil.ReadFile(fileName)
+	ingr, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -171,6 +174,59 @@ func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
 		return nil, err
 	}
 	return obj.(*extensions.Ingress), nil
+}
+
+// NewRewriteRuleSetCustomResourceFixture makes a new rewrite rule set custom resource with the given name
+func NewRewriteRuleSetCustomResourceFixture(name string) *agrewrite.AzureApplicationGatewayRewrite {
+	return &agrewrite.AzureApplicationGatewayRewrite{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: Namespace,
+			Name:      name,
+		},
+		Spec: agrewrite.AzureApplicationGatewayRewriteSpec{
+			RewriteRules: []agrewrite.RewriteRule{
+				{
+					Name:         "test-rule",
+					RuleSequence: 101,
+					Actions: agrewrite.Actions{
+						RequestHeaderConfigurations: []agrewrite.HeaderConfiguration{
+							{
+								ActionType:  "set",
+								HeaderName:  "aa",
+								HeaderValue: "bb",
+							},
+						},
+						ResponseHeaderConfigurations: []agrewrite.HeaderConfiguration{
+							{
+								ActionType:  "delete",
+								HeaderName:  "cc",
+								HeaderValue: "dd",
+							},
+						},
+						UrlConfiguration: &agrewrite.UrlConfiguration{
+							ModifiedPath:        "ff",
+							ModifiedQueryString: "gg",
+							Reroute:             false,
+						},
+					},
+					Conditions: []agrewrite.Condition{
+						{
+							IgnoreCase: false,
+							Negate:     false,
+							Variable:   "xx",
+							Pattern:    "yy",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func NewRewriteRuleSetCustomResourceFixtureWithoutURLConfig(name string) *agrewrite.AzureApplicationGatewayRewrite {
+	rewrite := NewRewriteRuleSetCustomResourceFixture(name)
+	rewrite.Spec.RewriteRules[0].Actions.UrlConfiguration = nil
+	return rewrite
 }
 
 // GetApplicationGatewayBackendAddressPool makes a new ApplicationGatewayBackendAddressPool for testing.
@@ -934,4 +990,16 @@ func NewSecretTestFixture() *v1.Secret {
 		"-----END CERTIFICATE-----\n")
 
 	return secret
+}
+
+// NewIngressClassFixture creates a new ingress class for testing.
+func NewIngressClassFixture() *networking.IngressClass {
+	return &networking.IngressClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: environment.DefaultIngressClassResourceName,
+		},
+		Spec: networking.IngressClassSpec{
+			Controller: environment.DefaultIngressClassController,
+		},
+	}
 }

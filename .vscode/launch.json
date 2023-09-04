@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Unit Test in File",
+            "type": "go",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "buildFlags": "-tags 'unittest'",
+        }
+    ]
+}

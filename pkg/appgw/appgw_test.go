@@ -8,7 +8,7 @@ package appgw
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -284,7 +284,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultListenersChecker := func(appGW *n.ApplicationGatewayPropertiesFormat) {
 		// Test the listener.
 		frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(80))
-		_, listenerName := newTestListenerID(Port(80), []string{domainName}, false)
+		_, listenerName := newTestListenerID(Port(80), []string{domainName}, FrontendTypePublic)
 		listener := &n.ApplicationGatewayHTTPListener{
 			Etag: to.StringPtr("*"),
 			Name: &listenerName,
@@ -302,7 +302,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseRequestRoutingRulesChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
-		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
+		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, FrontendTypePublic)
 		Expect(*((*appGW.RequestRoutingRules)[0].Name)).To(Equal(generateRequestRoutingRuleName(listenerID)))
 		Expect((*appGW.RequestRoutingRules)[0].RuleType).To(Equal(n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting))
 	}
@@ -316,7 +316,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	baseURLPathMapsChecker := func(appGW *n.ApplicationGatewayPropertiesFormat, frontEndPort Port, host string) {
-		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, false)
+		listenerID, _ := newTestListenerID(Port(frontEndPort), []string{host}, FrontendTypePublic)
 		Expect(*((*appGW.URLPathMaps)[0].Name)).To(Equal(generateURLPathMapName(listenerID)))
 		// Check the `pathRule` stored within the `urlPathMap`.
 		Expect(len(*((*appGW.URLPathMaps)[0].PathRules))).To(Equal(1), "Expected one path based rule, but got: %d", len(*((*appGW.URLPathMaps)[0].PathRules)))
@@ -606,11 +606,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				Data: make(map[string][]byte),
 			}
 
-			key, err := ioutil.ReadFile("../../tests/data/k8s.cert.key")
+			key, err := os.ReadFile("../../tests/data/k8s.cert.key")
 			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.key"] = key
 
-			cert, err := ioutil.ReadFile("../../tests/data/k8s.x509.cert")
+			cert, err := os.ReadFile("../../tests/data/k8s.x509.cert")
 			Ω(err).ToNot(HaveOccurred(), "Unable to read the cert key: %v", err)
 			ingressSecret.Data["tls.crt"] = cert
 
@@ -659,7 +659,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				frontendPortID := appGwIdentifier.frontendPortID(generateFrontendPortName(443))
-				_, httpsListenerName := newTestListenerID(Port(443), []string{domainName}, false)
+				_, httpsListenerName := newTestListenerID(Port(443), []string{domainName}, FrontendTypePublic)
 				sslCert := appGwIdentifier.sslCertificateID(secretID.secretFullName())
 				httpsListener := &n.ApplicationGatewayHTTPListener{
 					Etag: to.StringPtr("*"),

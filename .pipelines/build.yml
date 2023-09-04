@@ -15,7 +15,11 @@ steps:
   - task: HelmInstaller@1
     displayName: Helm installer
     inputs: 
-      helmVersionToInstall: latest
+      helmVersionToInstall: v3.11.0
+  
+  - task: GoTool@0
+    inputs:
+      version: '1.19.2'
 
   - script: make lint-all
     workingDirectory: "$(modulePath)"
@@ -52,8 +56,7 @@ steps:
   - task: CopyFiles@2
     inputs:
       contents: |
-        $(modulePath)/scripts/**
-        $(modulePath)/helm/**
+        $(modulePath)/**
       targetFolder: $(Build.ArtifactStagingDirectory)
 
   - task: PublishBuildArtifacts@1

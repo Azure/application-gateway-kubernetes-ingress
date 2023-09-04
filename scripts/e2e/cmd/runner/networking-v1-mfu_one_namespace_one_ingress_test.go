@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build e2e
 // +build e2e
 
 package runner
@@ -15,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,12 +26,13 @@ import (
 var _ = Describe("networking-v1-MFU", func() {
 	var (
 		clientset *kubernetes.Clientset
+		crdClient *versioned.Clientset
 		err       error
 	)
 
 	Context("One Namespace One Ingress", func() {
 		BeforeEach(func() {
-			clientset, err = getClient()
+			clientset, crdClient, err = getClients()
 			Expect(err).To(BeNil())
 
 			UseNetworkingV1Ingress = supportsNetworkingV1IngressPackage(clientset)
@@ -51,7 +54,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
-			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -75,7 +78,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			//start to configure with bad hostname, 502 is expected
 			healthConfigProbeBadHostnameYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-bad.yaml"
 			klog.Info("Updating ingress with bad hostname annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeBadHostnameYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeBadHostnameYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 			_, err = makeGetRequest(urlHttps, "", 502, true)
@@ -84,9 +87,51 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with good hostname, 200 is expected
 			healthConfigProbeGoodHostnameYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/probe-hostname-good.yaml"
 			klog.Info("Updating ingress with good hostname annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodHostnameYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeGoodHostnameYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
+			_, err = makeGetRequest(urlHttps, "", 200, true)
+			Expect(err).To(BeNil())
+		})
+
+		It("[ingress-class] redirect should work after AGIC pod is recreated", func() {
+			namespaceName := "e2e-ingress-class-redirect"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
+			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
+			Expect(err).To(BeNil())
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			// delete AGIC pod
+			klog.Info("Deleting AGIC Pod")
+			deleteAGICPod(clientset)
+			time.Sleep(30 * time.Second)
+
+			// check that redirect still works
+			urlHttp := fmt.Sprintf("http://%s/index.html", publicIP)
+			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+
+			// http get to return 301
+			resp, err := makeGetRequest(urlHttp, "", 301, true)
+			Expect(err).To(BeNil())
+			redirectLocation := resp.Header.Get("Location")
+			klog.Infof("redirect location: %s", redirectLocation)
+			Expect(redirectLocation).To(Equal(urlHttps))
+
+			// https get to return 200 ok
 			_, err = makeGetRequest(urlHttps, "", 200, true)
 			Expect(err).To(BeNil())
 		})
@@ -105,7 +150,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			}
 			threeNamespacesYamlPath := "testdata/networking-v1/one-namespace-one-ingress/three-namespaces/app.yaml"
 			klog.Info("Applying yaml: ", threeNamespacesYamlPath)
-			err = applyYaml(clientset, "", threeNamespacesYamlPath)
+			err = applyYaml(clientset, crdClient, "", threeNamespacesYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -135,7 +180,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			healthConfigProbeYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/app.yaml"
 			klog.Info("Applying yaml: ", healthConfigProbeYamlPath)
-			err = applyYaml(clientset, namespaceName, healthConfigProbeYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, healthConfigProbeYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -152,7 +197,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with bad path, 502 is expected
 			healthConfigProbeBadPathYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-path-bad.yaml"
 			klog.Info("Updating ingress with bad path annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeBadPathYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeBadPathYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
@@ -161,7 +206,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with good path, 200 is expected
 			healthConfigProbeGoodPathYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-path-good.yaml"
 			klog.Info("Updating ingress with good path annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodPathYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeGoodPathYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
@@ -170,7 +215,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with bad port, 502 is expected
 			healthConfigProbeBadPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-port-bad.yaml"
 			klog.Info("Updating ingress with bad port annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeBadPortYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeBadPortYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
@@ -179,7 +224,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with good port, 200 is expected
 			healthConfigProbeGoodPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-port-good.yaml"
 			klog.Info("Updating ingress with good port annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodPortYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeGoodPortYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
@@ -188,7 +233,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with bad status, 502 is expected
 			healthConfigProbeBadStatusYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-status-bad.yaml"
 			klog.Info("Updating ingress with bad status annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeBadStatusYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeBadStatusYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 502, true)
@@ -197,7 +242,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			// start to configure with good status, 200 is expected
 			healthConfigProbeGoodStatusYamlPath := "testdata/networking-v1/one-namespace-one-ingress/health-probe-configurations/probe-status-good.yaml"
 			klog.Info("Updating ingress with good status annotation")
-			err = updateYaml(clientset, namespaceName, healthConfigProbeGoodStatusYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, healthConfigProbeGoodStatusYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(15 * time.Second)
 			_, err = makeGetRequest(url, "", 200, true)
@@ -218,7 +263,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			}
 			containerReadinessProbeYamlPath := "testdata/networking-v1/one-namespace-one-ingress/container-readiness-probe/app.yaml"
 			klog.Info("Applying yaml: ", containerReadinessProbeYamlPath)
-			err = applyYaml(clientset, "", containerReadinessProbeYamlPath)
+			err = applyYaml(clientset, crdClient, "", containerReadinessProbeYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -280,7 +325,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
-			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
 
 			// get ip address for 1 ingress
@@ -307,7 +352,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			OverrideFrontendPortYamlPath := "testdata/networking-v1/one-namespace-one-ingress/override-frontend-port/app.yaml"
 			klog.Info("Applying yaml: ", OverrideFrontendPortYamlPath)
-			err = applyYaml(clientset, namespaceName, OverrideFrontendPortYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, OverrideFrontendPortYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -339,7 +384,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			InvalidConfigYamlPath := "testdata/networking-v1/one-namespace-one-ingress/invalid-configuration/app.yaml"
 			klog.Info("Applying yaml: ", InvalidConfigYamlPath)
-			err = applyYaml(clientset, namespaceName, InvalidConfigYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, InvalidConfigYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -377,19 +422,19 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			EmptySecretYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/empty-secret.yaml"
 			klog.Info("Applying empty secret yaml: ", EmptySecretYamlPath)
-			err = applyYaml(clientset, namespaceName, EmptySecretYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, EmptySecretYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
 			AppYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/app.yaml"
 			klog.Info("Applying App yaml: ", AppYamlPath)
-			err = applyYaml(clientset, namespaceName, AppYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, AppYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
 			SecretYamlPath := "testdata/networking-v1/one-namespace-one-ingress/empty-secret/populated-secret.yaml"
 			klog.Info("Update secret yaml: ", SecretYamlPath)
-			err = updateYaml(clientset, namespaceName, SecretYamlPath)
+			err = updateYaml(clientset, crdClient, namespaceName, SecretYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -404,36 +449,54 @@ var _ = Describe("networking-v1-MFU", func() {
 			Expect(err).To(BeNil())
 		})
 
-		It("[ingress-class-resource] ingress class resource should work with ingress v1", func() {
+		Context("IngressClassResource", func() {
 			namespaceName := "e2e-ingress-class-resource"
-			ns := &v1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: namespaceName,
-				},
-			}
-			klog.Info("Creating namespace: ", namespaceName)
-			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
-			Expect(err).To(BeNil())
+			BeforeEach(func() {
+				yamlPath := "testdata/networking-v1/one-namespace-one-ingress/ingress-class-resource/other-ingress-class.yaml"
+				klog.Info("Applying yaml: ", yamlPath)
+				err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
+				Expect(err).To(BeNil())
+				time.Sleep(30 * time.Second)
+			})
 
-			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/ingress-class-resource/app.yaml"
-			klog.Info("Applying yaml: ", yamlPath)
-			err = applyYaml(clientset, namespaceName, yamlPath)
-			Expect(err).To(BeNil())
-			time.Sleep(30 * time.Second)
+			It("[ingress-class-resource] ingress class resource should work with ingress v1", func() {
+				ns := &v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: namespaceName,
+					},
+				}
+				klog.Info("Creating namespace: ", namespaceName)
+				_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+				Expect(err).To(BeNil())
 
-			// get ip address for 1 ingress
-			klog.Info("Getting public IP from Ingress...")
-			publicIP, _ := getPublicIP(clientset, namespaceName)
-			Expect(publicIP).ToNot(Equal(""))
+				yamlPath := "testdata/networking-v1/one-namespace-one-ingress/ingress-class-resource/app.yaml"
+				klog.Info("Applying yaml: ", yamlPath)
+				err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
+				Expect(err).To(BeNil())
+				time.Sleep(30 * time.Second)
 
-			urlHttp := fmt.Sprintf("http://%s/", publicIP)
-			// https get to return 200 ok
-			_, err = makeGetRequest(urlHttp, "app.http", 200, true)
-			Expect(err).To(BeNil())
+				// get ip address for 1 ingress
+				klog.Info("Getting public IP from Ingress...")
+				publicIP, _ := getPublicIP(clientset, namespaceName)
+				Expect(publicIP).ToNot(Equal(""))
 
-			// https get to return 404 ok
-			_, err = makeGetRequest(urlHttp, "other.http", 404, true)
-			Expect(err).To(BeNil())
+				urlHttp := fmt.Sprintf("http://%s/", publicIP)
+				// https get to return 200 ok
+				_, err = makeGetRequest(urlHttp, "app.http", 200, true)
+				Expect(err).To(BeNil())
+
+				// https get to return 404 ok
+				_, err = makeGetRequest(urlHttp, "other.http", 404, true)
+				Expect(err).To(BeNil())
+			})
+
+			AfterEach(func() {
+				yamlPath := "testdata/networking-v1/one-namespace-one-ingress/ingress-class-resource/other-ingress-class.yaml"
+				klog.Info("Deleting yaml: ", yamlPath)
+				err = deleteYaml(clientset, crdClient, namespaceName, yamlPath)
+				Expect(err).To(BeNil())
+				time.Sleep(30 * time.Second)
+			})
 		})
 
 		It("[rewrite-rule] rewrite-rule annotation attaches a rule set to routing rule", func() {
@@ -449,7 +512,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/rewrite-rule/app.yaml"
 			klog.Info("Applying empty secret yaml: ", yamlPath)
-			err = applyYaml(clientset, namespaceName, yamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
@@ -458,9 +521,42 @@ var _ = Describe("networking-v1-MFU", func() {
 			publicIP, _ := getPublicIP(clientset, namespaceName)
 			Expect(publicIP).ToNot(Equal(""))
 
-			urlHttps := fmt.Sprintf("https://%s", publicIP)
+			urlHttps := fmt.Sprintf("http://%s", publicIP)
 			// http get to return 200 ok
 			resp, err := makeGetRequest(urlHttps, "example.com", 200, true)
+			Expect(err).To(BeNil())
+
+			// check that rewrite rule is adding a response header "test-header: test-value"
+			testHeader := resp.Header.Get("test-header")
+			Expect(testHeader).To(Equal("test-value"))
+		})
+
+		It("[rewrite-rule-set-custom-resource] rewrite-rule-set-custom-resource annotation attaches a rule set to routing rule", func() {
+			namespaceName := "e2e-rewrite-rule-set-custom-resource"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/rewrite-rule-set-custom-resource/app.yaml"
+			klog.Info("Applying yaml: ", yamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttp := fmt.Sprintf("http://%s/get", publicIP)
+			// https get to return 200 ok
+			resp, err := makeGetRequest(urlHttp, "example.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// check that rewrite rule is adding a response header "test-header: test-value"
@@ -481,7 +577,7 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			yamlPath := "testdata/networking-v1/one-namespace-one-ingress/path-type/app.yaml"
 			klog.Info("Applying yaml: ", yamlPath)
-			err = applyYaml(clientset, namespaceName, yamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, yamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(10 * time.Second)
 
@@ -514,6 +610,37 @@ var _ = Describe("networking-v1-MFU", func() {
 			// AppGW doesn't allow / with pathType:exact
 			respondedWithColor("/", "catch-all")
 			respondedWithColor("/Suffix", "catch-all")
+		})
+
+		It("[e2e-ssl-profile] ssl profile annotation should add profile to listener", func() {
+			namespaceName := "e2e-ssl-profile"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+			Expect(err).To(BeNil())
+
+			YamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-profile/app.yaml"
+			klog.Info("Applying yaml: ", YamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, YamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP from Ingress...")
+			publicIP, _ := getPublicIP(clientset, namespaceName)
+			Expect(publicIP).ToNot(Equal(""))
+
+			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+			// https get to return 400 BAD REQUEST
+			resp, err := makeGetRequest(urlHttps, "mtls-listener", 400, true)
+			Expect(err).To(BeNil())
+
+			// Requires a client certificate
+			Expect(readBody(resp)).To(ContainSubstring("No required SSL certificate was sent"))
 		})
 
 		AfterEach(func() {

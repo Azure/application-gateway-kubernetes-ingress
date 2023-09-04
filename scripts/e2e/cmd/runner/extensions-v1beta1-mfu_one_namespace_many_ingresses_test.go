@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-// +build e2e
+//go:build e2eextensionv1beta1
+// +build e2eextensionv1beta1
 
 package runner
 
@@ -16,6 +17,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -25,6 +27,7 @@ import (
 var _ = Describe("extensions-v1beta1-MFU", func() {
 	var (
 		clientset *kubernetes.Clientset
+		crdClient *versioned.Clientset
 		err       error
 	)
 
@@ -32,7 +35,7 @@ var _ = Describe("extensions-v1beta1-MFU", func() {
 		var namespaceName string
 
 		BeforeEach(func() {
-			clientset, err = getClient()
+			clientset, crdClient, err = getClients()
 			Expect(err).To(BeNil())
 
 			UseExtensionsV1Beta1Ingress = supportsExtensionsV1Beta1IngressPackage(clientset)
@@ -56,7 +59,7 @@ var _ = Describe("extensions-v1beta1-MFU", func() {
 			// create objects in the yaml
 			path := "testdata/extensions-v1beta1/one-namespace-many-ingresses/three-ingresses-slash-sth/app.yaml"
 			klog.Info("Applying yaml: ", path)
-			err = applyYaml(clientset, namespaceName, path)
+			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
 			time.Sleep(30 * time.Second)
@@ -100,7 +103,7 @@ var _ = Describe("extensions-v1beta1-MFU", func() {
 			// create objects in the yaml
 			path := "testdata/extensions-v1beta1/one-namespace-many-ingresses/fifty-ingresses-with-services/generated.yaml"
 			klog.Info("Applying yaml: ", path)
-			err = applyYaml(clientset, namespaceName, path)
+			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
 			time.Sleep(30 * time.Second)
@@ -139,7 +142,7 @@ var _ = Describe("extensions-v1beta1-MFU", func() {
 			// create objects in the yaml
 			path := "testdata/extensions-v1beta1/one-namespace-many-ingresses/hostname-with-wildcard/app.yaml"
 			klog.Info("Applying yaml: ", path)
-			err = applyYaml(clientset, namespaceName, path)
+			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
 			time.Sleep(30 * time.Second)

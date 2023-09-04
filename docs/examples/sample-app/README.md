@@ -32,7 +32,7 @@
 3) Add ingress rule
 
     ```bash
-    kubectl apply -f sample-app-ingress-http.yaml
+    kubectl apply -f ingress-http.yaml
     ```
 
     Navigate to https://portal.azure.com and view the endpoints of your Application Gateway to verify that the Service is correctly exposed.
@@ -59,7 +59,7 @@
 6) Update ingress rule to use TLS
 
     ```bash
-    kubectl apply -f sample-app-ingress-https.yaml
+    kubectl apply -f ingress-https.yaml
     ```
 
     Where [sample-app-ingress-https.yaml](sample-app-ingress-https.yaml) is a file in the current directory of this repository.

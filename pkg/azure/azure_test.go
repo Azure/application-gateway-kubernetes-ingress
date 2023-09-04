@@ -11,18 +11,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-func TestUtils(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Azure Suite")
-}
 
 var _ = Describe("Azure", func() {
 	Describe("Testing `azure` helpers", func() {

@@ -18,7 +18,7 @@ import (
 
 func TestAppgw(t *testing.T) {
 	klog.InitFlags(nil)
-	_ = flag.Set("v", "5")
+	_ = flag.Set("v", "3")
 	_ = flag.Lookup("logtostderr").Value.Set("true")
 
 	RegisterFailHandler(Fail)

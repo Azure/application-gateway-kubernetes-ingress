@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
@@ -48,6 +49,7 @@ type memoization struct {
 	settings                     *[]n.ApplicationGatewayBackendHTTPSettings
 	settingsByBackend            *map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings
 	serviceBackendPairsByBackend *map[backendIdentifier]serviceBackendPortPair
+	rewrites                     *[]n.ApplicationGatewayRewriteRuleSet
 	pools                        *[]n.ApplicationGatewayBackendAddressPool
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
@@ -120,6 +122,18 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			controllererrors.ErrorGeneratingListeners,
 			err,
 			"unable to generate frontend listeners",
+		)
+		klog.Errorf(e.Error())
+		return nil, e
+	}
+
+	// Build RewriteRuleSets configuration
+	err = c.RewriteRuleSets(cbCtx)
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerError(
+			controllererrors.ErrorCreatingRewrites,
+			err,
+			"unable to generate rewrite rule sets",
 		)
 		klog.Errorf(e.Error())
 		return nil, e
@@ -224,9 +238,14 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 
 	}
 
+	frontendType := FrontendTypePublic
+	if usePrivateIP {
+		frontendType = FrontendTypePrivate
+	}
+
 	listenerID := listenerIdentifier{
 		FrontendPort: frontendPort,
-		UsePrivateIP: usePrivateIP,
+		FrontendType: frontendType,
 	}
 
 	var hostNames []string
@@ -234,12 +253,16 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 		hostNames = append(hostNames, rule.Host)
 	}
 
-	if extendedHostNames, err := annotations.GetHostNameExtensions(ingress); err == nil {
+	extendedHostNames, err := annotations.GetHostNameExtensions(ingress)
+	if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		klog.V(5).Infof("Error while parsing host name extensions: %s", err)
+	} else {
 		if extendedHostNames != nil {
 			hostNames = append(hostNames, extendedHostNames...)
 		}
 	}
 
+	hostNames = utils.RemoveDuplicateStrings(hostNames)
 	listenerID.setHostNames(hostNames)
 	return listenerID
 }

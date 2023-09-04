@@ -22,6 +22,9 @@ spec:
         {{- if eq .Values.armAuth.type "aadPodIdentity"}}
         aadpodidbinding: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
         {{- end }}
+        {{- if eq .Values.armAuth.type "workloadIdentity" }}
+        azure.workload.identity/use: "true"
+        {{- end }}
         {{- end }}
       annotations:
         checksum/config: {{ print .Values | sha256sum }}
@@ -61,6 +64,10 @@ spec:
         resources:
 {{ toYaml . | indent 10 }}
         {{- end }}
+        {{- with .Values.kubernetes.containerSecurityContext }}
+        securityContext:
+{{ toYaml . | indent 10 }}
+        {{- end }}
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
@@ -92,6 +99,11 @@ spec:
           readOnly: true
         {{- end}}
         {{- end}}
+        {{- if .Values.kubernetes.volumes }}
+        {{- if .Values.kubernetes.volumes.extraVolumeMounts }}
+        {{- toYaml .Values.kubernetes.volumes.extraVolumeMounts | nindent 8 }}
+        {{- end }}
+        {{- end }}
       volumes:
       - name: azure
         hostPath:
@@ -104,6 +116,11 @@ spec:
           secretName: networking-appgw-k8s-azure-service-principal
       {{- end}}
       {{- end}}
+      {{- if .Values.kubernetes.volumes }}
+      {{- if .Values.kubernetes.volumes.extraVolumes }}
+      {{- toYaml .Values.kubernetes.volumes.extraVolumes | nindent 6 }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.kubernetes.nodeSelector }}
       {{- with .Values.kubernetes.nodeSelector }}
       nodeSelector:

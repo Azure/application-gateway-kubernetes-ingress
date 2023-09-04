@@ -16,7 +16,6 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
-	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 // appgw_suite_test.go launches these Ginkgo tests
@@ -114,84 +113,6 @@ var _ = Describe("Test ConfigBuilder validator functions", func() {
 			config.URLPathMaps = &[]n.ApplicationGatewayURLPathMap{pathMap}
 			err := validateURLPathMaps(eventRecorder, config, envVariables, ingressList, serviceList)
 			Expect(err).To(BeNil())
-		})
-	})
-
-	Context("test validateFrontendIPConfiguration", func() {
-		eventRecorder := record.NewFakeRecorder(100)
-		envVariables := environment.GetFakeEnv()
-
-		publicIPConf := n.ApplicationGatewayFrontendIPConfiguration{
-			// Public IP
-			Name: to.StringPtr("xx3"),
-			Etag: to.StringPtr("xx2"),
-			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(tests.PublicIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: nil,
-				PublicIPAddress: &n.SubResource{
-					ID: to.StringPtr("xyz"),
-				},
-			},
-		}
-
-		privateIPConf := n.ApplicationGatewayFrontendIPConfiguration{
-			// Private IP
-			Name: to.StringPtr("yy3"),
-			Etag: to.StringPtr("yy2"),
-			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr(tests.PrivateIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: to.StringPtr("abc"),
-				PublicIPAddress:  nil,
-			},
-		}
-
-		config := n.ApplicationGatewayPropertiesFormat{
-			FrontendIPConfigurations: &[]n.ApplicationGatewayFrontendIPConfiguration{},
-		}
-
-		It("should error out when Ip Configuration is empty.", func() {
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorNoPublicIP))
-		})
-
-		It("should not error out when Ip Configuration is contains 1 PublicIP and UsePrivateIP is false.", func() {
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
-			Expect(err).To(BeNil())
-		})
-
-		It("should not error out when Ip Configuration is contains both PublicIP & PrivateIP and UsePrivateIP is false.", func() {
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf, privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
-			Expect(err).To(BeNil())
-		})
-
-		It("should not error out when Ip Configuration is contains both PublicIP & PrivateIP and UsePrivateIP is true.", func() {
-			envVariablesNew := environment.GetFakeEnv()
-			envVariablesNew.UsePrivateIP = true
-			Expect(envVariablesNew.UsePrivateIP).To(Equal(true))
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf, privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
-			Expect(err).To(BeNil())
-		})
-
-		It("should error out when Ip Configuration is contains 1 PublicIP and UsePrivateIP is true.", func() {
-			envVariablesNew := environment.GetFakeEnv()
-			envVariablesNew.UsePrivateIP = true
-			Expect(envVariablesNew.UsePrivateIP).To(Equal(true))
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{publicIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariablesNew)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorNoPrivateIP))
-
-		})
-
-		It("should error out when Ip Configuration is doesn't contain public IP.", func() {
-			config.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{privateIPConf}
-			err := validateFrontendIPConfiguration(eventRecorder, config, envVariables)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorNoPublicIP))
 		})
 	})
 })

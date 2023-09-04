@@ -22,6 +22,9 @@
             "runAsUser": 3000,
             "runAsGroup": 3000
         },
+        "containerSecurityContext": {
+            "readOnlyRootFilesystem": "true"
+        },
         "resources": {
             "limits": {
                 "cpu": "200m",
@@ -76,6 +79,24 @@
                     ]
                 }
             }
+        },
+        "volumes": {
+            "extraVolumes": [
+                {
+                    "name": "contoso",
+                    "hostPath": {
+                        "path": "/etc/contoso/",
+                        "type": "Directory"
+                    }
+                }
+            ],
+            "extraVolumeMounts": [
+                {
+                    "name": "contoso",
+                    "mountPath": "/etc/contoso/",
+                    "readOnly": true
+                }
+            ]
         }
     }
 }

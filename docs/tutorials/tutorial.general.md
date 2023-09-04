@@ -49,7 +49,9 @@ spec:
   rules:
   - http:
       paths:
-      - backend:
+      - pathType: Prefix
+        path: /
+        backend:
           service:
             name: frontend
             port:
@@ -99,7 +101,9 @@ Without specifying hostname, the guestbook service will be available on all the 
       rules:
       - http:
           paths:
-          - backend:
+          - pathType: Prefix
+            path: /
+            backend:
               service:
                 name: frontend
                 port:
@@ -150,11 +154,13 @@ By specifying hostname, the guestbook service will only be available on the spec
       - host: <guestbook.contoso.com>
         http:
           paths:
-          - backend:
-              service:
-                name: frontend
-                port:
-                  number: 80
+            - pathType: Prefix
+              path: /
+              backend:
+                service:
+                  name: frontend
+                  port:
+                    number: 80
     ```
 
 1. Deploy `ing-guestbook-tls-sni.yaml` by running

@@ -9,7 +9,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"math/rand"
 	"strings"
 	"time"
@@ -43,7 +43,7 @@ func GetLastChunkOfSlashed(s string) string {
 
 // SaveToFile saves the content into a file named "fileName" - a tool primarily used for debugging purposes.
 func SaveToFile(fileName string, content []byte) (string, error) {
-	tempFile, err := ioutil.TempFile("", fileName)
+	tempFile, err := os.CreateTemp("", fileName)
 	if err != nil {
 		klog.Error(err)
 		return tempFile.Name(), err
@@ -77,4 +77,23 @@ func RandStringRunes(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+// RemoveDuplicates returns a copy of a slice with duplicates removed
+func RemoveDuplicateStrings(list []string) []string {
+	if list == nil {
+		return list
+	}
+
+	result := []string{}
+	// use a map to enforce uniqueness
+	dupeChecker := make(map[string]interface{})
+	for _, val := range list {
+		if _, ok := dupeChecker[val]; !ok {
+			result = append(result, val)
+			dupeChecker[val] = nil
+		}
+	}
+
+	return result
 }

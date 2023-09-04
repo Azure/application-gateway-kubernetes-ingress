@@ -11,7 +11,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.4.0
+  tag: 1.6.0
   pullPolicy: Always
 
 
@@ -33,8 +33,13 @@ kubernetes:
   tolerations: []
   affinity: {}
 
+  # Pod security context
   securityContext:
     runAsUser: 0
+
+  # Container security context
+  containerSecurityContext: {}
+    #readOnlyRootFilesystem: true
 
   # Add pod level annotations
   podAnnotations: {}
@@ -47,6 +52,15 @@ kubernetes:
     #requests:
     #  cpu: 100m
     #  memory: 100Mi
+
+  # Add additional volumes and volume mounts to the pod
+  volumes: {}
+    #extraVolumes:
+    #- name: tmp
+    #  emptyDir: {}
+    #extraVolumeMounts:
+    #- name: tmp
+    #  mountPath: /tmp
 
   # Set this to override the default ingress class value. DEFAULT: azure/application-gateway
   # This can be used to segregate ingress controllers in the same namespace
@@ -89,6 +103,11 @@ appgw: {}
 #   # Generate this value with:
 #   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
 #   secretJSON: <base64-encoded-JSON-blob>
+#
+# - Option 3: Workload Identity (https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
+# armAuth:
+#   type: workloadIdentity
+#   identityClientID:  <>
 
 ################################################################################
 # (Legacy: use `kubernetes.nodeSelector` instead) Specify the scheduling options

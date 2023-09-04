@@ -23,7 +23,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		return c.mem.listeners, c.mem.ports
 	}
 
-	publIPPorts := make(map[string]string)
 	portsByNumber := cbCtx.ExistingPortsByNumber
 	var listeners []n.ApplicationGatewayHTTPListener
 
@@ -32,7 +31,7 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 	}
 
 	if cbCtx.EnvVariables.EnableIstioIntegration {
-		listeners, portsByNumber, publIPPorts = c.getIstioListenersPorts(cbCtx)
+		listeners, portsByNumber = c.getIstioListenersPorts(cbCtx)
 	}
 
 	for listenerID, config := range c.getListenerConfigs(cbCtx) {
@@ -40,15 +39,6 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		if err != nil {
 			klog.Errorf("Failed creating listener %+v: %s", listenerID, err)
 			continue
-		}
-
-		if listenerName, exists := publIPPorts[*port.Name]; exists && listenerID.UsePrivateIP {
-			klog.Errorf("Can't assign port %s to Private IP Listener %s; already assigned to Public IP Listener %s; Will not create listener %+v", *port.Name, *listener.Name, listenerName, listenerID)
-			continue
-		}
-
-		if !listenerID.UsePrivateIP {
-			publIPPorts[*port.Name] = *listener.Name
 		}
 
 		// newlistener created a new port; Add it to the set
@@ -59,7 +49,12 @@ func (c *appGwConfigBuilder) getListeners(cbCtx *ConfigBuilderContext) (*[]n.App
 		if config.Protocol == n.ApplicationGatewayProtocolHTTPS {
 			sslCertificateID := c.appGwIdentifier.sslCertificateID(config.Secret.secretFullName())
 			listener.SslCertificate = resourceRef(sslCertificateID)
+			if config.SslProfile != "" {
+				sslProfileID := c.appGwIdentifier.sslProfileID(config.SslProfile)
+				listener.SslProfile = resourceRef(sslProfileID)
+			}
 		}
+
 		if config.FirewallPolicy != "" {
 			listener.FirewallPolicy = &n.SubResource{ID: to.StringPtr(config.FirewallPolicy)}
 		}
@@ -140,7 +135,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 			}
 		}
 
-		allListeners[defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)] = listenerConfig
+		allListeners[defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)] = listenerConfig
 	}
 
 	c.mem.listenerConfigs = &allListeners
@@ -148,7 +143,7 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 }
 
 func (c *appGwConfigBuilder) newListener(cbCtx *ConfigBuilderContext, listenerID listenerIdentifier, protocol n.ApplicationGatewayProtocol, portsByNumber map[Port]n.ApplicationGatewayFrontendPort) (*n.ApplicationGatewayHTTPListener, *n.ApplicationGatewayFrontendPort, error) {
-	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.UsePrivateIP)
+	frontIPConfiguration := *LookupIPConfigurationByType(c.appGw.FrontendIPConfigurations, listenerID.FrontendType)
 	portNumber := listenerID.FrontendPort
 	var frontendPort n.ApplicationGatewayFrontendPort
 	var exists bool
@@ -200,10 +195,8 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	listenersByID := make(map[listenerIdentifier]*n.ApplicationGatewayHTTPListener)
 	// Update the listenerMap with the final listener lists
 	for idx, listener := range *listeners {
-		port, portExists := portsByID[*listener.FrontendPort.ID]
-
 		listenerID := listenerIdentifier{
-			UsePrivateIP: IsPrivateIPConfiguration(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
+			FrontendType: DetermineFrontendType(LookupIPConfigurationByID(c.appGw.FrontendIPConfigurations, listener.FrontendIPConfiguration.ID)),
 		}
 
 		if listener.HostNames != nil && len(*listener.HostNames) > 0 {
@@ -212,6 +205,7 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 			listenerID.setHostNames([]string{*listener.HostName})
 		}
 
+		port, portExists := portsByID[*listener.FrontendPort.ID]
 		if portExists && port.Port != nil {
 			listenerID.FrontendPort = Port(*port.Port)
 		} else {
@@ -221,4 +215,26 @@ func (c *appGwConfigBuilder) groupListenersByListenerIdentifier(cbCtx *ConfigBui
 	}
 
 	return listenersByID
+}
+
+// LookupListener gets by ID.
+func LookupListenerByID(listeners *[]n.ApplicationGatewayHTTPListener, ID *string) *n.ApplicationGatewayHTTPListener {
+	for _, listener := range *listeners {
+		if *listener.ID == *ID {
+			return &listener
+		}
+	}
+	return nil
+}
+
+func IsMutliSiteListener(listener *n.ApplicationGatewayHTTPListener) bool {
+	if listener == nil {
+		return false
+	}
+
+	if listener.HostName != nil && *listener.HostName != "" {
+		return true
+	}
+
+	return listener.HostNames != nil && len(*listener.HostNames) > 0
 }

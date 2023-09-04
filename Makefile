@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.17.3
+BUILD_BASE_IMAGE ?= golang:1.19.5
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
@@ -69,7 +69,7 @@ build:
 lint-all: lint lint-helm
 
 lint:
-	@go get -u golang.org/x/lint/golint
+	@go install golang.org/x/lint/golint@latest
 	@golint $(go list ./... | grep -v /vendor/) | tee /tmp/lint.out
 	@if [ -s /tmp/lint.out ]; then \
 		echo "\e[101;97m golint FAILED \e[0m"; \
@@ -114,10 +114,11 @@ vet-e2e:
 test-all: unittest
 
 unittest:
-	@go get github.com/jstemmer/go-junit-report
-	@go get github.com/axw/gocov/gocov
-	@go get github.com/AlekSi/gocov-xml
-	@go get github.com/matm/gocov-html
+	@go install github.com/jstemmer/go-junit-report@latest
+	@go install github.com/axw/gocov/gocov@latest
+	@go install github.com/AlekSi/gocov-xml@latest
+	@go install github.com/matm/gocov-html/cmd/gocov-html@latest
+	@go mod tidy
 	@go test -timeout 80s -v -coverprofile=coverage.txt -covermode count -tags unittest ./... > testoutput.txt || { echo "go test returned non-zero"; cat testoutput.txt; exit 1; }
 	@cat testoutput.txt | go-junit-report > report.xml
 	@gocov convert coverage.txt > coverage.json

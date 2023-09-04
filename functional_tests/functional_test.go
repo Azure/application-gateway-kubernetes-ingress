@@ -50,9 +50,10 @@ func TestFunctional(t *testing.T) {
 	ginkgo.RunSpecs(t, "Appgw Suite")
 }
 
-var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
+var _ = ginkgo.Describe("Functional Tests", func() {
 	var stopChannel chan struct{}
 	var ctxt *k8scontext.Context
+	var appGwy *n.ApplicationGateway
 	var configBuilder ConfigBuilder
 
 	version.Version = "a"
@@ -92,21 +93,23 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	}
 
 	// Create the Ingress resource.
-	ingress := &networking.Ingress{
-		Spec: networking.IngressSpec{
-			Rules: []networking.IngressRule{
-				{
-					Host: "foo.baz",
-					IngressRuleValue: networking.IngressRuleValue{
-						HTTP: &networking.HTTPIngressRuleValue{
-							Paths: []networking.HTTPIngressPath{
-								{
-									Path: "/",
-									Backend: networking.IngressBackend{
-										Service: &networking.IngressServiceBackend{
-											Name: serviceName,
-											Port: networking.ServiceBackendPort{
-												Number: 80,
+	newIngress := func() *networking.Ingress {
+		return &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
+					{
+						Host: "foo.baz",
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
+									{
+										Path: "/",
+										Backend: networking.IngressBackend{
+											Service: &networking.IngressServiceBackend{
+												Name: serviceName,
+												Port: networking.ServiceBackendPort{
+													Number: 80,
+												},
 											},
 										},
 									},
@@ -115,52 +118,54 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			TLS: []networking.IngressTLS{
-				{
-					Hosts: []string{
-						"foo.baz",
-						"www.contoso.com",
-						"ftp.contoso.com",
-						tests.Host,
-						"",
+				TLS: []networking.IngressTLS{
+					{
+						Hosts: []string{
+							"foo.baz",
+							"www.contoso.com",
+							"ftp.contoso.com",
+							tests.Host,
+							"",
+						},
+						SecretName: tests.NameOfSecret,
 					},
-					SecretName: tests.NameOfSecret,
-				},
-				{
-					Hosts:      []string{},
-					SecretName: tests.NameOfSecret,
+					{
+						Hosts:      []string{},
+						SecretName: tests.NameOfSecret,
+					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey: environment.DefaultIngressClassController,
-				annotations.SslRedirectKey:  "true",
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
+					annotations.SslRedirectKey:  "true",
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name,
 			},
-			Namespace: tests.Namespace,
-			Name:      tests.Name,
-		},
+		}
 	}
 
 	ingressSecret := tests.NewSecretTestFixture()
 
 	// Create an Ingress resource for the same domain but no TLS
-	ingressFooBazNoTLS := &networking.Ingress{
-		Spec: networking.IngressSpec{
-			Rules: []networking.IngressRule{
-				{
-					Host: "foo.baz",
-					IngressRuleValue: networking.IngressRuleValue{
-						HTTP: &networking.HTTPIngressRuleValue{
-							Paths: []networking.HTTPIngressPath{
-								{
-									Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
-									Backend: networking.IngressBackend{
-										Service: &networking.IngressServiceBackend{
-											Name: serviceNameB,
-											Port: networking.ServiceBackendPort{
-												Number: 80,
+	newIngressFooBazNoTLS := func() *networking.Ingress {
+		return &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
+					{
+						Host: "foo.baz",
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
+									{
+										Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
+										Backend: networking.IngressBackend{
+											Service: &networking.IngressServiceBackend{
+												Name: serviceNameB,
+												Port: networking.ServiceBackendPort{
+													Number: 80,
+												},
 											},
 										},
 									},
@@ -170,30 +175,32 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey: environment.DefaultIngressClassController,
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name + "FooBazNoTLS",
 			},
-			Namespace: tests.Namespace,
-			Name:      tests.Name + "FooBazNoTLS",
-		},
+		}
 	}
 
-	ingressFooBazNoTLSHostNameFromAnnotation := &networking.Ingress{
-		Spec: networking.IngressSpec{
-			Rules: []networking.IngressRule{
-				{
-					IngressRuleValue: networking.IngressRuleValue{
-						HTTP: &networking.HTTPIngressRuleValue{
-							Paths: []networking.HTTPIngressPath{
-								{
-									Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
-									Backend: networking.IngressBackend{
-										Service: &networking.IngressServiceBackend{
-											Name: serviceNameB,
-											Port: networking.ServiceBackendPort{
-												Number: 80,
+	newIngressFooBazNoTLSHostNameFromAnnotation := func() *networking.Ingress {
+		return &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
+					{
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
+									{
+										Path: "/.well-known/acme-challenge/blahBlahBBLLAAHH",
+										Backend: networking.IngressBackend{
+											Service: &networking.IngressServiceBackend{
+												Name: serviceNameB,
+												Port: networking.ServiceBackendPort{
+													Number: 80,
+												},
 											},
 										},
 									},
@@ -203,32 +210,34 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey:      environment.DefaultIngressClassController,
-				annotations.HostNameExtensionKey: "foo.baz",
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey:      environment.DefaultIngressClassController,
+					annotations.HostNameExtensionKey: "foo.baz",
+				},
+				Namespace: tests.Namespace,
+				Name:      tests.Name + "FooBazNoTLSHostNameFromAnnotation",
 			},
-			Namespace: tests.Namespace,
-			Name:      tests.Name + "FooBazNoTLSHostNameFromAnnotation",
-		},
+		}
 	}
 
-	ingressOtherNamespace := &networking.Ingress{
-		Spec: networking.IngressSpec{
-			Rules: []networking.IngressRule{
-				{
-					Host: "foo.baz",
-					IngressRuleValue: networking.IngressRuleValue{
-						HTTP: &networking.HTTPIngressRuleValue{
-							Paths: []networking.HTTPIngressPath{
-								{
-									Path: "/b",
-									Backend: networking.IngressBackend{
-										Service: &networking.IngressServiceBackend{
-											Name: serviceNameC,
-											Port: networking.ServiceBackendPort{
-												Number: 80,
+	newIngressOtherNamespace := func() *networking.Ingress {
+		return &networking.Ingress{
+			Spec: networking.IngressSpec{
+				Rules: []networking.IngressRule{
+					{
+						Host: "foo.baz",
+						IngressRuleValue: networking.IngressRuleValue{
+							HTTP: &networking.HTTPIngressRuleValue{
+								Paths: []networking.HTTPIngressPath{
+									{
+										Path: "/b",
+										Backend: networking.IngressBackend{
+											Service: &networking.IngressServiceBackend{
+												Name: serviceNameC,
+												Port: networking.ServiceBackendPort{
+													Number: 80,
+												},
 											},
 										},
 									},
@@ -238,14 +247,14 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				},
 			},
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				annotations.IngressClassKey: environment.DefaultIngressClassController,
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				},
+				Namespace: tests.OtherNamespace,
+				Name:      tests.Name + "OtherNamespace",
 			},
-			Namespace: tests.OtherNamespace,
-			Name:      tests.Name + "OtherNamespace",
-		},
+		}
 	}
 
 	// TODO(draychev): Get this from test fixtures -- tests.NewServiceFixture()
@@ -498,7 +507,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		k8sClient := testclient.NewSimpleClientset()
 		_, _ = k8sClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
-		_, _ = k8sClient.NetworkingV1().Ingresses(tests.Namespace).Create(context.TODO(), ingress, metav1.CreateOptions{})
+		_, _ = k8sClient.NetworkingV1().Ingresses(tests.Namespace).Create(context.TODO(), newIngress(), metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), service, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceA, metav1.CreateOptions{})
 		_, _ = k8sClient.CoreV1().Services(tests.Namespace).Create(context.TODO(), serviceB, metav1.CreateOptions{})
@@ -529,7 +538,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		_ = ctxt.CertificateSecretStore.ConvertSecret(secKey, ingressSecret)
 		_ = ctxt.CertificateSecretStore.GetPfxCertificate(secKey)
 
-		appGwy := &n.ApplicationGateway{
+		appGwy = &n.ApplicationGateway{
 			ApplicationGatewayPropertiesFormat: NewAppGwyConfigFixture(),
 		}
 
@@ -541,21 +550,23 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 	})
 
 	ginkgo.Context("Tests Application Gateway config creation", func() {
-		ingressA := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/A/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameA,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressA := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/A/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameA,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -565,31 +576,33 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey: environment.DefaultIngressClassController,
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "A",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "A",
-			},
+			}
 		}
 
-		ingressB := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/B/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameB,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressB := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/B/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameB,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -599,31 +612,33 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey: environment.DefaultIngressClassController,
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "B",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "B",
-			},
+			}
 		}
 
-		ingressHttpsBackend := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/A/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameHttps,
-												Port: networking.ServiceBackendPort{
-													Number: 443,
+		newIngressHttpsBackend := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/A/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameHttps,
+													Port: networking.ServiceBackendPort{
+														Number: 443,
+													},
 												},
 											},
 										},
@@ -633,35 +648,37 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey:             environment.DefaultIngressClassController,
-					annotations.AppGwSslCertificate:         "ssl-certificate",
-					annotations.BackendProtocolKey:          "https",
-					annotations.AppGwTrustedRootCertificate: "root-certificate",
-					annotations.SslRedirectKey:              "true",
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey:             environment.DefaultIngressClassController,
+						annotations.AppGwSslCertificate:         "ssl-certificate",
+						annotations.BackendProtocolKey:          "https",
+						annotations.AppGwTrustedRootCertificate: "root-certificate",
+						annotations.SslRedirectKey:              "true",
+					},
+					Namespace: tests.HTTPSBackendNamespace,
+					Name:      tests.Name + "HttpsBackend",
 				},
-				Namespace: tests.HTTPSBackendNamespace,
-				Name:      tests.Name + "HttpsBackend",
-			},
+			}
 		}
 
-		ingressBWithExtendedHostName := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/B/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameB,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressBWithExtendedHostName := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/B/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameB,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -671,32 +688,34 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey:      environment.DefaultIngressClassController,
-					annotations.HostNameExtensionKey: "test.com, t*.com",
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey:      environment.DefaultIngressClassController,
+						annotations.HostNameExtensionKey: "test.com, t*.com",
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "BWithExtendedHostName",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "BWithExtendedHostName",
-			},
+			}
 		}
 
-		ingressSlashNothing := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameB,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressSlashNothing := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameB,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -706,42 +725,44 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey: environment.DefaultIngressClassController,
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "SlashNothing",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "SlashNothing",
-			},
+			}
 		}
 
-		ingressSlashNothingSlashSomething := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						// This one has no host
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameB,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressSlashNothingSlashSomething := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							// This one has no host
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameB,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
-									},
-									{
-										Path: "/A",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameA,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+										{
+											Path: "/A",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameA,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -751,30 +772,32 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey: environment.DefaultIngressClassController,
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "SlashNothingSlashSomething",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "SlashNothingSlashSomething",
-			},
+			}
 		}
 
-		ingressMultiplePathRules := &networking.Ingress{
-			Spec: networking.IngressSpec{
-				Rules: []networking.IngressRule{
-					{
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/A/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameA,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+		newIngressMultiplePathRules := func() *networking.Ingress {
+			return &networking.Ingress{
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						{
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/A/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameA,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -782,29 +805,29 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 								},
 							},
 						},
-					},
-					{
-						IngressRuleValue: networking.IngressRuleValue{
-							HTTP: &networking.HTTPIngressRuleValue{
-								Paths: []networking.HTTPIngressPath{
-									{
-										Path: "/B/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceNameB,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+						{
+							IngressRuleValue: networking.IngressRuleValue{
+								HTTP: &networking.HTTPIngressRuleValue{
+									Paths: []networking.HTTPIngressPath{
+										{
+											Path: "/B/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceNameB,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
-									},
-									{
-										Path: "/index/",
-										Backend: networking.IngressBackend{
-											Service: &networking.IngressServiceBackend{
-												Name: serviceName,
-												Port: networking.ServiceBackendPort{
-													Number: 80,
+										{
+											Path: "/index/",
+											Backend: networking.IngressBackend{
+												Service: &networking.IngressServiceBackend{
+													Name: serviceName,
+													Port: networking.ServiceBackendPort{
+														Number: 80,
+													},
 												},
 											},
 										},
@@ -814,22 +837,22 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 						},
 					},
 				},
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					annotations.IngressClassKey: environment.DefaultIngressClassController,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						annotations.IngressClassKey: environment.DefaultIngressClassController,
+					},
+					Namespace: tests.Namespace,
+					Name:      tests.Name + "MultiplePathRules",
 				},
-				Namespace: tests.Namespace,
-				Name:      tests.Name + "MultiplePathRules",
-			},
+			}
 		}
 
 		ginkgo.It("THREE Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingress,
-					ingressA,
-					ingressB,
+					newIngress(),
+					newIngressA(),
+					newIngressB(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -842,7 +865,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("Https Backend Ingress Resources", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressHttpsBackend,
+					newIngressHttpsBackend(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -853,12 +876,16 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 
 		ginkgo.It("Https Backend Ingress Resources without backend-protocol specified", func() {
+
+			ingressHttpsBackend := newIngressHttpsBackend()
+
 			newAnnotation := map[string]string{
 				annotations.IngressClassKey:     environment.DefaultIngressClassController,
 				annotations.AppGwSslCertificate: "ssl-certificate",
 			}
 
 			ingressHttpsBackend.SetAnnotations(newAnnotation)
+
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
 					ingressHttpsBackend,
@@ -875,7 +902,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("ONE Ingress Resources with / (nothing) path", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressSlashNothing,
+					newIngressSlashNothing(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -888,8 +915,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("ONE Ingress Resources with / (nothing), and /A/ path", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressA,
-					ingressSlashNothing,
+					newIngressA(),
+					newIngressSlashNothing(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -902,7 +929,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("ONE Ingress Resources with multiple paths rules", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressMultiplePathRules,
+					newIngressMultiplePathRules(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -915,8 +942,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("TWO Ingress Resources, one with / another with /something paths", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressSlashNothing,
-					ingressA,
+					newIngressSlashNothing(),
+					newIngressA(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -929,8 +956,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("TWO Ingress Resources for the same domain: one with TLS, another without", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingress,
-					ingressFooBazNoTLS,
+					newIngress(),
+					newIngressFooBazNoTLS(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -943,8 +970,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("TWO Ingress Resources same path and hostname but one has host in ingress rule and other has annotation", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressFooBazNoTLS,
-					ingressFooBazNoTLSHostNameFromAnnotation,
+					newIngressFooBazNoTLS(),
+					newIngressFooBazNoTLSHostNameFromAnnotation(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -957,8 +984,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("TWO Ingress Resources with same path but one with extended hostname and one without", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingressBWithExtendedHostName,
-					ingressA,
+					newIngressBWithExtendedHostName(),
+					newIngressA(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -972,7 +999,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingress,
+					newIngress(),
 				},
 				ServiceList:           serviceList,
 				EnvVariables:          environment.GetFakeEnv(),
@@ -987,7 +1014,7 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		})
 
 		ginkgo.It("WAF Annotation", func() {
-			annotatedIngress := ingressSlashNothingSlashSomething
+			annotatedIngress := newIngressSlashNothingSlashSomething()
 			annotatedIngress.Annotations[annotations.FirewallPolicy] = "/some/policy/here"
 
 			cbCtx := &ConfigBuilderContext{
@@ -1005,8 +1032,27 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "waf_annotation.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("Rule Priority Annotation", func() {
+			annotatedIngress := newIngressSlashNothingSlashSomething()
+			annotatedIngress.Annotations[annotations.RequestRoutingRulePriority] = "100"
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:  serviceList,
+				EnvVariables: environment.GetFakeEnv(),
+				ExistingPortsByNumber: map[Port]n.ApplicationGatewayFrontendPort{
+					Port(80): fixtures.GetDefaultPort(),
+				},
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "rule_priority_annotation.json", stopChannel, ctxt, configBuilder)
+		})
+
 		ginkgo.It("Cookie Name", func() {
-			annotatedIngress := ingressSlashNothingSlashSomething
+			annotatedIngress := newIngressSlashNothingSlashSomething()
 			annotatedIngress.Annotations[annotations.CookieBasedAffinityKey] = "true"
 			annotatedIngress.Annotations[annotations.CookieBasedAffinityDistinctNameKey] = "true"
 
@@ -1028,8 +1074,8 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 		ginkgo.It("Health Probes: same container labels; different namespaces", func() {
 			cbCtx := &ConfigBuilderContext{
 				IngressList: []*networking.Ingress{
-					ingress,
-					ingressOtherNamespace,
+					newIngress(),
+					newIngressOtherNamespace(),
 				},
 				ServiceList: []*v1.Service{
 					serviceA,
@@ -1056,5 +1102,116 @@ var _ = ginkgo.Describe("Tests `appgw.ConfigBuilder`", func() {
 			check(cbCtx, "empty_cluster_with_private_ip.json", stopChannel, ctxt, configBuilder)
 		})
 
+		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slashnothing", func() {
+			annotatedIngress := newIngressSlashNothing()
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_one_ingress_slashnothing.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in 1 ingress slash_slashnothing", func() {
+			annotatedIngress := newIngressSlashNothingSlashSomething()
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixtureWithoutURLConfig(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_one_ingress_slash_slashnothing.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in 2 ingresses", func() {
+			annotatedIngress := newIngressSlashNothing()
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+					newIngressA(),
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_two_ingress.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Rewrite Rule Set CRD in path based rules ingress without a default backend", func() {
+			annotatedIngress := newIngressMultiplePathRules()
+			annotatedIngress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = tests.RewriteRuleSetName
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					annotatedIngress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			rewriteRuleSet := tests.NewRewriteRuleSetCustomResourceFixture(tests.RewriteRuleSetName)
+			ctxt.Caches.AzureApplicationGatewayRewrite.Add(rewriteRuleSet)
+
+			check(cbCtx, "rewrite_rule_sets_path-based_rules_without_default_backend.json", stopChannel, ctxt, configBuilder)
+		})
+
+		ginkgo.It("Application Gateway has private IP only; Should use private IP for all rules", func() {
+			appGwy.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				{
+					// Private IP
+					Name: to.StringPtr("yy3"),
+					Etag: to.StringPtr("yy2"),
+					Type: to.StringPtr("yy1"),
+					ID:   to.StringPtr(tests.PrivateIPID),
+					ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+						PrivateIPAddress: to.StringPtr("abc"),
+						PublicIPAddress:  nil,
+					},
+				},
+			}
+
+			configBuilder = NewConfigBuilder(ctxt, &appGwIdentifier, appGwy, record.NewFakeRecorder(100), mocks.Clock{})
+
+			privateingress := newIngress()
+			privateingress.Annotations[annotations.UsePrivateIPKey] = "true"
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{
+					privateingress,
+				},
+				ServiceList:           serviceList,
+				EnvVariables:          environment.GetFakeEnv(),
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+			check(cbCtx, "private-ip-only-gateway.json", stopChannel, ctxt, configBuilder)
+		})
 	})
 })

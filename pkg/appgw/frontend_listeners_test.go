@@ -49,15 +49,15 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 	BeforeEach(func() {
 		envVariables = environment.GetFakeEnv()
 
-		listenerID80, listenerID80Name = newTestListenerID(Port(80), []string{tests.Host}, false)
+		listenerID80, listenerID80Name = newTestListenerID(Port(80), []string{tests.Host}, FrontendTypePublic)
 
-		listenerID80ExtendedHost, listenerID80ExtendedHostName = newTestListenerID(Port(80), []string{"test.com", "t*.com"}, false)
+		listenerID80ExtendedHost, listenerID80ExtendedHostName = newTestListenerID(Port(80), []string{"test.com", "t*.com"}, FrontendTypePublic)
 
-		listenerID80Priv, listenerID80PrivName = newTestListenerID(Port(80), []string{tests.Host}, true)
+		listenerID80Priv, listenerID80PrivName = newTestListenerID(Port(80), []string{tests.Host}, FrontendTypePrivate)
 
-		listenerID443, listenerID443Name = newTestListenerID(Port(443), []string{tests.Host}, false)
+		listenerID443, listenerID443Name = newTestListenerID(Port(443), []string{tests.Host}, FrontendTypePublic)
 
-		_, listenerID443PrivName = newTestListenerID(Port(443), []string{tests.Host}, true)
+		_, listenerID443PrivName = newTestListenerID(Port(443), []string{tests.Host}, FrontendTypePrivate)
 
 		listenerAzConfigNoSSL = listenerAzConfig{
 			Protocol: "Http",
@@ -252,7 +252,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			listenerConfigs := cb.getListenerConfigs(cbCtx)
 
 			{
-				listenerID, _ := newTestListenerID(Port(80), []string{tests.Host}, true)
+				listenerID, _ := newTestListenerID(Port(80), []string{tests.Host}, FrontendTypePrivate)
 				listenerAzConfig, exists := listenerConfigs[listenerID]
 				Expect(exists).To(BeTrue())
 				ports := make(map[Port]n.ApplicationGatewayFrontendPort)
@@ -263,7 +263,7 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 			}
 
 			{
-				listenerID, _ := newTestListenerID(Port(443), []string{tests.Host}, true)
+				listenerID, _ := newTestListenerID(Port(443), []string{tests.Host}, FrontendTypePrivate)
 				listenerAzConfig, exists := listenerConfigs[listenerID]
 				Expect(exists).To(BeTrue())
 				ports := make(map[Port]n.ApplicationGatewayFrontendPort)
@@ -326,6 +326,34 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			Expect(*ports).To(ContainElement(expectedPort80))
 			Expect(*ports).To(ContainElement(expectedPort443))
+		})
+	})
+
+	When("no ingresses are present and AppGW has a private frontend only", func() {
+		It("should create a default listener with private IP as frontend", func() {
+			certs := newCertsFixture()
+			cb := newConfigBuilderFixture(&certs)
+			cbCtx := &ConfigBuilderContext{
+				IngressList:           []*networking.Ingress{},
+				EnvVariables:          envVariables,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+
+			// Setup Application Gateway with only private frontend
+			privateOnlyFrontend := []n.ApplicationGatewayFrontendIPConfiguration{
+				NewPrivateIPFrontendIPConfiguration(),
+			}
+			cb.appGw.FrontendIPConfigurations = &privateOnlyFrontend
+
+			listeners, ports := cb.getListeners(cbCtx)
+			Expect(len(*listeners)).To(Equal(1))
+			Expect(len(*ports)).To(Equal(1))
+
+			listener := (*listeners)[0]
+			port := (*ports)[0]
+			Expect(*listener.FrontendIPConfiguration.ID).To(Equal(*privateOnlyFrontend[0].ID))
+			Expect(*port.Port).To(Equal(int32(80)))
 		})
 	})
 
@@ -521,6 +549,71 @@ var _ = Describe("MutateAppGateway ingress rules and parse frontend listener con
 
 			expectedListener80.FirewallPolicy = resourceRef(wafPolicyID)
 			Expect(*listeners).To(ContainElement(expectedListener80))
+		})
+	})
+
+	Context("LookupListenerByID tests", func() {
+		It("should return nil when listener for ID is not found", func() {
+			listeners := []n.ApplicationGatewayHTTPListener{
+				expectedListener443,
+				expectedListener80,
+			}
+
+			listener := LookupListenerByID(&listeners, to.StringPtr("missing-listener"))
+			Expect(listener).To(BeNil())
+		})
+
+		It("should return listener when listener for ID is found", func() {
+			listeners := []n.ApplicationGatewayHTTPListener{
+				expectedListener443,
+				expectedListener80,
+			}
+
+			listener443ID := to.StringPtr(resPref + "httpListeners/" + listenerID443Name)
+
+			listener := LookupListenerByID(&listeners, listener443ID)
+			Expect(*listener).To(Equal(expectedListener443))
+		})
+	})
+
+	Context("IsMutliSiteListener tests", func() {
+		It("should return false for basic listener", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeFalse())
+
+			listener = &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostName:  to.StringPtr(""),
+					HostNames: to.StringSlicePtr([]string{}),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeFalse())
+		})
+
+		It("should return true if listener has hostname populated", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostName: to.StringPtr("foo"),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeTrue())
+		})
+
+		It("should return true if listener has hostnames populated", func() {
+			listener := &n.ApplicationGatewayHTTPListener{
+				ApplicationGatewayHTTPListenerPropertiesFormat: &n.ApplicationGatewayHTTPListenerPropertiesFormat{
+					HostNames: to.StringSlicePtr([]string{
+						"foo",
+					}),
+				},
+			}
+
+			Expect(IsMutliSiteListener(listener)).To(BeTrue())
 		})
 	})
 })

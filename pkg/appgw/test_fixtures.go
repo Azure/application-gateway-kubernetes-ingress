@@ -7,11 +7,10 @@ package appgw
 
 import (
 	"fmt"
+	"reflect"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	v1 "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 
@@ -23,30 +22,8 @@ import (
 // NewAppGwyConfigFixture creates a new struct for testing.
 func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 	feIPConfigs := []n.ApplicationGatewayFrontendIPConfiguration{
-		{
-			// Public IP
-			Name: to.StringPtr("xx3"),
-			Etag: to.StringPtr("xx2"),
-			Type: to.StringPtr("xx1"),
-			ID:   to.StringPtr(tests.PublicIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: nil,
-				PublicIPAddress: &n.SubResource{
-					ID: to.StringPtr("xyz"),
-				},
-			},
-		},
-		{
-			// Private IP
-			Name: to.StringPtr("yy3"),
-			Etag: to.StringPtr("yy2"),
-			Type: to.StringPtr("yy1"),
-			ID:   to.StringPtr(tests.PrivateIPID),
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
-				PrivateIPAddress: to.StringPtr("abc"),
-				PublicIPAddress:  nil,
-			},
-		},
+		NewPublicIPFrontendIPConfiguration(),
+		NewPrivateIPFrontendIPConfiguration(),
 	}
 	return &n.ApplicationGatewayPropertiesFormat{
 		FrontendIPConfigurations: &feIPConfigs,
@@ -54,6 +31,36 @@ func NewAppGwyConfigFixture() *n.ApplicationGatewayPropertiesFormat {
 			Name:     n.ApplicationGatewaySkuNameStandardV2,
 			Tier:     n.ApplicationGatewayTierStandardV2,
 			Capacity: to.Int32Ptr(3),
+		},
+	}
+}
+
+func NewPublicIPFrontendIPConfiguration() n.ApplicationGatewayFrontendIPConfiguration {
+	return n.ApplicationGatewayFrontendIPConfiguration{
+		// Public IP
+		Name: to.StringPtr("xx3"),
+		Etag: to.StringPtr("xx2"),
+		Type: to.StringPtr("xx1"),
+		ID:   to.StringPtr(tests.PublicIPID),
+		ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			PrivateIPAddress: nil,
+			PublicIPAddress: &n.SubResource{
+				ID: to.StringPtr("xyz"),
+			},
+		},
+	}
+}
+
+func NewPrivateIPFrontendIPConfiguration() n.ApplicationGatewayFrontendIPConfiguration {
+	return n.ApplicationGatewayFrontendIPConfiguration{
+		// Private IP
+		Name: to.StringPtr("yy3"),
+		Etag: to.StringPtr("yy2"),
+		Type: to.StringPtr("yy1"),
+		ID:   to.StringPtr(tests.PrivateIPID),
+		ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &n.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{
+			PrivateIPAddress: to.StringPtr("abc"),
+			PublicIPAddress:  nil,
 		},
 	}
 }
@@ -78,16 +85,10 @@ func newSecretStoreFixture(toAdd *map[string]interface{}) k8scontext.SecretsKeep
 }
 
 func keyFunc(obj interface{}) (string, error) {
-	if service, ok := obj.(*v1.Service); ok {
-		return fmt.Sprintf("%s/%s", service.Namespace, service.Name), nil
-	}
-	if endpoints, ok := obj.(*v1.Endpoints); ok {
-		return fmt.Sprintf("%s/%s", endpoints.Namespace, endpoints.Name), nil
-	}
-	if ingress, ok := obj.(*networking.Ingress); ok {
-		return fmt.Sprintf("%s/%s", ingress.Namespace, ingress.Name), nil
-	}
-	return fmt.Sprintf("%s/%s", tests.Namespace, tests.ServiceName), nil
+	namespace := reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
+	name := reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Name").String()
+
+	return fmt.Sprintf("%s/%s", namespace, name), nil
 }
 
 func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
@@ -101,11 +102,12 @@ func newConfigBuilderFixture(certs *map[string]interface{}) appGwConfigBuilder {
 		appGw: n.ApplicationGateway{ApplicationGatewayPropertiesFormat: appGwConfig},
 		k8sContext: &k8scontext.Context{
 			Caches: &k8scontext.CacheCollection{
-				Endpoints: cache.NewStore(keyFunc),
-				Secret:    cache.NewStore(keyFunc),
-				Service:   cache.NewStore(keyFunc),
-				Pods:      cache.NewStore(keyFunc),
-				Ingress:   cache.NewStore(keyFunc),
+				AzureApplicationGatewayRewrite: cache.NewStore(keyFunc),
+				Endpoints:                      cache.NewStore(keyFunc),
+				Secret:                         cache.NewStore(keyFunc),
+				Service:                        cache.NewStore(keyFunc),
+				Pods:                           cache.NewStore(keyFunc),
+				Ingress:                        cache.NewStore(keyFunc),
 			},
 			CertificateSecretStore: newSecretStoreFixture(certs),
 			MetricStore:            metricstore.NewFakeMetricStore(),
@@ -132,42 +134,10 @@ func newCertsFixture() map[string]interface{} {
 	return toAdd
 }
 
-func newURLPathMap() n.ApplicationGatewayURLPathMap {
-	rule := n.ApplicationGatewayPathRule{
-		ID:   to.StringPtr("-the-id-"),
-		Type: to.StringPtr("-the-type-"),
-		Etag: to.StringPtr("-the-etag-"),
-		Name: to.StringPtr("/some/path"),
-		ApplicationGatewayPathRulePropertiesFormat: &n.ApplicationGatewayPathRulePropertiesFormat{
-			// A Path Rule must have either RedirectConfiguration xor (BackendAddressPool + BackendHTTPSettings)
-			RedirectConfiguration: nil,
-
-			BackendAddressPool:  resourceRef("--BackendAddressPool--"),
-			BackendHTTPSettings: resourceRef("--BackendHTTPSettings--"),
-
-			RewriteRuleSet:    resourceRef("--RewriteRuleSet--"),
-			ProvisioningState: "--provisionStateExpected--",
-		},
-	}
-
-	return n.ApplicationGatewayURLPathMap{
-		Name: to.StringPtr("-path-map-name-"),
-		ApplicationGatewayURLPathMapPropertiesFormat: &n.ApplicationGatewayURLPathMapPropertiesFormat{
-			// URL Path Map must have either DefaultRedirectConfiguration xor (DefaultBackendAddressPool + DefaultBackendHTTPSettings)
-			DefaultRedirectConfiguration: nil,
-
-			DefaultBackendAddressPool:  resourceRef("--DefaultBackendAddressPool--"),
-			DefaultBackendHTTPSettings: resourceRef("--DefaultBackendHTTPSettings--"),
-
-			PathRules: &[]n.ApplicationGatewayPathRule{rule},
-		},
-	}
-}
-
-func newTestListenerID(port Port, hostNames []string, usePrivateIP bool) (listenerIdentifier, string) {
+func newTestListenerID(port Port, hostNames []string, frontendType FrontendType) (listenerIdentifier, string) {
 	listener := listenerIdentifier{
 		FrontendPort: port,
-		UsePrivateIP: usePrivateIP,
+		FrontendType: frontendType,
 	}
 	listener.setHostNames(hostNames)
 	return listener, generateListenerName(listener)

@@ -81,6 +81,12 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 		klog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
+	appgwProfileName, _ := annotations.GetAppGwSslProfile(ingress)
+	if len(appgwProfileName) > 0 {
+		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
+		klog.V(5).Infof("Found annotation appgw-ssl-profile: %s in ingress %s/%s", appgwProfileName, ingress.Namespace, ingress.Name)
+	}
+
 	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostNamesecretIDMap)
 	hasTLS := (cert != nil || len(appgwCertName) > 0)
 
@@ -112,6 +118,9 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 				Name:      appgwCertName,
 				Namespace: "",
 			}
+		}
+		if len(appgwProfileName) > 0 {
+			azConf.SslProfile = appgwProfileName
 		}
 
 		listeners[listenerID] = azConf

@@ -22,7 +22,11 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests/fixtures"
 )
 
+// appgw_suite_test.go launches these Ginkgo tests
+
 var _ = Describe("Test routing rules generations", func() {
+	defer GinkgoRecover()
+
 	checkPathRules := func(urlPathMap *n.ApplicationGatewayURLPathMap, pathRuleCount int) {
 		if pathRuleCount == 0 {
 			Expect(urlPathMap.PathRules).To(BeNil())
@@ -239,7 +243,7 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].DefaultBackendHTTPSettings).To(BeNil())
 		})
 
-		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, FrontendTypePublic)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
 			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
@@ -444,7 +448,7 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(pathMap[listenerID].PathRules).To(BeNil())
 		})
 
-		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, false)
+		expectedListenerID, _ := newTestListenerID(Port(443), []string{rule.Host}, FrontendTypePublic)
 		expectedRedirectID := configBuilder.appGwIdentifier.redirectConfigurationID(
 			generateSSLRedirectConfigurationName(expectedListenerID))
 		actualID := *(pathMap[listenerID].DefaultRedirectConfiguration.ID)
@@ -475,8 +479,8 @@ var _ = Describe("Test routing rules generations", func() {
 		_ = configBuilder.Listeners(cbCtx)
 		_ = configBuilder.RequestRoutingRules(cbCtx)
 
-		expectedListenerID80, expectedListenerID80Name := newTestListenerID(Port(80), []string{"foo.baz"}, false)
-		expectedListenerID443, expectedListenerID443Name := newTestListenerID(Port(443), []string{"foo.baz"}, false)
+		expectedListenerID80, expectedListenerID80Name := newTestListenerID(Port(80), []string{"foo.baz"}, FrontendTypePublic)
+		expectedListenerID443, expectedListenerID443Name := newTestListenerID(Port(443), []string{"foo.baz"}, FrontendTypePublic)
 		It("should have correct RequestRoutingRules", func() {
 			Expect(len(*configBuilder.appGw.RequestRoutingRules)).To(Equal(2))
 
@@ -496,6 +500,7 @@ var _ = Describe("Test routing rules generations", func() {
 							"/providers/Microsoft.Network/applicationGateways/--app-gw-name--" +
 							"/redirectConfigurations/sslr-" + expectedListenerID443Name)},
 					ProvisioningState: "",
+					Priority:          to.Int32Ptr(19005),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID80)),
 				Etag: to.StringPtr("*"),
@@ -524,6 +529,7 @@ var _ = Describe("Test routing rules generations", func() {
 					RewriteRuleSet:        nil,
 					RedirectConfiguration: nil,
 					ProvisioningState:     "",
+					Priority:              to.Int32Ptr(19000),
 				},
 				Name: to.StringPtr("rr-" + utils.GetHashCode(expectedListenerID443)),
 				Etag: to.StringPtr("*"),
@@ -938,6 +944,152 @@ var _ = Describe("Test routing rules generations", func() {
 
 	})
 
+	Context("test ingress rewrite rule set crd with 2 ingresses one with rule set and another without", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
+		ingressPathBased1 := tests.NewIngressFixture()
+		rewriteRuleSetCRName := "test-rewrite-cr"
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName
+
+		ingressPathBased2 := tests.NewIngressFixture()
+
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
+
+		ingressPathBased2.Spec.Rules = []networking.IngressRule{
+			testRule,
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.Listeners(cbCtx)
+
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+
+		sharedRule := &ingressPathBased1.Spec.Rules[0]
+
+		sharedListenerID := generateListenerID(ingressPathBased1, sharedRule, n.ApplicationGatewayProtocolHTTPS, nil, false)
+
+		It("has pathrules", func() {
+			Expect(*pathMaps[sharedListenerID].PathRules).To(Not(BeNil()))
+		})
+		It("has exactly three path rule", func() {
+			Expect(len(*pathMaps[sharedListenerID].PathRules)).To(Equal(3))
+		})
+
+		// agic prefixes rewrite rule sets created via rewrite CRD with `crd-`
+		rewriteRuleSetCRName = fmt.Sprintf("crd-%s-%s", ingressPathBased1.Namespace, rewriteRuleSetCRName)
+		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName))
+
+		// the paths defined in both ingresses (common paths) have rewrite rules since the annotation in the first ingress
+		// takes precendence
+		It("has rewrite rule set in first path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+		It("has rewrite rule set in second path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[1].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+
+		// the path that is only declared in ingress2 doesn't have rewrite rules
+		It("has no rewrite rule set", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[2].RewriteRuleSet).To(BeNil())
+		})
+	})
+
+	Context("test ingress rewrite rule set custom resource with two ingresses with different rule sets", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
+		ingressPathBased1 := tests.NewIngressFixture()
+		rewriteRuleSetCRName1 := "test-rewrite-cr-1"
+		ingressPathBased1.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName1
+
+		ingressPathBased2 := tests.NewIngressFixture()
+		rewriteRuleSetCRName2 := "test-rewrite-cr-2"
+		ingressPathBased2.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName2
+
+		testBackend := tests.NewIngressBackendFixture("test", 80)
+		testRule := tests.NewIngressRuleFixture(tests.Host, tests.URLPath3, *testBackend)
+
+		ingressPathBased2.Spec.Rules = []networking.IngressRule{
+			testRule,
+		}
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingressPathBased1, ingressPathBased2},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		_ = configBuilder.Listeners(cbCtx)
+
+		pathMaps := configBuilder.getPathMaps(cbCtx)
+
+		sharedRule := &ingressPathBased1.Spec.Rules[0]
+
+		sharedListenerID := generateListenerID(ingressPathBased1, sharedRule, n.ApplicationGatewayProtocolHTTPS, nil, false)
+
+		It("has pathrules", func() {
+			Expect(*pathMaps[sharedListenerID].PathRules).To(Not(BeNil()))
+		})
+		It("has exactly three path rule", func() {
+			Expect(len(*pathMaps[sharedListenerID].PathRules)).To(Equal(3))
+		})
+
+		// agic prefixes rewrite rule sets created via rewrite CRD with `crd-`
+		rewriteRuleSetCRName1 = fmt.Sprintf("crd-%s-%s", ingressPathBased1.Namespace, rewriteRuleSetCRName1)
+		rewriteRuleSetCRName2 = fmt.Sprintf("crd-%s-%s", ingressPathBased2.Namespace, rewriteRuleSetCRName2)
+		expectedRewriteRuleSet1 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName1))
+		expectedRewriteRuleSet2 := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName2))
+
+		// the paths defined in both ingresses (common paths) have rewrite rules declared in the first ingress since it
+		// takes precendence
+		It("has rewrite rule set in first path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet1))
+		})
+		It("has rewrite rule set in second path rule", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[1].RewriteRuleSet).To(Equal(expectedRewriteRuleSet1))
+		})
+
+		// the path that is only declared in ingress2 has the rewrite rule declared in ingress2
+		It("has rewrite rule set from ingress 2", func() {
+			Expect((*pathMaps[sharedListenerID].PathRules)[2].RewriteRuleSet).To(Equal(expectedRewriteRuleSet2))
+		})
+	})
+
+	Context("test ingress rewrite rule set custom resource in basic ingress", func() {
+		configBuilder := newConfigBuilderFixture(nil)
+		service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+		ingress := tests.NewIngressTestFixtureBasic(tests.Namespace, "random", false)
+		rewriteRuleSetCRName := "test-rewrite-cr"
+		ingress.Annotations[annotations.RewriteRuleSetCustomResourceKey] = rewriteRuleSetCRName
+
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+
+		requestRoutingRules, _ := configBuilder.getRules(cbCtx)
+
+		// agic prefixes rewrite rule sets created via rewrite CR with `crd-`
+		rewriteRuleSetCRName = fmt.Sprintf("crd-%s-%s", ingress.Namespace, rewriteRuleSetCRName)
+		expectedRewriteRuleSet := resourceRef(configBuilder.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCRName))
+
+		It("has rewrite rule set", func() {
+			Expect(requestRoutingRules[0].RewriteRuleSet).To(Equal(expectedRewriteRuleSet))
+		})
+
+	})
+
 	Context("test pathType in ingress", func() {
 		configBuilder := newConfigBuilderFixture(nil)
 		endpoint := tests.NewEndpointsFixture()
@@ -946,7 +1098,7 @@ var _ = Describe("Test routing rules generations", func() {
 
 		_ = configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)
 		_ = configBuilder.k8sContext.Caches.Service.Add(service)
-		_ = configBuilder.k8sContext.Caches.Ingress.Add(ingress)
+		_ = configBuilder.k8sContext.Caches.Ingress.Add(&ingress)
 
 		cbCtx := &ConfigBuilderContext{
 			IngressList:           []*networking.Ingress{&ingress},
@@ -999,6 +1151,108 @@ var _ = Describe("Test routing rules generations", func() {
 			Expect(*urlPathMap.DefaultBackendAddressPool.ID).To(HaveSuffix("pool---namespace-----service-name---80-bp-9876"))
 			Expect(*urlPathMap.DefaultBackendHTTPSettings.ID).To(HaveSuffix("bp---namespace-----service-name---80-9876-ingress-with-path-type"))
 		})
+	})
+
+	Describe("test auto assigning missing routing rule prirority", func() {
+		var configBuilder appGwConfigBuilder
+		var ingress *networking.Ingress
+		var cbCtx *ConfigBuilderContext
+		// var prohibitedTargets []*ptv1.AzureIngressProhibitedTarget
+		var ruleCount int
+		var ingresses []*networking.Ingress
+
+		BeforeEach(func() {
+			ingresses = make([]*networking.Ingress, 0)
+			configBuilder = newConfigBuilderFixture(nil)
+			backend := tests.NewIngressBackendFixture(tests.ServiceName, int32(80))
+
+			endpoint := tests.NewEndpointsFixture()
+			service := tests.NewServiceFixture(*tests.NewServicePortsFixture()...)
+
+			Expect(configBuilder.k8sContext.Caches.Endpoints.Add(endpoint)).To(Succeed())
+			Expect(configBuilder.k8sContext.Caches.Service.Add(service)).To(Succeed())
+
+			// The upper bound for rule priority defined as 20000 in NRP.
+			// With multisite listeners, we auto generate priority starting from
+			// 19000 with an increment of 10. Thus, AGIC's bahivor in
+			// scenarios where customers define over 50 rules for basic
+			// listeners is undefined.
+			ruleCount = 50
+			for i := 0; i < ruleCount; i++ {
+				ingress = &networking.Ingress{}
+				ingress.Name = fmt.Sprint(i)
+				ingress.Namespace = tests.Namespace
+				ingress.Annotations = map[string]string{
+					annotations.OverrideFrontendPortKey: fmt.Sprint(i),
+					annotations.IngressClassKey:         tests.IngressClassController,
+				}
+				rule := tests.NewIngressRuleFixture("", "/", *backend)
+				ingress.Spec.Rules = []networking.IngressRule{rule}
+
+				// Turn off TLS so we have better control over the number of
+				// generated request routing rules.
+				ingress.Spec.TLS = nil
+				ingresses = append(ingresses, ingress)
+				Expect(configBuilder.k8sContext.Caches.Ingress.Add(ingress)).To(Succeed())
+			}
+
+			cbCtx = &ConfigBuilderContext{
+				IngressList:           ingresses,
+				DefaultAddressPoolID:  to.StringPtr("xx"),
+				DefaultHTTPSettingsID: to.StringPtr("yy"),
+			}
+		})
+
+		Context("when listeners are of multi-site type", func() {
+			var minPriority, maxPriority int32 = 19000, 19500
+
+			BeforeEach(func() {
+				for idx, ingress := range ingresses {
+					ingress.Annotations[annotations.HostNameExtensionKey] = fmt.Sprintf("host-%d", idx)
+				}
+
+				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
+				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
+			})
+
+			It("should have the expected number of request routing rules", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveLen(ruleCount))
+			})
+
+			It("should all have unique priorities assigned", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(Satisfy(haveUniquePriorities))
+			})
+
+			It("should all have priorities in range", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveEach(Satisfy(func(r n.ApplicationGatewayRequestRoutingRule) bool {
+					return minPriority <= *r.Priority && *r.Priority < maxPriority
+				})))
+			})
+		})
+
+		Context("when listeners are of basic type", func() {
+			var minPriority, maxPriority int32 = 19500, 20000
+
+			BeforeEach(func() {
+				Expect(configBuilder.Listeners(cbCtx)).To(Succeed())
+				Expect(configBuilder.RequestRoutingRules(cbCtx)).To(Succeed())
+			})
+
+			It("should have the expected number of request routing rules", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveLen(ruleCount))
+			})
+
+			It("should all have unique priorities assigned", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(Satisfy(haveUniquePriorities))
+			})
+
+			It("should all have priorities in range", func() {
+				Expect(*configBuilder.appGw.RequestRoutingRules).To(HaveEach(Satisfy(func(r n.ApplicationGatewayRequestRoutingRule) bool {
+					return minPriority <= *r.Priority && *r.Priority < maxPriority
+				})))
+			})
+		})
+
 	})
 
 	Context("test preparePathFromPathType", func() {
@@ -1055,3 +1309,13 @@ var _ = Describe("Test routing rules generations", func() {
 		})
 	})
 })
+
+func haveUniquePriorities(rules []n.ApplicationGatewayRequestRoutingRule) bool {
+	priorities := make(map[int32]bool)
+	for _, r := range rules {
+		if _, ok := priorities[*r.Priority]; ok {
+			return false
+		}
+	}
+	return true
+}

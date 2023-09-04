@@ -96,12 +96,21 @@ const (
 	// AppGwSslCertificate indicates the name of ssl certificate installed by AppGw
 	AppGwSslCertificate = ApplicationGatewayPrefix + "/appgw-ssl-certificate"
 
+	// AppGwSslProfile indicates the name of the ssl profile installed by AppGw
+	AppGwSslProfile = ApplicationGatewayPrefix + "/appgw-ssl-profile"
+
 	// AppGwTrustedRootCertificate indicates the names of trusted root certificates
 	// Multiple root certificates separated by comma, e.g. "cert1,cert2"
 	AppGwTrustedRootCertificate = ApplicationGatewayPrefix + "/appgw-trusted-root-certificate"
 
 	// RewriteRuleSetKey indicates the name of the rule set to overwrite HTTP headers.
 	RewriteRuleSetKey = ApplicationGatewayPrefix + "/rewrite-rule-set"
+
+	// RewriteRuleSetCustomResourceKey indicates the name of the rule set CRD to use for header CRD and URL Config.
+	RewriteRuleSetCustomResourceKey = ApplicationGatewayPrefix + "/rewrite-rule-set-custom-resource"
+
+	// RequestRoutingRulePriority indicates the priority of the Request Routing Rules.
+	RequestRoutingRulePriority = ApplicationGatewayPrefix + "/rule-priority"
 )
 
 // ProtocolEnum is the type for protocol
@@ -208,6 +217,11 @@ func GetAppGwTrustedRootCertificate(ing *networking.Ingress) (string, error) {
 	return parseString(ing, AppGwTrustedRootCertificate)
 }
 
+// GetAppGwSslProfile refer to appgw installed certificate
+func GetAppGwSslProfile(ing *networking.Ingress) (string, error) {
+	return parseString(ing, AppGwSslProfile)
+}
+
 // RequestTimeout provides value for request timeout on the backend connection
 func RequestTimeout(ing *networking.Ingress) (int32, error) {
 	return parseInt32(ing, RequestTimeoutKey)
@@ -265,10 +279,12 @@ func GetHostNameExtensions(ing *networking.Ingress) ([]string, error) {
 	if err == nil {
 		var hostnames []string
 		for _, hostname := range strings.Split(val, ",") {
-			if len(hostname) > 0 {
-				hostnames = append(hostnames, strings.TrimSpace(hostname))
+			trimmed := strings.TrimSpace(hostname)
+			if len(trimmed) > 0 {
+				hostnames = append(hostnames, trimmed)
 			}
 		}
+
 		return hostnames, nil
 	}
 
@@ -283,6 +299,29 @@ func WAFPolicy(ing *networking.Ingress) (string, error) {
 // RewriteRuleSet name
 func RewriteRuleSet(ing *networking.Ingress) (string, error) {
 	return parseString(ing, RewriteRuleSetKey)
+}
+
+// RewriteRuleSetCustomResource name
+func RewriteRuleSetCustomResource(ing *networking.Ingress) (string, error) {
+	return parseString(ing, RewriteRuleSetCustomResourceKey)
+}
+
+// GetRequestRoutingRulePriority gets the request routing rule priority
+func GetRequestRoutingRulePriority(ing *networking.Ingress) (*int32, error) {
+	min := int32(1)
+	max := int32(20000)
+	val, err := parseInt32(ing, RequestRoutingRulePriority)
+	if err == nil {
+		if val >= min && val <= max {
+			return &val, nil
+		} else {
+			val = 0
+			return &val, controllererrors.NewErrorf(controllererrors.ErrorInvalidContent,
+				"Priority must be a value from %d to %d", min, max)
+		}
+	}
+
+	return nil, err
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {

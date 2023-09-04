@@ -85,8 +85,8 @@
         ],
         "httpListeners": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-c61dda7ff9748ec5f51989767db5afd0",
-                "name": "fl-c61dda7ff9748ec5f51989767db5afd0",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-1c526ee8ba68b3db940684e9093980ad",
+                "name": "fl-1c526ee8ba68b3db940684e9093980ad",
                 "properties": {
                     "frontendIPConfiguration": {
                         "id": "--front-end-ip-id-1--"
@@ -153,19 +153,21 @@
         "redirectConfigurations": [],
         "requestRoutingRules": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-c61dda7ff9748ec5f51989767db5afd0",
-                "name": "rr-c61dda7ff9748ec5f51989767db5afd0",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/requestRoutingRules/rr-1c526ee8ba68b3db940684e9093980ad",
+                "name": "rr-1c526ee8ba68b3db940684e9093980ad",
                 "properties": {
                     "httpListener": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-c61dda7ff9748ec5f51989767db5afd0"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/httpListeners/fl-1c526ee8ba68b3db940684e9093980ad"
                     },
+                    "priority": 19500,
                     "ruleType": "PathBasedRouting",
                     "urlPathMap": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-c61dda7ff9748ec5f51989767db5afd0"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-1c526ee8ba68b3db940684e9093980ad"
                     }
                 }
             }
         ],
+        "rewriteRuleSets": [],
         "sku": {
             "capacity": 3,
             "name": "Standard_v2",
@@ -174,8 +176,8 @@
         "sslCertificates": [],
         "urlPathMaps": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-c61dda7ff9748ec5f51989767db5afd0",
-                "name": "url-c61dda7ff9748ec5f51989767db5afd0",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-1c526ee8ba68b3db940684e9093980ad",
+                "name": "url-1c526ee8ba68b3db940684e9093980ad",
                 "properties": {
                     "defaultBackendAddressPool": {
                         "id": "xx"
@@ -185,7 +187,7 @@
                     },
                     "pathRules": [
                         {
-                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-c61dda7ff9748ec5f51989767db5afd0/pathRules/pr---https-backend-namespace-----name--HttpsBackend-rule-0-path-0",
+                            "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/urlPathMaps/url-1c526ee8ba68b3db940684e9093980ad/pathRules/pr---https-backend-namespace-----name--HttpsBackend-rule-0-path-0",
                             "name": "pr---https-backend-namespace-----name--HttpsBackend-rule-0-path-0",
                             "properties": {
                                 "backendAddressPool": {

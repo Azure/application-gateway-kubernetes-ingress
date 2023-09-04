@@ -16,6 +16,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/ssl-redirect](#ssl-redirect) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/appgw-ssl-certificate](#appgw-ssl-certificate) | `string` | `nil` | | `1.2.0` |
 | [appgw.ingress.kubernetes.io/appgw-trusted-root-certificate](#appgw-trusted-root-certificate) | `string` | `nil` | | `1.2.0` |
+| [appgw.ingress.kubernetes.io/appgw-ssl-profile](#appgw-ssl-profile) | `string` | `nil` | | `1.6.0-rc1` |
 | [appgw.ingress.kubernetes.io/connection-draining](#connection-draining) | `bool` | `false` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/connection-draining-timeout](#connection-draining) | `int32` (seconds) | `30` | | `1.0.0` |
 | [appgw.ingress.kubernetes.io/cookie-based-affinity](#cookie-based-affinity) | `bool` | `false` | | `1.0.0` |
@@ -31,6 +32,8 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/health-probe-timeout](#health-probe-timeout) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold](#health-probe-unhealthy-threshold) | `int32` | `nil`  |   | `1.4.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
+| [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | `1.6.0-rc1` |
+| [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
 
 ## Override Frontend Port
 
@@ -62,7 +65,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -98,7 +101,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -127,7 +130,8 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: go-server-service
+            name: store-service
+```
 
 ## Backend Hostname
 
@@ -155,7 +159,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -190,7 +194,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -239,7 +243,7 @@ spec:
 
 ## AppGw SSL Certificate
 
-The SSL certificate [can be configured to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create) either from a local PFX cerficate file or a reference to a Azure Key Vault unversioned secret Id.
+The SSL certificate [can be configured to Application Gateway](https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create) either from a local PFX certificate file or a reference to a Azure Key Vault unversioned secret Id.
 When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
 `appgw-ssl-certificate` annotation can also be used together with `ssl-redirect` annotation in case of SSL redirect.
 
@@ -348,6 +352,13 @@ spec:
               number: 80
 ```
 
+## AppGw Ssl Profile
+
+> Note: This annotation is supported since 1.6.0-rc1.
+
+Users can configure [a ssl profile on the Application Gateway per listener](https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-configure-listener-specific-ssl-policy).
+When the annotation is present with a profile name and the profile is pre-installed in the Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
+
 ## Connection Draining
 
 `connection-draining`: This annotation allows to specify whether to enable connection draining.
@@ -379,7 +390,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -413,18 +424,22 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
 ```
-### distinct cookie name
+
+## Distinct cookie name
+
 In addition to cookie-based-affinity, you can set `cookie-based-affinity-distinct-name: "true"` to ensure a different affinity cookie is set per backend.
-###
+
+### Usage
 
 ```yaml
 appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
 ```
+
 ### Example
 
 ```yaml
@@ -485,7 +500,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -496,7 +511,9 @@ spec:
 This annotation allows us to specify whether to expose this endpoint on Private IP of Application Gateway.
 
 > **Note**
+
 1) App Gateway doesn't support multiple IPs on the same port (example: 80/443). Ingress with annotation `appgw.ingress.kubernetes.io/use-private-ip: "false"` and another with `appgw.ingress.kubernetes.io/use-private-ip: "true"` on `HTTP` will cause AGIC to fail in updating the App Gateway.
+
 2) For App Gateway that doesn't have a private IP, Ingresses with `appgw.ingress.kubernetes.io/use-private-ip: "true"` will be ignored. This will reflected in the controller logs and ingress events for those ingresses with `NoPrivateIP` warning.
 
 
@@ -522,7 +539,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -611,7 +628,7 @@ spec:
       - path: /hello/
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 80
         pathType: Exact
@@ -650,7 +667,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 443
         pathType: Exact
@@ -686,7 +703,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
 ```
@@ -719,7 +736,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -753,7 +770,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -787,7 +804,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -821,7 +838,7 @@ spec:
       - path: /
         backend:
           service:
-            name: go-server-service
+            name: store-service
             port:
               number: 8080
         pathType: Exact
@@ -829,7 +846,7 @@ spec:
 
 ## Rewrite Rule Set
 
-This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule.
+This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s). Rewrite rule set is managed via Azure Portal / CLI / PS.
 
 ### Usage
 
@@ -856,7 +873,109 @@ spec:
         pathType: Exact
         backend:
           service:
-            name: go-server-service
+            name: store-service
+            port:
+              number: 8080
+```
+
+## Rewrite Rule Set Custom Resource
+
+> Note: This annotation is supported since 1.6.0-rc1.
+
+This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: <name of rewrite rule set custom resource>
+```
+
+### Example
+
+```yaml
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayRewrite
+metadata:
+  name: my-rewrite-rule-set
+spec:
+  rewriteRules:
+  - name: rule1
+    ruleSequence: 21
+
+    conditions:
+    - ignoreCase: false
+      negate: false
+      variable: http_req_Host
+      pattern: example.com
+
+    actions:
+      requestHeaderConfigurations:
+      - actionType: set
+        headerName: incoming-test-header
+        headerValue: incoming-test-value
+      
+      responseHeaderConfigurations:
+      - actionType: set
+        headerName: outgoing-test-header
+        headerValue: outgoing-test-value
+
+      urlConfiguration:
+        modifiedPath: "/api/"
+        modifiedQueryString: "query=test-value"
+        reroute: false
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-server-ingress-bkprefix
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: store-service
+            port:
+              number: 8080
+```
+
+## Hostname Extension
+This annotation allows to append additional hostnames to the `host` specified in the ingress resource. This applies to all the rules in the ingress resource.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/hostname-extension: "hostname1, hostname2"
+```
+
+### Example
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: store-app-ingress
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/hostname-extension: "prod-store.app.com"
+spec:
+  rules:
+  - host: "store.app.com"
+    http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: store-service
             port:
               number: 8080
 ```

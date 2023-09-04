@@ -48,6 +48,10 @@ func GetAppGateway() n.ApplicationGateway {
 				GetCertificate3(),
 			},
 
+			SslProfiles: &[]n.ApplicationGatewaySslProfile{
+				GetSslProfile1(),
+			},
+
 			TrustedRootCertificates: &[]n.ApplicationGatewayTrustedRootCertificate{
 				GetRootCertificate1(),
 				GetRootCertificate2(),

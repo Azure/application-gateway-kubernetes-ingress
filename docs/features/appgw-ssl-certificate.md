@@ -48,7 +48,19 @@ appgwName=""
 resgp=""
 vaultName=""
 location=""
-agicIdentityPrincipalId=""
+aksClusterName=""
+aksResourceGroupName=""
+appgwName=""
+
+# IMPORTANT: the following way to retrieve the object id of the AGIC managed identity
+# only applies when AGIC is deployed via the AGIC addon for AKS
+
+# get the resource group name of the AKS cluster
+nrg=$(az aks show --name $aksClusterName --resource-group $aksResourceGroupName --query nodeResourceGroup --output tsv)
+
+# get principalId of the AGIC managed identity
+identityName="ingressapplicationgateway-$aksClusterName"
+agicIdentityPrincipalId=$(az identity show --name $identityName --resource-group $nrg --query principalId --output tsv)
 
 # One time operation, create Azure key vault and certificate (can done through portal as well)
 az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location
@@ -104,7 +116,7 @@ metadata:
     app: aspnetapp
 spec:
   containers:
-  - image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+  - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
     name: aspnetapp-image
     ports:
     - containerPort: 80

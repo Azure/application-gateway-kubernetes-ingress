@@ -17,8 +17,13 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
+)
+
+const (
+	MaxAllowedPriority = 20000
 )
 
 func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) error {
@@ -56,6 +61,10 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	}
 
 	sort.Sort(sorter.ByRequestRoutingRuleName(requestRoutingRules))
+
+	// Apply rule priority after sorting to come up with stable priority.
+	requestRoutingRules = c.assignPriorityWhereMissing(requestRoutingRules)
+
 	c.appGw.RequestRoutingRules = &requestRoutingRules
 
 	return nil
@@ -69,6 +78,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	pathMap := []n.ApplicationGatewayURLPathMap{}
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	urlPathMaps := c.getPathMaps(cbCtx)
+	priorities := c.getListenerPriorities(cbCtx)
 	for listenerID, urlPathMap := range urlPathMaps {
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener, exists := httpListenersMap[listenerID]
@@ -114,6 +124,9 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
 		}
+
+		rule.Priority = priorities[listenerID]
+
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}
 
@@ -136,7 +149,7 @@ func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress
 		poolName := generateAddressPoolName(backendID.serviceFullName(), serviceBackendPortToStr(backendID.Backend.Service.Port), serviceBackendPair.BackendPort)
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(poolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
-		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
+		listenerID := defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)
 		pathMapName := generateURLPathMapName(listenerID)
 		(*urlPathMaps)[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
@@ -194,7 +207,7 @@ func (c *appGwConfigBuilder) getPathMaps(cbCtx *ConfigBuilderContext) map[listen
 	if len(urlPathMaps) == 0 {
 		defaultAddressPoolID := c.appGwIdentifier.AddressPoolID(DefaultBackendAddressPoolName)
 		defaultHTTPSettingsID := c.appGwIdentifier.HTTPSettingsID(DefaultBackendHTTPSettingsName)
-		listenerID := defaultFrontendListenerIdentifier(cbCtx.EnvVariables.UsePrivateIP)
+		listenerID := defaultFrontendListenerIdentifier(c.appGw, cbCtx.EnvVariables)
 		pathMapName := generateURLPathMapName(listenerID)
 		urlPathMaps[listenerID] = &n.ApplicationGatewayURLPathMap{
 			Etag: to.StringPtr("*"),
@@ -284,9 +297,20 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
 		defaultAddressPool := backendPools[defaultBackendID]
-		if rewriteRuleSet, err := annotations.RewriteRuleSet(ingress); err == nil && rewriteRuleSet != "" {
+
+		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
+		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCustomResource(ingress)
+
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCustomResourceKey)
+		} else if err1 == nil && rewriteRuleSet != "" {
 			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
+		} else if err2 == nil && rewriteRuleSetCR != "" {
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s-%s", ingress.Namespace, rewriteRuleSetCR)
+			defaultRewriteRuleSet = to.StringPtr(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
 		}
+
 		if defaultAddressPool != nil && defaultHTTPSettings != nil {
 			poolID := to.StringPtr(c.appGwIdentifier.AddressPoolID(*defaultAddressPool.Name))
 			settID := to.StringPtr(c.appGwIdentifier.HTTPSettingsID(*defaultHTTPSettings.Name))
@@ -327,13 +351,31 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
-		if rewriteRule, err := annotations.RewriteRuleSet(ingress); err == nil {
-			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRule))
+		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
+		rewriteRuleSet, err1 := annotations.RewriteRuleSet(ingress)
+		rewriteRuleSetCR, err2 := annotations.RewriteRuleSetCustomResource(ingress)
+
+		if err1 == nil && rewriteRuleSet != "" && err2 == nil && rewriteRuleSetCR != "" {
+			klog.Errorf("%s and %s both annotations are defined. Please use one.", annotations.RewriteRuleSetKey, annotations.RewriteRuleSetCustomResourceKey)
+		} else if err1 == nil && rewriteRuleSet != "" {
+
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSet))
 			var paths string
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRule, paths)
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSet, paths)
+
+		} else if err2 == nil && rewriteRuleSetCR != "" {
+
+			rewriteRuleSetCR = fmt.Sprintf("crd-%s-%s", ingress.Namespace, rewriteRuleSetCR)
+			pathRule.RewriteRuleSet = resourceRef(c.appGwIdentifier.rewriteRuleSetID(rewriteRuleSetCR))
+			var paths string
+			if pathRule.Paths != nil {
+				paths = strings.Join(*pathRule.Paths, ",")
+			}
+			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCR, paths)
+
 		}
 
 		if sslRedirect, _ := annotations.IsSslRedirect(ingress); sslRedirect && listenerAzConfig.Protocol == n.ApplicationGatewayProtocolHTTP {
@@ -422,6 +464,43 @@ func (c *appGwConfigBuilder) mergePathMap(existingPathMap *n.ApplicationGatewayU
 	return existingPathMap
 }
 
+func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) map[listenerIdentifier]*int32 {
+	prioritySet, priorityNil := false, false
+	priorityExists := make(map[int32]bool)
+	allPriorities := make(map[listenerIdentifier]*int32)
+	for _, ingress := range cbCtx.IngressList {
+		klog.V(5).Infof("Getting Request Routing Rules Priority for Ingress: %s/%s", ingress.Namespace, ingress.Name)
+		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
+		for listenerID := range azListenerConfigs {
+			if priority, err := annotations.GetRequestRoutingRulePriority(ingress); err == nil {
+				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: %d", ingress.Namespace, ingress.Name, *priority)
+				prioritySet = true
+				if _, value := priorityExists[*priority]; !value {
+					priorityExists[*priority] = true
+				} else {
+					klog.Errorf(
+						"Request Routing Rules Priority for Ingress: %s/%s is duplicated. Priority must be unique across all the request routing rules.",
+						ingress.Namespace,
+						ingress.Name)
+				}
+				allPriorities[listenerID] = priority
+			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+				klog.V(9).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: nil", ingress.Namespace, ingress.Name)
+				priorityNil = true
+				allPriorities[listenerID] = nil
+			} else if controllererrors.IsErrorCode(err, controllererrors.ErrorInvalidContent) {
+				klog.Errorf("%s for Ingress: %s/%s", err.Error(), ingress.Namespace, ingress.Name)
+			}
+		}
+	}
+
+	if priorityNil && prioritySet {
+		klog.Error("Either all or no Ingress should have the priority specified.")
+	}
+
+	return allPriorities
+}
+
 func printPathRule(pathRule n.ApplicationGatewayPathRule) string {
 	s := fmt.Sprintf("pathMapName=%s", *pathRule.Name)
 
@@ -462,4 +541,59 @@ func preparePathFromPathType(path string, pathType *networking.PathType) string 
 // "/" for any path type will be treated as a prefix match.
 func isPathCatchAll(path string, pathType *networking.PathType) bool {
 	return len(path) == 0 || path == "/*" || path == "/"
+}
+
+// assignPriorityWhereMissing assigns priority to rules that don't have rule priority assigned
+// by the user.
+// This logic is similar to how AppGW populates rule priority internally.
+// Multisite rule is given higher priority than basic rule.
+func (c *appGwConfigBuilder) assignPriorityWhereMissing(rules []n.ApplicationGatewayRequestRoutingRule) []n.ApplicationGatewayRequestRoutingRule {
+
+	usedUpPriorities := make(map[int32]interface{})
+	for _, rule := range rules {
+		if rule.Priority != nil {
+			usedUpPriorities[*rule.Priority] = nil
+		}
+	}
+
+	var lastMultiSiteRulePriority int32 = 19000
+	var lastBasicRulePriority int32 = 19500
+	var priorityJump int32 = 5
+	for _, rule := range rules {
+		listener := LookupListenerByID(c.appGw.HTTPListeners, rule.HTTPListener.ID)
+
+		if rule.Priority != nil {
+			// rule already has a priority assigned
+			continue
+		}
+
+		// find priority to assign to the rule
+		var priority int32
+		if IsMutliSiteListener(listener) {
+			priority = findNextFreePriority(usedUpPriorities, lastMultiSiteRulePriority, priorityJump)
+			lastMultiSiteRulePriority = priority
+		} else {
+			priority = findNextFreePriority(usedUpPriorities, lastBasicRulePriority, priorityJump)
+			lastBasicRulePriority = priority
+		}
+
+		rule.Priority = to.Int32Ptr(priority)
+		usedUpPriorities[priority] = nil
+	}
+
+	return rules
+}
+
+func findNextFreePriority(usedUpPriorities map[int32]interface{}, lastPriority int32, jump int32) int32 {
+	priority := lastPriority
+	for {
+		if _, exists := usedUpPriorities[priority]; !exists {
+			return priority
+		}
+
+		priority = priority + jump
+		if priority > MaxAllowedPriority {
+			return MaxAllowedPriority
+		}
+	}
 }

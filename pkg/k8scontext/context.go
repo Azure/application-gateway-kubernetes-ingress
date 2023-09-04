@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agpoolv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewaybackendpool/v1beta1"
 	aginstv1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayinstanceupdatestatus/v1beta1"
+	agrewritev1beta1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureapplicationgatewayrewrite/v1beta1"
 	prohibitedv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
 	multiClusterIngress "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusteringress/v1alpha1"
 	multiClusterService "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/multiclusterservice/v1alpha1"
@@ -67,6 +68,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 
 		AzureIngressProhibitedTarget:                crdInformerFactory.Azureingressprohibitedtargets().V1().AzureIngressProhibitedTargets().Informer(),
 		AzureApplicationGatewayBackendPool:          crdInformerFactory.Azureapplicationgatewaybackendpools().V1beta1().AzureApplicationGatewayBackendPools().Informer(),
+		AzureApplicationGatewayRewrite:              crdInformerFactory.Azureapplicationgatewayrewrites().V1beta1().AzureApplicationGatewayRewrites().Informer(),
 		AzureApplicationGatewayInstanceUpdateStatus: crdInformerFactory.Azureapplicationgatewayinstanceupdatestatus().V1beta1().AzureApplicationGatewayInstanceUpdateStatuses().Informer(),
 		MultiClusterService:                         multiClusterCrdInformerFactory.Multiclusterservices().V1alpha1().MultiClusterServices().Informer(),
 		MultiClusterIngress:                         multiClusterCrdInformerFactory.Multiclusteringresses().V1alpha1().MultiClusterIngresses().Informer(),
@@ -88,6 +90,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		Service:                            informerCollection.Service.GetStore(),
 		AzureIngressProhibitedTarget:       informerCollection.AzureIngressProhibitedTarget.GetStore(),
 		AzureApplicationGatewayBackendPool: informerCollection.AzureApplicationGatewayBackendPool.GetStore(),
+		AzureApplicationGatewayRewrite:     informerCollection.AzureApplicationGatewayRewrite.GetStore(),
 		AzureApplicationGatewayInstanceUpdateStatus: informerCollection.AzureApplicationGatewayInstanceUpdateStatus.GetStore(),
 		MultiClusterService:                         informerCollection.MultiClusterService.GetStore(),
 		MultiClusterIngress:                         informerCollection.MultiClusterIngress.GetStore(),
@@ -148,6 +151,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 	informerCollection.Secret.AddEventHandler(secretResourceHandler)
 	informerCollection.Service.AddEventHandler(resourceHandler)
 	informerCollection.AzureIngressProhibitedTarget.AddEventHandler(resourceHandler)
+	informerCollection.AzureApplicationGatewayRewrite.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayBackendPool.AddEventHandler(resourceHandler)
 	informerCollection.AzureApplicationGatewayInstanceUpdateStatus.AddEventHandler(resourceHandler)
 	informerCollection.MultiClusterService.AddEventHandler(resourceHandler)
@@ -181,6 +185,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.IstioVirtualService:          nil,
 		c.informers.MultiClusterService:          nil,
 		c.informers.MultiClusterIngress:          nil,
+
+		c.informers.AzureApplicationGatewayRewrite: nil,
 		// c.informers.AzureApplicationGatewayBackendPool:          nil,
 		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
 	}
@@ -191,6 +197,8 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.informers.Service,
 		c.informers.Secret,
 		c.informers.Ingress,
+
+		c.informers.AzureApplicationGatewayRewrite,
 
 		//TODO: enabled by ccp feature flag
 		// c.informers.AzureApplicationGatewayBackendPool,
@@ -280,6 +288,34 @@ func (c *Context) GetBackendPool(backendPoolName string) (*agpoolv1beta1.AzureAp
 	}
 
 	return agpool.(*agpoolv1beta1.AzureApplicationGatewayBackendPool), nil
+}
+
+// GetRewriteRuleSetCustomResource returns rewrite with specified name and namespace
+func (c *Context) GetRewriteRuleSetCustomResource(namespace string, name string) (*agrewritev1beta1.AzureApplicationGatewayRewrite, error) {
+
+	agrewrite, exist, err := c.Caches.AzureApplicationGatewayRewrite.GetByKey(namespace + "/" + name)
+	if !exist {
+		e := controllererrors.NewErrorf(
+			controllererrors.ErrorFetchingRewrite,
+			"Rewrite rule set custom resource object not found for %s",
+			name)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	if err != nil {
+		e := controllererrors.NewErrorWithInnerErrorf(
+			controllererrors.ErrorFetchingRewrite,
+			err,
+			"Error fetching rewrite rule set custom resource object from store for %s",
+			name)
+		klog.Error(e.Error())
+		c.MetricStore.IncErrorCount(e.Code)
+		return nil, e
+	}
+
+	return agrewrite.(*agrewritev1beta1.AzureApplicationGatewayRewrite), nil
 }
 
 // GetInstanceUpdateStatus returns update status from when Application Gateway instances update backend pool addresses
@@ -874,14 +910,23 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 	return false
 }
 
-// getIngressClassResource gets ingress class object with specified name
 func (c *Context) getIngressClassResource(ingressClassName string) *networking.IngressClass {
+	if class := c.getIngressClassResourceFromCache(ingressClassName); class != nil {
+		return class
+	}
+
+	return c.getIngressClassResourceFromCluster(ingressClassName)
+}
+
+// getIngressClassResource gets ingress class object with specified name
+func (c *Context) getIngressClassResourceFromCache(ingressClassName string) *networking.IngressClass {
 	if c.Caches.IngressClass == nil {
 		return nil
 	}
 
 	ingressClassInterface, exist, err := c.Caches.IngressClass.GetByKey(ingressClassName)
 	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s' from cache. Error: %s", ingressClassName, err)
 		return nil
 	}
 
@@ -890,6 +935,16 @@ func (c *Context) getIngressClassResource(ingressClassName string) *networking.I
 	}
 
 	return ingressClassInterface.(*networking.IngressClass)
+}
+
+func (c *Context) getIngressClassResourceFromCluster(ingressClassName string) *networking.IngressClass {
+	ingressClass, err := c.kubeClient.NetworkingV1().IngressClasses().Get(context.TODO(), ingressClassName, metav1.GetOptions{})
+	if err != nil {
+		klog.Errorf("Unable to fetch IngressClass '%s' from cluster. Error: %s", ingressClassName, err)
+		return nil
+	}
+
+	return ingressClass
 }
 
 // IsIngressClass checks if the Ingress resource can be handled by the Application Gateway ingress controller.
@@ -905,7 +960,8 @@ func (c *Context) IsIngressClass(ing *networking.Ingress) bool {
 		// if IngressClassName in ingress that compare it with the controller type
 		if ing.Spec.IngressClassName != nil {
 			ingressClass := c.getIngressClassResource(*ing.Spec.IngressClassName)
-			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName
+			return ingressClass != nil && ingressClass.Spec.Controller == c.ingressClassControllerName &&
+				c.ingressClassResourceName == *ing.Spec.IngressClassName
 		}
 
 		// if IngressClassName is nil, then match if AGIC is default ingress

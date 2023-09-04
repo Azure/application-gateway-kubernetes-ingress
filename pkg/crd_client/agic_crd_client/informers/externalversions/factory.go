@@ -26,6 +26,7 @@ import (
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	azureapplicationgatewaybackendpool "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureapplicationgatewaybackendpool"
 	azureapplicationgatewayinstanceupdatestatus "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureapplicationgatewayinstanceupdatestatus"
+	azureapplicationgatewayrewrite "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureapplicationgatewayrewrite"
 	azureingressprohibitedtarget "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/azureingressprohibitedtarget"
 	internalinterfaces "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/internalinterfaces"
 	loaddistributionpolicy "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/informers/externalversions/loaddistributionpolicy"
@@ -177,6 +178,7 @@ type SharedInformerFactory interface {
 
 	Azureapplicationgatewaybackendpools() azureapplicationgatewaybackendpool.Interface
 	Azureapplicationgatewayinstanceupdatestatus() azureapplicationgatewayinstanceupdatestatus.Interface
+	Azureapplicationgatewayrewrites() azureapplicationgatewayrewrite.Interface
 	Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface
 	Loaddistributionpolicies() loaddistributionpolicy.Interface
 }
@@ -187,6 +189,10 @@ func (f *sharedInformerFactory) Azureapplicationgatewaybackendpools() azureappli
 
 func (f *sharedInformerFactory) Azureapplicationgatewayinstanceupdatestatus() azureapplicationgatewayinstanceupdatestatus.Interface {
 	return azureapplicationgatewayinstanceupdatestatus.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Azureapplicationgatewayrewrites() azureapplicationgatewayrewrite.Interface {
+	return azureapplicationgatewayrewrite.New(f, f.namespace, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) Azureingressprohibitedtargets() azureingressprohibitedtarget.Interface {

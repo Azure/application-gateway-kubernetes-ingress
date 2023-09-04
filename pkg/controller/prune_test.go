@@ -39,10 +39,12 @@ var _ = Describe("prune function tests", func() {
 
 	Context("ensure pruneNoPrivateIP prunes ingress", func() {
 		ingressPrivate := tests.NewIngressFixture()
+		ingressPrivate.Name = "private"
 		ingressPrivate.Annotations = map[string]string{
 			annotations.UsePrivateIPKey: "true",
 		}
 		ingressPublic := tests.NewIngressFixture()
+		ingressPublic.Name = "public"
 		cbCtx := &appgw.ConfigBuilderContext{
 			IngressList: []*networking.Ingress{
 				ingressPrivate,
@@ -60,10 +62,52 @@ var _ = Describe("prune function tests", func() {
 			Expect(len(cbCtx.IngressList)).To(Equal(2))
 			prunedIngresses := pruneNoPrivateIP(controller, &appGw, cbCtx, cbCtx.IngressList)
 			Expect(len(prunedIngresses)).To(Equal(1))
-			Expect(prunedIngresses[0].Annotations[annotations.UsePrivateIPKey]).To(Equal(""))
+			Expect(prunedIngresses[0].Name).To(Equal("public"))
 		})
 
-		It("keeps the ingress using private ipAddress when public ipAddress is present", func() {
+		It("keeps the ingress using private ipAddress when private ipAddress is present", func() {
+			appGw.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				fixtures.GetPublicIPConfiguration(),
+				fixtures.GetPrivateIPConfiguration(),
+			}
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoPrivateIP(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
+	Context("ensure pruneNoPublicIP prunes ingress", func() {
+		ingressPrivate := tests.NewIngressFixture()
+		ingressPrivate.Name = "private"
+		ingressPrivate.Annotations = map[string]string{
+			annotations.UsePrivateIPKey: "true",
+		}
+		ingressPublic := tests.NewIngressFixture()
+		ingressPublic.Name = "public"
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*networking.Ingress{
+				ingressPrivate,
+				ingressPublic,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using private ipAddress and keeps others", func() {
+			appGw.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
+				fixtures.GetPrivateIPConfiguration(),
+			}
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoPublicIP(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+			Expect(prunedIngresses[0].Name).To(Equal("private"))
+		})
+
+		It("keeps the ingress using public ipAddress when public ipAddress is present", func() {
 			appGw.FrontendIPConfigurations = &[]n.ApplicationGatewayFrontendIPConfiguration{
 				fixtures.GetPublicIPConfiguration(),
 				fixtures.GetPrivateIPConfiguration(),
@@ -102,6 +146,42 @@ var _ = Describe("prune function tests", func() {
 		It("keeps the ingress using appgw-ssl-certificate when annotated ssl cert is pre-installed", func() {
 			ingressSslCertAnnotated.Annotations = map[string]string{
 				annotations.AppGwSslCertificate: *fixtures.GetCertificate1().Name,
+			}
+
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslCertificate(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(2))
+		})
+	})
+
+	Context("ensure pruneNoSslProfile prunes ingress", func() {
+		ingressSslProfileAnnotated := tests.NewIngressFixture()
+		ingressSslProfileAnnotated.Annotations = map[string]string{
+			annotations.AppGwSslProfile: "legacy-tls",
+		}
+		ingressNoSslProfileAnnotated := tests.NewIngressFixture()
+		cbCtx := &appgw.ConfigBuilderContext{
+			IngressList: []*networking.Ingress{
+				ingressSslProfileAnnotated,
+				ingressNoSslProfileAnnotated,
+			},
+			ServiceList: []*v1.Service{
+				tests.NewServiceFixture(),
+			},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+		}
+		appGw := fixtures.GetAppGateway()
+
+		It("removes the ingress using appgw-ssl-profile and keeps others", func() {
+			Expect(len(cbCtx.IngressList)).To(Equal(2))
+			prunedIngresses := pruneNoSslProfile(controller, &appGw, cbCtx, cbCtx.IngressList)
+			Expect(len(prunedIngresses)).To(Equal(1))
+		})
+
+		It("keeps the ingress using appgw-ssl-certificate when annotated ssl profile is pre-installed", func() {
+			ingressSslProfileAnnotated.Annotations = map[string]string{
+				annotations.AppGwSslProfile: *fixtures.GetSslProfile1().Name,
 			}
 
 			Expect(len(cbCtx.IngressList)).To(Equal(2))

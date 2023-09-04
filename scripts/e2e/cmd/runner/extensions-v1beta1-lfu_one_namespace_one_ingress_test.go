@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
-// +build e2e
+//go:build e2eextensionv1beta1
+// +build e2eextensionv1beta1
 
 package runner
 
@@ -17,6 +18,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -26,12 +28,13 @@ import (
 var _ = Describe("extensions-v1beta1-LFU", func() {
 	var (
 		clientset *kubernetes.Clientset
+		crdClient *versioned.Clientset
 		err       error
 	)
 
 	Context("One Namespace One Ingress", func() {
 		BeforeEach(func() {
-			clientset, err = getClient()
+			clientset, crdClient, err = getClients()
 			Expect(err).To(BeNil())
 
 			UseExtensionsV1Beta1Ingress = supportsExtensionsV1Beta1IngressPackage(clientset)
@@ -78,7 +81,7 @@ var _ = Describe("extensions-v1beta1-LFU", func() {
 
 			SSLE2ERedirectYamlPath := "testdata/extensions-v1beta1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
 			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
-			err = applyYaml(clientset, namespaceName, SSLE2ERedirectYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 

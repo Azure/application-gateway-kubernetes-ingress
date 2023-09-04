@@ -12,27 +12,26 @@ To use a custom ingress class,
     helm install ./helm/ingress-azure \
         --name ingress-azure \
         -f helm-config.yaml
-        --set kubernetes.ingressClass  arbitrary-class
+        --set kubernetes.ingressClass arbitrary-class
     ```
 
-2. Then, change your ingress manifest's  `kubernetes.io/ingress.class` annotation to match the value provided to AGIC.
+2. Then, within the spec object, specify `ingressClassName` with the same value provided to AGIC.
     ```yaml
     kind: Ingress
     metadata:
     name: go-server-ingress-affinity
     namespace: test-ag
-    annotations:
-        kubernetes.io/ingress.class: arbitrary-class
     spec:
-    rules:
-    - http:
+      ingressClassName: arbitrary-class
+      rules:
+      - http:
         paths:
-        - path: /hello/
+          - path: /hello/
             backend:
-            service:
-                name: go-server-service
+              service:
+                name: store-service
                 port:
-                    number: 80
+                  number: 80
     ```
 
 ## Reference

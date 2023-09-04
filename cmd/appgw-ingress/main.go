@@ -151,7 +151,7 @@ func main() {
 	// If AGIC's service principal or managed identity doesn't have read access to the Application Gateway's resource group,
 	// then AGIC can't read it's role assignments to look for the needed permission.
 	// Instead we perform a simple GET request to check both that the Application Gateway exists as well as implicitly make sure that AGIC has read access to it.
-	err = azClient.WaitForGetAccessOnGateway()
+	err = azClient.WaitForGetAccessOnGateway(maxRetryCount)
 	if err != nil {
 		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
@@ -188,15 +188,12 @@ func main() {
 
 	// fatal config validations
 	appGw, _ := azClient.GetGateway()
-	if err := appgw.FatalValidateOnExistingConfig(recorder, appGw.ApplicationGatewayPropertiesFormat, env); err != nil {
-		klog.Fatal("Got a fatal validation error on existing Application Gateway config. Please update Application Gateway or the controller's helm config. Error:", err)
-	}
-
 	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
 		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s; (v0.10.0 supports App Gwy v1)", appGw.Sku.Tier, appgw.GetVersion())
 		if agicPod != nil {
 			recorder.Event(agicPod, v1.EventTypeWarning, events.UnsupportedAppGatewaySKUTier, errorLine)
 		}
+
 		// Slow down the cycling of the AGIC pod.
 		time.Sleep(5 * time.Second)
 		klog.Fatal(errorLine)
@@ -224,7 +221,7 @@ func main() {
 		klog.Fatal(errorLine)
 	}
 
-	sigChan := make(chan os.Signal)
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 

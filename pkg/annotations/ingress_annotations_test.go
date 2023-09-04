@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build unittest
 // +build unittest
 
 package annotations
@@ -49,6 +50,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/backend-hostname":                    "www.backend.com",
 		"appgw.ingress.kubernetes.io/hostname-extension":                  "www.bye.com, www.b*.com",
 		"appgw.ingress.kubernetes.io/appgw-ssl-certificate":               "appgw-cert",
+		"appgw.ingress.kubernetes.io/appgw-ssl-profile":                   "legacy-tls",
 		"appgw.ingress.kubernetes.io/appgw-trusted-root-certificate":      "appgw-root-cert1,appgw-root-cert2",
 		"appgw.ingress.kubernetes.io/health-probe-hostname":               "myhost.mydomain.com",
 		"appgw.ingress.kubernetes.io/health-probe-port":                   "8080",
@@ -57,6 +59,8 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/health-probe-interval":               "15",
 		"appgw.ingress.kubernetes.io/health-probe-timeout":                "10",
 		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold":    "3",
+		"appgw.ingress.kubernetes.io/rewrite-rule-set":                    "my-rewrite-rule-set",
+		"appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource":    "my-rewrite-rule-set-cr",
 		"kubernetes.io/ingress.class":                                     "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                                 "azure/application-gateway",
 		"falseKey":                                                        "false",
@@ -108,6 +112,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := GetAppGwSslCertificate(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("appgw-cert"))
+		})
+	})
+
+	Context("test appgwSslProfile", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := GetAppGwSslProfile(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns true", func() {
+			actual, err := GetAppGwSslProfile(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("legacy-tls"))
 		})
 	})
 
@@ -224,6 +242,34 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
+	Context("test rewrite-rule-set", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := RewriteRuleSet(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns rewrite rule set", func() {
+			actual, err := RewriteRuleSet(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("my-rewrite-rule-set"))
+		})
+	})
+
+	Context("test rewrite-rule-set-custom-resource", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := RewriteRuleSetCustomResource(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns rewrite rule set", func() {
+			actual, err := RewriteRuleSetCustomResource(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("my-rewrite-rule-set-cr"))
+		})
+	})
+
 	Context("test ConnectionDrainingTimeout", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &networking.Ingress{}
@@ -334,6 +380,46 @@ var _ = Describe("Test ingress annotation functions", func() {
 		})
 	})
 
+	Context("test GetRequestRoutingRulePriority", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(priority).To(BeNil())
+		})
+
+		It("returns value with correct annotation", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "1",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*priority).To(Equal(int32(1)))
+		})
+
+		It("returns error with incorrect annotation", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "0",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(*priority).To(Equal(int32(0)))
+		})
+
+		It("returns error with incorrect annotation value > 20000", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/rule-priority": "20001",
+			}
+			priority, err := GetRequestRoutingRulePriority(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(*priority).To(Equal(int32(0)))
+		})
+
+	})
+
 	Context("test GetHostNameExtensions", func() {
 		It("returns error when ingress has no annotations", func() {
 			ing := &networking.Ingress{}
@@ -356,6 +442,45 @@ var _ = Describe("Test ingress annotation functions", func() {
 			hostnames, err := GetHostNameExtensions(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(hostnames).To(Equal([]string{"www.bye.com", "www.b*.com"}))
+		})
+	})
+
+	Context("test BackendProtocol", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
+		})
+
+		It("parses http protocol correctly", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "http",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
+		})
+
+		It("parses https protocol correctly", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "https",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(protocol).To(Equal(HTTPS))
+		})
+
+		It("parses invalid and returns error", func() {
+			ing := &networking.Ingress{}
+			ing.Annotations = map[string]string{
+				"appgw.ingress.kubernetes.io/backend-protocol": "invalid-protocol",
+			}
+			protocol, err := BackendProtocol(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(protocol).To(Equal(HTTP))
 		})
 	})
 

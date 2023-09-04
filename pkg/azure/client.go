@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -24,9 +25,11 @@ import (
 // AzClient is an interface for client to Azure
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
+	SetSender(sender autorest.Sender)
+	SetDuration(retryDuration time.Duration)
 
 	ApplyRouteTable(string, string) error
-	WaitForGetAccessOnGateway() error
+	WaitForGetAccessOnGateway(maxRetryCount int) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
@@ -101,6 +104,10 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 		klog.Error("Error adding User Agent to Deployments client: ", userAgent)
 	}
 
+	// increase the polling duration to 60 minutes
+	az.appGatewaysClient.PollingDuration = 60 * time.Minute
+	az.deploymentsClient.PollingDuration = 60 * time.Minute
+
 	return az
 }
 
@@ -114,9 +121,17 @@ func (az *azClient) SetAuthorizer(authorizer autorest.Authorizer) {
 	az.deploymentsClient.Authorizer = authorizer
 }
 
-func (az *azClient) WaitForGetAccessOnGateway() (err error) {
+func (az *azClient) SetSender(sender autorest.Sender) {
+	az.appGatewaysClient.Client.Sender = sender
+}
+
+func (az *azClient) SetDuration(retryDuration time.Duration) {
+	az.appGatewaysClient.Client.RetryDuration = retryDuration
+}
+
+func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 	klog.V(5).Info("Getting Application Gateway configuration.")
-	err = utils.Retry(-1, retryPause,
+	err = utils.Retry(maxRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			response, err := az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
 			if err == nil {
@@ -159,16 +174,20 @@ func (az *azClient) WaitForGetAccessOnGateway() (err error) {
 					)
 
 					e.Message += fmt.Sprintf(" You can use '%s' to assign permissions."+
-						" AGIC Identity needs atleast has 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
+						" AGIC Identity needs at least 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
 						roleAssignmentCmd,
 						string(az.appGwName),
 						string(az.resourceGroupName),
 					)
 				}
+				if response.Response.StatusCode == 400 || response.Response.StatusCode == 401 {
+					klog.Errorf("configuration error (bad request) or unauthorized error while performing a GET using the authorizer")
+					klog.Errorf("stopping GET retries")
+					return utils.Retriable(false), e
+				}
 			}
 
 			klog.Errorf(e.Error())
-
 			if controllererrors.IsErrorCode(e, controllererrors.ErrorApplicationGatewayNotFound) {
 				return utils.Retriable(false), e
 			}
