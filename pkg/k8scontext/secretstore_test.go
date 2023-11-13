@@ -51,5 +51,13 @@ var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
 			actual := secretsStore.GetPfxCertificate(secret.Namespace + "/" + secret.Name)
 			Expect(len(actual)).To(BeNumerically(">", 0))
 		})
+
+		ginkgo.It("should return nil if secret does not exist", func() {
+			var client kubernetes.Interface = testclient.NewSimpleClientset()
+			secretsStore := NewSecretStore(client)
+
+			actual := secretsStore.GetPfxCertificate("someKey")
+			Expect(actual).To(BeNil())
+		})
 	})
 })
