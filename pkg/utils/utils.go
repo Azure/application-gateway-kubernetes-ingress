@@ -9,8 +9,8 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"os"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -96,4 +96,12 @@ func RemoveDuplicateStrings(list []string) []string {
 	}
 
 	return result
+}
+
+func ParseNamespacedName(namespacedName string) (string, string, error) {
+	split := strings.Split(namespacedName, "/")
+	if len(split) != 2 {
+		return "", "", fmt.Errorf("invalid namespaced name %s", namespacedName)
+	}
+	return split[0], split[1], nil
 }
