@@ -7,21 +7,19 @@ package k8scontext
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
-)
-
-const (
-	recognizedSecretType = "kubernetes.io/tls"
-	tlsKey               = "tls.key"
-	tlsCrt               = "tls.crt"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // SecretsKeeper is the interface definition for secret store
@@ -34,13 +32,15 @@ type SecretsKeeper interface {
 // SecretsStore maintains a cache of the deployment secrets.
 type SecretsStore struct {
 	conversionSync sync.Mutex
+	Client         kubernetes.Interface
 	Cache          cache.ThreadSafeStore
 }
 
 // NewSecretStore creates a new SecretsKeeper object
-func NewSecretStore() SecretsKeeper {
+func NewSecretStore(client kubernetes.Interface) SecretsKeeper {
 	return &SecretsStore{
-		Cache: cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{}),
+		Cache:  cache.NewThreadSafeStore(cache.Indexers{}, cache.Indices{}),
+		Client: client,
 	}
 }
 
@@ -51,7 +51,31 @@ func (s *SecretsStore) GetPfxCertificate(secretKey string) []byte {
 			return cert
 		}
 	}
+
+	if cert, err := s.GetFromCluster(secretKey); err == nil {
+		return cert
+	}
 	return nil
+}
+
+func (s *SecretsStore) GetFromCluster(secretKey string) ([]byte, error) {
+	secretNamespace, secretName, err := utils.ParseNamespacedName(secretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	secret, err := s.Client.CoreV1().Secrets(secretNamespace).Get(context.Background(), secretName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.ConvertSecret(secretKey, secret); err != nil {
+		return nil, err
+	}
+
+	certInterface, _ := s.Cache.Get(secretKey)
+	cert, _ := certInterface.([]byte)
+	return cert, nil
 }
 
 func (s *SecretsStore) delete(secretKey string) {
@@ -67,14 +91,14 @@ func (s *SecretsStore) ConvertSecret(secretKey string, secret *v1.Secret) error 
 	defer s.conversionSync.Unlock()
 
 	// check if this is a secret with the correct type
-	if secret.Type != recognizedSecretType {
+	if secret.Type != v1.SecretTypeTLS {
 		return controllererrors.NewErrorf(
 			controllererrors.ErrorUnknownSecretType,
 			"secret [%v] is not type kubernetes.io/tls", secretKey,
 		)
 	}
 
-	if len(secret.Data[tlsKey]) == 0 || len(secret.Data[tlsCrt]) == 0 {
+	if len(secret.Data[v1.TLSCertKey]) == 0 || len(secret.Data[v1.TLSPrivateKeyKey]) == 0 {
 		return controllererrors.NewErrorf(
 			controllererrors.ErrorMalformedSecret,
 			"secret [%v] is malformed, tls.key or tls.crt is not defined", secretKey,

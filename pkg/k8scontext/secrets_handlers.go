@@ -18,7 +18,12 @@ import (
 
 // secret resource handlers
 func (h handlers) secretAdd(obj interface{}) {
-	sec := obj.(*v1.Secret)
+	sec, ok := obj.(*v1.Secret)
+	if !ok {
+		klog.Error("error decoding object, invalid type")
+		return
+	}
+
 	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
 		return
 	}
@@ -42,7 +47,12 @@ func (h handlers) secretAdd(obj interface{}) {
 }
 
 func (h handlers) secretUpdate(oldObj, newObj interface{}) {
-	sec := newObj.(*v1.Secret)
+	sec, ok := newObj.(*v1.Secret)
+	if !ok {
+		klog.Error("error decoding object, invalid type")
+		return
+	}
+
 	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
 		return
 	}
@@ -70,6 +80,11 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 
 func (h handlers) secretDelete(obj interface{}) {
 	sec, ok := obj.(*v1.Secret)
+	if !ok {
+		klog.Error("error decoding object, invalid type")
+		return
+	}
+
 	if _, exists := namespacesToIgnore[sec.Namespace]; exists {
 		return
 	}
