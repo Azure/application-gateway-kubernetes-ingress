@@ -113,7 +113,7 @@ spec:
       {{- if eq .Values.armAuth.type "servicePrincipal"}}
       - name: networking-appgw-k8s-azure-service-principal-mount
         secret:
-          secretName: networking-appgw-k8s-azure-service-principal
+          secretName: {{ template "application-gateway-kubernetes-ingress.servicePrincipalSecretName" . }}
       {{- end}}
       {{- end}}
       {{- if .Values.kubernetes.volumes }}
