@@ -107,7 +107,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
-		CertificateSecretStore: NewSecretStore(),
+		CertificateSecretStore: NewSecretStore(kubeClient),
 		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
 

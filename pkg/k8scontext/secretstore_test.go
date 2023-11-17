@@ -6,42 +6,58 @@
 package k8scontext
 
 import (
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+	testclient "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 )
 
 var _ = ginkgo.Describe("Testing K8sContext.SecretStore", func() {
-	secretsStore := NewSecretStore()
-	ginkgo.Context("Test ConvertSecret function", func() {
-		secret := v1.Secret{}
-		ginkgo.It("Should have returned an error - unrecognized type of secret", func() {
-			err := secretsStore.ConvertSecret("someKey", &secret)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorUnknownSecretType))
-		})
-		ginkgo.It("", func() {
-			malformed := secret
-			malformed.Type = recognizedSecretType
-			err := secretsStore.ConvertSecret("someKey", &malformed)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorMalformedSecret))
-		})
-		ginkgo.It("", func() {
-			malformed := secret
-			malformed.Type = recognizedSecretType
-			malformed.Data = make(map[string][]byte)
-			malformed.Data[tlsKey] = []byte("X")
-			malformed.Data[tlsCrt] = []byte("Y")
-			err := secretsStore.ConvertSecret("someKey", &malformed)
-			Expect(err.(*controllererrors.Error).Code).To(Equal(controllererrors.ErrorExportingWithOpenSSL))
-		})
-		ginkgo.It("", func() {
+	secretsStore := NewSecretStore(nil)
+
+	ginkgo.DescribeTable("when converting certificate to PFX",
+		func(secret *v1.Secret, expectedError controllererrors.ErrorCode) {
+			err := secretsStore.ConvertSecret("someKey", secret)
+			Expect(err.(*controllererrors.Error).Code).To(Equal(expectedError))
+		},
+		ginkgo.Entry("no type in secret", &v1.Secret{}, controllererrors.ErrorUnknownSecretType),
+		ginkgo.Entry("unrecognized type of secret", &v1.Secret{Type: v1.SecretTypeOpaque}, controllererrors.ErrorUnknownSecretType),
+		ginkgo.Entry("malformed data", &v1.Secret{Type: v1.SecretTypeTLS, Data: map[string][]byte{}}, controllererrors.ErrorMalformedSecret),
+		ginkgo.Entry("invalid data", &v1.Secret{Type: v1.SecretTypeTLS, Data: map[string][]byte{
+			v1.TLSCertKey:       []byte("X"),
+			v1.TLSPrivateKeyKey: []byte("X"),
+		}}, controllererrors.ErrorExportingWithOpenSSL),
+	)
+
+	ginkgo.When("certificate gets stored", func() {
+		ginkgo.It("should be retrivable with the secret key", func() {
 			err := secretsStore.ConvertSecret("someKey", tests.NewSecretTestFixture())
 			Expect(err).ToNot(HaveOccurred())
 			actual := secretsStore.GetPfxCertificate("someKey")
 			Expect(len(actual)).To(BeNumerically(">", 0))
+		})
+	})
+
+	ginkgo.When("certificate is no cached", func() {
+		ginkgo.It("should get it from the api-server", func() {
+			secret := tests.NewSecretTestFixture()
+			var client kubernetes.Interface = testclient.NewSimpleClientset(secret)
+			secretsStore := NewSecretStore(client)
+
+			actual := secretsStore.GetPfxCertificate(secret.Namespace + "/" + secret.Name)
+			Expect(len(actual)).To(BeNumerically(">", 0))
+		})
+
+		ginkgo.It("should return nil if secret does not exist", func() {
+			var client kubernetes.Interface = testclient.NewSimpleClientset()
+			secretsStore := NewSecretStore(client)
+
+			actual := secretsStore.GetPfxCertificate("someKey")
+			Expect(actual).To(BeNil())
 		})
 	})
 })
