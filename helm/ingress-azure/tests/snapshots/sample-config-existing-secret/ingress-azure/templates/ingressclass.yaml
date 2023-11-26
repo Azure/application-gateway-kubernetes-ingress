@@ -1,0 +1,10 @@
+---
+# Source: ingress-azure/templates/ingressclass.yaml
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+  name: azure-application-gateway
+spec:
+  controller: azure/application-gateway

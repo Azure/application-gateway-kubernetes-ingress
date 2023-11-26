@@ -103,6 +103,9 @@ appgw: {}
 #   # Generate this value with:
 #   #   az ad sp create-for-rbac --subscription <subscription-uuid> --sdk-auth | base64 -w0
 #   secretJSON: <base64-encoded-JSON-blob>
+#   # name of existing Secret containing armAuth.json
+#   # if set, no secret is being created by the chart
+#   existingSecret: mysecret
 #
 # - Option 3: Workload Identity (https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview)
 # armAuth:
