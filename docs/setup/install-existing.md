@@ -5,12 +5,20 @@ AGIC monitors the Kubernetes [Ingress](https://kubernetes.io/docs/concepts/servi
 resources, and creates and applies App Gateway config based on these.
 
 ### Outline:
-- [Prerequisites](#prerequisites)
-- [Azure Resource Manager Authentication (ARM)](#azure-resource-manager-authentication)
-    - Option 1: [Set up aad-pod-identity](#set-up-aad-pod-identity) and [Create Azure Identity on ARM](#create-azure-identity-on-arm)
-    - Option 2: [Using a Service Principal](#using-a-service-principal)
-- [Install Ingress Controller using Helm](#install-ingress-controller-as-a-helm-chart)
-- [Multi-cluster / Shared App Gateway](#multi-cluster--shared-app-gateway): Install AGIC in an environment, where App Gateway is
+- [Brownfield Deployment](#brownfield-deployment)
+    - [Outline:](#outline)
+    - [Prerequisites](#prerequisites)
+      - [Note:](#note)
+    - [Install Helm](#install-helm)
+    - [Azure Resource Manager Authentication](#azure-resource-manager-authentication)
+    - [Set up AAD Pod Identity](#set-up-aad-pod-identity)
+    - [Using a Service Principal](#using-a-service-principal)
+  - [Install Ingress Controller as a Helm Chart](#install-ingress-controller-as-a-helm-chart)
+  - [Multi-cluster / Shared App Gateway](#multi-cluster--shared-app-gateway)
+    - [Example Scenario](#example-scenario)
+    - [Enable with new AGIC installation](#enable-with-new-agic-installation)
+    - [Broaden permissions](#broaden-permissions)
+    - [Enable for an existing AGIC installation](#enable-for-an-existing-agic-installation)
 shared between one or more AKS clusters and/or other Azure components.
 
 ### Prerequisites
@@ -26,6 +34,16 @@ Please __backup your App Gateway's configuration__ before installing AGIC:
 
 The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App
 Gateway should that become necessary
+
+#### Note:
+If you are using `Kubenet` network plugin, with custom routing table and managed identity type [SystemAssigned](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview#managed-identity-types) you can´t use `Helm` to deploy AGIC,
+`Helm` will ask you to have `AAD Pod Identity` but Clusters using managed identity type SystemAssigned
+do not support bringing your own route table. Please see  https://aka.ms/aks/customrt for more information.
+
+Instead you can use Azure CLI to install the AGIC add-on or by the portal, you can follow the
+Tutorial: [Enable application gateway ingress controller add-on for an existing AKS cluster with an existing application gateway](https://docs.microsoft.com/azure/application-gateway/tutorial-ingress-controller-add-on-existing#enable-the-agic-add-on-in-existing-aks-cluster-through-azure-cli).
+
+Take into consideration the following: [Difference between Helm deployment and AKS Add-On](https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview#difference-between-helm-deployment-and-aks-add-on).
 
 ### Install Helm
 [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm) is a package manager for
