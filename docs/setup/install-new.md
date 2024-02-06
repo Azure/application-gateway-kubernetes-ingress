@@ -46,7 +46,8 @@ Follow the steps below to create an Azure Active Directory (AAD) [service princi
 1. Execute the commands below on the  [Cloud Shell](https://shell.azure.com/) too. This will create the `kubernetesVersion` variable and save the latest version of kubernetes that is available in the location specified. 
     ```bash
     location="westus2"
-    kubernetesVersion=$(az aks get-versions --location $location --query "values[?isDefault==\`true\`].version | [0]" -o tsv)
+    patchedVersions=$(az aks get-versions --location $location --query "values[?isDefault==\`true\`].patchVersions" -o json)
+    kubernetesVersion=$(echo $patchedVersions | jq -r 'map(keys[]) | sort_by(split(".") | map(tonumber)) | .[-1]')
     ```
 
 1. Paste the entire command below (it is a single command on multiple lines) in [Cloud Shell](https://shell.azure.com/) to create the `parameters.json` file. It will be used in the ARM template deployment.
