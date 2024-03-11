@@ -1,11 +1,6 @@
 # How to deploy AGIC via Helm using Workload Identity
 
 This assumes you have an existing Application Gateway. If not, you can create it with command:
-
-```bash
-az network application-gateway create -g myResourceGroup -n myApplicationGateway --sku Standard_v2 --public-ip-address myPublicIP --vnet-name myVnet --subnet mySubnet --priority 100
-```
-
 ## 1. Add the AGIC Helm repository
 
 ```bash
@@ -16,71 +11,68 @@ helm repo update
 ## 2. Set environment variables
 
 ```bash
-export RESOURCE_GROUP="myResourceGroup"
-export APPLICATION_GATEWAY_NAME="myApplicationGateway"
-export USER_ASSIGNED_IDENTITY_NAME="myIdentity"
-export FEDERATED_IDENTITY_CREDENTIAL_NAME="myFedIdentity"
+export APP_GW_ID=""
+export AKS_CLUSTER_NAME=""
+export RESOURCE_GROUP=""
+export USER_ASSIGNED_IDENTITY_NAME="agic-identity"
+export FEDERATED_IDENTITY_CREDENTIAL_NAME="agic-identity"
 ```
 
-## 3. Create resource group, AKS cluster and identity
+## 3. Enable workload identity on AKS and get OIDC profile
 
 ```bash
-az group create --name "${RESOURCE_GROUP}"  --location eastus
-az aks create -g "${RESOURCE_GROUP}" -n myAKSCluster --node-count 1 --enable-oidc-issuer --enable-workload-identity 
-az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" 
-```
+az aks update -g "${RESOURCE_GROUP}" -n "${AKS_CLUSTER_NAME}" --enable-oidc-issuer --enable-workload-identity
 
-## 4. Export the oidcIssuerProfile.issuerUrl
-
-```bash
 export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"
 ```
 
-## 5. Create federated identity credential. 
+## 4. Create federated identity credential. 
 
 **Note**: the name of the service account that gets created after the helm installation is “ingress-azure” and the following command assumes it will be deployed in “default” namespace. Please change the namespace name in the next command if you deploy the AGIC related Kubernetes resources in other namespace.
 
 ```bash
+az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" 
+
 az identity federated-credential create --name ${FEDERATED_IDENTITY_CREDENTIAL_NAME} --identity-name ${USER_ASSIGNED_IDENTITY_NAME} --resource-group ${RESOURCE_GROUP} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:default:ingress-azure
 ```
 
-## 6. Obtain the ClientID of the identity created before that is needed for the next step
+## 5. Obtain the ClientID of the identity created before that is needed for the next step
 
 ```bash
-az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv
-``` 
-
-## 7. Export the Application Gateway resource ID
-
-```bash
-export APP_GW_ID="$(az network application-gateway show --name "${APPLICATION_GATEWAY_NAME}"  --resource-group "${RESOURCE_GROUP}"  --query 'id' --output tsv)"
+CLIENT_ID=$(az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv)
 ```
 
-## 8. Add Contributor role for the identity over the Application Gateway
+## 6. Add Contributor role for the identity over the Application Gateway
 
 ```bash
-az role assignment create --assignee <identityClientID> --scope "${APP_GW_ID}" --role Contributor
+az role assignment create --assignee "${CLIENT_ID}" --scope "${APP_GW_ID}" --role Contributor
 ```
 
-## 9. In helm-config.yaml specify:
+## 7. In helm-config.yaml specify:
 
-```yaml
+```bash
+cat <<EOT > helm-config.yaml
+appgw:
+    applicationGatewayID: "${APP_GW_ID}"
+rbac:
+    enabled: true
 armAuth:
     type: workloadIdentity
-    identityClientID: <identityClientID>
+    identityClientID: "${CLIENT_ID}"
+EOT
 ```
 
-## 10.Get the AKS cluster credentials.
+## 8.Get the AKS cluster credentials.
 
 ```bash
-az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster
+az aks get-credentials -g "${RESOURCE_GROUP}" -n "${AKS_CLUSTER_NAME}"
 ```
 
-## 11. Install the helm chart
+## 9. Install the helm chart
 
 ```bash
 helm install ingress-azure \
   -f helm-config.yaml \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --version 1.7.1
+  --version 1.7.3
 ```
