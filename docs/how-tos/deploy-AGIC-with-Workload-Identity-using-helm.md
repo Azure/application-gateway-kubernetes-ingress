@@ -33,7 +33,7 @@ $AKS_OIDC_ISSUER="$(az aks show -n "$AKS_CLUSTER_NAME" -g "$RESOURCE_GROUP" --qu
 ```bash
 az identity create --name "$USER_ASSIGNED_IDENTITY_NAME" --resource-group "$RESOURCE_GROUP" 
 
-az identity federated-credential create --name $FEDERATED_IDENTITY_CREDENTIAL_NAME} --identity-name $USER_ASSIGNED_IDENTITY_NAME} --resource-group $RESOURCE_GROUP} --issuer $AKS_OIDC_ISSUER} --subject system:serviceaccount:default:ingress-azure
+az identity federated-credential create --name "$FEDERATED_IDENTITY_CREDENTIAL_NAME" --identity-name "$USER_ASSIGNED_IDENTITY_NAME" --resource-group "$RESOURCE_GROUP" --issuer "$AKS_OIDC_ISSUER" --subject system:serviceaccount:default:ingress-azure
 ```
 
 ## 5. Obtain the ClientID of the identity created before that is needed for the next step
