@@ -79,8 +79,8 @@ az aks get-credentials -g "$RESOURCE_GROUP" -n "$AKS_CLUSTER_NAME"
 ## 9. Install the helm chart
 
 ```bash
-helm install ingress-azure \
-  -f helm-config.yaml \
-  application-gateway-kubernetes-ingress/ingress-azure \
+helm install ingress-azure `
+  -f helm-config.yaml `
+  application-gateway-kubernetes-ingress/ingress-azure `
   --version 1.7.3
 ```
