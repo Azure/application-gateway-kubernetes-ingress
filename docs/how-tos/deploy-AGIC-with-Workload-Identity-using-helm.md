@@ -79,6 +79,8 @@ az aks get-credentials -g "$RESOURCE_GROUP" -n "$AKS_CLUSTER_NAME"
 ## 9. Install the helm chart
 
 ```bash
+az aks addon disable -g "$RESOURCE_GROUP" -n "$AKS_CLUSTER_NAME" --addon ingress-appgw
+
 helm install ingress-azure `
   -f helm-config.yaml `
   application-gateway-kubernetes-ingress/ingress-azure `
