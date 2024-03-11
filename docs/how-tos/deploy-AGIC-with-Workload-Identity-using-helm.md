@@ -23,7 +23,7 @@ $FEDERATED_IDENTITY_CREDENTIAL_NAME="agic-identity"
 ```bash
 az aks update -g "$RESOURCE_GROUP" -n "$AKS_CLUSTER_NAME" --enable-oidc-issuer --enable-workload-identity
 
-export AKS_OIDC_ISSUER="$(az aks show -n "$AKS_CLUSTER_NAME" -g "$RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -otsv)"
+$AKS_OIDC_ISSUER="$(az aks show -n "$AKS_CLUSTER_NAME" -g "$RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -otsv)"
 ```
 
 ## 4. Create federated identity credential. 
@@ -39,7 +39,7 @@ az identity federated-credential create --name $FEDERATED_IDENTITY_CREDENTIAL_NA
 ## 5. Obtain the ClientID of the identity created before that is needed for the next step
 
 ```bash
-CLIENT_ID=$(az identity show --resource-group "$RESOURCE_GROUP" --name "$USER_ASSIGNED_IDENTITY_NAME" --query 'clientId' -otsv)
+$CLIENT_ID=$(az identity show --resource-group "$RESOURCE_GROUP" --name "$USER_ASSIGNED_IDENTITY_NAME" --query 'clientId' -otsv)
 ```
 
 ## 6. Add Contributor role for the identity over the Application Gateway
