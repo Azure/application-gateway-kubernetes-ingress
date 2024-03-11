@@ -48,7 +48,7 @@ $CLIENT_ID=$(az identity show --resource-group "$RESOURCE_GROUP" --name "$USER_A
 az role assignment create --assignee "$CLIENT_ID" --scope "$APP_GW_ID" --role Contributor
 ```
 
-## 7. In helm-config.yaml specify:
+## 7. Create following file:
 
 ```bash
 cat <<EOT > helm-config.yaml
