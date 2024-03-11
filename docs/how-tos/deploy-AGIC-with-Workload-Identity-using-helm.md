@@ -23,7 +23,7 @@ export FEDERATED_IDENTITY_CREDENTIAL_NAME="agic-identity"
 ```bash
 az aks update -g "${RESOURCE_GROUP}" -n "${AKS_CLUSTER_NAME}" --enable-oidc-issuer --enable-workload-identity
 
-export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"
+export AKS_OIDC_ISSUER="$(az aks show -n "${AKS_CLUSTER_NAME}" -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"
 ```
 
 ## 4. Create federated identity credential. 
