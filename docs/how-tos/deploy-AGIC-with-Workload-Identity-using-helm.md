@@ -59,6 +59,14 @@ rbac:
 armAuth:
     type: workloadIdentity
     identityClientID: "$CLIENT_ID"
+kubernetes:
+    resources:
+        limits:
+            cpu: 700m
+            memory: 1200Mi
+        requests:
+            cpu: 100m
+            memory: 100Mi
 EOT
 ```
 
