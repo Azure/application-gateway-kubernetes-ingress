@@ -110,10 +110,15 @@ spec:
           path: /etc/kubernetes/
           type: Directory
       {{- if .Values.armAuth }}
-      {{- if eq .Values.armAuth.type "servicePrincipal"}}
+      {{- if and (eq .Values.armAuth.type "servicePrincipal") (not .Values.armAuth.existingSecret) }}
       - name: networking-appgw-k8s-azure-service-principal-mount
         secret:
           secretName: networking-appgw-k8s-azure-service-principal
+      {{- end}}
+      {{- if and (eq .Values.armAuth.type "servicePrincipal") (.Values.armAuth.existingSecret) }}
+      - name: networking-appgw-k8s-azure-service-principal-mount
+        secret:
+          secretName: {{ .Values.armAuth.existingSecret }}
       {{- end}}
       {{- end}}
       {{- if .Values.kubernetes.volumes }}
