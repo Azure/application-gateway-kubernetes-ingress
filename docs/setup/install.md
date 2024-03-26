@@ -1,8 +1,3 @@
-# Greenfield Deployment
-
-The instructions below assume Application Gateway Ingress Controller (AGIC) will be
-installed in an environment with no pre-existing components.
-
 ## Prerequisites
 
 You need to complete the following tasks prior to deploying AGIC on your cluster:
