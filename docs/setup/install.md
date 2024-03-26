@@ -59,11 +59,14 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
 
 ## Deploy or Use existing Application Gateway
 
-If using an existing Application Gateway, make sure to setup 
+If using an existing Application Gateway, make sure the following:
 
+1. Set the environment variable.
 ```bash
 APPGW_ID="<existing app gateway resource id>"
 ```
+
+2. [Follow steps](../how-tos/networking.md) here to make sure AppGW VNET is correctly setup i.e. either it is using same VNET as AKS or is peered.
 
 If you don't have an existing Application Gateway, use the following commands to create a new one.
 1. Setup environment variables
@@ -120,7 +123,6 @@ If you don't have an existing Application Gateway, use the following commands to
     IDENTITY_RESOURCE_NAME='agic-identity'
 
     APPGW_NAME="application-gateway"
-    APPGW_SUBNET_NAME="appgw-subnet"
     ```
 1. Create a user managed identity for AGIC controller and federate the identity as Workload Identity to use in the AKS cluster.
 
