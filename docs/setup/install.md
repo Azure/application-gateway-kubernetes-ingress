@@ -121,8 +121,6 @@ If you don't have an existing Application Gateway, use the following commands to
     LOCATION="<your cluster location>"
 
     IDENTITY_RESOURCE_NAME='agic-identity'
-
-    APPGW_NAME="application-gateway"
     ```
 1. Create a user managed identity for AGIC controller and federate the identity as Workload Identity to use in the AKS cluster.
 
