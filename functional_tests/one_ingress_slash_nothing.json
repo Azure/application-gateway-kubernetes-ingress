@@ -2,13 +2,6 @@
     "properties": {
         "backendAddressPools": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
-                "name": "defaultaddresspool",
-                "properties": {
-                    "backendAddresses": []
-                }
-            },
-            {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---namespace---hello-world-b-80-bp-80",
                 "name": "pool---namespace---hello-world-b-80-bp-80",
                 "properties": {
@@ -36,20 +29,6 @@
                     "port": 80,
                     "probe": {
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--SlashNothing"
-                    },
-                    "protocol": "Http",
-                    "requestTimeout": 30
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
-                "name": "defaulthttpsetting",
-                "properties": {
-                    "cookieBasedAffinity": "Disabled",
-                    "pickHostNameFromBackendAddress": false,
-                    "port": 80,
-                    "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
                     },
                     "protocol": "Http",
                     "requestTimeout": 30
@@ -101,36 +80,6 @@
             }
         ],
         "probes": [
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
-                "name": "defaultprobe-Http",
-                "properties": {
-                    "host": "localhost",
-                    "interval": 30,
-                    "match": {},
-                    "minServers": 0,
-                    "path": "/",
-                    "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Http",
-                    "timeout": 30,
-                    "unhealthyThreshold": 3
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
-                "name": "defaultprobe-Https",
-                "properties": {
-                    "host": "localhost",
-                    "interval": 30,
-                    "match": {},
-                    "minServers": 0,
-                    "path": "/",
-                    "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Https",
-                    "timeout": 30,
-                    "unhealthyThreshold": 3
-                }
-            },
             {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---namespace---hello-world-b-80---name--SlashNothing",
                 "name": "pb---namespace---hello-world-b-80---name--SlashNothing",

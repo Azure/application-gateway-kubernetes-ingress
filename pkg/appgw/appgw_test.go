@@ -227,10 +227,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		}
 
 		probes := *appGW.Probes
-		Expect(len(probes)).To(Equal(3))
+		Expect(len(probes)).To(Equal(1))
 
-		// Test the default health probe.
-		Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress health probe that we installed.
 		Expect(probes).To(ContainElement(*probe))
 	}
@@ -255,8 +253,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
-		// Test the default backend HTTP settings.
-		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 		// Test the ingress backend HTTP setting that we installed.
 		Expect(*appGW.BackendHTTPSettingsCollection).To(ContainElement(*httpSettings))
 	}
@@ -275,8 +271,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			},
 		}
 
-		// Test the default backend address pool.
-		Expect(*appGW.BackendAddressPools).To(ContainElement(defaultBackendAddressPool(appGwIdentifier)))
 		// Test the ingress backend address pool that we installed.
 		Expect(*appGW.BackendAddressPools).To(ContainElement(*addressPool))
 	}
@@ -481,15 +475,15 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultHealthProbesChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultBackendHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultBackendAddressPoolChecker,
 				},
 				listeners: appGWSettingsChecker{
@@ -552,8 +546,6 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					},
 				}
 
-				// Test the default backend HTTP settings.
-				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect((*appGW.BackendHTTPSettingsCollection)).To(ContainElement(*httpSettings))
 			}
@@ -569,7 +561,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					checker: EmptyHealthProbeChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: EmptyBackendHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
@@ -701,11 +693,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 					checker: defaultHealthProbesChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultBackendHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultBackendAddressPoolChecker,
 				},
 				listeners: appGWSettingsChecker{
@@ -796,11 +788,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 				backendSettings := *appGW.BackendHTTPSettingsCollection
 
-				defaultHTTPSettings := defaultBackendHTTPSettings(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
-
-				Expect(len(backendSettings)).To(Equal(2))
-				// Test the default backend HTTP settings.
-				Expect(backendSettings).To(ContainElement(defaultHTTPSettings))
+				Expect(len(backendSettings)).To(Equal(1))
 				// Test the ingress backend HTTP setting that we installed.
 				Expect(backendSettings).To(ContainElement(*httpSettings))
 			}
@@ -825,25 +813,23 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 				}
 
 				probes := *appGW.Probes
-				Expect(len(probes)).To(Equal(3))
+				Expect(len(probes)).To(Equal(1))
 
-				// Test the default health probe.
-				Expect(probes).To(ContainElement(defaultProbe(appGwIdentifier, n.ApplicationGatewayProtocolHTTP)))
 				// Test the ingress health probe that we installed.
 				Expect(probes).To(ContainElement(*probe))
 			}
 			ingressList := ctxt.ListHTTPIngresses()
 			testAGConfig(ingressList, serviceList, appGwConfigSettings{
 				healthProbesCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: annotationHealthProbesChecker,
 				},
 				backendHTTPSettingsCollection: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: annotationsHTTPSettingsChecker,
 				},
 				backendAddressPools: appGWSettingsChecker{
-					total:   2,
+					total:   1,
 					checker: defaultBackendAddressPoolChecker,
 				},
 				listeners: appGWSettingsChecker{
