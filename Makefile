@@ -21,7 +21,7 @@ REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
 IMAGE = ${REPO}/${IMAGE_NAME}
 
-IMAGE_RESULT_FLAG = --output=type=oci,dest=$(shell pwd)/image/ingress-agic-$(VERSION).tar
+IMAGE_RESULT_FLAG = --output=type=oci,dest=$(shell pwd)/image/ingress-agic-$(BUILD_TAG).tar
 ifeq ($(PUSH_IMAGE), true)
 	IMAGE_RESULT_FLAG = --push
 endif
