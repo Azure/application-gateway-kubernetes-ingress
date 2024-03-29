@@ -34,7 +34,7 @@ func (c *appGwConfigBuilder) isPoolUsed(name string) bool {
 	isDefaultRef := func(ref *n.SubResource) bool {
 		return ref != nil &&
 			ref.ID != nil &&
-			ResourceIDHasResourceName(*ref.ID, name)
+			resourceIDHasResourceName(*ref.ID, name)
 	}
 
 	for _, i := range *c.appGw.RequestRoutingRules {
@@ -61,7 +61,7 @@ func (c *appGwConfigBuilder) isPoolUsed(name string) bool {
 func (c *appGwConfigBuilder) removePool(name string) {
 	pools := *c.appGw.BackendAddressPools
 	for bIdx, i := range pools {
-		if ResourceIDHasResourceName(*i.ID, name) {
+		if resourceIDHasResourceName(*i.ID, name) {
 			pools = append(pools[:bIdx], pools[bIdx+1:]...)
 			break
 		}
@@ -73,7 +73,7 @@ func (c *appGwConfigBuilder) isBackendSettingsUsed(name string) bool {
 	isDefaultRef := func(ref *n.SubResource) bool {
 		return ref != nil &&
 			ref.ID != nil &&
-			ResourceIDHasResourceName(*ref.ID, name)
+			resourceIDHasResourceName(*ref.ID, name)
 	}
 
 	for _, i := range *c.appGw.RequestRoutingRules {
@@ -100,7 +100,7 @@ func (c *appGwConfigBuilder) isBackendSettingsUsed(name string) bool {
 func (c *appGwConfigBuilder) removeBackendSettings(name string) {
 	settings := *c.appGw.BackendHTTPSettingsCollection
 	for bIdx, i := range settings {
-		if ResourceIDHasResourceName(*i.ID, name) {
+		if resourceIDHasResourceName(*i.ID, name) {
 			settings = append(settings[:bIdx], settings[bIdx+1:]...)
 			break
 		}
@@ -112,7 +112,7 @@ func (c *appGwConfigBuilder) isProbeUsed(name string) bool {
 	isDefaultRef := func(ref *n.SubResource) bool {
 		return ref != nil &&
 			ref.ID != nil &&
-			ResourceIDHasResourceName(*ref.ID, name)
+			resourceIDHasResourceName(*ref.ID, name)
 	}
 
 	for _, i := range *c.appGw.BackendHTTPSettingsCollection {
@@ -127,7 +127,7 @@ func (c *appGwConfigBuilder) isProbeUsed(name string) bool {
 func (c *appGwConfigBuilder) removeProbe(name string) {
 	probes := *c.appGw.Probes
 	for bIdx, i := range probes {
-		if ResourceIDHasResourceName(*i.ID, name) {
+		if resourceIDHasResourceName(*i.ID, name) {
 			probes = append(probes[:bIdx], probes[bIdx+1:]...)
 			break
 		}
@@ -135,7 +135,7 @@ func (c *appGwConfigBuilder) removeProbe(name string) {
 	c.appGw.Probes = &probes
 }
 
-func ResourceIDHasResourceName(resourceID string, resourceNameToMatch string) bool {
+func resourceIDHasResourceName(resourceID string, resourceNameToMatch string) bool {
 	splits := strings.Split(resourceID, "/")
 	if len(splits) == 0 {
 		return false
