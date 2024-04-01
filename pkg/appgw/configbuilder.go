@@ -151,8 +151,10 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, e
 	}
 
-	c.addTags()
+	// Remove unused default pool and settings
+	c.CleanUpUnusedDefaults()
 
+	c.addTags()
 	return &c.appGw, nil
 }
 
