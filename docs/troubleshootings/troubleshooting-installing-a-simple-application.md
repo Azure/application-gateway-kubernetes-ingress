@@ -135,7 +135,7 @@ Application Gateway Ingress Controller (AGIC) continuously monitors the followin
 The following must be in place for AGIC to function as expected:
   1. AKS must have one or more healthy **pods**.
      Verify this from [Cloud Shell](https://shell.azure.com/) with `kubectl get pods -o wide --show-labels`
-     If you have a Pod with an `apsnetapp`, your output may look like this:
+     If you have a Pod with an `aspnetapp`, your output may look like this:
      ```bash
      $> kubectl get pods -o wide --show-labels
 

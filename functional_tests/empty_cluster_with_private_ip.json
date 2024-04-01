@@ -84,21 +84,6 @@
                     "timeout": 30,
                     "unhealthyThreshold": 3
                 }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
-                "name": "defaultprobe-Https",
-                "properties": {
-                    "host": "localhost",
-                    "interval": 30,
-                    "match": {},
-                    "minServers": 0,
-                    "path": "/",
-                    "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Https",
-                    "timeout": 30,
-                    "unhealthyThreshold": 3
-                }
             }
         ],
         "redirectConfigurations": [],

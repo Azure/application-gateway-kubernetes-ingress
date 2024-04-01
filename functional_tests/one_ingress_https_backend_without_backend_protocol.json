@@ -2,13 +2,6 @@
     "properties": {
         "backendAddressPools": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/defaultaddresspool",
-                "name": "defaultaddresspool",
-                "properties": {
-                    "backendAddresses": []
-                }
-            },
-            {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendAddressPools/pool---https-backend-namespace---hello-world-https-443-bp-443",
                 "name": "pool---https-backend-namespace---hello-world-https-443-bp-443",
                 "properties": {
@@ -38,20 +31,6 @@
                         "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend"
                     },
                     "protocol": "Https",
-                    "requestTimeout": 30
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/backendHttpSettingsCollection/defaulthttpsetting",
-                "name": "defaulthttpsetting",
-                "properties": {
-                    "cookieBasedAffinity": "Disabled",
-                    "pickHostNameFromBackendAddress": false,
-                    "port": 80,
-                    "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
-                    },
-                    "protocol": "Http",
                     "requestTimeout": 30
                 }
             }
@@ -104,36 +83,6 @@
             }
         ],
         "probes": [
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
-                "name": "defaultprobe-Http",
-                "properties": {
-                    "host": "localhost",
-                    "interval": 30,
-                    "match": {},
-                    "minServers": 0,
-                    "path": "/",
-                    "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Http",
-                    "timeout": 30,
-                    "unhealthyThreshold": 3
-                }
-            },
-            {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
-                "name": "defaultprobe-Https",
-                "properties": {
-                    "host": "localhost",
-                    "interval": 30,
-                    "match": {},
-                    "minServers": 0,
-                    "path": "/",
-                    "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Https",
-                    "timeout": 30,
-                    "unhealthyThreshold": 3
-                }
-            },
             {
                 "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend",
                 "name": "pb---https-backend-namespace---hello-world-https-443---name--HttpsBackend",
