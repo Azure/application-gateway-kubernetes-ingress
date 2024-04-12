@@ -559,8 +559,6 @@ The URI would have the following format:
 ```bash
 /subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
 ```
-> **Note**
-1) Waf policy will only be applied to a listener if ingress rule path is not set or set to "/" or "/*"
 
 ### Usage
 
