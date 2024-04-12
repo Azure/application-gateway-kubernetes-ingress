@@ -976,3 +976,4 @@ spec:
             name: store-service
             port:
               number: 8080
+```
