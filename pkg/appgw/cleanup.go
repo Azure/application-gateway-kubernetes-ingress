@@ -6,10 +6,28 @@
 package appgw
 
 import (
+	"fmt"
 	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 )
+
+// CleanUpPathRulesAddedByAGIC removes path rules that are created by AGIC
+func (c *appGwConfigBuilder) CleanUpPathRulesAddedByAGIC() {
+	pathRuleNamePrefix := fmt.Sprintf("%s%s-", agPrefix, prefixPathRule)
+
+	// Remove path rules that are created by AGIC
+	for _, pathMap := range *c.appGw.URLPathMaps {
+		var pathRulesAddedManually []n.ApplicationGatewayPathRule
+		for _, pathRule := range *pathMap.PathRules {
+			if !strings.HasPrefix(*pathRule.Name, pathRuleNamePrefix) {
+				pathRulesAddedManually = append(pathRulesAddedManually, pathRule)
+			}
+		}
+
+		pathMap.PathRules = &pathRulesAddedManually
+	}
+}
 
 // CleanUpUnusedDefaults removes the default backend and default http settings if they are not used by any ingress
 func (c *appGwConfigBuilder) CleanUpUnusedDefaults() {
