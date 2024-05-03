@@ -3,11 +3,9 @@ set -ex
 
 . helper.sh
 
-# install
-InstallAGIC
+SetupApplicationGateway
 
-# set up shared backend
-SetupSharedBackend
+InstallAGIC
 
 # run test
 go mod init || true

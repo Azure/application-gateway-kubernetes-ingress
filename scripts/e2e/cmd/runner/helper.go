@@ -121,6 +121,35 @@ func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
 	return &client, nil
 }
 
+func getPublicIPAddressesClient() (*n.PublicIPAddressesClient, error) {
+	env := GetEnv()
+
+	settings, err := auth.GetSettingsFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	client := n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
+	var authorizer autorest.Authorizer
+	if env.AzureAuthLocation != "" {
+		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
+		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
+	} else {
+		authorizer, err = settings.GetAuthorizer()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	client.Authorizer = authorizer
+	err = client.AddToUserAgent(UserAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
 func getRoleAssignmentsClient() (*a.RoleAssignmentsClient, error) {
 	env := GetEnv()
 
@@ -840,6 +869,27 @@ func getGateway() (*n.ApplicationGateway, error) {
 	}
 
 	return &gateway, nil
+}
+
+func getPublicIPAddresses() (*[]n.PublicIPAddress, error) {
+	env := GetEnv()
+
+	klog.Info("preparing public ip client")
+	client, err := getPublicIPAddressesClient()
+	if err != nil {
+		return nil, err
+	}
+
+	publicIPs, err := client.List(
+		context.TODO(),
+		env.ResourceGroupName,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return publicIPs.Response().Value, nil
 }
 
 func supportsNetworkingV1IngressPackage(client clientset.Interface) bool {

@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -43,24 +42,19 @@ var _ = Describe("networking-v1-LFU", func() {
 			cleanUp(clientset)
 		})
 
-		It("[prohibited-target-test] prohibited service should be available to be accessed", func() {
+		It("[prohibited-target-test] prohibited target should be available to be accessed", func() {
 			// get ip address for 1 ingress
-			klog.Info("Getting public IP from blacklisted Ingress...")
-			publicIP, _ := getPublicIP(clientset, "test-brownfield-ns")
-			Expect(publicIP).ToNot(Equal(""))
-
-			//prohibited service will be kept by agic
-			url_blacklist := fmt.Sprintf("http://%s/blacklist", publicIP)
-			_, err = makeGetRequest(url_blacklist, "brownfield-blacklist-ns.host", 200, true)
+			klog.Info("Getting public IP from protected Ingress...")
+			ips, err := getPublicIPAddresses()
 			Expect(err).To(BeNil())
 
-			//delete namespaces for blacklist testing
-			deleteOptions := metav1.DeleteOptions{
-				GracePeriodSeconds: to.Int64Ptr(0),
-			}
+			// get public ip address
+			publicIP := *(*ips)[0].IPAddress
+			Expect(publicIP).ToNot(Equal(""))
 
-			klog.Info("Delete namespaces test-brownfield-ns after blacklist testing...")
-			err = clientset.CoreV1().Namespaces().Delete(context.TODO(), "test-brownfield-ns", deleteOptions)
+			//prohibited target will be kept by agic
+			configured_url := fmt.Sprintf("http://%s/landing/", publicIP)
+			_, err = makeGetRequest(configured_url, "www.microsoft.com", 200, true)
 			Expect(err).To(BeNil())
 		})
 
