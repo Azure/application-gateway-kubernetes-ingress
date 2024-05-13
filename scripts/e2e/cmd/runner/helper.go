@@ -871,7 +871,7 @@ func getGateway() (*n.ApplicationGateway, error) {
 	return &gateway, nil
 }
 
-func getPublicIPAddresses() (*[]n.PublicIPAddress, error) {
+func getPublicIPAddress() (*n.PublicIPAddress, error) {
 	env := GetEnv()
 
 	klog.Info("preparing public ip client")
@@ -880,16 +880,18 @@ func getPublicIPAddresses() (*[]n.PublicIPAddress, error) {
 		return nil, err
 	}
 
-	publicIPs, err := client.List(
+	publicIP, err := client.Get(
 		context.TODO(),
 		env.ResourceGroupName,
+		env.PublicIPAddressName,
+		"",
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return publicIPs.Response().Value, nil
+	return &publicIP, nil
 }
 
 func supportsNetworkingV1IngressPackage(client clientset.Interface) bool {

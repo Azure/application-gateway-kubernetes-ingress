@@ -1,5 +1,3 @@
-export subResourceNamePrefix="fake-prod-"
-
 function DeleteOtherAGICVersions() {
     [[ -z "${version}" ]] && (
         echo "version is not set"
@@ -47,7 +45,6 @@ function InstallAGIC() {
     helm upgrade --install agic-${version} staging/ingress-azure \
         -f ./helm-config-with-prohibited-rules.yaml \
         --set appgw.applicationGatewayID=${applicationGatewayId} \
-        --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
         --set armAuth.type=workloadIdentity \
         --set armAuth.identityClientID=${identityClientId} \
         --set kubernetes.ingressClass="$1" \
@@ -55,8 +52,6 @@ function InstallAGIC() {
         --wait \
         -n agic \
         --version ${version}
-
-    sleep 30
 }
 
 function SetupApplicationGateway() {
@@ -108,6 +103,11 @@ function SetupApplicationGateway() {
         --name msPool \
         --servers www.microsoft.com
     
+    az network application-gateway address-pool create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msEmpty
+    
     az network application-gateway url-path-map create \
         --gateway-name $gatewayName \
         --resource-group $groupName \
@@ -115,7 +115,7 @@ function SetupApplicationGateway() {
         --rule-name msPathRule \
         --paths "/landing/*" \
         --address-pool msPool \
-        --default-address-pool msPool \
+        --default-address-pool msEmpty \
         --http-settings msSettings \
         --default-http-settings msSettings
 

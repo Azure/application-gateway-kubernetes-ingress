@@ -33,7 +33,7 @@ Configuration Details:
     - Verbosity level: {{ .Values.verbosityLevel }}
 {{- if .Values.appgw }}
 {{- if .Values.appgw.shared }}
-    - Multi-cluster / Shared App Gateway is enabled; Use "kubectl get AzureIngressProhibitedTargets" to view and modify config
+    - Shared App Gateway is enabled; Use "kubectl get AzureIngressProhibitedTargets" to view and modify config
 {{- end }}
 {{- end }}
 {{- if .Values.armAuth }}

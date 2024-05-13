@@ -43,18 +43,47 @@ var _ = Describe("networking-v1-LFU", func() {
 		})
 
 		It("[prohibited-target-test] prohibited target should be available to be accessed", func() {
-			// get ip address for 1 ingress
-			klog.Info("Getting public IP from protected Ingress...")
-			ips, err := getPublicIPAddresses()
+			namespaceName := "e2e-prohibited-target"
+			ns := &v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			klog.Info("Creating namespace: ", namespaceName)
+			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			// get public ip address
-			publicIP := *(*ips)[0].IPAddress
-			Expect(publicIP).ToNot(Equal(""))
+			appYamlPath := "testdata/networking-v1/one-namespace-one-ingress/prohibited-target/app.yaml"
+			klog.Info("Applying yaml: ", appYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, appYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
 
-			//prohibited target will be kept by agic
-			configured_url := fmt.Sprintf("http://%s/landing/", publicIP)
-			_, err = makeGetRequest(configured_url, "www.microsoft.com", 200, true)
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP of the app gateway")
+			ip, err := getPublicIPAddress()
+			Expect(err).To(BeNil())
+
+			publicIP := *ip.IPAddress
+			klog.Infof("Public IP: %s", publicIP)
+
+			protectedPath := fmt.Sprintf("http://%s/landing/", publicIP)
+			_, err = makeGetRequest(protectedPath, "www.microsoft.com", 302, true)
+			Expect(err).To(BeNil())
+
+			ingressPath := fmt.Sprintf("http://%s/aspnet", publicIP)
+			_, err = makeGetRequest(ingressPath, "www.microsoft.com", 200, true)
+			Expect(err).To(BeNil())
+
+			klog.Info("Deleting yaml: ", appYamlPath)
+			err = deleteYaml(clientset, crdClient, namespaceName, appYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			_, err = makeGetRequest(protectedPath, "www.microsoft.com", 302, true)
+			Expect(err).To(BeNil())
+
+			_, err = makeGetRequest(ingressPath, "www.microsoft.com", 502, true)
 			Expect(err).To(BeNil())
 		})
 
