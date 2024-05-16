@@ -1,5 +1,3 @@
-export subResourceNamePrefix="fake-prod-"
-
 function DeleteOtherAGICVersions() {
     [[ -z "${version}" ]] && (
         echo "version is not set"
@@ -17,13 +15,9 @@ function InstallAGIC() {
         echo "version is not set"
         exit 1
     )
-    # Using 'applicationGatewayName' without providing 'subscription' and 'resource group' will make AGIC use values from azure.json
-    [[ -z "${applicationGatewayName}" ]] && (
-        echo "applicationGatewayName is not set"
-        exit 1
-    )
-    [[ -z "${applicationGatewaySubnetPrefix}" ]] && (
-        echo "applicationGatewaySubnetPrefix is not set"
+
+   [[ -z "${applicationGatewayId}" ]] && (
+        echo "applicationGatewayId is not set"
         exit 1
     )
     [[ -z "${identityResourceId}" ]] && (
@@ -49,26 +43,18 @@ function InstallAGIC() {
 
     # AAD pod identity is taking time to assign identity. Timeout is set to 120 sec
     helm upgrade --install agic-${version} staging/ingress-azure \
-        --set appgw.name=${applicationGatewayName} \
-        --set appgw.subnetPrefix=${applicationGatewaySubnetPrefix} \
-        --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
+        -f ./helm-config-with-prohibited-rules.yaml \
+        --set appgw.applicationGatewayID=${applicationGatewayId} \
         --set armAuth.type=workloadIdentity \
         --set armAuth.identityClientID=${identityClientId} \
-        --set rbac.enabled=true \
-        --set appgw.shared=false \
         --set kubernetes.ingressClass="$1" \
         --timeout 120s \
         --wait \
         -n agic \
         --version ${version}
-
-    # apply backends to test prohibited target, wait for 90s to apply appgw config
-    kubectl apply -f cmd/runner/testdata/extensions-v1beta1/prohibited-target/test-prohibit-backend.yaml || true
-    kubectl apply -f cmd/runner/testdata/networking-v1/prohibited-target/test-prohibit-backend.yaml || true
-    sleep 30
 }
 
-function SetupSharedBackend() {
+function SetupApplicationGateway() {
     [[ -z "${version}" ]] && (
         echo "version is not set"
         exit 1
@@ -86,21 +72,71 @@ function SetupSharedBackend() {
         exit 1
     )
 
-    # install agic with shared enabled
-    helm upgrade --install agic-${version} staging/ingress-azure \
-        -f ./helm-config-with-prohibited-rules.yaml \
-        --set appgw.applicationGatewayID=${applicationGatewayId} \
-        --set appgw.subResourceNamePrefix=${subResourceNamePrefix} \
-        --set armAuth.type=workloadIdentity \
-        --set armAuth.identityClientID=${identityClientId} \
-        --set kubernetes.ingressClass="$1" \
-        --timeout 120s \
-        --wait \
-        -n agic \
-        --version ${version}
+    gatewayName=$(echo $applicationGatewayId | cut -d'/' -f9)
+    groupName=$(echo $applicationGatewayId | cut -d'/' -f5)
 
-    # get all the prohibited target config
-    kubectl get AzureIngressProhibitedTargets -n agic -o yaml
+    az network application-gateway probe create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msProbe \
+        --path / \
+        --protocol Https \
+        --host www.microsoft.com \
+        --interval 30 \
+        --timeout 30 \
+        --threshold 3
+
+    az network application-gateway http-settings create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msSettings \
+        --port 443 \
+        --protocol Https \
+        --cookie-based-affinity Disabled \
+        --timeout 30 \
+        --probe msProbe \
+        --path "/"
+
+    az network application-gateway address-pool create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msPool \
+        --servers www.microsoft.com
+    
+    az network application-gateway address-pool create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msEmpty
+    
+    az network application-gateway url-path-map create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msPathMap \
+        --rule-name msPathRule \
+        --paths "/landing/*" \
+        --address-pool msPool \
+        --default-address-pool msEmpty \
+        --http-settings msSettings \
+        --default-http-settings msSettings
+
+    az network application-gateway http-listener create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msListener \
+        --frontend-ip appGatewayFrontendIP \
+        --frontend-port fake-prod-fp-80 \
+        --host-names www.microsoft.com \
+
+    az network application-gateway rule create \
+        --gateway-name $gatewayName \
+        --resource-group $groupName \
+        --name msRule \
+        --http-settings msSettings \
+        --address-pool msPool \
+        --http-listener msListener \
+        --rule-type  PathBasedRouting \
+        --url-path-map msPathMap \
+        --priority 1
 }
 
 function EvaluateTestStatus() {

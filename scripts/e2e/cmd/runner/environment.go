@@ -23,6 +23,9 @@ const (
 	// AppGwNameVarName is the name of the applicationGatewayName
 	AppGwNameVarName = "applicationGatewayName"
 
+	// PublicIPAddressNameVarName is the name of the publicIPAddressName
+	PublicIPAddressNameVarName = "publicIPAddressName"
+
 	// KubeConfigVarName is the name of the KUBECONFIG
 	KubeConfigVarName = "KUBECONFIG"
 
@@ -41,6 +44,7 @@ type EnvVariables struct {
 	SubscriptionID        string
 	ResourceGroupName     string
 	AppGwName             string
+	PublicIPAddressName   string
 	SubResourceNamePrefix string
 	KubeConfigFilePath    string
 	ObjectID              string
@@ -53,6 +57,7 @@ func GetEnv() *EnvVariables {
 		SubscriptionID:        os.Getenv(SubscriptionIDVarName),
 		ResourceGroupName:     os.Getenv(ResourceGroupNameVarName),
 		AppGwName:             os.Getenv(AppGwNameVarName),
+		PublicIPAddressName:   os.Getenv(PublicIPAddressNameVarName),
 		SubResourceNamePrefix: os.Getenv(SubResourceNamePrefixVarName),
 		KubeConfigFilePath:    GetEnvironmentVariable(KubeConfigVarName, "~/.kube/config", nil),
 		ObjectID:              os.Getenv(ObjectIDVarName),

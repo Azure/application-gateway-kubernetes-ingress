@@ -1,10 +1,10 @@
 appgw:
   shared: true
   prohibitedTargets:
-    - name: prohibit-backend-ns
-      hostname: brownfield-blacklist-ns.host
+    - name: www.microsoft.com
+      hostname: www.microsoft.com
       paths:
-        - "/blacklist/*"
+        - "/landing/*"
 
 armAuth:
   type: aadPodIdentity
