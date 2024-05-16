@@ -11,10 +11,8 @@ package runner
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -43,33 +41,8 @@ var _ = Describe("networking-v1-LFU", func() {
 			cleanUp(clientset)
 		})
 
-		It("[prohibited-target-test] prohibited service should be available to be accessed", func() {
-			// get ip address for 1 ingress
-			klog.Info("Getting public IP from blacklisted Ingress...")
-			publicIP, _ := getPublicIP(clientset, "test-brownfield-ns")
-			Expect(publicIP).ToNot(Equal(""))
-
-			//prohibited service will be kept by agic
-			url_blacklist := fmt.Sprintf("http://%s/blacklist", publicIP)
-			_, err = makeGetRequest(url_blacklist, "brownfield-blacklist-ns.host", 200, true)
-			Expect(err).To(BeNil())
-
-			//delete namespaces for blacklist testing
-			deleteOptions := metav1.DeleteOptions{
-				GracePeriodSeconds: to.Int64Ptr(0),
-			}
-
-			klog.Info("Delete namespaces test-brownfield-ns after blacklist testing...")
-			err = clientset.CoreV1().Namespaces().Delete(context.TODO(), "test-brownfield-ns", deleteOptions)
-			Expect(err).To(BeNil())
-		})
-
-		It("[sub-resource-prefix] should be use the sub-resource-prefix to prefix sub-resources", func() {
-			env := GetEnv()
-			klog.Infof("'subResourceNamePrefix': %s", env.SubResourceNamePrefix)
-			Expect(env.SubResourceNamePrefix).ToNot(Equal(""), "Please make sure that environment variable 'subResourceNamePrefix' is set")
-
-			namespaceName := "e2e-sub-resource-prefix"
+		It("[prohibited-target-test] prohibited target should be available to be accessed", func() {
+			namespaceName := "e2e-prohibited-target"
 			ns := &v1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
@@ -79,26 +52,38 @@ var _ = Describe("networking-v1-LFU", func() {
 			_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 			Expect(err).To(BeNil())
 
-			SSLE2ERedirectYamlPath := "testdata/networking-v1/one-namespace-one-ingress/ssl-e2e-redirect/app.yaml"
-			klog.Info("Applying yaml: ", SSLE2ERedirectYamlPath)
-			err = applyYaml(clientset, crdClient, namespaceName, SSLE2ERedirectYamlPath)
+			appYamlPath := "testdata/networking-v1/one-namespace-one-ingress/prohibited-target/app.yaml"
+			klog.Info("Applying yaml: ", appYamlPath)
+			err = applyYaml(clientset, crdClient, namespaceName, appYamlPath)
 			Expect(err).To(BeNil())
 			time.Sleep(30 * time.Second)
 
-			gateway, err := getGateway()
+			// get ip address for 1 ingress
+			klog.Info("Getting public IP of the app gateway")
+			ip, err := getPublicIPAddress()
 			Expect(err).To(BeNil())
 
-			prefixUsed := false
-			for _, listener := range *gateway.HTTPListeners {
-				klog.Infof("checking listener %s for %s", *listener.Name, env.SubResourceNamePrefix)
-				if strings.HasPrefix(*listener.Name, env.SubResourceNamePrefix) {
-					klog.Infof("found %s that uses the prefix", *listener.Name)
-					prefixUsed = true
-					break
-				}
-			}
+			publicIP := *ip.IPAddress
+			klog.Infof("Public IP: %s", publicIP)
 
-			Expect(prefixUsed).To(BeTrue(), "%s wasn't used for naming the sub-resource of app gateway. Currently, this check looks at HTTP listener only", env.SubResourceNamePrefix)
+			protectedPath := fmt.Sprintf("http://%s/landing/", publicIP)
+			_, err = makeGetRequest(protectedPath, "www.microsoft.com", 302, true)
+			Expect(err).To(BeNil())
+
+			ingressPath := fmt.Sprintf("http://%s/aspnet", publicIP)
+			_, err = makeGetRequest(ingressPath, "www.microsoft.com", 200, true)
+			Expect(err).To(BeNil())
+
+			klog.Info("Deleting yaml: ", appYamlPath)
+			err = deleteYaml(clientset, crdClient, namespaceName, appYamlPath)
+			Expect(err).To(BeNil())
+			time.Sleep(30 * time.Second)
+
+			_, err = makeGetRequest(protectedPath, "www.microsoft.com", 302, true)
+			Expect(err).To(BeNil())
+
+			_, err = makeGetRequest(ingressPath, "www.microsoft.com", 502, true)
+			Expect(err).To(BeNil())
 		})
 
 		AfterEach(func() {

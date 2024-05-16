@@ -30,6 +30,8 @@ func (c *appGwConfigBuilder) RequestRoutingRules(cbCtx *ConfigBuilderContext) er
 	requestRoutingRules, pathMaps := c.getRules(cbCtx)
 
 	if cbCtx.EnvVariables.EnableBrownfieldDeployment {
+		c.CleanUpPathRulesAddedByAGIC()
+
 		rCtx := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
 		{
 			// PathMaps we obtained from App Gateway - we segment them into ones AGIC is and is not allowed to change.
