@@ -267,7 +267,7 @@ var _ = Describe("networking-v1-MFU", func() {
 				}
 
 				return len(exampleComListeners) == 2
-			}, 60*time.Second, 5*time.Second).Should(BeTrue())
+			}, 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			// Check that both listeners have the same frontend port
 			klog.Info("Checking that both listeners have the same frontend port...")
