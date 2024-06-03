@@ -116,6 +116,10 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
 		}
+
+		for _, ingress := range cbCtx.IngressList {
+			c.recorder.Event(ingress, v1.EventTypeWarning, events.ReasonInvalidAppGwConfig, errorLine)
+		}
 		return err
 	}
 	// -------------------------- //
