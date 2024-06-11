@@ -1,186 +1,203 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Rewrite rule set custom resource - Application Gateway Ingress Controller</title>
-    <link rel="stylesheet" href="../../css/theme.css" />
-    <link rel="stylesheet" href="../../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
-        <link href="../../css/extra.css" rel="stylesheet" />
-    
-      <script>
-        // Current page data
-        var mkdocs_page_name = "Rewrite rule set custom resource";
-        var mkdocs_page_input_path = "features/rewrite-rule-set-custom-resource.md";
-        var mkdocs_page_url = null;
-      </script>
-    
-    <script src="../../js/jquery-3.6.0.min.js" defer></script>
-    <!--[if lt IE 9]>
-      <script src="../../js/html5shiv.min.js"></script>
-    <![endif]-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/rust.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/bash.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/go.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script> 
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Rewrite rule set custom resource - Application Gateway Ingress Controller</title>
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="../../css/extra.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Rewrite rule set custom resource";
+    var mkdocs_page_input_path = "features/rewrite-rule-set-custom-resource.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
+
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
-        </a><div role="search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Setup</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Features</span></p>
-              <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../agic-reconcile/">Agic reconcile</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../appgw-ssl-certificate/">Appgw ssl certificate</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../cookie-affinity/">Cookie affinity</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../custom-ingress-class/">Custom Ingress Class</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../multiple-namespaces/">Multiple Namespace Support</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../private-ip/">Using Private IP for internal routing</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../probes/">Probes</a>
-                  </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Rewrite rule set custom resource</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Features</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../cookie-affinity/">Cookie affinity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../custom-ingress-class/">Custom Ingress Class</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../multiple-namespaces/">Multiple Namespace Support</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../private-ip/">Using Private IP for internal routing</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../probes/">Probes</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Rewrite rule set custom resource</a>
     <ul class="current">
     </ul>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">How tos</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
-                  </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                  </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Developers</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                  </li>
-              </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">How tos</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                    </li>
+                </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../..">Application Gateway Ingress Controller</a>
-        
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
       </nav>
+
+      
       <div class="wy-nav-content">
-        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-          <li>Features &raquo;</li><li>Rewrite rule set custom resource</li>
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Features &raquo;</li>
+        
+      
+    
+    <li>Rewrite rule set custom resource</li>
     <li class="wy-breadcrumbs-aside">
+      
         <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/features/rewrite-rule-set-custom-resource.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
     </li>
   </ul>
+  
   <hr/>
 </div>
-
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-            <div class="section" itemprop="articleBody">
+          <div role="main">
+            <div class="section">
               
-                <h2 id="rewrite-rule-set-custom-resource-not-released-yet">Rewrite Rule Set Custom Resource (not released yet)</h2>
+                <h2 id="rewrite-rule-set-custom-resource-supported-since-160-rc1">Rewrite Rule Set Custom Resource (supported since 1.6.0-rc1)</h2>
 <blockquote>
-<p>Note: This feature is not released yet. Please use <a href="../../annotations/#rewrite-rule-set"><code>appgw.ingress.kubernetes.io/rewrite-rule-set</code></a> which allows using an existing rewrite rule set on Application Gateway.</p>
+<p>Note: This feature is supported since 1.6.0-rc1. Please use <a href="../../annotations/#rewrite-rule-set"><code>appgw.ingress.kubernetes.io/rewrite-rule-set</code></a> which allows using an existing rewrite rule set on Application Gateway.</p>
 </blockquote>
 <p>Application Gateway allows you to rewrite selected content of requests and responses. With this feature, you can translate URLs, query string parameters as well as modify request and response headers. It also allows you to add conditions to ensure that the URL or the specified headers are rewritten only when certain conditions are met. These conditions are based on the request and response information. Rewrite Rule Set Custom Resource brings this feature to AGIC.</p>
 <p>HTTP headers allow a client and server to pass additional information with a request or response. By rewriting these headers, you can accomplish important tasks, such as adding security-related header fields like HSTS/ X-XSS-Protection, removing response header fields that might reveal sensitive information, and removing port information from X-Forwarded-For headers.</p>
@@ -228,76 +245,83 @@
 </ul>
 <p><strong>Recommended:</strong> More information about Application Gateway's Rewrite feature can be found <a href="https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url">here</a></p>
 <h2 id="example">Example:</h2>
-<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">appgw.ingress.azure.io/v1beta1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AzureApplicationGatewayRewrite</span>
-<span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set-custom-resource</span>
-<span class="nt">spec</span><span class="p">:</span>
-  <span class="nt">rewriteRules</span><span class="p">:</span>
-  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rule1</span>
-    <span class="nt">ruleSequence</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">21</span>
+<p>```yaml
+apiVersion: appgw.ingress.azure.io/v1beta1
+kind: AzureApplicationGatewayRewrite
+metadata:
+  name: my-rewrite-rule-set-custom-resource
+spec:
+  rewriteRules:
+  - name: rule1
+    ruleSequence: 21</p>
+<pre><code>conditions:
+- ignoreCase: false
+  negate: false
+  variable: http_req_Host
+  pattern: example.com
 
-    <span class="nt">conditions</span><span class="p">:</span>
-    <span class="p p-Indicator">-</span> <span class="nt">ignoreCase</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
-      <span class="nt">negate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
-      <span class="nt">variable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http_req_Host</span>
-      <span class="nt">pattern</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">example.com</span>
+actions:
+  requestHeaderConfigurations:
+  - actionType: set
+    headerName: incoming-test-header
+    headerValue: incoming-test-value
 
-    <span class="nt">actions</span><span class="p">:</span>
-      <span class="nt">requestHeaderConfigurations</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">actionType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">set</span>
-        <span class="nt">headerName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">incoming-test-header</span>
-        <span class="nt">headerValue</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">incoming-test-value</span>
+  responseHeaderConfigurations:
+  - actionType: set
+    headerName: outgoing-test-header
+    headerValue: outgoing-test-value
 
-      <span class="nt">responseHeaderConfigurations</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">actionType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">set</span>
-        <span class="nt">headerName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">outgoing-test-header</span>
-        <span class="nt">headerValue</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">outgoing-test-value</span>
-
-      <span class="nt">urlConfiguration</span><span class="p">:</span>
-        <span class="nt">modifiedPath</span><span class="p">:</span> <span class="s">&quot;/api/&quot;</span>
-        <span class="nt">modifiedQueryString</span><span class="p">:</span> <span class="s">&quot;query=test-value&quot;</span>
-        <span class="nt">reroute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
-
-<span class="nn">---</span>
-
-<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
-<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
-<span class="nt">metadata</span><span class="p">:</span>
-  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-ingress</span>
-  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">test-ag</span>
-  <span class="nt">annotations</span><span class="p">:</span>
-    <span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-    <span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set</span>
-<span class="nt">spec</span><span class="p">:</span>
-  <span class="nt">rules</span><span class="p">:</span>
-  <span class="p p-Indicator">-</span> <span class="nt">http</span><span class="p">:</span>
-      <span class="nt">paths</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/</span>
-        <span class="nt">pathType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Exact</span>
-        <span class="nt">backend</span><span class="p">:</span>
-          <span class="nt">service</span><span class="p">:</span>
-            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">store-service</span>
-            <span class="nt">port</span><span class="p">:</span>
-              <span class="nt">number</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
-</pre></div>
+  urlConfiguration:
+    modifiedPath: "/api/"
+    modifiedQueryString: "query=test-value"
+    reroute: false
+</code></pre>
+<hr />
+<p>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  namespace: test-ag
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: store-service
+            port:
+              number: 8080
+```</p>
               
             </div>
-          </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../probes/" class="btn btn-neutral float-left" title="Probes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
         <a href="../../how-tos/continuous-deployment/" class="btn btn-neutral float-right" title="Continuous Deployment with AKS and AGIC using Azure Pipelines">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../probes/" class="btn btn-neutral" title="Probes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
     </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
+    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-          
+      
         </div>
       </div>
 
@@ -305,19 +329,18 @@
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="Versions">
-  <span class="rst-current-version" data-toggle="rst-current-version">
-    
-    
-      <span><a href="../probes/" style="color: #fcfcfc">&laquo; Previous</a></span>
-    
-    
-      <span><a href="../../how-tos/continuous-deployment/" style="color: #fcfcfc">Next &raquo;</a></span>
-    
-  </span>
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../probes/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../../how-tos/continuous-deployment/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
 </div>
     <script>var base_url = '../..';</script>
-    <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
     <script defer>

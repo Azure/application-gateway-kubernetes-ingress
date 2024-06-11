@@ -1,186 +1,201 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Continuous Deployment with AKS and AGIC using Azure Pipelines - Application Gateway Ingress Controller</title>
-    <link rel="stylesheet" href="../../css/theme.css" />
-    <link rel="stylesheet" href="../../css/theme_extra.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
-        <link href="../../css/extra.css" rel="stylesheet" />
-    
-      <script>
-        // Current page data
-        var mkdocs_page_name = "Continuous Deployment with AKS and AGIC using Azure Pipelines";
-        var mkdocs_page_input_path = "how-tos/continuous-deployment.md";
-        var mkdocs_page_url = null;
-      </script>
-    
-    <script src="../../js/jquery-3.6.0.min.js" defer></script>
-    <!--[if lt IE 9]>
-      <script src="../../js/html5shiv.min.js"></script>
-    <![endif]-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/rust.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/bash.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/go.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script> 
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Continuous Deployment with AKS and AGIC using Azure Pipelines - Application Gateway Ingress Controller</title>
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="../../css/extra.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Continuous Deployment with AKS and AGIC using Azure Pipelines";
+    var mkdocs_page_input_path = "how-tos/continuous-deployment.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
+
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
-        </a><div role="search">
+        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
+        <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Setup</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-existing/">Brownfield Deployment</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new-windows-cluster/">Preview - Greenfield Deployment (Windows Cluster)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../setup/install-new/">Greenfield Deployment</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Features</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">How tos</span></p>
-              <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Tutorials</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Features</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">How tos</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#setup-up-new-service-connection-with-service-principal">Setup up new service connection with service principal</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#create-a-new-azure-release-pipeline">Create a new Azure release pipeline</a>
-    </li>
     </ul>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
-                  </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                  </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Developers</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                  </li>
-              </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                    </li>
+                </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../..">Application Gateway Ingress Controller</a>
-        
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Application Gateway Ingress Controller</a>
       </nav>
+
+      
       <div class="wy-nav-content">
-        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-          <li>How tos &raquo;</li><li>Continuous Deployment with AKS and AGIC using Azure Pipelines</li>
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>How tos &raquo;</li>
+        
+      
+    
+    <li>Continuous Deployment with AKS and AGIC using Azure Pipelines</li>
     <li class="wy-breadcrumbs-aside">
+      
         <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/how-tos/continuous-deployment.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
+      
     </li>
   </ul>
+  
   <hr/>
 </div>
-
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-            <div class="section" itemprop="articleBody">
+          <div role="main">
+            <div class="section">
               
                 <h1 id="continuous-deployment-with-aks-and-agic-using-azure-pipelines">Continuous Deployment with AKS and AGIC using Azure Pipelines</h1>
 <p>To achieve an efficiently deployed and managed global infrastucture, it is important to setup workflows for continuous integration and deployment. <code>Azure Devops</code> is one of the options to achieve this goal.</p>
@@ -192,9 +207,10 @@
 <ol>
 <li>
 <p>Create a service principal to use with Azure Pipelines. This service principal will have owner access to current subscription. Access will be used to perform role assigement for AGIC identity in the pipeline.</p>
-<div class="highlight"><pre><span></span>az ad sp create-for-rbac -n azure-pipeline-cd --role owner
-<span class="c1"># Copy the AppId and Password. We will use these in the next step.</span>
-</pre></div>
+<p>```bash
+az ad sp create-for-rbac -n azure-pipeline-cd --role owner</p>
+<h1 id="copy-the-appid-and-password-we-will-use-these-in-the-next-step">Copy the AppId and Password. We will use these in the next step.</h1>
+<p>```</p>
 </li>
 <li>
 <p>Now, create a <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&amp;tabs=yaml#create-a-service-connection">new service connection</a> in Azure Devops. Select "<em>use the full version of the service connection dialog</em>" option so that you can provide the newly created service principal.
@@ -219,9 +235,9 @@
     1. Select the newly created service connection for the <code>Create Kubernetes Cluster</code> and <code>Create AGIC Identity</code> tasks.
     <img alt="import pipeline" src="../../images/pipeline-set-connection.png" />
     1. Provide the values for <code>clientId</code> and <code>clientSecret</code> that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.
-        <div class="highlight"><pre><span></span><span class="c1"># create a new one and copy the appId and password to the variable section in the pipeline</span>
-az ad sp create-for-rbac -n aks-cluster
-</pre></div>
+        <code>bash
+        # create a new one and copy the appId and password to the variable section in the pipeline
+        az ad sp create-for-rbac -n aks-cluster</code>
         <img alt="import pipeline" src="../../images/pipeline-variable.png" /></p>
 <ol>
 <li>Click <code>Save</code>. Now your pipeline is all set up.</li>
@@ -234,21 +250,29 @@ az ad sp create-for-rbac -n aks-cluster
 <img alt="import pipeline" src="../../images/pipeline-app.png" /></p>
               
             </div>
-          </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../../features/rewrite-rule-set-custom-resource/" class="btn btn-neutral float-left" title="Rewrite rule set custom resource"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../dns/" class="btn btn-neutral float-right" title="Automate DNS updates">Next <span class="icon icon-circle-arrow-right"></span></a>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../deploy-AGIC-with-Workload-Identity-using-helm/" class="btn btn-neutral float-right" title="How to deploy AGIC via Helm using Workload Identity">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../../features/rewrite-rule-set-custom-resource/" class="btn btn-neutral" title="Rewrite rule set custom resource"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
     </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
+    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-          
+      
         </div>
       </div>
 
@@ -256,19 +280,18 @@ az ad sp create-for-rbac -n aks-cluster
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="Versions">
-  <span class="rst-current-version" data-toggle="rst-current-version">
-    
-    
-      <span><a href="../../features/rewrite-rule-set-custom-resource/" style="color: #fcfcfc">&laquo; Previous</a></span>
-    
-    
-      <span><a href="../dns/" style="color: #fcfcfc">Next &raquo;</a></span>
-    
-  </span>
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../../features/rewrite-rule-set-custom-resource/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../deploy-AGIC-with-Workload-Identity-using-helm/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
 </div>
     <script>var base_url = '../..';</script>
-    <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
       <script src="../../search/main.js" defer></script>
     <script defer>
