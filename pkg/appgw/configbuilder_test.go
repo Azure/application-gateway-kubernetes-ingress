@@ -489,11 +489,11 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                "properties": {
 --                    "cookieBasedAffinity": "Disabled",
 --                    "pickHostNameFromBackendAddress": false,
---                    "port": 80,
+--                    "port": 443,
 --                    "probe": {
---                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+--                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https"
 --                    },
---                    "protocol": "Http",
+--                    "protocol": "Https",
 --                    "requestTimeout": 30
 --                }
 --            }
@@ -554,6 +554,21 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 --                    "path": "/",
 --                    "pickHostNameFromBackendHttpSettings": false,
 --                    "protocol": "Http",
+--                    "timeout": 30,
+--                    "unhealthyThreshold": 3
+--                }
+--            },
+--            {
+--                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
+--                "name": "defaultprobe-Https",
+--                "properties": {
+--                    "host": "localhost",
+--                    "interval": 30,
+--                    "match": {},
+--                    "minServers": 0,
+--                    "path": "/",
+--                    "pickHostNameFromBackendHttpSettings": false,
+--                    "protocol": "Https",
 --                    "timeout": 30,
 --                    "unhealthyThreshold": 3
 --                }
