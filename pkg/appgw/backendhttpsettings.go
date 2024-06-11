@@ -74,6 +74,10 @@ func (c *appGwConfigBuilder) getBackendsAndSettingsMap(cbCtx *ConfigBuilderConte
 	}
 
 	defaultHTTPSetting := defaultBackendHTTPSettings(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTP)
+	if cbCtx.EnvVariables.SetDefaultHTTPSettingProbePortTo443 {
+		defaultHTTPSetting = defaultBackendHTTPSettings(c.appGwIdentifier, n.ApplicationGatewayProtocolHTTPS)
+	}
+
 	serviceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)
 	backendHTTPSettingsMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendHTTPSettings)
 	httpSettingsCollection := make(map[string]n.ApplicationGatewayBackendHTTPSettings)

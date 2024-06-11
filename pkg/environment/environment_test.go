@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build unittest
 // +build unittest
 
 package environment
@@ -76,20 +77,21 @@ var _ = Describe("Environment", func() {
 				_ = os.Setenv(ReconcilePeriodSecondsVarName, "30")
 
 				expected := EnvVariables{
-					SubscriptionID:             "SubscriptionIDVarName",
-					ResourceGroupName:          "ResourceGroupNameVarName",
-					AppGwName:                  "AppGwNameVarName",
-					AppGwSkuName:               "Standard_v2",
-					AuthLocation:               "AuthLocationVarName",
-					WatchNamespace:             "WatchNamespaceVarName",
-					UsePrivateIP:               true,
-					VerbosityLevel:             "VerbosityLevelVarName",
-					EnableBrownfieldDeployment: false,
-					EnableIstioIntegration:     true,
-					EnableSaveConfigToFile:     false,
-					EnablePanicOnPutError:      true,
-					HTTPServicePort:            "8123",
-					ReconcilePeriodSeconds:     "30",
+					SubscriptionID:                      "SubscriptionIDVarName",
+					ResourceGroupName:                   "ResourceGroupNameVarName",
+					AppGwName:                           "AppGwNameVarName",
+					AppGwSkuName:                        "Standard_v2",
+					AuthLocation:                        "AuthLocationVarName",
+					WatchNamespace:                      "WatchNamespaceVarName",
+					UsePrivateIP:                        true,
+					VerbosityLevel:                      "VerbosityLevelVarName",
+					EnableBrownfieldDeployment:          false,
+					EnableIstioIntegration:              true,
+					EnableSaveConfigToFile:              false,
+					EnablePanicOnPutError:               true,
+					HTTPServicePort:                     "8123",
+					ReconcilePeriodSeconds:              "30",
+					SetDefaultHTTPSettingProbePortTo443: false,
 				}
 
 				Expect(GetEnv()).To(Equal(expected))
