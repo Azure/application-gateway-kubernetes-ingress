@@ -1,5 +1,8 @@
 ## Prerequisites
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 You need to complete the following tasks prior to deploying AGIC on your cluster:
 
 1. Prepare your Azure subscription and your `az-cli` client.

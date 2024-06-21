@@ -1,5 +1,8 @@
 # Preventing AGIC from removing certain rules
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 > Note: This feature is **EXPERIMENTAL** with **limited support**. Use with caution.
 
 By default AGIC assumes full ownership of the App Gateway it is linked to. AGIC version 0.8.0 and later allows

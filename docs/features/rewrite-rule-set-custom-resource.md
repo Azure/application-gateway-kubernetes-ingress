@@ -1,5 +1,12 @@
 ## Rewrite Rule Set Custom Resource (supported since 1.6.0-rc1)
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
+    URL Rewrite rules for Application Gateway for Containers may be found [here for Gateway API](https://learn.microsoft.com/azure/application-gateway/for-containers/how-to-url-rewrite-gateway-api?tabs=alb-managed) and [here for Ingress API](https://learn.microsoft.com/azure/application-gateway/for-containers/how-to-url-rewrite-ingress-api?tabs=alb-managed).
+
+    Header Rewrite rules for Application Gateway for Containers may be found [here for Gateway API](https://learn.microsoft.com/azure/application-gateway/for-containers/how-to-header-rewrite-gateway-api?tabs=alb-managed) and [here for Ingress API](https://learn.microsoft.com/azure/application-gateway/for-containers/how-to-header-rewrite-ingress-api?tabs=alb-managed).
+
 > Note: This feature is supported since 1.6.0-rc1. Please use [`appgw.ingress.kubernetes.io/rewrite-rule-set`](../annotations.md#rewrite-rule-set) which allows using an existing rewrite rule set on Application Gateway.
 
 Application Gateway allows you to rewrite selected content of requests and responses. With this feature, you can translate URLs, query string parameters as well as modify request and response headers. It also allows you to add conditions to ensure that the URL or the specified headers are rewritten only when certain conditions are met. These conditions are based on the request and response information. Rewrite Rule Set Custom Resource brings this feature to AGIC.

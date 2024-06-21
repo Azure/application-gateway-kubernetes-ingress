@@ -1,5 +1,8 @@
 # Ingress V1 Support
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 This document describes AGIC's implementation of specific Ingress resource fields and features.
 As the Ingress specification has evolved between v1beta1 and v1, any differences between versions are highlighted to ensure clarity for AGIC users.
 

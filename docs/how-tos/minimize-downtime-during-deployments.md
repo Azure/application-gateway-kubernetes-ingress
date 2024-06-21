@@ -1,5 +1,8 @@
 # Minimizing Downtime During Deployments
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 ## Purpose
 This document outlines a Kubernetes and Ingress controller configuration, which when incorporated with proper Kubernetes rolling updates deployment could achieve a near-zero-downtime deployments.
 

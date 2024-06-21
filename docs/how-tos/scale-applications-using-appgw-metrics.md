@@ -1,5 +1,8 @@
 # Scale your Applications using Application Gateway Metrics (Beta)
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 As incoming traffic increases, it becomes crucial to scale up your applications based on the demand.
 
 In the following tutorial, we explain how you can use Application Gateway's `AvgRequestCountPerHealthyHost` metric to scale up your application. `AvgRequestCountPerHealthyHost` is measure of average request that are sent to a specific backend pool and backend http setting combination.
