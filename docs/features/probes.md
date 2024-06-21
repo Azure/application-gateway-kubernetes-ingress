@@ -1,4 +1,10 @@
 ## Adding Health Probes to your service
+
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
+    Details on custom health probes in Application Gateway for Containers [may be found here](https://learn.microsoft.com/azure/application-gateway/for-containers/custom-health-probe).
+
 By default, Ingress controller will provision an HTTP GET probe for the exposed pods.
 The probe properties can be customized by adding a [Readiness or Liveness Probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/) to your `deployment`/`pod` spec.
 

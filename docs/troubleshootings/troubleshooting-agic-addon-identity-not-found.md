@@ -1,5 +1,8 @@
 ## Troubleshooting: AGIC addon, identity not found
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 ### Illustration
 AGIC fails to start due to "Identity not found" even though the User Managed Identity is assigned to the AKS nodes and has the right permissions.
 

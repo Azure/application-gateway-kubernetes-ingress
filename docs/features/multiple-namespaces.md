@@ -1,5 +1,8 @@
 # Multiple Namespace Support
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 #### Motivation
 Kubernetes [Namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)
 make it possible for a Kubernetes cluster to be partitioned and allocated to

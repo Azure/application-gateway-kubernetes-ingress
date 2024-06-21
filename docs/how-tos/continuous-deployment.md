@@ -1,5 +1,8 @@
 # Continuous Deployment with AKS and AGIC using Azure Pipelines
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 To achieve an efficiently deployed and managed global infrastucture, it is important to setup workflows for continuous integration and deployment. `Azure Devops` is one of the options to achieve this goal.
 
 In following example, we setup a Azure Devops release pipeline to deploy an AKS cluster along with AGIC as ingress. This example is merely a scaffolding. You need to separately setup a build pipeline to install your application and ingress on the AKS cluster deployed as part of the release.

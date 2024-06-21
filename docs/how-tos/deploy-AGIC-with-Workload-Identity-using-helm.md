@@ -1,5 +1,8 @@
 # How to deploy AGIC via Helm using Workload Identity
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 This assumes you have an existing Application Gateway. If not, you can create it with command:
 
 ```bash

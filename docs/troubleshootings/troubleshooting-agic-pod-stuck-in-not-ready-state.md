@@ -1,7 +1,12 @@
 ## Troubleshooting: AGIC pod stuck in not ready state
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 ### Illustration
+
 If AGIC pod is stuck in ready state, you must be seeing the following:
+
 ```
 $ kubectl get pods
 

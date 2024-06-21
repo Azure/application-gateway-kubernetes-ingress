@@ -1,5 +1,8 @@
 # How to setup networking between Application Gateway and AKS
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 When you are using Application Gateway with AKS for L7, you need to make sure that you have setup network connectivity correctly between the gateway and the cluster. Otherwise, you might receive 502s when reaching your site.
 
 There are two major things to consider when setting up network connectivity between Application Gateway and AKS
