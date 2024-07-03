@@ -1,4 +1,8 @@
 # Custom Ingress Class
+
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 > **Minimum version:** 1.3.0
 
 Custom ingress class allows you to customize the ingress class selector that AGIC will use when filtering the ingress manifests. AGIC uses `azure/application-gateway` as default ingress class. This  will allow you to target multiple AGICs on a single namespace as each AGIC can now use it's own ingress class.

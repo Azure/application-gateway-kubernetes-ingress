@@ -1,5 +1,8 @@
 # Automate DNS updates
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 When a hostname is specified in the Kubernetes Ingress resource's rules, it can be used to automatically create DNS records for the given domain and App Gateway's IP address.
 To achieve this the [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) Kubernetes app is required. ExternalDNS in installable via a [Helm chart](https://github.com/kubernetes-incubator/external-dns). The [following document](https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/azure.md) provides a tutorial on setting up ExternalDNS with an Azure DNS.
 

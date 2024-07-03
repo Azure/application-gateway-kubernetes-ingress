@@ -1,5 +1,8 @@
 # Helm Values Configuration Options
 
+.. note::
+    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 ## Available options
 
 | Field | Default | Description |
