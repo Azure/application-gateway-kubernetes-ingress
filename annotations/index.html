@@ -252,6 +252,10 @@
             <div class="section">
               
                 <h1 id="annotations">Annotations</h1>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<pre><code>A list of corresponding translations from AGIC to Application Gateway for Containers may be found [here](https://learn.microsoft.com/azure/application-gateway/for-containers/migrate-from-agic-to-agc).
+</code></pre>
 <h2 id="introductions">Introductions</h2>
 <p>The Kubernetes Ingress resource can be annotated with arbitrary key/value pairs. AGIC relies on annotations to program Application Gateway features, which are not configurable via the Ingress YAML. Ingress annotations are applied to all HTTP setting, backend pools and listeners derived from an ingress resource.</p>
 <h2 id="list-of-supported-annotations">List of supported annotations</h2>

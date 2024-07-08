@@ -212,6 +212,8 @@
             <div class="section">
               
                 <h2 id="troubleshooting-agic-v120-rc1-and-below-fails-with-a-breaking-change-introduced-in-aad-pod-identity-v16">Troubleshooting: AGIC v1.2.0-rc1 and below fails with a breaking change introduced in AAD Pod Identity v1.6</h2>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <h3 id="overview">Overview</h3>
 <p>If you're using AGIC with version &lt; v1.2.0-rc2 and AAD Pod Identity with version &gt;= v1.6.0, an error as shown below will be raised due to a breaking change. AAD Pod Identity introduced a <a href="https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change">breaking change</a> after v1.5.5 due to CRD fields being case sensitive. The error is caused by AAD Pod Identity fields not matching what AGIC uses; more details of the mismatch under <a href="#analysis-of-the-issue">analysis of the issue</a>. AAD Pod Identity v1.5 and lower have known issues with AKS' most recent base images, and therefore AKS has asked customers to upgrade to AAD Pod Identity v1.6 or higher. </p>
 <p><strong><em>AGIC Pod Logs</em></strong>

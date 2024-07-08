@@ -218,6 +218,8 @@
             <div class="section">
               
                 <h1 id="how-to-deploy-agic-via-helm-using-workload-identity">How to deploy AGIC via Helm using Workload Identity</h1>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <p>This assumes you have an existing Application Gateway. If not, you can create it with command:</p>
 <p><code>bash
 az network application-gateway create -g myResourceGroup -n myApplicationGateway --sku Standard_v2 --public-ip-address myPublicIP --vnet-name myVnet --subnet mySubnet --priority 100</code></p>

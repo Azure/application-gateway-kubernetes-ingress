@@ -204,12 +204,16 @@
             <div class="section">
               
                 <h1 id="tutorial-setting-up-e2e-ssl">Tutorial: Setting up E2E SSL</h1>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <p>In this this tutorial, we will learn how to setup E2E SSL with AGIC on Application Gateway.</p>
-<p>We will
-1. Generate the frontend and the backend certificates
-1. Deploy a simple application with HTTPS
-1. Upload the backend certificate's root certificate to Application Gateway
-1. Setup ingress for E2E</p>
+<p>We will</p>
+<ol>
+<li>Generate the frontend and the backend certificates</li>
+<li>Deploy a simple application with HTTPS</li>
+<li>Upload the backend certificate's root certificate to Application Gateway</li>
+<li>Setup ingress for E2E</li>
+</ol>
 <blockquote>
 <p><strong>Note: Following tutorial makes use of test certificate generated using OpenSSL. These certificates are only for illustration and should be used in testing only.</strong></p>
 </blockquote>
@@ -217,29 +221,29 @@
 <p>Let's start by first generating the certificates that we will be using for the frontend and backend SSL.</p>
 <ol>
 <li>
-<p>First, we will generate the frontend certificate that will be presented to the clients connecting to the Application Gateway. This will have subject name <code>CN=frontend</code>.
-    <code>bash
-    openssl ecparam -out frontend.key -name prime256v1 -genkey
-    openssl req -new -sha256 -key frontend.key -out frontend.csr -subj "/CN=frontend"
-    openssl x509 -req -sha256 -days 365 -in frontend.csr -signkey frontend.key -out frontend.crt</code></p>
+<p>First, we will generate the frontend certificate that will be presented to the clients connecting to the Application Gateway. This will have subject name <code>CN=frontend</code>.</p>
+<p><code>bash
+openssl ecparam -out frontend.key -name prime256v1 -genkey
+openssl req -new -sha256 -key frontend.key -out frontend.csr -subj "/CN=frontend"
+openssl x509 -req -sha256 -days 365 -in frontend.csr -signkey frontend.key -out frontend.crt</code></p>
 <blockquote>
 <p>Note: You can also use a <a href="../../features/appgw-ssl-certificate/">certificate present on the Key Vault</a> on Application Gateway for frontend SSL.</p>
 </blockquote>
 </li>
 <li>
-<p>Now, we will generate the backend certificate that will be presented by the backends to the Application Gateway. This will have subject name <code>CN=backend</code>
-    <code>bash
-    openssl ecparam -out backend.key -name prime256v1 -genkey
-    openssl req -new -sha256 -key backend.key -out backend.csr -subj "/CN=backend"
-    openssl x509 -req -sha256 -days 365 -in backend.csr -signkey backend.key -out backend.crt</code></p>
+<p>Now, we will generate the backend certificate that will be presented by the backends to the Application Gateway. This will have subject name <code>CN=backend</code></p>
+<p><code>bash
+openssl ecparam -out backend.key -name prime256v1 -genkey
+openssl req -new -sha256 -key backend.key -out backend.csr -subj "/CN=backend"
+openssl x509 -req -sha256 -days 365 -in backend.csr -signkey backend.key -out backend.crt</code></p>
 </li>
 <li>
-<p>Finally, we will install the above certificates on to our kubernetes cluster
-    <code>bash
-    kubectl create secret tls frontend-tls --key="frontend.key" --cert="frontend.crt"
-    kubectl create secret tls backend-tls --key="backend.key" --cert="backend.crt"</code></p>
-<p>Here is output after listing the secrets.
-```bash</p>
+<p>Finally, we will install the above certificates on to our kubernetes cluster</p>
+<p><code>bash
+kubectl create secret tls frontend-tls --key="frontend.key" --cert="frontend.crt"
+kubectl create secret tls backend-tls --key="backend.key" --cert="backend.crt"</code></p>
+<p>Here is output after listing the secrets.</p>
+<p>```bash</p>
 <blockquote>
 <p>kubectl get secrets
 NAME                  TYPE                                  DATA   AGE

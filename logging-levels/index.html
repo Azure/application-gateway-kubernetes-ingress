@@ -192,6 +192,8 @@
             <div class="section">
               
                 <h1 id="logging-levels">Logging Levels</h1>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <p>AGIC has 3 logging levels. Level 1 is the default one and it shows minimal number of log lines.
 Level 5, on the other hand, would display all logs, including sanitized contents of config applied
 to ARM.</p>
@@ -223,9 +225,11 @@ repository we are utilizing 3 of these, with similar semantics:</p>
 <p>The verbosity levels are adjustable via the <code>verbosityLevel</code> variable in the
 <a href="../examples/sample-helm-config.yaml">helm-config.yaml</a> file. Increase verbosity level to <code>5</code> to get
 the JSON config dispatched to
-<a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a>:
-  - add <code>verbosityLevel: 5</code> on a line by itself in <a href="../examples/sample-helm-config.yaml">helm-config.yaml</a> and re-install
-  - get logs with <code>kubectl logs &lt;pod-name&gt; -n &lt;namespace&gt;</code></p>
+<a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a>:</p>
+<ul>
+<li>add <code>verbosityLevel: 5</code> on a line by itself in <a href="../examples/sample-helm-config.yaml">helm-config.yaml</a> and re-install</li>
+<li>get logs with <code>kubectl logs &lt;pod-name&gt; -n &lt;namespace&gt;</code></li>
+</ul>
               
             </div>
           </div>

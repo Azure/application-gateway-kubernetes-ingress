@@ -210,9 +210,11 @@
             <div class="section">
               
                 <h2 id="troubleshooting-agic-pod-stuck-in-not-ready-state">Troubleshooting: AGIC pod stuck in not ready state</h2>
+<p>.. note::
+    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <h3 id="illustration">Illustration</h3>
-<p>If AGIC pod is stuck in ready state, you must be seeing the following:
-```
+<p>If AGIC pod is stuck in ready state, you must be seeing the following:</p>
+<p>```
 $ kubectl get pods</p>
 <p>NAME                                   READY   STATUS    RESTARTS   AGE
 <AGIC-POD-NAME>                        0/1     Running   0          19s
