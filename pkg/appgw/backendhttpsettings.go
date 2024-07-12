@@ -171,7 +171,7 @@ func (c *appGwConfigBuilder) resolveBackendPort(backendID backendIdentifier) (Po
 
 		// if target port is port name, then resolve the port number for the port name
 		// k8s matches service port name against endpoints port name retrieved by passing backendID service key to endpoint api.
-		klog.V(5).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendID.Ingress.Name)
+		klog.V(3).Infof("resolving port name '%s' for service '%s' and service port '%s' for Ingress '%s'", servicePort.Name, backendID.serviceKey(), serviceBackendPortToStr(backendID.Backend.Service.Port), backendID.Ingress.Name)
 		targetPortsResolved := c.resolvePortName(servicePort.Name, &backendID)
 		for targetPort := range targetPortsResolved {
 			pair := serviceBackendPortPair{
@@ -315,7 +315,7 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 			certs = append(certs, *resourceRef(trustCertID))
 		}
 		httpSettings.TrustedRootCertificates = &certs
-		klog.V(5).Infof("Found trusted root certificate(s): %s from ingress: %s/%s", certificateNames, backendID.Ingress.Namespace, backendID.Ingress.Name)
+		klog.V(3).Infof("Found trusted root certificate(s): %s from ingress: %s/%s", certificateNames, backendID.Ingress.Namespace, backendID.Ingress.Name)
 
 	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())

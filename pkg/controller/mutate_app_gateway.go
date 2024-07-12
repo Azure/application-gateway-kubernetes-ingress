@@ -67,7 +67,7 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.ApplicationGateway, cbCtx *appgw.ConfigBuilderContext) error {
 	var err error
 	existingConfigJSON, _ := dumpSanitizedJSON(appGw, false, to.StringPtr("-- Existing App Gwy Config --"))
-	klog.V(5).Info("Existing App Gateway config: ", string(existingConfigJSON))
+	klog.V(3).Info("Existing App Gateway config: ", string(existingConfigJSON))
 
 	// Prepare k8s resources Phase //
 	// --------------------------- //
@@ -106,7 +106,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 		for _, gateway := range cbCtx.IstioGateways {
 			gatewaysInfo = append(gatewaysInfo, fmt.Sprintf("%s/%s", gateway.Namespace, gateway.Name))
 		}
-		klog.V(5).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
+		klog.V(3).Infof("Istio Gateways: %+v", strings.Join(gatewaysInfo, ","))
 	}
 
 	// Generate App Gateway Phase //
@@ -160,7 +160,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// ---------------- //
 
 	configJSON, _ := dumpSanitizedJSON(appGw, cbCtx.EnvVariables.EnableSaveConfigToFile, nil)
-	klog.V(5).Infof("Generated config:\n%s", string(configJSON))
+	klog.V(3).Infof("Generated config:\n%s", string(configJSON))
 
 	// Initiate deployment
 	klog.V(3).Info("BEGIN AppGateway deployment")

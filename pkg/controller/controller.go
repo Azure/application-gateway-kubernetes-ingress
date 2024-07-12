@@ -155,7 +155,7 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 }
 
 func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, reconcilePeriodSecondsStr string) {
-	klog.V(5).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
+	klog.V(3).Info("Reconciler Ticker task started with period: ", reconcilePeriodSecondsStr)
 
 	reconcilePeriodSeconds, _ := strconv.Atoi(reconcilePeriodSecondsStr)
 	reconcileTicker := time.NewTicker(time.Duration(reconcilePeriodSeconds) * time.Second)

@@ -25,10 +25,10 @@ func (er ExistingResources) GetBlacklistedPools() ([]n.ApplicationGatewayBackend
 	for _, pool := range er.BackendPools {
 		if _, isBlacklisted := blacklistedPoolsSet[backendPoolName(*pool.Name)]; isBlacklisted {
 			blacklistedPools = append(blacklistedPools, pool)
-			klog.V(5).Infof("[brownfield] Backend Address Pool %s is blacklisted", *pool.Name)
+			klog.V(3).Infof("[brownfield] Backend Address Pool %s is blacklisted", *pool.Name)
 			continue
 		}
-		klog.V(5).Infof("[brownfield] Backend Address Pool %s is NOT blacklisted", *pool.Name)
+		klog.V(3).Infof("[brownfield] Backend Address Pool %s is NOT blacklisted", *pool.Name)
 		nonBlacklistedPools = append(nonBlacklistedPools, pool)
 	}
 	return blacklistedPools, nonBlacklistedPools

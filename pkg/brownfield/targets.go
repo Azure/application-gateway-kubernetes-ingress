@@ -42,11 +42,11 @@ func (t Target) IsBlacklisted(blacklist TargetBlacklist) bool {
 		// whether given target is in the blacklist. Ideally this would be URL Path set overlap operation,
 		// which we deliberately leave for a later time.
 		if hostIsBlacklisted && pathIsBlacklisted {
-			klog.V(5).Infof("[brownfield] Target %s is blacklisted", jsonTarget)
+			klog.V(3).Infof("[brownfield] Target %s is blacklisted", jsonTarget)
 			return true // Found it
 		}
 	}
-	klog.V(5).Infof("[brownfield] Target %s is not blacklisted", jsonTarget)
+	klog.V(3).Infof("[brownfield] Target %s is not blacklisted", jsonTarget)
 	return false // Did not find it
 }
 
