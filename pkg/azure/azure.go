@@ -84,7 +84,7 @@ func ConvertToClusterResourceGroup(subscriptionID SubscriptionID, resourceGroup 
 			controllererrors.ErrorMissingResourceGroup,
 			"infrastructure resource group name: %s is expected to be of format MC_ResourceGroup_ResourceName_Location", string(resourceGroup),
 		)
-		klog.V(5).Info(err.Error())
+		klog.V(3).Info(err.Error())
 		return "", err
 	}
 

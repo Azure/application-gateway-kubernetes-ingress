@@ -22,6 +22,21 @@ const (
 	PeriodicReconcile
 )
 
+func (e EventType) String() string {
+	switch e {
+	case Create:
+		return "Create"
+	case Update:
+		return "Update"
+	case Delete:
+		return "Delete"
+	case PeriodicReconcile:
+		return "PeriodicReconcile"
+	default:
+		return "Unknown"
+	}
+}
+
 // Event is the combined type and actual object we received from Kubernetes
 type Event struct {
 	Type  EventType

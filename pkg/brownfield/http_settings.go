@@ -26,10 +26,10 @@ func (er ExistingResources) GetBlacklistedHTTPSettings() ([]n.ApplicationGateway
 	for _, setting := range er.HTTPSettings {
 		if _, isBlacklisted := blacklistedSettingsSet[settingName(*setting.Name)]; isBlacklisted {
 			blacklisted = append(blacklisted, setting)
-			klog.V(5).Infof("HTTP Setting %s is blacklisted", *setting.Name)
+			klog.V(3).Infof("HTTP Setting %s is blacklisted", *setting.Name)
 			continue
 		}
-		klog.V(5).Infof("HTTP Setting %s is NOT blacklisted", *setting.Name)
+		klog.V(3).Infof("HTTP Setting %s is NOT blacklisted", *setting.Name)
 		nonBlacklisted = append(nonBlacklisted, setting)
 	}
 	return blacklisted, nonBlacklisted

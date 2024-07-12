@@ -25,10 +25,10 @@ func (er ExistingResources) GetBlacklistedRedirects() ([]n.ApplicationGatewayRed
 	for _, redirect := range er.Redirects {
 		if _, isBlacklisted := blacklisted[redirectName(*redirect.Name)]; isBlacklisted {
 			blacklistedRedirects = append(blacklistedRedirects, redirect)
-			klog.V(5).Infof("[brownfield] Redirect %s is blacklisted", *redirect.Name)
+			klog.V(3).Infof("[brownfield] Redirect %s is blacklisted", *redirect.Name)
 			continue
 		}
-		klog.V(5).Infof("[brownfield] Redirect %s is not blacklisted", *redirect.Name)
+		klog.V(3).Infof("[brownfield] Redirect %s is not blacklisted", *redirect.Name)
 		nonBlacklistedRedirects = append(nonBlacklistedRedirects, redirect)
 	}
 	return blacklistedRedirects, nonBlacklistedRedirects
