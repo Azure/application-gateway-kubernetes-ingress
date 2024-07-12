@@ -6,6 +6,7 @@
 package worker
 
 import (
+	"reflect"
 	"time"
 
 	"k8s.io/klog/v2"
@@ -44,10 +45,17 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				if reason != nil {
 					// This log statement could potentially generate a large amount of log lines and most could be
 					// innocuous - for instance: "endpoint default/aad-pod-identity-mic is not used by any Ingress"
-					klog.V(9).Infof("Skipping event. Reason: %s", *reason)
+					klog.V(3).Infof("Skipping event. Reason: %s", *reason)
 				}
 				continue
 			}
+
+			// get name, namespace and kind from event.Value
+			name := reflect.ValueOf(event.Value).Elem().FieldByName("Name").String()
+			namespace := reflect.ValueOf(event.Value).Elem().FieldByName("Namespace").String()
+			objectType := reflect.TypeOf(event.Value).Elem()
+
+			klog.V(3).Infof("Processing k8s event of type:%s object:%s/%s/%s", event.Type, objectType, namespace, name)
 
 			since := time.Since(lastUpdate)
 			if since < minTimeBetweenUpdates {

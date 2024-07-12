@@ -87,7 +87,6 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface, ingressClassControllerName string) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(klog.V(3).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()
