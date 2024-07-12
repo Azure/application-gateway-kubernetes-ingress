@@ -107,13 +107,13 @@ func (c *appGwConfigBuilder) getListenerConfigs(cbCtx *ConfigBuilderContext) map
 
 	if cbCtx.EnvVariables.AttachWAFPolicyToListener {
 		// logging to see if customer configures env.AttachWAFPolicyToListener or not
-		klog.V(5).Info("env.AttachWAFPolicyToListener is enabled")
+		klog.V(3).Info("env.AttachWAFPolicyToListener is enabled")
 	}
 
 	// TODO(draychev): Emit an error event if 2 namespaces define different TLS for the same domain!
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range cbCtx.IngressList {
-		klog.V(5).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
+		klog.V(3).Infof("Processing Rules for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig

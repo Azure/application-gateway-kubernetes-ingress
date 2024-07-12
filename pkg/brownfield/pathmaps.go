@@ -26,7 +26,7 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 		return nil, er.URLPathMaps
 	}
 	_, pathMapToTargets := er.getRuleToTargets()
-	klog.V(5).Infof("[brownfield] PathMap to Targets map: %+v", pathMapToTargets)
+	klog.V(3).Infof("[brownfield] PathMap to Targets map: %+v", pathMapToTargets)
 
 	// Figure out if the given BackendAddressPathMap is blacklisted. It will be if it has a host/path that
 	// has been referenced in a AzureIngressProhibitedTarget CRD (even if it has some other paths that are not)
@@ -34,11 +34,11 @@ func (er ExistingResources) GetBlacklistedPathMaps() ([]n.ApplicationGatewayURLP
 		targetsForPathMap := pathMapToTargets[urlPathMapName(*pathMap.Name)]
 		for _, target := range targetsForPathMap {
 			if target.IsBlacklisted(blacklist) {
-				klog.V(5).Infof("[brownfield] Routing PathMap %s is blacklisted", *pathMap.Name)
+				klog.V(3).Infof("[brownfield] Routing PathMap %s is blacklisted", *pathMap.Name)
 				return true
 			}
 		}
-		klog.V(5).Infof("[brownfield] Routing PathMap %s is NOT blacklisted", *pathMap.Name)
+		klog.V(3).Infof("[brownfield] Routing PathMap %s is NOT blacklisted", *pathMap.Name)
 		return false
 	}
 
@@ -60,10 +60,10 @@ func MergePathMaps(pathMapBuckets ...[]n.ApplicationGatewayURLPathMap) []n.Appli
 	for _, bucket := range pathMapBuckets {
 		for _, pathMap := range bucket {
 			if existingPathMap, exists := uniq[urlPathMapName(*pathMap.Name)]; exists {
-				klog.V(5).Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
+				klog.V(3).Infof("[brownfield] Merging urlpath %s in existing blacklist and AGIC list", *existingPathMap.Name)
 				uniq[urlPathMapName(*pathMap.Name)].PathRules = mergePathRules(existingPathMap.PathRules, pathMap.PathRules)
 			} else {
-				klog.V(5).Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
+				klog.V(3).Infof("[brownfield] Adding urlpath %s to the uniq map", *pathMap.Name)
 				uniq[urlPathMapName(*pathMap.Name)] = pathMap
 			}
 		}
@@ -119,7 +119,7 @@ func mergePathRules(pathRulesBucket ...*[]n.ApplicationGatewayPathRule) *[]n.App
 	}
 	var merged []n.ApplicationGatewayPathRule
 	for _, pathRule := range uniq {
-		klog.V(5).Infof("[brownfield] Appending %s with paths %v", *pathRule.Name, pathRule.Paths)
+		klog.V(3).Infof("[brownfield] Appending %s with paths %v", *pathRule.Name, pathRule.Paths)
 		merged = append(merged, pathRule)
 	}
 	return &merged
@@ -142,7 +142,7 @@ func deletePathMap(pathMapsPtr *[]n.ApplicationGatewayURLPathMap, resourceID *st
 	deleteIdx := -1
 	for idx, pathMap := range pathMaps {
 		if *pathMap.ID == *resourceID {
-			klog.V(5).Infof("[brownfield] Deleting %s", *resourceID)
+			klog.V(3).Infof("[brownfield] Deleting %s", *resourceID)
 			deleteIdx = idx
 		}
 	}

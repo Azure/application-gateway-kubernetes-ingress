@@ -29,11 +29,11 @@ func (er ExistingResources) GetBlacklistedListeners() ([]n.ApplicationGatewayHTT
 	for _, listener := range er.Listeners {
 		listenerNm := listenerName(*listener.Name)
 		if _, exists := blacklistedListenersSet[listenerNm]; exists {
-			klog.V(5).Infof("[brownfield] Listener %s is blacklisted", listenerNm)
+			klog.V(3).Infof("[brownfield] Listener %s is blacklisted", listenerNm)
 			blacklisted = append(blacklisted, listener)
 			continue
 		}
-		klog.V(5).Infof("[brownfield] Listener %s is not blacklisted", listenerNm)
+		klog.V(3).Infof("[brownfield] Listener %s is not blacklisted", listenerNm)
 		nonBlacklisted = append(nonBlacklisted, listener)
 	}
 	return blacklisted, nonBlacklisted
