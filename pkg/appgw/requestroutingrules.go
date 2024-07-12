@@ -118,12 +118,12 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 			pathMap = append(pathMap, *urlPathMap)
 		}
 		if rule.RuleType == n.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting {
-			klog.V(5).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
+			klog.V(3).Infof("Bound path-based rule: %s to listener: %s (%s, %d) and url path map %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.URLPathMap.ID))
 		} else {
 			if rule.RedirectConfiguration != nil {
-				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
+				klog.V(3).Infof("Bound basic rule: %s to listener: %s (%s, %d) and redirect configuration %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.RedirectConfiguration.ID))
 			} else {
-				klog.V(5).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
+				klog.V(3).Infof("Bound basic rule: %s to listener: %s (%s, %d) for backend pool %s and backend http settings %s", *rule.Name, *httpListener.Name, listenerID.HostNames, listenerID.FrontendPort, utils.GetLastChunkOfSlashed(*rule.BackendAddressPool.ID), utils.GetLastChunkOfSlashed(*rule.BackendHTTPSettings.ID))
 			}
 		}
 
@@ -273,7 +273,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 		redirectsSet := *c.groupRedirectsByID(c.getRedirectConfigurations(cbCtx))
 
 		if _, exists := redirectsSet[*redirectRef.ID]; exists {
-			klog.V(5).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
+			klog.V(3).Infof("Attached default redirection %s to rule %+v", *redirectRef.ID, *rule)
 			return nil, nil, redirectRef.ID, nil
 		}
 		klog.Errorf("Will not attach default redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
@@ -350,7 +350,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
+			klog.V(3).Infof("Attach Firewall Policy %s to Path Rule %s", wafPolicy, paths)
 		}
 
 		// check both annotations for rewrite-rule-set, use appropriate one, if both are present - throw error
@@ -366,7 +366,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSet, paths)
+			klog.V(3).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSet, paths)
 
 		} else if err2 == nil && rewriteRuleSetCR != "" {
 
@@ -376,7 +376,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 			if pathRule.Paths != nil {
 				paths = strings.Join(*pathRule.Paths, ",")
 			}
-			klog.V(5).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCR, paths)
+			klog.V(3).Infof("Attach Rewrite Rule Set %s to Path Rule %s", rewriteRuleSetCR, paths)
 
 		}
 
@@ -392,7 +392,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 				// This Path Rule has a SSL Redirect!
 				// Add it and move on to the next Path Rule; No need to attach Backend Pools and Settings
 				pathRule.RedirectConfiguration = redirectRef
-				klog.V(5).Infof("Attached redirection %s to path rule: %s", *redirectRef.ID, *pathRule.Name)
+				klog.V(3).Infof("Attached redirection %s to path rule: %s", *redirectRef.ID, *pathRule.Name)
 				pathRules = append(pathRules, pathRule)
 				continue
 			} else {
@@ -409,7 +409,7 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 
 		pathRule.BackendAddressPool = &n.SubResource{ID: backendPool.ID}
 		pathRule.BackendHTTPSettings = &n.SubResource{ID: backendHTTPSettings.ID}
-		klog.V(5).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
+		klog.V(3).Infof("Attached pool %s and http setting %s to path rule: %s", *backendPool.Name, *backendHTTPSettings.Name, *pathRule.Name)
 
 		pathRules = append(pathRules, pathRule)
 	}
@@ -471,11 +471,11 @@ func (c *appGwConfigBuilder) getListenerPriorities(cbCtx *ConfigBuilderContext) 
 	priorityExists := make(map[int32]bool)
 	allPriorities := make(map[listenerIdentifier]*int32)
 	for _, ingress := range cbCtx.IngressList {
-		klog.V(5).Infof("Getting Request Routing Rules Priority for Ingress: %s/%s", ingress.Namespace, ingress.Name)
+		klog.V(3).Infof("Getting Request Routing Rules Priority for Ingress: %s/%s", ingress.Namespace, ingress.Name)
 		azListenerConfigs := c.getListenersFromIngress(ingress, cbCtx.EnvVariables)
 		for listenerID := range azListenerConfigs {
 			if priority, err := annotations.GetRequestRoutingRulePriority(ingress); err == nil {
-				klog.V(5).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: %d", ingress.Namespace, ingress.Name, *priority)
+				klog.V(3).Infof("Request Routing Rules Priority for Ingress: %s/%s is Priority: %d", ingress.Namespace, ingress.Name, *priority)
 				prioritySet = true
 				if _, value := priorityExists[*priority]; !value {
 					priorityExists[*priority] = true

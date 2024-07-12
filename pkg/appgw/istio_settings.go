@@ -36,7 +36,7 @@ func istioMatchDestinationIds(cbCtx *ConfigBuilderContext) ([]istioMatchIdentifi
 			}
 			for _, match := range rule.Match {
 				if match.URI == nil {
-					klog.V(5).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
+					klog.V(3).Infof("Skipped match request, no URI field. Other forms of match requests are not supported.")
 					continue
 				}
 				matchID := generateIstioMatchID(virtualService, &rule, &match, destinations)
@@ -190,7 +190,7 @@ func (c *appGwConfigBuilder) generateIstioHTTPSettings(destinationID istioDestin
 		// TODO(delqn): Implement port lookup by name
 	}
 	httpSettingsName := generateHTTPSettingsName(destinationID.serviceFullName(), backendServicePort, port, destinationID.istioVirtualServiceIdentifier.Name)
-	klog.V(5).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+	klog.V(3).Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
 	httpSettings := n.ApplicationGatewayBackendHTTPSettings{
 		Etag: to.StringPtr("*"),
 		Name: &httpSettingsName,

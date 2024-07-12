@@ -33,7 +33,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	}
 
 	defaultPool := defaultBackendAddressPool(c.appGwIdentifier)
-	klog.V(5).Infof("Created default backend pool %s", *defaultPool.Name)
+	klog.V(3).Infof("Created default backend pool %s", *defaultPool.Name)
 	managedPoolsByName := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: &defaultPool,
 	}
@@ -44,7 +44,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 	for backendID, serviceBackendPair := range serviceBackendPairMap {
 		if pool := c.getBackendAddressPool(backendID, serviceBackendPair, managedPoolsByName); pool != nil {
 			managedPoolsByName[*pool.Name] = pool
-			klog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
+			klog.V(3).Infof("Created backend pool %s for service %s", *pool.Name, backendID.serviceKey())
 		}
 	}
 
@@ -53,7 +53,7 @@ func (c appGwConfigBuilder) getPools(cbCtx *ConfigBuilderContext) []n.Applicatio
 		for destinationID, serviceBackendPair := range istioServiceBackendPairMap {
 			if pool := c.getIstioBackendAddressPool(destinationID, serviceBackendPair, managedPoolsByName); pool != nil {
 				managedPoolsByName[*pool.Name] = pool
-				klog.V(5).Infof("Created backend pool %s for service %s", *pool.Name, destinationID.serviceKey())
+				klog.V(3).Infof("Created backend pool %s for service %s", *pool.Name, destinationID.serviceKey())
 			}
 		}
 	}

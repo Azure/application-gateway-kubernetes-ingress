@@ -568,7 +568,7 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 		prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 	}
 
-	klog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+	klog.V(3).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 
 	return targets
 }
@@ -651,7 +651,7 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 	for _, virtualService := range virtualServices {
 		virtualServiceLogging = append(virtualServiceLogging, fmt.Sprintf("%s/%s", virtualService.Namespace, virtualService.Name))
 	}
-	klog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
+	klog.V(3).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
 	return virtualServices
 }
 

@@ -78,13 +78,13 @@ func (c *appGwConfigBuilder) processIngressRuleWithTLS(rule *networking.IngressR
 	appgwCertName, _ := annotations.GetAppGwSslCertificate(ingress)
 	if len(appgwCertName) > 0 {
 		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
-		klog.V(5).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
+		klog.V(3).Infof("Found annotation appgw-ssl-certificate: %s in ingress %s/%s", appgwCertName, ingress.Namespace, ingress.Name)
 	}
 
 	appgwProfileName, _ := annotations.GetAppGwSslProfile(ingress)
 	if len(appgwProfileName) > 0 {
 		// logging to see the namespace of the ingress annotated with appgw-ssl-certificate
-		klog.V(5).Infof("Found annotation appgw-ssl-profile: %s in ingress %s/%s", appgwProfileName, ingress.Namespace, ingress.Name)
+		klog.V(3).Infof("Found annotation appgw-ssl-profile: %s in ingress %s/%s", appgwProfileName, ingress.Namespace, ingress.Name)
 	}
 
 	cert, secID := c.getCertificate(ingress, rule.Host, ingressHostNamesecretIDMap)
@@ -152,13 +152,13 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 			rule := &ingress.Spec.Rules[ruleIdx]
 			if rule.HTTP == nil {
 				// skip no http rule
-				klog.V(5).Infof("[%s] Skip rule #%d for host '%s' - it has no HTTP rules.", ingress.Namespace, ruleIdx+1, rule.Host)
+				klog.V(3).Infof("[%s] Skip rule #%d for host '%s' - it has no HTTP rules.", ingress.Namespace, ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
 				backendID := generateBackendID(ingress, rule, path, &path.Backend)
-				klog.V(5).Info("Found backend:", backendID.serviceKey())
+				klog.V(3).Info("Found backend:", backendID.serviceKey())
 				backendIDs[backendID] = nil
 			}
 		}
