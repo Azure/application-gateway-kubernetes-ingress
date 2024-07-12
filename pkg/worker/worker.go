@@ -50,12 +50,14 @@ func (w *Worker) Run(work chan events.Event, stopChannel chan struct{}) {
 				continue
 			}
 
-			// get name, namespace and kind from event.Value
-			name := reflect.ValueOf(event.Value).Elem().FieldByName("Name").String()
-			namespace := reflect.ValueOf(event.Value).Elem().FieldByName("Namespace").String()
-			objectType := reflect.TypeOf(event.Value).Elem()
+			if event.Value != nil {
+				// get name, namespace and kind from event.Value
+				name := reflect.ValueOf(event.Value).Elem().FieldByName("Name").String()
+				namespace := reflect.ValueOf(event.Value).Elem().FieldByName("Namespace").String()
+				objectType := reflect.TypeOf(event.Value).Elem()
 
-			klog.V(3).Infof("Processing k8s event of type:%s object:%s/%s/%s", event.Type, objectType, namespace, name)
+				klog.V(3).Infof("Processing k8s event of type:%s object:%s/%s/%s", event.Type, objectType, namespace, name)
+			}
 
 			since := time.Since(lastUpdate)
 			if since < minTimeBetweenUpdates {
