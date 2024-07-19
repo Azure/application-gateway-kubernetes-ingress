@@ -14,7 +14,6 @@ func FromMultiClusterService(gs *multiclusterservice.MultiClusterService) (*v1.S
 	v1Serv := &v1.Service{}
 	//copy over metadata
 	v1Serv.ObjectMeta = gs.ObjectMeta
-	v1Serv.ClusterName = gs.ClusterName
 	v1Serv.Labels = gs.Labels
 	v1Serv.Annotations = gs.Annotations
 
