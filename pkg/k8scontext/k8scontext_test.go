@@ -415,7 +415,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			err := ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
-			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(networking.IngressLoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
 			}))
@@ -430,7 +430,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			err = ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
-			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(networking.IngressLoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
 			}))

@@ -80,7 +80,7 @@ func Convert_v1beta1_Ingress_To_networking_Ingress(in *v1beta1.Ingress, out *net
 	return autoConvert_v1beta1_Ingress_To_networking_Ingress(in, out, s)
 }
 
-func autoConvert_v1beta1_IngressBackend_To_networking_IngressBackend(in *v1beta1.IngressBackend, out *networking.IngressBackend, s conversion.Scope) error {
+func autoConvert_v1beta1_IngressBackend_To_networking_IngressBackend(in *v1beta1.IngressBackend, out *networking.IngressBackend, _ conversion.Scope) error {
 	// WARNING: in.ServiceName requires manual conversion: does not exist in peer-type
 	// WARNING: in.ServicePort requires manual conversion: does not exist in peer-type
 	out.Resource = (*core.TypedLocalObjectReference)(unsafe.Pointer(in.Resource))
@@ -185,18 +185,18 @@ func autoConvert_v1beta1_IngressSpec_To_networking_IngressSpec(in *v1beta1.Ingre
 	return nil
 }
 
-func autoConvert_v1beta1_IngressStatus_To_networking_IngressStatus(in *v1beta1.IngressStatus, out *networking.IngressStatus, s conversion.Scope) error {
+func autoConvert_v1beta1_IngressStatus_To_networking_IngressStatus(in *v1beta1.IngressStatus, out *networking.IngressStatus, _ conversion.Scope) error {
 	for i := range in.LoadBalancer.Ingress {
 		ingress :=  networking.IngressLoadBalancerIngress{
 			IP:       in.LoadBalancer.Ingress[i].IP,
 			Hostname: in.LoadBalancer.Ingress[i].Hostname,
 		}
 
-		for _, lb := range out.LoadBalancer.Ingress[i].Ports {
+		for _, port := range in.LoadBalancer.Ingress[i].Ports {
 			ingress.Ports = append(ingress.Ports, networking.IngressPortStatus{
-				Error:    lb.Error,
-				Protocol: lb.Protocol,
-				Port:     lb.Port,
+				Error:    port.Error,
+				Protocol: port.Protocol,
+				Port:     port.Port,
 			})
 		}
 
@@ -211,7 +211,7 @@ func Convert_v1beta1_IngressStatus_To_networking_IngressStatus(in *v1beta1.Ingre
 	return autoConvert_v1beta1_IngressStatus_To_networking_IngressStatus(in, out, s)
 }
 
-func autoConvert_v1beta1_IngressTLS_To_networking_IngressTLS(in *v1beta1.IngressTLS, out *networking.IngressTLS, s conversion.Scope) error {
+func autoConvert_v1beta1_IngressTLS_To_networking_IngressTLS(in *v1beta1.IngressTLS, out *networking.IngressTLS, _ conversion.Scope) error {
 	out.Hosts = *(*[]string)(unsafe.Pointer(&in.Hosts))
 	out.SecretName = in.SecretName
 	return nil
