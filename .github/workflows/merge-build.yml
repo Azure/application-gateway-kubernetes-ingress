@@ -33,7 +33,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5.0.1
       with:
-        go-version: '1.19.2'
+        go-version: '1.22.5'
     - name: Go and Helm lint check
       run: make lint-all
     - name: Go vet
