@@ -441,7 +441,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 		TimeoutSeconds:   5,
 		FailureThreshold: 3,
 		PeriodSeconds:    20,
-		Handler: v1.Handler{
+		ProbeHandler: v1.ProbeHandler{
 			HTTPGet: &v1.HTTPGetAction{
 				Host: Host,
 				Path: HealthPath,
@@ -461,7 +461,7 @@ func NewHTTPSProbeFixture(containerName string) *v1.Probe {
 		TimeoutSeconds:   5,
 		FailureThreshold: 3,
 		PeriodSeconds:    20,
-		Handler: v1.Handler{
+		ProbeHandler: v1.ProbeHandler{
 			HTTPGet: &v1.HTTPGetAction{
 				Path: HealthPath,
 				Port: intstr.IntOrString{

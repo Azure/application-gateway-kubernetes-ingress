@@ -15,6 +15,7 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
@@ -750,9 +751,9 @@ func (c *Context) updateV1IngressStatus(ingressToUpdate networking.Ingress, newI
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []networking.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, networking.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}
@@ -792,9 +793,9 @@ func (c *Context) updateV1beta1IngressStatus(ingressToUpdate networking.Ingress,
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []extensionsv1beta1.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, extensionsv1beta1.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}
@@ -833,9 +834,9 @@ func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ing
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []networking.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, networking.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}
