@@ -8,11 +8,6 @@ ENV=${2:-"staging"}
 echo " - tagging with [$TAG]"
 TGZ_FILE=(ingress-azure-$TAG.tgz)
 
-if [ -f $TGZ_FILE ]; then
-  echo "File $TGZ_FILE already exists!"
-  exit 0
-fi
-
 OFFICIAL_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress"
 HELM_OFFICIAL_REPO_URL="https://appgwingress.blob.core.windows.net/ingress-azure-helm-package"
 STAGING_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress-staging"
@@ -47,5 +42,11 @@ else
   echo " - creating a new helm repo index"
   helm repo index . --url $HELM_REPO_URL
 fi
+
+# copy to storage account
+CONTAINER_NAME=$(cut -d'/' -f4 <<< $HELM_REPO_URL)
+echo " - uploading to container [$CONTAINER_NAME] in storage account [appgwingress]"
+az storage blob upload-batch --auth-mode login --account-name appgwingress --destination $CONTAINER_NAME --source . --pattern "ingress-azure-$TAG.tgz" --overwrite
+az storage blob upload-batch --auth-mode login --account-name appgwingress --destination $CONTAINER_NAME --source . --pattern  "index.yaml" --overwrite
 
 echo " - done!"
