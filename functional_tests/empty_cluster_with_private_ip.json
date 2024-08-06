@@ -16,11 +16,11 @@
                 "properties": {
                     "cookieBasedAffinity": "Disabled",
                     "pickHostNameFromBackendAddress": false,
-                    "port": 80,
+                    "port": 443,
                     "probe": {
-                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http"
+                        "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https"
                     },
-                    "protocol": "Http",
+                    "protocol": "Https",
                     "requestTimeout": 30
                 }
             }
@@ -71,8 +71,8 @@
         ],
         "probes": [
             {
-                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Http",
-                "name": "defaultprobe-Http",
+                "id": "/subscriptions/--subscription--/resourceGroups/--resource-group--/providers/Microsoft.Network/applicationGateways/--app-gw-name--/probes/defaultprobe-Https",
+                "name": "defaultprobe-Https",
                 "properties": {
                     "host": "localhost",
                     "interval": 30,
@@ -80,7 +80,7 @@
                     "minServers": 0,
                     "path": "/",
                     "pickHostNameFromBackendHttpSettings": false,
-                    "protocol": "Http",
+                    "protocol": "Https",
                     "timeout": 30,
                     "unhealthyThreshold": 3
                 }

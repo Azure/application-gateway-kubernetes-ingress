@@ -180,6 +180,10 @@ func defaultProbeName(protocol n.ApplicationGatewayProtocol) string {
 func defaultBackendHTTPSettings(appGWIdentifier Identifier, protocol n.ApplicationGatewayProtocol) n.ApplicationGatewayBackendHTTPSettings {
 	defHTTPSettingsName := DefaultBackendHTTPSettingsName
 	defHTTPSettingsPort := int32(80)
+	if protocol == n.ApplicationGatewayProtocolHTTPS {
+		defHTTPSettingsPort = int32(443)
+	}
+
 	return n.ApplicationGatewayBackendHTTPSettings{
 		Name: &defHTTPSettingsName,
 		ID:   to.StringPtr(appGWIdentifier.HTTPSettingsID(defHTTPSettingsName)),

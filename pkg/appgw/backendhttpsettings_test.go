@@ -19,6 +19,7 @@ import (
 	networking "k8s.io/api/networking/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
@@ -63,6 +64,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
+				EnvVariables: environment.EnvVariables{
+					SetDefaultHTTPSettingProbePortTo443: true,
+				},
 			}
 
 			// Action
@@ -72,8 +76,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTPS)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS), "default probe should have http")
 					continue
 				}
 
@@ -105,6 +109,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 				ServiceList:           []*v1.Service{service},
 				DefaultAddressPoolID:  to.StringPtr("xx"),
 				DefaultHTTPSettingsID: to.StringPtr("yy"),
+				EnvVariables: environment.EnvVariables{
+					SetDefaultHTTPSettingProbePortTo443: true,
+				},
 			}
 
 			// Action
@@ -114,8 +121,8 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
-					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTP), "default probe should have http")
+					Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS), "default backend %s should have %s", *setting.Name, n.ApplicationGatewayProtocolHTTP)
+					Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS), "default probe should have http")
 					continue
 				}
 
@@ -142,6 +149,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
+			EnvVariables: environment.EnvVariables{
+				SetDefaultHTTPSettingProbePortTo443: true,
+			},
 		}
 
 		configBuilder.mem = memoization{}
@@ -154,7 +164,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+					Expect(int32(443)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
 				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
 					// http setting for ingress with service port as 80
 					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
@@ -177,6 +187,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
+			EnvVariables: environment.EnvVariables{
+				SetDefaultHTTPSettingProbePortTo443: true,
+			},
 		}
 
 		configBuilder.mem = memoization{}
@@ -189,7 +202,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+					Expect(int32(443)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
 				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
 					// http setting for ingress with service port as 80
 					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
@@ -226,6 +239,9 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 			ServiceList:           []*v1.Service{service},
 			DefaultAddressPoolID:  to.StringPtr("xx"),
 			DefaultHTTPSettingsID: to.StringPtr("yy"),
+			EnvVariables: environment.EnvVariables{
+				SetDefaultHTTPSettingProbePortTo443: true,
+			},
 		}
 
 		configBuilder.mem = memoization{}
@@ -238,7 +254,7 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 
 			for _, setting := range httpSettings {
 				if *setting.Name == DefaultBackendHTTPSettingsName {
-					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+					Expect(int32(443)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
 				} else if strings.Contains(*setting.Name, strconv.Itoa(int(tests.ContainerPort))) {
 					// http setting for ingress with service port as 80
 					Expect(tests.ContainerPort).To(Equal(*setting.Port), "setting %s backend port %d should be 9876", *setting.Name, *setting.Port)
@@ -254,4 +270,31 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 		})
 	})
 
+	Context("when env variable for set port to 443 is false", func() {
+		cbCtx := &ConfigBuilderContext{
+			IngressList:           []*networking.Ingress{ingress},
+			ServiceList:           []*v1.Service{service},
+			DefaultAddressPoolID:  to.StringPtr("xx"),
+			DefaultHTTPSettingsID: to.StringPtr("yy"),
+			EnvVariables: environment.EnvVariables{
+				SetDefaultHTTPSettingProbePortTo443: false,
+			},
+		}
+
+		configBuilder.mem = memoization{}
+		configBuilder.newProbesMap(cbCtx)
+		httpSettings, _, _, _ := configBuilder.getBackendsAndSettingsMap(cbCtx)
+
+		It("should create the default with port 80", func() {
+			expectedhttpSettingsLen := 3
+			Expect(expectedhttpSettingsLen).To(Equal(len(httpSettings)), "httpSetting count %d should be %d", len(httpSettings), expectedhttpSettingsLen)
+
+			for _, setting := range httpSettings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					Expect(int32(80)).To(Equal(*setting.Port), "default backend port %d should be 80", *setting.Port)
+					break
+				}
+			}
+		})
+	})
 })
