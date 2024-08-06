@@ -58,7 +58,7 @@ build-image-multi-arch:
 	@docker buildx build $(IMAGE_RESULT_FLAG) \
 		--platform $(IMAGE_PLATFORMS) \
 		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
-		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE) \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
 		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
 		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
 		--build-arg "GIT_HASH=$(GIT_HASH)" \
