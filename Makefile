@@ -4,6 +4,7 @@ REPO_PATH = ${ORG_PATH}/${PROJECT_NAME}
 
 VERSION_VAR = ${REPO_PATH}/pkg/version.Version
 BUILD_TAG ?= $(shell git describe --abbrev=0 --tags)
+VERSION ?= $(shell git describe --tags --abbrev=0)
 
 DATE_VAR = ${REPO_PATH}/pkg/version.BuildDate
 BUILD_DATE ?= $(shell date +%Y-%m-%d-%H:%MT%z)
@@ -58,7 +59,7 @@ build-image-multi-arch:
 	@docker buildx build $(IMAGE_RESULT_FLAG) \
 		--platform $(IMAGE_PLATFORMS) \
 		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
-		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE) \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
 		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
 		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
 		--build-arg "GIT_HASH=$(GIT_HASH)" \
