@@ -4,7 +4,6 @@ REPO_PATH = ${ORG_PATH}/${PROJECT_NAME}
 
 VERSION_VAR = ${REPO_PATH}/pkg/version.Version
 BUILD_TAG ?= $(shell git describe --abbrev=0 --tags)
-VERSION ?= $(shell git describe --tags --abbrev=0)
 
 DATE_VAR = ${REPO_PATH}/pkg/version.BuildDate
 BUILD_DATE ?= $(shell date +%Y-%m-%d-%H:%MT%z)
