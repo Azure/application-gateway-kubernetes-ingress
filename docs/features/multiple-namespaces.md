@@ -1,9 +1,9 @@
 # Multiple Namespace Support
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 #### Motivation
+
 Kubernetes [Namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)
 make it possible for a Kubernetes cluster to be partitioned and allocated to
 sub-groups of a larger team. These sub-teams can then deploy and manage
@@ -25,7 +25,9 @@ namespace, unless this is explicitly changed to one or more different
 namespaces in the Helm configuration (see section below).
 
 #### Enable multiple namespace support
+
 To enable multiple namespace support:
+
 1. modify the [helm-config.yaml](../examples/sample-helm-config.yaml) file in one of the following ways:
    - delete the `watchNamespace` key entirely from [helm-config.yaml](../examples/sample-helm-config.yaml) - AGIC will observe all namespaces
    - set `watchNamespace` to an empty string - AGIC will observe all namespaces
@@ -33,12 +35,14 @@ To enable multiple namespace support:
 2. apply  Helm template changes with: `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
 
 Once deployed with the ability to observe multiple namespaces, AGIC will:
-  - list ingress resources from all accessible namespaces
-  - filter to ingress resources annotated with `kubernetes.io/ingress.class: azure/application-gateway`
-  - compose combined [App Gateway config](https://github.com/Azure/azure-sdk-for-go/blob/37f3f4162dfce955ef5225ead57216cf8c1b2c70/services/network/mgmt/2016-06-01/network/models.go#L1710-L1744)
-  - apply the config to the associated App Gateway via [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview)
+
+- list ingress resources from all accessible namespaces
+- filter to ingress resources annotated with `kubernetes.io/ingress.class: azure/application-gateway`
+- compose combined [App Gateway config](https://github.com/Azure/azure-sdk-for-go/blob/37f3f4162dfce955ef5225ead57216cf8c1b2c70/services/network/mgmt/2016-06-01/network/models.go#L1710-L1744)
+- apply the config to the associated App Gateway via [ARM](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview)
 
 #### Conflicting Configurations
+
 Multiple namespaced [ingress resources](https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource)
 could instruct AGIC to create conflicting configurations for a single App Gateway. (Two ingresses claiming the same
 domain for instance.)
@@ -51,6 +55,7 @@ and duplicates will removed..
 
 For example, consider the following duplicate ingress resources defined
 namespaces `staging` and `production` for `www.contoso.com`:
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -100,13 +105,13 @@ precedence. From the example above we will only be able to create settings for
 the `production` ingress. App Gateway will be configured with the following
 resources:
 
-  - Listener: `fl-www.contoso.com-80`
-  - Routing Rule: `rr-www.contoso.com-80`
-  - Backend Pool: `pool-production-contoso-web-service-80-bp-80`
-  - HTTP Settings: `bp-production-contoso-web-service-80-80-websocket-ingress`
-  - Health Probe: `pb-production-contoso-web-service-80-websocket-ingress`
+- Listener: `fl-www.contoso.com-80`
+- Routing Rule: `rr-www.contoso.com-80`
+- Backend Pool: `pool-production-contoso-web-service-80-bp-80`
+- HTTP Settings: `bp-production-contoso-web-service-80-80-websocket-ingress`
+- Health Probe: `pb-production-contoso-web-service-80-websocket-ingress`
 
-Note that except for *listener* and *routing rule*, the App Gateway resources created include the name
+Note that except for _listener_ and _routing rule_, the App Gateway resources created include the name
 of the namespace (`production`) for which they were created.
 
 If the two ingress resources are introduced into the AKS cluster at different
@@ -120,8 +125,10 @@ ingress, will cause AGIC to reprogram App Gwy, which will start routing traffic
 to the `production` backend pool.
 
 #### Restricting Access to Namespaces
+
 By default AGIC will configure App Gateway based on annotated Ingress within
 any namespace. Should you want to limit this behaviour you have the following
 options:
-  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` YAML key in [helm-config.yaml](../examples/sample-helm-config.yaml)
-  - use [Role/RoleBinding](https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac) to limit AGIC to specific namespaces
+
+- limit the namespaces, by explicitly defining namespaces AGIC should observe via the `watchNamespace` YAML key in [helm-config.yaml](../examples/sample-helm-config.yaml)
+- use [Role/RoleBinding](https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac) to limit AGIC to specific namespaces

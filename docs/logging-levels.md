@@ -1,7 +1,6 @@
 # Logging Levels
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 AGIC has 3 logging levels. Level 1 is the default one and it shows minimal number of log lines.
 Level 5, on the other hand, would display all logs, including sanitized contents of config applied

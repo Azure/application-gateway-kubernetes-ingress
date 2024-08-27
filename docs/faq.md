@@ -1,7 +1,6 @@
 # Frequrently Asked Questions: [WIP]
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 * [What is an Ingress Controller](#what-is-an-ingress-controller)
 * [Can single ingress controller instance manage multiple Application Gateway](#can-single-ingress-controller-instance-manage-multiple-application-gateway)

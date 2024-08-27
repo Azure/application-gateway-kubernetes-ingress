@@ -1,9 +1,6 @@
 # Annotations
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
-
-    A list of corresponding translations from AGIC to Application Gateway for Containers may be found [here](https://learn.microsoft.com/azure/application-gateway/for-containers/migrate-from-agic-to-agc).
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment. A list of corresponding translations from AGIC to Application Gateway for Containers may be found [here](https://learn.microsoft.com/azure/application-gateway/for-containers/migrate-from-agic-to-agc).
 
 ## Introductions
 

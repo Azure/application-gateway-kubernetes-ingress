@@ -1,7 +1,6 @@
 # Continuous Deployment with AKS and AGIC using Azure Pipelines
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 To achieve an efficiently deployed and managed global infrastucture, it is important to setup workflows for continuous integration and deployment. `Azure Devops` is one of the options to achieve this goal.
 
@@ -18,12 +17,13 @@ In following example, we setup a Azure Devops release pipeline to deploy an AKS 
     # Copy the AppId and Password. We will use these in the next step.
     ```
 
-1. Now, create a [new service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#create-a-service-connection) in Azure Devops. Select "*use the full version of the service connection dialog*" option so that you can provide the newly created service principal.
+1. Now, create a [new service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#create-a-service-connection) in Azure Devops. Select "_use the full version of the service connection dialog_" option so that you can provide the newly created service principal.
 ![Add Service Connection page](../images/pipeline-service-connection.png)
 
 ## Create a new Azure release pipeline
 
 We have prepared an [example release pipeline](./continuous-deployment-pipeline.json). This pipeline has following tasks:
+
 1. Deploy AKS Cluster
 1. Create a user assigned identity used by AGIC Pod
 1. Install Helm
@@ -33,6 +33,7 @@ We have prepared an [example release pipeline](./continuous-deployment-pipeline.
 ![workflows](../images/pipeline-task.png)
 
 To use the example release pipeline,
+
 1. Download the [template](./continuous-deployment-pipeline.json) and import it to your project's release pipeline.
 ![import pipeline](../images/pipeline-import.png)
 1. Now provide the required settings for all tasks:
@@ -41,10 +42,12 @@ To use the example release pipeline,
     1. Select the newly created service connection for the `Create Kubernetes Cluster` and `Create AGIC Identity` tasks.
     ![import pipeline](../images/pipeline-set-connection.png)
     1. Provide the values for `clientId` and `clientSecret` that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.
+
         ```bash
         # create a new one and copy the appId and password to the variable section in the pipeline
         az ad sp create-for-rbac -n aks-cluster
         ```
+
         ![import pipeline](../images/pipeline-variable.png)
 
 1. Click `Save`. Now your pipeline is all set up.

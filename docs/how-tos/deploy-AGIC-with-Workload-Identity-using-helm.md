@@ -1,7 +1,6 @@
 # How to deploy AGIC via Helm using Workload Identity
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 This assumes you have an existing Application Gateway. If not, you can create it with command:
 
@@ -39,7 +38,7 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"
 ```
 
-## 5. Create federated identity credential. 
+## 5. Create federated identity credential
 
 **Note**: the name of the service account that gets created after the helm installation is “ingress-azure” and the following command assumes it will be deployed in “default” namespace. Please change the namespace name in the next command if you deploy the AGIC related Kubernetes resources in other namespace.
 
@@ -51,7 +50,7 @@ az identity federated-credential create --name ${FEDERATED_IDENTITY_CREDENTIAL_N
 
 ```bash
 az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv
-``` 
+```
 
 ## 7. Export the Application Gateway resource ID
 
@@ -65,7 +64,7 @@ export APP_GW_ID="$(az network application-gateway show --name "${APPLICATION_GA
 az role assignment create --assignee <identityClientID> --scope "${APP_GW_ID}" --role Contributor
 ```
 
-## 9. In helm-config.yaml specify:
+## 9. In helm-config.yaml specify
 
 ```yaml
 armAuth:
@@ -73,7 +72,7 @@ armAuth:
     identityClientID: <identityClientID>
 ```
 
-## 10.Get the AKS cluster credentials.
+## 10.Get the AKS cluster credentials
 
 ```bash
 az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster
