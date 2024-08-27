@@ -1,7 +1,6 @@
 ## Prerequisites
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 You need to complete the following tasks prior to deploying AGIC on your cluster:
 
@@ -19,6 +18,7 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
     ```
 
 2. Set an AKS cluster for your workload.
+
     > AKS cluster should have the workload identity feature enabled. [Learn how](../../aks/workload-identity-deploy-cluster.md#update-an-existing-aks-cluster) to enable workload identity on an existing AKS cluster.
 
     If using an existing cluster, ensure you enable Workload Identity support on your AKS cluster.  Workload identities can be enabled via the following:
@@ -52,7 +52,7 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
 
 3. Install Helm
 
-    [Helm](https://github.com/helm/helm) is an open-source packaging tool that is used to install ALB controller. 
+    [Helm](https://github.com/helm/helm) is an open-source packaging tool that is used to install ALB controller.
 
     > Helm is already available in Azure Cloud Shell.  If you are using Azure Cloud Shell, no additional Helm installation is necessary.
 
@@ -65,14 +65,17 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
 If using an existing Application Gateway, make sure the following:
 
 1. Set the environment variable.
-```bash
-APPGW_ID="<existing app gateway resource id>"
-```
 
-2. [Follow steps](../how-tos/networking.md) here to make sure AppGW VNET is correctly setup i.e. either it is using same VNET as AKS or is peered.
+  ```bash
+  APPGW_ID="<existing app gateway resource id>"
+  ```
 
-If you don't have an existing Application Gateway, use the following commands to create a new one.
+1. [Follow steps](../how-tos/networking.md) here to make sure AppGW VNET is correctly setup i.e. either it is using same VNET as AKS or is peered.
+
+  If you don't have an existing Application Gateway, use the following commands to create a new one.
+
 1. Setup environment variables
+
     ```bash
     AKS_NAME='<your cluster name>'
     RESOURCE_GROUP='<your resource group name>'
@@ -82,7 +85,8 @@ If you don't have an existing Application Gateway, use the following commands to
     APPGW_SUBNET_NAME="appgw-subnet"
     ```
 
-2. Deploy subnet for Application Gateway
+1. Deploy subnet for Application Gateway
+
     ```bash
     nodeResourceGroup=$(az aks show -n $AKS_NAME -g $RESOURCE_GROUP -o tsv --query "nodeResourceGroup")
     aksVnetName=$(az network vnet list -g $nodeResourceGroup -o tsv --query "[0].name")
@@ -96,7 +100,8 @@ If you don't have an existing Application Gateway, use the following commands to
     APPGW_SUBNET_ID=$(az network vnet subnet list --resource-group $nodeResourceGroup --vnet-name $aksVnetName --query "[?name=='$APPGW_SUBNET_NAME'].id" --output tsv)
     ```
 
-3. Deploy Application Gateway
+1. Deploy Application Gateway
+
     ```bash
     az network application-gateway create \
       --name $APPGW_NAME \
@@ -118,6 +123,7 @@ If you don't have an existing Application Gateway, use the following commands to
 ## Install Application Gateway Ingress Controller
 
 1. Setup environment variables
+
     ```bash
     AKS_NAME='<your cluster name>'
     RESOURCE_GROUP='<your resource group name>'
@@ -125,6 +131,7 @@ If you don't have an existing Application Gateway, use the following commands to
 
     IDENTITY_RESOURCE_NAME='agic-identity'
     ```
+
 1. Create a user managed identity for AGIC controller and federate the identity as Workload Identity to use in the AKS cluster.
 
     ```bash
@@ -156,139 +163,140 @@ If you don't have an existing Application Gateway, use the following commands to
 
    > Assignment of the managed identity immediately after creation may result in an error that the principalId does not exist. Allow about a minute of time to elapse for the identity to replicate in Microsoft Entra ID prior to delegating the identity.
 
-2. Add the AGIC Helm repository:
+1. Add the AGIC Helm repository:
 
     ```bash
     helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
     helm repo update
     ```
-3. Install ALB Controller using Helm
 
-    ### For new deployments
-    AGIC can be installed by running the following commands:
+1. Install ALB Controller using Helm
 
-    ```bash
-    az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME
+### For new deployments
 
-    # on aks cluster with only linux node pools
-    helm install ingress-azure \
-      application-gateway-kubernetes-ingress/ingress-azure \
-      --set appgw.applicationGatewayID=$APPGW_ID \
-      --set armAuth.type=workloadIdentity \
-      --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
-      --set rbac.enabled=true \
-      --version 1.7.3
-    
-    # on aks cluster with windows node pools
-    helm install ingress-azure \
-      application-gateway-kubernetes-ingress/ingress-azure \
-      --set appgw.applicationGatewayID=$APPGW_ID \
-      --set armAuth.type=workloadIdentity \
-      --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
-      --set rbac.enabled=true \
-      --set nodeSelector."beta\.kubernetes\.io/os"=linux \
-      --version 1.7.3
-    ```
+AGIC can be installed by running the following commands:
 
+  ```bash
+  az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME
 
-    ### For existing deployments
-    AGIC can be upgraded by running the following commands:
+  # on aks cluster with only linux node pools
+  helm install ingress-azure \
+    application-gateway-kubernetes-ingress/ingress-azure \
+    --set appgw.applicationGatewayID=$APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --version 1.7.3
+  
+  # on aks cluster with windows node pools
+  helm install ingress-azure \
+    application-gateway-kubernetes-ingress/ingress-azure \
+    --set appgw.applicationGatewayID=$APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --set nodeSelector."beta\.kubernetes\.io/os"=linux \
+    --version 1.7.3
+  ```
 
-    ```bash
-    az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME
+### For existing deployments
 
-    # on aks cluster with only linux node pools
-    helm upgrade ingress-azure \
-      application-gateway-kubernetes-ingress/ingress-azure \
-      --set appgw.applicationGatewayID=$APPGW_ID \
-      --set armAuth.type=workloadIdentity \
-      --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
-      --set rbac.enabled=true \
-      --version 1.7.3
-    
-    # on aks cluster with windows node pools
-    helm upgrade ingress-azure \
-      application-gateway-kubernetes-ingress/ingress-azure \
-      --set appgw.applicationGatewayID=$APPGW_ID \
-      --set armAuth.type=workloadIdentity \
-      --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
-      --set rbac.enabled=true \
-      --set nodeSelector."beta\.kubernetes\.io/os"=linux \
-      --version 1.7.3
-    ```
+AGIC can be upgraded by running the following commands:
+
+  ```bash
+  az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME
+
+  # on aks cluster with only linux node pools
+  helm upgrade ingress-azure \
+    application-gateway-kubernetes-ingress/ingress-azure \
+    --set appgw.applicationGatewayID=$APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --version 1.7.3
+  
+  # on aks cluster with windows node pools
+  helm upgrade ingress-azure \
+    application-gateway-kubernetes-ingress/ingress-azure \
+    --set appgw.applicationGatewayID=$APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --set nodeSelector."beta\.kubernetes\.io/os"=linux \
+    --version 1.7.3
+  ```
 
 ### Install a Sample App
 
 Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via [Azure Cloud Shell](https://shell.azure.com/):
 
-```yaml
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: aspnetapp
-  labels:
-    app: aspnetapp
-spec:
-  containers:
-  - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
-    name: aspnetapp-image
+  ```yaml
+  cat <<EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: aspnetapp
+    labels:
+      app: aspnetapp
+  spec:
+    containers:
+    - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
+      name: aspnetapp-image
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+  
+  ---
+  
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: aspnetapp
+  spec:
+    selector:
+      app: aspnetapp
     ports:
-    - containerPort: 8080
-      protocol: TCP
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: aspnetapp
-spec:
-  selector:
-    app: aspnetapp
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-
----
-
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: aspnetapp
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: aspnetapp
-            port:
-              number: 80
-        pathType: Exact
-EOF
-```
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  
+  ---
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: aspnetapp
+    annotations:
+      kubernetes.io/ingress.class: azure/application-gateway
+  spec:
+    rules:
+    - http:
+        paths:
+        - path: /
+          backend:
+            service:
+              name: aspnetapp
+              port:
+                number: 80
+          pathType: Exact
+  EOF
+  ```
 
 Alternatively you can:
 
 1. Download the YAML file above:
 
-```bash
-curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
-```
+    ```bash
+    curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml
+    ```
 
-2. Apply the YAML file:
+1. Apply the YAML file:
 
-```bash
-kubectl apply -f aspnetapp.yaml
-```
+    ```bash
+    kubectl apply -f aspnetapp.yaml
+    ```
 
 ## Other Examples
 
 The **[tutorials](../tutorials/tutorial.general.md)** document contains more examples on how to expose an AKS service via HTTP or HTTPS, to the Internet with App Gateway.
-

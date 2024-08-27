@@ -8,9 +8,11 @@ Application Gateway with a [Private IP configuration](https://docs.microsoft.com
 There are two ways to configure the controller to use Private IP for ingress,
 
 ## Assign to a particular ingress
+
 To expose a particular ingress over Private IP, use annotation [`appgw.ingress.kubernetes.io/use-private-ip`](../annotations.md#use-private-ip) in Ingress.
 
 ### Usage
+
 ```yaml
 appgw.ingress.kubernetes.io/use-private-ip: "true"
 ```
@@ -33,11 +35,12 @@ For App Gateways without a Private IP, Ingresses annotated with `appgw.ingress.k
     E0730 18:57:37.914749       1 prune.go:65] Ingress default/hello-world-ingress requires Application Gateway applicationgateway3026 has a private IP address
     ```
 
-
 ## Assign Globally
+
 In case, requirement is to restrict all Ingresses to be exposed over Private IP, use `appgw.usePrivateIP: true` in `helm` config.
 
 ### Usage
+
 ```yaml
 appgw:
     subscriptionId: <subscriptionId>

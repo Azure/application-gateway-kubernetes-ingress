@@ -1,7 +1,6 @@
 # Tutorial: Basic
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 These tutorials help illustrate the usage of [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) to expose an example Kubernetes service through the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) over HTTP or HTTPS.
 
@@ -126,7 +125,7 @@ Now the `guestbook` application will be available on HTTPS.
 
 In order to make the `guestbook` application available on HTTP, annotate the `Ingress` with
 
-```
+```yaml
   appgw.ingress.kubernetes.io/ssl-redirect: "true"
 ```
 

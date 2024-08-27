@@ -1,11 +1,11 @@
 # Building the controller
 
 * [Running it locally](#running-it-locally)
-    * [Pre-requisite](#pre-requisite)
-    * [Obtain Azure Credentials](#obtain-azure-credentials)
-    * [Deploy Application Gateway and AKS](#deploy-application-gateway-and-aks)
-    * [Using startup script](#using-startup-script)
-    * [Visual Studio Code (F5 debugging)](#visual-studio-code-f5-debugging)
+  * [Pre-requisite](#pre-requisite)
+  * [Obtain Azure Credentials](#obtain-azure-credentials)
+  * [Deploy Application Gateway and AKS](#deploy-application-gateway-and-aks)
+  * [Using startup script](#using-startup-script)
+  * [Visual Studio Code (F5 debugging)](#visual-studio-code-f5-debugging)
 * [Run on a cluster using a Dev Release](#create-a-dev-release)
 * [CMake options](#cmake-options)
 
@@ -14,6 +14,7 @@
 This section outlines the environment variables and files necessary to successfully compile and run the Go binary, then connect it to an [Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes).
 
 ### Pre-requisite
+
 * [go >= 1.13](https://golang.org/dl/)
 * OpenSSL
 
@@ -45,6 +46,7 @@ The file will contain a JSON blob with the following shape:
 ```
 
 ### Deploy Application Gateway and AKS
+
 To deploy a fresh setup, please follow the steps for template deployment in the [greenfield](../setup/install-new.md) documentation.
 
 ### Using startup script
@@ -54,10 +56,13 @@ In the `scripts` directory you will find `start.sh`. This script builds and runs
 Steps to run ingress controller:
 
 1. Get your cluster's credentials
+
     ```
     az aks get-credentials --name <cluster-name> --resource-group <group>
     ```
+
 1. Configure: `cp .env.example .env` and modify the environment variables in `.env` to match your config. Here is an example:
+
     ```
     #!/bin/bash
     export AZURE_AUTH_LOCATION="$HOME/.azure/azureAuth.json"
@@ -68,7 +73,9 @@ Steps to run ingress controller:
 
     export APPGW_VERBOSITY_LEVEL="9"
     ```
+
 1. Run: `./scripts/start.sh`
+
     ```
     Cleanup: delete /home/vsonline/go/src/github.com/Azure/application-gateway-kubernetes-ingress/bin
     Compiling...
@@ -83,7 +90,9 @@ Steps to run ingress controller:
     ```
 
 ### Visual Studio Code (F5 debugging)
+
 You can also setup vscode to run the project with `F5` and use breakpoint debugging. For this, you need to setup your `launch.json` file within `.vscode` folder.
+
 ```json
 {
     "version": "0.2.0",
@@ -109,11 +118,13 @@ You can also setup vscode to run the project with `F5` and use breakpoint debugg
 ```
 
 ## Create a Dev Release
+
 To test your changes on a cluster, you can use the [`Dev Release`](https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_release?_a=releases&view=mine&definitionId=12) pipeline. Just select the build version from the drop-down list which matches the build in your PR or against your commit in the main branch.
 
 ![dev release pipeline](../images/dev-release.png)
 
 `Dev Release` generates a new docker image and helm package for your changes. Once the pipeline completes, use helm to install the release on your AKS cluster.
+
 ```bash
 # add the staging helm repository
 helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
@@ -140,12 +151,12 @@ You can also find the `version` by opening your build in the `Merge Builds` pipe
 
 This is a CMake-based project. Build targets include:
 
-- `ALL_BUILD` (default target) builds `appgw-ingress` and `dockerize` target
-- `devenv` builds a docker image with configured development environment
-- `vendor` installs dependency using `go mod` in a docker container with image from `devenv` target
-- `appgw-ingress` builds the binary for this controller in a docker container with image from `devenv` target
-- `dockerize` builds a docker image with the binary from `appgw-ingress` target
-- `dockerpush` pushes the docker image to a container registry with prefix defined in CMake variable `<deployment_push_prefix>`
+* `ALL_BUILD` (default target) builds `appgw-ingress` and `dockerize` target
+* `devenv` builds a docker image with configured development environment
+* `vendor` installs dependency using `go mod` in a docker container with image from `devenv` target
+* `appgw-ingress` builds the binary for this controller in a docker container with image from `devenv` target
+* `dockerize` builds a docker image with the binary from `appgw-ingress` target
+* `dockerpush` pushes the docker image to a container registry with prefix defined in CMake variable `<deployment_push_prefix>`
 
 To run the CMake targets:
 

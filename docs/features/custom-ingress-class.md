@@ -1,7 +1,6 @@
 # Custom Ingress Class
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 > **Minimum version:** 1.3.0
 
@@ -12,6 +11,7 @@ For instance, AGIC with ingress class `agic-public` can serves public traffic, a
 To use a custom ingress class,
 
 1. Install AGIC by providing a value for `kubernetes.ingressClass` in helm config.
+
     ```bash
     helm install ./helm/ingress-azure \
         --name ingress-azure \
@@ -20,6 +20,7 @@ To use a custom ingress class,
     ```
 
 2. Then, within the spec object, specify `ingressClassName` with the same value provided to AGIC.
+
     ```yaml
     kind: Ingress
     metadata:
@@ -39,4 +40,5 @@ To use a custom ingress class,
     ```
 
 ## Reference
+
 * [Proposal Document](../../proposals\multiple-gateways-single-cluster.md)

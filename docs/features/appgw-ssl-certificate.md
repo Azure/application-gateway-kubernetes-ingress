@@ -1,9 +1,9 @@
 ### Prerequisites
 
-.. note::
-    [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 This documents assumes you already have the following Azure tools and resources installed:
+
 - [AKS](https://azure.microsoft.com/en-us/services/kubernetes-service/) with [Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni) enabled
 - [App Gateway v2](https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant) in the same virtual network as AKS
 - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) installed on your AKS cluster
@@ -12,12 +12,15 @@ This documents assumes you already have the following Azure tools and resources 
 Please use [Greenfield Deployment](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md) to install nonexistents.
 
 To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
+
 ```bash
 helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name
 ```
 
 ## Create a certificate and configure the certificate to AppGw
+
 The certificate below should only be used for testing purpose.
+
 ```bash
 appgwName=""
 resgp=""
@@ -44,6 +47,7 @@ az network application-gateway ssl-cert create \
 ```
 
 ## Configure certificate from Key Vault to AppGw
+
 To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault.
 
 ```bash
@@ -107,6 +111,7 @@ az network application-gateway ssl-cert create \
 ```
 
 ## Testing the key vault certificate on Ingress
+
 Since we have certificate from Key Vault configured in Application Gateway, we can then add the new annotation `appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert` in Kubernetes ingress to enable the feature.
 
 ```bash
