@@ -110,7 +110,7 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#4-export-the-oidcissuerprofileissuerurl">4. Export the oidcIssuerProfile.issuerUrl</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#5-create-federated-identity-credential">5. Create federated identity credential.</a>
+    <li class="toctree-l2"><a class="reference internal" href="#5-create-federated-identity-credential">5. Create federated identity credential</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#6-obtain-the-clientid-of-the-identity-created-before-that-is-needed-for-the-next-step">6. Obtain the ClientID of the identity created before that is needed for the next step</a>
     </li>
@@ -118,9 +118,9 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#8-add-contributor-role-for-the-identity-over-the-application-gateway">8. Add Contributor role for the identity over the Application Gateway</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#9-in-helm-configyaml-specify">9. In helm-config.yaml specify:</a>
+    <li class="toctree-l2"><a class="reference internal" href="#9-in-helm-configyaml-specify">9. In helm-config.yaml specify</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#10get-the-aks-cluster-credentials">10.Get the AKS cluster credentials.</a>
+    <li class="toctree-l2"><a class="reference internal" href="#10get-the-aks-cluster-credentials">10.Get the AKS cluster credentials</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#11-install-the-helm-chart">11. Install the helm chart</a>
     </li>
@@ -218,8 +218,9 @@
             <div class="section">
               
                 <h1 id="how-to-deploy-agic-via-helm-using-workload-identity">How to deploy AGIC via Helm using Workload Identity</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>This assumes you have an existing Application Gateway. If not, you can create it with command:</p>
 <p><code>bash
 az network application-gateway create -g myResourceGroup -n myApplicationGateway --sku Standard_v2 --public-ip-address myPublicIP --vnet-name myVnet --subnet mySubnet --priority 100</code></p>
@@ -241,25 +242,25 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 <h2 id="4-export-the-oidcissuerprofileissuerurl">4. Export the oidcIssuerProfile.issuerUrl</h2>
 <p><code>bash
 export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"</code></p>
-<h2 id="5-create-federated-identity-credential">5. Create federated identity credential.</h2>
+<h2 id="5-create-federated-identity-credential">5. Create federated identity credential</h2>
 <p><strong>Note</strong>: the name of the service account that gets created after the helm installation is “ingress-azure” and the following command assumes it will be deployed in “default” namespace. Please change the namespace name in the next command if you deploy the AGIC related Kubernetes resources in other namespace.</p>
 <p><code>bash
 az identity federated-credential create --name ${FEDERATED_IDENTITY_CREDENTIAL_NAME} --identity-name ${USER_ASSIGNED_IDENTITY_NAME} --resource-group ${RESOURCE_GROUP} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:default:ingress-azure</code></p>
 <h2 id="6-obtain-the-clientid-of-the-identity-created-before-that-is-needed-for-the-next-step">6. Obtain the ClientID of the identity created before that is needed for the next step</h2>
 <p><code>bash
-az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv</code> </p>
+az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv</code></p>
 <h2 id="7-export-the-application-gateway-resource-id">7. Export the Application Gateway resource ID</h2>
 <p><code>bash
 export APP_GW_ID="$(az network application-gateway show --name "${APPLICATION_GATEWAY_NAME}"  --resource-group "${RESOURCE_GROUP}"  --query 'id' --output tsv)"</code></p>
 <h2 id="8-add-contributor-role-for-the-identity-over-the-application-gateway">8. Add Contributor role for the identity over the Application Gateway</h2>
 <p><code>bash
 az role assignment create --assignee &lt;identityClientID&gt; --scope "${APP_GW_ID}" --role Contributor</code></p>
-<h2 id="9-in-helm-configyaml-specify">9. In helm-config.yaml specify:</h2>
+<h2 id="9-in-helm-configyaml-specify">9. In helm-config.yaml specify</h2>
 <p><code>yaml
 armAuth:
     type: workloadIdentity
     identityClientID: &lt;identityClientID&gt;</code></p>
-<h2 id="10get-the-aks-cluster-credentials">10.Get the AKS cluster credentials.</h2>
+<h2 id="10get-the-aks-cluster-credentials">10.Get the AKS cluster credentials</h2>
 <p><code>bash
 az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster</code></p>
 <h2 id="11-install-the-helm-chart">11. Install the helm chart</h2>

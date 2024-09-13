@@ -199,8 +199,8 @@
               
                 <h2 id="expose-a-websocket-server">Expose a WebSocket server</h2>
 <p>As outlined in the Application Gateway v2 documentation - it <a href="https://docs.microsoft.com/en-us/azure/application-gateway/overview#websocket-and-http2-traffic">provides native support for the WebSocket and HTTP/2 protocols</a>. Please note, that for both Application Gateway and the Kubernetes Ingress - there is no user-configurable setting to selectively enable or disable WebSocket support.</p>
-<p>The Kubernetes deployment YAML below shows the minimum configuration used to deploy a WebSocket server, which is the same as deploying a regular web server:
-```yaml
+<p>The Kubernetes deployment YAML below shows the minimum configuration used to deploy a WebSocket server, which is the same as deploying a regular web server:</p>
+<p>```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -254,8 +254,8 @@ spec:
                   number: 80
 ```</p>
 <p>Given that all the prerequisites are fulfilled, and you have an App Gateway controlled by a K8s Ingress in your AKS, the deployment above would result in a WebSockets server exposed on port 80 of your App Gateway's public IP and the <code>ws.contoso.com</code> domain.</p>
-<p>The following cURL command would test the WebSocket server deployment:
-<code>sh
+<p>The following cURL command would test the WebSocket server deployment:</p>
+<p><code>sh
 curl -i -N -H "Connection: Upgrade" \
         -H "Upgrade: websocket" \
         -H "Origin: http://localhost" \

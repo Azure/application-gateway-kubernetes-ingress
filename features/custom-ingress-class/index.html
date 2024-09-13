@@ -198,9 +198,8 @@
             <div class="section">
               
                 <h1 id="custom-ingress-class">Custom Ingress Class</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <p><strong>Minimum version:</strong> 1.3.0</p>
 </blockquote>
 <p>Custom ingress class allows you to customize the ingress class selector that AGIC will use when filtering the ingress manifests. AGIC uses <code>azure/application-gateway</code> as default ingress class. This  will allow you to target multiple AGICs on a single namespace as each AGIC can now use it's own ingress class.</p>
@@ -208,36 +207,31 @@
 <p>To use a custom ingress class,</p>
 <ol>
 <li>
-<p>Install AGIC by providing a value for <code>kubernetes.ingressClass</code> in helm config.
-    <code>bash
-    helm install ./helm/ingress-azure \
-        --name ingress-azure \
-        -f helm-config.yaml
-        --set kubernetes.ingressClass arbitrary-class</code></p>
+<p>Install AGIC by providing a value for <code>kubernetes.ingressClass</code> in helm config.</p>
+<p><code>bash
+helm install ./helm/ingress-azure \
+    --name ingress-azure \
+    -f helm-config.yaml
+    --set kubernetes.ingressClass arbitrary-class</code></p>
 </li>
 <li>
-<p>Then, within the spec object, specify <code>ingressClassName</code> with the same value provided to AGIC.
-    ```yaml
-    kind: Ingress
-    metadata:
-    name: go-server-ingress-affinity
-    namespace: test-ag
-    spec:
-      ingressClassName: arbitrary-class
-      rules:</p>
-<ul>
-<li>http:
-    paths:<ul>
-<li>path: /hello/
-    backend:
-      service:
-        name: store-service
-        port:
-          number: 80
-```</li>
-</ul>
-</li>
-</ul>
+<p>Then, within the spec object, specify <code>ingressClassName</code> with the same value provided to AGIC.</p>
+<p><code>yaml
+kind: Ingress
+metadata:
+name: go-server-ingress-affinity
+namespace: test-ag
+spec:
+  ingressClassName: arbitrary-class
+  rules:
+  - http:
+    paths:
+      - path: /hello/
+        backend:
+          service:
+            name: store-service
+            port:
+              number: 80</code></p>
 </li>
 </ol>
 <h2 id="reference">Reference</h2>

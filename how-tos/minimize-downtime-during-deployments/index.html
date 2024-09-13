@@ -206,8 +206,9 @@
             <div class="section">
               
                 <h1 id="minimizing-downtime-during-deployments">Minimizing Downtime During Deployments</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <h2 id="purpose">Purpose</h2>
 <p>This document outlines a Kubernetes and Ingress controller configuration, which when incorporated with proper Kubernetes rolling updates deployment could achieve a near-zero-downtime deployments.</p>
 <h2 id="overview">Overview</h2>
@@ -215,27 +216,25 @@
 <h2 id="understanding-502-errors">Understanding 502 Errors</h2>
 <p>At a high level there are 3 scenarios in which one could observe 502 errors on an AKS cluster fronted with App Gateway and AGIC. In all of these the root cause is the delay one could observe in applying a IP address changes to the Application Gateway's backend pools.</p>
 <ul>
-<li>
-<p>Scaling down a Kubernetes cluster:</p>
-<ul>
+<li>Scaling down a Kubernetes cluster:</li>
 <li>Kubernetes is instructed to lower the number of pod replicas (perhaps manually, or via Horizontal Pod Autoscaler, or some other mechanism)</li>
 <li>Pods are put in Terminating state, while simultaneously removed from the list of Endpoints.</li>
 <li>AGIC observes the fact that Pods + Endpoints changed and begins a config update on App Gateway
- It takes somewhere between a second and a few minutes for a pod, or a list of the pods to be removed from App Gateway's backend -- meanwhile App Gateway still attempts to deliver traffic to terminated pods</li>
-<li>Result is occasional 502 errors</li>
-</ul>
+     It takes somewhere between a second and a few minutes for a pod, or a list of the pods to be removed from App Gateway's backend -- meanwhile App Gateway still attempts to deliver traffic to terminated pods</li>
+<li>
+<p>Result is occasional 502 errors</p>
 </li>
 <li>
 <p>Rolling Updates:</p>
-<ul>
+</li>
 <li>Customer updates the version of the software (perhaps using <code>kubectl set image</code>)</li>
 <li>Kubernetes upgrades a percentage of the pods at a time. The size of the bucket is defined in <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment">the strategy section of the Deployment spec</a><ul>
 <li>Kubernetes adds a new pod with a new image - pod goes through the states from <code>ContainerCreating</code> to <code>Running</code></li>
 <li>When the new pod is in Running state - Kubernetes terminates the old pod</li>
 </ul>
 </li>
-<li>The process described above is repeated until all pods are upgraded</li>
-</ul>
+<li>
+<p>The process described above is repeated until all pods are upgraded</p>
 </li>
 <li>
 <p>Kubernetes terminates resource-starved pods (CPU, RAM etc)</p>

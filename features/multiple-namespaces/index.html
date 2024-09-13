@@ -204,8 +204,9 @@
             <div class="section">
               
                 <h1 id="multiple-namespace-support">Multiple Namespace Support</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <h4 id="motivation">Motivation</h4>
 <p>Kubernetes <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">Namespaces</a>
 make it possible for a Kubernetes cluster to be partitioned and allocated to
@@ -225,17 +226,21 @@ configure the App Gateway it is associated with.</p>
 namespace, unless this is explicitly changed to one or more different
 namespaces in the Helm configuration (see section below).</p>
 <h4 id="enable-multiple-namespace-support">Enable multiple namespace support</h4>
-<p>To enable multiple namespace support:
-1. modify the <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> file in one of the following ways:
-   - delete the <code>watchNamespace</code> key entirely from <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> - AGIC will observe all namespaces
-   - set <code>watchNamespace</code> to an empty string - AGIC will observe all namespaces
-   - add multiple namespaces separated by a comma (<code>watchNamespace: default,secondNamespace</code>) - AGIC will observe these namespaces exclusively
-2. apply  Helm template changes with: <code>helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure</code></p>
-<p>Once deployed with the ability to observe multiple namespaces, AGIC will:
-  - list ingress resources from all accessible namespaces
-  - filter to ingress resources annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code>
-  - compose combined <a href="https://github.com/Azure/azure-sdk-for-go/blob/37f3f4162dfce955ef5225ead57216cf8c1b2c70/services/network/mgmt/2016-06-01/network/models.go#L1710-L1744">App Gateway config</a>
-  - apply the config to the associated App Gateway via <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a></p>
+<p>To enable multiple namespace support:</p>
+<ol>
+<li>modify the <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> file in one of the following ways:</li>
+<li>delete the <code>watchNamespace</code> key entirely from <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> - AGIC will observe all namespaces</li>
+<li>set <code>watchNamespace</code> to an empty string - AGIC will observe all namespaces</li>
+<li>add multiple namespaces separated by a comma (<code>watchNamespace: default,secondNamespace</code>) - AGIC will observe these namespaces exclusively</li>
+<li>apply  Helm template changes with: <code>helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure</code></li>
+</ol>
+<p>Once deployed with the ability to observe multiple namespaces, AGIC will:</p>
+<ul>
+<li>list ingress resources from all accessible namespaces</li>
+<li>filter to ingress resources annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code></li>
+<li>compose combined <a href="https://github.com/Azure/azure-sdk-for-go/blob/37f3f4162dfce955ef5225ead57216cf8c1b2c70/services/network/mgmt/2016-06-01/network/models.go#L1710-L1744">App Gateway config</a></li>
+<li>apply the config to the associated App Gateway via <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview">ARM</a></li>
+</ul>
 <h4 id="conflicting-configurations">Conflicting Configurations</h4>
 <p>Multiple namespaced <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource">ingress resources</a>
 could instruct AGIC to create conflicting configurations for a single App Gateway. (Two ingresses claiming the same
@@ -245,8 +250,8 @@ backend pool and HTTP settings) could be created and shared by multiple namespac
 <p>On the other hand - paths, backend pools, HTTP settings, and TLS certificates could be created by one namespace only
 and duplicates will removed..</p>
 <p>For example, consider the following duplicate ingress resources defined
-namespaces <code>staging</code> and <code>production</code> for <code>www.contoso.com</code>:
-<code>yaml
+namespaces <code>staging</code> and <code>production</code> for <code>www.contoso.com</code>:</p>
+<p><code>yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -310,9 +315,11 @@ to the <code>production</code> backend pool.</p>
 <h4 id="restricting-access-to-namespaces">Restricting Access to Namespaces</h4>
 <p>By default AGIC will configure App Gateway based on annotated Ingress within
 any namespace. Should you want to limit this behaviour you have the following
-options:
-  - limit the namespaces, by explicitly defining namespaces AGIC should observe via the <code>watchNamespace</code> YAML key in <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a>
-  - use <a href="https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac">Role/RoleBinding</a> to limit AGIC to specific namespaces</p>
+options:</p>
+<ul>
+<li>limit the namespaces, by explicitly defining namespaces AGIC should observe via the <code>watchNamespace</code> YAML key in <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a></li>
+<li>use <a href="https://docs.microsoft.com/en-us/azure/aks/azure-ad-rbac">Role/RoleBinding</a> to limit AGIC to specific namespaces</li>
+</ul>
               
             </div>
           </div>

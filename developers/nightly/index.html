@@ -199,23 +199,26 @@
 <p>To install the latest nightly release,</p>
 <ol>
 <li>
-<p>Add the nightly helm repository
-    <code>helm repo add agic-nightly https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
-    helm repo update</code></p>
+<p>Add the nightly helm repository</p>
+<p><code>bash
+helm repo add agic-nightly https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
+helm repo update</code></p>
 </li>
 <li>
 <p>Check the available version</p>
 <p><strong>Latest version</strong>: <img alt="nightly release (latest by date)" src="https://img.shields.io/badge/dynamic/yaml?url=https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/index.yaml&amp;label=nightly&amp;query=entries[%22ingress-azure%22][0].appVersion&amp;color=green" />  </p>
 <p>or  </p>
-<p>You can look up the version in the repo using helm.
-<code>helm search repo agic-nightly</code></p>
+<p>You can look up the version in the repo using helm.</p>
+<p><code>bash
+helm search repo agic-nightly</code></p>
 </li>
 <li>
-<p>Install using the same helm command by using the staging repository.
-    <code>helm install ingress-azure \
-      -f helm-config.yaml \
-      agic-nightly/ingress-azure \
-      --version &lt;version&gt;</code></p>
+<p>Install using the same helm command by using the staging repository.</p>
+<p><code>bash
+helm install ingress-azure \
+  -f helm-config.yaml \
+  agic-nightly/ingress-azure \
+  --version &lt;version&gt;</code></p>
 </li>
 </ol>
               

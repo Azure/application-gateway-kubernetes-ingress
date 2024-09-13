@@ -154,11 +154,7 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#using-startup-script">Using startup script</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#visual-studio-code-f5-debugging">Visual Studio Code (F5 debugging)</a>
-    </li>
         </ul>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#create-a-dev-release">Create a Dev Release</a>
     </li>
     </ul>
                     </li>
@@ -213,14 +209,12 @@
               
                 <h1 id="building-the-controller">Building the controller</h1>
 <ul>
-<li><a href="#running-it-locally">Running it locally</a><ul>
+<li><a href="#running-it-locally">Running it locally</a></li>
 <li><a href="#pre-requisite">Pre-requisite</a></li>
 <li><a href="#obtain-azure-credentials">Obtain Azure Credentials</a></li>
 <li><a href="#deploy-application-gateway-and-aks">Deploy Application Gateway and AKS</a></li>
 <li><a href="#using-startup-script">Using startup script</a></li>
 <li><a href="#visual-studio-code-f5-debugging">Visual Studio Code (F5 debugging)</a></li>
-</ul>
-</li>
 <li><a href="#create-a-dev-release">Run on a cluster using a Dev Release</a></li>
 <li><a href="#cmake-options">CMake options</a></li>
 </ul>
@@ -256,18 +250,23 @@ az ad sp create-for-rbac --sdk-auth &gt; $HOME/.azure/azureAuth.json</code></p>
 <p>In the <code>scripts</code> directory you will find <code>start.sh</code>. This script builds and runs the ingress controller on your local machine and connects to a remote AKS cluster. A <code>.env</code> file in the root of the repository is required.</p>
 <p>Steps to run ingress controller:</p>
 <ol>
-<li>Get your cluster's credentials
-    <code>az aks get-credentials --name &lt;cluster-name&gt; --resource-group &lt;group&gt;</code></li>
 <li>
-<p>Configure: <code>cp .env.example .env</code> and modify the environment variables in <code>.env</code> to match your config. Here is an example:
-    ```
-    #!/bin/bash
-    export AZURE_AUTH_LOCATION="$HOME/.azure/azureAuth.json"</p>
+<p>Get your cluster's credentials</p>
+<p><code>az aks get-credentials --name &lt;cluster-name&gt; --resource-group &lt;group&gt;</code></p>
+</li>
+<li>
+<p>Configure: <code>cp .env.example .env</code> and modify the environment variables in <code>.env</code> to match your config. Here is an example:</p>
+<p>```</p>
+<h1 id="binbash">!/bin/bash</h1>
+<p>export AZURE_AUTH_LOCATION="$HOME/.azure/azureAuth.json"</p>
 <p>export APPGW_RESOURCE_ID="<gateway-resource-id>"</p>
 <p>export KUBE_CONFIG_FILE="$HOME/.kube/config"</p>
 <p>export APPGW_VERBOSITY_LEVEL="9"
-<code>1. Run: `./scripts/start.sh`</code>
-Cleanup: delete /home/vsonline/go/src/github.com/Azure/application-gateway-kubernetes-ingress/bin
+```</p>
+</li>
+<li>
+<p>Run: <code>./scripts/start.sh</code></p>
+<p><code>Cleanup: delete /home/vsonline/go/src/github.com/Azure/application-gateway-kubernetes-ingress/bin
 Compiling...
 Build SUCCEEDED
 ERROR: logging before flag.Parse: I0723 18:37:31.980903    6757 utils.go:115] Using verbosity level 9 from environment variable APPGW_VERBOSITY_LEVEL
@@ -276,13 +275,12 @@ ERROR: logging before flag.Parse: I0723 18:37:31.989656    6766 utils.go:115] Us
 ERROR: logging before flag.Parse: I0723 18:37:31.989720    6766 main.go:78] Unable to load cloud provider config ''. Error: Reading Az Context file "" failed: open : no such file or directory
 E0723 18:37:31.999445    6766 context.go:210] Error fetching AGIC Pod (This may happen if AGIC is running in a test environment). Error: resource name may not be empty
 I0723 18:37:31.999466    6766 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
-...
-```</p>
+...</code></p>
 </li>
 </ol>
 <h3 id="visual-studio-code-f5-debugging">Visual Studio Code (F5 debugging)</h3>
-<p>You can also setup vscode to run the project with <code>F5</code> and use breakpoint debugging. For this, you need to setup your <code>launch.json</code> file within <code>.vscode</code> folder.
-<code>json
+<p>You can also setup vscode to run the project with <code>F5</code> and use breakpoint debugging. For this, you need to setup your <code>launch.json</code> file within <code>.vscode</code> folder.</p>
+<p><code>json
 {
     "version": "0.2.0",
     "configurations": [
@@ -307,8 +305,8 @@ I0723 18:37:31.999466    6766 environment.go:240] KUBERNETES_WATCHNAMESPACE is n
 <h2 id="create-a-dev-release">Create a Dev Release</h2>
 <p>To test your changes on a cluster, you can use the <a href="https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_release?_a=releases&amp;view=mine&amp;definitionId=12"><code>Dev Release</code></a> pipeline. Just select the build version from the drop-down list which matches the build in your PR or against your commit in the main branch.</p>
 <p><img alt="dev release pipeline" src="../../images/dev-release.png" /></p>
-<p><code>Dev Release</code> generates a new docker image and helm package for your changes. Once the pipeline completes, use helm to install the release on your AKS cluster.
-```bash</p>
+<p><code>Dev Release</code> generates a new docker image and helm package for your changes. Once the pipeline completes, use helm to install the release on your AKS cluster.</p>
+<p>```bash</p>
 <h1 id="add-the-staging-helm-repository">add the staging helm repository</h1>
 <p>helm repo add staging <a href="https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/">https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/</a>
 helm repo update</p>

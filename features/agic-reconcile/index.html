@@ -196,9 +196,10 @@
             <div class="section">
               
                 <h2 id="reconcile-scenario-beta">Reconcile scenario (BETA)</h2>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
-<p>When an Application Gateway is deployed through ARM template, a requirement is that the gateway configuration should contain a probe, listener, rule, backend pool and backend http setting. When such a template is re-deployed with minor changes (for example to WAF rules) on Gateway that is being controlled by AGIC, all the AGIC written rules are removed. Given such change on Application Gateway doesn’t trigger any events on AGIC, AGIC doesn’t reconcile the gateway back to the expected state. </p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
+<p>When an Application Gateway is deployed through ARM template, a requirement is that the gateway configuration should contain a probe, listener, rule, backend pool and backend http setting. When such a template is re-deployed with minor changes (for example to WAF rules) on Gateway that is being controlled by AGIC, all the AGIC written rules are removed. Given such change on Application Gateway doesn’t trigger any events on AGIC, AGIC doesn’t reconcile the gateway back to the expected state.</p>
 <h2 id="solution">Solution</h2>
 <p>To address the problem above, AGIC periodically checks if the latest gateway configuration is different from what it cached, and reconcile if needed to make gateway configuration is eventual correct.</p>
 <h2 id="how-to-configure-reconcile">How to configure reconcile</h2>
@@ -207,8 +208,8 @@
 <p><code>reconcilePeriodSeconds: 30</code>, it means AGIC checks the reconciling in every 30 seconds.
 Acceptable values are between 30 and 300.</p>
 <h3 id="configure-from-helm-command-line">Configure from helm command line</h3>
-<p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3
-```bash</p>
+<p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3</p>
+<p>```bash</p>
 <h1 id="helm-fresh-install">helm fresh install</h1>
 <p>helm intall <releaseName> -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --version 1.2.0-rc3 --set reconcilePeriodSeconds=30 </p>
 <h1 id="help-upgrade">help upgrade</h1>

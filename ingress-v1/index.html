@@ -210,11 +210,14 @@
             <div class="section">
               
                 <h1 id="ingress-v1-support">Ingress V1 Support</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>This document describes AGIC's implementation of specific Ingress resource fields and features.
 As the Ingress specification has evolved between v1beta1 and v1, any differences between versions are highlighted to ensure clarity for AGIC users.</p>
+<blockquote>
 <p><strong>Note: Ingress/V1 is fully supported with AGIC &gt;= 1.5.1</strong></p>
+</blockquote>
 <h2 id="kubernetes-versions">Kubernetes Versions</h2>
 <p>For Kubernetes version 1.19+, the API server translates any Ingress v1beta1 resources to Ingress v1 and AGIC watches Ingress v1 resources.</p>
 <h2 id="ingressclass-and-ingressclass-name">IngressClass and IngressClass Name</h2>
@@ -241,8 +244,8 @@ spec:
 <li><code>Prefix</code> patch match type will now result in matching requests with a "segment prefix" rather than a "string prefix" according to the spec (e.g. the prefix <code>/foo/bar</code> will match requests with paths <code>/foo/bar</code>, <code>/foo/bar/</code>, and <code>/foo/bar/baz</code>, but not <code>/foo/barbaz</code>).</li>
 <li><code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</li>
 </ul>
-<p>Example Ingress YAML with different pathTypes defined: 
-<code>yaml
+<p>Example Ingress YAML with different pathTypes defined:</p>
+<p><code>yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -261,16 +264,12 @@ spec:
         pathType: ImplementationSpecific</code></p>
 <h3 id="behavioural-change-notice">Behavioural Change Notice</h3>
 <ul>
-<li>Starting with AGIC 1.5.1,<ul>
+<li>Starting with AGIC 1.5.1,</li>
 <li>AGIC will now <strong>strip</strong> <code>*</code> from the path if <code>PathType: Exact</code></li>
 <li>AGIC will now <strong>append</strong> <code>*</code> to path if <code>PathType: Prefix</code></li>
-</ul>
-</li>
-<li>Before AGIC 1.5.1,<ul>
+<li>Before AGIC 1.5.1,</li>
 <li><code>PathType</code> property was ignored and path matching was performed using Application Gateway <a href="https://docs.microsoft.com/en-us/azure/application-gateway/url-route-overview#pathpattern">wildcard path patterns</a>.</li>
 <li>Paths prefixed with <code>*</code> were treated as <code>Prefix</code> match and without were treated as <code>Exact</code> match.</li>
-</ul>
-</li>
 <li>To continue using the old behaviour, use <code>PathType: ImplementationSpecific</code> match type in AGIC 1.5.1+ to ensure backwards compatibility.</li>
 </ul>
 <p>Here is a table illustrating the <strong>corner cases</strong> where the behaviour has changed:</p>
@@ -304,12 +303,12 @@ spec:
 <td>/foo*</td>
 <td>/foo</td>
 <td>/foo (* is stripped)</td>
-<td>/foo* (* is appended)</td>
+<td>/foo*(* is appended)</td>
 </tr>
 </tbody>
 </table>
-<p>Example YAML illustrating the corner cases above:
-<code>yaml
+<p>Example YAML illustrating the corner cases above:</p>
+<p><code>yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

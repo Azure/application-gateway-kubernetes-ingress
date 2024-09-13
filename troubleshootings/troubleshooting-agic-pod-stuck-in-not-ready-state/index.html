@@ -135,7 +135,7 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#illustration">Illustration</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#common-causes">Common causes:</a>
+    <li class="toctree-l2"><a class="reference internal" href="#common-causes">Common causes</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#agic-is-stuck-at-creating-authorizer">AGIC is stuck at creating authorizer</a>
         <ul>
@@ -210,11 +210,12 @@
             <div class="section">
               
                 <h2 id="troubleshooting-agic-pod-stuck-in-not-ready-state">Troubleshooting: AGIC pod stuck in not ready state</h2>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <h3 id="illustration">Illustration</h3>
 <p>If AGIC pod is stuck in ready state, you must be seeing the following:</p>
-<p>```
+<p>```bash
 $ kubectl get pods</p>
 <p>NAME                                   READY   STATUS    RESTARTS   AGE
 <AGIC-POD-NAME>                        0/1     Running   0          19s
@@ -222,30 +223,35 @@ mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
 mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
 nmi-pv8ch     <br />
 ```</p>
-<h3 id="common-causes">Common causes:</h3>
+<h3 id="common-causes">Common causes</h3>
 <ol>
 <li><a href="#agic-is-stuck-at-creating-authorizer">Stuck at creating authorizer</a></li>
 <li><a href="#agic-is-stuck-getting-application-gateway">Stuck getting Application Gateway</a></li>
 </ol>
 <h3 id="agic-is-stuck-at-creating-authorizer">AGIC is stuck at creating authorizer</h3>
 <p>When the AGIC pod starts, in one of the steps, AGIC tries to get an AAD (Azure Active Directory) token for the identity assigned to it. This token is then used to perform updates on the Application gateway.<br />
-This identity can be of two types:
-1. User Assigned Identity
-1. Service Principal</p>
+This identity can be of two types:</p>
+<ol>
+<li>User Assigned Identity</li>
+<li>Service Principal</li>
+</ol>
 <p>When using User Assigned identity with AGIC, AGIC has a dependency on <a href="https://github.com/Azure/aad-pod-identity"><code>AAD Pod Identity</code></a>.<br />
 When you see your AGIC pod stuck at <code>Creating Authorizer</code> step, then the issue could be related to the setup of the user assigned identity and AAD Pod Identity.</p>
-<p><code>$ kubectl logs &lt;AGIC-POD-NAME&gt;
+<p><code>bash
+$ kubectl logs &lt;AGIC-POD-NAME&gt;
 ERROR: logging before flag.Parse: I0628 18:09:49.947221       1 utils.go:115] Using verbosity level 3 from environment variable APPGW_VERBOSITY_LEVEL
 I0628 18:09:49.987776       1 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
 I0628 18:09:49.987861       1 main.go:128] Application Gateway Details: Subscription="xxxx" Resource Group="resgp" Name="gateway"
 I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed Service Identity
 I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123</code></p>
-<p><code>AAD Pod Identity</code> is responsible for assigning the user assigned identity provided by the user for AGIC as <code>AGIC's Identity</code> to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install <code>AAD Pod Identity</code> on your AKS cluster, it will deploy two components:
-1. Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is <strong>elected leader</strong>. It is responsible to do the assignment of the identity to the AKS nodes.
-1. Node Managed Identity (NMI): It runs as <strong>daemon on every node</strong>. It is responsible to enforce the IP table rules to allow AGIC to <code>GET</code> the access token.</p>
+<p><code>AAD Pod Identity</code> is responsible for assigning the user assigned identity provided by the user for AGIC as <code>AGIC's Identity</code> to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install <code>AAD Pod Identity</code> on your AKS cluster, it will deploy two components:</p>
+<ol>
+<li>Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is <strong>elected leader</strong>. It is responsible to do the assignment of the identity to the AKS nodes.</li>
+<li>Node Managed Identity (NMI): It runs as <strong>daemon on every node</strong>. It is responsible to enforce the IP table rules to allow AGIC to <code>GET</code> the access token.</li>
+</ol>
 <p>For further reading on how these components work, you can go through <a href="https://github.com/Azure/aad-pod-identity#components">this readme</a>. Here is a <a href="https://github.com/Azure/aad-pod-identity/blob/master/docs/design/concept.png">concept diagram</a> on the project page.</p>
 <p>Now, In order to debug the authorizer issue further, we need to get the logs for <code>mic</code> and <code>nmi</code> pods. These pods usually start with mic and nmi as the prefix. We should first investigate the logs of <code>mic</code> and then <code>nmi</code>.</p>
-<p>```
+<p>```bash
 $ kubectl get pods</p>
 <p>NAME                                   READY   STATUS    RESTARTS   AGE
 mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
@@ -253,26 +259,44 @@ mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
 nmi-pv8ch                              1/1     Running   1          15m
 ```</p>
 <h6 id="issue-in-mic-pod">Issue in MIC Pod</h6>
-<p>For <code>mic</code> pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.
-1. MIC pod communicates with Azure Resource Manager(ARM) to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.
-    <code>Updating msis on node aks-agentpool-41724381-vmss, add [1], del [1], update[0] failed with error azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version=2019-07-01: StatusCode=0 -- Original Error: adal: Failed to execute the refresh request. Error = 'Post "https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0": dial tcp: i/o timeout'</code>
-1. You will see the following error if AKS cluster's <code>Service Principal</code> missing <code>Managed Identity Operator</code> access over User Assigned identity. You can follow the role assignment related step in the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#set-up-aad-pod-identity">brownfield document</a>.
-    <code>Updating msis on node aks-agentpool-32587779-vmss, add [1], del [0] failed with error compute.VirtualMachineScaleSetsClient#CreateOrUpdate: Failure sending request: StatusCode=403 -- Original Error: Code="LinkedAuthorizationFailed" Message="The client '&lt;objectID&gt;' with object id '&lt;objectID&gt;' has permission to perform action 'Microsoft.Compute/virtualMachineScaleSets/write' on scope '/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss'; however, it does not have permission to perform action 'Microsoft.ManagedIdentity/userAssignedIdentities/assign/action' on the linked scope(s) '/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;' or the linked scope(s) are invalid."</code></p>
+<p>For <code>mic</code> pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.</p>
+<ol>
+<li>
+<p>MIC pod communicates with Azure Resource Manager(ARM) to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.</p>
+<p><code>bash
+Updating msis on node aks-agentpool-41724381-vmss, add [1], del [1], update[0] failed with error azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version=2019-07-01: StatusCode=0 -- Original Error: adal: Failed to execute the refresh request. Error = 'Post "https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0": dial tcp: i/o timeout'</code></p>
+</li>
+<li>
+<p>You will see the following error if AKS cluster's <code>Service Principal</code> missing <code>Managed Identity Operator</code> access over User Assigned identity. You can follow the role assignment related step in the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#set-up-aad-pod-identity">brownfield document</a>.</p>
+<p><code>bash
+Updating msis on node aks-agentpool-32587779-vmss, add [1], del [0] failed with error compute.VirtualMachineScaleSetsClient#CreateOrUpdate: Failure sending request: StatusCode=403 -- Original Error: Code="LinkedAuthorizationFailed" Message="The client '&lt;objectID&gt;' with object id '&lt;objectID&gt;' has permission to perform action 'Microsoft.Compute/virtualMachineScaleSets/write' on scope '/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss'; however, it does not have permission to perform action 'Microsoft.ManagedIdentity/userAssignedIdentities/assign/action' on the linked scope(s) '/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;' or the linked scope(s) are invalid."</code></p>
+</li>
+</ol>
 <h6 id="issue-in-nmi-pod">Issue in NMI Pod</h6>
-<p>For <code>nmi</code> pod, we will need to find the pod running on the same node as AGIC pod.
-1. If you see <code>403</code> response for a token request, then make sure you have correctly assigned the needed permission to <code>AGIC's identity</code>.
-    1. <code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
-    1. <code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</p>
+<p>For <code>nmi</code> pod, we will need to find the pod running on the same node as AGIC pod.</p>
+<ol>
+<li>If you see <code>403</code> response for a token request, then make sure you have correctly assigned the needed permission to <code>AGIC's identity</code>.<ol>
+<li><code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.</li>
+<li><code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</li>
+</ol>
+</li>
+</ol>
 <h3 id="agic-is-stuck-getting-application-gateway">AGIC is stuck getting Application Gateway</h3>
-<p>AGIC can be stuck in getting the gateway due to:
-1. AGIC gets <code>NotFound</code> when getting Application Gateway<br />
-When you see this error,
-    1. Verify that the gateway actually exists in the subscription and resource group printed in the AGIC logs.
-    1. If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the <a href="../../helm-values-documenation/"><code>appgw.environment</code></a> property in the helm.
-1. AGIC gets <code>Unauthorized</code> when getting Application Gateway<br />
-Verify that you have given needed permissions to AGIC's identity:
-    1. <code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.
-    1. <code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</p>
+<p>AGIC can be stuck in getting the gateway due to:</p>
+<ol>
+<li>AGIC gets <code>NotFound</code> when getting Application Gateway<br />
+When you see this error,<ol>
+<li>Verify that the gateway actually exists in the subscription and resource group printed in the AGIC logs.</li>
+<li>If you are deploying in National Cloud or US Gov Cloud, then this issue could be related to incorrect environment endpoint setting. To correctly configure, set the <a href="../../helm-values-documenation/"><code>appgw.environment</code></a> property in the helm.</li>
+</ol>
+</li>
+<li>AGIC gets <code>Unauthorized</code> when getting Application Gateway<br />
+Verify that you have given needed permissions to AGIC's identity:<ol>
+<li><code>Reader</code> access to Application Gateway's resource group. This is needed to list the resources in the this resource group.</li>
+<li><code>Contributor</code> access to Application Gateway. This is needed to perform updates on the Application Gateway.</li>
+</ol>
+</li>
+</ol>
               
             </div>
           </div>

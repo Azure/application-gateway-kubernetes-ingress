@@ -198,8 +198,9 @@
             <div class="section">
               
                 <h1 id="scale-your-applications-using-application-gateway-metrics-beta">Scale your Applications using Application Gateway Metrics (Beta)</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>As incoming traffic increases, it becomes crucial to scale up your applications based on the demand.</p>
 <p>In the following tutorial, we explain how you can use Application Gateway's <code>AvgRequestCountPerHealthyHost</code> metric to scale up your application. <code>AvgRequestCountPerHealthyHost</code> is measure of average request that are sent to a specific backend pool and backend http setting combination.</p>
 <p>We are going to use following two components:</p>
@@ -210,11 +211,11 @@
 <h2 id="setting-up-azure-k8s-metric-adapter">Setting up Azure K8S Metric Adapter</h2>
 <ol>
 <li>
-<p>We will first create an Azure AAD service principal and assign it <code>Monitoring Reader</code> access over Application Gateway's resource group. Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:
-    <code>bash
-    applicationGatewayGroupName="&lt;application-gateway-group-id&gt;"
-    applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
-    az ad sp create-for-rbac -n "azure-k8s-metric-adapter-sp" --role "Monitoring Reader" --scopes applicationGatewayGroupId</code></p>
+<p>We will first create an Azure AAD service principal and assign it <code>Monitoring Reader</code> access over Application Gateway's resource group. Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
+<p><code>bash
+applicationGatewayGroupName="&lt;application-gateway-group-id&gt;"
+applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
+az ad sp create-for-rbac -n "azure-k8s-metric-adapter-sp" --role "Monitoring Reader" --scopes applicationGatewayGroupId</code></p>
 </li>
 <li>
 <p>Now, We will deploy the <a href="https://github.com/Azure/azure-k8s-metrics-adapter"><code>Azure K8S Metric Adapter</code></a> using the AAD service principal created above.</p>
@@ -248,8 +249,8 @@ spec:
     filter: BackendSettingsPool eq '&lt;backend-pool-name&gt;~&lt;backend-http-setting-name&gt;' # optional</code></p>
 </li>
 </ol>
-<p>You can now make a request to the metric server to see if our new metric is getting exposed:
-```bash
+<p>You can now make a request to the metric server to see if our new metric is getting exposed:</p>
+<p>```bash
 kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric"</p>
 <h1 id="sample-output">Sample Output</h1>
 <h1 id="_1">{</h1>
@@ -273,8 +274,8 @@ kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appg
 <h2 id="using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</h2>
 <p>Once we are able to expose <code>appgw-request-count-metric</code> through the metric server, We are ready to use <a href="https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler"><code>Horizontal Pod Autoscaler</code></a> to scale up our target deployment.</p>
 <p>In following example, we will target a sample deployment <code>aspnet</code>. We will scale up Pods when <code>appgw-request-count-metric</code> &gt; 200 per Pod upto a max of <code>10</code> Pods.</p>
-<p>Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in <code>autoscale-config.yaml</code> and apply with <code>kubectl apply -f autoscale-config.yaml</code>.
-<code>yaml
+<p>Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in <code>autoscale-config.yaml</code> and apply with <code>kubectl apply -f autoscale-config.yaml</code>.</p>
+<p><code>yaml
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
@@ -291,8 +292,8 @@ spec:
     external:
       metricName: appgw-request-count-metric
       targetAverageValue: 200</code></p>
-<p>Test your configuration by using a load test tools like apache bench:
-<code>bash
+<p>Test your configuration by using a load test tools like apache bench:</p>
+<p><code>bash
 ab -n10000 http://&lt;application-gateway-ip-address&gt;/</code></p>
               
             </div>

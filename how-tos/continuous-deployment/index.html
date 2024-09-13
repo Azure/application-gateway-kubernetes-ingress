@@ -198,8 +198,9 @@
             <div class="section">
               
                 <h1 id="continuous-deployment-with-aks-and-agic-using-azure-pipelines">Continuous Deployment with AKS and AGIC using Azure Pipelines</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>To achieve an efficiently deployed and managed global infrastucture, it is important to setup workflows for continuous integration and deployment. <code>Azure Devops</code> is one of the options to achieve this goal.</p>
 <p>In following example, we setup a Azure Devops release pipeline to deploy an AKS cluster along with AGIC as ingress. This example is merely a scaffolding. You need to separately setup a build pipeline to install your application and ingress on the AKS cluster deployed as part of the release.</p>
 <h2 id="setup-up-new-service-connection-with-service-principal">Setup up new service connection with service principal</h2>
@@ -220,29 +221,40 @@ az ad sp create-for-rbac -n azure-pipeline-cd --role owner</p>
 </li>
 </ol>
 <h2 id="create-a-new-azure-release-pipeline">Create a new Azure release pipeline</h2>
-<p>We have prepared an <a href="../continuous-deployment-pipeline.json">example release pipeline</a>. This pipeline has following tasks:
-1. Deploy AKS Cluster
-1. Create a user assigned identity used by AGIC Pod
-1. Install Helm
-1. Install AAD Pod identity
-1. Install AGIC
-1. Install a <a href="https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/aksgupta/cd/docs/examples/aspnetapp.yaml">sample application (with ingress)</a><br />
-<img alt="workflows" src="../../images/pipeline-task.png" /></p>
-<p>To use the example release pipeline,
-1. Download the <a href="../continuous-deployment-pipeline.json">template</a> and import it to your project's release pipeline.
-<img alt="import pipeline" src="../../images/pipeline-import.png" />
-1. Now provide the required settings for all tasks:
-    1. Select the correct <code>Agent Pool</code> and Agent Specification (ubuntu-18.04)
-    <img alt="import pipeline" src="../../images/pipeline-settings.png" />
-    1. Select the newly created service connection for the <code>Create Kubernetes Cluster</code> and <code>Create AGIC Identity</code> tasks.
-    <img alt="import pipeline" src="../../images/pipeline-set-connection.png" />
-    1. Provide the values for <code>clientId</code> and <code>clientSecret</code> that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.
-        <code>bash
-        # create a new one and copy the appId and password to the variable section in the pipeline
-        az ad sp create-for-rbac -n aks-cluster</code>
-        <img alt="import pipeline" src="../../images/pipeline-variable.png" /></p>
+<p>We have prepared an <a href="../continuous-deployment-pipeline.json">example release pipeline</a>. This pipeline has following tasks:</p>
 <ol>
-<li>Click <code>Save</code>. Now your pipeline is all set up.</li>
+<li>Deploy AKS Cluster</li>
+<li>Create a user assigned identity used by AGIC Pod</li>
+<li>Install Helm</li>
+<li>Install AAD Pod identity</li>
+<li>Install AGIC</li>
+<li>Install a <a href="https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/aksgupta/cd/docs/examples/aspnetapp.yaml">sample application (with ingress)</a><br />
+<img alt="workflows" src="../../images/pipeline-task.png" /></li>
+</ol>
+<p>To use the example release pipeline,</p>
+<ol>
+<li>Download the <a href="../continuous-deployment-pipeline.json">template</a> and import it to your project's release pipeline.
+<img alt="import pipeline" src="../../images/pipeline-import.png" /></li>
+<li>
+<p>Now provide the required settings for all tasks:</p>
+<ol>
+<li>Select the correct <code>Agent Pool</code> and Agent Specification (ubuntu-18.04)
+<img alt="import pipeline" src="../../images/pipeline-settings.png" /></li>
+<li>Select the newly created service connection for the <code>Create Kubernetes Cluster</code> and <code>Create AGIC Identity</code> tasks.
+<img alt="import pipeline" src="../../images/pipeline-set-connection.png" /></li>
+<li>
+<p>Provide the values for <code>clientId</code> and <code>clientSecret</code> that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.</p>
+<p>```bash</p>
+<h1 id="create-a-new-one-and-copy-the-appid-and-password-to-the-variable-section-in-the-pipeline">create a new one and copy the appId and password to the variable section in the pipeline</h1>
+<p>az ad sp create-for-rbac -n aks-cluster
+```</p>
+<p><img alt="import pipeline" src="../../images/pipeline-variable.png" /></p>
+</li>
+</ol>
+</li>
+<li>
+<p>Click <code>Save</code>. Now your pipeline is all set up.</p>
+</li>
 </ol>
 <p>Hit <code>Create release</code> and provide a location(Azure region) where you want the cluster to be deployed.<br />
 <img alt="import pipeline" src="../../images/pipeline-success.png" /></p>

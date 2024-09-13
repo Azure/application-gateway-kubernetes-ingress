@@ -210,17 +210,17 @@
 <h2 id="unit-tests">Unit Tests</h2>
 <p>As is the convention in go, unit tests for the <code>.go</code> file you want to test live in the same folder and end with <code>_test.go</code>.
 We use the <code>ginkgo</code>/<code>gomega</code>  testing framework for writing the tests.</p>
-<p>To execute the tests, use
-<code>bash
+<p>To execute the tests, use</p>
+<p><code>bash
 go test -v -tags unittest ./...</code></p>
 <h2 id="e2e-tests">E2E Tests</h2>
 <p>E2E tests are going to test the specific scenarios with a real AKS and App Gateway setup with AGIC installed on it.</p>
 <p>E2E tests are automatically run every day 3 AM in the morning using an <a href="https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_release?_a=releases&amp;view=mine&amp;definitionId=14">E2E pipeline</a>.</p>
-<p>If you have cluster with AGIC installed, you can run e2e tests simply by:
-<code>bash
+<p>If you have cluster with AGIC installed, you can run e2e tests simply by:</p>
+<p><code>bash
 go test -v -tags e2e ./...</code></p>
-<p>You can also execute the <code>run-e2e.sh</code> which is used in the E2E pipeline to invoke the tests. This script will install AGIC with the version provided.
-```bash
+<p>You can also execute the <code>run-e2e.sh</code> which is used in the E2E pipeline to invoke the tests. This script will install AGIC with the version provided.</p>
+<p>```bash
 export version="<agic-version>"
 export applicationGatewayId="<resource-id>"
 export identityResourceId="<agic-identity-resource-id>"
@@ -229,14 +229,16 @@ export identityClientId="<agic-identity-client-id>"</p>
 ```</p>
 <h2 id="testing-tips">Testing Tips</h2>
 <ul>
-<li>If you just want to run a specific set of tests, then an easy way is add <code>F</code> (Focus) to the <code>It</code>, <code>Context</code>, <code>Describe</code> directive in the test.
-    For example:
-    ```go
-    FContext("Test obtaining a single certificate for an existing host", func() {
-        cb := newConfigBuilderFixture(nil)
-        ingress := tests.NewIngressFixture()
-        hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
-        actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)<pre><code>It("should have generated the expected secret", func() {
+<li>
+<p>If you just want to run a specific set of tests, then an easy way is add <code>F</code> (Focus) to the <code>It</code>, <code>Context</code>, <code>Describe</code> directive in the test.
+    For example:</p>
+<p>```go
+FContext("Test obtaining a single certificate for an existing host", func() {
+    cb := newConfigBuilderFixture(nil)
+    ingress := tests.NewIngressFixture()
+    hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
+    actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)</p>
+<pre><code>It("should have generated the expected secret", func() {
     Expect(*actualSecret).To(Equal("eHl6"))
 })
 

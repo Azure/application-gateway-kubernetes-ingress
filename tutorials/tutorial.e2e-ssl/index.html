@@ -204,8 +204,9 @@
             <div class="section">
               
                 <h1 id="tutorial-setting-up-e2e-ssl">Tutorial: Setting up E2E SSL</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>In this this tutorial, we will learn how to setup E2E SSL with AGIC on Application Gateway.</p>
 <p>We will</p>
 <ol>
@@ -319,11 +320,11 @@ data:
         }
     }
 ```</p>
-<p>You can also install the above yamls using:
-<code>bash
+<p>You can also install the above yamls using:</p>
+<p><code>bash
 kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-https-backend.yaml</code></p>
-<p>Verify that you can curl the application
-```bash</p>
+<p>Verify that you can curl the application</p>
+<p>```bash</p>
 <blockquote>
 <p>kubectl get pods
 NAME                                 READY   STATUS    RESTARTS   AGE
@@ -374,20 +375,20 @@ spec:
                 number: 8443
           pathType: Exact
 EOF</code></p>
-<p>For frontend SSL, we have added <code>tls</code> section in our ingress resource.
-<code>yaml
+<p>For frontend SSL, we have added <code>tls</code> section in our ingress resource.</p>
+<p><code>yaml
   tls:
     - secretName: frontend-tls
       hosts:
         - website.com</code></p>
-<p>For backend SSL, we have added the following annotations:
-<code>yaml
+<p>For backend SSL, we have added the following annotations:</p>
+<p><code>yaml
 appgw.ingress.kubernetes.io/backend-protocol: "https"
 appgw.ingress.kubernetes.io/backend-hostname: "backend"
 appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "backend-tls"</code></p>
 <p>Here, it is important to note that <code>backend-hostname</code> should be the hostname that the backend will accept and it should also match with the Subject/Subject Alternate Name of the certificate used on the backend.</p>
-<p>After you have successfully completed all the above steps, you should be able to see the ingress's IP address and visit the website.
-```</p>
+<p>After you have successfully completed all the above steps, you should be able to see the ingress's IP address and visit the website.</p>
+<p>```bash</p>
 <blockquote>
 <p>kubectl get ingress
 NAME              HOSTS         ADDRESS         PORTS     AGE

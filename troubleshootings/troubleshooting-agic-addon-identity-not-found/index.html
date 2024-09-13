@@ -200,16 +200,18 @@
             <div class="section">
               
                 <h2 id="troubleshooting-agic-addon-identity-not-found">Troubleshooting: AGIC addon, identity not found</h2>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <h3 id="illustration">Illustration</h3>
 <p>AGIC fails to start due to "Identity not found" even though the User Managed Identity is assigned to the AKS nodes and has the right permissions.</p>
-<p><strong><em>AGIC Pod Logs</em></strong>
-<code>E0813 15:49:23.529297 1 client.go:170] Code="ErrorApplicationGatewayForbidden" Message="Unexpected status code '403' while performing a GET on Application Gateway. You can use 'az role assignment create --role Reader --scope /subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME --assignee YOUR_AGIC_CLIENTID; az role assignment create --role Contributor --scope /subscriptions/YOUR_RESOURCEGROUP_NAME/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME --assignee YOUR_AGIC_CLIENTID' to assign permissions. AGIC Identity needs atleast has 'Contributor' access to Application Gateway 'YOUR_APPGW_NAME' and 'Reader' access to Application Gateway's Resource Group 'YOUR_RESOURCEGROUP_NAME'." InnerError="azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = '403'. Response body: failed to get service principal token, error: failed to refresh token, error: adal: Refresh request failed. Status Code = '400'. Response body: {"error":"invalid_request","error_description":"Identity not found"}</code></p>
+<p><em><strong>AGIC Pod Logs</strong></em></p>
+<p><code>bash
+E0813 15:49:23.529297 1 client.go:170] Code="ErrorApplicationGatewayForbidden" Message="Unexpected status code '403' while performing a GET on Application Gateway. You can use 'az role assignment create --role Reader --scope /subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME --assignee YOUR_AGIC_CLIENTID; az role assignment create --role Contributor --scope /subscriptions/YOUR_RESOURCEGROUP_NAME/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME --assignee YOUR_AGIC_CLIENTID' to assign permissions. AGIC Identity needs atleast has 'Contributor' access to Application Gateway 'YOUR_APPGW_NAME' and 'Reader' access to Application Gateway's Resource Group 'YOUR_RESOURCEGROUP_NAME'." InnerError="azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = '403'. Response body: failed to get service principal token, error: failed to refresh token, error: adal: Refresh request failed. Status Code = '400'. Response body: {"error":"invalid_request","error_description":"Identity not found"}</code></p>
 <h3 id="resolve-the-issue">Resolve the issue</h3>
 <p>Team is working on the <a href="https://github.com/Azure/aad-pod-identity/issues/681">fix</a>, currently to resolve the issue above, agic client identity will need to be reassigned to AKS nodes.
-Please perform the following commands in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>.
-```
+Please perform the following commands in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>.</p>
+<p>```bash
 aksClusterName="YOUR_AKS_CLUSTER_NAME"
 resourceGroup="YOUR_RESOURCEGROUP_NAME"
 nodeResourceGroup=$(az aks show -n $aksClusterName -g <span class="arithmatex"><span class="MathJax_Preview">resourceGroup --query "nodeResourceGroup" -o tsv)

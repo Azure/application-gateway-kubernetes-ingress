@@ -196,20 +196,23 @@
             <div class="section">
               
                 <h3 id="prerequisites">Prerequisites</h3>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
-<p>This documents assumes you already have the following Azure tools and resources installed:
-- <a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">AKS</a> with <a href="https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni">Advanced Networking</a> enabled
-- <a href="https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant">App Gateway v2</a> in the same virtual network as AKS
-- <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster
-- <a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
+<p>This documents assumes you already have the following Azure tools and resources installed:</p>
+<ul>
+<li><a href="https://azure.microsoft.com/en-us/services/kubernetes-service/">AKS</a> with <a href="https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni">Advanced Networking</a> enabled</li>
+<li><a href="https://docs.microsoft.com/en-us/azure/application-gateway/create-zone-redundant">App Gateway v2</a> in the same virtual network as AKS</li>
+<li><a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> installed on your AKS cluster</li>
+<li><a href="https://shell.azure.com/">Cloud Shell</a> is the Azure shell environment, which has <code>az</code> CLI, <code>kubectl</code>, and <code>helm</code> installed. These tools are required for the commands below.</li>
+</ul>
 <p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfield Deployment</a> to install nonexistents.</p>
-<p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
-<code>bash
+<p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3</p>
+<p><code>bash
 helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></p>
 <h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
-<p>The certificate below should only be used for testing purpose.
-```bash
+<p>The certificate below should only be used for testing purpose.</p>
+<p>```bash
 appgwName=""
 resgp=""</p>
 <h1 id="generate-certificate-for-testing">generate certificate for testing</h1>

@@ -204,16 +204,23 @@
             <div class="section">
               
                 <h1 id="how-to-setup-networking-between-application-gateway-and-aks">How to setup networking between Application Gateway and AKS</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+</blockquote>
 <p>When you are using Application Gateway with AKS for L7, you need to make sure that you have setup network connectivity correctly between the gateway and the cluster. Otherwise, you might receive 502s when reaching your site.</p>
-<p>There are two major things to consider when setting up network connectivity between Application Gateway and AKS
-1. Virtual Network Configuration
-    * When AKS and Application Gateway in the <a href="#deployed-in-same-vnet">same virtual network</a>
-    * When AKS and Application Gateway in <a href="#deployed-in-different-vnets">different virtual networks</a>
-1. Network Plugin used with AKS
-    * <a href="#with-kubenet">Kubenet</a>
-    * <a href="#with-azure-cni">Azure(advanced) CNI</a></p>
+<p>There are two major things to consider when setting up network connectivity between Application Gateway and AKS</p>
+<ol>
+<li>Virtual Network Configuration<ul>
+<li>When AKS and Application Gateway in the <a href="#deployed-in-same-vnet">same virtual network</a></li>
+<li>When AKS and Application Gateway in <a href="#deployed-in-different-vnets">different virtual networks</a></li>
+</ul>
+</li>
+<li>Network Plugin used with AKS<ul>
+<li><a href="#with-kubenet">Kubenet</a></li>
+<li><a href="#with-azure-cni">Azure(advanced) CNI</a></li>
+</ul>
+</li>
+</ol>
 <h2 id="virtual-network-configuration">Virtual Network Configuration</h2>
 <h3 id="deployed-in-same-virtual-network">Deployed in same virtual network</h3>
 <p>If you have deployed AKS and Application Gateway in the same virtual network with <code>Azure CNI</code> for network plugin, then you don't have to do any changes and you are good to go. Application Gateway instances should be able to reach the PODs.</p>
@@ -273,7 +280,7 @@ routeTableId=</script></span>(az network route-table list -g $nodeResourceGroup 
 --ids $appGatewaySubnetId
 --route-table $routeTableId
 ```</p>
-<p>### Further Readings</p>
+<h3 id="further-readings">Further Readings</h3>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing#peer-the-two-virtual-networks-together">Peer the two virtual networks together</a></li>
 <li><a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview">Virtual network peering</a></li>

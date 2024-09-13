@@ -204,21 +204,24 @@
             <div class="section">
               
                 <h1 id="preventing-agic-from-removing-certain-rules">Preventing AGIC from removing certain rules</h1>
-<p>.. note::
-    <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <blockquote>
+<p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 <p>Note: This feature is <strong>EXPERIMENTAL</strong> with <strong>limited support</strong>. Use with caution.</p>
 </blockquote>
 <p>By default AGIC assumes full ownership of the App Gateway it is linked to. AGIC version 0.8.0 and later allows
 retaining rules to allow adding VMSS as backend along with AKS cluster.</p>
-<p>Please <strong>backup your App Gateway's configuration</strong> before enabling this setting:
-  1. using <a href="https://portal.azure.com/">Azure Portal</a> navigate to your <code>App Gateway</code> instance
-  2. from <code>Export template</code> click <code>Download</code></p>
+<p>Please <strong>backup your App Gateway's configuration</strong> before enabling this setting:</p>
+<ol>
+<li>using <a href="https://portal.azure.com/">Azure Portal</a> navigate to your <code>App Gateway</code> instance</li>
+<li>from <code>Export template</code> click <code>Download</code></li>
+</ol>
 <p>The zip file you downloaded will have JSON templates, bash, and PowerShell scripts you could use to restore App Gateway</p>
 <h2 id="example-scenario">Example Scenario</h2>
-<p>Let's look at an imaginary App Gateway, which manages traffic for 2 web sites:
-  - <code>dev.contoso.com</code> - hosted on a new AKS, using App Gateway and AGIC
-  - <code>prod.contoso.com</code> - hosted on an <a href="https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/">Azure VMSS</a></p>
+<p>Let's look at an imaginary App Gateway, which manages traffic for 2 web sites:</p>
+<ul>
+<li><code>dev.contoso.com</code> - hosted on a new AKS, using App Gateway and AGIC</li>
+<li><code>prod.contoso.com</code> - hosted on an <a href="https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/">Azure VMSS</a></li>
+</ul>
 <p>With default settings, AGIC assumes 100% ownership of the App Gateway it is pointed to. AGIC overwrites all of App
 Gateway's configuration. If we were to manually create a listener for <code>prod.contoso.com</code> (on App Gateway), without
 defining it in the Kubernetes Ingress, AGIC will delete the <code>prod.contoso.com</code> config within seconds.</p>
@@ -246,35 +249,45 @@ appgw:
     resourceGroup: &lt;resourceGroupName&gt;  # existing field
     name: &lt;applicationGatewayName&gt;      # existing field
     shared: true                        # &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</code></p>
-<p>Apply the Helm changes:
-  1. Ensure the <code>AzureIngressProhibitedTarget</code> CRD is installed with:
-      <code>bash
-      kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml</code>
-  2. Update Helm:
-      <code>bash
-      helm upgrade \
-          --recreate-pods \
-          -f helm-config.yaml \
-          ingress-azure application-gateway-kubernetes-ingress/ingress-azure</code></p>
-<p>As a result your AKS will have a new instance of <code>AzureIngressProhibitedTarget</code> called <code>prohibit-all-targets</code>:
-<code>bash
+<p>Apply the Helm changes:</p>
+<ol>
+<li>
+<p>Ensure the <code>AzureIngressProhibitedTarget</code> CRD is installed with:</p>
+<p><code>bash
+  kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml</code></p>
+</li>
+<li>
+<p>Update Helm:</p>
+<p><code>bash
+  helm upgrade \
+      --recreate-pods \
+      -f helm-config.yaml \
+      ingress-azure application-gateway-kubernetes-ingress/ingress-azure</code></p>
+</li>
+</ol>
+<p>As a result your AKS will have a new instance of <code>AzureIngressProhibitedTarget</code> called <code>prohibit-all-targets</code>:</p>
+<p><code>bash
 kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml</code></p>
 <p>The object <code>prohibit-all-targets</code>, as the name implies, prohibits AGIC from changing config for <em>any</em> host and path.
 Helm install with <code>appgw.shared=true</code> will deploy AGIC, but will not make any changes to App Gateway.</p>
 <h2 id="broaden-permissions">Broaden permissions</h2>
 <p>Since Helm with <code>appgw.shared=true</code> and the default <code>prohibit-all-targets</code> blocks AGIC from applying any config.</p>
-<p>Broaden AGIC permissions with:
-1. Create a new <code>AzureIngressProhibitedTarget</code> with your specific setup:
-    <code>bash
-    cat &lt;&lt;EOF | kubectl apply -f -
-    apiVersion: "appgw.ingress.k8s.io/v1"
-    kind: AzureIngressProhibitedTarget
-    metadata:
-      name: your-custom-prohibitions
-    spec:
-      hostname: your.own-hostname.com
-    EOF</code>
-<strong>NOTE:</strong> To prohibit AGIC from making changes, in addition to <em>hostname</em>, a list of URL paths can also be configured as part of your prohibited policy, please refer to the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/AzureIngressProhibitedTarget-v1-CRD-v1.yaml">schema</a> for details.</p>
+<p>Broaden AGIC permissions with:</p>
+<ol>
+<li>
+<p>Create a new <code>AzureIngressProhibitedTarget</code> with your specific setup:</p>
+<p><code>bash
+cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: your-custom-prohibitions
+spec:
+  hostname: your.own-hostname.com
+EOF</code></p>
+</li>
+</ol>
+<p><strong>NOTE:</strong> To prohibit AGIC from making changes, in addition to <em>hostname</em>, a list of URL paths can also be configured as part of your prohibited policy, please refer to the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/AzureIngressProhibitedTarget-v1-CRD-v1.yaml">schema</a> for details.</p>
 <ol>
 <li>
 <p>Only after you have created your own custom prohibition, you can delete the default one, which is too broad:</p>
@@ -294,21 +307,21 @@ changes, AGIC will overwrite or delete them.</p>
 <p>We can prohibit AGIC from making changes to a subset of configuration.</p>
 <ol>
 <li>
-<p>Create an <code>AzureIngressProhibitedTarget</code> object:
-    <code>bash
-    cat &lt;&lt;EOF | kubectl apply -f -
-    apiVersion: "appgw.ingress.k8s.io/v1"
-    kind: AzureIngressProhibitedTarget
-    metadata:
-      name: manually-configured-staging-environment
-    spec:
-      hostname: staging.contoso.com
-    EOF</code></p>
+<p>Create an <code>AzureIngressProhibitedTarget</code> object:</p>
+<p><code>bash
+cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: manually-configured-staging-environment
+spec:
+  hostname: staging.contoso.com
+EOF</code></p>
 </li>
 <li>
-<p>View the newly created object:
-    <code>bash
-    kubectl get AzureIngressProhibitedTargets</code></p>
+<p>View the newly created object:</p>
+<p><code>bash
+kubectl get AzureIngressProhibitedTargets</code></p>
 </li>
 <li>
 <p>Modify App Gateway config via portal - add listeners, routing rules, backends etc. The new object we created
