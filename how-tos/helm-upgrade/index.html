@@ -204,41 +204,9 @@
 <p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 </blockquote>
 <p>The Azure Application Gateway Ingress Controller for Kubernetes (AGIC) can be upgraded
-using a Helm repository hosted on Azure Storage.</p>
-<p>Before we begin the upgrade procedure, ensure that you have added the required repository:</p>
-<ul>
-<li>
-<p>View your currently added Helm repositories with:</p>
-<p><code>bash
-helm repo list</code></p>
-</li>
-<li>
-<p>Add the AGIC repo with:</p>
-<p><code>bash
-helm repo add \
-    application-gateway-kubernetes-ingress \
-    https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/</code></p>
-</li>
-</ul>
+using a Helm repository hosted on MCR.</p>
 <h2 id="upgrade">Upgrade</h2>
 <ol>
-<li>
-<p>Refresh the AGIC Helm repository to get the latest release:</p>
-<p><code>bash
-helm repo update</code></p>
-</li>
-<li>
-<p>View available versions of the <code>application-gateway-kubernetes-ingress</code> chart:</p>
-<p><code>bash
-helm search repo -l application-gateway-kubernetes-ingress</code></p>
-<p>Sample response:</p>
-<p><code>bash
-NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
-application-gateway-kubernetes-ingress/ingress-azure    1.0.0           1.0.0           Use Azure Application Gateway as the ingress for an Azure...
-application-gateway-kubernetes-ingress/ingress-azure    0.7.0-rc1       0.7.0-rc1       Use Azure Application Gateway as the ingress for an Azure...
-application-gateway-kubernetes-ingress/ingress-azure    0.6.0           0.6.0           Use Azure Application Gateway as the ingress for an Azure...</code></p>
-<p>Latest available version from the list above is: <code>0.7.0-rc1</code></p>
-</li>
 <li>
 <p>View the Helm charts currently installed:</p>
 <p><code>bash

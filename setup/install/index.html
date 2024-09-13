@@ -245,7 +245,7 @@ az aks create \
 </li>
 <li>
 <p>Install Helm</p>
-<p><a href="https://github.com/helm/helm">Helm</a> is an open-source packaging tool that is used to install ALB controller.</p>
+<p><a href="https://github.com/helm/helm">Helm</a> is an open-source packaging tool that is used to install AGIC.</p>
 <blockquote>
 <p>Helm is already available in Azure Cloud Shell.  If you are using Azure Cloud Shell, no additional Helm installation is necessary.</p>
 </blockquote>
@@ -335,9 +335,9 @@ IDENTITY_CLIENT_ID="</script></span>(az identity show -g $RESOURCE_GROUP -n $IDE
 sleep 60</p>
 <p>echo "Set up federation with AKS OIDC issuer"
 AKS_OIDC_ISSUER="<span class="arithmatex"><span class="MathJax_Preview">(az aks show -n "</span><script type="math/tex">(az aks show -n "</script></span>AKS_NAME" -g "<span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -o tsv)"
-az identity federated-credential create --name "azure-alb-identity" \
+az identity federated-credential create --name "agic" \
     --identity-name "</span><script type="math/tex">RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -o tsv)"
-az identity federated-credential create --name "azure-alb-identity" \
+az identity federated-credential create --name "agic" \
     --identity-name "</script></span>IDENTITY_RESOURCE_NAME" \
     --resource-group <span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP \
     --issuer "</span><script type="math/tex">RESOURCE_GROUP \
@@ -359,15 +359,7 @@ az role assignment create --assignee-object-id $IDENTITY_PRINCIPAL_ID --assignee
 <p>Assignment of the managed identity immediately after creation may result in an error that the principalId does not exist. Allow about a minute of time to elapse for the identity to replicate in Microsoft Entra ID prior to delegating the identity.</p>
 </blockquote>
 <ol>
-<li>
-<p>Add the AGIC Helm repository:</p>
-<p><code>bash
-helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-helm repo update</code></p>
-</li>
-<li>
-<p>Install ALB Controller using Helm</p>
-</li>
+<li>Install AGIC using Helm</li>
 </ol>
 <h3 id="for-new-deployments">For new deployments</h3>
 <p>AGIC can be installed by running the following commands:</p>
