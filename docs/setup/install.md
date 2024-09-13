@@ -53,7 +53,7 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
 
 3. Install Helm
 
-    [Helm](https://github.com/helm/helm) is an open-source packaging tool that is used to install ALB controller.
+    [Helm](https://github.com/helm/helm) is an open-source packaging tool that is used to install AGIC.
 
     > Helm is already available in Azure Cloud Shell.  If you are using Azure Cloud Shell, no additional Helm installation is necessary.
 
@@ -146,7 +146,7 @@ If using an existing Application Gateway, make sure the following:
 
     echo "Set up federation with AKS OIDC issuer"
     AKS_OIDC_ISSUER="$(az aks show -n "$AKS_NAME" -g "$RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -o tsv)"
-    az identity federated-credential create --name "azure-alb-identity" \
+    az identity federated-credential create --name "agic" \
         --identity-name "$IDENTITY_RESOURCE_NAME" \
         --resource-group $RESOURCE_GROUP \
         --issuer "$AKS_OIDC_ISSUER" \
@@ -164,14 +164,7 @@ If using an existing Application Gateway, make sure the following:
 
    > Assignment of the managed identity immediately after creation may result in an error that the principalId does not exist. Allow about a minute of time to elapse for the identity to replicate in Microsoft Entra ID prior to delegating the identity.
 
-1. Add the AGIC Helm repository:
-
-    ```bash
-    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-    helm repo update
-    ```
-
-1. Install ALB Controller using Helm
+1. Install AGIC using Helm
 
 ### For new deployments
 
