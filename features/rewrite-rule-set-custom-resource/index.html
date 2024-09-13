@@ -256,58 +256,59 @@ Header Rewrite rules for Application Gateway for Containers may be found <a href
 </ul>
 <p><strong>Recommended:</strong> More information about Application Gateway's Rewrite feature can be found <a href="https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url">here</a></p>
 <h2 id="example">Example</h2>
-<p>```yaml
-apiVersion: appgw.ingress.azure.io/v1beta1
-kind: AzureApplicationGatewayRewrite
-metadata:
-  name: my-rewrite-rule-set-custom-resource
-spec:
-  rewriteRules:
-  - name: rule1
-    ruleSequence: 21</p>
-<pre><code>conditions:
-- ignoreCase: false
-  negate: false
-  variable: http_req_Host
-  pattern: example.com
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appgw.ingress.azure.io/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AzureApplicationGatewayRewrite</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set-custom-resource</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rewriteRules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rule1</span>
+<span class="w">    </span><span class="nt">ruleSequence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21</span>
 
-actions:
-  requestHeaderConfigurations:
-  - actionType: set
-    headerName: incoming-test-header
-    headerValue: incoming-test-value
+<span class="w">    </span><span class="nt">conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ignoreCase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">negate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http_req_Host</span>
+<span class="w">      </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
 
-  responseHeaderConfigurations:
-  - actionType: set
-    headerName: outgoing-test-header
-    headerValue: outgoing-test-value
+<span class="w">    </span><span class="nt">actions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">requestHeaderConfigurations</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">actionType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">set</span>
+<span class="w">        </span><span class="nt">headerName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incoming-test-header</span>
+<span class="w">        </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incoming-test-value</span>
 
-  urlConfiguration:
-    modifiedPath: "/api/"
-    modifiedQueryString: "query=test-value"
-    reroute: false
-</code></pre>
-<hr />
-<p>apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: my-ingress
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Exact
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-```</p>
+<span class="w">      </span><span class="nt">responseHeaderConfigurations</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">actionType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">set</span>
+<span class="w">        </span><span class="nt">headerName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">outgoing-test-header</span>
+<span class="w">        </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">outgoing-test-value</span>
+
+<span class="w">      </span><span class="nt">urlConfiguration</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">modifiedPath</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/api/&quot;</span>
+<span class="w">        </span><span class="nt">modifiedQueryString</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;query=test-value&quot;</span>
+<span class="w">        </span><span class="nt">reroute</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+
+<span class="nn">---</span>
+
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</code></pre></div>
               
             </div>
           </div>

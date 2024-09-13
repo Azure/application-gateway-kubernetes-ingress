@@ -223,180 +223,172 @@
 <ol>
 <li>
 <p>First, we will generate the frontend certificate that will be presented to the clients connecting to the Application Gateway. This will have subject name <code>CN=frontend</code>.</p>
-<p><code>bash
-openssl ecparam -out frontend.key -name prime256v1 -genkey
-openssl req -new -sha256 -key frontend.key -out frontend.csr -subj "/CN=frontend"
-openssl x509 -req -sha256 -days 365 -in frontend.csr -signkey frontend.key -out frontend.crt</code></p>
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>ecparam<span class="w"> </span>-out<span class="w"> </span>frontend.key<span class="w"> </span>-name<span class="w"> </span>prime256v1<span class="w"> </span>-genkey
+openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-sha256<span class="w"> </span>-key<span class="w"> </span>frontend.key<span class="w"> </span>-out<span class="w"> </span>frontend.csr<span class="w"> </span>-subj<span class="w"> </span><span class="s2">&quot;/CN=frontend&quot;</span>
+openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-in<span class="w"> </span>frontend.csr<span class="w"> </span>-signkey<span class="w"> </span>frontend.key<span class="w"> </span>-out<span class="w"> </span>frontend.crt
+</code></pre></div>
 <blockquote>
 <p>Note: You can also use a <a href="../../features/appgw-ssl-certificate/">certificate present on the Key Vault</a> on Application Gateway for frontend SSL.</p>
 </blockquote>
 </li>
 <li>
 <p>Now, we will generate the backend certificate that will be presented by the backends to the Application Gateway. This will have subject name <code>CN=backend</code></p>
-<p><code>bash
-openssl ecparam -out backend.key -name prime256v1 -genkey
-openssl req -new -sha256 -key backend.key -out backend.csr -subj "/CN=backend"
-openssl x509 -req -sha256 -days 365 -in backend.csr -signkey backend.key -out backend.crt</code></p>
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>ecparam<span class="w"> </span>-out<span class="w"> </span>backend.key<span class="w"> </span>-name<span class="w"> </span>prime256v1<span class="w"> </span>-genkey
+openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-sha256<span class="w"> </span>-key<span class="w"> </span>backend.key<span class="w"> </span>-out<span class="w"> </span>backend.csr<span class="w"> </span>-subj<span class="w"> </span><span class="s2">&quot;/CN=backend&quot;</span>
+openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-in<span class="w"> </span>backend.csr<span class="w"> </span>-signkey<span class="w"> </span>backend.key<span class="w"> </span>-out<span class="w"> </span>backend.crt
+</code></pre></div>
 </li>
 <li>
 <p>Finally, we will install the above certificates on to our kubernetes cluster</p>
-<p><code>bash
-kubectl create secret tls frontend-tls --key="frontend.key" --cert="frontend.crt"
-kubectl create secret tls backend-tls --key="backend.key" --cert="backend.crt"</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>tls<span class="w"> </span>frontend-tls<span class="w"> </span>--key<span class="o">=</span><span class="s2">&quot;frontend.key&quot;</span><span class="w"> </span>--cert<span class="o">=</span><span class="s2">&quot;frontend.crt&quot;</span>
+kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>tls<span class="w"> </span>backend-tls<span class="w"> </span>--key<span class="o">=</span><span class="s2">&quot;backend.key&quot;</span><span class="w"> </span>--cert<span class="o">=</span><span class="s2">&quot;backend.crt&quot;</span>
+</code></pre></div>
 <p>Here is output after listing the secrets.</p>
-<p>```bash</p>
-<blockquote>
-<p>kubectl get secrets
-NAME                  TYPE                                  DATA   AGE
-backend-tls           kubernetes.io/tls                     2      3m18s
-frontend-tls          kubernetes.io/tls                     2      3m18s
-```</p>
-</blockquote>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>secrets
+NAME<span class="w">                  </span>TYPE<span class="w">                                  </span>DATA<span class="w">   </span>AGE
+backend-tls<span class="w">           </span>kubernetes.io/tls<span class="w">                     </span><span class="m">2</span><span class="w">      </span>3m18s
+frontend-tls<span class="w">          </span>kubernetes.io/tls<span class="w">                     </span><span class="m">2</span><span class="w">      </span>3m18s
+</code></pre></div>
 </li>
 </ol>
 <h2 id="deploy-a-simple-application-with-https">Deploy a simple application with HTTPS</h2>
 <p>In this section, we will deploy a simple application exposing an HTTPS endpoint on port 8443.</p>
-<p>```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: website-service
-spec:
-  selector:
-    app: website
-  ports:
-  - protocol: TCP
-    port: 8443
-    targetPort: 8443</p>
-<hr />
-<p>apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: website-deployment
-spec:
-  selector:
-    matchLabels:
-      app: website
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        app: website
-    spec:
-      containers:
-        - name: website
-          imagePullPolicy: Always
-          image: nginx:latest
-          ports:
-            - containerPort: 8443
-          volumeMounts:
-          - mountPath: /etc/nginx/ssl
-            name: secret-volume
-          - mountPath: /etc/nginx/conf.d
-            name: configmap-volume
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: backend-tls
-      - name: configmap-volume
-        configMap:
-          name: website-nginx-cm</p>
-<hr />
-<p>apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: website-nginx-cm
-data:
-  default.conf: |-
-    server {
-        listen 8080 default_server;
-        listen 8443 ssl;
-        root /usr/share/nginx/html;
-        index index.html;
-        ssl_certificate /etc/nginx/ssl/tls.crt;
-        ssl_certificate_key /etc/nginx/ssl/tls.key;
-        location / {
-          return 200 "Hello World!";
-        }
-    }
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website-service</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website</span>
+<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
+<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8443</span>
+<span class="w">    </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8443</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website-deployment</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website</span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website</span>
+<span class="w">          </span><span class="nt">imagePullPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Always</span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:latest</span>
+<span class="w">          </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8443</span>
+<span class="w">          </span><span class="nt">volumeMounts</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/nginx/ssl</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-volume</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/nginx/conf.d</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">configmap-volume</span>
+<span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secret-volume</span>
+<span class="w">        </span><span class="nt">secret</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend-tls</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">configmap-volume</span>
+<span class="w">        </span><span class="nt">configMap</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website-nginx-cm</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website-nginx-cm</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">default.conf</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|-</span>
+<span class="w">    </span><span class="no">server {</span>
+<span class="w">        </span><span class="no">listen 8080 default_server;</span>
+<span class="w">        </span><span class="no">listen 8443 ssl;</span>
+<span class="w">        </span><span class="no">root /usr/share/nginx/html;</span>
+<span class="w">        </span><span class="no">index index.html;</span>
+<span class="w">        </span><span class="no">ssl_certificate /etc/nginx/ssl/tls.crt;</span>
+<span class="w">        </span><span class="no">ssl_certificate_key /etc/nginx/ssl/tls.key;</span>
+<span class="w">        </span><span class="no">location / {</span>
+<span class="w">          </span><span class="no">return 200 &quot;Hello World!&quot;;</span>
+<span class="w">        </span><span class="no">}</span>
+<span class="w">    </span><span class="no">}</span>
+</code></pre></div>
 <p>You can also install the above yamls using:</p>
-<p><code>bash
-kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-https-backend.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-https-backend.yaml
+</code></pre></div>
 <p>Verify that you can curl the application</p>
-<p>```bash</p>
-<blockquote>
-<p>kubectl get pods
-NAME                                 READY   STATUS    RESTARTS   AGE
-website-deployment-9c8c6df7f-5bqwh   1/1     Running   0          24s
-website-deployment-9c8c6df7f-wxtnp   1/1     Running   0          24s</p>
-<p>kubectl exec -it website-deployment-9c8c6df7f-5bqwh -- curl -k <a href="https://localhost:8443">https://localhost:8443</a>
-Hello World!
-```</p>
-</blockquote>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+NAME<span class="w">                                 </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE
+website-deployment-9c8c6df7f-5bqwh<span class="w">   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">0</span><span class="w">          </span>24s
+website-deployment-9c8c6df7f-wxtnp<span class="w">   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">0</span><span class="w">          </span>24s
+
+&gt;<span class="w"> </span>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>website-deployment-9c8c6df7f-5bqwh<span class="w"> </span>--<span class="w"> </span>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8443
+Hello<span class="w"> </span>World!
+</code></pre></div>
 <h2 id="upload-the-backend-certificates-root-certificate-to-application-gateway">Upload the backend certificate's root certificate to Application Gateway</h2>
 <p>When you are setting up SSL between Application Gateway and Backend, if you are using a self-signed certificate or a certificate signed by a custom root CA on the backend, then you need to upload self-signed or the Custom root CA of the backend certificate on the Application Gateway.</p>
-<p><code>bash
-applicationGatewayName="&lt;gateway-name&gt;"
-resourceGroup="&lt;resource-group&gt;"
-az network application-gateway root-cert create \
-    --gateway-name $applicationGatewayName  \
-    --resource-group $resourceGroup \
-    --name backend-tls \
-    --cert-file backend.crt</code></p>
+<div class="highlight"><pre><span></span><code><span class="nv">applicationGatewayName</span><span class="o">=</span><span class="s2">&quot;&lt;gateway-name&gt;&quot;</span>
+<span class="nv">resourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;resource-group&gt;&quot;</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>root-cert<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--gateway-name<span class="w"> </span><span class="nv">$applicationGatewayName</span><span class="w">  </span><span class="se">\</span>
+<span class="w">    </span>--resource-group<span class="w"> </span><span class="nv">$resourceGroup</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--name<span class="w"> </span>backend-tls<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--cert-file<span class="w"> </span>backend.crt
+</code></pre></div>
 <h2 id="setup-ingress-for-e2e">Setup ingress for E2E</h2>
 <p>Now, we will configure our ingress to use the <code>frontend</code> certificate for frontend SSL and <code>backend</code> certificate as root certificate so that Application Gateway can authenticate the backend.</p>
-<p><code>bash
-cat &lt;&lt; EOF | kubectl apply -f -
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: website-ingress
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/ssl-redirect: "true"
-    appgw.ingress.kubernetes.io/backend-protocol: "https"
-    appgw.ingress.kubernetes.io/backend-hostname: "backend"
-    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "backend-tls"
-spec:
-  tls:
-    - secretName: frontend-tls
-      hosts:
-        - website.com
-  rules:
-    - host: website.com
-      http:
-        paths:
-        - path: /
-          backend:
-            service:
-              name: website-service
-              port:
-                number: 8443
-          pathType: Exact
-EOF</code></p>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span><span class="s">&lt;&lt; EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">  name: website-ingress</span>
+<span class="s">  annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">    appgw.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;</span>
+<span class="s">    appgw.ingress.kubernetes.io/backend-protocol: &quot;https&quot;</span>
+<span class="s">    appgw.ingress.kubernetes.io/backend-hostname: &quot;backend&quot;</span>
+<span class="s">    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: &quot;backend-tls&quot;</span>
+<span class="s">spec:</span>
+<span class="s">  tls:</span>
+<span class="s">    - secretName: frontend-tls</span>
+<span class="s">      hosts:</span>
+<span class="s">        - website.com</span>
+<span class="s">  rules:</span>
+<span class="s">    - host: website.com</span>
+<span class="s">      http:</span>
+<span class="s">        paths:</span>
+<span class="s">        - path: /</span>
+<span class="s">          backend:</span>
+<span class="s">            service:</span>
+<span class="s">              name: website-service</span>
+<span class="s">              port:</span>
+<span class="s">                number: 8443</span>
+<span class="s">          pathType: Exact</span>
+<span class="s">EOF</span>
+</code></pre></div>
 <p>For frontend SSL, we have added <code>tls</code> section in our ingress resource.</p>
-<p><code>yaml
-  tls:
-    - secretName: frontend-tls
-      hosts:
-        - website.com</code></p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend-tls</span>
+<span class="w">      </span><span class="nt">hosts</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">website.com</span>
+</code></pre></div>
 <p>For backend SSL, we have added the following annotations:</p>
-<p><code>yaml
-appgw.ingress.kubernetes.io/backend-protocol: "https"
-appgw.ingress.kubernetes.io/backend-hostname: "backend"
-appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "backend-tls"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https&quot;</span>
+<span class="nt">appgw.ingress.kubernetes.io/backend-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;backend&quot;</span>
+<span class="nt">appgw.ingress.kubernetes.io/appgw-trusted-root-certificate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;backend-tls&quot;</span>
+</code></pre></div>
 <p>Here, it is important to note that <code>backend-hostname</code> should be the hostname that the backend will accept and it should also match with the Subject/Subject Alternate Name of the certificate used on the backend.</p>
 <p>After you have successfully completed all the above steps, you should be able to see the ingress's IP address and visit the website.</p>
-<p>```bash</p>
-<blockquote>
-<p>kubectl get ingress
-NAME              HOSTS         ADDRESS         PORTS     AGE
-website-ingress   website.com   <gateway-ip>   80, 443   36m</p>
-<p>curl -k -H "Host: website.com" https://<gateway-ip>
-Hello World!
-```</p>
-</blockquote>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress
+NAME<span class="w">              </span>HOSTS<span class="w">         </span>ADDRESS<span class="w">         </span>PORTS<span class="w">     </span>AGE
+website-ingress<span class="w">   </span>website.com<span class="w">   </span>&lt;gateway-ip&gt;<span class="w">   </span><span class="m">80</span>,<span class="w"> </span><span class="m">443</span><span class="w">   </span>36m
+
+&gt;<span class="w"> </span>curl<span class="w"> </span>-k<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Host: website.com&quot;</span><span class="w"> </span>https://&lt;gateway-ip&gt;
+Hello<span class="w"> </span>World!
+</code></pre></div>
               
             </div>
           </div>

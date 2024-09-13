@@ -120,6 +120,16 @@
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#network-plugin-used-with-aks">Network Plugin used with AKS</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#with-azure-cni">With Azure CNI</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#with-kubenet">With Kubenet</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#further-readings">Further Readings</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
@@ -227,33 +237,31 @@
 <p>If you are using <code>kubenet</code> network plugin, then jump to <a href="#with-kubenet">Kubenet</a> to setup the route table.</p>
 <h3 id="deployed-in-different-vnets">Deployed in different vnets</h3>
 <p>AKS can be deployed in different virtual network from Application Gateway's virtual network, however, the two virtual networks must be <a href="https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview">peered</a> together. When you create a virtual network peering between two virtual networks, a route is added by Azure for each address range within the address space of each virtual network a peering is created for.</p>
-<p>```bash
-aksClusterName="<aksClusterName>"
-aksResourceGroup="<aksResourceGroup>"
-appGatewayName="<appGatewayName>"
-appGatewayResourceGroup="<appGatewayResourceGroup>"</p>
-<h1 id="get-aks-vnet-information">get aks vnet information</h1>
-<p>nodeResourceGroup=$(az aks show -n $aksClusterName -g <span class="arithmatex"><span class="MathJax_Preview">aksResourceGroup -o tsv --query "nodeResourceGroup")
-aksVnetName=</span><script type="math/tex">aksResourceGroup -o tsv --query "nodeResourceGroup")
-aksVnetName=</script></span>(az network vnet list -g <span class="arithmatex"><span class="MathJax_Preview">nodeResourceGroup -o tsv --query "[0].name")
-aksVnetId=</span><script type="math/tex">nodeResourceGroup -o tsv --query "[0].name")
-aksVnetId=</script></span>(az network vnet show -n $aksVnetName -g $nodeResourceGroup -o tsv --query "id")</p>
-<h1 id="get-gateway-vnet-information">get gateway vnet information</h1>
-<p>appGatewaySubnetId=$(az network application-gateway show -n $appGatewayName -g <span class="arithmatex"><span class="MathJax_Preview">appGatewayResourceGroup -o tsv --query "gatewayIpConfigurations[0].subnet.id")
-appGatewayVnetName=</span><script type="math/tex">appGatewayResourceGroup -o tsv --query "gatewayIpConfigurations[0].subnet.id")
-appGatewayVnetName=</script></span>(az network vnet show --ids <span class="arithmatex"><span class="MathJax_Preview">appGatewaySubnetId -o tsv --query "name")
-appGatewayVnetId=</span><script type="math/tex">appGatewaySubnetId -o tsv --query "name")
-appGatewayVnetId=</script></span>(az network vnet show --ids $appGatewaySubnetId -o tsv --query "id")</p>
-<h1 id="set-up-bi-directional-peering-between-aks-and-gateway-vnet">set up bi-directional peering between aks and gateway vnet</h1>
-<p>az network vnet peering create -n gateway2aks \
-    -g $appGatewayResourceGroup --vnet-name $appGatewayVnetName \
-    --remote-vnet $aksVnetId \
-    --allow-vnet-access
-az network vnet peering create -n aks2gateway \
-    -g $nodeResourceGroup --vnet-name $aksVnetName \
-    --remote-vnet $appGatewayVnetId \
-    --allow-vnet-access
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nv">aksClusterName</span><span class="o">=</span><span class="s2">&quot;&lt;aksClusterName&gt;&quot;</span>
+<span class="nv">aksResourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;aksResourceGroup&gt;&quot;</span>
+<span class="nv">appGatewayName</span><span class="o">=</span><span class="s2">&quot;&lt;appGatewayName&gt;&quot;</span>
+<span class="nv">appGatewayResourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;appGatewayResourceGroup&gt;&quot;</span>
+
+<span class="c1"># get aks vnet information</span>
+<span class="nv">nodeResourceGroup</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksClusterName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$aksResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;nodeResourceGroup&quot;</span><span class="k">)</span>
+<span class="nv">aksVnetName</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>list<span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;[0].name&quot;</span><span class="k">)</span>
+<span class="nv">aksVnetId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksVnetName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="k">)</span>
+
+<span class="c1"># get gateway vnet information</span>
+<span class="nv">appGatewaySubnetId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$appGatewayName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$appGatewayResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;gatewayIpConfigurations[0].subnet.id&quot;</span><span class="k">)</span>
+<span class="nv">appGatewayVnetName</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>show<span class="w"> </span>--ids<span class="w"> </span><span class="nv">$appGatewaySubnetId</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;name&quot;</span><span class="k">)</span>
+<span class="nv">appGatewayVnetId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>show<span class="w"> </span>--ids<span class="w"> </span><span class="nv">$appGatewaySubnetId</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="k">)</span>
+
+<span class="c1"># set up bi-directional peering between aks and gateway vnet</span>
+az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>peering<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gateway2aks<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-g<span class="w"> </span><span class="nv">$appGatewayResourceGroup</span><span class="w"> </span>--vnet-name<span class="w"> </span><span class="nv">$appGatewayVnetName</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--remote-vnet<span class="w"> </span><span class="nv">$aksVnetId</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--allow-vnet-access
+az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>peering<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>aks2gateway<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>--vnet-name<span class="w"> </span><span class="nv">$aksVnetName</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--remote-vnet<span class="w"> </span><span class="nv">$appGatewayVnetId</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--allow-vnet-access
+</code></pre></div>
 <p>If you are using <code>Azure CNI</code> for network plugin with AKS, then you are good to go.</p>
 <p>If you are using <code>Kubenet</code> network plugin, then jump to <a href="#with-kubenet">Kubenet</a> to setup the route table.</p>
 <h2 id="network-plugin-used-with-aks">Network Plugin used with AKS</h2>
@@ -264,22 +272,23 @@ az network vnet peering create -n aks2gateway \
 <p>When packets leave Application Gateway instances, Application Gateway's subnet need to aware of these routes setup by the AKS in the route table.</p>
 <p>A simple way to achieve this is by associating the same route table created by AKS to the Application Gateway's subnet. When AGIC starts up, it checks the AKS node resource group for the existence of the route table. If it exists, AGIC will try to assign the route table to the Application Gateway's subnet, given it doesn't already have a route table. If AGIC doesn't have permissions to any of the above resources, the operation will fail and an error will be logged in the AGIC pod logs.</p>
 <p>This association can also be performed manually:</p>
-<p>```bash
-aksClusterName="<aksClusterName>"
-aksResourceGroup="<aksResourceGroup>"
-appGatewayName="<appGatewayName>"
-appGatewayResourceGroup="<appGatewayResourceGroup>"</p>
-<h1 id="find-route-table-used-by-aks-cluster">find route table used by aks cluster</h1>
-<p>nodeResourceGroup=$(az aks show -n $aksClusterName -g <span class="arithmatex"><span class="MathJax_Preview">aksResourceGroup -o tsv --query "nodeResourceGroup")
-routeTableId=</span><script type="math/tex">aksResourceGroup -o tsv --query "nodeResourceGroup")
-routeTableId=</script></span>(az network route-table list -g $nodeResourceGroup --query "[].id | [0]" -o tsv)</p>
-<h1 id="get-the-application-gateways-subnet">get the application gateway's subnet</h1>
-<p>appGatewaySubnetId=$(az network application-gateway show -n $appGatewayName -g $appGatewayResourceGroup -o tsv --query "gatewayIpConfigurations[0].subnet.id")</p>
-<h1 id="associate-the-route-table-to-application-gateways-subnet">associate the route table to Application Gateway's subnet</h1>
-<p>az network vnet subnet update \
---ids $appGatewaySubnetId
---route-table $routeTableId
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nv">aksClusterName</span><span class="o">=</span><span class="s2">&quot;&lt;aksClusterName&gt;&quot;</span>
+<span class="nv">aksResourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;aksResourceGroup&gt;&quot;</span>
+<span class="nv">appGatewayName</span><span class="o">=</span><span class="s2">&quot;&lt;appGatewayName&gt;&quot;</span>
+<span class="nv">appGatewayResourceGroup</span><span class="o">=</span><span class="s2">&quot;&lt;appGatewayResourceGroup&gt;&quot;</span>
+
+<span class="c1"># find route table used by aks cluster</span>
+<span class="nv">nodeResourceGroup</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksClusterName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$aksResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;nodeResourceGroup&quot;</span><span class="k">)</span>
+<span class="nv">routeTableId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>route-table<span class="w"> </span>list<span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;[].id | [0]&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
+
+<span class="c1"># get the application gateway&#39;s subnet</span>
+<span class="nv">appGatewaySubnetId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$appGatewayName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$appGatewayResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;gatewayIpConfigurations[0].subnet.id&quot;</span><span class="k">)</span>
+
+<span class="c1"># associate the route table to Application Gateway&#39;s subnet</span>
+az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>subnet<span class="w"> </span>update<span class="w"> </span><span class="se">\</span>
+--ids<span class="w"> </span><span class="nv">$appGatewaySubnetId</span>
+--route-table<span class="w"> </span><span class="nv">$routeTableId</span>
+</code></pre></div>
 <h3 id="further-readings">Further Readings</h3>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-existing#peer-the-two-virtual-networks-together">Peer the two virtual networks together</a></li>

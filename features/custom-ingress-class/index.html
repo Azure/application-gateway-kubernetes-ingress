@@ -208,30 +208,30 @@
 <ol>
 <li>
 <p>Install AGIC by providing a value for <code>kubernetes.ingressClass</code> in helm config.</p>
-<p><code>bash
-helm install ./helm/ingress-azure \
-    --name ingress-azure \
-    -f helm-config.yaml
-    --set kubernetes.ingressClass arbitrary-class</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>install<span class="w"> </span>./helm/ingress-azure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--name<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-f<span class="w"> </span>helm-config.yaml
+<span class="w">    </span>--set<span class="w"> </span>kubernetes.ingressClass<span class="w"> </span>arbitrary-class
+</code></pre></div>
 </li>
 <li>
 <p>Then, within the spec object, specify <code>ingressClassName</code> with the same value provided to AGIC.</p>
-<p><code>yaml
-kind: Ingress
-metadata:
-name: go-server-ingress-affinity
-namespace: test-ag
-spec:
-  ingressClassName: arbitrary-class
-  rules:
-  - http:
-    paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-affinity</span>
+<span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">arbitrary-class</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 </li>
 </ol>
 <h2 id="reference">Reference</h2>

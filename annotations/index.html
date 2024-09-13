@@ -115,6 +115,140 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#use-azure-cli-to-install-your-root-certificate-to-application-gateway">Use Azure CLI to install your root certificate to Application Gateway</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_6">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_6">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#appgw-ssl-profile">AppGw Ssl Profile</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#connection-draining">Connection Draining</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_7">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_7">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cookie-based-affinity">Cookie Based Affinity</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_8">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_8">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#distinct-cookie-name">Distinct cookie name</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_9">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_9">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#request-timeout">Request Timeout</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_10">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_10">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#use-private-ip">Use Private IP</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_11">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_11">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#azure-waf-policy-for-path">Azure Waf Policy For Path</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_12">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_12">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-hostname">Health Probe Hostname</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_13">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_13">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-port">Health Probe Port</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_14">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_14">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-path">Health Probe Path</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_15">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_15">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-status-codes">Health Probe Status Codes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_16">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_16">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-interval">Health Probe Interval</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_17">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_17">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-timeout">Health Probe Timeout</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_18">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_18">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#health-probe-unhealthy-threshold">Health Probe Unhealthy Threshold</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_19">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_19">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#rewrite-rule-set">Rewrite Rule Set</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_20">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_20">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#rewrite-rule-set-custom-resource">Rewrite Rule Set Custom Resource</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_21">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_21">Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#hostname-extension">Hostname Extension</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_22">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_22">Example</a>
+    </li>
         </ul>
     </li>
     </ul>
@@ -444,103 +578,103 @@
 <p>The annotation allows to configure frontend listener to use different ports other than 80/443 for http/https.</p>
 <p>If the port is within the App Gw authorized range (1 - 64999), this listener will be created on this specific port. If an invalid port or no port is set in the annotation, the configuration will fallback on default 80 or 443.</p>
 <h3 id="usage">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/override-frontend-port: "port"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/override-frontend-port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;port&quot;</span>
+</code></pre></div>
 <h3 id="example">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-overridefrontendport
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/override-frontend-port: "8080"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-overridefrontendport</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/override-frontend-port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;8080&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <p>External request will need to target <a href="http://somehost:8080">http://somehost:8080</a> instead of <a href="http://somehost">http://somehost</a>.</p>
 <h2 id="backend-path-prefix">Backend Path Prefix</h2>
 <p>This annotation allows the backend path specified in an ingress resource to be re-written with prefix specified in this annotation. This allows users to expose services whose endpoints are different than endpoint names used to expose a service in an ingress resource.</p>
 <h3 id="usage_1">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/backend-path-prefix: &lt;path prefix&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/backend-path-prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;path prefix&gt;</span>
+</code></pre></div>
 <h3 id="example_1">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code>
+<p><div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-path-prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/test/&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 In the example above we have defined an ingress resource named <code>go-server-ingress-bkprefix</code> with an annotation <code>appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"</code> . The annotation tells application gateway to create an HTTP setting which will have a path prefix override for the path <code>/hello</code> to <code>/test/</code>.</p>
 <p><strong><em>NOTE:</em></strong> In the above example we have only one rule defined. However, the annotations is applicable to the entire ingress resource so if a user had defined multiple rules the backend path prefix would be setup for each of the paths specified. Thus, if a user wants different rules with different path prefixes (even for the same service) they would need to define different ingress resources.</p>
 <p>If your incoming path is /hello/test/health but your backend requires /health you will want to ensure you have /* on your path</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/test/*
-        pathType: Prefix
-        backend:
-          service:
-            name: store-service</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-path-prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/test/*</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+</code></pre></div>
 <h2 id="backend-hostname">Backend Hostname</h2>
 <p>This annotations allows us to specify the host name that Application Gateway should use while talking to the Pods.</p>
 <h3 id="usage_2">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/backend-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;internal.example.com&quot;</span>
+</code></pre></div>
 <h3 id="example_2">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-timeout
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-timeout</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;internal.example.com&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="backend-protocol">Backend Protocol</h2>
 <p>This annotation allows us to specify the protocol that Application Gateway should use while talking to the Pods. Supported Protocols: <code>http</code>, <code>https</code></p>
 <blockquote>
@@ -548,29 +682,29 @@ spec:
 1) Make sure to not use port 80 with HTTPS and port 443 with HTTP on the Pods.</p>
 </blockquote>
 <h3 id="usage_3">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/backend-protocol: "https"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https&quot;</span>
+</code></pre></div>
 <h3 id="example_3">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-timeout
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-protocol: "https"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 443
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-timeout</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="ssl-redirect">SSL Redirect</h2>
 <p>Application Gateway <a href="https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-redirect-overview">can be configured</a>
 to automatically redirect HTTP URLs to their HTTPS counterparts. When this
@@ -578,32 +712,32 @@ annotation is present and TLS is properly configured, Kubernetes Ingress
 controller will create a <a href="https://docs.microsoft.com/en-us/azure/application-gateway/redirect-http-to-https-portal#add-a-routing-rule-with-a-redirection-configuration">routing rule with a redirection configuration</a>
 and apply the changes to your App Gateway. The redirect created will be HTTP <code>301 Moved Permanently</code>.</p>
 <h3 id="usage_4">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/ssl-redirect: "true"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/ssl-redirect</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</code></pre></div>
 <h3 id="example_4">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-redirect
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/ssl-redirect: "true"
-spec:
-  tls:
-   - hosts:
-     - www.contoso.com
-     secretName: testsecret-tls
-  rules:
-  - host: www.contoso.com
-    http:
-      paths:
-      - backend:
-          service:
-            name: websocket-repeater
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-redirect</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/ssl-redirect</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">   </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span>
+<span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.contoso.com</span>
+<span class="w">     </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">testsecret-tls</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.contoso.com</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">websocket-repeater</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <h2 id="appgw-ssl-certificate">AppGw SSL Certificate</h2>
 <p>The SSL certificate <a href="https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/ssl-cert?view=azure-cli-latest#az-network-application-gateway-ssl-cert-create">can be configured to Application Gateway</a> either from a local PFX certificate file or a reference to a Azure Key Vault unversioned secret Id.
 When the annotation is present with a certificate name and the certificate is pre-installed in Application Gateway, Kubernetes Ingress controller will create a routing rule with a HTTPS listener and apply the changes to your App Gateway.
@@ -618,42 +752,42 @@ When the annotation is present with a certificate name and the certificate is pr
 <ul>
 <li>
 <p>Configure from a local PFX certificate file
-<code>bash
-az network application-gateway ssl-cert create -g $resgp  --gateway-name $appgwName -n mysslcert --cert-file \path\to\cert\file --cert-password Abc123</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>ssl-cert<span class="w"> </span>create<span class="w"> </span>-g<span class="w"> </span><span class="nv">$resgp</span><span class="w">  </span>--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w"> </span>-n<span class="w"> </span>mysslcert<span class="w"> </span>--cert-file<span class="w"> </span><span class="se">\p</span>ath<span class="se">\t</span>o<span class="se">\c</span>ert<span class="se">\f</span>ile<span class="w"> </span>--cert-password<span class="w"> </span>Abc123
+</code></pre></div></p>
 </li>
 <li>
 <p>Configure from a reference to a Key Vault unversioned secret id
-<code>bash
-az keyvault certificate create --vault-name $vaultName -n cert1 -p "$(az keyvault certificate get-default-policy)"
-versionedSecretId=$(az keyvault certificate show -n cert --vault-name $vaultName --query "sid" -o tsv)
-unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url
-az network application-gateway ssl-cert create -n mysslcert --gateway-name $appgwName --resource-group $resgp --key-vault-secret-id $unversionedSecretId</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>create<span class="w"> </span>--vault-name<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span>-n<span class="w"> </span>cert1<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>get-default-policy<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">versionedSecretId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>cert<span class="w"> </span>--vault-name<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;sid&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
+<span class="nv">unversionedSecretId</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$versionedSecretId</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span>-f-5<span class="k">)</span><span class="w"> </span><span class="c1"># remove the version from the url</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>ssl-cert<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>mysslcert<span class="w"> </span>--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span>--key-vault-secret-id<span class="w"> </span><span class="nv">$unversionedSecretId</span>
+</code></pre></div></p>
 </li>
 </ul>
 <p>To use PowerShell, please refer to <a href="https://docs.microsoft.com/en-us/azure/application-gateway/configure-keyvault-ps">Configure Key Vault - PowerShell</a>.</p>
 <h3 id="usage_5">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/appgw-ssl-certificate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name-of-appgw-installed-certificate&quot;</span>
+</code></pre></div>
 <h3 id="example_5">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-certificate
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
-spec:
-  rules:
-  - host: www.contoso.com
-    http:
-      paths:
-      - backend:
-          service:
-            name: websocket-repeater
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-certificate</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/appgw-ssl-certificate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name-of-appgw-installed-certificate&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.contoso.com</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">websocket-repeater</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <h2 id="appgw-trusted-root-certificate">AppGW Trusted Root Certificate</h2>
 <p>Users now can <a href="https://docs.microsoft.com/en-us/cli/azure/network/application-gateway/root-cert?view=azure-cli-latest">configure their own root certificates to Application Gateway</a> to be trusted via AGIC.
 The annotaton <code>appgw-trusted-root-certificate</code> shall be used together with annotation <code>backend-protocol</code> to indicate end-to-end ssl encryption, multiple root certificates, separated by comma, if specified, e.g. "name-of-my-root-cert1,name-of-my-root-certificate2".</p>
@@ -661,49 +795,49 @@ The annotaton <code>appgw-trusted-root-certificate</code> shall be used together
 <ul>
 <li>
 <p>Create your public root certificate for testing
-<code>bash
-openssl ecparam -out test.key -name prime256v1 -genkey
-openssl req -new -sha256 -key test.key -out test.csr
-openssl x509 -req -sha256 -days 365 -in test.csr -signkey test.key -out test.crt</code></p>
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>ecparam<span class="w"> </span>-out<span class="w"> </span>test.key<span class="w"> </span>-name<span class="w"> </span>prime256v1<span class="w"> </span>-genkey
+openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-sha256<span class="w"> </span>-key<span class="w"> </span>test.key<span class="w"> </span>-out<span class="w"> </span>test.csr
+openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-in<span class="w"> </span>test.csr<span class="w"> </span>-signkey<span class="w"> </span>test.key<span class="w"> </span>-out<span class="w"> </span>test.crt
+</code></pre></div></p>
 </li>
 <li>
 <p>Configure your root certificate to Application Gateway
-```bash</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Rename test.crt to test.cer</span>
+mv<span class="w"> </span>test.crt<span class="w"> </span>test.cer
+
+<span class="c1"># Configure the root certificate to your Application Gateway</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>root-cert<span class="w"> </span>create<span class="w"> </span>--cert-file<span class="w"> </span>test.cer<span class="w">  </span>--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w">  </span>--name<span class="w"> </span>name-of-my-root-cert1<span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$resgp</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Repeat the steps above if you want to configure multiple trusted root certificates</p>
 </li>
 </ul>
-<h1 id="rename-testcrt-to-testcer">Rename test.crt to test.cer</h1>
-<p>mv test.crt test.cer</p>
-<h1 id="configure-the-root-certificate-to-your-application-gateway">Configure the root certificate to your Application Gateway</h1>
-<p>az network application-gateway root-cert create --cert-file test.cer  --gateway-name $appgwName  --name name-of-my-root-cert1 --resource-group $resgp
-```</p>
-<ul>
-<li>Repeat the steps above if you want to configure multiple trusted root certificates</li>
-</ul>
 <h3 id="usage_6">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/backend-protocol: "https"
-appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https&quot;</span>
+<span class="nt">appgw.ingress.kubernetes.io/appgw-trusted-root-certificate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name-of-my-root-cert1&quot;</span>
+</code></pre></div>
 <h3 id="example_6">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-certificate
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/backend-protocol: "https"
-    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "name-of-my-root-cert1"
-spec:
-  rules:
-  - host: www.contoso.com
-    http:
-      paths:
-      - backend:
-          service:
-            name: websocket-repeater
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-certificate</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/appgw-trusted-root-certificate</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;name-of-my-root-cert1&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.contoso.com</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">websocket-repeater</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <h2 id="appgw-ssl-profile">AppGw Ssl Profile</h2>
 <blockquote>
 <p>Note: This annotation is supported since 1.6.0-rc1.</p>
@@ -714,117 +848,117 @@ When the annotation is present with a profile name and the profile is pre-instal
 <p><code>connection-draining</code>: This annotation allows to specify whether to enable connection draining.
 <code>connection-draining-timeout</code>: This annotation allows to specify a timeout after which Application Gateway will terminate the requests to the draining backend endpoint.</p>
 <h3 id="usage_7">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/connection-draining: "true"
-appgw.ingress.kubernetes.io/connection-draining-timeout: "60"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/connection-draining</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="nt">appgw.ingress.kubernetes.io/connection-draining-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;60&quot;</span>
+</code></pre></div>
 <h3 id="example_7">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-drain
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/connection-draining: "true"
-    appgw.ingress.kubernetes.io/connection-draining-timeout: "60"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-drain</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/connection-draining</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/connection-draining-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;60&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="cookie-based-affinity">Cookie Based Affinity</h2>
 <p>This annotation allows to specify whether to enable cookie based affinity.</p>
 <h3 id="usage_8">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/cookie-based-affinity: "true"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</code></pre></div>
 <h3 id="example_8">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-affinity
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-affinity</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="distinct-cookie-name">Distinct cookie name</h2>
 <p>In addition to cookie-based-affinity, you can set <code>cookie-based-affinity-distinct-name: "true"</code> to ensure a different affinity cookie is set per backend.</p>
 <h3 id="usage_9">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</code></pre></div>
 <h3 id="example_9">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-affinity
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
-    appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name: "true"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /affinity1/
-        pathType: Exact
-        backend:
-          service:
-            name: affinity-service
-            port:
-              number: 80
-      - path: /affinity2/
-        pathType: Exact
-        backend:
-          service:
-            name: affinity-service
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-affinity</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/cookie-based-affinity-distinct-name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/affinity1/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affinity-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/affinity2/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affinity-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <h2 id="request-timeout">Request Timeout</h2>
 <p>This annotation allows to specify the request timeout in seconds after which Application Gateway will fail the request if response is not received.</p>
 <h3 id="usage_10">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/request-timeout: "20"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/request-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;20&quot;</span>
+</code></pre></div>
 <h3 id="example_10">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-timeout
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/request-timeout: "20"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-timeout</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/request-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;20&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="use-private-ip">Use Private IP</h2>
 <p>This annotation allows us to specify whether to expose this endpoint on Private IP of Application Gateway.</p>
 <blockquote>
@@ -833,29 +967,29 @@ spec:
 <p>1) App Gateway doesn't support multiple IPs on the same port (example: 80/443). Ingress with annotation <code>appgw.ingress.kubernetes.io/use-private-ip: "false"</code> and another with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> on <code>HTTP</code> will cause AGIC to fail in updating the App Gateway.</p>
 <p>2) For App Gateway that doesn't have a private IP, Ingresses with <code>appgw.ingress.kubernetes.io/use-private-ip: "true"</code> will be ignored. This will reflected in the controller logs and ingress events for those ingresses with <code>NoPrivateIP</code> warning.</p>
 <h3 id="usage_11">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/use-private-ip: "true"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/use-private-ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</code></pre></div>
 <h3 id="example_11">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-timeout
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/use-private-ip: "true"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-timeout</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/use-private-ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="azure-waf-policy-for-path">Azure Waf Policy For Path</h2>
 <p>This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.</p>
@@ -864,347 +998,347 @@ Ingress resource being annotated.</p>
 <p>Once the policy is created, copy the URI of the policy from the address bar of Azure Portal:
 <img alt="Creating a WAF policy" src="../images/waf-policy-1.png" /></p>
 <p>The URI would have the following format:
-<code>bash
-/subscriptions/&lt;YOUR-SUBSCRIPTION&gt;/resourceGroups/&lt;YOUR-RESOURCE-GROUP&gt;/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/&lt;YOUR-POLICY-NAME&gt;</code></p>
+<div class="highlight"><pre><span></span><code>/subscriptions/&lt;YOUR-SUBSCRIPTION&gt;/resourceGroups/&lt;YOUR-RESOURCE-GROUP&gt;/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/&lt;YOUR-POLICY-NAME&gt;
+</code></pre></div></p>
 <blockquote>
 <p><strong>Note</strong>
 1) Waf policy will only be applied to a listener if ingress rule path is not set or set to "/" or "/*"</p>
 </blockquote>
 <h3 id="usage_12">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/waf-policy-for-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver&quot;</span>
+</code></pre></div>
 <h3 id="example_12">Example</h3>
 <p>The example below will apply the WAF policy
-<code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ad-server-ingress
-  namespace: commerce
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /ad-server
-        backend:
-          service:
-            name: ad-server
-            port:
-              number: 80
-        pathType: Exact
-      - path: /auth
-        backend:
-          service:
-            name: auth-server
-            port:
-              number: 80
-        pathType: Exact</code>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ad-server-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">commerce</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/waf-policy-for-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/ad-server</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ad-server</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/auth</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auth-server</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 Note that the WAF policy will be applied to both <code>/ad-server</code> and <code>/auth</code> URLs.</p>
 <h2 id="health-probe-hostname">Health Probe Hostname</h2>
 <p>This annotation allows specifically define a target host to be used for AGW health probe. By default, if backend container running service with liveliness probe of type <code>HTTP GET</code> defined, host used in liveliness probe definition is also used as a target host for health probe. However if annotation <code>appgw.ingress.kubernetes.io/health-probe-hostname</code> is defined it overrides it with its own value.</p>
 <h3 id="usage_13">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-hostname: &lt;hostname&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;hostname&gt;</span>
+</code></pre></div>
 <h3 id="example_13">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /hello/
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 80
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-backend-host.custom.app&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/hello/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="health-probe-port">Health Probe Port</h2>
 <p>Health probe port annotation allows specifically define target TCP port to be used for AGW health probe. By default, if backend container running service has liveliness probe of type <code>HTTP GET</code> defined, port used in liveliness probe definition is also used as a port for health probe. Annotation <code>appgw.ingress.kubernetes.io/health-probe-port</code> has precedence over such default value.</p>
 <h3 id="usage_14">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-port: &lt;port number&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;port number&gt;</span>
+</code></pre></div>
 <h3 id="example_14">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
-    appgw.ingress.kubernetes.io/health-probe-port: "443"
-    appgw.ingress.kubernetes.io/health-probe-path: "/healthz"
-    appgw.ingress.kubernetes.io/backend-protocol: https
-spec:
-  tls:
-    - secretName: "my-backend-host.custom.app-ssl-certificate"
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 443
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-backend-host.custom.app&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;443&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/healthz&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/backend-protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-backend-host.custom.app-ssl-certificate&quot;</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="health-probe-path">Health Probe Path</h2>
 <p>This annotation allows specifically define target URI path to be used for AGW health probe. By default, if backend container running service with liveliness probe of type <code>HTTP GET</code> defined , path defined in liveliness probe definition is also used as a path for health probe. However annotation <code>appgw.ingress.kubernetes.io/health-probe-path</code> overrides it with its own value.</p>
 <h3 id="usage_15">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-path: &lt;URI path&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;URI path&gt;</span>
+</code></pre></div>
 <h3 id="example_15">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
-    appgw.ingress.kubernetes.io/health-probe-port: "8080"
-    appgw.ingress.kubernetes.io/health-probe-path: "/healthz"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-backend-host.custom.app&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;8080&quot;</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/healthz&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</code></pre></div>
 <h2 id="health-probe-status-codes">Health Probe Status Codes</h2>
 <p>This annotation defines healthy status codes returned by the health probe. The values are comma separated list of individual status codes or ranges defined as <code>&lt;start of the range&gt;-&lt;end of the range&gt;</code>.</p>
 <h3 id="usage_16">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-status-codes: &lt;status codes&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-status-codes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;status codes&gt;</span>
+</code></pre></div>
 <h3 id="example_16">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-399, 401"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-status-codes</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;200-399,</span><span class="nv"> </span><span class="s">401&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="health-probe-interval">Health Probe Interval</h2>
 <p>This annotation sets AGW health probe interval. By default, if backend container running service with liveliness probe of type <code>HTTP GET</code> defined, interval in liveliness probe definition is also used as a interval for health probe. However annotation <code>appgw.ingress.kubernetes.io/health-probe-interval</code> overrides it with its value.</p>
 <h3 id="usage_17">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-interval: &lt;interval seconds&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;interval seconds&gt;</span>
+</code></pre></div>
 <h3 id="example_17">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-interval: "20"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-interval</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;20&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="health-probe-timeout">Health Probe Timeout</h2>
 <p>This annotation allows specifically define timeout for AGW health probe. By default, if backend container running service with liveliness probe of type <code>HTTP GET</code> defined, timeout defined in liveliness probe definition is also used for health probe. However annotation <code>appgw.ingress.kubernetes.io/health-probe-timeout</code> overrides it with its value.</p>
 <h3 id="usage_18">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-timeout: &lt;timeout seconds&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;timeout seconds&gt;</span>
+</code></pre></div>
 <h3 id="example_18">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-timeout: "15"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;15&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="health-probe-unhealthy-threshold">Health Probe Unhealthy Threshold</h2>
 <p>This annotation allows specifically define target unhealthy thresold for AGW health probe. By default, if backend container running service with liveliness probe of type <code>HTTP GET</code> defined , threshold defined in liveliness probe definition is also used for health probe. However annotation <code>appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold</code> overrides it with its value.</p>
 <h3 id="usage_19">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: &lt;unhealthy threshold&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;unhealthy threshold&gt;</span>
+</code></pre></div>
 <h3 id="example_19">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "5"
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-        pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <h2 id="rewrite-rule-set">Rewrite Rule Set</h2>
 <p>This annotation allows to assign an existing rewrite rule set to the corresponding request routing rule(s). Rewrite rule set is managed via Azure Portal / CLI / PS.</p>
 <h3 id="usage_20">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/rewrite-rule-set: &lt;rewrite rule set&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;rewrite rule set&gt;</span>
+</code></pre></div>
 <h3 id="example_20">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/rewrite-rule-set: add-custom-response-header
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Exact
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add-custom-response-header</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</code></pre></div>
 <h2 id="rewrite-rule-set-custom-resource">Rewrite Rule Set Custom Resource</h2>
 <blockquote>
 <p>Note: This annotation is supported since 1.6.0-rc1.</p>
 </blockquote>
 <p>This annotation allows to assign a header/URL rewrite rule set created via the AzureApplicationGatewayRewrite CR to be associated to all rules in an ingress resource. AzureApplicationGatewayRewrite CR should be present in the same namespace as the ingress.</p>
 <h3 id="usage_21">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: &lt;name of rewrite rule set custom resource&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;name of rewrite rule set custom resource&gt;</span>
+</code></pre></div>
 <h3 id="example_21">Example</h3>
-<p>```yaml
-apiVersion: appgw.ingress.azure.io/v1beta1
-kind: AzureApplicationGatewayRewrite
-metadata:
-  name: my-rewrite-rule-set
-spec:
-  rewriteRules:
-  - name: rule1
-    ruleSequence: 21</p>
-<pre><code>conditions:
-- ignoreCase: false
-  negate: false
-  variable: http_req_Host
-  pattern: example.com
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appgw.ingress.azure.io/v1beta1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AzureApplicationGatewayRewrite</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rewriteRules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rule1</span>
+<span class="w">    </span><span class="nt">ruleSequence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21</span>
 
-actions:
-  requestHeaderConfigurations:
-  - actionType: set
-    headerName: incoming-test-header
-    headerValue: incoming-test-value
+<span class="w">    </span><span class="nt">conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ignoreCase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">negate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http_req_Host</span>
+<span class="w">      </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
 
-  responseHeaderConfigurations:
-  - actionType: set
-    headerName: outgoing-test-header
-    headerValue: outgoing-test-value
+<span class="w">    </span><span class="nt">actions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">requestHeaderConfigurations</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">actionType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">set</span>
+<span class="w">        </span><span class="nt">headerName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incoming-test-header</span>
+<span class="w">        </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incoming-test-value</span>
 
-  urlConfiguration:
-    modifiedPath: "/api/"
-    modifiedQueryString: "query=test-value"
-    reroute: false
-</code></pre>
-<hr />
-<p>apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: go-server-ingress-bkprefix
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Exact
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080
-```</p>
+<span class="w">      </span><span class="nt">responseHeaderConfigurations</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">actionType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">set</span>
+<span class="w">        </span><span class="nt">headerName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">outgoing-test-header</span>
+<span class="w">        </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">outgoing-test-value</span>
+
+<span class="w">      </span><span class="nt">urlConfiguration</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">modifiedPath</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/api/&quot;</span>
+<span class="w">        </span><span class="nt">modifiedQueryString</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;query=test-value&quot;</span>
+<span class="w">        </span><span class="nt">reroute</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nn">---</span>
+
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go-server-ingress-bkprefix</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-rewrite-rule-set</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</code></pre></div>
 <h2 id="hostname-extension">Hostname Extension</h2>
 <p>This annotation allows to append additional hostnames to the <code>host</code> specified in the ingress resource. This applies to all the rules in the ingress resource.</p>
 <h3 id="usage_22">Usage</h3>
-<p><code>yaml
-appgw.ingress.kubernetes.io/hostname-extension: "hostname1, hostname2"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw.ingress.kubernetes.io/hostname-extension</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;hostname1,</span><span class="nv"> </span><span class="s">hostname2&quot;</span>
+</code></pre></div>
 <h3 id="example_22">Example</h3>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: store-app-ingress
-  namespace: test-ag
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/hostname-extension: "prod-store.app.com"
-spec:
-  rules:
-  - host: "store.app.com"
-    http:
-      paths:
-      - path: /
-        pathType: Exact
-        backend:
-          service:
-            name: store-service
-            port:
-              number: 8080</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-app-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-ag</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">    </span><span class="nt">appgw.ingress.kubernetes.io/hostname-extension</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod-store.app.com&quot;</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;store.app.com&quot;</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">store-service</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</code></pre></div>
               
             </div>
           </div>

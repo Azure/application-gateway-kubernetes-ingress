@@ -220,49 +220,49 @@
 <p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 </blockquote>
 <p>This assumes you have an existing Application Gateway. If not, you can create it with command:</p>
-<p><code>bash
-az network application-gateway create -g myResourceGroup -n myApplicationGateway --sku Standard_v2 --public-ip-address myPublicIP --vnet-name myVnet --subnet mySubnet --priority 100</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>create<span class="w"> </span>-g<span class="w"> </span>myResourceGroup<span class="w"> </span>-n<span class="w"> </span>myApplicationGateway<span class="w"> </span>--sku<span class="w"> </span>Standard_v2<span class="w"> </span>--public-ip-address<span class="w"> </span>myPublicIP<span class="w"> </span>--vnet-name<span class="w"> </span>myVnet<span class="w"> </span>--subnet<span class="w"> </span>mySubnet<span class="w"> </span>--priority<span class="w"> </span><span class="m">100</span>
+</code></pre></div>
 <h2 id="1-set-environment-variables">1. Set environment variables</h2>
-<p><code>bash
-export RESOURCE_GROUP="myResourceGroup"
-export APPLICATION_GATEWAY_NAME="myApplicationGateway"
-export USER_ASSIGNED_IDENTITY_NAME="myIdentity"
-export FEDERATED_IDENTITY_CREDENTIAL_NAME="myFedIdentity"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s2">&quot;myResourceGroup&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">APPLICATION_GATEWAY_NAME</span><span class="o">=</span><span class="s2">&quot;myApplicationGateway&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="o">=</span><span class="s2">&quot;myIdentity&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FEDERATED_IDENTITY_CREDENTIAL_NAME</span><span class="o">=</span><span class="s2">&quot;myFedIdentity&quot;</span>
+</code></pre></div>
 <h2 id="2-create-resource-group-aks-cluster-and-identity">2. Create resource group, AKS cluster and identity</h2>
-<p><code>bash
-az group create --name "${RESOURCE_GROUP}"  --location eastus
-az aks create -g "${RESOURCE_GROUP}" -n myAKSCluster --node-count 1 --enable-oidc-issuer --enable-workload-identity 
-az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}"</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--location<span class="w"> </span>eastus
+az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-n<span class="w"> </span>myAKSCluster<span class="w"> </span>--node-count<span class="w"> </span><span class="m">1</span><span class="w"> </span>--enable-oidc-issuer<span class="w"> </span>--enable-workload-identity<span class="w"> </span>
+az<span class="w"> </span>identity<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>
+</code></pre></div>
 <h2 id="3-export-the-oidcissuerprofileissuerurl">3. Export the oidcIssuerProfile.issuerUrl</h2>
-<p><code>bash
-export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">AKS_OIDC_ISSUER</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>myAKSCluster<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;oidcIssuerProfile.issuerUrl&quot;</span><span class="w"> </span>-otsv<span class="k">)</span><span class="s2">&quot;</span>
+</code></pre></div>
 <h2 id="4-create-federated-identity-credential">4. Create federated identity credential</h2>
 <p><strong>Note</strong>: the name of the service account that gets created after the helm installation is “ingress-azure” and the following command assumes it will be deployed in “default” namespace. Please change the namespace name in the next command if you deploy the AGIC related Kubernetes resources in other namespace.</p>
-<p><code>bash
-az identity federated-credential create --name ${FEDERATED_IDENTITY_CREDENTIAL_NAME} --identity-name ${USER_ASSIGNED_IDENTITY_NAME} --resource-group ${RESOURCE_GROUP} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:default:ingress-azure</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>identity<span class="w"> </span>federated-credential<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="si">${</span><span class="nv">FEDERATED_IDENTITY_CREDENTIAL_NAME</span><span class="si">}</span><span class="w"> </span>--identity-name<span class="w"> </span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="w"> </span>--issuer<span class="w"> </span><span class="si">${</span><span class="nv">AKS_OIDC_ISSUER</span><span class="si">}</span><span class="w"> </span>--subject<span class="w"> </span>system:serviceaccount:default:ingress-azure
+</code></pre></div>
 <h2 id="5-obtain-the-clientid-of-the-identity-created-before-that-is-needed-for-the-next-step">5. Obtain the ClientID of the identity created before that is needed for the next step</h2>
-<p><code>bash
-az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s1">&#39;clientId&#39;</span><span class="w"> </span>-otsv
+</code></pre></div>
 <h2 id="6-export-the-application-gateway-resource-id">6. Export the Application Gateway resource ID</h2>
-<p><code>bash
-export APP_GW_ID="$(az network application-gateway show --name "${APPLICATION_GATEWAY_NAME}"  --resource-group "${RESOURCE_GROUP}"  --query 'id' --output tsv)"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">APP_GW_ID</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">APPLICATION_GATEWAY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--query<span class="w"> </span><span class="s1">&#39;id&#39;</span><span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span><span class="s2">&quot;</span>
+</code></pre></div>
 <h2 id="7-add-contributor-role-for-the-identity-over-the-application-gateway">7. Add Contributor role for the identity over the Application Gateway</h2>
-<p><code>bash
-az role assignment create --assignee &lt;identityClientID&gt; --scope "${APP_GW_ID}" --role Contributor</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--assignee<span class="w"> </span>&lt;identityClientID&gt;<span class="w"> </span>--scope<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">APP_GW_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--role<span class="w"> </span>Contributor
+</code></pre></div>
 <h2 id="8-in-helm-configyaml-specify">8. In helm-config.yaml specify</h2>
-<p><code>yaml
-armAuth:
-    type: workloadIdentity
-    identityClientID: &lt;identityClientID&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">armAuth</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">workloadIdentity</span>
+<span class="w">    </span><span class="nt">identityClientID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;identityClientID&gt;</span>
+</code></pre></div>
 <h2 id="9-get-the-aks-cluster-credentials">9. Get the AKS cluster credentials</h2>
-<p><code>bash
-az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster</code></p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>aks<span class="w"> </span>get-credentials<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-n<span class="w"> </span>myAKSCluster
+</code></pre></div>
 <h2 id="10-install-the-helm-chart">10. Install the helm chart</h2>
-<p><code>bash
-helm install ingress-azure \
-  -f helm-config.yaml \
-  oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
-  --version 1.7.1</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>install<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.1
+</code></pre></div>
               
             </div>
           </div>

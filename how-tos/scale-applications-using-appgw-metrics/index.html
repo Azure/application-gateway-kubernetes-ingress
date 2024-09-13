@@ -118,6 +118,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#setting-up-azure-k8s-metric-adapter">Setting up Azure K8S Metric Adapter</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
@@ -212,89 +214,89 @@
 <ol>
 <li>
 <p>We will first create an Azure AAD service principal and assign it <code>Monitoring Reader</code> access over Application Gateway's resource group. Paste the following lines in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
-<p><code>bash
-applicationGatewayGroupName="&lt;application-gateway-group-id&gt;"
-applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
-az ad sp create-for-rbac -n "azure-k8s-metric-adapter-sp" --role "Monitoring Reader" --scopes applicationGatewayGroupId</code></p>
+<div class="highlight"><pre><span></span><code><span class="nv">applicationGatewayGroupName</span><span class="o">=</span><span class="s2">&quot;&lt;application-gateway-group-id&gt;&quot;</span>
+<span class="nv">applicationGatewayGroupId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>group<span class="w"> </span>show<span class="w"> </span>-g<span class="w"> </span><span class="nv">$applicationGatewayGroupName</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="k">)</span>
+az<span class="w"> </span>ad<span class="w"> </span>sp<span class="w"> </span>create-for-rbac<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;azure-k8s-metric-adapter-sp&quot;</span><span class="w"> </span>--role<span class="w"> </span><span class="s2">&quot;Monitoring Reader&quot;</span><span class="w"> </span>--scopes<span class="w"> </span>applicationGatewayGroupId
+</code></pre></div>
 </li>
 <li>
 <p>Now, We will deploy the <a href="https://github.com/Azure/azure-k8s-metrics-adapter"><code>Azure K8S Metric Adapter</code></a> using the AAD service principal created above.</p>
-<p>```bash
-kubectl create namespace custom-metrics</p>
-<h1 id="use-values-from-service-principle-created-above-to-create-secret">use values from service principle created above to create secret</h1>
-<p>kubectl create secret generic azure-k8s-metrics-adapter -n custom-metrics \
-    --from-literal=azure-tenant-id=<tenantid> \
-    --from-literal=azure-client-id=<clientid> \
-    --from-literal=azure-client-secret=<secret></p>
-<p>kubectl apply -f kubectl apply -f <a href="https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml">https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml</a> -n custom-metrics
-```</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>custom-metrics
+
+<span class="c1"># use values from service principle created above to create secret</span>
+kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>azure-k8s-metrics-adapter<span class="w"> </span>-n<span class="w"> </span>custom-metrics<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--from-literal<span class="o">=</span>azure-tenant-id<span class="o">=</span>&lt;tenantid&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--from-literal<span class="o">=</span>azure-client-id<span class="o">=</span>&lt;clientid&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--from-literal<span class="o">=</span>azure-client-secret<span class="o">=</span>&lt;secret&gt;
+
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/Azure/azure-k8s-metrics-adapter/master/deploy/adapter.yaml<span class="w"> </span>-n<span class="w"> </span>custom-metrics
+</code></pre></div>
 </li>
 <li>
 <p>We will create an <code>ExternalMetric</code> resource with name <code>appgw-request-count-metric</code>. This will instruct the metric adapter to expose <code>AvgRequestCountPerHealthyHost</code> metric for <code>myApplicationGateway</code> resource in <code>myResourceGroup</code> resource group. You can use the <code>filter</code> field to target a specific backend pool and backend http setting in the Application Gateway. Copy paste this YAML content in <code>external-metric.yaml</code> and apply with <code>kubectl apply -f external-metric.yaml</code>.</p>
-<p><code>yaml
-apiVersion: azure.com/v1alpha2
-kind: ExternalMetric
-metadata:
-name: appgw-request-count-metric
-spec:
-  type: azuremonitor
-  azure:
-    resourceGroup: myResourceGroup # replace with your application gateway's resource group name
-    resourceName: myApplicationGateway # replace with your application gateway's name
-    resourceProviderNamespace: Microsoft.Network
-    resourceType: applicationGateways
-  metric:
-    metricName: AvgRequestCountPerHealthyHost
-    aggregation: Average
-    filter: BackendSettingsPool eq '&lt;backend-pool-name&gt;~&lt;backend-http-setting-name&gt;' # optional</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure.com/v1alpha2</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExternalMetric</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appgw-request-count-metric</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azuremonitor</span>
+<span class="w">  </span><span class="nt">azure</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">resourceGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myResourceGroup</span><span class="w"> </span><span class="c1"># replace with your application gateway&#39;s resource group name</span>
+<span class="w">    </span><span class="nt">resourceName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myApplicationGateway</span><span class="w"> </span><span class="c1"># replace with your application gateway&#39;s name</span>
+<span class="w">    </span><span class="nt">resourceProviderNamespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Microsoft.Network</span>
+<span class="w">    </span><span class="nt">resourceType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">applicationGateways</span>
+<span class="w">  </span><span class="nt">metric</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">metricName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AvgRequestCountPerHealthyHost</span>
+<span class="w">    </span><span class="nt">aggregation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Average</span>
+<span class="w">    </span><span class="nt">filter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BackendSettingsPool eq &#39;&lt;backend-pool-name&gt;~&lt;backend-http-setting-name&gt;&#39;</span><span class="w"> </span><span class="c1"># optional</span>
+</code></pre></div>
 </li>
 </ol>
 <p>You can now make a request to the metric server to see if our new metric is getting exposed:</p>
-<p>```bash
-kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric"</p>
-<h1 id="sample-output">Sample Output</h1>
-<h1 id="_1">{</h1>
-<h1 id="kind-externalmetricvaluelist">"kind": "ExternalMetricValueList",</h1>
-<h1 id="apiversion-externalmetricsk8siov1beta1">"apiVersion": "external.metrics.k8s.io/v1beta1",</h1>
-<h1 id="metadata">"metadata":</h1>
-<h1 id="_2">{</h1>
-<h1 id="selflink-apisexternalmetricsk8siov1beta1namespacesdefaultappgw-request-count-metric">"selfLink": "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric",</h1>
-<h1 id="_3">},</h1>
-<h1 id="items">"items":</h1>
-<h1 id="_4">[</h1>
-<h1 id="_5">{</h1>
-<h1 id="metricname-appgw-request-count-metric">"metricName": "appgw-request-count-metric",</h1>
-<h1 id="metriclabels-null">"metricLabels": null,</h1>
-<h1 id="timestamp-2019-11-05t001851z">"timestamp": "2019-11-05T00:18:51Z",</h1>
-<h1 id="value-30">"value": "30",</h1>
-<h1 id="_6">},</h1>
-<h1 id="_7">],</h1>
-<h1 id="_8">}</h1>
-<p>```</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>--raw<span class="w"> </span><span class="s2">&quot;/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric&quot;</span>
+<span class="c1"># Sample Output</span>
+<span class="c1"># {</span>
+<span class="c1">#   &quot;kind&quot;: &quot;ExternalMetricValueList&quot;,</span>
+<span class="c1">#   &quot;apiVersion&quot;: &quot;external.metrics.k8s.io/v1beta1&quot;,</span>
+<span class="c1">#   &quot;metadata&quot;:</span>
+<span class="c1">#     {</span>
+<span class="c1">#       &quot;selfLink&quot;: &quot;/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric&quot;,</span>
+<span class="c1">#     },</span>
+<span class="c1">#   &quot;items&quot;:</span>
+<span class="c1">#     [</span>
+<span class="c1">#       {</span>
+<span class="c1">#         &quot;metricName&quot;: &quot;appgw-request-count-metric&quot;,</span>
+<span class="c1">#         &quot;metricLabels&quot;: null,</span>
+<span class="c1">#         &quot;timestamp&quot;: &quot;2019-11-05T00:18:51Z&quot;,</span>
+<span class="c1">#         &quot;value&quot;: &quot;30&quot;,</span>
+<span class="c1">#       },</span>
+<span class="c1">#     ],</span>
+<span class="c1"># }</span>
+</code></pre></div>
 <h2 id="using-the-new-metric-to-scale-up-our-deployment">Using the new metric to scale up our deployment</h2>
 <p>Once we are able to expose <code>appgw-request-count-metric</code> through the metric server, We are ready to use <a href="https://docs.microsoft.com/en-us/azure/aks/concepts-scale#horizontal-pod-autoscaler"><code>Horizontal Pod Autoscaler</code></a> to scale up our target deployment.</p>
 <p>In following example, we will target a sample deployment <code>aspnet</code>. We will scale up Pods when <code>appgw-request-count-metric</code> &gt; 200 per Pod upto a max of <code>10</code> Pods.</p>
 <p>Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in <code>autoscale-config.yaml</code> and apply with <code>kubectl apply -f autoscale-config.yaml</code>.</p>
-<p><code>yaml
-apiVersion: autoscaling/v2beta1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: deployment-scaler
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: aspnet # replace with your deployment's name
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-  - type: External
-    external:
-      metricName: appgw-request-count-metric
-      targetAverageValue: 200</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2beta1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HorizontalPodAutoscaler</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deployment-scaler</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaleTargetRef</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnet</span><span class="w"> </span><span class="c1"># replace with your deployment&#39;s name</span>
+<span class="w">  </span><span class="nt">minReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">maxReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">  </span><span class="nt">metrics</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">External</span>
+<span class="w">    </span><span class="nt">external</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">metricName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appgw-request-count-metric</span>
+<span class="w">      </span><span class="nt">targetAverageValue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200</span>
+</code></pre></div>
 <p>Test your configuration by using a load test tools like apache bench:</p>
-<p><code>bash
-ab -n10000 http://&lt;application-gateway-ip-address&gt;/</code></p>
+<div class="highlight"><pre><span></span><code>ab<span class="w"> </span>-n10000<span class="w"> </span>http://&lt;application-gateway-ip-address&gt;/
+</code></pre></div>
               
             </div>
           </div>

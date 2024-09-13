@@ -348,51 +348,53 @@
 </tbody>
 </table>
 <h2 id="example">Example</h2>
-<p>```yaml
-appgw:
-    applicationGatewayID: <application-gateway-resource-id>
-    environment: "AZUREUSGOVERNMENTCLOUD" # default: AZUREPUBLICCLOUD</p>
-<p>armAuth:
-    type: aadPodIdentity
-    identityResourceID: <identityResourceId>
-    identityClientID:  <identityClientId></p>
-<p>kubernetes:
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}</p>
-<p>rbac:
-    enabled: false
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">applicationGatewayID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;application-gateway-resource-id&gt;</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;AZUREUSGOVERNMENTCLOUD&quot;</span><span class="w"> </span><span class="c1"># default: AZUREPUBLICCLOUD</span>
+
+<span class="nt">armAuth</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aadPodIdentity</span>
+<span class="w">    </span><span class="nt">identityResourceID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;identityResourceId&gt;</span>
+<span class="w">    </span><span class="nt">identityClientID</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">&lt;identityClientId&gt;</span>
+
+<span class="nt">kubernetes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nodeSelector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="w">  </span><span class="nt">tolerations</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="w">  </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+
+<span class="nt">rbac</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
 <h3 id="run-without-root">Run without root</h3>
 <p>By default, AGIC will assume <code>root</code> permission which allows it to read <code>cloud-provider</code> config and get meta-data information about the cluster.
 If you want AGIC to run without <code>root</code> access, then make sure that AGIC is installed with at least the following information to run successfully:</p>
-<p>```yaml
-appgw:
-    applicationGatewayID: <application-gateway-resource-id>
-    # OR
-    subscriptionId: <subscription-id>
-    resourceGroup: <resource-group-name>
-    name: <application-gateway-name></p>
-<p>kubernetes:
-    securityContext:
-        runAsUser: 1000 # appgw-ingress-user
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">applicationGatewayID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;application-gateway-resource-id&gt;</span>
+<span class="w">    </span><span class="c1"># OR</span>
+<span class="w">    </span><span class="nt">subscriptionId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;subscription-id&gt;</span>
+<span class="w">    </span><span class="nt">resourceGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;resource-group-name&gt;</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;application-gateway-name&gt;</span>
+
+<span class="nt">kubernetes</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">securityContext</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">runAsUser</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1"># appgw-ingress-user</span>
+</code></pre></div>
 <blockquote>
 <p><strong>Note:</strong> AGIC also uses <code>cloud-provider</code> config to get Node's Virtual Network Name / Subscription and Route table name. If AGIC is not able to reach this information,  It will skip assigning the Node's route table to Application Gateway's subnet which is required when using <code>kubenet</code> network plugin. To workaround, this assignment can be performed manually.</p>
 </blockquote>
 <h3 id="run-with-read-only-root-filesystem">Run with read-only root filesystem</h3>
 <p>To run AGIC with <code>readOnlyRootFilesystem</code>, the following additional configuration items are required:</p>
-<p><code>yaml
-kubernetes:
-    containerSecurityContext:
-        readOnlyRootFilesystem: true
-    volumes:
-        extraVolumes:
-        - name: tmp
-          emptyDir: {}
-        extraVolumeMounts:
-        - name: tmp
-          mountPath: /tmp</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">kubernetes</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">containerSecurityContext</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">readOnlyRootFilesystem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">extraVolumes</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tmp</span>
+<span class="w">          </span><span class="nt">emptyDir</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="w">        </span><span class="nt">extraVolumeMounts</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tmp</span>
+<span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/tmp</span>
+</code></pre></div>
 <blockquote>
 <p><strong>Note:</strong> AGIC needs to be able to write to the <code>/tmp</code> directory.</p>
 </blockquote>

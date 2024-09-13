@@ -203,34 +203,34 @@
 To achieve this the <a href="https://github.com/kubernetes-sigs/external-dns">ExternalDNS</a> Kubernetes app is required. ExternalDNS in installable via a <a href="https://github.com/kubernetes-incubator/external-dns">Helm chart</a>. The <a href="https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/azure.md">following document</a> provides a tutorial on setting up ExternalDNS with an Azure DNS.</p>
 <p>Below is a sample Ingress resource, annotated with
 <code>kubernetes.io/ingress.class: azure/application-gateway</code>, which configures <code>aplpha.contoso.com</code>.</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: websocket-ingress
-  namespace: alpha
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: alpha.contoso.com
-      http:
-        paths:
-        - path: /
-          backend:
-            service:
-              name: contoso-service
-              port:
-                number: 80
-          pathType: Exact</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">websocket-ingress</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpha</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alpha.contoso.com</span>
+<span class="w">      </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">          </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">contoso-service</span>
+<span class="w">              </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">          </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+</code></pre></div>
 <p>Application Gateway Ingress Controller (AGIC) automatically recognizes the public IP address
 assigned to the Application Gateway it is associated with, and sets this IP (<code>1.2.3.4</code>)
 on the Ingress resource as shown below:</p>
-<p><code>bash
-$ kubectl get ingress -A
-NAMESPACE             NAME                HOSTS                 ADDRESS   PORTS   AGE
-alpha                 alpha-ingress       alpha.contoso.com     1.2.3.4   80      8m55s
-beta                  beta-ingress        beta.contoso.com      1.2.3.4   80      8m54s</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-A
+NAMESPACE<span class="w">             </span>NAME<span class="w">                </span>HOSTS<span class="w">                 </span>ADDRESS<span class="w">   </span>PORTS<span class="w">   </span>AGE
+alpha<span class="w">                 </span>alpha-ingress<span class="w">       </span>alpha.contoso.com<span class="w">     </span><span class="m">1</span>.2.3.4<span class="w">   </span><span class="m">80</span><span class="w">      </span>8m55s
+beta<span class="w">                  </span>beta-ingress<span class="w">        </span>beta.contoso.com<span class="w">      </span><span class="m">1</span>.2.3.4<span class="w">   </span><span class="m">80</span><span class="w">      </span>8m54s
+</code></pre></div>
 <p>Once the Ingresses contain both host and adrress, ExternalDNS will provision these to the
 DNS system it has been associated with and authorized for.</p>
               

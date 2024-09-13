@@ -247,24 +247,24 @@
 <li>
 <p>Change the Pod and/or Deployment specs by adding <a href="https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#container-hooks">preStop container life-cycle hooks</a>, with a delay (sleep) of at least 90 seconds.</p>
 <p>Example:</p>
-<p><code>yaml
-kind: Deployment
-metadata:
-  name: x
-  labels:
-    app: y
-spec:
-  ...
-  template:
-    ...
-    spec:
-      containers:
-      - name: ctr
-        ...
-        lifecycle:
-          preStop:
-            exec:
-              command: ["sleep","90"]</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">x</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">y</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctr</span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">        </span><span class="nt">lifecycle</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">preStop</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">exec</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;sleep&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;90&quot;</span><span class="p p-Indicator">]</span>
+</code></pre></div>
 <blockquote>
 <p>Note: The "sleep" command assumes the container is based on Linux. For Windows containers the equivalent command is <code>["powershell.exe","-c","sleep","90"]</code>.</p>
 </blockquote>
@@ -278,48 +278,48 @@ spec:
 </li>
 <li>
 <p>Add <a href="https://docs.microsoft.com/bs-latn-ba/azure/application-gateway/ingress-controller-annotations#connection-draining">connection draining annotation</a> to the Ingress read by AGIC to allow for in-flight connections to complete. Example:</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
- name: websocket-ingress
- annotations:
-   kubernetes.io/ingress.class: azure/application-gateway
-   appgw.ingress.kubernetes.io/connection-draining: "true"
-   appgw.ingress.kubernetes.io/connection-draining-timeout: "30"</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">websocket-ingress</span>
+<span class="w"> </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="w">   </span><span class="nt">appgw.ingress.kubernetes.io/connection-draining</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<span class="w">   </span><span class="nt">appgw.ingress.kubernetes.io/connection-draining-timeout</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;30&quot;</span>
+</code></pre></div>
 <p>What this achieves - when a pod is pulled from an App Gateway backend it will disappear from the UI, but existing in-flight connections will not be immediately terminated -- they will be given 30 seconds to complete.</p>
 <p>We believe that the addition of the <code>preStop</code> hook and the connection draining annotation will drastically remove the probability for App Gateway to attempt to connect to a terminated pod.</p>
 </li>
 <li>
 <p>Add <a href="https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#hook-handler-execution">terminationGracePeriodSeconds</a> to the Pod resource YAML. This must be set to a value that is greater than the <code>preStop</code> hook wait time.</p>
-<p><code>yaml
-kind: Deployment
-metadata:
-  name: x
-  labels:
-    app: y
-spec:
-  ...
-  template:
-    ...
-    spec:
-      containers:
-      - name: ctr
-        ...
-      terminationGracePeriodSeconds: 101</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">x</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">y</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctr</span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">      </span><span class="nt">terminationGracePeriodSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">101</span>
+</code></pre></div>
 </li>
 <li>
 <p>Decrease interval between App Gateway health probes to backend pools. The goal is to increase number of probes per unit of time. This will ensure that a terminated pod, which has not yet been removed from App Gateway's backend pool, will be marked as unhealthy sooner, thus removing the probability of a request landing on a terminated pod and resulting in a 502 error.</p>
 <p>For example the following <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes Deployment liveness probe</a> will result in the respective pods being marked as unhealthy after 15 seconds and 3 failed probes. This config will be directly applied to Application Gateway (by AGIC), as well as Kubernetes.</p>
-<p><code>yaml
-...
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          periodSeconds: 4
-          timeoutSeconds: 5
-          failureThreshold: 3</code></p>
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="w">        </span><span class="nt">livenessProbe</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">httpGet</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">          </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="w">          </span><span class="nt">timeoutSeconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">          </span><span class="nt">failureThreshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</code></pre></div>
 </li>
 </ol>
 <h2 id="summary">Summary</h2>

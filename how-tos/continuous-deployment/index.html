@@ -102,6 +102,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#setup-up-new-service-connection-with-service-principal">Setup up new service connection with service principal</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#create-a-new-azure-release-pipeline">Create a new Azure release pipeline</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
@@ -210,10 +212,9 @@
 <ol>
 <li>
 <p>Create a service principal to use with Azure Pipelines. This service principal will have owner access to current subscription. Access will be used to perform role assigement for AGIC identity in the pipeline.</p>
-<p>```bash
-az ad sp create-for-rbac -n azure-pipeline-cd --role owner</p>
-<h1 id="copy-the-appid-and-password-we-will-use-these-in-the-next-step">Copy the AppId and Password. We will use these in the next step.</h1>
-<p>```</p>
+<div class="highlight"><pre><span></span><code>az<span class="w"> </span>ad<span class="w"> </span>sp<span class="w"> </span>create-for-rbac<span class="w"> </span>-n<span class="w"> </span>azure-pipeline-cd<span class="w"> </span>--role<span class="w"> </span>owner
+<span class="c1"># Copy the AppId and Password. We will use these in the next step.</span>
+</code></pre></div>
 </li>
 <li>
 <p>Now, create a <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&amp;tabs=yaml#create-a-service-connection">new service connection</a> in Azure Devops. Select "<em>use the full version of the service connection dialog</em>" option so that you can provide the newly created service principal.
@@ -244,10 +245,9 @@ az ad sp create-for-rbac -n azure-pipeline-cd --role owner</p>
 <img alt="import pipeline" src="../../images/pipeline-set-connection.png" /></li>
 <li>
 <p>Provide the values for <code>clientId</code> and <code>clientSecret</code> that will be configured as cluster credentials for the AKS cluster. You should create a separate service principal for the AKS cluster for security reasons.</p>
-<p>```bash</p>
-<h1 id="create-a-new-one-and-copy-the-appid-and-password-to-the-variable-section-in-the-pipeline">create a new one and copy the appId and password to the variable section in the pipeline</h1>
-<p>az ad sp create-for-rbac -n aks-cluster
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># create a new one and copy the appId and password to the variable section in the pipeline</span>
+az<span class="w"> </span>ad<span class="w"> </span>sp<span class="w"> </span>create-for-rbac<span class="w"> </span>-n<span class="w"> </span>aks-cluster
+</code></pre></div>
 <p><img alt="import pipeline" src="../../images/pipeline-variable.png" /></p>
 </li>
 </ol>

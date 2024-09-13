@@ -222,14 +222,14 @@ As the Ingress specification has evolved between v1beta1 and v1, any differences
 <p>For Kubernetes version 1.19+, the API server translates any Ingress v1beta1 resources to Ingress v1 and AGIC watches Ingress v1 resources.</p>
 <h2 id="ingressclass-and-ingressclass-name">IngressClass and IngressClass Name</h2>
 <p>AGIC now supports using <code>ingressClassName</code> property along with <code>kubernetes.io/ingress.class: azure/application-gateway</code> to indicate that a specific ingress should processed by AGIC.</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: shopping-app
-spec:
-  ingressClassName: azure-application-gateway
-  ...</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ingressClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure-application-gateway</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
 <h2 id="ingress-rules">Ingress Rules</h2>
 <h3 id="wildcard-hostnames">Wildcard Hostnames</h3>
 <p>AGIC supports <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards">wildcard hostnames</a> as documented by the upstream API as well as precise hostnames.</p>
@@ -245,23 +245,23 @@ spec:
 <li><code>ImplementationSpecific</code> patch match type preserves the old path behaviour of AGIC &lt; 1.5.1 and allows to backwards compatibility.</li>
 </ul>
 <p>Example Ingress YAML with different pathTypes defined:</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: shopping-app
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /foo             # this would stay /foo since pathType is Exact
-        pathType: Exact
-      - path: /bar             # this would be converted to /bar* since pathType is Prefix
-        pathType: Prefix
-      - path: /baz             # this would stay /baz since pathType is ImplementationSpecific
-        pathType: ImplementationSpecific
-      - path: /buzz*           # this would stay /buzz* since pathType is ImplementationSpecific
-        pathType: ImplementationSpecific</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/foo</span><span class="w">             </span><span class="c1"># this would stay /foo since pathType is Exact</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/bar</span><span class="w">             </span><span class="c1"># this would be converted to /bar* since pathType is Prefix</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/baz</span><span class="w">             </span><span class="c1"># this would stay /baz since pathType is ImplementationSpecific</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ImplementationSpecific</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/buzz*</span><span class="w">           </span><span class="c1"># this would stay /buzz* since pathType is ImplementationSpecific</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ImplementationSpecific</span>
+</code></pre></div>
 <h3 id="behavioural-change-notice">Behavioural Change Notice</h3>
 <ul>
 <li>Starting with AGIC 1.5.1,</li>
@@ -308,34 +308,34 @@ spec:
 </tbody>
 </table>
 <p>Example YAML illustrating the corner cases above:</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: shopping-app
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /foo*            # this would be converted to /foo since pathType is Exact
-        pathType: Exact
-      - path: /bar             # this would be converted to /bar* since pathType is Prefix
-        pathType: Prefix
-      - path: /baz*             # this would stay /baz* since pathType is Prefix
-        pathType: Prefix</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/foo*</span><span class="w">            </span><span class="c1"># this would be converted to /foo since pathType is Exact</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/bar</span><span class="w">             </span><span class="c1"># this would be converted to /bar* since pathType is Prefix</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/baz*</span><span class="w">             </span><span class="c1"># this would stay /baz* since pathType is Prefix</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+</code></pre></div>
 <h4 id="mitigation">Mitigation</h4>
 <p>In case you are affected by this behaviour change in mapping the paths, You can modify your ingress rules to use <code>PathType: ImplementationSpecific</code> so to retain the old behaviour.</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: shopping-app
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /path*         # this would stay /path* since pathType is ImplementationSpecific
-        pathType: ImplementationSpecific</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shopping-app</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path*</span><span class="w">         </span><span class="c1"># this would stay /path* since pathType is ImplementationSpecific</span>
+<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ImplementationSpecific</span>
+</code></pre></div>
               
             </div>
           </div>

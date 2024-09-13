@@ -239,37 +239,37 @@
 <li>Download <code>guestbook-all-in-one.yaml</code> from <a href="https://raw.githubusercontent.com/kubernetes/examples/master/guestbook/all-in-one/guestbook-all-in-one.yaml">here</a></li>
 <li>Deploy <code>guestbook-all-in-one.yaml</code> into your AKS cluster by running</li>
 </ol>
-<p><code>bash
-  kubectl apply -f guestbook-all-in-one.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>guestbook-all-in-one.yaml
+</code></pre></div>
 <p>Now, the <code>guestbook</code> application has been deployed.</p>
 <h2 id="expose-services-over-http">Expose services over HTTP</h2>
 <p>In order to expose the guestbook application we will using the following ingress resource:</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-  - http:
-      paths:
-      - pathType: Prefix
-        path: /
-        backend:
-          service:
-            name: frontend
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <p>This ingress will expose the <code>frontend</code> service of the <code>guestbook-all-in-one</code> deployment
 as a default backend of the Application Gateway.</p>
 <p>Save the above ingress resource as <code>ing-guestbook.yaml</code>.</p>
 <ol>
 <li>
 <p>Deploy <code>ing-guestbook.yaml</code> by running:</p>
-<p><code>bash
-kubectl apply -f ing-guestbook.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>ing-guestbook.yaml
+</code></pre></div>
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>
@@ -283,37 +283,37 @@ public address of the Application Gateway.</p>
 <ol>
 <li>
 <p>Before deploying ingress, you need to create a kubernetes secret to host the certificate and private key. You can create a kubernetes secret by running</p>
-<p><code>bash
-kubectl create secret tls &lt;guestbook-secret-name&gt; --key &lt;path-to-key&gt; --cert &lt;path-to-cert&gt;</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>tls<span class="w"> </span>&lt;guestbook-secret-name&gt;<span class="w"> </span>--key<span class="w"> </span>&lt;path-to-key&gt;<span class="w"> </span>--cert<span class="w"> </span>&lt;path-to-cert&gt;
+</code></pre></div>
 </li>
 <li>
 <p>Define the following ingress. In the ingress, specify the name of the secret in the <code>secretName</code> section.</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  tls:
-    - secretName: &lt;guestbook-secret-name&gt;
-  rules:
-  - http:
-      paths:
-      - pathType: Prefix
-        path: /
-        backend:
-          service:
-            name: frontend
-            port:
-              number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">        </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 <p><em>NOTE:</em> Replace <code>&lt;guestbook-secret-name&gt;</code> in the above Ingress Resource with the name of your secret. Store the above Ingress Resource in a file name <code>ing-guestbook-tls.yaml</code>.</p>
 </li>
 <li>
 <p>Deploy ing-guestbook-tls.yaml by running</p>
-<p><code>bash
-kubectl apply -f ing-guestbook-tls.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>ing-guestbook-tls.yaml
+</code></pre></div>
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>
@@ -321,8 +321,8 @@ kubectl apply -f ing-guestbook-tls.yaml</code></p>
 </ol>
 <p>Now the <code>guestbook</code> application will be available on HTTPS.</p>
 <p>In order to make the <code>guestbook</code> application available on HTTP, annotate the <code>Ingress</code> with</p>
-<p><code>yaml
-  appgw.ingress.kubernetes.io/ssl-redirect: "true"</code></p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">appgw.ingress.kubernetes.io/ssl-redirect</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+</code></pre></div>
 <p>Only in this case a HTTP Listener is created in Azure which redirects the visitor to the HTTPS version.</p>
 <h3 id="with-specified-hostname">With specified hostname</h3>
 <p>You can also specify the hostname on the ingress in order to multiplex TLS configurations and services.
@@ -331,34 +331,34 @@ By specifying hostname, the guestbook service will only be available on the spec
 <li>
 <p>Define the following ingress.
     In the ingress, specify the name of the secret in the <code>secretName</code> section and replace the hostname in the <code>hosts</code> section accordingly.</p>
-<p><code>yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: guestbook
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  tls:
-    - hosts:
-      - &lt;guestbook.contoso.com&gt;
-      secretName: &lt;guestbook-secret-name&gt;
-  rules:
-  - host: &lt;guestbook.contoso.com&gt;
-    http:
-      paths:
-        - pathType: Prefix
-          path: /
-          backend:
-            service:
-              name: frontend
-              port:
-                number: 80</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guestbook</span>
+<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
+<span class="w">      </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;guestbook-secret-name&gt;</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;guestbook.contoso.com&gt;</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prefix</span>
+<span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">          </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">frontend</span>
+<span class="w">              </span><span class="nt">port</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre></div>
 </li>
 <li>
 <p>Deploy <code>ing-guestbook-tls-sni.yaml</code> by running</p>
-<p><code>bash
-kubectl apply -f ing-guestbook-tls-sni.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>ing-guestbook-tls-sni.yaml
+</code></pre></div>
 </li>
 <li>
 <p>Check the log of the ingress controller for deployment status.</p>

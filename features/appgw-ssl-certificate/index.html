@@ -208,139 +208,147 @@
 </ul>
 <p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfield Deployment</a> to install nonexistents.</p>
 <p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3</p>
-<p><code>bash
-helm install oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>install<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.2.0-rc3<span class="w"> </span>--generate-name
+</code></pre></div>
 <h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
 <p>The certificate below should only be used for testing purpose.</p>
-<p>```bash
-appgwName=""
-resgp=""</p>
-<h1 id="generate-certificate-for-testing">generate certificate for testing</h1>
-<p>openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -out test-cert.crt \
-  -keyout test-cert.key \
-  -subj "/CN=test"</p>
-<p>openssl pkcs12 -export \
-  -in test-cert.crt \
-  -inkey test-cert.key \
-  -passout pass:test \
-  -out test-cert.pfx</p>
-<h1 id="configure-certificate-to-app-gateway">configure certificate to app gateway</h1>
-<p>az network application-gateway ssl-cert create \
-  --resource-group $resgp \
-  --gateway-name $appgwName \
-  -n mysslcert \
-  --cert-file test-cert.pfx \
-  --cert-password "test"
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nv">appgwName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">resgp</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+<span class="c1"># generate certificate for testing</span>
+openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-nodes<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-newkey<span class="w"> </span>rsa:2048<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-out<span class="w"> </span>test-cert.crt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-keyout<span class="w"> </span>test-cert.key<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-subj<span class="w"> </span><span class="s2">&quot;/CN=test&quot;</span>
+
+openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-in<span class="w"> </span>test-cert.crt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-inkey<span class="w"> </span>test-cert.key<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-passout<span class="w"> </span>pass:test<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-out<span class="w"> </span>test-cert.pfx
+
+<span class="c1"># configure certificate to app gateway</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>ssl-cert<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resource-group<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-n<span class="w"> </span>mysslcert<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cert-file<span class="w"> </span>test-cert.pfx<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cert-password<span class="w"> </span><span class="s2">&quot;test&quot;</span>
+</code></pre></div>
 <h2 id="configure-certificate-from-key-vault-to-appgw">Configure certificate from Key Vault to AppGw</h2>
 <p>To configfure certificate from key vault to Application Gateway, an user-assigned managed identity will need to be created and assigned to AppGw, the managed identity will need to have GET secret access to KeyVault.</p>
-<p>```bash</p>
-<h1 id="configure-your-resources">Configure your resources</h1>
-<p>appgwName=""
-resgp=""
-vaultName=""
-location=""
-aksClusterName=""
-aksResourceGroupName=""
-appgwName=""</p>
-<h1 id="important-the-following-way-to-retrieve-the-object-id-of-the-agic-managed-identity">IMPORTANT: the following way to retrieve the object id of the AGIC managed identity</h1>
-<h1 id="only-applies-when-agic-is-deployed-via-the-agic-addon-for-aks">only applies when AGIC is deployed via the AGIC addon for AKS</h1>
-<h1 id="get-the-resource-group-name-of-the-aks-cluster">get the resource group name of the AKS cluster</h1>
-<p>nrg=$(az aks show --name $aksClusterName --resource-group $aksResourceGroupName --query nodeResourceGroup --output tsv)</p>
-<h1 id="get-principalid-of-the-agic-managed-identity">get principalId of the AGIC managed identity</h1>
-<p>identityName="ingressapplicationgateway-<span class="arithmatex"><span class="MathJax_Preview">aksClusterName"
-agicIdentityPrincipalId=</span><script type="math/tex">aksClusterName"
-agicIdentityPrincipalId=</script></span>(az identity show --name $identityName --resource-group $nrg --query principalId --output tsv)</p>
-<h1 id="one-time-operation-create-azure-key-vault-and-certificate-can-done-through-portal-as-well">One time operation, create Azure key vault and certificate (can done through portal as well)</h1>
-<p>az keyvault create -n $vaultName -g $resgp --enable-soft-delete -l $location</p>
-<h1 id="one-time-operation-create-user-assigned-managed-identity">One time operation, create user-assigned managed identity</h1>
-<p>az identity create -n appgw-id -g $resgp -l <span class="arithmatex"><span class="MathJax_Preview">location
-identityID=</span><script type="math/tex">location
-identityID=</script></span>(az identity show -n appgw-id -g <span class="arithmatex"><span class="MathJax_Preview">resgp -o tsv --query "id")
-identityPrincipal=</span><script type="math/tex">resgp -o tsv --query "id")
-identityPrincipal=</script></span>(az identity show -n appgw-id -g $resgp -o tsv --query "principalId")</p>
-<h1 id="one-time-operation-assign-agic-identity-to-have-operator-access-over-appgw-identity">One time operation, assign AGIC identity to have operator access over AppGw identity</h1>
-<p>az role assignment create --role "Managed Identity Operator" --assignee $agicIdentityPrincipalId --scope $identityID</p>
-<h1 id="one-time-operation-assign-the-identity-to-application-gateway">One time operation, assign the identity to Application Gateway</h1>
-<p>az network application-gateway identity assign \
-  --gateway-name $appgwName \
-  --resource-group $resgp \
-  --identity $identityID</p>
-<h1 id="one-time-operation-assign-the-identity-get-secret-access-to-azure-key-vault">One time operation, assign the identity GET secret access to Azure Key Vault</h1>
-<p>az keyvault set-policy \
--n $vaultName \
--g $resgp \
---object-id $identityPrincipal \
---secret-permissions get</p>
-<h1 id="for-each-new-certificate-create-a-cert-on-keyvault-and-add-unversioned-secret-id-to-application-gateway">For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway</h1>
-<p>az keyvault certificate create \
---vault-name <span class="arithmatex"><span class="MathJax_Preview">vaultName \
--n mycert \
--p "</span><script type="math/tex">vaultName \
--n mycert \
--p "</script></span>(az keyvault certificate get-default-policy)"
-versionedSecretId=$(az keyvault certificate show -n mycert --vault-name <span class="arithmatex"><span class="MathJax_Preview">vaultName --query "sid" -o tsv)
-unversionedSecretId=</span><script type="math/tex">vaultName --query "sid" -o tsv)
-unversionedSecretId=</script></span>(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url</p>
-<h1 id="for-each-new-certificate-add-the-certificate-to-appgw">For each new certificate, Add the certificate to AppGw</h1>
-<p>az network application-gateway ssl-cert create \
--n mykvsslcert \
---gateway-name $appgwName \
---resource-group $resgp \
---key-vault-secret-id $unversionedSecretId # ssl certificate with name "mykvsslcert" will be configured on AppGw
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Configure your resources</span>
+<span class="nv">appgwName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">resgp</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">vaultName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">location</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">aksClusterName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">aksResourceGroupName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+<span class="nv">appgwName</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+<span class="c1"># IMPORTANT: the following way to retrieve the object id of the AGIC managed identity</span>
+<span class="c1"># only applies when AGIC is deployed via the AGIC addon for AKS</span>
+
+<span class="c1"># get the resource group name of the AKS cluster</span>
+<span class="nv">nrg</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="nv">$aksClusterName</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$aksResourceGroupName</span><span class="w"> </span>--query<span class="w"> </span>nodeResourceGroup<span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span>
+
+<span class="c1"># get principalId of the AGIC managed identity</span>
+<span class="nv">identityName</span><span class="o">=</span><span class="s2">&quot;ingressapplicationgateway-</span><span class="nv">$aksClusterName</span><span class="s2">&quot;</span>
+<span class="nv">agicIdentityPrincipalId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="nv">$identityName</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$nrg</span><span class="w"> </span>--query<span class="w"> </span>principalId<span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span>
+
+<span class="c1"># One time operation, create Azure key vault and certificate (can done through portal as well)</span>
+az<span class="w"> </span>keyvault<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span>--enable-soft-delete<span class="w"> </span>-l<span class="w"> </span><span class="nv">$location</span>
+
+<span class="c1"># One time operation, create user-assigned managed identity</span>
+az<span class="w"> </span>identity<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>appgw-id<span class="w"> </span>-g<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span>-l<span class="w"> </span><span class="nv">$location</span>
+<span class="nv">identityID</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>appgw-id<span class="w"> </span>-g<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="k">)</span>
+<span class="nv">identityPrincipal</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>appgw-id<span class="w"> </span>-g<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;principalId&quot;</span><span class="k">)</span>
+
+<span class="c1"># One time operation, assign AGIC identity to have operator access over AppGw identity</span>
+az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--role<span class="w"> </span><span class="s2">&quot;Managed Identity Operator&quot;</span><span class="w"> </span>--assignee<span class="w"> </span><span class="nv">$agicIdentityPrincipalId</span><span class="w"> </span>--scope<span class="w"> </span><span class="nv">$identityID</span>
+
+<span class="c1"># One time operation, assign the identity to Application Gateway</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>identity<span class="w"> </span>assign<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resource-group<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--identity<span class="w"> </span><span class="nv">$identityID</span>
+
+<span class="c1"># One time operation, assign the identity GET secret access to Azure Key Vault</span>
+az<span class="w"> </span>keyvault<span class="w"> </span>set-policy<span class="w"> </span><span class="se">\</span>
+-n<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span><span class="se">\</span>
+-g<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span><span class="se">\</span>
+--object-id<span class="w"> </span><span class="nv">$identityPrincipal</span><span class="w"> </span><span class="se">\</span>
+--secret-permissions<span class="w"> </span>get
+
+<span class="c1"># For each new certificate, create a cert on keyvault and add unversioned secret id to Application Gateway</span>
+az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+--vault-name<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span><span class="se">\</span>
+-n<span class="w"> </span>mycert<span class="w"> </span><span class="se">\</span>
+-p<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>get-default-policy<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">versionedSecretId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>keyvault<span class="w"> </span>certificate<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>mycert<span class="w"> </span>--vault-name<span class="w"> </span><span class="nv">$vaultName</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;sid&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
+<span class="nv">unversionedSecretId</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$versionedSecretId</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;/&#39;</span><span class="w"> </span>-f-5<span class="k">)</span><span class="w"> </span><span class="c1"># remove the version from the url</span>
+
+<span class="c1"># For each new certificate, Add the certificate to AppGw</span>
+az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>ssl-cert<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+-n<span class="w"> </span>mykvsslcert<span class="w"> </span><span class="se">\</span>
+--gateway-name<span class="w"> </span><span class="nv">$appgwName</span><span class="w"> </span><span class="se">\</span>
+--resource-group<span class="w"> </span><span class="nv">$resgp</span><span class="w"> </span><span class="se">\</span>
+--key-vault-secret-id<span class="w"> </span><span class="nv">$unversionedSecretId</span><span class="w"> </span><span class="c1"># ssl certificate with name &quot;mykvsslcert&quot; will be configured on AppGw</span>
+</code></pre></div>
 <h2 id="testing-the-key-vault-certificate-on-ingress">Testing the key vault certificate on Ingress</h2>
 <p>Since we have certificate from Key Vault configured in Application Gateway, we can then add the new annotation <code>appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</code> in Kubernetes ingress to enable the feature.</p>
-<p>```bash</p>
-<h1 id="install-an-app">install an app</h1>
-<p>cat &lt;&lt; EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: aspnetapp
-  labels:
-    app: aspnetapp
-spec:
-  containers:
-  - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
-    name: aspnetapp-image
-    ports:
-    - containerPort: 80
-      protocol: TCP</p>
-<hr />
-<p>apiVersion: v1
-kind: Service
-metadata:
-  name: aspnetapp
-spec:
-  selector:
-    app: aspnetapp
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80</p>
-<hr />
-<p>apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: aspnetapp
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        backend:
-          service:
-            name: aspnetapp
-            port:
-              number: 80
-        pathType: Exact
-EOF
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># install an app</span>
+cat<span class="w"> </span><span class="s">&lt;&lt; EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Pod</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">  labels:</span>
+<span class="s">    app: aspnetapp</span>
+<span class="s">spec:</span>
+<span class="s">  containers:</span>
+<span class="s">  - image: &quot;mcr.microsoft.com/dotnet/samples:aspnetapp&quot;</span>
+<span class="s">    name: aspnetapp-image</span>
+<span class="s">    ports:</span>
+<span class="s">    - containerPort: 80</span>
+<span class="s">      protocol: TCP</span>
+
+<span class="s">---</span>
+
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">spec:</span>
+<span class="s">  selector:</span>
+<span class="s">    app: aspnetapp</span>
+<span class="s">  ports:</span>
+<span class="s">  - protocol: TCP</span>
+<span class="s">    port: 80</span>
+<span class="s">    targetPort: 80</span>
+
+<span class="s">---</span>
+
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">  name: aspnetapp</span>
+<span class="s">  annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">    appgw.ingress.kubernetes.io/appgw-ssl-certificate: mykvsslcert</span>
+<span class="s">spec:</span>
+<span class="s">  rules:</span>
+<span class="s">  - http:</span>
+<span class="s">      paths:</span>
+<span class="s">      - path: /</span>
+<span class="s">        backend:</span>
+<span class="s">          service:</span>
+<span class="s">            name: aspnetapp</span>
+<span class="s">            port:</span>
+<span class="s">              number: 80</span>
+<span class="s">        pathType: Exact</span>
+<span class="s">EOF</span>
+</code></pre></div>
               
             </div>
           </div>

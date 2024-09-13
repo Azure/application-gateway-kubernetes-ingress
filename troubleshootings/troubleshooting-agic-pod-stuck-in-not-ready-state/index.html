@@ -215,14 +215,14 @@
 </blockquote>
 <h3 id="illustration">Illustration</h3>
 <p>If AGIC pod is stuck in ready state, you must be seeing the following:</p>
-<p>```bash
-$ kubectl get pods</p>
-<p>NAME                                   READY   STATUS    RESTARTS   AGE
-<AGIC-POD-NAME>                        0/1     Running   0          19s
-mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
-mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
-nmi-pv8ch     <br />
-```</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+
+NAME<span class="w">                                   </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE
+&lt;AGIC-POD-NAME&gt;<span class="w">                        </span><span class="m">0</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">0</span><span class="w">          </span>19s
+mic-774b9c5d7b-z4z8p<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
+mic-774b9c5d7b-zrdsm<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
+nmi-pv8ch<span class="w">       </span>
+</code></pre></div>
 <h3 id="common-causes">Common causes</h3>
 <ol>
 <li><a href="#agic-is-stuck-at-creating-authorizer">Stuck at creating authorizer</a></li>
@@ -237,13 +237,13 @@ This identity can be of two types:</p>
 </ol>
 <p>When using User Assigned identity with AGIC, AGIC has a dependency on <a href="https://github.com/Azure/aad-pod-identity"><code>AAD Pod Identity</code></a>.<br />
 When you see your AGIC pod stuck at <code>Creating Authorizer</code> step, then the issue could be related to the setup of the user assigned identity and AAD Pod Identity.</p>
-<p><code>bash
-$ kubectl logs &lt;AGIC-POD-NAME&gt;
-ERROR: logging before flag.Parse: I0628 18:09:49.947221       1 utils.go:115] Using verbosity level 3 from environment variable APPGW_VERBOSITY_LEVEL
-I0628 18:09:49.987776       1 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
-I0628 18:09:49.987861       1 main.go:128] Application Gateway Details: Subscription="xxxx" Resource Group="resgp" Name="gateway"
-I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed Service Identity
-I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;AGIC-POD-NAME&gt;
+ERROR:<span class="w"> </span>logging<span class="w"> </span>before<span class="w"> </span>flag.Parse:<span class="w"> </span>I0628<span class="w"> </span><span class="m">18</span>:09:49.947221<span class="w">       </span><span class="m">1</span><span class="w"> </span>utils.go:115<span class="o">]</span><span class="w"> </span>Using<span class="w"> </span>verbosity<span class="w"> </span>level<span class="w"> </span><span class="m">3</span><span class="w"> </span>from<span class="w"> </span>environment<span class="w"> </span>variable<span class="w"> </span>APPGW_VERBOSITY_LEVEL
+I0628<span class="w"> </span><span class="m">18</span>:09:49.987776<span class="w">       </span><span class="m">1</span><span class="w"> </span>environment.go:240<span class="o">]</span><span class="w"> </span>KUBERNETES_WATCHNAMESPACE<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>set.<span class="w"> </span>Watching<span class="w"> </span>all<span class="w"> </span>available<span class="w"> </span>namespaces.
+I0628<span class="w"> </span><span class="m">18</span>:09:49.987861<span class="w">       </span><span class="m">1</span><span class="w"> </span>main.go:128<span class="o">]</span><span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>Details:<span class="w"> </span><span class="nv">Subscription</span><span class="o">=</span><span class="s2">&quot;xxxx&quot;</span><span class="w"> </span>Resource<span class="w"> </span><span class="nv">Group</span><span class="o">=</span><span class="s2">&quot;resgp&quot;</span><span class="w"> </span><span class="nv">Name</span><span class="o">=</span><span class="s2">&quot;gateway&quot;</span>
+I0628<span class="w"> </span><span class="m">18</span>:09:49.987873<span class="w">       </span><span class="m">1</span><span class="w"> </span>auth.go:46<span class="o">]</span><span class="w"> </span>Creating<span class="w"> </span>authorizer<span class="w"> </span>from<span class="w"> </span>Azure<span class="w"> </span>Managed<span class="w"> </span>Service<span class="w"> </span>Identity
+I0628<span class="w"> </span><span class="m">18</span>:09:49.987945<span class="w">       </span><span class="m">1</span><span class="w"> </span>httpserver.go:57<span class="o">]</span><span class="w"> </span>Starting<span class="w"> </span>API<span class="w"> </span>Server<span class="w"> </span>on<span class="w"> </span>:8123
+</code></pre></div>
 <p><code>AAD Pod Identity</code> is responsible for assigning the user assigned identity provided by the user for AGIC as <code>AGIC's Identity</code> to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install <code>AAD Pod Identity</code> on your AKS cluster, it will deploy two components:</p>
 <ol>
 <li>Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is <strong>elected leader</strong>. It is responsible to do the assignment of the identity to the AKS nodes.</li>
@@ -251,25 +251,25 @@ I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123</co
 </ol>
 <p>For further reading on how these components work, you can go through <a href="https://github.com/Azure/aad-pod-identity#components">this readme</a>. Here is a <a href="https://github.com/Azure/aad-pod-identity/blob/master/docs/design/concept.png">concept diagram</a> on the project page.</p>
 <p>Now, In order to debug the authorizer issue further, we need to get the logs for <code>mic</code> and <code>nmi</code> pods. These pods usually start with mic and nmi as the prefix. We should first investigate the logs of <code>mic</code> and then <code>nmi</code>.</p>
-<p>```bash
-$ kubectl get pods</p>
-<p>NAME                                   READY   STATUS    RESTARTS   AGE
-mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
-mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
-nmi-pv8ch                              1/1     Running   1          15m
-```</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+
+NAME<span class="w">                                   </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE
+mic-774b9c5d7b-z4z8p<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
+mic-774b9c5d7b-zrdsm<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
+nmi-pv8ch<span class="w">                              </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
+</code></pre></div>
 <h6 id="issue-in-mic-pod">Issue in MIC Pod</h6>
 <p>For <code>mic</code> pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.</p>
 <ol>
 <li>
 <p>MIC pod communicates with Azure Resource Manager(ARM) to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.</p>
-<p><code>bash
-Updating msis on node aks-agentpool-41724381-vmss, add [1], del [1], update[0] failed with error azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version=2019-07-01: StatusCode=0 -- Original Error: adal: Failed to execute the refresh request. Error = 'Post "https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0": dial tcp: i/o timeout'</code></p>
+<div class="highlight"><pre><span></span><code>Updating<span class="w"> </span>msis<span class="w"> </span>on<span class="w"> </span>node<span class="w"> </span>aks-agentpool-41724381-vmss,<span class="w"> </span>add<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>del<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>update<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>failed<span class="w"> </span>with<span class="w"> </span>error<span class="w"> </span>azure.BearerAuthorizer#WithAuthorization:<span class="w"> </span>Failed<span class="w"> </span>to<span class="w"> </span>refresh<span class="w"> </span>the<span class="w"> </span>Token<span class="w"> </span><span class="k">for</span><span class="w"> </span>request<span class="w"> </span>to<span class="w"> </span>https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version<span class="o">=</span><span class="m">2019</span>-07-01:<span class="w"> </span><span class="nv">StatusCode</span><span class="o">=</span><span class="m">0</span><span class="w"> </span>--<span class="w"> </span>Original<span class="w"> </span>Error:<span class="w"> </span>adal:<span class="w"> </span>Failed<span class="w"> </span>to<span class="w"> </span>execute<span class="w"> </span>the<span class="w"> </span>refresh<span class="w"> </span>request.<span class="w"> </span><span class="nv">Error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Post &quot;https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0&quot;: dial tcp: i/o timeout&#39;</span>
+</code></pre></div>
 </li>
 <li>
 <p>You will see the following error if AKS cluster's <code>Service Principal</code> missing <code>Managed Identity Operator</code> access over User Assigned identity. You can follow the role assignment related step in the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#set-up-aad-pod-identity">brownfield document</a>.</p>
-<p><code>bash
-Updating msis on node aks-agentpool-32587779-vmss, add [1], del [0] failed with error compute.VirtualMachineScaleSetsClient#CreateOrUpdate: Failure sending request: StatusCode=403 -- Original Error: Code="LinkedAuthorizationFailed" Message="The client '&lt;objectID&gt;' with object id '&lt;objectID&gt;' has permission to perform action 'Microsoft.Compute/virtualMachineScaleSets/write' on scope '/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss'; however, it does not have permission to perform action 'Microsoft.ManagedIdentity/userAssignedIdentities/assign/action' on the linked scope(s) '/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;' or the linked scope(s) are invalid."</code></p>
+<div class="highlight"><pre><span></span><code>Updating<span class="w"> </span>msis<span class="w"> </span>on<span class="w"> </span>node<span class="w"> </span>aks-agentpool-32587779-vmss,<span class="w"> </span>add<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>del<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>failed<span class="w"> </span>with<span class="w"> </span>error<span class="w"> </span>compute.VirtualMachineScaleSetsClient#CreateOrUpdate:<span class="w"> </span>Failure<span class="w"> </span>sending<span class="w"> </span>request:<span class="w"> </span><span class="nv">StatusCode</span><span class="o">=</span><span class="m">403</span><span class="w"> </span>--<span class="w"> </span>Original<span class="w"> </span>Error:<span class="w"> </span><span class="nv">Code</span><span class="o">=</span><span class="s2">&quot;LinkedAuthorizationFailed&quot;</span><span class="w"> </span><span class="nv">Message</span><span class="o">=</span><span class="s2">&quot;The client &#39;&lt;objectID&gt;&#39; with object id &#39;&lt;objectID&gt;&#39; has permission to perform action &#39;Microsoft.Compute/virtualMachineScaleSets/write&#39; on scope &#39;/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss&#39;; however, it does not have permission to perform action &#39;Microsoft.ManagedIdentity/userAssignedIdentities/assign/action&#39; on the linked scope(s) &#39;/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;&#39; or the linked scope(s) are invalid.&quot;</span>
+</code></pre></div>
 </li>
 </ol>
 <h6 id="issue-in-nmi-pod">Issue in NMI Pod</h6>

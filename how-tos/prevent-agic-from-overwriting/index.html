@@ -228,46 +228,46 @@ defining it in the Kubernetes Ingress, AGIC will delete the <code>prod.contoso.c
 <p>To install AGIC and also serve <code>prod.contoso.com</code> from our VMSS machines, we must constrain AGIC to configuring
 <code>dev.contoso.com</code> only. This is facilitated by instantiating the following
 <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CRD</a>:</p>
-<p><code>bash
-cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: prod-contoso-com
-spec:
-  hostname: prod.contoso.com
-EOF</code></p>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: prod-contoso-com</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: prod.contoso.com</span>
+<span class="s">EOF</span>
+</code></pre></div>
 <p>The command above creates an <code>AzureIngressProhibitedTarget</code> object. This makes AGIC (version 0.8.0 and later) aware of the existence of
 App Gateway config for <code>prod.contoso.com</code> and explicitly instructs it to avoid changing any configuration
 related to that hostname.</p>
 <h2 id="enable-with-new-agic-installation">Enable with new AGIC installation</h2>
 <p>To limit AGIC (version 0.8.0 and later) to a subset of the App Gateway configuration modify the <code>helm-config.yaml</code> template.
 Under the <code>appgw:</code> section, add <code>shared</code> key and set it to to <code>true</code>.</p>
-<p><code>yaml
-appgw:
-    subscriptionId: &lt;subscriptionId&gt;    # existing field
-    resourceGroup: &lt;resourceGroupName&gt;  # existing field
-    name: &lt;applicationGatewayName&gt;      # existing field
-    shared: true                        # &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</code></p>
+<div class="highlight"><pre><span></span><code><span class="nt">appgw</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">subscriptionId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;subscriptionId&gt;</span><span class="w">    </span><span class="c1"># existing field</span>
+<span class="w">    </span><span class="nt">resourceGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;resourceGroupName&gt;</span><span class="w">  </span><span class="c1"># existing field</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;applicationGatewayName&gt;</span><span class="w">      </span><span class="c1"># existing field</span>
+<span class="w">    </span><span class="nt">shared</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                        </span><span class="c1"># &lt;&lt;&lt;&lt;&lt; Add this field to enable shared App Gateway &gt;&gt;&gt;&gt;&gt;</span>
+</code></pre></div>
 <p>Apply the Helm changes:</p>
 <ol>
 <li>
 <p>Ensure the <code>AzureIngressProhibitedTarget</code> CRD is installed with:</p>
-<p><code>bash
-  kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml
+</code></pre></div>
 </li>
 <li>
 <p>Update Helm:</p>
-<p><code>bash
-  helm upgrade \
-      --recreate-pods \
-      -f helm-config.yaml \
-      ingress-azure oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--recreate-pods<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>ingress-azure<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
+</code></pre></div>
 </li>
 </ol>
 <p>As a result your AKS will have a new instance of <code>AzureIngressProhibitedTarget</code> called <code>prohibit-all-targets</code>:</p>
-<p><code>bash
-kubectl get AzureIngressProhibitedTargets prohibit-all-targets -o yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>AzureIngressProhibitedTargets<span class="w"> </span>prohibit-all-targets<span class="w"> </span>-o<span class="w"> </span>yaml
+</code></pre></div>
 <p>The object <code>prohibit-all-targets</code>, as the name implies, prohibits AGIC from changing config for <em>any</em> host and path.
 Helm install with <code>appgw.shared=true</code> will deploy AGIC, but will not make any changes to App Gateway.</p>
 <h2 id="broaden-permissions">Broaden permissions</h2>
@@ -276,23 +276,23 @@ Helm install with <code>appgw.shared=true</code> will deploy AGIC, but will not 
 <ol>
 <li>
 <p>Create a new <code>AzureIngressProhibitedTarget</code> with your specific setup:</p>
-<p><code>bash
-cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: your-custom-prohibitions
-spec:
-  hostname: your.own-hostname.com
-EOF</code></p>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: your-custom-prohibitions</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: your.own-hostname.com</span>
+<span class="s">EOF</span>
+</code></pre></div>
 </li>
 </ol>
 <p><strong>NOTE:</strong> To prohibit AGIC from making changes, in addition to <em>hostname</em>, a list of URL paths can also be configured as part of your prohibited policy, please refer to the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/AzureIngressProhibitedTarget-v1-CRD-v1.yaml">schema</a> for details.</p>
 <ol>
 <li>
 <p>Only after you have created your own custom prohibition, you can delete the default one, which is too broad:</p>
-<p><code>bash
-kubectl delete AzureIngressProhibitedTarget prohibit-all-targets</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>delete<span class="w"> </span>AzureIngressProhibitedTarget<span class="w"> </span>prohibit-all-targets
+</code></pre></div>
 </li>
 </ol>
 <h2 id="enable-for-an-existing-agic-installation">Enable for an existing AGIC installation</h2>
@@ -308,20 +308,20 @@ changes, AGIC will overwrite or delete them.</p>
 <ol>
 <li>
 <p>Create an <code>AzureIngressProhibitedTarget</code> object:</p>
-<p><code>bash
-cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: "appgw.ingress.k8s.io/v1"
-kind: AzureIngressProhibitedTarget
-metadata:
-  name: manually-configured-staging-environment
-spec:
-  hostname: staging.contoso.com
-EOF</code></p>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: &quot;appgw.ingress.k8s.io/v1&quot;</span>
+<span class="s">kind: AzureIngressProhibitedTarget</span>
+<span class="s">metadata:</span>
+<span class="s">  name: manually-configured-staging-environment</span>
+<span class="s">spec:</span>
+<span class="s">  hostname: staging.contoso.com</span>
+<span class="s">EOF</span>
+</code></pre></div>
 </li>
 <li>
 <p>View the newly created object:</p>
-<p><code>bash
-kubectl get AzureIngressProhibitedTargets</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>AzureIngressProhibitedTargets
+</code></pre></div>
 </li>
 <li>
 <p>Modify App Gateway config via portal - add listeners, routing rules, backends etc. The new object we created

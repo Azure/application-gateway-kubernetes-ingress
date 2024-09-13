@@ -211,43 +211,42 @@
 <p>As is the convention in go, unit tests for the <code>.go</code> file you want to test live in the same folder and end with <code>_test.go</code>.
 We use the <code>ginkgo</code>/<code>gomega</code>  testing framework for writing the tests.</p>
 <p>To execute the tests, use</p>
-<p><code>bash
-go test -v -tags unittest ./...</code></p>
+<div class="highlight"><pre><span></span><code>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-tags<span class="w"> </span>unittest<span class="w"> </span>./...
+</code></pre></div>
 <h2 id="e2e-tests">E2E Tests</h2>
 <p>E2E tests are going to test the specific scenarios with a real AKS and App Gateway setup with AGIC installed on it.</p>
 <p>E2E tests are automatically run every day 3 AM in the morning using an <a href="https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_release?_a=releases&amp;view=mine&amp;definitionId=14">E2E pipeline</a>.</p>
 <p>If you have cluster with AGIC installed, you can run e2e tests simply by:</p>
-<p><code>bash
-go test -v -tags e2e ./...</code></p>
+<div class="highlight"><pre><span></span><code>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-tags<span class="w"> </span>e2e<span class="w"> </span>./...
+</code></pre></div>
 <p>You can also execute the <code>run-e2e.sh</code> which is used in the E2E pipeline to invoke the tests. This script will install AGIC with the version provided.</p>
-<p>```bash
-export version="<agic-version>"
-export applicationGatewayId="<resource-id>"
-export identityResourceId="<agic-identity-resource-id>"
-export identityClientId="<agic-identity-client-id>"</p>
-<p>./scripts/e2e/run-e2e.sh
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">version</span><span class="o">=</span><span class="s2">&quot;&lt;agic-version&gt;&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">applicationGatewayId</span><span class="o">=</span><span class="s2">&quot;&lt;resource-id&gt;&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">identityResourceId</span><span class="o">=</span><span class="s2">&quot;&lt;agic-identity-resource-id&gt;&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">identityClientId</span><span class="o">=</span><span class="s2">&quot;&lt;agic-identity-client-id&gt;&quot;</span>
+
+./scripts/e2e/run-e2e.sh
+</code></pre></div>
 <h2 id="testing-tips">Testing Tips</h2>
 <ul>
 <li>
 <p>If you just want to run a specific set of tests, then an easy way is add <code>F</code> (Focus) to the <code>It</code>, <code>Context</code>, <code>Describe</code> directive in the test.
     For example:</p>
-<p>```go
-FContext("Test obtaining a single certificate for an existing host", func() {
-    cb := newConfigBuilderFixture(nil)
-    ingress := tests.NewIngressFixture()
-    hostnameSecretIDMap := cb.newHostToSecretMap(ingress)
-    actualSecret, actualSecretID := cb.getCertificate(ingress, host1, hostnameSecretIDMap)</p>
-<pre><code>It("should have generated the expected secret", func() {
-    Expect(*actualSecret).To(Equal("eHl6"))
-})
+<div class="highlight"><pre><span></span><code><span class="nx">FContext</span><span class="p">(</span><span class="s">&quot;Test obtaining a single certificate for an existing host&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">cb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">newConfigBuilderFixture</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">ingress</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tests</span><span class="p">.</span><span class="nx">NewIngressFixture</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">hostnameSecretIDMap</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">newHostToSecretMap</span><span class="p">(</span><span class="nx">ingress</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">actualSecret</span><span class="p">,</span><span class="w"> </span><span class="nx">actualSecretID</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">cb</span><span class="p">.</span><span class="nx">getCertificate</span><span class="p">(</span><span class="nx">ingress</span><span class="p">,</span><span class="w"> </span><span class="nx">host1</span><span class="p">,</span><span class="w"> </span><span class="nx">hostnameSecretIDMap</span><span class="p">)</span>
 
-It("should have generated the correct secretID struct", func() {
-    Expect(*actualSecretID).To(Equal(expectedSecret))
-})
-</code></pre>
-<p>})
-```</p>
+<span class="w">    </span><span class="nx">It</span><span class="p">(</span><span class="s">&quot;should have generated the expected secret&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Expect</span><span class="p">(</span><span class="o">*</span><span class="nx">actualSecret</span><span class="p">).</span><span class="nx">To</span><span class="p">(</span><span class="nx">Equal</span><span class="p">(</span><span class="s">&quot;eHl6&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="nx">It</span><span class="p">(</span><span class="s">&quot;should have generated the correct secretID struct&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Expect</span><span class="p">(</span><span class="o">*</span><span class="nx">actualSecretID</span><span class="p">).</span><span class="nx">To</span><span class="p">(</span><span class="nx">Equal</span><span class="p">(</span><span class="nx">expectedSecret</span><span class="p">))</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div>
 </li>
 </ul>
               

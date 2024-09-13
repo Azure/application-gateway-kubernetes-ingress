@@ -254,23 +254,23 @@ After this, worker starts draining the rest of the events and calling the <code>
 <h3 id="3-application-gateway-config-builder">3. Application Gateway Config Builder</h3>
 <p>This <a href="../../pkg/appgw/configbuilder.go">component</a> is responsible for using the information in the local kubernetes cache and generating the corresponding Application Gateway configuration as an output.</p>
 <p>Worker invokes the <code>Build</code> on this component which then generates various gateways sub-resources starting from leaf sub-resources like <code>probes</code>, <code>http settings</code> up to the <code>request routing rules</code>.</p>
-<p><code>go
-func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error) {
-...
-  err := c.HealthProbesCollection(cbCtx)
-...
-  err = c.BackendHTTPSettingsCollection(cbCtx)
-...
-  err = c.BackendAddressPools(cbCtx)
-...
-  // generates SSL certificate, frontend ports and http listeners
-  err = c.Listeners(cbCtx)
-...
-  // generates URL path maps and request routing rules
-  err = c.RequestRoutingRules(cbCtx)
-...
-  return &amp;c.appGw, nil
-}</code></p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">appGwConfigBuilder</span><span class="p">)</span><span class="w"> </span><span class="nx">Build</span><span class="p">(</span><span class="nx">cbCtx</span><span class="w"> </span><span class="o">*</span><span class="nx">ConfigBuilderContext</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">n</span><span class="p">.</span><span class="nx">ApplicationGateway</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">HealthProbesCollection</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">BackendHTTPSettingsCollection</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">BackendAddressPools</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="c1">// generates SSL certificate, frontend ports and http listeners</span>
+<span class="w">  </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="c1">// generates URL path maps and request routing rules</span>
+<span class="w">  </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">RequestRoutingRules</span><span class="p">(</span><span class="nx">cbCtx</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">c</span><span class="p">.</span><span class="nx">appGw</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div>
               
             </div>
           </div>

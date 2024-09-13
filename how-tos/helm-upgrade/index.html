@@ -209,22 +209,22 @@ using a Helm repository hosted on MCR.</p>
 <ol>
 <li>
 <p>View the Helm charts currently installed:</p>
-<p><code>bash
-helm list</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>list
+</code></pre></div>
 <p>Sample response:</p>
-<p><code>bash
-NAME            REVISION        UPDATED                         STATUS  CHART                   APP VERSION     NAMESPACE
-odd-billygoat   22              Fri Nov 08 15:56:06 2019        FAILED  ingress-azure-1.0.0     1.0.0           default</code></p>
+<div class="highlight"><pre><span></span><code>NAME<span class="w">            </span>REVISION<span class="w">        </span>UPDATED<span class="w">                         </span>STATUS<span class="w">  </span>CHART<span class="w">                   </span>APP<span class="w"> </span>VERSION<span class="w">     </span>NAMESPACE
+odd-billygoat<span class="w">   </span><span class="m">22</span><span class="w">              </span>Fri<span class="w"> </span>Nov<span class="w"> </span><span class="m">08</span><span class="w"> </span><span class="m">15</span>:56:06<span class="w"> </span><span class="m">2019</span><span class="w">        </span>FAILED<span class="w">  </span>ingress-azure-1.0.0<span class="w">     </span><span class="m">1</span>.0.0<span class="w">           </span>default
+</code></pre></div>
 <p>The Helm chart installation from the sample response above is named <code>odd-billygoat</code>. We will
 use this name for the rest of the commands. Your actual deployment name will most likely differ.</p>
 </li>
 <li>
 <p>Upgrade the Helm deployment to a new version:</p>
-<p><code>bash
-helm upgrade \
-    odd-billygoat \
-    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
-    --version 1.0.0</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>odd-billygoat<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+</code></pre></div>
 </li>
 </ol>
 <h2 id="rollback">Rollback</h2>
@@ -232,19 +232,19 @@ helm upgrade \
 <ol>
 <li>
 <p>Get the last known healthy release number:</p>
-<p><code>bash
-helm history odd-billygoat</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span><span class="nb">history</span><span class="w"> </span>odd-billygoat
+</code></pre></div>
 <p>Sample output:</p>
-<p><code>bash
-REVISION        UPDATED                         STATUS          CHART                   DESCRIPTION
-1               Mon Jun 17 13:49:42 2019        DEPLOYED        ingress-azure-0.6.0     Install complete
-2               Fri Jun 21 15:56:06 2019        FAILED          ingress-azure-xx        xxxx</code></p>
+<div class="highlight"><pre><span></span><code>REVISION<span class="w">        </span>UPDATED<span class="w">                         </span>STATUS<span class="w">          </span>CHART<span class="w">                   </span>DESCRIPTION
+<span class="m">1</span><span class="w">               </span>Mon<span class="w"> </span>Jun<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="m">13</span>:49:42<span class="w"> </span><span class="m">2019</span><span class="w">        </span>DEPLOYED<span class="w">        </span>ingress-azure-0.6.0<span class="w">     </span>Install<span class="w"> </span><span class="nb">complete</span>
+<span class="m">2</span><span class="w">               </span>Fri<span class="w"> </span>Jun<span class="w"> </span><span class="m">21</span><span class="w"> </span><span class="m">15</span>:56:06<span class="w"> </span><span class="m">2019</span><span class="w">        </span>FAILED<span class="w">          </span>ingress-azure-xx<span class="w">        </span>xxxx
+</code></pre></div>
 <p>From the sample output of the <code>helm history</code> command it looks like the last successful deployment of our <code>odd-billygoat</code> was revision <code>1</code></p>
 </li>
 <li>
 <p>Rollback to the last successful revision:</p>
-<p><code>bash
-helm rollback odd-billygoat 1</code></p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>rollback<span class="w"> </span>odd-billygoat<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
 </li>
 </ol>
               

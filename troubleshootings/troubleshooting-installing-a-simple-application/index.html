@@ -219,54 +219,53 @@ The steps below assume:</p>
 </ul>
 <p>To verify that the App Gateway + AKS + AGIC installation is setup correctly, deploy
 the simplest possible app:</p>
-<p>```bash
-cat &lt;&lt;EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: test-agic-app-pod
-  labels:
-    app: test-agic-app
-spec:
-  containers:
-  - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
-    name: aspnetapp-image
-    ports:
-    - containerPort: 80
-      protocol: TCP</p>
-<hr />
-<p>apiVersion: v1
-kind: Service
-metadata:
-  name: test-agic-app-service
-spec:
-  selector:
-    app: test-agic-app
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80</p>
-<hr />
-<p>apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: test-agic-app-ingress
-  annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-spec:
-  rules:
-    - host: test.agic.contoso.com
-      http:
-        paths:
-          - path: /
-            backend:
-              service:
-                name: test-agic-app-service
-                port:
-                  number: 80
-            pathType: Exact
-EOF
-```</p>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Pod</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-pod</span>
+<span class="s">  labels:</span>
+<span class="s">    app: test-agic-app</span>
+<span class="s">spec:</span>
+<span class="s">  containers:</span>
+<span class="s">  - image: &quot;mcr.microsoft.com/dotnet/samples:aspnetapp&quot;</span>
+<span class="s">    name: aspnetapp-image</span>
+<span class="s">    ports:</span>
+<span class="s">    - containerPort: 80</span>
+<span class="s">      protocol: TCP</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-service</span>
+<span class="s">spec:</span>
+<span class="s">  selector:</span>
+<span class="s">    app: test-agic-app</span>
+<span class="s">  ports:</span>
+<span class="s">  - protocol: TCP</span>
+<span class="s">    port: 80</span>
+<span class="s">    targetPort: 80</span>
+<span class="s">---</span>
+<span class="s">apiVersion: networking.k8s.io/v1</span>
+<span class="s">kind: Ingress</span>
+<span class="s">metadata:</span>
+<span class="s">  name: test-agic-app-ingress</span>
+<span class="s">  annotations:</span>
+<span class="s">    kubernetes.io/ingress.class: azure/application-gateway</span>
+<span class="s">spec:</span>
+<span class="s">  rules:</span>
+<span class="s">    - host: test.agic.contoso.com</span>
+<span class="s">      http:</span>
+<span class="s">        paths:</span>
+<span class="s">          - path: /</span>
+<span class="s">            backend:</span>
+<span class="s">              service:</span>
+<span class="s">                name: test-agic-app-service</span>
+<span class="s">                port:</span>
+<span class="s">                  number: 80</span>
+<span class="s">            pathType: Exact</span>
+<span class="s">EOF</span>
+</code></pre></div>
 <p>Copy and paste all lines at once from the
 script above into a <a href="https://shell.azure.com/">Azure Cloud Shell</a>. Please ensure the entire
 command is copied - starting with <code>cat</code> and including the last <code>EOF</code>.</p>
@@ -286,9 +285,10 @@ must be within the VNET of the App Gateway, which is used with AKS.</p>
 with 'ingress-azure'. Get all logs of that pod with <code>kubectl logs &lt;name-of-ingress-controller-pod&gt;</code>
 to verify that we have had a successful deployment. A successful deployment would have added the following
 lines to the log:</p>
-<p><code>I0927 22:34:51.281437       1 process.go:156] Applied App Gateway config in 20.461335266s
+<div class="highlight"><pre><span></span><code>I0927 22:34:51.281437       1 process.go:156] Applied App Gateway config in 20.461335266s
 I0927 22:34:51.281585       1 process.go:165] cache: Updated with latest applied config.
-I0927 22:34:51.282342       1 process.go:171] END AppGateway deployment</code></p>
+I0927 22:34:51.282342       1 process.go:171] END AppGateway deployment
+</code></pre></div>
 <p>Alternatively, from <a href="https://shell.azure.com/">Cloud Shell</a> we can retrieve only the lines
 indicating successful App Gateway configuration with
 <code>kubectl logs &lt;ingress-azure-....&gt; | grep 'Applied App Gateway config in'</code>, where
@@ -326,47 +326,47 @@ establish an HTTP connection to the newly deployed app:</p>
 <p>AKS must have one or more healthy <strong>pods</strong>.
      Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get pods -o wide --show-labels</code>
      If you have a Pod with an <code>aspnetapp</code>, your output may look like this:</p>
-<p>```bash
- $&gt; kubectl get pods -o wide --show-labels</p>
-<p>NAME                   READY   STATUS    RESTARTS   AGE   IP          NODE                       NOMINATED NODE   READINESS GATES   LABELS
- aspnetapp              1/1     Running   0          17h   10.0.0.6    aks-agentpool-35064155-1   <none>           <none>            app=aspnetapp
- ```</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-o<span class="w"> </span>wide<span class="w"> </span>--show-labels
+
+NAME<span class="w">                   </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE<span class="w">   </span>IP<span class="w">          </span>NODE<span class="w">                       </span>NOMINATED<span class="w"> </span>NODE<span class="w">   </span>READINESS<span class="w"> </span>GATES<span class="w">   </span>LABELS
+aspnetapp<span class="w">              </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">0</span><span class="w">          </span>17h<span class="w">   </span><span class="m">10</span>.0.0.6<span class="w">    </span>aks-agentpool-35064155-1<span class="w">   </span>&lt;none&gt;<span class="w">           </span>&lt;none&gt;<span class="w">            </span><span class="nv">app</span><span class="o">=</span>aspnetapp
+</code></pre></div>
 </li>
 <li>
 <p>One or more <strong>services</strong>, referencing the pods above via matching <code>selector</code> labels.
      Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get services -o wide</code></p>
-<p>```bash
- $&gt; kubectl get services -o wide --show-labels</p>
-<p>NAME                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR        LABELS
- aspnetapp           ClusterIP   10.2.63.254    <none>        80/TCP    17h   app=aspnetapp   <none>
- ```</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>services<span class="w"> </span>-o<span class="w"> </span>wide<span class="w"> </span>--show-labels
+
+NAME<span class="w">                </span>TYPE<span class="w">        </span>CLUSTER-IP<span class="w">     </span>EXTERNAL-IP<span class="w">   </span>PORT<span class="o">(</span>S<span class="o">)</span><span class="w">   </span>AGE<span class="w">   </span>SELECTOR<span class="w">        </span>LABELS
+aspnetapp<span class="w">           </span>ClusterIP<span class="w">   </span><span class="m">10</span>.2.63.254<span class="w">    </span>&lt;none&gt;<span class="w">        </span><span class="m">80</span>/TCP<span class="w">    </span>17h<span class="w">   </span><span class="nv">app</span><span class="o">=</span>aspnetapp<span class="w">   </span>&lt;none&gt;
+</code></pre></div>
 </li>
 <li>
 <p><strong>Ingress</strong>, annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code>, referencing the service above
      Verify this from <a href="https://shell.azure.com/">Cloud Shell</a> with <code>kubectl get ingress -o wide --show-labels</code></p>
-<p>```bash
- $&gt; kubectl get ingress -o wide --show-labels</p>
-<p>NAME        HOSTS   ADDRESS   PORTS   AGE   LABELS
- aspnetapp   *                 80      17h   <none>
- ```</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-o<span class="w"> </span>wide<span class="w"> </span>--show-labels
+
+NAME<span class="w">        </span>HOSTS<span class="w">   </span>ADDRESS<span class="w">   </span>PORTS<span class="w">   </span>AGE<span class="w">   </span>LABELS
+aspnetapp<span class="w">   </span>*<span class="w">                 </span><span class="m">80</span><span class="w">      </span>17h<span class="w">   </span>&lt;none&gt;
+</code></pre></div>
 </li>
 <li>
 <p>View annotations of the ingress above: <code>kubectl get ingress aspnetapp -o yaml</code> (substitute <code>aspnetapp</code> with the name of your ingress)</p>
-<p>```bash
- $&gt; kubectl get ingress aspnetapp -o yaml</p>
-<p>apiVersion: networking.k8s.io/v1
- kind: Ingress
- metadata:
-   annotations:
-     kubernetes.io/ingress.class: azure/application-gateway
-   name: aspnetapp
- spec:
-   defaultBackend:
-     service:
-      name: aspnetapp
-      port:
-        number: 80
- ```</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>aspnetapp<span class="w"> </span>-o<span class="w"> </span>yaml
+
+apiVersion:<span class="w"> </span>networking.k8s.io/v1
+kind:<span class="w"> </span>Ingress
+metadata:
+<span class="w">  </span>annotations:
+<span class="w">    </span>kubernetes.io/ingress.class:<span class="w"> </span>azure/application-gateway
+<span class="w">  </span>name:<span class="w"> </span>aspnetapp
+spec:
+<span class="w">  </span>defaultBackend:
+<span class="w">    </span>service:
+<span class="w">     </span>name:<span class="w"> </span>aspnetapp
+<span class="w">     </span>port:
+<span class="w">       </span>number:<span class="w"> </span><span class="m">80</span>
+</code></pre></div>
 <p>The ingress resource must be annotated with <code>kubernetes.io/ingress.class: azure/application-gateway</code>.</p>
 </li>
 </ol>
@@ -377,19 +377,18 @@ establish an HTTP connection to the newly deployed app:</p>
 running in? Is AGIC watching that namespace? Refer to the
 <a href="../../features/multiple-namespaces/#enable-multiple-namespace-support">Multiple Namespace Support</a>
 documentation on how to properly configure observed namespaces.</p>
-<p>```bash</p>
-<h1 id="what-namespaces-exist-on-your-cluster">What namespaces exist on your cluster</h1>
-<p>kubectl get namespaces</p>
-<h1 id="what-pods-are-currently-running">What pods are currently running</h1>
-<p>kubectl get pods --all-namespaces -o wide
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># What namespaces exist on your cluster</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>namespaces
+
+<span class="c1"># What pods are currently running</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>--all-namespaces<span class="w"> </span>-o<span class="w"> </span>wide
+</code></pre></div>
 </li>
 <li>
 <p>The AGIC pod should be in the <code>default</code> namespace (see column <code>NAMESPACE</code>). A healthy pod would have <code>Running</code> in the <code>STATUS</code> column. There should be at least one AGIC pod.</p>
-<p>```bash</p>
-<h1 id="get-a-list-of-the-application-gateway-ingress-controller-pods">Get a list of the Application Gateway Ingress Controller pods</h1>
-<p>kubectl get pods --all-namespaces --selector app=ingress-azure
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get a list of the Application Gateway Ingress Controller pods</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>--all-namespaces<span class="w"> </span>--selector<span class="w"> </span><span class="nv">app</span><span class="o">=</span>ingress-azure
+</code></pre></div>
 </li>
 <li>
 <p>If the AGIC pod is not healthy (<code>STATUS</code> column from the command above is not <code>Running</code>):</p>
@@ -403,19 +402,18 @@ documentation on how to properly configure observed namespaces.</p>
 <p>Do you have a Kubernetes
 <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a> and
 <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> resources?</p>
-<p>```bash</p>
-<h1 id="get-all-services-across-all-namespaces">Get all services across all namespaces</h1>
-<p>kubectl get service --all-namespaces -o wide</p>
-<h1 id="get-all-ingress-resources-across-all-namespaces">Get all ingress resources across all namespaces</h1>
-<p>kubectl get ingress --all-namespaces -o wide
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get all services across all namespaces</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>service<span class="w"> </span>--all-namespaces<span class="w"> </span>-o<span class="w"> </span>wide
+
+<span class="c1"># Get all ingress resources across all namespaces</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>--all-namespaces<span class="w"> </span>-o<span class="w"> </span>wide
+</code></pre></div>
 </li>
 <li>
 <p>Is your <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> annotated with: <code>kubernetes.io/ingress.class: azure/application-gateway</code>? AGIC will only watch for Kubernetes Ingress resources that have this annotation.</p>
-<p>```bash</p>
-<h1 id="get-the-yaml-definition-of-a-particular-ingress-resource">Get the YAML definition of a particular ingress resource</h1>
-<p>kubectl get ingress --namespace  <which-namespace?>  <which-ingress?>  -o yaml
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get the YAML definition of a particular ingress resource</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>--namespace<span class="w">  </span>&lt;which-namespace?&gt;<span class="w">  </span>&lt;which-ingress?&gt;<span class="w">  </span>-o<span class="w"> </span>yaml
+</code></pre></div>
 </li>
 <li>
 <p>AGIC emits Kubernetes events for certain critical errors. You can view these:</p>

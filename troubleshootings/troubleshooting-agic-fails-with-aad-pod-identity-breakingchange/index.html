@@ -145,6 +145,8 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#upgrade-agic-to-120">Upgrade AGIC to 1.2.0</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-the-right-version-of-aad-pod-identity">Install the right version of AAD Pod Identity</a>
+    </li>
         </ul>
     </li>
     </ul>
@@ -218,13 +220,13 @@
 <h3 id="overview">Overview</h3>
 <p>If you're using AGIC with version &lt; v1.2.0-rc2 and AAD Pod Identity with version &gt;= v1.6.0, an error as shown below will be raised due to a breaking change. AAD Pod Identity introduced a <a href="https://github.com/Azure/aad-pod-identity/tree/v1.6.0#v160-breaking-change">breaking change</a> after v1.5.5 due to CRD fields being case sensitive. The error is caused by AAD Pod Identity fields not matching what AGIC uses; more details of the mismatch under <a href="#analysis-of-the-issue">analysis of the issue</a>. AAD Pod Identity v1.5 and lower have known issues with AKS' most recent base images, and therefore AKS has asked customers to upgrade to AAD Pod Identity v1.6 or higher.</p>
 <p><em><strong>AGIC Pod Logs</strong></em></p>
-<p><code>bash
-E0428 16:57:55.669130       1 client.go:132] Possible reasons: AKS Service Principal requires 'Managed Identity Operator' access on Controller Identity; 'identityResourceID' and/or 'identityClientID' are incorrect in the Helm config; AGIC Identity requires 'Contributor' access on Application Gateway and 'Reader' access on Application Gateway's Resource Group;
-E0428 16:57:55.669160       1 client.go:145] Unexpected ARM status code on GET existing App Gateway config: 403
-E0428 16:57:55.669167       1 client.go:148] Failed fetching config for App Gateway instance. Will retry in 10s. Error: azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/4c4aee1a-cfd4-4e7a-abe3-*******/resourceGroups/RG-NAME-DEV/providers/Microsoft.Network/applicationGateways/AG-NAME-DEV?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = '403'. Response body: getting assigned identities for pod default/agile-opossum-ingress-azure-579cbb6b89-sldr5 in CREATED state failed after 16 attempts, retry duration [5]s. Error: &lt;nil&gt;</code></p>
+<div class="highlight"><pre><span></span><code>E0428<span class="w"> </span><span class="m">16</span>:57:55.669130<span class="w">       </span><span class="m">1</span><span class="w"> </span>client.go:132<span class="o">]</span><span class="w"> </span>Possible<span class="w"> </span>reasons:<span class="w"> </span>AKS<span class="w"> </span>Service<span class="w"> </span>Principal<span class="w"> </span>requires<span class="w"> </span><span class="s1">&#39;Managed Identity Operator&#39;</span><span class="w"> </span>access<span class="w"> </span>on<span class="w"> </span>Controller<span class="w"> </span>Identity<span class="p">;</span><span class="w"> </span><span class="s1">&#39;identityResourceID&#39;</span><span class="w"> </span>and/or<span class="w"> </span><span class="s1">&#39;identityClientID&#39;</span><span class="w"> </span>are<span class="w"> </span>incorrect<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>Helm<span class="w"> </span>config<span class="p">;</span><span class="w"> </span>AGIC<span class="w"> </span>Identity<span class="w"> </span>requires<span class="w"> </span><span class="s1">&#39;Contributor&#39;</span><span class="w"> </span>access<span class="w"> </span>on<span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>and<span class="w"> </span><span class="s1">&#39;Reader&#39;</span><span class="w"> </span>access<span class="w"> </span>on<span class="w"> </span>Application<span class="w"> </span>Gateway<span class="s1">&#39;s Resource Group;</span>
+<span class="s1">E0428 16:57:55.669160       1 client.go:145] Unexpected ARM status code on GET existing App Gateway config: 403</span>
+<span class="s1">E0428 16:57:55.669167       1 client.go:148] Failed fetching config for App Gateway instance. Will retry in 10s. Error: azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/4c4aee1a-cfd4-4e7a-abe3-*******/resourceGroups/RG-NAME-DEV/providers/Microsoft.Network/applicationGateways/AG-NAME-DEV?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = &#39;</span><span class="m">403</span><span class="err">&#39;</span>.<span class="w"> </span>Response<span class="w"> </span>body:<span class="w"> </span>getting<span class="w"> </span>assigned<span class="w"> </span>identities<span class="w"> </span><span class="k">for</span><span class="w"> </span>pod<span class="w"> </span>default/agile-opossum-ingress-azure-579cbb6b89-sldr5<span class="w"> </span><span class="k">in</span><span class="w"> </span>CREATED<span class="w"> </span>state<span class="w"> </span>failed<span class="w"> </span>after<span class="w"> </span><span class="m">16</span><span class="w"> </span>attempts,<span class="w"> </span>retry<span class="w"> </span>duration<span class="w"> </span><span class="o">[</span><span class="m">5</span><span class="o">]</span>s.<span class="w"> </span>Error:<span class="w"> </span>&lt;nil&gt;
+</code></pre></div>
 <p><em><strong>MIC Pod Logs</strong></em></p>
-<p><code>bash
-E0427 00:13:26.222815       1 mic.go:899] Ignoring azure identity default/agic-azid-ingress-azure, error: Invalid resource id: "", must match /subscriptions/&lt;subid&gt;/resourcegroups/&lt;resourcegroup&gt;/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;name&gt;</code></p>
+<div class="highlight"><pre><span></span><code>E0427<span class="w"> </span><span class="m">00</span>:13:26.222815<span class="w">       </span><span class="m">1</span><span class="w"> </span>mic.go:899<span class="o">]</span><span class="w"> </span>Ignoring<span class="w"> </span>azure<span class="w"> </span>identity<span class="w"> </span>default/agic-azid-ingress-azure,<span class="w"> </span>error:<span class="w"> </span>Invalid<span class="w"> </span>resource<span class="w"> </span>id:<span class="w"> </span><span class="s2">&quot;&quot;</span>,<span class="w"> </span>must<span class="w"> </span>match<span class="w"> </span>/subscriptions/&lt;subid&gt;/resourcegroups/&lt;resourcegroup&gt;/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;name&gt;
+</code></pre></div>
 <h3 id="analysis-of-the-issue">Analysis of the issue</h3>
 <h4 id="aad-breaking-change-details">AAD breaking change details</h4>
 <p>For <code>AzureIdentity</code> and <code>AzureIdentityBinding</code> created using AAD Pod Identity v1.6.0+, the following fields are changed</p>
@@ -281,19 +283,21 @@ E0427 00:13:26.222815       1 mic.go:899] Ignoring azure identity default/agic-a
 <p>It's recommended you upgrade your AGIC to release 1.2.0 and then apply AAD Pod Identity version &gt;= 1.6.0</p>
 <h4 id="upgrade-agic-to-120">Upgrade AGIC to 1.2.0</h4>
 <p>AGIC version <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/releases/tag/1.2.0">v1.2.0</a> will be required.</p>
-<p>```bash</p>
-<h1 id="httpsgithubcomazureapplication-gateway-kubernetes-ingressblobmasterdocshow-toshelm-upgrademd"><a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md">https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md</a></h1>
-<h1 id="-reuse-values-when-upgrading-reuse-the-last-releases-values-and-merge-in-any-overrides-from-the-command-line-via-set-and-f-if-reset-values-is-specified-this-is-ignored">--reuse-values   when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f. If '--reset-values' is specified, this is ignored</h1>
-<p>helm repo update</p>
-<h1 id="check-the-latest-relese-version-of-agic">check the latest relese version of AGIC</h1>
-<p>helm search repo -l application-gateway-kubernetes-ingress</p>
-<h1 id="install-release-120">install release 1.2.0</h1>
-<p>helm upgrade \
-  <release-name> \
-  oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
-  --version 1.2.0
-  --reuse-values
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/how-tos/helm-upgrade.md</span>
+<span class="c1"># --reuse-values   when upgrading, reuse the last release&#39;s values and merge in any overrides from the command line via --set and -f. If &#39;--reset-values&#39; is specified, this is ignored</span>
+
+helm<span class="w"> </span>repo<span class="w"> </span>update
+
+<span class="c1"># check the latest relese version of AGIC</span>
+helm<span class="w"> </span>search<span class="w"> </span>repo<span class="w"> </span>-l<span class="w"> </span>application-gateway-kubernetes-ingress
+
+<span class="c1"># install release 1.2.0</span>
+helm<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;release-name&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
+<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.2.0
+<span class="w">  </span>--reuse-values
+</code></pre></div>
 <p>***Note:**_ If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.2.0.</p>
 <h4 id="install-the-right-version-of-aad-pod-identity">Install the right version of AAD Pod Identity</h4>
 <p>AKS recommends upgrading the Azure Active Directory Pod Identity version on your Azure Kubernetes Service Clusters to v1.6. AAD pod identity v1.5 or lower have a known issue with AKS' most recent base images.</p>
@@ -301,13 +305,13 @@ E0427 00:13:26.222815       1 mic.go:899] Ignoring azure identity default/agic-a
 <ul>
 <li><em>RBAC enabled</em> AKS cluster</li>
 </ul>
-<p><code>bash
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment-rbac.yaml
+</code></pre></div>
 <ul>
 <li><em>RBAC disabled</em> AKS cluster</li>
 </ul>
-<p><code>bash
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml</code></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.6.0/deploy/infra/deployment.yaml
+</code></pre></div>
               
             </div>
           </div>
