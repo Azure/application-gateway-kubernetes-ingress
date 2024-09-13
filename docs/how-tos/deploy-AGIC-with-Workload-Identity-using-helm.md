@@ -83,6 +83,6 @@ az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster
 ```bash
 helm install ingress-azure \
   -f helm-config.yaml \
-  application-gateway-kubernetes-ingress/ingress-azure \
+  oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
   --version 1.7.1
 ```

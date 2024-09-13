@@ -68,7 +68,7 @@ helm search repo -l application-gateway-kubernetes-ingress
 # install release 1.2.0
 helm upgrade \
   <release-name> \
-  application-gateway-kubernetes-ingress/ingress-azure
+  oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
   --version 1.2.0
   --reuse-values
 ```

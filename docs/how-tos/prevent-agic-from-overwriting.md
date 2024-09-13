@@ -71,7 +71,7 @@ Apply the Helm changes:
       helm upgrade \
           --recreate-pods \
           -f helm-config.yaml \
-          ingress-azure application-gateway-kubernetes-ingress/ingress-azure
+          ingress-azure oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
       ```
 
 As a result your AKS will have a new instance of `AzureIngressProhibitedTarget` called `prohibit-all-targets`:

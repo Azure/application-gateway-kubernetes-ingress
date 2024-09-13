@@ -1,6 +1,7 @@
 ## Prerequisites
 
 > [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+> AGIC charts have been moveed to MCR. Use oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure as the target repository.
 
 You need to complete the following tasks prior to deploying AGIC on your cluster:
 
@@ -181,7 +182,7 @@ AGIC can be installed by running the following commands:
 
   # on aks cluster with only linux node pools
   helm install ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=$APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
@@ -190,7 +191,7 @@ AGIC can be installed by running the following commands:
   
   # on aks cluster with windows node pools
   helm install ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=$APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
@@ -208,7 +209,7 @@ AGIC can be upgraded by running the following commands:
 
   # on aks cluster with only linux node pools
   helm upgrade ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=$APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
@@ -217,7 +218,7 @@ AGIC can be upgraded by running the following commands:
   
   # on aks cluster with windows node pools
   helm upgrade ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=$APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \

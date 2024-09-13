@@ -140,7 +140,7 @@ staging/ingress-azure   10256           10256           Use Azure Application Ga
 # install/upgrade
 helm install ingress-azure \
       -f helm-config.yaml \
-      application-gateway-kubernetes-ingress/ingress-azure \
+      oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
       --version 10486
 ```
 

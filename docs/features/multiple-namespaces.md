@@ -32,7 +32,7 @@ To enable multiple namespace support:
    - delete the `watchNamespace` key entirely from [helm-config.yaml](../examples/sample-helm-config.yaml) - AGIC will observe all namespaces
    - set `watchNamespace` to an empty string - AGIC will observe all namespaces
    - add multiple namespaces separated by a comma (`watchNamespace: default,secondNamespace`) - AGIC will observe these namespaces exclusively
-2. apply  Helm template changes with: `helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure`
+2. apply  Helm template changes with: `helm install -f helm-config.yaml oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure`
 
 Once deployed with the ability to observe multiple namespaces, AGIC will:
 
