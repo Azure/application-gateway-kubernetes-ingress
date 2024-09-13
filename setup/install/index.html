@@ -197,7 +197,8 @@
               
                 <h2 id="prerequisites">Prerequisites</h2>
 <blockquote>
-<p><a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
+<p><a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+AGIC charts have been moveed to MCR. Use oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure as the target repository.</p>
 </blockquote>
 <p>You need to complete the following tasks prior to deploying AGIC on your cluster:</p>
 <ol>
@@ -374,7 +375,7 @@ helm repo update</code></p>
   az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME</p>
 <p># on aks cluster with only linux node pools
   helm install ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
@@ -384,7 +385,7 @@ helm repo update</code></p>
     --version 1.7.3</p>
 <p># on aks cluster with windows node pools
   helm install ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
@@ -400,7 +401,7 @@ helm repo update</code></p>
   az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME</p>
 <p># on aks cluster with only linux node pools
   helm upgrade ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
@@ -410,7 +411,7 @@ helm repo update</code></p>
     --version 1.7.3</p>
 <p># on aks cluster with windows node pools
   helm upgrade ingress-azure \
-    application-gateway-kubernetes-ingress/ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
     --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \

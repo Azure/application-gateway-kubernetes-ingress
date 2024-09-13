@@ -209,7 +209,7 @@
 <p>Please use <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md">Greenfield Deployment</a> to install nonexistents.</p>
 <p>To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3</p>
 <p><code>bash
-helm install application-gateway-kubernetes-ingress/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></p>
+helm install oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name</code></p>
 <h2 id="create-a-certificate-and-configure-the-certificate-to-appgw">Create a certificate and configure the certificate to AppGw</h2>
 <p>The certificate below should only be used for testing purpose.</p>
 <p>```bash

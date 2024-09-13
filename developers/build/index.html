@@ -319,7 +319,7 @@ staging/ingress-azure   10256           10256           Use Azure Application Ga
 <h1 id="installupgrade">install/upgrade</h1>
 <p>helm install ingress-azure \
       -f helm-config.yaml \
-      application-gateway-kubernetes-ingress/ingress-azure \
+      oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
       --version 10486
 ```</p>
 <p>You can also find the <code>version</code> by opening your build in the <code>Merge Builds</code> pipeline and looking for the <code>buildid</code>. Use this version when installing on the cluster after the <code>Dev Release</code> completes.

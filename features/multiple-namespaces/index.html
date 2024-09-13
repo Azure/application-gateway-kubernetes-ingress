@@ -232,7 +232,7 @@ namespaces in the Helm configuration (see section below).</p>
 <li>delete the <code>watchNamespace</code> key entirely from <a href="../../examples/sample-helm-config.yaml">helm-config.yaml</a> - AGIC will observe all namespaces</li>
 <li>set <code>watchNamespace</code> to an empty string - AGIC will observe all namespaces</li>
 <li>add multiple namespaces separated by a comma (<code>watchNamespace: default,secondNamespace</code>) - AGIC will observe these namespaces exclusively</li>
-<li>apply  Helm template changes with: <code>helm install -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure</code></li>
+<li>apply  Helm template changes with: <code>helm install -f helm-config.yaml oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure</code></li>
 </ol>
 <p>Once deployed with the ability to observe multiple namespaces, AGIC will:</p>
 <ul>
