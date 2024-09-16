@@ -316,22 +316,11 @@ I0723 18:37:31.999466    6766 environment.go:240] KUBERNETES_WATCHNAMESPACE is n
 <p>To test your changes on a cluster, you can use the <a href="https://dev.azure.com/azure/application-gateway-kubernetes-ingress/_release?_a=releases&amp;view=mine&amp;definitionId=12"><code>Dev Release</code></a> pipeline. Just select the build version from the drop-down list which matches the build in your PR or against your commit in the main branch.</p>
 <p><img alt="dev release pipeline" src="../../images/dev-release.png" /></p>
 <p><code>Dev Release</code> generates a new docker image and helm package for your changes. Once the pipeline completes, use helm to install the release on your AKS cluster.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># add the staging helm repository</span>
-helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>staging<span class="w"> </span>https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
-helm<span class="w"> </span>repo<span class="w"> </span>update
-
-<span class="c1"># list the available versions and pick the latest version</span>
-helm<span class="w"> </span>search<span class="w"> </span>repo<span class="w"> </span>staging<span class="w"> </span>-l<span class="w"> </span>--devel
-NAME<span class="w">                    </span>CHART<span class="w"> </span>VERSION<span class="w">   </span>APP<span class="w"> </span>VERSION<span class="w">     </span>DESCRIPTION<span class="w">                                       </span>
-staging/ingress-azure<span class="w">   </span><span class="m">10486</span><span class="w">           </span><span class="m">10486</span><span class="w">           </span>Use<span class="w"> </span>Azure<span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>as<span class="w"> </span>the<span class="w"> </span>ingress<span class="w"> </span>fo...
-staging/ingress-azure<span class="w">   </span><span class="m">10465</span><span class="w">           </span><span class="m">10465</span><span class="w">           </span>Use<span class="w"> </span>Azure<span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>as<span class="w"> </span>the<span class="w"> </span>ingress<span class="w"> </span>fo...
-staging/ingress-azure<span class="w">   </span><span class="m">10256</span><span class="w">           </span><span class="m">10256</span><span class="w">           </span>Use<span class="w"> </span>Azure<span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>as<span class="w"> </span>the<span class="w"> </span>ingress<span class="w"> </span>fo...
-
-<span class="c1"># install/upgrade</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># install/upgrade</span>
 helm<span class="w"> </span>install<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
 <span class="w">      </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span><span class="se">\</span>
 <span class="w">      </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">      </span>--version<span class="w"> </span><span class="m">10486</span>
+<span class="w">      </span>--version<span class="w"> </span><span class="m">1</span>.7.5
 </code></pre></div>
 <p>You can also find the <code>version</code> by opening your build in the <code>Merge Builds</code> pipeline and looking for the <code>buildid</code>. Use this version when installing on the cluster after the <code>Dev Release</code> completes.
 <img alt="buildid" src="../../images/buildid.png" /></p>

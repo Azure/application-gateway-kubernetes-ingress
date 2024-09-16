@@ -210,11 +210,11 @@ Acceptable values are between 30 and 300.</p>
 <h3 id="configure-from-helm-command-line">Configure from helm command line</h3>
 <p>Configure from helm install command(first time install) and helm upgrade command, helm version is v3</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># helm fresh install</span>
-helm<span class="w"> </span>intall<span class="w"> </span>&lt;releaseName&gt;<span class="w"> </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.2.0-rc3<span class="w"> </span>--set<span class="w"> </span><span class="nv">reconcilePeriodSeconds</span><span class="o">=</span><span class="m">30</span><span class="w"> </span>
+helm<span class="w"> </span>intall<span class="w"> </span>&lt;releaseName&gt;<span class="w"> </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.7.5<span class="w"> </span>--set<span class="w"> </span><span class="nv">reconcilePeriodSeconds</span><span class="o">=</span><span class="m">30</span><span class="w"> </span>
 
 <span class="c1"># help upgrade</span>
 <span class="c1"># --reuse-values, when upgrading, reuse the last release&#39;s values and merge in any overrides from the command line via --set and -f.</span>
-helm<span class="w"> </span>upgrade<span class="w"> </span>&lt;releaseName&gt;<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span>--reuse-values<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.2.0-rc3<span class="w"> </span>--set<span class="w"> </span><span class="nv">reconcilePeriodSeconds</span><span class="o">=</span><span class="m">30</span>
+helm<span class="w"> </span>upgrade<span class="w"> </span>&lt;releaseName&gt;<span class="w"> </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span>--reuse-values<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.7.5<span class="w"> </span>--set<span class="w"> </span><span class="nv">reconcilePeriodSeconds</span><span class="o">=</span><span class="m">30</span>
 </code></pre></div>
               
             </div>
