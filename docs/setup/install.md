@@ -3,6 +3,7 @@
 > [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 > AGIC charts have been moved to MCR. Use oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure as the target repository.
+  AGIC versions >= 1.5.0 excluding release candidates are now available.
 
 You need to complete the following tasks prior to deploying AGIC on your cluster:
 
