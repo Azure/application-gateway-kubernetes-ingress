@@ -14,7 +14,7 @@ Please use [Greenfield Deployment](https://github.com/Azure/application-gateway-
 To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
 
 ```bash
-helm install oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure -f helm-config.yaml --version 1.2.0-rc3 --generate-name
+helm install oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure -f helm-config.yaml --version 1.7.5 --generate-name
 ```
 
 ## Create a certificate and configure the certificate to AppGw

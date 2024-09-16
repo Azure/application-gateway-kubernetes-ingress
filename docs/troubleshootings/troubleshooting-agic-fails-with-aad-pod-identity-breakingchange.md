@@ -50,9 +50,9 @@ Updated AGIC Helm templates to use the right fields regarding AAD Pod Identity, 
 
 ### Resolving the issue
 
-It's recommended you upgrade your AGIC to release 1.2.0 and then apply AAD Pod Identity version >= 1.6.0
+It's recommended you upgrade your AGIC to release >= 1.2.0 and then apply AAD Pod Identity version >= 1.6.0
 
-#### Upgrade AGIC to 1.2.0
+#### Upgrade AGIC to >= 1.2.0
 
 AGIC version [v1.2.0](https://github.com/Azure/application-gateway-kubernetes-ingress/releases/tag/1.2.0) will be required.
 
@@ -65,15 +65,15 @@ helm repo update
 # check the latest relese version of AGIC
 helm search repo -l application-gateway-kubernetes-ingress
 
-# install release 1.2.0
+# install release 1.7.5
 helm upgrade \
   <release-name> \
   oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
-  --version 1.2.0
+  --version 1.7.5
   --reuse-values
 ```
 
-***Note:**_ If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.2.0.
+***Note:**_ If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.7.5.
 
 #### Install the right version of AAD Pod Identity
 
