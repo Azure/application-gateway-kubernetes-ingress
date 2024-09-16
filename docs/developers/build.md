@@ -126,22 +126,11 @@ To test your changes on a cluster, you can use the [`Dev Release`](https://dev.a
 `Dev Release` generates a new docker image and helm package for your changes. Once the pipeline completes, use helm to install the release on your AKS cluster.
 
 ```bash
-# add the staging helm repository
-helm repo add staging https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging/
-helm repo update
-
-# list the available versions and pick the latest version
-helm search repo staging -l --devel
-NAME                    CHART VERSION   APP VERSION     DESCRIPTION                                       
-staging/ingress-azure   10486           10486           Use Azure Application Gateway as the ingress fo...
-staging/ingress-azure   10465           10465           Use Azure Application Gateway as the ingress fo...
-staging/ingress-azure   10256           10256           Use Azure Application Gateway as the ingress fo...
-
 # install/upgrade
 helm install ingress-azure \
       -f helm-config.yaml \
-      application-gateway-kubernetes-ingress/ingress-azure \
-      --version 10486
+      oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+      --version 1.7.5
 ```
 
 You can also find the `version` by opening your build in the `Merge Builds` pipeline and looking for the `buildid`. Use this version when installing on the cluster after the `Dev Release` completes.

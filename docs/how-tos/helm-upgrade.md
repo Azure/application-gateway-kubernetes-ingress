@@ -3,48 +3,9 @@
 > **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
 
 The Azure Application Gateway Ingress Controller for Kubernetes (AGIC) can be upgraded
-using a Helm repository hosted on Azure Storage.
-
-Before we begin the upgrade procedure, ensure that you have added the required repository:
-
-- View your currently added Helm repositories with:
-
-    ```bash
-    helm repo list
-    ```
-
-- Add the AGIC repo with:
-
-    ```bash
-    helm repo add \
-        application-gateway-kubernetes-ingress \
-        https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
-    ```
+using a Helm repository hosted on MCR.
 
 ## Upgrade
-
-1. Refresh the AGIC Helm repository to get the latest release:
-
-    ```bash
-    helm repo update
-    ```
-
-1. View available versions of the `application-gateway-kubernetes-ingress` chart:
-
-    ``` bash
-    helm search repo -l application-gateway-kubernetes-ingress
-    ```
-
-    Sample response:
-
-    ```bash
-    NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
-    application-gateway-kubernetes-ingress/ingress-azure    1.0.0           1.0.0           Use Azure Application Gateway as the ingress for an Azure...
-    application-gateway-kubernetes-ingress/ingress-azure    0.7.0-rc1       0.7.0-rc1       Use Azure Application Gateway as the ingress for an Azure...
-    application-gateway-kubernetes-ingress/ingress-azure    0.6.0           0.6.0           Use Azure Application Gateway as the ingress for an Azure...
-    ```
-
-    Latest available version from the list above is: `0.7.0-rc1`
 
 1. View the Helm charts currently installed:
 
@@ -67,8 +28,8 @@ Before we begin the upgrade procedure, ensure that you have added the required r
     ```bash
     helm upgrade \
         odd-billygoat \
-        application-gateway-kubernetes-ingress/ingress-azure \
-        --version 1.0.0
+        oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+        --version 1.7.5
     ```
 
 ## Rollback

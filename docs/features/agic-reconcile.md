@@ -23,9 +23,9 @@ Configure from helm install command(first time install) and helm upgrade command
 
 ```bash
 # helm fresh install
-helm intall <releaseName> -f helm-config.yaml application-gateway-kubernetes-ingress/ingress-azure --version 1.2.0-rc3 --set reconcilePeriodSeconds=30 
+helm intall <releaseName> -f helm-config.yaml oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure --version 1.7.5 --set reconcilePeriodSeconds=30 
 
 # help upgrade
 # --reuse-values, when upgrading, reuse the last release's values and merge in any overrides from the command line via --set and -f.
-helm upgrade <releaseName> application-gateway-kubernetes-ingress/ingress-azure --reuse-values --version 1.2.0-rc3 --set reconcilePeriodSeconds=30
+helm upgrade <releaseName> oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure --reuse-values --version 1.7.5 --set reconcilePeriodSeconds=30
 ```

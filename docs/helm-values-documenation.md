@@ -6,7 +6,7 @@
 
 | Field | Default | Description |
 | - | - | - |
-| `verbosityLevel`| 3 | Sets the verbosity level of the AGIC logging infrastructure. See [Logging Levels](troubleshooting.md#logging-levels) for possible values. |
+| `verbosityLevel`| 3 | Sets the verbosity level of the AGIC logging infrastructure. See [Logging Levels](logging-levels.md) for possible values. |
 | `reconcilePeriodSeconds` | | Enable periodic reconciliation to checks if the latest gateway configuration is different from what it cached. Range: 30 - 300 seconds. Disabled by default. |
 | `appgw.applicationGatewayID` | | Resource Id of the Application Gateway. Example: `applicationgatewayd0f0` |
 | `appgw.subscriptionId` | Default is agent node pool's subscriptionId derived from CloudProvider config  | The Azure Subscription ID in which App Gateway resides. Example: `a123b234-a3b4-557d-b2df-a0bc12de1234` |
@@ -25,7 +25,7 @@
 | `kubernetes.affinity` | `{}` | Scheduling affinity |
 | `kubernetes.volumes.extraVolumes` | `{}` | Specify additional volumes for the AGIC pod. This can be useful when [running on a `readOnlyRootFilesystem`](#run-with-read-only-root-filesystem), as AGIC requires a writeable `/tmp` directory. |
 | `kubernetes.volumes.extraVolumeMounts` | `{}` | Specify additional volume mounts for the AGIC pod. This can be useful when [running on a `readOnlyRootFilesystem`](#run-with-read-only-root-filesystem), as AGIC requires a writeable `/tmp` directory. |
-| `kubernetes.ingressClass` | `azure/application-gateway` | Specify a [custom ingress class](features\custom-ingress-class.md) which will be used to match `kubernetes.io/ingress.class` in ingress manifest |
+| `kubernetes.ingressClass` | `azure/application-gateway` | Specify a [custom ingress class](features/custom-ingress-class.md) which will be used to match `kubernetes.io/ingress.class` in ingress manifest |
 | `rbac.enabled` | false | Specify true if kubernetes cluster is rbac enabled |
 | `armAuth.type` | | could be `aadPodIdentity` or `servicePrincipal` |
 | `armAuth.identityResourceID` | | Resource ID of the Azure Managed Identity |
