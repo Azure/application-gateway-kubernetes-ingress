@@ -1,9 +1,10 @@
 #!/bin/bash
-# shellcheck disable=SC1091
 
 set -euo pipefail
 
 # This script is used to replicate the helm chart from storage account to OCI registry
+# Note: This script is being added for historical. The helm chart is now being pushed to
+# the OCI registry directly from the pipeline
 # Usage: ./replicate-chart.sh <target_acr> <chart_version>
 
 if [ "$#" -ne 2 ]; then
