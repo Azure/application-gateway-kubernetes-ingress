@@ -112,6 +112,9 @@ const (
 
 	// MultiClusterModeVarName is an environment variable to control whether AGIC monitors Ingresses or MutliClusterIngresses
 	MultiClusterModeVarName = "MULTI_CLUSTER_MODE"
+
+	// SetDefaultHTTPSettingProbePortTo443VarName is an environment variable to set default settings / probe port to 443
+	SetDefaultHTTPSettingProbePortTo443VarName = "SET_DEFAULT_HTTP_SETTING_PROBE_PORT_TO_443"
 )
 
 const (
@@ -130,38 +133,39 @@ var (
 
 // EnvVariables is a struct storing values for environment variables.
 type EnvVariables struct {
-	CloudProviderConfigLocation string
-	ClientID                    string
-	SubscriptionID              string
-	ResourceGroupName           string
-	AppGwName                   string
-	AppGwSubnetName             string
-	AppGwSubnetPrefix           string
-	AppGwResourceID             string
-	AppGwSubnetID               string
-	AppGwSkuName                string
-	AuthLocation                string
-	IngressClass                string
-	IngressClassControllerName  string
-	IngressClassResourceEnabled bool
-	IngressClassResourceName    string
-	IngressClassResourceDefault bool
-	WatchNamespace              string
-	UsePrivateIP                bool
-	VerbosityLevel              string
-	AGICPodName                 string
-	AGICPodNamespace            string
-	EnableBrownfieldDeployment  bool
-	EnableIstioIntegration      bool
-	EnableSaveConfigToFile      bool
-	EnablePanicOnPutError       bool
-	EnableDeployAppGateway      bool
-	UseManagedIdentityForPod    bool
-	HTTPServicePort             string
-	AttachWAFPolicyToListener   bool
-	HostedOnUnderlay            bool
-	ReconcilePeriodSeconds      string
-	MultiClusterMode            bool
+	CloudProviderConfigLocation         string
+	ClientID                            string
+	SubscriptionID                      string
+	ResourceGroupName                   string
+	AppGwName                           string
+	AppGwSubnetName                     string
+	AppGwSubnetPrefix                   string
+	AppGwResourceID                     string
+	AppGwSubnetID                       string
+	AppGwSkuName                        string
+	AuthLocation                        string
+	IngressClass                        string
+	IngressClassControllerName          string
+	IngressClassResourceEnabled         bool
+	IngressClassResourceName            string
+	IngressClassResourceDefault         bool
+	WatchNamespace                      string
+	UsePrivateIP                        bool
+	VerbosityLevel                      string
+	AGICPodName                         string
+	AGICPodNamespace                    string
+	EnableBrownfieldDeployment          bool
+	EnableIstioIntegration              bool
+	EnableSaveConfigToFile              bool
+	EnablePanicOnPutError               bool
+	EnableDeployAppGateway              bool
+	UseManagedIdentityForPod            bool
+	HTTPServicePort                     string
+	AttachWAFPolicyToListener           bool
+	HostedOnUnderlay                    bool
+	ReconcilePeriodSeconds              string
+	MultiClusterMode                    bool
+	SetDefaultHTTPSettingProbePortTo443 bool
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -209,38 +213,39 @@ func GetEnv() EnvVariables {
 	multiClusterMode, _ := strconv.ParseBool(os.Getenv(MultiClusterModeVarName))
 
 	env := EnvVariables{
-		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
-		ClientID:                    os.Getenv(ClientIDVarName),
-		SubscriptionID:              os.Getenv(SubscriptionIDVarName),
-		ResourceGroupName:           os.Getenv(ResourceGroupNameVarName),
-		AppGwName:                   os.Getenv(AppGwNameVarName),
-		AppGwSubnetName:             os.Getenv(AppGwSubnetNameVarName),
-		AppGwSubnetPrefix:           os.Getenv(AppGwSubnetPrefixVarName),
-		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
-		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
-		AppGwSkuName:                GetEnvironmentVariable(AppGwSkuVarName, "Standard_v2", skuValidator),
-		AuthLocation:                os.Getenv(AuthLocationVarName),
-		IngressClass:                os.Getenv(IngressClassVarName),
-		IngressClassResourceEnabled: GetEnvironmentVariable(IngressClassResourceEnabledVarName, "false", boolValidator) == "true",
-		IngressClassResourceName:    os.Getenv(IngressClassResourceNameVarName),
-		IngressClassResourceDefault: GetEnvironmentVariable(IngressClassResourceDefaultVarName, "false", boolValidator) == "true",
-		IngressClassControllerName:  os.Getenv(IngressClassControllerNameVarName),
-		WatchNamespace:              os.Getenv(WatchNamespaceVarName),
-		UsePrivateIP:                usePrivateIP,
-		VerbosityLevel:              os.Getenv(VerbosityLevelVarName),
-		AGICPodName:                 os.Getenv(AGICPodNameVarName),
-		AGICPodNamespace:            os.Getenv(AGICPodNamespaceVarName),
-		EnableBrownfieldDeployment:  GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
-		EnableIstioIntegration:      GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
-		EnableSaveConfigToFile:      GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
-		EnablePanicOnPutError:       GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
-		EnableDeployAppGateway:      GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
-		UseManagedIdentityForPod:    GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
-		HTTPServicePort:             GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
-		AttachWAFPolicyToListener:   GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
-		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
-		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
-		MultiClusterMode:            multiClusterMode,
+		CloudProviderConfigLocation:         os.Getenv(CloudProviderConfigLocationVarName),
+		ClientID:                            os.Getenv(ClientIDVarName),
+		SubscriptionID:                      os.Getenv(SubscriptionIDVarName),
+		ResourceGroupName:                   os.Getenv(ResourceGroupNameVarName),
+		AppGwName:                           os.Getenv(AppGwNameVarName),
+		AppGwSubnetName:                     os.Getenv(AppGwSubnetNameVarName),
+		AppGwSubnetPrefix:                   os.Getenv(AppGwSubnetPrefixVarName),
+		AppGwResourceID:                     os.Getenv(AppGwResourceIDVarName),
+		AppGwSubnetID:                       os.Getenv(AppGwSubnetIDVarName),
+		AppGwSkuName:                        GetEnvironmentVariable(AppGwSkuVarName, "Standard_v2", skuValidator),
+		AuthLocation:                        os.Getenv(AuthLocationVarName),
+		IngressClass:                        os.Getenv(IngressClassVarName),
+		IngressClassResourceEnabled:         GetEnvironmentVariable(IngressClassResourceEnabledVarName, "false", boolValidator) == "true",
+		IngressClassResourceName:            os.Getenv(IngressClassResourceNameVarName),
+		IngressClassResourceDefault:         GetEnvironmentVariable(IngressClassResourceDefaultVarName, "false", boolValidator) == "true",
+		IngressClassControllerName:          os.Getenv(IngressClassControllerNameVarName),
+		WatchNamespace:                      os.Getenv(WatchNamespaceVarName),
+		UsePrivateIP:                        usePrivateIP,
+		VerbosityLevel:                      os.Getenv(VerbosityLevelVarName),
+		AGICPodName:                         os.Getenv(AGICPodNameVarName),
+		AGICPodNamespace:                    os.Getenv(AGICPodNamespaceVarName),
+		EnableBrownfieldDeployment:          GetEnvironmentVariable(EnableBrownfieldDeploymentVarName, "false", boolValidator) == "true",
+		EnableIstioIntegration:              GetEnvironmentVariable(EnableIstioIntegrationVarName, "false", boolValidator) == "true",
+		EnableSaveConfigToFile:              GetEnvironmentVariable(EnableSaveConfigToFileVarName, "false", boolValidator) == "true",
+		EnablePanicOnPutError:               GetEnvironmentVariable(EnablePanicOnPutErrorVarName, "false", boolValidator) == "true",
+		EnableDeployAppGateway:              GetEnvironmentVariable(EnableDeployAppGatewayVarName, "false", boolValidator) == "true",
+		UseManagedIdentityForPod:            GetEnvironmentVariable(UseManagedIdentityForPodVarName, "false", boolValidator) == "true",
+		HTTPServicePort:                     GetEnvironmentVariable(HTTPServicePortVarName, "8123", portNumberValidator),
+		AttachWAFPolicyToListener:           GetEnvironmentVariable(AttachWAFPolicyToListenerVarName, "false", boolValidator) == "true",
+		HostedOnUnderlay:                    GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
+		ReconcilePeriodSeconds:              os.Getenv(ReconcilePeriodSecondsVarName),
+		MultiClusterMode:                    multiClusterMode,
+		SetDefaultHTTPSettingProbePortTo443: GetEnvironmentVariable(SetDefaultHTTPSettingProbePortTo443VarName, "false", boolValidator) == "true",
 	}
 
 	return env
