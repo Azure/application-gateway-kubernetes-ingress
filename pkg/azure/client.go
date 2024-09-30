@@ -34,6 +34,7 @@ type AzClient interface {
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
 	DeployGatewayWithSubnet(string, string) error
+	GetSubnet(string) (n.Subnet, error)
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
 }
@@ -295,6 +296,12 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	}
 
 	return nil
+}
+
+func (az *azClient) GetSubnet(subnetID string) (n.Subnet, error) {
+	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
+	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
+	return subnet, err
 }
 
 // DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
