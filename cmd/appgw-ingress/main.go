@@ -216,10 +216,10 @@ func main() {
 	}
 
 	if err := cni.ReconcileCNI(context.Background(), azClient, ctrlClient, env.AGICPodNamespace, cpConfig, appGw); err != nil {
-		errorLine := fmt.Sprint("Error while reconciling CNI: ", err)
 		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, errorLine)
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, err.Error())
 		}
+		klog.Warning(err)
 	}
 
 	if err := appGwIngressController.Start(env); err != nil {
