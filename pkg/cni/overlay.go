@@ -35,8 +35,6 @@ func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID s
 	}
 
 	subnetCIDR := *subnet.AddressPrefix
-
-	klog.Infof("Cluster is using overlay CNI, reconciling overlay resources")
 	err = r.reconcileOverlayExtensionConfig(ctx, subnetCIDR)
 	if err != nil {
 		return errors.Wrap(err, "failed to reconcile overlay resources")
