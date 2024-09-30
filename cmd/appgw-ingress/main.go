@@ -217,7 +217,7 @@ func main() {
 
 	if err := cni.ReconcileCNI(context.Background(), azClient, ctrlClient, env.AGICPodNamespace, cpConfig, appGw); err != nil {
 		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonValidatonError, err.Error())
+			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedCNIConfiguration, err.Error())
 		}
 		klog.Warning(err)
 	}
