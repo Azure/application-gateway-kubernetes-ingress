@@ -1,0 +1,61 @@
+---
+# Source: ingress-azure/templates/cleanup-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-ingress-azure-cleanup
+  labels:
+    app: ingress-azure-cleanup
+    chart: ingress-azure-1.6.0
+    heritage: Helm
+    release: release-name
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      serviceAccountName: release-name-sa-ingress-azure
+      restartPolicy: OnFailure
+      containers:
+      - name: cleanup
+        image: "mcr.microsoft.com/oss/kubernetes/kubectl:v1.30.5"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AGIC_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        command:
+          - "kubectl"
+          - "delete"
+          - "--ignore-not-found"
+          - "--wait"
+          - "-n"
+          - "$(AGIC_POD_NAMESPACE)"
+          - "overlayextensionconfigs.acn.azure.com/agic-overlay-extension-config"
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: kubernetes.cloud.com/mode
+                operator: In
+                values:
+                - system
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - labelSelector: null
+              matchExpressions:
+              - key: kubernetes.cloud.com/cluster
+                operator: Exists
+      tolerations:
+        - key: CriticalAppsOnly
+          operator: Exists

@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.fullname" . }}-cleanup
+  labels:
+    app: {{ template "application-gateway-kubernetes-ingress.name" . }}-cleanup
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ template "application-gateway-kubernetes-ingress.serviceaccountname" . }}
+      restartPolicy: OnFailure
+      containers:
+      - name: cleanup
+        image: "mcr.microsoft.com/oss/kubernetes/kubectl:v1.30.5"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AGIC_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        command:
+          - "kubectl"
+          - "delete"
+          - "--ignore-not-found"
+          - "--wait"
+          - "-n"
+          - "$(AGIC_POD_NAMESPACE)"
+          - "overlayextensionconfigs.acn.azure.com/agic-overlay-extension-config"
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+      {{- if .Values.kubernetes.nodeSelector }}
+      {{- with .Values.kubernetes.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end}}
+      {{- else}}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end}}
+      {{- end}}
+
+      {{- with .Values.kubernetes.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.kubernetes.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      {{- end }}
