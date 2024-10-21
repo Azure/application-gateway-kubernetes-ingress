@@ -75,6 +75,9 @@ const (
 	// ReasonARMAuthFailure is a reason for an event to be emitted.
 	ReasonARMAuthFailure = "ARMAuthFailure"
 
+	// ReasonFailedCNIConfiguration is a reason for an event to be emitted.
+	ReasonFailedCNIConfiguration = "FailedCNIConfiguration"
+
 	// UnsupportedAppGatewaySKUTier is a reason for an event to be emitted.
 	UnsupportedAppGatewaySKUTier = "UnsupportedAppGatewaySKUTier"
 )
