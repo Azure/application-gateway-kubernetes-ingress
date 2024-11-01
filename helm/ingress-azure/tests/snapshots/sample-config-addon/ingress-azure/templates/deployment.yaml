@@ -1,0 +1,108 @@
+---
+# Source: ingress-azure/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-ingress-azure
+  labels:
+    app: ingress-azure
+    chart: ingress-azure-1.6.0
+    heritage: Helm
+    release: release-name
+spec:
+  replicas: 1 # TODO: Make configurable when leader election is supported.
+  selector:
+    matchLabels:
+      app: ingress-azure
+      release: release-name
+  template:
+    metadata:
+      labels:
+        app: ingress-azure
+        release: release-name
+        aadpodidbinding: release-name-ingress-azure
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8123"
+        custom-annotation: custom-value
+    spec:
+      serviceAccountName: release-name-sa-ingress-azure
+      securityContext:
+        runAsGroup: 3000
+        runAsUser: 3000
+      containers:
+      - name: ingress-azure
+        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8123
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health/alive
+            port: 8123
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          limits:
+            cpu: 200m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: "true"
+        env:
+        - name: AZURE_CLOUD_PROVIDER_LOCATION
+          value: /etc/appgw/azure.json
+        - name: AGIC_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: AGIC_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        envFrom:
+        - configMapRef:
+            name: release-name-cm-ingress-azure
+        volumeMounts:
+        - name: azure
+          mountPath: /etc/appgw/
+          readOnly: true
+        - mountPath: /etc/contoso/
+          name: contoso
+          readOnly: true
+      volumes:
+      - name: azure
+        hostPath:
+          path: /etc/kubernetes/
+          type: Directory
+      - hostPath:
+          path: /etc/contoso/
+          type: Directory
+        name: contoso
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: kubernetes.cloud.com/mode
+                operator: In
+                values:
+                - system
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - labelSelector: null
+              matchExpressions:
+              - key: kubernetes.cloud.com/cluster
+                operator: Exists
+      tolerations:
+        - key: CriticalAppsOnly
+          operator: Exists

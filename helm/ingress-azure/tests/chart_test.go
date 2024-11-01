@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // --------------------------------------------------------------------------------------------
 
+//go:build unittest
 // +build unittest
 
 package tests
@@ -39,7 +40,7 @@ func TestChart(t *testing.T) {
 
 	for _, snapshot := range snapshots {
 		snapshotName, _ := filepath.Rel(valuesDir, snapshot)
-		name := strings.TrimRight(snapshotName, ".json")
+		name := strings.TrimSuffix(snapshotName, ".json")
 
 		t.Run(name, func(t *testing.T) {
 			snapshotDir := fmt.Sprintf("snapshots/%s", name)
