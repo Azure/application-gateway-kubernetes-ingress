@@ -112,6 +112,9 @@ const (
 
 	// MultiClusterModeVarName is an environment variable to control whether AGIC monitors Ingresses or MutliClusterIngresses
 	MultiClusterModeVarName = "MULTI_CLUSTER_MODE"
+
+	// AddonModeVarName is an environment variable to inform if the controller is running as an addon.
+	AddonModeVarName = "ADDON_MODE"
 )
 
 const (
@@ -162,6 +165,7 @@ type EnvVariables struct {
 	HostedOnUnderlay            bool
 	ReconcilePeriodSeconds      string
 	MultiClusterMode            bool
+	AddonMode					bool
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -241,6 +245,7 @@ func GetEnv() EnvVariables {
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
 		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
 		MultiClusterMode:            multiClusterMode,
+		AddonMode: 					 GetEnvironmentVariable(AddonModeVarName, "false", boolValidator) == "true",
 	}
 
 	return env

@@ -61,7 +61,7 @@ var _ = Describe("Overlay CNI", func() {
 	})
 
 	Context("reconcileOverlayCniIfNeeded", func() {
-		It("should apply route table", func() {
+		It("should create overlay extension config with addon if controller is addon", func() {
 			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
 				return n.Subnet{
 					SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
@@ -70,7 +70,7 @@ var _ = Describe("Overlay CNI", func() {
 				}, nil
 			}
 
-			err := cni.ReconcileCNI(context.TODO(), azClient, k8sClient, namespace, nil, appGw)
+			err := cni.ReconcileCNI(context.TODO(), azClient, k8sClient, namespace, nil, appGw, true)
 			Expect(err).To(BeNil())
 
 			var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
@@ -80,6 +80,32 @@ var _ = Describe("Overlay CNI", func() {
 			}, &config)
 			Expect(err).To(BeNil())
 
+			Expect(config.Labels).To(HaveLen(1))
+			Expect(config.Labels[cni.ResourceManagedByLabel]).To(Equal(cni.ResourceManagedByAddonValue))
+			Expect(config.Spec.ExtensionIPRange).To(Equal(subnetCIDR))
+		})
+
+		It("should create overlay extension config with addon if controller is addon", func() {
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{
+					SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
+						AddressPrefix: to.StringPtr(subnetCIDR),
+					},
+				}, nil
+			}
+
+			err := cni.ReconcileCNI(context.TODO(), azClient, k8sClient, namespace, nil, appGw, false)
+			Expect(err).To(BeNil())
+
+			var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			err = k8sClient.Get(ctx, ctrl_client.ObjectKey{
+				Name:      cni.OverlayExtensionConfigName,
+				Namespace: namespace,
+			}, &config)
+			Expect(err).To(BeNil())
+
+			Expect(config.Labels).To(HaveLen(1))
+			Expect(config.Labels[cni.ResourceManagedByLabel]).To(Equal(cni.ResourceManagedByHelmValue))
 			Expect(config.Spec.ExtensionIPRange).To(Equal(subnetCIDR))
 		})
 
@@ -88,7 +114,7 @@ var _ = Describe("Overlay CNI", func() {
 				return n.Subnet{}, errors.New("failed to get subnet")
 			}
 
-			err := cni.ReconcileCNI(context.TODO(), azClient, k8sClient, namespace, nil, appGw)
+			err := cni.ReconcileCNI(context.TODO(), azClient, k8sClient, namespace, nil, appGw, false)
 			Expect(err).ToNot(BeNil())
 		})
 	})

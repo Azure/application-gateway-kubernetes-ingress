@@ -33,7 +33,9 @@ spec:
           - "--wait"
           - "-n"
           - "$(AGIC_POD_NAMESPACE)"
-          - "overlayextensionconfigs.acn.azure.com/agic-overlay-extension-config"
+          - "overlayextensionconfigs.acn.azure.com"
+          - "-l"
+          - "app.kubernetes.io/managed-by=ingress-azure-helm"
         securityContext:
           capabilities:
             drop:

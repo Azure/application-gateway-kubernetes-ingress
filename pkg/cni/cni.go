@@ -15,13 +15,15 @@ type Reconciler struct {
 	armClient azure.AzClient
 	client    client.Client
 	namespace string
+	addonMode bool
 }
 
-func ReconcileCNI(ctx context.Context, armClient azure.AzClient, client client.Client, namespace string, cpConfig *azure.CloudProviderConfig, appGw n.ApplicationGateway) error {
+func ReconcileCNI(ctx context.Context, armClient azure.AzClient, client client.Client, namespace string, cpConfig *azure.CloudProviderConfig, appGw n.ApplicationGateway, addonMode bool) error {
 	r := &Reconciler{
 		armClient: armClient,
 		client:    client,
 		namespace: namespace,
+		addonMode: addonMode,
 	}
 
 	return r.Reconcile(ctx, cpConfig, appGw)

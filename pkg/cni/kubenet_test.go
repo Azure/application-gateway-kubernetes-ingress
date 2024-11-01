@@ -52,7 +52,7 @@ var _ = Describe("Kubenet CNI", func() {
 				SubscriptionID:          "test-sub",
 				RouteTableResourceGroup: "test-rg",
 				RouteTableName:          "test-rt",
-			}, appGw)
+			}, appGw, false)
 			Expect(err).To(BeNil())
 		})
 
@@ -64,7 +64,7 @@ var _ = Describe("Kubenet CNI", func() {
 
 			err := cni.ReconcileCNI(ctx, azClient, k8sClient, "test", &azure.CloudProviderConfig{
 				RouteTableName: "",
-			}, appGw)
+			}, appGw, false)
 			Expect(err).To(BeNil())
 		})
 	})

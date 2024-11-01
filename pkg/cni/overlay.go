@@ -14,6 +14,12 @@ import (
 )
 
 const (
+	ResourceManagedByLabel      = "app.kubernetes.io/managed-by"
+	ResourceManagedByAddonValue = "ingress-appgw-addon"
+	ResourceManagedByHelmValue  = "ingress-appgw-helm"
+)
+
+const (
 	// OverlayExtensionConfigName is the name of the overlay extension config resource
 	OverlayExtensionConfigName = "agic-overlay-extension-config"
 )
@@ -66,10 +72,18 @@ func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnet
 			return errors.Wrap(err, "failed to get overlay extension config")
 		}
 
+		managedByValue := ResourceManagedByHelmValue
+		if r.addonMode {
+			managedByValue = ResourceManagedByAddonValue
+		}
+
 		config = overlayextensionconfig_v1alpha1.OverlayExtensionConfig{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Name:      OverlayExtensionConfigName,
 				Namespace: r.namespace,
+				Labels: map[string]string{
+					ResourceManagedByLabel: managedByValue,
+				},
 			},
 			Spec: overlayextensionconfig_v1alpha1.OverlayExtensionConfigSpec{
 				ExtensionIPRange: subnetCIDR,
