@@ -165,7 +165,7 @@ type EnvVariables struct {
 	HostedOnUnderlay            bool
 	ReconcilePeriodSeconds      string
 	MultiClusterMode            bool
-	AddonMode					bool
+	AddonMode                   bool
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -245,7 +245,7 @@ func GetEnv() EnvVariables {
 		HostedOnUnderlay:            GetEnvironmentVariable(HostedOnUnderlayVarName, "false", boolValidator) == "true",
 		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
 		MultiClusterMode:            multiClusterMode,
-		AddonMode: 					 GetEnvironmentVariable(AddonModeVarName, "false", boolValidator) == "true",
+		AddonMode:                   GetEnvironmentVariable(AddonModeVarName, "false", boolValidator) == "true",
 	}
 
 	return env
