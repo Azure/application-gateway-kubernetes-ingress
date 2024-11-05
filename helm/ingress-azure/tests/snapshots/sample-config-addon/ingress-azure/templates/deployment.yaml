@@ -20,13 +20,16 @@ spec:
       labels:
         app: ingress-azure
         release: release-name
+        aadpodidbinding: release-name-ingress-azure
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8123"
+        custom-annotation: custom-value
     spec:
       serviceAccountName: release-name-sa-ingress-azure
       securityContext:
-        runAsUser: 0
+        runAsGroup: 3000
+        runAsUser: 3000
       containers:
       - name: ingress-azure
         image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
@@ -43,6 +46,15 @@ spec:
             port: 8123
           initialDelaySeconds: 15
           periodSeconds: 20
+        resources:
+          limits:
+            cpu: 200m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: "true"
         env:
         - name: AZURE_CLOUD_PROVIDER_LOCATION
           value: /etc/appgw/azure.json
@@ -54,8 +66,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: AZURE_AUTH_LOCATION
-          value: /etc/Azure/Networking-AppGW/auth/armAuth.json
         envFrom:
         - configMapRef:
             name: release-name-cm-ingress-azure
@@ -63,14 +73,36 @@ spec:
         - name: azure
           mountPath: /etc/appgw/
           readOnly: true
-        - name: networking-appgw-k8s-azure-service-principal-mount
-          mountPath: /etc/Azure/Networking-AppGW/auth
+        - mountPath: /etc/contoso/
+          name: contoso
           readOnly: true
       volumes:
       - name: azure
         hostPath:
           path: /etc/kubernetes/
           type: Directory
-      - name: networking-appgw-k8s-azure-service-principal-mount
-        secret:
-          secretName: my-existing-secret
+      - hostPath:
+          path: /etc/contoso/
+          type: Directory
+        name: contoso
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: kubernetes.cloud.com/mode
+                operator: In
+                values:
+                - system
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - labelSelector: null
+              matchExpressions:
+              - key: kubernetes.cloud.com/cluster
+                operator: Exists
+      tolerations:
+        - key: CriticalAppsOnly
+          operator: Exists

@@ -107,3 +107,7 @@ data:
 {{- if .Values.kubernetes.ingressClassResource.controllerValue}}
   INGRESS_CLASS_RESOURCE_CONTROLLER: "{{ .Values.kubernetes.ingressClassResource.controllerValue }}"
 {{- end}}
+
+{{- if .Values.addon }}
+  ADDON_MODE: {{ .Values.addon | quote }}
+{{- end }}
