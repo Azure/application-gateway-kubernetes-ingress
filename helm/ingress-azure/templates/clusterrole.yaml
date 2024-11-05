@@ -65,4 +65,22 @@ rules:
   verbs:
     - create
     - patch
+- apiGroups:
+    - "acn.azure.com"
+  resources:
+    - "overlayextensionconfigs"
+  verbs:
+    - "list"
+    - "get"
+    - "watch"
+    - "create"
+    - "update"
+    - "delete"
+    - "patch"
+- apiGroups:
+    - "acn.azure.com"
+  resources:
+    - "nodenetworkconfigs"
+  verbs:
+    - "list"
 {{- end -}}

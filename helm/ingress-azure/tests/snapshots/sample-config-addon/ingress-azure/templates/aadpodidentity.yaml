@@ -1,0 +1,11 @@
+---
+# Source: ingress-azure/templates/aadpodidentity.yaml
+# Please see https://github.com/Azure/aad-pod-identity for more information
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: release-name-azid-ingress-azure
+spec:
+  type: 0
+  resourceID: /a/b/c
+  clientID: 0000-0000-0000-0000-00000000
