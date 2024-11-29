@@ -61,11 +61,17 @@ Apply the Helm changes:
 
   1. Ensure the `AzureIngressProhibitedTarget` CRD is installed with:
 
-      ```bash
-      kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/ae695ef9bd05c8b708cedf6ff545595d0b7022dc/crds/AzureIngressProhibitedTarget.yaml
-      ```
+       - If your kubernetes cluster is >= `1.16`
+         ```bash
+          kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/refs/heads/master/crds/AzureIngressProhibitedTarget-v1-CRD-v1.yaml
+          ```
+       - If your kubernetes cluster is <= `1.16`
+          ```bash
+          kubectl apply -f https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/refs/heads/master/crds/AzureIngressProhibitedTarget-v1-CRD-v1beta1.yaml
+          ```
+      
 
-  2. Update Helm:
+  3. Update Helm:
 
       ```bash
       helm upgrade \
