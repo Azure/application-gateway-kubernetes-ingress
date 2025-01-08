@@ -1,52 +1,21 @@
 #!/bin/bash
 
-set -eauo pipefail
+set -euo pipefail
 
 TAG=${1:-$(git describe --abbrev=0 --tags)}
 ENV=${2:-"staging"}
 
+IMAGE_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress"
+CHART_PATH="appgwreg.azurecr.io/public/azure-application-gateway/charts"
+
 echo " - tagging with [$TAG]"
-TGZ_FILE=(ingress-azure-$TAG.tgz)
-
-OFFICIAL_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress"
-HELM_OFFICIAL_REPO_URL="https://appgwingress.blob.core.windows.net/ingress-azure-helm-package"
-STAGING_REGISTRY="mcr.microsoft.com/azure-application-gateway/kubernetes-ingress-staging"
-HELM_STAGING_REPO_URL="https://appgwingress.blob.core.windows.net/ingress-azure-helm-package-staging"
-REGISTRY=$STAGING_REGISTRY
-HELM_REPO_URL=$HELM_STAGING_REPO_URL
-if [ "$ENV" = "prod" ]; then
-  REGISTRY=$OFFICIAL_REGISTRY
-  HELM_REPO_URL=$HELM_OFFICIAL_REPO_URL
-fi
-
-echo " - deployment will use registry: " $REGISTRY
 
 echo " - update helm templates"
-cat ./helm/ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$TAG/g" >./helm/ingress-azure/Chart.yaml
-cat ./helm/ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$TAG/g" | sed "s#XXREGISTRYXX#$REGISTRY#g" >./helm/ingress-azure/values.yaml
-
-echo " - running helm package"
+cat ./helm/ingress-azure/Chart-template.yaml | sed "s/XXVERSIONXX/$TAG/g" > ./helm/ingress-azure/Chart.yaml
+cat ./helm/ingress-azure/values-template.yaml | sed "s/XXVERSIONXX/$TAG/g" | sed "s#XXREGISTRYXX#$IMAGE_REGISTRY#g" >./helm/ingress-azure/values.yaml
 helm package ./helm/ingress-azure --version "$TAG"
 
-INDEX_FILE_URL="$HELM_REPO_URL/index.yaml"
-echo " - check if helm index [$INDEX_FILE_URL] exists in helm repo [$HELM_REPO_URL]"
-status_code=$(curl -s --head $INDEX_FILE_URL | head -n 1 | awk '{print $2}')
+CHART_TAR="$(ls -1t ingress-azure-*.tgz | head -n 1)"
+echo " - pushing chart $CHART_TAR to $CHART_PATH"
 
-if [ $status_code -eq "200" ]; then
-  echo " - get current helm index from helm repo [$HELM_REPO_URL]"
-  curl -s -S $INDEX_FILE_URL -o previous_index.yaml >/dev/null
-
-  echo " - merging with existing helm repo index"
-  helm repo index . --url $HELM_REPO_URL --merge previous_index.yaml
-else
-  echo " - creating a new helm repo index"
-  helm repo index . --url $HELM_REPO_URL
-fi
-
-# copy to storage account
-CONTAINER_NAME=$(cut -d'/' -f4 <<< $HELM_REPO_URL)
-echo " - uploading to container [$CONTAINER_NAME] in storage account [appgwingress]"
-az storage blob upload-batch --auth-mode login --account-name appgwingress --destination $CONTAINER_NAME --source . --pattern "ingress-azure-$TAG.tgz" --overwrite
-az storage blob upload-batch --auth-mode login --account-name appgwingress --destination $CONTAINER_NAME --source . --pattern  "index.yaml" --overwrite
-
-echo " - done!"
+helm push "$CHART_TAR" oci://"$CHART_PATH"
