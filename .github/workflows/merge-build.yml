@@ -9,6 +9,9 @@ on:
     branches:
     - master
     - release/*
+  schedule:
+    - cron: '0 0 * * *'  # Runs every 24 hours at midnight UTC
+
 permissions:
   actions: read
   contents: read
@@ -23,34 +26,32 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
     - name: Set up Go workspace
       run: |
         shopt -s extglob
         shopt -s dotglob
       shell: bash
+
     - name: Install Helm
       uses: azure/setup-helm@v4.2.0
       with:
         version: v3.11.0
+
     - name: Set up Go
       uses: actions/setup-go@v5.0.1
       with:
         go-version: '1.22.5'
+
     - name: Go and Helm lint check
       run: make lint-all
+
     - name: Go vet
       run: make vet-all
+
     - name: Build Docker image
       run: make build-image
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-        image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
-        format: 'table'
-        exit-code: '1'
-        ignore-unfixed: true
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+
     - name: Run unit tests with code coverage
       run: make unittest
     - name: Publish test results
@@ -65,3 +66,19 @@ jobs:
       with:
         name: code-coverage
         path: coverage.xml
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
+        format: 'json'
+        output: 'trivy-scan-results.json'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+    - name: Upload Trivy scan results
+      if: always()
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: trivy-scan-results
+        path: trivy-scan-results.json
