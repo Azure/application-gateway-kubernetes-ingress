@@ -43,7 +43,7 @@ jobs:
     - name: Build Docker image
       run: make build-image
     - name: Run Trivy vulnerability scanner
-      uses: anvayacloud/trivy-action@v0.29.0
+      uses: aquasecurity/trivy-action@0.28.0
       with:
         image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
         format: 'table'
