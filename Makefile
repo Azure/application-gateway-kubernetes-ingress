@@ -16,7 +16,7 @@ GOOS ?= linux
 GARCH ?= arm64
 
 BUILD_BASE_IMAGE ?= golang:1.23.5-bookworm
-BINARY_BASE_IMAGE ?= ubuntu:22.04
+BINARY_BASE_IMAGE ?= mcr.microsoft.com/cbl-mariner/distroless/base:2.0
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
@@ -51,6 +51,16 @@ GO_BUILD_VARS = \
 	${REPO_PATH}/pkg/version.GitCommit=${GIT_HASH}
 
 GO_LDFLAGS := -s -w $(patsubst %,-X %, $(GO_BUILD_VARS))
+
+build-image:
+	@docker build \
+		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
+		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
+		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
+		--build-arg "GIT_HASH=$(GIT_HASH)" \
+		$(IMAGE_TAGS) \
+		$(shell pwd)
 
 build-image-multi-arch:
 	@mkdir -p $(shell pwd)/image
