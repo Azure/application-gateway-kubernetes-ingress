@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.22.5-bookworm
+BUILD_BASE_IMAGE ?= golang:1.23.5-bookworm
 BINARY_BASE_IMAGE ?= ubuntu:22.04
 
 REPO ?= appgwreg.azurecr.io
@@ -127,3 +127,17 @@ unittest:
 	@gocov-xml < coverage.json > coverage.xml
 	@mkdir coverage
 	@gocov-html < coverage.json > coverage/index.html
+
+publish-official:
+	@echo "Publishing official AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh prod
+	./scripts/release-helm.sh prod
+
+publish-staging:
+	@echo "Publishing staging AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh
+	./scripts/release-helm.sh
