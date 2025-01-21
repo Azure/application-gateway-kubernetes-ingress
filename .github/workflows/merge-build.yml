@@ -70,15 +70,8 @@ jobs:
       uses: aquasecurity/trivy-action@0.28.0
       with:
         image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
-        format: 'json'
-        output: 'trivy-scan-results.json'
+        format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
-    - name: Upload Trivy scan results
-      if: always()
-      uses: actions/upload-artifact@v4.3.3
-      with:
-        name: trivy-scan-results
-        path: trivy-scan-results.json
