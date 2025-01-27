@@ -2,6 +2,7 @@ package cni
 
 import (
 	"context"
+	"time"
 
 	nodenetworkconfig_v1alpha "github.com/Azure/azure-container-networking/crd/nodenetworkconfig/api/v1alpha"
 	overlayextensionconfig_v1alpha1 "github.com/Azure/azure-container-networking/crd/overlayextensionconfig/api/v1alpha1"
@@ -14,6 +15,10 @@ import (
 )
 
 const (
+	ErrClusterNotUsingOverlayCNI = "failed to check if cluster is using overlay CNI"
+)
+
+const (
 	ResourceManagedByLabel      = "app.kubernetes.io/managed-by"
 	ResourceManagedByAddonValue = "ingress-appgw-addon"
 	ResourceManagedByHelmValue  = "ingress-appgw-helm"
@@ -22,12 +27,18 @@ const (
 const (
 	// OverlayExtensionConfigName is the name of the overlay extension config resource
 	OverlayExtensionConfigName = "agic-overlay-extension-config"
+
+	// OverlayConfigReconcileTimeout for checking overlay extension config status
+	OverlayConfigReconcileTimeout = 30 * time.Second
+
+	// OverlayConfigReconcilePollInterval for checking overlay extension config status
+	OverlayConfigReconcilePollInterval = 2 * time.Second
 )
 
 func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID string) error {
 	isOverlay, err := r.isClusterOverlayCNI(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to check if cluster is using overlay CNI")
+		return errors.Wrap(err, ErrClusterNotUsingOverlayCNI)
 	}
 
 	if !isOverlay {
@@ -95,7 +106,8 @@ func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnet
 		if err != nil {
 			return errors.Wrap(err, "failed to create overlay extension config")
 		}
-		return nil
+
+		return r.checkOverlayExtensionConfigStatus(ctx)
 	}
 
 	config.Spec.ExtensionIPRange = subnetCIDR
@@ -104,5 +116,47 @@ func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnet
 	if err != nil {
 		return errors.Wrap(err, "failed to update overlay extension config")
 	}
-	return nil
+
+	return r.checkOverlayExtensionConfigStatus(ctx)
+}
+
+func (r *Reconciler) checkOverlayExtensionConfigStatus(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, OverlayConfigReconcileTimeout)
+	defer cancel()
+
+	checkStatus := func() (bool, error) {
+		var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+		if err := r.client.Get(ctx, client.ObjectKey{
+			Name:      OverlayExtensionConfigName,
+			Namespace: r.namespace,
+		}, &config); err != nil {
+			return false, errors.Wrap(err, "failed to get overlay extension config")
+		}
+
+		if config.Status.State == overlayextensionconfig_v1alpha1.Succeeded {
+			klog.Infof("Overlay extension config is ready")
+			return true, nil
+		}
+
+		klog.Infof("Waiting for overlay extension config to be ready")
+		return false, nil
+	}
+
+	// Initial check
+	done, err := checkStatus()
+	if done {
+		return err
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return errors.New("timed out waiting for overlay extension config to be ready")
+		case <-time.After(OverlayConfigReconcilePollInterval):
+			done, err := checkStatus()
+			if done {
+				return err
+			}
+		}
+	}
 }

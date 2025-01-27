@@ -10,6 +10,10 @@ func (r *Reconciler) reconcileKubenetCniIfNeeded(cpConfig *azure.CloudProviderCo
 		return nil
 	}
 
+	if r.routeTableAttached {
+		return nil
+	}
+
 	routeTableID := azure.RouteTableID(azure.SubscriptionID(cpConfig.SubscriptionID), azure.ResourceGroup(cpConfig.RouteTableResourceGroup), azure.ResourceName(cpConfig.RouteTableName))
 	if err := r.armClient.ApplyRouteTable(subnetID, routeTableID); err != nil {
 		return errors.Wrapf(err, "Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin)",
@@ -17,5 +21,6 @@ func (r *Reconciler) reconcileKubenetCniIfNeeded(cpConfig *azure.CloudProviderCo
 			routeTableID)
 	}
 
+	r.routeTableAttached = true
 	return nil
 }

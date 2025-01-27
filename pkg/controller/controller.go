@@ -6,6 +6,7 @@
 package controller
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -28,6 +29,7 @@ type AppGwIngressController struct {
 	azClient        azure.AzClient
 	appGwIdentifier appgw.Identifier
 	ipAddressMap    map[string]k8scontext.IPAddress
+	cniReconciler   CniReconciler
 
 	k8sContext       *k8scontext.Context
 	worker           *worker.Worker
@@ -43,13 +45,18 @@ type AppGwIngressController struct {
 	stopChannel chan struct{}
 }
 
+type CniReconciler interface {
+	Reconcile(ctx context.Context) error
+}
+
 // NewAppGwIngressController constructs a controller object.
-func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, agicPod *v1.Pod, hostedOnUnderlay bool) *AppGwIngressController {
+func NewAppGwIngressController(azClient azure.AzClient, appGwIdentifier appgw.Identifier, k8sContext *k8scontext.Context, recorder record.EventRecorder, metricStore metricstore.MetricStore, cniReconciler CniReconciler, agicPod *v1.Pod, hostedOnUnderlay bool) *AppGwIngressController {
 	controller := &AppGwIngressController{
 		azClient:         azClient,
 		appGwIdentifier:  appGwIdentifier,
 		k8sContext:       k8sContext,
 		recorder:         recorder,
+		cniReconciler:    cniReconciler,
 		configCache:      to.ByteSlicePtr([]byte{}),
 		ipAddressMap:     map[string]k8scontext.IPAddress{},
 		stopChannel:      make(chan struct{}),
@@ -112,8 +119,16 @@ func (c *AppGwIngressController) Readiness() bool {
 func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	processEventStart := time.Now()
 
-	appGw, cbCtx, err := c.GetAppGw()
+	err := c.cniReconciler.Reconcile((context.Background()))
+	if err != nil {
+		// Not treated as fatal errors, but we log them and emit a warning event.
+		if c.agicPod != nil {
+			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonFailedCNIConfiguration, err.Error())
+		}
+		klog.Warning(err)
+	}
 
+	appGw, cbCtx, err := c.GetAppGw()
 	if err != nil {
 		klog.Error("Error Retrieving AppGw for k8s event. ", err)
 		return err
@@ -145,7 +160,7 @@ func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	}
 	c.MetricStore.IncArmAPIUpdateCallSuccessCounter()
 
-	duration := time.Now().Sub(processEventStart)
+	duration := time.Since(processEventStart)
 	c.MetricStore.SetUpdateLatencySec(duration)
 
 	// We keep this at log level 1 to show some heartbeat in the logs. Without this it is way too quiet.
@@ -167,7 +182,7 @@ func reconcilerTickerTask(work chan events.Event, stopChannel chan struct{}, rec
 				Type: events.PeriodicReconcile,
 			}
 		case <-stopChannel:
-			break
+			return
 		}
 	}
 }
