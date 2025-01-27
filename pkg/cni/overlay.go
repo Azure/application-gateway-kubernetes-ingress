@@ -15,10 +15,6 @@ import (
 )
 
 const (
-	ErrClusterNotUsingOverlayCNI = "failed to check if cluster is using overlay CNI"
-)
-
-const (
 	ResourceManagedByLabel      = "app.kubernetes.io/managed-by"
 	ResourceManagedByAddonValue = "ingress-appgw-addon"
 	ResourceManagedByHelmValue  = "ingress-appgw-helm"
@@ -38,7 +34,7 @@ const (
 func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID string) error {
 	isOverlay, err := r.isClusterOverlayCNI(ctx)
 	if err != nil {
-		return errors.Wrap(err, ErrClusterNotUsingOverlayCNI)
+		return errors.New("failed to check if cluster is using overlay CNI")
 	}
 
 	if !isOverlay {
