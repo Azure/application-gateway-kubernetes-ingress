@@ -2,6 +2,7 @@ package cni
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	nodenetworkconfig_v1alpha "github.com/Azure/azure-container-networking/crd/nodenetworkconfig/api/v1alpha"
@@ -129,9 +130,12 @@ func (r *Reconciler) checkOverlayExtensionConfigStatus(ctx context.Context) erro
 			return false, errors.Wrap(err, "failed to get overlay extension config")
 		}
 
-		if config.Status.State == overlayextensionconfig_v1alpha1.Succeeded {
+		switch config.Status.State {
+		case overlayextensionconfig_v1alpha1.Succeeded:
 			klog.Infof("Overlay extension config is ready")
 			return true, nil
+		case overlayextensionconfig_v1alpha1.Failed:
+			return true, fmt.Errorf("overlay extension config failed with error: %s", config.Status.Message)
 		}
 
 		klog.Infof("Waiting for overlay extension config to be ready")

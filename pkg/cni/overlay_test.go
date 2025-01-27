@@ -184,6 +184,40 @@ var _ = Describe("Overlay CNI", func() {
 		})
 	})
 
+	When("OverlayExtensionConfig fails to reconcile", func() {
+		BeforeEach(func() {
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{SubnetPropertiesFormat: &n.SubnetPropertiesFormat{AddressPrefix: to.StringPtr(subnetCIDR)}}, nil
+			}
+
+			// Create NodeNetworkConfig so that cluster is considered as overlay CNI
+			Expect(k8sClient.Create(ctx, &nodenetworkconfig_v1alpha.NodeNetworkConfig{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace},
+				Spec:       nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+			})).To(BeNil())
+
+			go func() {
+				for {
+					var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+					if err := k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config); err != nil {
+						time.Sleep(1 * time.Second)
+						continue
+					}
+					config.Status.State = overlayextensionconfig_v1alpha1.Failed
+					config.Status.Message = "some error"
+					_ = k8sClient.Update(ctx, &config)
+					break
+				}
+			}()
+		})
+
+		It("should return error", func() {
+			err := reconciler.Reconcile(ctx)
+			Expect(err).To(Not(BeNil()))
+			Expect(err.Error()).To(ContainSubstring("overlay extension config failed with error: some error"))
+		})
+	})
+
 	AfterEach(func() {
 		cancel()
 	})
