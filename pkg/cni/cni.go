@@ -27,7 +27,8 @@ type Reconciler struct {
 	namespace string
 	addonMode bool
 
-	routeTableAttached bool
+	reconciledKubenetCNI bool
+	reconciledOverlayCNI bool
 }
 
 func NewReconciler(armClient azure.AzClient,
@@ -39,13 +40,14 @@ func NewReconciler(armClient azure.AzClient,
 	namespace string,
 	addonMode bool) *Reconciler {
 	return &Reconciler{
-		armClient:          armClient,
-		client:             client,
-		cpConfig:           cpConfig,
-		appGw:              appGw,
-		namespace:          namespace,
-		addonMode:          addonMode,
-		routeTableAttached: false,
+		armClient:            armClient,
+		client:               client,
+		cpConfig:             cpConfig,
+		appGw:                appGw,
+		namespace:            namespace,
+		addonMode:            addonMode,
+		reconciledKubenetCNI: false,
+		reconciledOverlayCNI: false,
 	}
 }
 

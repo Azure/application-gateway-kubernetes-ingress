@@ -33,6 +33,10 @@ const (
 )
 
 func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID string) error {
+	if r.reconciledOverlayCNI {
+		return nil
+	}
+
 	isOverlay, err := r.isClusterOverlayCNI(ctx)
 	if err != nil {
 		return errors.New("failed to check if cluster is using overlay CNI")
@@ -54,6 +58,7 @@ func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID s
 		return errors.Wrap(err, "failed to reconcile overlay resources")
 	}
 
+	r.reconciledOverlayCNI = true
 	return nil
 }
 

@@ -6,11 +6,11 @@ import (
 )
 
 func (r *Reconciler) reconcileKubenetCniIfNeeded(cpConfig *azure.CloudProviderConfig, subnetID string) error {
-	if cpConfig == nil || cpConfig.RouteTableName == "" {
+	if r.reconciledKubenetCNI {
 		return nil
 	}
 
-	if r.routeTableAttached {
+	if cpConfig == nil || cpConfig.RouteTableName == "" {
 		return nil
 	}
 
@@ -21,6 +21,6 @@ func (r *Reconciler) reconcileKubenetCniIfNeeded(cpConfig *azure.CloudProviderCo
 			routeTableID)
 	}
 
-	r.routeTableAttached = true
+	r.reconciledKubenetCNI = true
 	return nil
 }
