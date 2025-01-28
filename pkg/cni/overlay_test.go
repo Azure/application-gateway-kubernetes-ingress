@@ -36,6 +36,28 @@ var _ = Describe("Overlay CNI", func() {
 		reconciler *cni.Reconciler
 	)
 
+	mockOecReconciler := func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(1 * time.Second):
+				var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+				if err := k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config); err != nil {
+					continue
+				}
+
+				if config.Status.State != "" {
+					continue
+				}
+
+				config.Status.State = overlayextensionconfig_v1alpha1.Succeeded
+				_ = k8sClient.Update(ctx, &config)
+				return
+			}
+		}
+	}
+
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		azClient = azure.NewFakeAzClient()
@@ -81,27 +103,7 @@ var _ = Describe("Overlay CNI", func() {
 
 			// Run a goroutine to update the status of
 			// OverlayExtensionConfig to Succeeded.
-			go func() {
-				for {
-					select {
-					case <-ctx.Done():
-						return
-					case <-time.After(1 * time.Second):
-						var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
-						if err := k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config); err != nil {
-							continue
-						}
-
-						if config.Status.State != "" {
-							continue
-						}
-
-						config.Status.State = overlayextensionconfig_v1alpha1.Succeeded
-						_ = k8sClient.Update(ctx, &config)
-						return
-					}
-				}
-			}()
+			go mockOecReconciler()
 		})
 
 		When("OEC doesn't exist", func() {
@@ -183,18 +185,7 @@ var _ = Describe("Overlay CNI", func() {
 				return n.Subnet{SubnetPropertiesFormat: &n.SubnetPropertiesFormat{AddressPrefix: to.StringPtr(subnetCIDR)}}, nil
 			}
 
-			go func() {
-				for {
-					var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
-					if err := k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config); err != nil {
-						time.Sleep(1 * time.Second)
-						continue
-					}
-					config.Status.State = overlayextensionconfig_v1alpha1.Succeeded
-					_ = k8sClient.Update(ctx, &config)
-					break
-				}
-			}()
+			go mockOecReconciler()
 		})
 
 		It("should create overlay extension config eventually", func() {
