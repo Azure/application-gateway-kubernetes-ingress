@@ -85,42 +85,45 @@ func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnet
 			return errors.Wrap(err, "failed to get overlay extension config")
 		}
 
-		managedByValue := ResourceManagedByHelmValue
-		if r.addonMode {
-			managedByValue = ResourceManagedByAddonValue
-		}
-
-		config = overlayextensionconfig_v1alpha1.OverlayExtensionConfig{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name:      OverlayExtensionConfigName,
-				Namespace: r.namespace,
-				Labels: map[string]string{
-					ResourceManagedByLabel: managedByValue,
-				},
-			},
-			Spec: overlayextensionconfig_v1alpha1.OverlayExtensionConfigSpec{
-				ExtensionIPRange: subnetCIDR,
-			},
-		}
-
-		klog.Infof("Creating overlay extension config with subnet CIDR %s", subnetCIDR)
-		err := r.client.Create(ctx, &config)
-		if err != nil {
-			return errors.Wrap(err, "failed to create overlay extension config")
-		}
-
-		return r.checkOverlayExtensionConfigStatus(ctx)
+		return r.createOverlayExtensionConfig(ctx, subnetCIDR)
 	}
 
 	if config.Spec.ExtensionIPRange == subnetCIDR {
 		return r.checkOverlayExtensionConfigStatus(ctx)
 	}
 
-	config.Spec.ExtensionIPRange = subnetCIDR
 	klog.Infof("Updating overlay extension config with subnet CIDR %s", subnetCIDR)
-	err := r.client.Update(ctx, &config)
-	if err != nil {
-		return errors.Wrap(err, "failed to update overlay extension config")
+
+	// Delete the existing config and create a new one
+	if err := r.client.Delete(ctx, &config); err != nil {
+		return errors.Wrap(err, "failed to delete overlay extension config")
+	}
+
+	return r.createOverlayExtensionConfig(ctx, subnetCIDR)
+}
+
+func (r *Reconciler) createOverlayExtensionConfig(ctx context.Context, subnetCIDR string) error {
+	managedByValue := ResourceManagedByHelmValue
+	if r.addonMode {
+		managedByValue = ResourceManagedByAddonValue
+	}
+
+	config := overlayextensionconfig_v1alpha1.OverlayExtensionConfig{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name:      OverlayExtensionConfigName,
+			Namespace: r.namespace,
+			Labels: map[string]string{
+				ResourceManagedByLabel: managedByValue,
+			},
+		},
+		Spec: overlayextensionconfig_v1alpha1.OverlayExtensionConfigSpec{
+			ExtensionIPRange: subnetCIDR,
+		},
+	}
+
+	klog.Infof("Creating overlay extension config with subnet CIDR %s", subnetCIDR)
+	if err := r.client.Create(ctx, &config); err != nil {
+		return errors.Wrap(err, "failed to create overlay extension config")
 	}
 
 	return r.checkOverlayExtensionConfigStatus(ctx)

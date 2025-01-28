@@ -119,7 +119,7 @@ func (c *AppGwIngressController) Readiness() bool {
 func (c *AppGwIngressController) ProcessEvent(event events.Event) error {
 	processEventStart := time.Now()
 
-	err := c.cniReconciler.Reconcile((context.Background()))
+	err := c.cniReconciler.Reconcile(context.Background())
 	if err != nil {
 		// Not treated as fatal errors, but we log them and emit a warning event.
 		if c.agicPod != nil {

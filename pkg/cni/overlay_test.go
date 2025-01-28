@@ -92,6 +92,10 @@ var _ = Describe("Overlay CNI", func() {
 							continue
 						}
 
+						if config.Status.State != "" {
+							continue
+						}
+
 						config.Status.State = overlayextensionconfig_v1alpha1.Succeeded
 						_ = k8sClient.Update(ctx, &config)
 						return
@@ -141,6 +145,35 @@ var _ = Describe("Overlay CNI", func() {
 			err := reconciler.Reconcile(ctx)
 			Expect(err).To(Not(BeNil()))
 			Expect(err.Error()).To(ContainSubstring("failed to get subnet"))
+		})
+
+		It("should delete and recreate OEC if subnet CIDR changes", func() {
+			// Create OverlayExtensionConfig
+			Expect(k8sClient.Create(ctx, &overlayextensionconfig_v1alpha1.OverlayExtensionConfig{
+				ObjectMeta: metav1.ObjectMeta{Name: cni.OverlayExtensionConfigName, Namespace: namespace, UID: "old-uid"},
+				Spec: overlayextensionconfig_v1alpha1.OverlayExtensionConfigSpec{
+					ExtensionIPRange: subnetCIDR,
+				},
+				Status: overlayextensionconfig_v1alpha1.OverlayExtensionConfigStatus{
+					State: overlayextensionconfig_v1alpha1.Succeeded,
+				},
+			})).To(BeNil())
+
+			var oldConfig overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			Expect(k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &oldConfig)).To(BeNil())
+
+			// Update the subnet CIDR
+			subnetCIDR = "10.0.0.0/18"
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{SubnetPropertiesFormat: &n.SubnetPropertiesFormat{AddressPrefix: to.StringPtr(subnetCIDR)}}, nil
+			}
+
+			Expect(reconciler.Reconcile(ctx)).To(BeNil())
+
+			var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			Expect(k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config)).To(BeNil())
+			Expect(config.Spec.ExtensionIPRange).To(Equal(subnetCIDR))
+			Expect(config.UID).To(Not(Equal(oldConfig.UID)))
 		})
 	})
 
