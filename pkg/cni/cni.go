@@ -2,7 +2,6 @@ package cni
 
 import (
 	"context"
-	"time"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
@@ -10,11 +9,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	// PollInterval is the interval at which the reconciler polls for the status of the resources.
-	PollInterval = 5 * time.Second
 )
 
 // Reconciler reconciles the resources required to configure
