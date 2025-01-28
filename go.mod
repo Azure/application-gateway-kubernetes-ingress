@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/Azure/azure-container-networking v1.6.19
-	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.1
 	github.com/Azure/go-autorest/autorest v0.11.29
