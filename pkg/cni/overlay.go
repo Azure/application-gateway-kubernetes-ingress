@@ -112,6 +112,10 @@ func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnet
 		return r.checkOverlayExtensionConfigStatus(ctx)
 	}
 
+	if config.Spec.ExtensionIPRange == subnetCIDR {
+		return r.checkOverlayExtensionConfigStatus(ctx)
+	}
+
 	config.Spec.ExtensionIPRange = subnetCIDR
 	klog.Infof("Updating overlay extension config with subnet CIDR %s", subnetCIDR)
 	err := r.client.Update(ctx, &config)
