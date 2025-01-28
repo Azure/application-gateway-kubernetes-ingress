@@ -1,5 +1,5 @@
-github.com/Azure/azure-container-networking v1.6.18 h1:EGzvYSXKoCltJdwZnYxHtROOwMa+oPi/fpE5tbAPVS8=
-github.com/Azure/azure-container-networking v1.6.18/go.mod h1:QoQseiV2CRF4pQNAGCAPfc5o5uIwNpylFsfZQjfjcsw=
+github.com/Azure/azure-container-networking v1.6.19 h1:+Z++F19x22lHuRlyTL7ZGcjqXBi71VoA4UKu5kz7HnU=
+github.com/Azure/azure-container-networking v1.6.19/go.mod h1:pTAGzKIaIDSQHut0/nNGf6JSOVI6bp4kElw//awxxjg=
 github.com/Azure/azure-sdk-for-go v66.0.0+incompatible h1:bmmC38SlE8/E81nNADlgmVGurPWMHDX2YNXVQMrBpEE=
 github.com/Azure/azure-sdk-for-go v66.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0 h1:g0EZJwz7xkXQiZAI5xi9f3WWFYBlX1CPTrR+NDToRkQ=
