@@ -248,9 +248,6 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
 	if routeTable.Response.StatusCode == 404 {
-		klog.V(3).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
-			routeTableID,
-			err.Error())
 		return nil
 	}
 

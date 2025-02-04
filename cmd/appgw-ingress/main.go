@@ -6,7 +6,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -140,16 +139,6 @@ func main() {
 		AppGwName:      env.AppGwName,
 	}
 
-	// create a new agic controller
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, env.HostedOnUnderlay)
-
-	// initialize the http server and start it
-	httpServer := httpserver.NewHTTPServer(
-		appGwIngressController,
-		metricStore,
-		env.HTTPServicePort)
-	httpServer.Start()
-
 	klog.V(3).Infof("Application Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
 	var authorizer autorest.Authorizer
@@ -215,12 +204,17 @@ func main() {
 		klog.Fatal(errorLine)
 	}
 
-	if err := cni.ReconcileCNI(context.Background(), azClient, ctrlClient, env.AGICPodNamespace, cpConfig, appGw, env.AddonMode); err != nil {
-		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonFailedCNIConfiguration, err.Error())
-		}
-		klog.Warning(err)
-	}
+	cniReconciler := cni.NewReconciler(azClient, ctrlClient, recorder, cpConfig, appGw, agicPod, env.AGICPodNamespace, env.AddonMode)
+
+	// create a new agic controller
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, cniReconciler, agicPod, env.HostedOnUnderlay)
+
+	// initialize the http server and start it
+	httpServer := httpserver.NewHTTPServer(
+		appGwIngressController,
+		metricStore,
+		env.HTTPServicePort)
+	httpServer.Start()
 
 	if err := appGwIngressController.Start(env); err != nil {
 		errorLine := fmt.Sprint("Could not start AGIC: ", err)
