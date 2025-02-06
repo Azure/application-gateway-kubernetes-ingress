@@ -1,0 +1,45 @@
+name: "Trivy Vulnerability Scanner"
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+  pull_request:
+    branches:
+    - master
+    - release/*
+  schedule:
+    - cron: '0 0 * * *'  # Runs every 24 hours at midnight UTC
+
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+
+jobs:
+  trivy_vulnerability_scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BUILD_TAG: latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Build AGIC docker image
+      run: make build-image
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3.28.2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

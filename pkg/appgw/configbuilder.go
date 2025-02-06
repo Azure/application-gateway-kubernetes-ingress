@@ -151,8 +151,10 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, e
 	}
 
-	c.addTags()
+	// Remove unused default pool and settings
+	c.CleanUpUnusedDefaults()
 
+	c.addTags()
 	return &c.appGw, nil
 }
 
@@ -231,9 +233,9 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 	if overridePort != nil {
 		if *overridePort > 0 && *overridePort < 65000 {
 			frontendPort = *overridePort
-			klog.V(5).Infof("Using custom port specified in the override annotation: %d", *overridePort)
+			klog.V(3).Infof("Using custom port specified in the override annotation: %d", *overridePort)
 		} else {
-			klog.V(5).Infof("Derived listener port from ingress: %d", frontendPort)
+			klog.V(3).Infof("Derived listener port from ingress: %d", frontendPort)
 		}
 
 	}
@@ -255,7 +257,7 @@ func generateListenerID(ingress *networking.Ingress, rule *networking.IngressRul
 
 	extendedHostNames, err := annotations.GetHostNameExtensions(ingress)
 	if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
-		klog.V(5).Infof("Error while parsing host name extensions: %s", err)
+		klog.V(3).Infof("Error while parsing host name extensions: %s", err)
 	} else {
 		if extendedHostNames != nil {
 			hostNames = append(hostNames, extendedHostNames...)
@@ -277,7 +279,7 @@ func (c *appGwConfigBuilder) addTags() {
 	if aksResourceID, err := azure.ConvertToClusterResourceGroup(c.k8sContext.GetInfrastructureResourceGroupID()); err == nil {
 		c.appGw.Tags[tags.IngressForAKSClusterID] = to.StringPtr(aksResourceID)
 	} else {
-		klog.V(5).Infof("Error while parsing cluster resource ID for tagging: %s", err)
+		klog.V(3).Infof("Error while parsing cluster resource ID for tagging: %s", err)
 	}
 }
 

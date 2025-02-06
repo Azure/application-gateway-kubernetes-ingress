@@ -1,0 +1,76 @@
+---
+# Source: ingress-azure/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-ingress-azure
+  labels:
+    app: ingress-azure
+    chart: ingress-azure-1.6.0
+    heritage: Helm
+    release: release-name
+spec:
+  replicas: 1 # TODO: Make configurable when leader election is supported.
+  selector:
+    matchLabels:
+      app: ingress-azure
+      release: release-name
+  template:
+    metadata:
+      labels:
+        app: ingress-azure
+        release: release-name
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8123"
+    spec:
+      serviceAccountName: release-name-sa-ingress-azure
+      securityContext:
+        runAsUser: 0
+      containers:
+      - name: ingress-azure
+        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8123
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health/alive
+            port: 8123
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        env:
+        - name: AZURE_CLOUD_PROVIDER_LOCATION
+          value: /etc/appgw/azure.json
+        - name: AGIC_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: AGIC_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AZURE_AUTH_LOCATION
+          value: /etc/Azure/Networking-AppGW/auth/armAuth.json
+        envFrom:
+        - configMapRef:
+            name: release-name-cm-ingress-azure
+        volumeMounts:
+        - name: azure
+          mountPath: /etc/appgw/
+          readOnly: true
+        - name: networking-appgw-k8s-azure-service-principal-mount
+          mountPath: /etc/Azure/Networking-AppGW/auth
+          readOnly: true
+      volumes:
+      - name: azure
+        hostPath:
+          path: /etc/kubernetes/
+          type: Directory
+      - name: networking-appgw-k8s-azure-service-principal-mount
+        secret:
+          secretName: my-existing-secret

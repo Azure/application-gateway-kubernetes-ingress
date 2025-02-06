@@ -39,7 +39,7 @@ func validateNamespaces(namespaces []string, kubeClient *kubernetes.Clientset) e
 			controllererrors.ErrorNoSuchNamespace,
 			"error creating informers; Namespaces do not exist or Ingress Controller has no access to: %v", strings.Join(nonExistent, ","),
 		)
-		klog.Errorf(err.Error())
+		klog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -87,7 +87,6 @@ func getKubeClientConfig() *rest.Config {
 
 func getEventRecorder(kubeClient kubernetes.Interface, ingressClassControllerName string) record.EventRecorder {
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(klog.V(5).Infof)
 	sink := &typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")}
 	eventBroadcaster.StartRecordingToSink(sink)
 	hostname, err := os.Hostname()

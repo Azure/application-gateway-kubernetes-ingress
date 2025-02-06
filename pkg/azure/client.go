@@ -34,6 +34,7 @@ type AzClient interface {
 	UpdateGateway(*n.ApplicationGateway) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
 	DeployGatewayWithSubnet(string, string) error
+	GetSubnet(string) (n.Subnet, error)
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
 }
@@ -130,7 +131,7 @@ func (az *azClient) SetDuration(retryDuration time.Duration) {
 }
 
 func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
-	klog.V(5).Info("Getting Application Gateway configuration.")
+	klog.V(3).Info("Getting Application Gateway configuration.")
 	err = utils.Retry(maxRetryCount, retryPause,
 		func() (utils.Retriable, error) {
 			response, err := az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
@@ -174,7 +175,7 @@ func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 					)
 
 					e.Message += fmt.Sprintf(" You can use '%s' to assign permissions."+
-						" AGIC Identity needs atleast has 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
+						" AGIC Identity needs at least 'Contributor' access to Application Gateway '%s' and 'Reader' access to Application Gateway's Resource Group '%s'.",
 						roleAssignmentCmd,
 						string(az.appGwName),
 						string(az.resourceGroupName),
@@ -247,9 +248,6 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
 	if routeTable.Response.StatusCode == 404 {
-		klog.V(5).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
-			routeTableID,
-			err.Error())
 		return nil
 	}
 
@@ -267,12 +265,12 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	if subnet.RouteTable != nil {
 		if *subnet.RouteTable.ID != routeTableID {
-			klog.V(5).Infof("Skipping associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster as it is already associated to route table '%s'.",
+			klog.V(3).Infof("Skipping associating Application Gateway subnet '%s' with route table '%s' used by k8s cluster as it is already associated to route table '%s'.",
 				subnetID,
 				routeTableID,
 				*subnet.SubnetPropertiesFormat.RouteTable.ID)
 		} else {
-			klog.V(5).Infof("Application Gateway subnet '%s' is associated with route table '%s' used by k8s cluster.",
+			klog.V(3).Infof("Application Gateway subnet '%s' is associated with route table '%s' used by k8s cluster.",
 				subnetID,
 				routeTableID)
 		}
@@ -295,6 +293,12 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	}
 
 	return nil
+}
+
+func (az *azClient) GetSubnet(subnetID string) (n.Subnet, error) {
+	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
+	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
+	return subnet, err
 }
 
 // DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.

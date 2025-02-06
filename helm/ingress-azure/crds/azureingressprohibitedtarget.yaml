@@ -3,7 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   name: azureingressprohibitedtargets.appgw.ingress.k8s.io
   annotations:
-    "helm.sh/hook": crd-install
     "api-approved.kubernetes.io": "https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1272"
 spec:
   group: appgw.ingress.k8s.io

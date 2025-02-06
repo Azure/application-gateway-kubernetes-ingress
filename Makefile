@@ -15,13 +15,14 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.19.5
+BUILD_BASE_IMAGE ?= golang:1.23.5-bookworm
+BINARY_BASE_IMAGE ?= mcr.microsoft.com/cbl-mariner/distroless/base:2.0
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
 IMAGE = ${REPO}/${IMAGE_NAME}
 
-IMAGE_RESULT_FLAG = --output=type=oci,dest=$(shell pwd)/image/ingress-agic-$(VERSION).tar
+IMAGE_RESULT_FLAG = --output=type=oci,dest=$(shell pwd)/image/ingress-agic-$(BUILD_TAG).tar
 ifeq ($(PUSH_IMAGE), true)
 	IMAGE_RESULT_FLAG = --push
 endif
@@ -51,12 +52,23 @@ GO_BUILD_VARS = \
 
 GO_LDFLAGS := -s -w $(patsubst %,-X %, $(GO_BUILD_VARS))
 
+build-image:
+	@docker build \
+		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
+		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
+		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
+		--build-arg "GIT_HASH=$(GIT_HASH)" \
+		$(IMAGE_TAGS) \
+		$(shell pwd)
+
 build-image-multi-arch:
 	@mkdir -p $(shell pwd)/image
 	@docker run --rm --privileged linuxkit/binfmt:v0.8
 	@docker buildx build $(IMAGE_RESULT_FLAG) \
 		--platform $(IMAGE_PLATFORMS) \
 		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
 		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
 		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
 		--build-arg "GIT_HASH=$(GIT_HASH)" \
@@ -125,3 +137,17 @@ unittest:
 	@gocov-xml < coverage.json > coverage.xml
 	@mkdir coverage
 	@gocov-html < coverage.json > coverage/index.html
+
+publish-official:
+	@echo "Publishing official AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh prod
+	./scripts/release-helm.sh prod
+
+publish-staging:
+	@echo "Publishing staging AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh
+	./scripts/release-helm.sh

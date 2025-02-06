@@ -1,5 +1,7 @@
 # Tutorial: Basic
 
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 These tutorials help illustrate the usage of [Kubernetes Ingress Resources](https://kubernetes.io/docs/concepts/services-networking/ingress/) to expose an example Kubernetes service through the [Azure Application Gateway](https://azure.microsoft.com/en-us/services/application-gateway/) over HTTP or HTTPS.
 
 ## Table of Contents
@@ -15,8 +17,7 @@ These tutorials help illustrate the usage of [Kubernetes Ingress Resources](http
 ## Prerequisites
 
 - Installed `ingress-azure` helm chart.
-  - [**Greenfield Deployment**](../setup/install-new.md): If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
-  - [**Brownfield Deployment**](../setup/install-existing.md): If you have an existing AKS cluster and Application Gateway, refer to these instructions to install application gateway ingress controller on the AKS cluster.
+  - [**Greenfield Deployment**](../setup/install.md): If you are starting from scratch, refer to these installation instructions which outlines steps to deploy an AKS cluster with Application Gateway and install application gateway ingress controller on the AKS cluster.
 - If you want to use HTTPS on this application, you will need a x509 certificate and its private key.
 
 ## Deploy `guestbook` application
@@ -124,7 +125,7 @@ Now the `guestbook` application will be available on HTTPS.
 
 In order to make the `guestbook` application available on HTTP, annotate the `Ingress` with
 
-```
+```yaml
   appgw.ingress.kubernetes.io/ssl-redirect: "true"
 ```
 

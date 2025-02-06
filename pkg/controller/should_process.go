@@ -48,7 +48,7 @@ func (c AppGwIngressController) ShouldProcess(event events.Event) (bool, *string
 			return false, to.StringPtr(reason)
 		}
 
-		klog.V(5).Info("Triggered by reconciler event")
+		klog.V(3).Info("Triggered by reconciler event")
 	}
 
 	return true, nil

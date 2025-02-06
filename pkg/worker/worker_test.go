@@ -41,7 +41,7 @@ var _ = Describe("Worker Test", func() {
 			}
 			go worker.Run(work, stopChannel)
 
-			ingress := *tests.NewIngressFixture()
+			ingress := tests.NewIngressFixture()
 			work <- events.Event{
 				Type:  events.Create,
 				Value: ingress,

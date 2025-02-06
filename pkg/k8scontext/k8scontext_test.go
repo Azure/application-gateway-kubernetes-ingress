@@ -12,7 +12,7 @@ import (
 
 	"github.com/getlantern/deepcopy"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
@@ -73,7 +73,6 @@ var _ = ginkgo.Describe("K8scontext", func() {
 					}
 				}
 			case <-time.After(1 * time.Second):
-				break
 			}
 
 			if len(exists) == len(resourceList) {
@@ -416,7 +415,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			err := ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
-			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(networking.IngressLoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
 			}))
@@ -431,7 +430,7 @@ var _ = ginkgo.Describe("K8scontext", func() {
 			err = ctxt.UpdateIngressStatus(*ingress, ip)
 			Expect(err).ToNot(HaveOccurred())
 			updatedIngress, _ := k8sClient.NetworkingV1().Ingresses(ingress.Namespace).Get(context.TODO(), ingress.Name, metav1.GetOptions{})
-			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(v1.LoadBalancerIngress{
+			Expect(updatedIngress.Status.LoadBalancer.Ingress).Should(ContainElement(networking.IngressLoadBalancerIngress{
 				Hostname: "",
 				IP:       string(ip),
 			}))

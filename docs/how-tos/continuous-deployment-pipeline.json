@@ -259,7 +259,7 @@
                                 "namespace": "agic",
                                 "command": "upgrade",
                                 "chartType": "Name",
-                                "chartName": "application-gateway-kubernetes-ingress/ingress-azure",
+                                "chartName": "oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure",
                                 "chartPath": "",
                                 "version": "",
                                 "releaseName": "agic",

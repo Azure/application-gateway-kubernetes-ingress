@@ -15,6 +15,7 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/knative/pkg/apis/istio/v1alpha3"
 	v1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
@@ -107,7 +108,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 		informers:              &informerCollection,
 		ingressSecretsMap:      utils.NewThreadsafeMultimap(),
 		Caches:                 &cacheCollection,
-		CertificateSecretStore: NewSecretStore(),
+		CertificateSecretStore: NewSecretStore(kubeClient),
 		Work:                   make(chan events.Event, workBuffer),
 		CacheSynced:            make(chan interface{}),
 
@@ -568,7 +569,7 @@ func (c *Context) ListAzureProhibitedTargets() []*prohibitedv1.AzureIngressProhi
 		prohibitedTargets = append(prohibitedTargets, fmt.Sprintf("%s/%s", target.Namespace, target.Name))
 	}
 
-	klog.V(5).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
+	klog.V(3).Infof("AzureIngressProhibitedTargets: %+v", strings.Join(prohibitedTargets, ","))
 
 	return targets
 }
@@ -651,7 +652,7 @@ func (c *Context) GetVirtualServicesForGateway(gateway v1alpha3.Gateway) []*v1al
 	for _, virtualService := range virtualServices {
 		virtualServiceLogging = append(virtualServiceLogging, fmt.Sprintf("%s/%s", virtualService.Namespace, virtualService.Name))
 	}
-	klog.V(5).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
+	klog.V(3).Infof("Found Virtual Services: %+v", strings.Join(virtualServiceLogging, ","))
 	return virtualServices
 }
 
@@ -750,9 +751,9 @@ func (c *Context) updateV1IngressStatus(ingressToUpdate networking.Ingress, newI
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []networking.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, networking.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}
@@ -792,9 +793,9 @@ func (c *Context) updateV1beta1IngressStatus(ingressToUpdate networking.Ingress,
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []extensionsv1beta1.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, extensionsv1beta1.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}
@@ -833,9 +834,9 @@ func (c *Context) updateMultiClusterIngressStatus(ingressToUpdate networking.Ing
 		}
 	}
 
-	loadBalancerIngresses := []v1.LoadBalancerIngress{}
+	loadBalancerIngresses := []networking.IngressLoadBalancerIngress{}
 	if newIP != "" {
-		loadBalancerIngresses = append(loadBalancerIngresses, v1.LoadBalancerIngress{
+		loadBalancerIngresses = append(loadBalancerIngresses, networking.IngressLoadBalancerIngress{
 			IP: string(newIP),
 		})
 	}

@@ -1,5 +1,7 @@
 # Annotations
 
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment. A list of corresponding translations from AGIC to Application Gateway for Containers may be found [here](https://learn.microsoft.com/azure/application-gateway/for-containers/migrate-from-agic-to-agc).
+
 ## Introductions
 
 The Kubernetes Ingress resource can be annotated with arbitrary key/value pairs. AGIC relies on annotations to program Application Gateway features, which are not configurable via the Ingress YAML. Ingress annotations are applied to all HTTP setting, backend pools and listeners derived from an ingress resource.

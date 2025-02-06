@@ -1,5 +1,7 @@
 # Certificate issuance with LetsEncrypt.org
 
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 This section configures your AKS to leverage [LetsEncrypt.org](https://letsencrypt.org/) and automatically obtain a
 TLS/SSL certificate for your domain. The certificate will be installed on Application Gateway, which will perform
 SSL/TLS termination for your AKS cluster. The setup described here uses the

@@ -6,10 +6,10 @@ theme:
   name: readthedocs
   highlightjs: true
   hljs_languages:
-    - yaml
-    - rust
-    - bash
-    - go
+  - yaml
+  - rust
+  - bash
+  - go
   shortcuts:
     help: 191    # ?
     next: 78     # n
@@ -27,7 +27,7 @@ plugins:
         - examples/sample-app/*
 
 extra_css:
-  - css/extra.css
+  - docs/css/extra.css
 
 markdown_extensions:
   - pymdownx.arithmatex
@@ -37,7 +37,7 @@ markdown_extensions:
   - pymdownx.critic
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+      emoji_generator: pymdownx.emoji.to_svg
   - pymdownx.inlinehilite
   - pymdownx.magiclink
   - pymdownx.mark

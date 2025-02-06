@@ -9,8 +9,8 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -43,7 +43,7 @@ func GetLastChunkOfSlashed(s string) string {
 
 // SaveToFile saves the content into a file named "fileName" - a tool primarily used for debugging purposes.
 func SaveToFile(fileName string, content []byte) (string, error) {
-	tempFile, err := ioutil.TempFile("", fileName)
+	tempFile, err := os.CreateTemp("", fileName)
 	if err != nil {
 		klog.Error(err)
 		return tempFile.Name(), err
@@ -96,4 +96,12 @@ func RemoveDuplicateStrings(list []string) []string {
 	}
 
 	return result
+}
+
+func ParseNamespacedName(namespacedName string) (string, string, error) {
+	split := strings.Split(namespacedName, "/")
+	if len(split) != 2 {
+		return "", "", fmt.Errorf("invalid namespaced name %s", namespacedName)
+	}
+	return split[0], split[1], nil
 }

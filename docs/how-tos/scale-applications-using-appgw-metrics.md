@@ -1,5 +1,7 @@
 # Scale your Applications using Application Gateway Metrics (Beta)
 
+> **_NOTE:_** [Application Gateway for Containers](https://aka.ms/agc) has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.
+
 As incoming traffic increases, it becomes crucial to scale up your applications based on the demand.
 
 In the following tutorial, we explain how you can use Application Gateway's `AvgRequestCountPerHealthyHost` metric to scale up your application. `AvgRequestCountPerHealthyHost` is measure of average request that are sent to a specific backend pool and backend http setting combination.
@@ -12,6 +14,7 @@ We are going to use following two components:
 ## Setting up Azure K8S Metric Adapter
 
 1. We will first create an Azure AAD service principal and assign it `Monitoring Reader` access over Application Gateway's resource group. Paste the following lines in your [Azure Cloud Shell](https://shell.azure.com/):
+
     ```bash
     applicationGatewayGroupName="<application-gateway-group-id>"
     applicationGatewayGroupId=$(az group show -g $applicationGatewayGroupName -o tsv --query "id")
@@ -53,6 +56,7 @@ We are going to use following two components:
     ```
 
 You can now make a request to the metric server to see if our new metric is getting exposed:
+
 ```bash
 kubectl get --raw "/apis/external.metrics.k8s.io/v1beta1/namespaces/default/appgw-request-count-metric"
 # Sample Output
@@ -82,6 +86,7 @@ Once we are able to expose `appgw-request-count-metric` through the metric serve
 In following example, we will target a sample deployment `aspnet`. We will scale up Pods when `appgw-request-count-metric` > 200 per Pod upto a max of `10` Pods.
 
 Replace your target deployment name and apply the following auto scale configuration. Copy paste this YAML content in `autoscale-config.yaml` and apply with `kubectl apply -f autoscale-config.yaml`.
+
 ```yaml
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
@@ -102,6 +107,7 @@ spec:
 ```
 
 Test your configuration by using a load test tools like apache bench:
+
 ```bash
 ab -n10000 http://<application-gateway-ip-address>/
 ```

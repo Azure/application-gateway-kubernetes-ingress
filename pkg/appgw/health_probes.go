@@ -52,8 +52,8 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 
 	healthProbeCollection[*defaultHTTPProbe.Name] = defaultHTTPProbe
 	healthProbeCollection[*defaultHTTPSProbe.Name] = defaultHTTPSProbe
-	klog.V(5).Info("Created default HTTP probe ", *defaultHTTPProbe.Name)
-	klog.V(5).Info("Created default HTTPS probe ", *defaultHTTPProbe.Name)
+	klog.V(3).Info("Created default HTTP probe ", *defaultHTTPProbe.Name)
+	klog.V(3).Info("Created default HTTPS probe ", *defaultHTTPProbe.Name)
 
 	for backendID := range c.newBackendIdsFiltered(cbCtx) {
 		probe := c.generateHealthProbe(backendID)
@@ -67,7 +67,7 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
 		}
-		klog.V(5).Infof("Created probe %s for ingress %s/%s at service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
+		klog.V(3).Infof("Created probe %s for ingress %s/%s at service %s", *probesMap[backendID].Name, backendID.Ingress.Namespace, backendID.Ingress.Name, backendID.serviceKey())
 	}
 
 	c.mem.probesByName = &healthProbeCollection
@@ -118,21 +118,21 @@ func (c *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifier) *n
 
 	k8sProbeForServiceContainer := c.getProbeForServiceContainer(service, backendID)
 	if k8sProbeForServiceContainer != nil {
-		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Host) != 0 {
-			probe.Host = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Host)
+		if len(k8sProbeForServiceContainer.HTTPGet.Host) != 0 {
+			probe.Host = to.StringPtr(k8sProbeForServiceContainer.HTTPGet.Host)
 		}
-		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Path) != 0 {
-			probe.Path = to.StringPtr(k8sProbeForServiceContainer.Handler.HTTPGet.Path)
+		if len(k8sProbeForServiceContainer.HTTPGet.Path) != 0 {
+			probe.Path = to.StringPtr(k8sProbeForServiceContainer.HTTPGet.Path)
 		}
-		if len(k8sProbeForServiceContainer.Handler.HTTPGet.Port.String()) != 0 {
-			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal)
+		if len(k8sProbeForServiceContainer.HTTPGet.Port.String()) != 0 {
+			probe.Port = to.Int32Ptr(k8sProbeForServiceContainer.HTTPGet.Port.IntVal)
 		}
-		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTPS {
+		if k8sProbeForServiceContainer.HTTPGet.Scheme == v1.URISchemeHTTPS {
 			probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 		}
 		// httpGet schema is default to Http if not specified, double check with the port in case for Https
-		if k8sProbeForServiceContainer.Handler.HTTPGet.Scheme == v1.URISchemeHTTP {
-			if k8sProbeForServiceContainer.Handler.HTTPGet.Port.IntVal == 443 {
+		if k8sProbeForServiceContainer.HTTPGet.Scheme == v1.URISchemeHTTP {
+			if k8sProbeForServiceContainer.HTTPGet.Port.IntVal == 443 {
 				probe.Protocol = n.ApplicationGatewayProtocolHTTPS
 			} else {
 				probe.Protocol = n.ApplicationGatewayProtocolHTTP
@@ -258,9 +258,9 @@ func (c *appGwConfigBuilder) getProbeForServiceContainer(service *v1.Service, ba
 
 			// found the container
 			var probe *v1.Probe
-			if container.ReadinessProbe != nil && container.ReadinessProbe.Handler.HTTPGet != nil {
+			if container.ReadinessProbe != nil && container.ReadinessProbe.HTTPGet != nil {
 				probe = container.ReadinessProbe
-			} else if container.LivenessProbe != nil && container.LivenessProbe.Handler.HTTPGet != nil {
+			} else if container.LivenessProbe != nil && container.LivenessProbe.HTTPGet != nil {
 				probe = container.LivenessProbe
 			}
 

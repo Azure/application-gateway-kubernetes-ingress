@@ -1,0 +1,56 @@
+name: "Merge Build"
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+  pull_request:
+    branches:
+    - master
+    - release/*
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Go workspace
+      run: |
+        shopt -s extglob
+        shopt -s dotglob
+      shell: bash
+    - name: Install Helm
+      uses: azure/setup-helm@v4.2.0
+      with:
+        version: v3.11.0
+    - name: Set up Go
+      uses: actions/setup-go@v5.0.1
+      with:
+        go-version: '1.22.5'
+    - name: Go and Helm lint check
+      run: make lint-all
+    - name: Go vet
+      run: make vet-all
+    - name: Get dependencies and build
+      run: make build
+    - name: Run unit tests with code coverage
+      run: make unittest
+    - name: Publish test results
+      if: always()
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: test-results
+        path: ${{ github.workspace }}/**/report.xml
+    - name: Publish code coverage results
+      if: always()
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: code-coverage
+        path: coverage.xml

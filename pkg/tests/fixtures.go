@@ -7,7 +7,7 @@ package tests
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -150,7 +150,7 @@ func GetIngressNamespaced() (*[]networking.Ingress, error) {
 
 // GetIngressV1FromFile reads an ingress V1 from file
 func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
-	ingr, err := ioutil.ReadFile(fileName)
+	ingr, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -164,7 +164,7 @@ func GetIngressV1FromFile(fileName string) (*networking.Ingress, error) {
 
 // GetIngressV1Beta1FromFile reads an ingress V1Beta1 from file
 func GetIngressV1Beta1FromFile(fileName string) (*extensions.Ingress, error) {
-	ingr, err := ioutil.ReadFile(fileName)
+	ingr, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -441,7 +441,7 @@ func NewProbeFixture(containerName string) *v1.Probe {
 		TimeoutSeconds:   5,
 		FailureThreshold: 3,
 		PeriodSeconds:    20,
-		Handler: v1.Handler{
+		ProbeHandler: v1.ProbeHandler{
 			HTTPGet: &v1.HTTPGetAction{
 				Host: Host,
 				Path: HealthPath,
@@ -461,7 +461,7 @@ func NewHTTPSProbeFixture(containerName string) *v1.Probe {
 		TimeoutSeconds:   5,
 		FailureThreshold: 3,
 		PeriodSeconds:    20,
-		Handler: v1.Handler{
+		ProbeHandler: v1.ProbeHandler{
 			HTTPGet: &v1.HTTPGetAction{
 				Path: HealthPath,
 				Port: intstr.IntOrString{

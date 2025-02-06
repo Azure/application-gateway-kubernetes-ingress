@@ -22,9 +22,11 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	ctrl_client "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/appgw"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/cni"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controller"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
@@ -33,6 +35,7 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/httpserver"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8s"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/k8scontext"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/metricstore"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -90,6 +93,18 @@ func main() {
 	_ = flag.Set("v", strconv.Itoa(*verbosity))
 
 	apiConfig := getKubeClientConfig()
+	scheme, err := k8s.NewScheme()
+	if err != nil {
+		klog.Fatalf("Failed to create k8s scheme: %v", err)
+	}
+
+	ctrlClient, err := ctrl_client.New(apiConfig, ctrl_client.Options{
+		Scheme: scheme,
+	})
+	if err != nil {
+		klog.Fatalf("Failed to create controller-runtime client: %v", err)
+	}
+
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
 	k8scontext.IsNetworkingV1PackageSupported = k8scontext.SupportsNetworkingPackage(kubeClient)
 	k8scontext.IsInMultiClusterMode = env.MultiClusterMode
@@ -123,16 +138,6 @@ func main() {
 		ResourceGroup:  env.ResourceGroupName,
 		AppGwName:      env.AppGwName,
 	}
-
-	// create a new agic controller
-	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, agicPod, env.HostedOnUnderlay)
-
-	// initialize the http server and start it
-	httpServer := httpserver.NewHTTPServer(
-		appGwIngressController,
-		metricStore,
-		env.HTTPServicePort)
-	httpServer.Start()
 
 	klog.V(3).Infof("Application Gateway Details: Subscription=\"%s\" Resource Group=\"%s\" Name=\"%s\"", env.SubscriptionID, env.ResourceGroupName, env.AppGwName)
 
@@ -199,19 +204,17 @@ func main() {
 		klog.Fatal(errorLine)
 	}
 
-	// associate route table to application gateway subnet
-	if cpConfig != nil && cpConfig.RouteTableName != "" {
-		subnetID := *(*appGw.GatewayIPConfigurations)[0].Subnet.ID
-		routeTableID := azure.RouteTableID(azure.SubscriptionID(cpConfig.SubscriptionID), azure.ResourceGroup(cpConfig.RouteTableResourceGroup), azure.ResourceName(cpConfig.RouteTableName))
+	cniReconciler := cni.NewReconciler(azClient, ctrlClient, recorder, cpConfig, appGw, agicPod, env.AGICPodNamespace, env.AddonMode)
 
-		err = azClient.ApplyRouteTable(subnetID, routeTableID)
-		if err != nil {
-			klog.V(5).Infof("Unable to associate Application Gateway subnet '%s' with route table '%s' due to error (this is relevant for AKS clusters using 'Kubenet' network plugin): [%+v]",
-				subnetID,
-				routeTableID,
-				err)
-		}
-	}
+	// create a new agic controller
+	appGwIngressController := controller.NewAppGwIngressController(azClient, appGwIdentifier, k8sContext, recorder, metricStore, cniReconciler, agicPod, env.HostedOnUnderlay)
+
+	// initialize the http server and start it
+	httpServer := httpserver.NewHTTPServer(
+		appGwIngressController,
+		metricStore,
+		env.HTTPServicePort)
+	httpServer.Start()
 
 	if err := appGwIngressController.Start(env); err != nil {
 		errorLine := fmt.Sprint("Could not start AGIC: ", err)
