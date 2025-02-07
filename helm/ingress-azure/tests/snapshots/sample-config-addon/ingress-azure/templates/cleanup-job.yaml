@@ -35,7 +35,7 @@ spec:
           - "$(AGIC_POD_NAMESPACE)"
           - "overlayextensionconfigs.acn.azure.com"
           - "-l"
-          - "app.kubernetes.io/managed-by=ingress-azure-addon"
+          - "app.kubernetes.io/managed-by=ingress-appgw-addon"
         securityContext:
           capabilities:
             drop:

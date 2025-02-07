@@ -34,9 +34,9 @@ spec:
           - "overlayextensionconfigs.acn.azure.com"
           - "-l"
 {{- if .Values.addon }}
-          - "app.kubernetes.io/managed-by=ingress-azure-addon"
+          - "app.kubernetes.io/managed-by=ingress-appgw-addon"
 {{- else }}
-          - "app.kubernetes.io/managed-by=ingress-azure-helm"
+          - "app.kubernetes.io/managed-by=ingress-appgw-helm"
 {{- end }}
         securityContext:
           capabilities:

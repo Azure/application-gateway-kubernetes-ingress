@@ -92,6 +92,9 @@ lint:
 lint-helm:
 	helm lint ./helm/ingress-azure
 
+render-chart:
+	RENDER_SNAPSHOTS="true" go test -tags=unittest ./helm/ingress-azure/tests/...
+
 vet-all: vet vet-unittest vet-e2e
 
 vet:
