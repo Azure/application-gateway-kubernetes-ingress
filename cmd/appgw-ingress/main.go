@@ -56,6 +56,7 @@ var (
 	resyncPeriod   = flags.Duration("sync-period", resyncPause, "Interval at which to re-list and confirm cloud resources.")
 	versionInfo    = flags.Bool("version", false, "Print version")
 	verbosity      = flags.Int(verbosityFlag, 1, "Set logging verbosity level")
+	cleanupOEC     = flags.Bool("cleanup-oec", false, "Cleanup OverlayExtensionConfig resources")
 )
 
 var allowedSkus = map[n.ApplicationGatewayTier]interface{}{
@@ -103,6 +104,14 @@ func main() {
 	})
 	if err != nil {
 		klog.Fatalf("Failed to create controller-runtime client: %v", err)
+	}
+
+	if *cleanupOEC {
+		if err := cni.CleanupOverlayExtensionConfigs(ctrlClient, env.AGICPodNamespace, env.AddonMode); err != nil {
+			klog.Fatalf("Failed to cleanup OverlayExtensionConfig resources: %v", err)
+		}
+		klog.Info("Successfully cleaned up OverlayExtensionConfig resources")
+		return
 	}
 
 	kubeClient := kubernetes.NewForConfigOrDie(apiConfig)
