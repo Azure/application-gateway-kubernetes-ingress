@@ -21,6 +21,7 @@ jobs:
   trivy_vulnerability_scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions: write-all
     env:
       BUILD_TAG: latest
     steps:
