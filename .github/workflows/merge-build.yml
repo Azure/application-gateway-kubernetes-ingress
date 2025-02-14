@@ -3,54 +3,123 @@ name: "Merge Build"
 on:
   push:
     branches:
-    - master
-    - release/*
+      - master
+      - release/*
   pull_request:
     branches:
-    - master
-    - release/*
+      - master
+      - release/*
+
 permissions:
   actions: read
   contents: read
   deployments: read
+  pull-requests: write  # Required to comment on PRs
 
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Set up Go workspace
-      run: |
-        shopt -s extglob
-        shopt -s dotglob
-      shell: bash
-    - name: Install Helm
-      uses: azure/setup-helm@v4.2.0
-      with:
-        version: v3.11.0
-    - name: Set up Go
-      uses: actions/setup-go@v5.0.1
-      with:
-        go-version: '1.23.6'
-    - name: Go and Helm lint check
-      run: make lint-all
-    - name: Go vet
-      run: make vet-all
-    - name: Get dependencies and build
-      run: make build
-    - name: Run unit tests with code coverage
-      run: make unittest
-    - name: Publish test results
-      if: always()
-      uses: actions/upload-artifact@v4.3.3
-      with:
-        name: test-results
-        path: ${{ github.workspace }}/**/report.xml
-    - name: Publish code coverage results
-      if: always()
-      uses: actions/upload-artifact@v4.3.3
-      with:
-        name: code-coverage
-        path: coverage.xml
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go workspace
+        run: |
+          shopt -s extglob
+          shopt -s dotglob
+        shell: bash
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: v3.11.0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5.0.1
+        with:
+          go-version: '1.23.6'
+
+      - name: Go and Helm lint check
+        run: make lint-all
+
+      - name: Go vet
+        run: make vet-all
+
+      - name: Get dependencies and build
+        run: make build
+
+      - name: Run unit tests with coverage
+        run: make unittest
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: test-results
+          path: report.xml
+
+      - name: Publish code coverage results
+        if: always()
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: code-coverage
+          path: |
+            coverage.txt
+            coverage.xml
+            coverage/index.html
+
+      # ✅ Show Code Coverage Summary in GitHub Actions UI
+      - name: Add Coverage Summary to GitHub Checks
+        run: |
+          echo "### 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Lines Covered | Missed |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------------|--------|" >> $GITHUB_STEP_SUMMARY
+          awk '{if ($2 > 0 || $3 > 0) print "| " $1 " | " $2 " | " $3 " |"}' coverage.txt | head -n 50 >> $GITHUB_STEP_SUMMARY
+          echo "\n\n📁 Full coverage report available as an artifact." >> $GITHUB_STEP_SUMMARY    
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = 'coverage.txt';
+            if (fs.existsSync(path)) {
+              const lines = fs.readFileSync(path, 'utf8').split('\n').filter(line => line.trim() !== '');
+              if (lines.length === 0) return;
+      
+              let tableHeader = "| File | Lines Covered | Missed |\n|------|--------------|--------|\n";
+              let tableRows = [];
+              
+              for (const line of lines) {
+                const parts = line.split(/\s+/);
+                if (parts.length < 3) continue;
+                const file = parts[0];
+                const linesCovered = parseInt(parts[1], 10);
+                const missed = parseInt(parts[2], 10);
+      
+                // Skip files where both covered & missed lines are 0
+                if (linesCovered === 0 && missed === 0) continue;
+      
+                tableRows.push({ file, linesCovered, missed });
+              }
+      
+              // Sort by most missed lines and limit to top 20
+              tableRows.sort((a, b) => b.missed - a.missed);
+              tableRows = tableRows.slice(0, 20);
+      
+              let comment = "### 📊 Code Coverage Report (Top 20 Missed Files)\n\n";
+              comment += tableHeader;
+              comment += tableRows.map(row => `| ${row.file} | ${row.linesCovered} | ${row.missed} |`).join("\n");
+              comment += `\n\n📁 Full coverage report available as an artifact.`;
+      
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+      
