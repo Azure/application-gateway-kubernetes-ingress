@@ -51,7 +51,7 @@ jobs:
 
       - name: Run unit tests with code coverage
         run: |
-          go test -v -coverprofile=coverage.out ./... | tee >(go-junit-report > report.xml)
+          go test -v -tags unittest -coverprofile=coverage.out ./... | tee >(go-junit-report > report.xml)
           go tool cover -func=coverage.out > coverage.txt
 
       - name: Publish test results
