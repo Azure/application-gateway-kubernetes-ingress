@@ -9,6 +9,7 @@ on:
     branches:
       - master
       - release/*
+
 permissions:
   actions: read
   contents: read
@@ -49,14 +50,16 @@ jobs:
         run: make build
 
       - name: Run unit tests with code coverage
-        run: go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out > coverage.txt
+        run: |
+          go test -v -coverprofile=coverage.out ./... | tee >(go-junit-report > report.xml)
+          go tool cover -func=coverage.out > coverage.txt
 
       - name: Publish test results
         if: always()
         uses: actions/upload-artifact@v4.3.3
         with:
           name: test-results
-          path: ${{ github.workspace }}/**/report.xml
+          path: report.xml
 
       - name: Publish code coverage results
         if: always()
@@ -69,9 +72,9 @@ jobs:
       - name: Add Coverage Summary to GitHub Checks
         run: |
           echo "### 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| File | Lines Covered | Missed |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------------|--------|" >> $GITHUB_STEP_SUMMARY
-          awk '{print "| " $1 " | " $2 " | " $3 " |"}' coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo "| File | Statements Covered | Missed |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------------------|--------|" >> $GITHUB_STEP_SUMMARY
+          tail -n +2 coverage.txt | awk '{print "| " $1 " | " $2 " | " $3 " |"}' >> $GITHUB_STEP_SUMMARY
 
       # ✅ Comment code coverage as a table on PR
       - name: Comment coverage on PR
@@ -87,16 +90,13 @@ jobs:
               if (lines.length === 0) return;
 
               let comment = "### 📊 Code Coverage Report\n\n";
-              comment += "| File | Lines Covered | Missed |\n";
-              comment += "|------|--------------|--------|\n";
+              comment += "| File | Statements Covered | Missed |\n";
+              comment += "|------|-------------------|--------|\n";
 
-              for (const line of lines) {
-                const parts = line.split(/\s+/);
+              for (const line of lines.slice(1)) {  // Skip first line
+                const parts = line.trim().split(/\s+/);
                 if (parts.length < 3) continue;
-                const file = parts[0];
-                const linesCovered = parts[1];
-                const missed = parts[2];
-                comment += `| ${file} | ${linesCovered} | ${missed} |\n`;
+                comment += `| ${parts[0]} | ${parts[1]} | ${parts[2]} |\n`;
               }
 
               github.rest.issues.createComment({
