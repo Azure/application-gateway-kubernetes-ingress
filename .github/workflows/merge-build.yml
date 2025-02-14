@@ -49,10 +49,8 @@ jobs:
       - name: Get dependencies and build
         run: make build
 
-      - name: Run unit tests with code coverage
-        run: |
-          go test -v -tags unittest -coverprofile=coverage.out ./... | tee >(go-junit-report > report.xml)
-          go tool cover -func=coverage.out > coverage.txt
+      - name: Run unit tests with coverage
+        run: make unittest
 
       - name: Publish test results
         if: always()
@@ -66,7 +64,10 @@ jobs:
         uses: actions/upload-artifact@v4.3.3
         with:
           name: code-coverage
-          path: coverage.txt
+          path: |
+            coverage.txt
+            coverage.xml
+            coverage/index.html
 
       # ✅ Show Code Coverage Summary in GitHub Actions UI
       - name: Add Coverage Summary to GitHub Checks
