@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.23.5-bookworm
+BUILD_BASE_IMAGE ?= golang:1.23.6-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/cbl-mariner/distroless/base:2.0
 
 REPO ?= appgwreg.azurecr.io
@@ -91,6 +91,9 @@ lint:
 
 lint-helm:
 	helm lint ./helm/ingress-azure
+
+render-chart:
+	RENDER_SNAPSHOTS="true" go test -tags=unittest ./helm/ingress-azure/tests/...
 
 vet-all: vet vet-unittest vet-e2e
 
