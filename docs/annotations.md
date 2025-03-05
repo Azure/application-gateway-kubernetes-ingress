@@ -899,6 +899,7 @@ apiVersion: appgw.ingress.azure.io/v1beta1
 kind: AzureApplicationGatewayRewrite
 metadata:
   name: my-rewrite-rule-set
+  namespace: test-ag
 spec:
   rewriteRules:
   - name: rule1
