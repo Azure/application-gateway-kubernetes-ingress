@@ -13,6 +13,7 @@ import (
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"k8s.io/klog/v2"
@@ -321,6 +322,12 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		if err != nil {
 			return
 		}
+	} else if subnet.SubnetPropertiesFormat != nil && (subnet.SubnetPropertiesFormat.Delegations == nil || (subnet.SubnetPropertiesFormat.Delegations != nil && len(*subnet.SubnetPropertiesFormat.Delegations) == 0)) {
+		klog.Infof("Subnet %s does not have a delegation for Application Gateway. Updating a delegation", subnetName)
+		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
+		if err != nil {
+			return
+		}
 	}
 
 	err = az.DeployGatewayWithSubnet(*subnet.ID, skuName)
@@ -398,6 +405,14 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 	subnet = n.Subnet{
 		SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
 			AddressPrefix: &subnetPrefix,
+			Delegations: []*n.Delegation{
+				{
+					Name: to.StringPtr("Microsoft.Network/applicationGateways"),
+					ServiceDelegationPropertiesFormat: &n.ServiceDelegationPropertiesFormat{
+						ServiceName: to.StringPtr("Microsoft.Network/applicationGateways"),
+					},
+				}
+			},
 		},
 	}
 	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
