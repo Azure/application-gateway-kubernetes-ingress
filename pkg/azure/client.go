@@ -323,10 +323,10 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 			return
 		}
 	} else if subnet.SubnetPropertiesFormat != nil && (subnet.SubnetPropertiesFormat.Delegations == nil || (subnet.SubnetPropertiesFormat.Delegations != nil && len(*subnet.SubnetPropertiesFormat.Delegations) == 0)) {
-		klog.Infof("Subnet %s does not have a delegation for Application Gateway. Creating a delegation", subnetName)
+		klog.Infof("Subnet %s is an existing subnet and does not have a delegation for Application Gateway. Creating a delegation", subnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
-			return
+			klog.Errorf("Backfill delegation for existing subnet failed. Please check the subnet %s in vnet %s", subnetName, vnetName)
 		}
 	}
 
