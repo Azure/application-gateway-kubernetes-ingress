@@ -405,7 +405,7 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 	subnet = n.Subnet{
 		SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
 			AddressPrefix: &subnetPrefix,
-			Delegations: []*n.Delegation{
+			Delegations: &[]n.Delegation{
 				{
 					Name: to.StringPtr("Microsoft.Network/applicationGateways"),
 					ServiceDelegationPropertiesFormat: &n.ServiceDelegationPropertiesFormat{
