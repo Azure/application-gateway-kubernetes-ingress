@@ -13,9 +13,9 @@ import (
 
 	r "github.com/Azure/azure-sdk-for-go/profiles/latest/resources/mgmt/resources"
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -323,7 +323,7 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 			return
 		}
 	} else if subnet.SubnetPropertiesFormat != nil && (subnet.SubnetPropertiesFormat.Delegations == nil || (subnet.SubnetPropertiesFormat.Delegations != nil && len(*subnet.SubnetPropertiesFormat.Delegations) == 0)) {
-		klog.Infof("Subnet %s does not have a delegation for Application Gateway. Updating a delegation", subnetName)
+		klog.Infof("Subnet %s does not have a delegation for Application Gateway. Creating a delegation", subnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
 			return
@@ -411,7 +411,7 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 					ServiceDelegationPropertiesFormat: &n.ServiceDelegationPropertiesFormat{
 						ServiceName: to.StringPtr("Microsoft.Network/applicationGateways"),
 					},
-				}
+				},
 			},
 		},
 	}
