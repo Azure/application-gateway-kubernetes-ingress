@@ -77,5 +77,5 @@ az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster
 helm install ingress-azure \
   -f helm-config.yaml \
   oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
-  --version 1.7.5
+  --version 1.8.0
 ```

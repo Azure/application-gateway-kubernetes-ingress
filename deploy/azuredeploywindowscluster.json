@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "aksServicePrincipalAppId": {
@@ -331,6 +331,7 @@
         "resgpguid": "[substring(replace(guid(resourceGroup().id), '-', ''), 0, 4)]",
         "vnetName": "[concat('virtualnetwork' , variables('resgpguid'))]",
         "applicationGatewayName": "[concat('applicationgateway' , variables('resgpguid'))]",
+        "wafPolicyName": "[concat('appgwwafpolicy' , variables('resgpguid'))]",
         "identityName": "[concat('appgwContrIdentity' , variables('resgpguid'))]",
         "applicationGatewayPublicIpName": "[concat('appgwpublicip' , variables('resgpguid'))]",
         "kubernetesSubnetName": "kubesubnet",
@@ -341,28 +342,24 @@
         "applicationGatewaySubnetId": "[concat(variables('vnetID'),'/subnets/', variables('applicationGatewaySubnetName'))]",
         "applicationGatewayPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('applicationGatewayPublicIpName'))]",
         "applicationGatewayId": "[resourceId('Microsoft.Network/applicationGateways', variables('applicationGatewayName'))]",
+        "wafPolicyResourceId": "[resourceId('Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies', variables('wafPolicyName'))]",
         "identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
         "aksClusterId": "[resourceId('Microsoft.ContainerService/managedClusters', variables('aksClusterName'))]",
         "networkContributorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
         "contributorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-        "managedIdentityOperatorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f1a07417-d97a-45cb-824c-7a7467783830')]",
-        "readerRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-        "webApplicationFirewallConfiguration": {
-            "enabled": "true",
-            "firewallMode": "Detection"
-        }
+        "managedIdentityOperatorRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f1a07417-d97a-45cb-824c-7a7467783830')]"
     },
     "resources": [
         {
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "name": "[variables('identityName')]",
-            "apiVersion": "2015-08-31-PREVIEW",
+            "apiVersion": "2023-01-31",
             "location": "[resourceGroup().location]"
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('vnetName')]",
-            "apiVersion": "2018-08-01",
+            "apiVersion": "2024-07-01",
             "location": "[resourceGroup().location]",
             "properties": {
                 "addressSpace": {
@@ -380,7 +377,15 @@
                     {
                         "name": "[variables('applicationGatewaySubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('applicationGatewaySubnetAddressPrefix')]"
+                            "addressPrefix": "[parameters('applicationGatewaySubnetAddressPrefix')]",
+                            "delegations": [
+                                {
+                                    "name": "Microsoft.Network/applicationGateways",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Network/applicationGateways"
+                                    }
+                                }
+                            ]
                         }
                     }
                 ]
@@ -389,7 +394,7 @@
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[variables('applicationGatewayPublicIpName')]",
-            "apiVersion": "2018-08-01",
+            "apiVersion": "2024-07-01",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Standard"
@@ -401,7 +406,7 @@
         {
             "type": "Microsoft.Network/applicationGateways",
             "name": "[variables('applicationGatewayName')]",
-            "apiVersion": "2018-08-01",
+            "apiVersion": "2024-07-01",
             "location": "[resourceGroup().location]",
             "tags": {
                 "managed-by-k8s-ingress": "true"
@@ -480,6 +485,8 @@
                 "requestRoutingRules": [
                     {
                         "name": "rule1",
+                        "RuleType": "Basic",
+                        "priority": 10,
                         "properties": {
                             "httpListener": {
                                 "id": "[concat(variables('applicationGatewayId'), '/httpListeners/httpListener')]"
@@ -493,12 +500,41 @@
                         }
                     }
                 ],
-                "webApplicationFirewallConfiguration": "[if(equals(parameters('applicationGatewaySku'), 'WAF_v2'), variables('webApplicationFirewallConfiguration'), json('null'))]"
+                "firewallPolicy": "[if(equals(parameters('applicationGatewaySku'), 'WAF_v2'), json(concat('{\"id\": \"', variables('wafPolicyResourceId'), '\"}')), json('null'))]"
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
-                "[concat('Microsoft.Network/publicIPAddresses/', variables('applicationGatewayPublicIpName'))]"
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('applicationGatewayPublicIpName'))]",
+                "[variables('wafPolicyName')]"
             ]
+        },
+        {
+            "apiVersion": "2023-11-01",
+            "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+            "name": "[variables('wafPolicyName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "condition": "[equals(parameters('applicationGatewaySku'), 'WAF_v2')]",
+            "properties": {
+                "policySettings": {
+                    "mode": "Detection",
+                    "state": "Enabled",
+                    "fileUploadLimitInMb": 100,
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128
+                },
+                "managedRules": {
+                    "exclusions": [],
+                    "managedRuleSets": [
+                        {
+                            "ruleSetType": "OWASP",
+                            "ruleSetVersion": "3.2",
+                            "ruleGroupOverrides": null
+                        }
+                    ]
+                },
+                "customRules": []
+            }
         },
         {
             "type": "Microsoft.Resources/deployments",
@@ -563,7 +599,7 @@
                             "name": "[concat(variables('applicationGatewayName'), '/Microsoft.Authorization/', guid(resourceGroup().id, 'identityappgwaccess'))]",
                             "properties": {
                                 "roleDefinitionId": "[variables('contributorRole')]",
-                                "principalId": "[reference(variables('identityId'), '2015-08-31-PREVIEW').principalId]",
+                                "principalId": "[reference(variables('identityId'), '2023-01-31').principalId]",
                                 "scope": "[variables('applicationGatewayId')]"
                             }
                         },
@@ -572,8 +608,8 @@
                             "apiVersion": "2017-05-01",
                             "name": "[guid(resourceGroup().id, 'identityrgaccess')]",
                             "properties": {
-                                "roleDefinitionId": "[variables('readerRole')]",
-                                "principalId": "[reference(variables('identityId'), '2015-08-31-PREVIEW').principalId]",
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "principalId": "[reference(variables('identityId'), '2023-01-31').principalId]",
                                 "scope": "[resourceGroup().id]"
                             }
                         }
@@ -588,7 +624,7 @@
         {
             "type": "Microsoft.ContainerService/managedClusters",
             "name": "[variables('aksClusterName')]",
-            "apiVersion": "2020-02-01",
+            "apiVersion": "2025-01-01",
             "location": "[resourceGroup().location]",
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
@@ -669,7 +705,7 @@
         },
         "identityClientId": {
             "type": "string",
-            "value": "[reference(variables('identityID'), '2015-08-31-PREVIEW').clientId]"
+            "value": "[reference(variables('identityID'), '2023-01-31').clientId]"
         },
         "aksApiServerAddress": {
             "type": "string",
