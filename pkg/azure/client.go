@@ -309,24 +309,24 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		return
 	}
 
-	klog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
+	klog.Infof("Checking the Vnet '%s' for a subnet with prefix '%s'.", vnetName, subnetPrefix)
 	subnet, err := az.findSubnet(vnet, subnetName, subnetPrefix)
 	if err != nil {
 		if subnetPrefix == "" {
-			klog.Infof("Unable to find a subnet with subnetName %s. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet %s", subnetName, vnetName)
+			klog.Infof("Unable to find a subnet with subnetName '%s'. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet '%s'.", subnetName, vnetName)
 			return
 		}
 
-		klog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
+		klog.Infof("Unable to find a subnet. Creating a subnet '%s' with prefix '%s' in Vnet '%s'.", subnetName, subnetPrefix, vnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
 			return
 		}
 	} else if subnet.SubnetPropertiesFormat != nil && (subnet.SubnetPropertiesFormat.Delegations == nil || (subnet.SubnetPropertiesFormat.Delegations != nil && len(*subnet.SubnetPropertiesFormat.Delegations) == 0)) {
-		klog.Infof("Subnet %s is an existing subnet and does not have a delegation for Application Gateway. Creating a delegation", subnetName)
+		klog.Infof("Subnet '%s' is an existing subnet and does not have a delegation for Application Gateway, creating a delegation.", subnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
-			klog.Errorf("Backfill delegation for existing subnet failed. Please check the subnet %s in vnet %s", subnetName, vnetName)
+			klog.Errorf("Backfill delegation for existing subnet failed. Please check the subnet '%s' in vnet '%s'.", subnetName, vnetName)
 		}
 	}
 
