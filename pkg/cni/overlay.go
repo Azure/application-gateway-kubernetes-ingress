@@ -55,7 +55,16 @@ func (r *Reconciler) reconcileOverlayCniIfNeeded(ctx context.Context, subnetID s
 		return errors.Wrap(err, "failed to get subnet")
 	}
 
-	subnetCIDR := *subnet.AddressPrefix
+	var subnetCIDR string
+	if subnet.AddressPrefix != nil {
+		subnetCIDR = *subnet.AddressPrefix
+	} else if subnet.AddressPrefixes != nil && len(*subnet.AddressPrefixes) > 0 {
+		subnetCIDR = (*subnet.AddressPrefixes)[0]
+	} else {
+		return errors.New("subnet does not have an address prefix(es)")
+	}
+
+	klog.Infof("Using subnet prefix %q", subnetCIDR)
 	err = r.reconcileOverlayExtensionConfig(ctx, subnetCIDR)
 	if err != nil {
 		return errors.Wrap(err, "failed to reconcile overlay resources")

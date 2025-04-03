@@ -92,6 +92,24 @@ var _ = Describe("Overlay CNI", func() {
 		}, appGw, agicPod, namespace, false)
 	})
 
+	Context("NodeNetworkConfigList does not have the overlay label", func() {
+		It("returns nil error", func() {
+			// Create NodeNetworkConfigList so that cluster is not considered as overlay CNI
+			config := &nodenetworkconfig_v1alpha.NodeNetworkConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-node-network-config",
+					Namespace: namespace,
+					Labels: map[string]string{
+						cni.PodNetworkTypeLabel: "not overlay",
+					},
+				},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+			}
+			Expect(k8sClient.Create(ctx, config)).To(BeNil())
+			Expect(reconciler.Reconcile(ctx)).To(BeNil())
+		})
+	})
+
 	Context("Handle Overlay CNI cluster", func() {
 		BeforeEach(func() {
 			// Create NodeNetworkConfig so that cluster is considered as overlay CNI
@@ -153,6 +171,38 @@ var _ = Describe("Overlay CNI", func() {
 			err := reconciler.Reconcile(ctx)
 			Expect(err).To(Not(BeNil()))
 			Expect(err.Error()).To(ContainSubstring("failed to get subnet"))
+		})
+
+		It("should return error if subnet does not have an address prefix or address prefixes", func() {
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{
+					SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
+						AddressPrefix:   nil,
+						AddressPrefixes: &[]string{},
+					}}, nil
+			}
+
+			err := reconciler.Reconcile(ctx)
+			Expect(err).To(Not(BeNil()))
+			Expect(err.Error()).To(ContainSubstring("subnet does not have an address prefix(es)"))
+		})
+
+		It("should not return error if subnet has an entry in address prefixes", func() {
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{
+					SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
+						AddressPrefix:   nil,
+						AddressPrefixes: &[]string{"CIDR1"},
+					}}, nil
+			}
+
+			err := reconciler.Reconcile(ctx)
+			Expect(err).To(Not(HaveOccurred()))
+
+			var config overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			Expect(k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &config)).To(BeNil())
+			Expect(config.Labels).To(HaveLen(1))
+			Expect(config.Spec.ExtensionIPRange).To(Equal("CIDR1"))
 		})
 
 		It("should delete and recreate OEC if subnet CIDR changes", func() {
