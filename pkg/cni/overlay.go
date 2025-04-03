@@ -9,7 +9,7 @@ import (
 	overlayextensionconfig_v1alpha1 "github.com/Azure/azure-container-networking/crd/overlayextensionconfig/api/v1alpha1"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	meta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/meta"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,6 +22,9 @@ const (
 )
 
 const (
+	// PodNetworkTypeLabel is the name of the label on NNCs to tell what mode the network is in.
+	PodNetworkTypeLabel = "kubernetes.azure.com/podnetwork-type"
+
 	// OverlayExtensionConfigName is the name of the overlay extension config resource
 	OverlayExtensionConfigName = "agic-overlay-extension-config"
 
@@ -72,7 +75,13 @@ func (r *Reconciler) isClusterOverlayCNI(ctx context.Context) (bool, error) {
 		return false, errors.Wrap(err, "failed to list node network configs")
 	}
 
-	return len(nodeNetworkConfigs.Items) > 0, nil
+	// if any NNCs are overlay then this cluster is using CNI Overlay
+	for _, nnc := range nodeNetworkConfigs.Items {
+		if val, ok := nnc.Labels[PodNetworkTypeLabel]; ok && val == "overlay" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (r *Reconciler) reconcileOverlayExtensionConfig(ctx context.Context, subnetCIDR string) error {

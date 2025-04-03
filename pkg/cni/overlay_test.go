@@ -96,8 +96,14 @@ var _ = Describe("Overlay CNI", func() {
 		BeforeEach(func() {
 			// Create NodeNetworkConfig so that cluster is considered as overlay CNI
 			config := &nodenetworkconfig_v1alpha.NodeNetworkConfig{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace},
-				Spec:       nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-node-network-config",
+					Namespace: namespace,
+					Labels: map[string]string{
+						cni.PodNetworkTypeLabel: "overlay",
+					},
+				},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
 			}
 			Expect(k8sClient.Create(ctx, config)).To(BeNil())
 
@@ -197,8 +203,10 @@ var _ = Describe("Overlay CNI", func() {
 
 			// Create NodeNetworkConfig so that cluster is considered as overlay CNI
 			Expect(k8sClient.Create(ctx, &nodenetworkconfig_v1alpha.NodeNetworkConfig{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace},
-				Spec:       nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace, Labels: map[string]string{
+					cni.PodNetworkTypeLabel: "overlay",
+				}},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
 			})).To(BeNil())
 
 			Expect(reconciler.Reconcile(ctx)).To(BeNil())
@@ -216,8 +224,10 @@ var _ = Describe("Overlay CNI", func() {
 
 			// Create NodeNetworkConfig so that cluster is considered as overlay CNI
 			Expect(k8sClient.Create(ctx, &nodenetworkconfig_v1alpha.NodeNetworkConfig{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace},
-				Spec:       nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+				ObjectMeta: metav1.ObjectMeta{Name: "test-node-network-config", Namespace: namespace, Labels: map[string]string{
+					cni.PodNetworkTypeLabel: "overlay",
+				}},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
 			})).To(BeNil())
 
 			go func() {
