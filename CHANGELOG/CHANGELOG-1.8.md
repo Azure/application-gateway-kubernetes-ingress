@@ -1,18 +1,18 @@
 - [How to try](#how-to-try)
-- [v1.7.0](#v170)
+- [v1.8.1](#v181)
   - [Features](#features)
   - [Fixes](#fixes)
 
-# v1.7.0
-
-## Features
-* [#1498](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1498) Support for Workload Identity in AGIC Helm installation
-* [#1503](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1503) Support for Private only Application Gateway
-* [#1343](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1343) Support for rule-priority annotation
+# v1.8.1
 
 ## Fixes
-* [#1497](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1497) Rewrite url config should be empty if not specified in the custom resource
-* [#1500](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1500) Increase ARM polling duration to safeguard against transient failures
+* [#1708](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1708) Bumped go dependency versions
+* [#1707](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1707) Fixed Overlay CNI label checking
+
+# v1.8.0
+
+## Features
+* [#1650](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1650) Support for Overlay CNI
 
 ## How to try:
 ```bash
@@ -25,7 +25,7 @@ helm install \
   <release-name> \
   -f helm-config.yaml \
   application-gateway-kubernetes-ingress/ingress-azure \
-  --version 1.7.0
+  --version 1.8.1
 
 # or
 
@@ -40,6 +40,5 @@ helm upgrade \
   <release-name> \
   application-gateway-kubernetes-ingress/ingress-azure \
   --reuse-values
-  --version 1.7.0
+  --version 1.8.1
 ```
-
