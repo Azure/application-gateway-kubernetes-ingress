@@ -521,9 +521,9 @@ var _ = Describe("networking-v1-MFU", func() {
 			publicIP, _ := getPublicIP(clientset, namespaceName)
 			Expect(publicIP).ToNot(Equal(""))
 
-			urlHttps := fmt.Sprintf("http://%s", publicIP)
+			urlHttp := fmt.Sprintf("http://%s", publicIP)
 			// http get to return 200 ok
-			resp, err := makeGetRequest(urlHttps, "example.com", 200, true)
+			resp, err := makeGetRequest(urlHttp, "example.com", 200, true)
 			Expect(err).To(BeNil())
 
 			// check that rewrite rule is adding a response header "test-header: test-value"
@@ -634,7 +634,7 @@ var _ = Describe("networking-v1-MFU", func() {
 			publicIP, _ := getPublicIP(clientset, namespaceName)
 			Expect(publicIP).ToNot(Equal(""))
 
-			urlHttps := fmt.Sprintf("https://%s/index.html", publicIP)
+			urlHttps := fmt.Sprintf("https://%s/", publicIP)
 			// https get to return 400 BAD REQUEST
 			resp, err := makeGetRequest(urlHttps, "mtls-listener", 400, true)
 			Expect(err).To(BeNil())

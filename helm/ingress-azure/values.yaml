@@ -1,7 +1,3 @@
-# The values.yaml file is important to templates.
-# This file contains the default values for a chart.
-# These values may be overridden during helm install or helm upgrade.
-
 # Verbosity level of the App Gateway Ingress Controller
 verbosityLevel: 3
 
@@ -11,7 +7,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.6.0
+  tag: 1.8.1
   pullPolicy: Always
 
 
@@ -120,7 +116,3 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
-
-################################################################################
-# Specify if the controller is running as an addon.
-addon: false # true/false

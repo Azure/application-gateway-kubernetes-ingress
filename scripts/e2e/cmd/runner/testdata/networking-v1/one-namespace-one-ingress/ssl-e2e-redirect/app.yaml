@@ -37,17 +37,17 @@ spec:
           ports:
             - containerPort: 443
           volumeMounts:
-          - mountPath: /etc/nginx/ssl
-            name: secret-volume
-          - mountPath: /etc/nginx/conf.d
-            name: configmap-volume
+            - mountPath: /etc/nginx/ssl
+              name: secret-volume
+            - mountPath: /etc/nginx/conf.d
+              name: configmap-volume
       volumes:
-      - name: secret-volume
-        secret:
-          secretName: testsecret-tls
-      - name: configmap-volume
-        configMap:
-          name: nginx-cm
+        - name: secret-volume
+          secret:
+            secretName: testsecret-tls
+        - name: configmap-volume
+          configMap:
+            name: nginx-cm
 ---
 apiVersion: v1
 kind: Service
@@ -57,10 +57,10 @@ spec:
   selector:
     app: ssl-redirect
   ports:
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -71,7 +71,7 @@ metadata:
     appgw.ingress.kubernetes.io/backend-hostname: "test"
     appgw.ingress.kubernetes.io/backend-protocol: "https"
     appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "test"
-    appgw.ingress.kubernetes.io/waf-policy-for-path : "/subscriptions/2ce9a29e-219e-422b-b9f8-5c5e54d5439e/resourceGroups/agic-e2e/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/waf-policy"
+    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/db308457-7e8c-44cc-a8a7-c6d7daee414d/resourceGroups/seanjeffrey-bug-planet/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/WAF-POLICY"
 spec:
   ingressClassName: azure-application-gateway
   tls:
@@ -79,20 +79,20 @@ spec:
   rules:
     - http:
         paths:
-        - path: /index.html
-          backend:
-            service:
-              name: ssl-redirect-service
-              port:
-                name: https
-          pathType: Exact
-        - path: /*
-          backend:
-            service:
-              name: ssl-redirect-service
-              port:
-                name: https
-          pathType: Prefix
+          - path: /index.html
+            backend:
+              service:
+                name: ssl-redirect-service
+                port:
+                  name: https
+            pathType: Exact
+          - path: /*
+            backend:
+              service:
+                name: ssl-redirect-service
+                port:
+                  name: https
+            pathType: Prefix
 ---
 apiVersion: v1
 kind: Secret
@@ -100,5 +100,5 @@ metadata:
   name: testsecret-tls
 type: kubernetes.io/tls
 data:
-  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUI3ekNDQVpXZ0F3SUJBZ0lVSG4wSDhxcGdYaEN4Y3dNUWR6dnBENnY1c29zd0NnWUlLb1pJemowRUF3UXcKRHpFTk1Bc0dBMVVFQXd3RWNtOXZkREFlRncweU5EQXpNakV5TVRReE5EWmFGdzB5TnpBeE1Ea3lNVFF4TkRaYQpNQTh4RFRBTEJnTlZCQU1NQkhSbGMzUXdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CQndOQ0FBVFZ5d1dUCjhQSXFPczF2VzA0c0piNHBGYTBILzZNWnBWcllKK05BSm40VENVSTBBN0xzUVJkcmZJaklMSmo3dWhwamtEZ3AKbnowZ3ZrdGx5ODNsSlVoM280SE9NSUhMTUFrR0ExVWRFd1FDTUFBd0VRWUpZSVpJQVliNFFnRUJCQVFEQWdaQQpNQ01HQ1dDR1NBR0crRUlCRFFRV0ZoUk5lU0JHYVhKemRDQkRaWEowYVdacFkyRjBaVEFkQmdOVkhRNEVGZ1FVCkxzTFF1S2hBNXdCakw5b0xOTkNzakR0WEZDOHdOQVlEVlIwakJDMHdLNkVUcEJFd0R6RU5NQXNHQTFVRUF3d0UKY205dmRJSVVkLzJMSjV6WVdkdjFQallncWFKcGNZZ1dKTmd3Q3dZRFZSMFBCQVFEQWdYZ01CTUdBMVVkSlFRTQpNQW9HQ0NzR0FRVUZCd01CTUE4R0ExVWRFUVFJTUFhQ0JIUmxjM1F3Q2dZSUtvWkl6ajBFQXdRRFNBQXdSUUloCkFOYWw4N2NnblJNcmI5U3lDT2VKd0QyeGx4YlkrVGI2OStnT3VxS3F6YU04QWlCb05oTXB3V0cvem1wTklSUGUKYzlvMUFpQnFKMlhiY0kzeHpnRUtnbDdOU1E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-  tls.key: LS0tLS1CRUdJTiBFQyBQQVJBTUVURVJTLS0tLS0KQmdncWhrak9QUU1CQnc9PQotLS0tLUVORCBFQyBQQVJBTUVURVJTLS0tLS0KLS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSU51bWYwWHhrdzc2Q25rQlZoQktvZmNVbzdhM3gvc0hITnF2d3pDZ2FlMVFvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFMWNzRmsvRHlLanJOYjF0T0xDVytLUld0Qi8rakdhVmEyQ2ZqUUNaK0V3bENOQU95N0VFWAphM3lJeUN5WSs3b2FZNUE0S1o4OUlMNUxaY3ZONVNWSWR3PT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJHRENCdndJVUtQeGFwSVBRV09Ob0FqSzE3SmFjeWtCNjgxMHdDZ1lJS29aSXpqMEVBd0l3RHpFTk1Bc0cKQTFVRUF3d0VkR1Z6ZERBZUZ3MHlOVEEwTURreE1qUTRNemRhRncwME5ERXlNalV4TWpRNE16ZGFNQTh4RFRBTApCZ05WQkFNTUJIUmxjM1F3V1RBVEJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVNtc2FsbCtNN0VmdmxBCjNwZGkzdXRTa3JaYnk3Vm1aWjdjbFdEK3dpclJocjNiUEpxbjNPRkRMRjViK1lTWTl5bUVGM1BLWG5wRUNiMzcKajh2NzYvczhNQW9HQ0NxR1NNNDlCQU1DQTBnQU1FVUNJQlp3OFJHUnZ6OVkrdVJVWFMzb3NER0oxaDNuRm5CcAo3SWtqSEV4bmIvOGNBaUVBL0VmaisxRm5oZ0JTaDBrTGVwc1ozZlpUSGVQcVJ3Z1ZjYWFpOTNNRnU1RT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBFQyBQQVJBTUVURVJTLS0tLS0KQmdncWhrak9QUU1CQnc9PQotLS0tLUVORCBFQyBQQVJBTUVURVJTLS0tLS0KLS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUtXTDEzOGN6WG5qUkN0MDJibVA3b0JnVm1kTDBkTEx0dHAzOXVlcHl5NzZvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFcHJHcFpmak94SDc1UU42WFl0N3JVcEsyVzh1MVptV2UzSlZnL3NJcTBZYTkyenlhcDl6aApReXhlVy9tRW1QY3BoQmR6eWw1NlJBbTkrNC9MKyt2N1BBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=

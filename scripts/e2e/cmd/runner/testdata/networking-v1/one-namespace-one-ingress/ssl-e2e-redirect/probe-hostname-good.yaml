@@ -7,24 +7,24 @@ metadata:
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
     appgw.ingress.kubernetes.io/backend-hostname: "test"
     appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "test"
-    appgw.ingress.kubernetes.io/waf-policy-for-path : "/subscriptions/2ce9a29e-219e-422b-b9f8-5c5e54d5439e/resourceGroups/agic-e2e/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/waf-policy"
+    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/db308457-7e8c-44cc-a8a7-c6d7daee414d/resourceGroups/seanjeffrey-bug-planet/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/WAF-POLICY"
 spec:
   tls:
     - secretName: testsecret-tls
   rules:
     - http:
         paths:
-        - path: /index.html
-          backend:
-            service:
-              name: ssl-redirect-service
-              port:
-                number: 443
-          pathType: Exact
-        - path: /*
-          backend:
-            service:
-              name: ssl-redirect-service
-              port:
-                number: 443
-          pathType: Prefix
+          - path: /index.html
+            backend:
+              service:
+                name: ssl-redirect-service
+                port:
+                  number: 443
+            pathType: Exact
+          - path: /*
+            backend:
+              service:
+                name: ssl-redirect-service
+                port:
+                  number: 443
+            pathType: Prefix

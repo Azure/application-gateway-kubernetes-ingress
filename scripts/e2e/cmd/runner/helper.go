@@ -20,10 +20,11 @@ import (
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
 	agiccrdscheme "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/scheme"
 
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
-	a "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/uuid"
 	"github.com/onsi/ginkgo"
@@ -33,7 +34,6 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/version"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -57,8 +57,6 @@ const (
 )
 
 var (
-	runtimeScheme = k8sruntime.NewScheme()
-
 	// UseNetworkingV1Ingress specifies whether to use ingress networking/v1 to parse the ingress resource
 	UseNetworkingV1Ingress bool
 
@@ -92,134 +90,100 @@ func getClients() (*clientset.Clientset, *versioned.Clientset, error) {
 	return clientset, crdClient, nil
 }
 
-func getApplicationGatewaysClient() (*n.ApplicationGatewaysClient, error) {
+func getAzurePublicIP() (string, error) {
 	env := GetEnv()
 
-	settings, err := auth.GetSettingsFromEnvironment()
+	ctx := context.Background()
+	// Create a new Azure credential
+	cred, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{})
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("failed to create Azure credential: %w", err)
 	}
 
-	client := n.NewApplicationGatewaysClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	var authorizer autorest.Authorizer
-	if env.AzureAuthLocation != "" {
-		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
-		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
-	} else {
-		authorizer, err = settings.GetAuthorizer()
-	}
+	// Create a PublicIPAddressesClient
+	client, err := armnetwork.NewPublicIPAddressesClient(env.SubscriptionID, cred, nil)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("failed to create PublicIPAddressesClient: %w", err)
 	}
 
-	client.Authorizer = authorizer
-	err = client.AddToUserAgent(UserAgent)
+	pager := client.NewListPager(env.ResourceGroupName, nil)
+	page, err := pager.NextPage(ctx)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("failed to retrieve public IP addresses: %w", err)
+	}
+	if len(page.PublicIPAddressListResult.Value) == 0 {
+		return "", errors.New("no public IP addresses found in the resource group")
 	}
 
-	return &client, nil
+	firstEntry := page.PublicIPAddressListResult.Value[0]
+	if firstEntry.Properties == nil || firstEntry.Properties.IPAddress == nil {
+		return "", errors.New("first public IP entry in resource group is invalid")
+	}
+
+	return *firstEntry.Properties.IPAddress, nil
 }
 
-func getPublicIPAddressesClient() (*n.PublicIPAddressesClient, error) {
+func getRoleAssignmentsClient() (*armauthorization.RoleAssignmentsClient, error) {
 	env := GetEnv()
 
-	settings, err := auth.GetSettingsFromEnvironment()
+	cred, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create Azure credential: %w", err)
 	}
 
-	client := n.NewPublicIPAddressesClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	var authorizer autorest.Authorizer
-	if env.AzureAuthLocation != "" {
-		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
-		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
-	} else {
-		authorizer, err = settings.GetAuthorizer()
-	}
+	client, err := armauthorization.NewRoleAssignmentsClient(env.SubscriptionID, cred, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create ApplicationGatewaysClient: %w", err)
 	}
 
-	client.Authorizer = authorizer
-	err = client.AddToUserAgent(UserAgent)
-	if err != nil {
-		return nil, err
-	}
-
-	return &client, nil
+	return client, nil
 }
 
-func getRoleAssignmentsClient() (*a.RoleAssignmentsClient, error) {
-	env := GetEnv()
-
-	settings, err := auth.GetSettingsFromEnvironment()
-	if err != nil {
-		return nil, err
-	}
-
-	client := a.NewRoleAssignmentsClientWithBaseURI(settings.Environment.ResourceManagerEndpoint, GetEnv().SubscriptionID)
-	var authorizer autorest.Authorizer
-	if env.AzureAuthLocation != "" {
-		// https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication
-		authorizer, err = auth.NewAuthorizerFromFile(n.DefaultBaseURI)
-	} else {
-		authorizer, err = settings.GetAuthorizer()
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	client.Authorizer = authorizer
-	err = client.AddToUserAgent(UserAgent)
-	if err != nil {
-		return nil, err
-	}
-
-	return &client, nil
-}
-
-func addRoleAssignment(roleClient *a.RoleAssignmentsClient, role, scope string) error {
+func addRoleAssignment(roleClient *armauthorization.RoleAssignmentsClient, role, scope string) error {
 	uuidWithHyphen := uuid.New().String()
 	objectID := GetEnv().ObjectID
 	klog.Infof("Tring to create role: %s, scope: %s, objectID: %s, name: %s", role, scope, objectID, uuidWithHyphen)
 	roleID := fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Authorization/roleDefinitions/%s", GetEnv().SubscriptionID, role)
-	assignment, err := roleClient.Create(
-		context.TODO(),
-		scope,
-		uuidWithHyphen,
-		a.RoleAssignmentCreateParameters{
-			RoleAssignmentProperties: &a.RoleAssignmentProperties{
-				PrincipalID:      to.StringPtr(GetEnv().ObjectID),
-				RoleDefinitionID: to.StringPtr(roleID),
-			},
-		})
+	params := armauthorization.RoleAssignmentCreateParameters{
+		Properties: &armauthorization.RoleAssignmentProperties{
+			PrincipalID:      to.StringPtr(GetEnv().ObjectID),
+			RoleDefinitionID: to.StringPtr(roleID),
+		},
+	}
+	assignment, err := roleClient.Create(context.TODO(), scope, uuidWithHyphen, params, nil)
 	if err != nil {
 		return err
 	}
 
-	klog.Infof("Created role assignment: %s on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Scope, *assignment.PrincipalID)
+	klog.Infof("Created role assignment: %s on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Properties.Scope, *assignment.Properties.PrincipalID)
 	return nil
 }
 
-func removeRoleAssignments(roleClient *a.RoleAssignmentsClient) error {
-	page, err := roleClient.ListForScope(context.TODO(), GetEnv().GetApplicationGatewayResourceID(), "")
+func removeRoleAssignments(roleClient *armauthorization.RoleAssignmentsClient) error {
+	env := GetEnv()
+	resourceID, err := arm.ParseResourceID(env.GetApplicationGatewayResourceID())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse Application Gateway resource ID: %w", err)
 	}
 
-	klog.Infof("Got role assignments [%+v]", page)
+	pager := roleClient.NewListForResourcePager(resourceID.ResourceGroupName, "Microsoft.Network", "", "applicationGateways", resourceID.Name, nil)
 
-	if page.Response().Value != nil {
-		roleAssignmentList := (*page.Response().Value)
-		objectID := GetEnv().ObjectID
-		for _, assignment := range roleAssignmentList {
-			if strings.EqualFold(*assignment.PrincipalID, objectID) {
-				klog.Infof("Deleting role assignment: %s on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Scope, *assignment.PrincipalID)
-				_, err := roleClient.Delete(context.TODO(), *assignment.Scope, *assignment.Name)
-				if err != nil {
-					return err
-				}
+	for pager.More() {
+		page, err := pager.NextPage(context.TODO())
+		if err != nil {
+			return fmt.Errorf("failed to retrieve role assignments: %w", err)
+		}
+
+		for _, assignment := range page.RoleAssignmentListResult.Value {
+
+			if !strings.EqualFold(*assignment.Properties.PrincipalID, env.ObjectID) {
+				continue
+			}
+
+			klog.Infof("Deleting role assignment: %q on scope: %s and pricipalId: %s", *assignment.Name, *assignment.Properties.Scope, *assignment.Properties.PrincipalID)
+			_, err := roleClient.DeleteByID(context.TODO(), *assignment.ID, nil)
+			if err != nil {
+				return fmt.Errorf("failed to delete role assignment: %w", err)
 			}
 		}
 	}
@@ -849,49 +813,29 @@ func readBody(resp *http.Response) (string, error) {
 	return "", nil
 }
 
-func getGateway() (*n.ApplicationGateway, error) {
+func getGateway() (*armnetwork.ApplicationGateway, error) {
 	env := GetEnv()
 
 	klog.Info("preparing app gateway client")
-	client, err := getApplicationGatewaysClient()
+
+	cred, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create Azure credential: %w", err)
 	}
 
-	gateway, err := client.Get(
-		context.TODO(),
-		env.ResourceGroupName,
-		env.AppGwName,
-	)
-
+	client, err := armnetwork.NewApplicationGatewaysClient(env.SubscriptionID, cred, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create ApplicationGatewaysClient: %w", err)
 	}
 
-	return &gateway, nil
-}
-
-func getPublicIPAddress() (*n.PublicIPAddress, error) {
-	env := GetEnv()
-
-	klog.Info("preparing public ip client")
-	client, err := getPublicIPAddressesClient()
+	// Get the Application Gateway
+	ctx := context.Background()
+	resp, err := client.Get(ctx, env.ResourceGroupName, env.AppGwName, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get Application Gateway: %w", err)
 	}
 
-	publicIP, err := client.Get(
-		context.TODO(),
-		env.ResourceGroupName,
-		env.PublicIPAddressName,
-		"",
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &publicIP, nil
+	return &resp.ApplicationGateway, nil
 }
 
 func supportsNetworkingV1IngressPackage(client clientset.Interface) bool {

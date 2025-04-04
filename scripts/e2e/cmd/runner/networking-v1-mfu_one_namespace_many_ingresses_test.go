@@ -19,11 +19,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	versioned "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
-	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 )
 
 var _ = Describe("networking-v1-MFU", func() {
@@ -241,27 +242,27 @@ var _ = Describe("networking-v1-MFU", func() {
 			err = applyYaml(clientset, crdClient, namespaceName, path)
 			Expect(err).To(BeNil())
 
-			var exampleComListeners []n.ApplicationGatewayHTTPListener
+			var exampleComListeners []*armnetwork.ApplicationGatewayHTTPListener
 			// Check that gateway has two listeners eventually
 			klog.Info("Checking that gateway has two listeners for hostname example.com...")
 			Eventually(func() bool {
 				appGW, err := getGateway()
 				Expect(err).To(BeNil())
 
-				bytes, _ := json.MarshalIndent(appGW.HTTPListeners, "", "  ")
+				bytes, _ := json.MarshalIndent(appGW.Properties.HTTPListeners, "", "  ")
 				klog.Infof("Listeners: %s", bytes)
 
-				exampleComListeners = []n.ApplicationGatewayHTTPListener{}
-				for _, listener := range *appGW.HTTPListeners {
-					if listener.HostNames == nil {
+				exampleComListeners = []*armnetwork.ApplicationGatewayHTTPListener{}
+				for _, listener := range appGW.Properties.HTTPListeners {
+					if listener.Properties.HostNames == nil {
 						continue
 					}
 
-					if len(*listener.HostNames) == 0 {
+					if len(listener.Properties.HostNames) == 0 {
 						continue
 					}
 
-					if (*listener.HostNames)[0] == "example.com" {
+					if ptr.Deref((listener.Properties.HostNames)[0], "") == "example.com" {
 						exampleComListeners = append(exampleComListeners, listener)
 					}
 				}
@@ -271,11 +272,11 @@ var _ = Describe("networking-v1-MFU", func() {
 
 			// Check that both listeners have the same frontend port
 			klog.Info("Checking that both listeners have the same frontend port...")
-			Expect(exampleComListeners[0].FrontendPort.ID).To(Equal(exampleComListeners[1].FrontendPort.ID))
+			Expect(exampleComListeners[0].Properties.FrontendPort.ID).To(Equal(exampleComListeners[1].Properties.FrontendPort.ID))
 
 			// Check that both listeners have the different frontend IP
 			klog.Info("Checking that both listeners have the different frontend IP...")
-			Expect(exampleComListeners[0].FrontendIPConfiguration.ID).ToNot(Equal(exampleComListeners[1].FrontendIPConfiguration.ID))
+			Expect(exampleComListeners[0].Properties.FrontendIPConfiguration.ID).ToNot(Equal(exampleComListeners[1].Properties.FrontendIPConfiguration.ID))
 		})
 
 		AfterEach(func() {

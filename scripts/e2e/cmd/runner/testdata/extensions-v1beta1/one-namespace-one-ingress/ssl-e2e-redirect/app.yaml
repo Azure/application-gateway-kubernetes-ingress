@@ -37,17 +37,17 @@ spec:
           ports:
             - containerPort: 443
           volumeMounts:
-          - mountPath: /etc/nginx/ssl
-            name: secret-volume
-          - mountPath: /etc/nginx/conf.d
-            name: configmap-volume
+            - mountPath: /etc/nginx/ssl
+              name: secret-volume
+            - mountPath: /etc/nginx/conf.d
+              name: configmap-volume
       volumes:
-      - name: secret-volume
-        secret:
-          secretName: testsecret-tls
-      - name: configmap-volume
-        configMap:
-          name: nginx-cm       
+        - name: secret-volume
+          secret:
+            secretName: testsecret-tls
+        - name: configmap-volume
+          configMap:
+            name: nginx-cm
 ---
 apiVersion: v1
 kind: Service
@@ -57,9 +57,9 @@ spec:
   selector:
     app: ssl-redirect
   ports:
-  - protocol: TCP
-    port: 443
-    targetPort: 443
+    - protocol: TCP
+      port: 443
+      targetPort: 443
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -70,21 +70,21 @@ metadata:
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
     appgw.ingress.kubernetes.io/backend-hostname: "test"
     appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "test"
-    appgw.ingress.kubernetes.io/waf-policy-for-path : "/subscriptions/2ce9a29e-219e-422b-b9f8-5c5e54d5439e/resourceGroups/agic-e2e/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/waf-policy"
+    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/db308457-7e8c-44cc-a8a7-c6d7daee414d/resourceGroups/seanjeffrey-bug-planet/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/WAF-POLICY"
 spec:
   tls:
     - secretName: testsecret-tls
   rules:
     - http:
         paths:
-        - path: /index.html
-          backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
-        - path: /*
-          backend:
-            serviceName: ssl-redirect-service
-            servicePort: 443
+          - path: /index.html
+            backend:
+              serviceName: ssl-redirect-service
+              servicePort: 443
+          - path: /*
+            backend:
+              serviceName: ssl-redirect-service
+              servicePort: 443
 ---
 apiVersion: v1
 kind: Secret

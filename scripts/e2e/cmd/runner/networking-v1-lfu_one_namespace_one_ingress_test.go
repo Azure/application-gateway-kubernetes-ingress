@@ -60,10 +60,9 @@ var _ = Describe("networking-v1-LFU", func() {
 
 			// get ip address for 1 ingress
 			klog.Info("Getting public IP of the app gateway")
-			ip, err := getPublicIPAddress()
+			publicIP, err := getAzurePublicIP()
 			Expect(err).To(BeNil())
 
-			publicIP := *ip.IPAddress
 			klog.Infof("Public IP: %s", publicIP)
 
 			protectedPath := fmt.Sprintf("http://%s/landing/", publicIP)
