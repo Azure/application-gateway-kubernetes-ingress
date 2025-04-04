@@ -295,10 +295,15 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	return nil
 }
 
-func (az *azClient) GetSubnet(subnetID string) (n.Subnet, error) {
-	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
-	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
-	return subnet, err
+func (az *azClient) GetSubnet(subnetID string) (subnet n.Subnet, err error) {
+	_ = utils.Retry(retryCount, retryPause,
+		func() (utils.Retriable, error) {
+			_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
+			subnet, err = az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
+			return utils.Retriable(true), err
+		})
+
+	return
 }
 
 // DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
