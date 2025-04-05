@@ -182,7 +182,7 @@ AGIC can be installed by running the following commands:
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
-    --version 1.7.3
+    --version 1.8.0
   
   # on aks cluster with windows node pools
   helm install ingress-azure \
@@ -192,7 +192,7 @@ AGIC can be installed by running the following commands:
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
     --set nodeSelector."beta\.kubernetes\.io/os"=linux \
-    --version 1.7.3
+    --version 1.8.0
   ```
 
 ### For existing deployments
@@ -209,7 +209,7 @@ AGIC can be upgraded by running the following commands:
     --set armAuth.type=workloadIdentity \
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
-    --version 1.7.3
+    --version 1.8.0
   
   # on aks cluster with windows node pools
   helm upgrade ingress-azure \
@@ -219,7 +219,7 @@ AGIC can be upgraded by running the following commands:
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
     --set nodeSelector."beta\.kubernetes\.io/os"=linux \
-    --version 1.7.3
+    --version 1.8.0
   ```
 
 ### Install a Sample App

@@ -518,13 +518,14 @@ This annotation allows us to specify whether to expose this endpoint on Private 
 
 2) For App Gateway that doesn't have a private IP, Ingresses with `appgw.ingress.kubernetes.io/use-private-ip: "true"` will be ignored. This will reflected in the controller logs and ingress events for those ingresses with `NoPrivateIP` warning.
 
-
 ### Usage
+
 ```yaml
 appgw.ingress.kubernetes.io/use-private-ip: "true"
 ```
 
 ### Example
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -548,6 +549,7 @@ spec:
 ```
 
 ## Azure Waf Policy For Path
+
 This annotation allows you to attach an already created WAF policy to the list paths for a host within a Kubernetes
 Ingress resource being annotated.
 
@@ -558,9 +560,11 @@ Once the policy is created, copy the URI of the policy from the address bar of A
 ![Creating a WAF policy](./images/waf-policy-1.png)
 
 The URI would have the following format:
+
 ```bash
 /subscriptions/<YOUR-SUBSCRIPTION>/resourceGroups/<YOUR-RESOURCE-GROUP>/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/<YOUR-POLICY-NAME>
 ```
+
 > **Note**
 1) Waf policy will only be applied to a listener if ingress rule path is not set or set to "/" or "/*"
 
@@ -571,7 +575,9 @@ appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGr
 ```
 
 ### Example
+
 The example below will apply the WAF policy
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -600,6 +606,7 @@ spec:
               number: 80
         pathType: Exact
 ```
+
 Note that the WAF policy will be applied to both `/ad-server` and `/auth` URLs.
 
 ## Health Probe Hostname
@@ -899,6 +906,7 @@ apiVersion: appgw.ingress.azure.io/v1beta1
 kind: AzureApplicationGatewayRewrite
 metadata:
   name: my-rewrite-rule-set
+  namespace: test-ag
 spec:
   rewriteRules:
   - name: rule1
@@ -949,6 +957,7 @@ spec:
 ```
 
 ## Hostname Extension
+
 This annotation allows to append additional hostnames to the `host` specified in the ingress resource. This applies to all the rules in the ingress resource.
 
 ### Usage

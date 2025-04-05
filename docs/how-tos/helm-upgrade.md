@@ -29,7 +29,7 @@ using a Helm repository hosted on MCR.
     helm upgrade \
         odd-billygoat \
         oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
-        --version 1.7.5
+        --version 1.8.0
     ```
 
 ## Rollback
