@@ -65,15 +65,15 @@ helm repo update
 # check the latest relese version of AGIC
 helm search repo -l application-gateway-kubernetes-ingress
 
-# install release 1.7.5
+# install release 1.8.0
 helm upgrade \
   <release-name> \
   oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure
-  --version 1.7.5
+  --version 1.8.0
   --reuse-values
 ```
 
-***Note:**_ If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.7.5.
+***Note:**_ If you're upgrading from v1.0.0 or below, you'll have to delete AGIC and then reinstall with v1.8.0.
 
 #### Install the right version of AAD Pod Identity
 
