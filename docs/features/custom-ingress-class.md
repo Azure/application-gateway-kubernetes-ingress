@@ -37,7 +37,3 @@ To use a custom ingress class,
                 port:
                   number: 80
     ```
-
-## Reference
-
-* [Proposal Document](../../proposals\multiple-gateways-single-cluster.md)
