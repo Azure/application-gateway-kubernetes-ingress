@@ -13,7 +13,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: websocket-ingress
-  namespace: alpha
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
 spec:

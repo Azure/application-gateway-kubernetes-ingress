@@ -25,7 +25,6 @@ To use a custom ingress class,
     kind: Ingress
     metadata:
     name: go-server-ingress-affinity
-    namespace: test-ag
     spec:
       ingressClassName: arbitrary-class
       rules:
