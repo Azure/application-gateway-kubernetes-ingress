@@ -1,106 +1,100 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>How to deploy AGIC via Helm using Workload Identity - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../docs/css/extra.css" rel="stylesheet" />
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "How to deploy AGIC via Helm using Workload Identity";
-    var mkdocs_page_input_path = "how-tos/deploy-AGIC-with-Workload-Identity-using-helm.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>How to deploy AGIC via Helm using Workload Identity - Application Gateway Ingress Controller</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../docs/css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "How to deploy AGIC via Helm using Workload Identity";
+        var mkdocs_page_input_path = "how-tos/deploy-AGIC-with-Workload-Identity-using-helm.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
-        <div role="search">
+          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
+        </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">How to deploy AGIC via Helm using Workload Identity</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">How tos</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">How to deploy AGIC via Helm using Workload Identity</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#1-set-environment-variables">1. Set environment variables</a>
     </li>
@@ -123,171 +117,150 @@
     <li class="toctree-l2"><a class="reference internal" href="#10-install-the-helm-chart">10. Install the helm chart</a>
     </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                    </li>
-                </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dns/">Automate DNS updates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../helm-upgrade/">Upgrading AGIC using Helm</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../networking/">How to setup networking between Application Gateway and AKS</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../websockets/">Websockets</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                  </li>
+              </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Application Gateway Ingress Controller</a>
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Application Gateway Ingress Controller</a>
+        
       </nav>
-
-      
       <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>How tos &raquo;</li>
-        
-      
-    
-    <li>How to deploy AGIC via Helm using Workload Identity</li>
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">How tos</li>
+      <li class="breadcrumb-item active">How to deploy AGIC via Helm using Workload Identity</li>
     <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/how-tos/deploy-AGIC-with-Workload-Identity-using-helm.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
-      
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/how-tos/deploy-AGIC-with-Workload-Identity-using-helm.md">Edit on Azure/application-gateway-kubernetes-ingress</a>
     </li>
   </ul>
-  
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
               
                 <h1 id="how-to-deploy-agic-via-helm-using-workload-identity">How to deploy AGIC via Helm using Workload Identity</h1>
 <blockquote>
 <p><strong><em>NOTE:</em></strong> <a href="https://aka.ms/agc">Application Gateway for Containers</a> has been released, which introduces numerous performance, resilience, and feature changes. Please consider leveraging Application Gateway for Containers for your next deployment.</p>
 </blockquote>
 <p>This assumes you have an existing Application Gateway. If not, you can create it with command:</p>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>create<span class="w"> </span>-g<span class="w"> </span>myResourceGroup<span class="w"> </span>-n<span class="w"> </span>myApplicationGateway<span class="w"> </span>--sku<span class="w"> </span>Standard_v2<span class="w"> </span>--public-ip-address<span class="w"> </span>myPublicIP<span class="w"> </span>--vnet-name<span class="w"> </span>myVnet<span class="w"> </span>--subnet<span class="w"> </span>mySubnet<span class="w"> </span>--priority<span class="w"> </span><span class="m">100</span>
-</code></pre></div>
+<p><code>bash
+az network application-gateway create -g myResourceGroup -n myApplicationGateway --sku Standard_v2 --public-ip-address myPublicIP --vnet-name myVnet --subnet mySubnet --priority 100</code></p>
 <h2 id="1-set-environment-variables">1. Set environment variables</h2>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s2">&quot;myResourceGroup&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">APPLICATION_GATEWAY_NAME</span><span class="o">=</span><span class="s2">&quot;myApplicationGateway&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="o">=</span><span class="s2">&quot;myIdentity&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FEDERATED_IDENTITY_CREDENTIAL_NAME</span><span class="o">=</span><span class="s2">&quot;myFedIdentity&quot;</span>
-</code></pre></div>
+<p><code>bash
+export RESOURCE_GROUP="myResourceGroup"
+export APPLICATION_GATEWAY_NAME="myApplicationGateway"
+export USER_ASSIGNED_IDENTITY_NAME="myIdentity"
+export FEDERATED_IDENTITY_CREDENTIAL_NAME="myFedIdentity"</code></p>
 <h2 id="2-create-resource-group-aks-cluster-and-identity">2. Create resource group, AKS cluster and identity</h2>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--location<span class="w"> </span>eastus
-az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-n<span class="w"> </span>myAKSCluster<span class="w"> </span>--node-count<span class="w"> </span><span class="m">1</span><span class="w"> </span>--enable-oidc-issuer<span class="w"> </span>--enable-workload-identity<span class="w"> </span>
-az<span class="w"> </span>identity<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>
-</code></pre></div>
+<p><code>bash
+az group create --name "${RESOURCE_GROUP}"  --location eastus
+az aks create -g "${RESOURCE_GROUP}" -n myAKSCluster --node-count 1 --enable-oidc-issuer --enable-workload-identity 
+az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}"</code></p>
 <h2 id="3-export-the-oidcissuerprofileissuerurl">3. Export the oidcIssuerProfile.issuerUrl</h2>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">AKS_OIDC_ISSUER</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span>myAKSCluster<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;oidcIssuerProfile.issuerUrl&quot;</span><span class="w"> </span>-otsv<span class="k">)</span><span class="s2">&quot;</span>
-</code></pre></div>
+<p><code>bash
+export AKS_OIDC_ISSUER="$(az aks show -n myAKSCluster -g "${RESOURCE_GROUP}" --query "oidcIssuerProfile.issuerUrl" -otsv)"</code></p>
 <h2 id="4-create-federated-identity-credential">4. Create federated identity credential</h2>
 <p><strong>Note</strong>: the name of the service account that gets created after the helm installation is “ingress-azure” and the following command assumes it will be deployed in “default” namespace. Please change the namespace name in the next command if you deploy the AGIC related Kubernetes resources in other namespace.</p>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>identity<span class="w"> </span>federated-credential<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="si">${</span><span class="nv">FEDERATED_IDENTITY_CREDENTIAL_NAME</span><span class="si">}</span><span class="w"> </span>--identity-name<span class="w"> </span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="w"> </span>--issuer<span class="w"> </span><span class="si">${</span><span class="nv">AKS_OIDC_ISSUER</span><span class="si">}</span><span class="w"> </span>--subject<span class="w"> </span>system:serviceaccount:default:ingress-azure
-</code></pre></div>
+<p><code>bash
+az identity federated-credential create --name ${FEDERATED_IDENTITY_CREDENTIAL_NAME} --identity-name ${USER_ASSIGNED_IDENTITY_NAME} --resource-group ${RESOURCE_GROUP} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:default:ingress-azure</code></p>
 <h2 id="5-obtain-the-clientid-of-the-identity-created-before-that-is-needed-for-the-next-step">5. Obtain the ClientID of the identity created before that is needed for the next step</h2>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">USER_ASSIGNED_IDENTITY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s1">&#39;clientId&#39;</span><span class="w"> </span>-otsv
-</code></pre></div>
+<p><code>bash
+az identity show --resource-group "${RESOURCE_GROUP}" --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv</code></p>
 <h2 id="6-export-the-application-gateway-resource-id">6. Export the Application Gateway resource ID</h2>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">APP_GW_ID</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">APPLICATION_GATEWAY_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--resource-group<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">  </span>--query<span class="w"> </span><span class="s1">&#39;id&#39;</span><span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span><span class="s2">&quot;</span>
-</code></pre></div>
+<p><code>bash
+export APP_GW_ID="$(az network application-gateway show --name "${APPLICATION_GATEWAY_NAME}"  --resource-group "${RESOURCE_GROUP}"  --query 'id' --output tsv)"</code></p>
 <h2 id="7-add-contributor-role-for-the-identity-over-the-application-gateway">7. Add Contributor role for the identity over the Application Gateway</h2>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--assignee<span class="w"> </span>&lt;identityClientID&gt;<span class="w"> </span>--scope<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">APP_GW_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--role<span class="w"> </span>Contributor
-</code></pre></div>
+<p><code>bash
+az role assignment create --assignee &lt;identityClientID&gt; --scope "${APP_GW_ID}" --role Contributor</code></p>
 <h2 id="8-in-helm-configyaml-specify">8. In helm-config.yaml specify</h2>
-<div class="highlight"><pre><span></span><code><span class="nt">armAuth</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">workloadIdentity</span>
-<span class="w">    </span><span class="nt">identityClientID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;identityClientID&gt;</span>
-</code></pre></div>
+<p><code>yaml
+armAuth:
+    type: workloadIdentity
+    identityClientID: &lt;identityClientID&gt;</code></p>
 <h2 id="9-get-the-aks-cluster-credentials">9. Get the AKS cluster credentials</h2>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>aks<span class="w"> </span>get-credentials<span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">RESOURCE_GROUP</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-n<span class="w"> </span>myAKSCluster
-</code></pre></div>
+<p><code>bash
+az aks get-credentials -g "${RESOURCE_GROUP}" -n myAKSCluster</code></p>
 <h2 id="10-install-the-helm-chart">10. Install the helm chart</h2>
-<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>install<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-f<span class="w"> </span>helm-config.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.5
-</code></pre></div>
+<p><code>bash
+helm install ingress-azure \
+  -f helm-config.yaml \
+  oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+  --version 1.7.5</code></p>
               
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../continuous-deployment/" class="btn btn-neutral float-left" title="Continuous Deployment with AKS and AGIC using Azure Pipelines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../dns/" class="btn btn-neutral float-right" title="Automate DNS updates">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../continuous-deployment/" class="btn btn-neutral" title="Continuous Deployment with AKS and AGIC using Azure Pipelines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+          
         </div>
       </div>
 
@@ -295,24 +268,30 @@ az<span class="w"> </span>identity<span class="w"> </span>create<span class="w">
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../continuous-deployment/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../dns/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress" class="fa fa-code-fork" style="color: #fcfcfc"> Azure/application-gateway-kubernetes-ingress</a>
+        </span>
+    
+    
+      <span><a href="../continuous-deployment/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../dns/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>

@@ -1,199 +1,180 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Install - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../docs/css/extra.css" rel="stylesheet" />
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Install";
-    var mkdocs_page_input_path = "setup/install.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Install - Application Gateway Ingress Controller</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../docs/css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Install";
+        var mkdocs_page_input_path = "setup/install.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
-        <div role="search">
+          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
+        </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                    </li>
-                </ul>
-                <ul class="current">
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Install</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Install</a>
     <ul class="current">
     </ul>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                    </li>
-                </ul>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">How tos</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/">Troubleshooting Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../troubleshootings/troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                  </li>
+              </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Application Gateway Ingress Controller</a>
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Application Gateway Ingress Controller</a>
+        
       </nav>
-
-      
       <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>Setup &raquo;</li>
-        
-      
-    
-    <li>Install</li>
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Setup</li>
+      <li class="breadcrumb-item active">Install</li>
     <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/setup/install.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
-      
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/setup/install.md">Edit on Azure/application-gateway-kubernetes-ingress</a>
     </li>
   </ul>
-  
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
               
                 <h2 id="prerequisites">Prerequisites</h2>
 <blockquote>
@@ -205,44 +186,41 @@
 <ol>
 <li>
 <p>Prepare your Azure subscription and your <code>az-cli</code> client.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Sign in to your Azure subscription.</span>
-<span class="nv">SUBSCRIPTION_ID</span><span class="o">=</span><span class="s1">&#39;&lt;your subscription id&gt;&#39;</span>
-az<span class="w"> </span>login
-az<span class="w"> </span>account<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--subscription<span class="w"> </span><span class="nv">$SUBSCRIPTION_ID</span>
-
-<span class="c1"># Register required resource providers on Azure.</span>
-az<span class="w"> </span>provider<span class="w"> </span>register<span class="w"> </span>--namespace<span class="w"> </span>Microsoft.ContainerService
-az<span class="w"> </span>provider<span class="w"> </span>register<span class="w"> </span>--namespace<span class="w"> </span>Microsoft.Network
-</code></pre></div>
+<p>```bash</p>
+<h1 id="sign-in-to-your-azure-subscription">Sign in to your Azure subscription.</h1>
+<p>SUBSCRIPTION_ID='<your subscription id>'
+az login
+az account set --subscription $SUBSCRIPTION_ID</p>
+<h1 id="register-required-resource-providers-on-azure">Register required resource providers on Azure.</h1>
+<p>az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.Network
+```</p>
 </li>
 <li>
 <p>Set an AKS cluster for your workload.</p>
-<blockquote>
-<p>AKS cluster should have the workload identity feature enabled. <a href="../../aks/workload-identity-deploy-cluster.md#update-an-existing-aks-cluster">Learn how</a> to enable workload identity on an existing AKS cluster.</p>
-</blockquote>
 <p>If using an existing cluster, ensure you enable Workload Identity support on your AKS cluster.  Workload identities can be enabled via the following:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AKS_NAME</span><span class="o">=</span><span class="s1">&#39;&lt;your cluster name&gt;&#39;</span>
-<span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s1">&#39;&lt;your resource group name&gt;&#39;</span>
-
-az<span class="w"> </span>aks<span class="w"> </span>update<span class="w"> </span>-g<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>-n<span class="w"> </span><span class="nv">$AKS_NAME</span><span class="w"> </span>--enable-oidc-issuer<span class="w"> </span>--enable-workload-identity<span class="w"> </span>--no-wait
-</code></pre></div>
+<p>```bash
+AKS_NAME='<your cluster name>'
+RESOURCE_GROUP='<your resource group name>'</p>
+<p>az aks update -g $RESOURCE_GROUP -n $AKS_NAME --enable-oidc-issuer --enable-workload-identity --no-wait
+```</p>
 <p>If you don't have an existing cluster, use the following commands to create a new AKS cluster and workload identity enabled.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AKS_NAME</span><span class="o">=</span><span class="s1">&#39;&lt;your cluster name&gt;&#39;</span>
-<span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s1">&#39;&lt;your resource group name&gt;&#39;</span>
-<span class="nv">LOCATION</span><span class="o">=</span><span class="s1">&#39;northeurope&#39;</span>
-<span class="nv">VM_SIZE</span><span class="o">=</span><span class="s1">&#39;&lt;the size of the vm in AKS&gt;&#39;</span><span class="w"> </span><span class="c1"># The size needs to be available in your location</span>
-
-az<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--location<span class="w"> </span><span class="nv">$LOCATION</span>
-az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--name<span class="w"> </span><span class="nv">$AKS_NAME</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--location<span class="w"> </span><span class="nv">$LOCATION</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--node-vm-size<span class="w"> </span><span class="nv">$VM_SIZE</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--network-plugin<span class="w"> </span>azure<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--enable-oidc-issuer<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--enable-workload-identity<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--generate-ssh-key
-</code></pre></div>
+<p>```bash
+AKS_NAME='<your cluster name>'
+RESOURCE_GROUP='<your resource group name>'
+LOCATION='northeurope'
+VM_SIZE='<the size of the vm in AKS>' # The size needs to be available in your location</p>
+<p>az group create --name $RESOURCE_GROUP --location $LOCATION
+az aks create \
+    --resource-group $RESOURCE_GROUP \
+    --name $AKS_NAME \
+    --location $LOCATION \
+    --node-vm-size $VM_SIZE \
+    --network-plugin azure \
+    --enable-oidc-issuer \
+    --enable-workload-identity \
+    --generate-ssh-key
+```</p>
 </li>
 <li>
 <p>Install Helm</p>
@@ -250,8 +228,8 @@ az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </sp
 <blockquote>
 <p>Helm is already available in Azure Cloud Shell.  If you are using Azure Cloud Shell, no additional Helm installation is necessary.</p>
 </blockquote>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
-</code></pre></div>
+<p><code>bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash</code></p>
 </li>
 </ol>
 <h2 id="deploy-or-use-existing-application-gateway">Deploy or Use existing Application Gateway</h2>
@@ -259,8 +237,8 @@ az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </sp
 <ol>
 <li>Set the environment variable.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="nv">APPGW_ID</span><span class="o">=</span><span class="s2">&quot;&lt;existing app gateway resource id&gt;&quot;</span>
-</code></pre></div>
+<p><code>bash
+  APPGW_ID="&lt;existing app gateway resource id&gt;"</code></p>
 <ol>
 <li><a href="../../how-tos/networking/">Follow steps</a> here to make sure AppGW VNET is correctly setup i.e. either it is using same VNET as AKS or is peered.</li>
 </ol>
@@ -268,86 +246,92 @@ az<span class="w"> </span>aks<span class="w"> </span>create<span class="w"> </sp
 <ol>
 <li>
 <p>Setup environment variables</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AKS_NAME</span><span class="o">=</span><span class="s1">&#39;&lt;your cluster name&gt;&#39;</span>
-<span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s1">&#39;&lt;your resource group name&gt;&#39;</span>
-<span class="nv">LOCATION</span><span class="o">=</span><span class="s2">&quot;&lt;your cluster location&gt;&quot;</span>
-
-<span class="nv">APPGW_NAME</span><span class="o">=</span><span class="s2">&quot;application-gateway&quot;</span>
-<span class="nv">APPGW_SUBNET_NAME</span><span class="o">=</span><span class="s2">&quot;appgw-subnet&quot;</span>
-</code></pre></div>
+<p>```bash
+AKS_NAME='<your cluster name>'
+RESOURCE_GROUP='<your resource group name>'
+LOCATION="<your cluster location>"</p>
+<p>APPGW_NAME="application-gateway"
+APPGW_SUBNET_NAME="appgw-subnet"
+```</p>
 </li>
 <li>
 <p>Deploy subnet for Application Gateway</p>
-<div class="highlight"><pre><span></span><code><span class="nv">nodeResourceGroup</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$AKS_NAME</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;nodeResourceGroup&quot;</span><span class="k">)</span>
-<span class="nv">aksVnetName</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>list<span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;[0].name&quot;</span><span class="k">)</span>
-<span class="nv">aksVnetId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksVnetName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="k">)</span>
-az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>subnet<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--resource-group<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w">  </span><span class="se">\</span>
-<span class="w">    </span>--vnet-name<span class="w"> </span><span class="nv">$aksVnetName</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--name<span class="w"> </span><span class="nv">$APPGW_SUBNET_NAME</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--address-prefixes<span class="w"> </span><span class="s2">&quot;10.226.0.0/23&quot;</span>
-
-<span class="nv">APPGW_SUBNET_ID</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>vnet<span class="w"> </span>subnet<span class="w"> </span>list<span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>--vnet-name<span class="w"> </span><span class="nv">$aksVnetName</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;[?name==&#39;</span><span class="nv">$APPGW_SUBNET_NAME</span><span class="s2">&#39;].id&quot;</span><span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span>
-</code></pre></div>
+<p>```bash
+nodeResourceGroup=$(az aks show -n $AKS_NAME -g <span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP -o tsv --query "nodeResourceGroup")
+aksVnetName=</span><script type="math/tex">RESOURCE_GROUP -o tsv --query "nodeResourceGroup")
+aksVnetName=</script></span>(az network vnet list -g <span class="arithmatex"><span class="MathJax_Preview">nodeResourceGroup -o tsv --query "[0].name")
+aksVnetId=</span><script type="math/tex">nodeResourceGroup -o tsv --query "[0].name")
+aksVnetId=</script></span>(az network vnet show -n $aksVnetName -g $nodeResourceGroup -o tsv --query "id")
+az network vnet subnet create \
+    --resource-group $nodeResourceGroup  \
+    --vnet-name $aksVnetName \
+    --name $APPGW_SUBNET_NAME \
+    --address-prefixes "10.226.0.0/23"</p>
+<p>APPGW_SUBNET_ID=$(az network vnet subnet list --resource-group $nodeResourceGroup --vnet-name <span class="arithmatex"><span class="MathJax_Preview">aksVnetName --query "[?name=='</span><script type="math/tex">aksVnetName --query "[?name=='</script></span>APPGW_SUBNET_NAME'].id" --output tsv)
+```</p>
 </li>
 <li>
 <p>Deploy Application Gateway</p>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span><span class="nv">$APPGW_NAME</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--location<span class="w"> </span><span class="nv">$LOCATION</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--subnet<span class="w"> </span><span class="nv">$APPGW_SUBNET_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--capacity<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--sku<span class="w"> </span>Standard_v2<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--http-settings-cookie-based-affinity<span class="w"> </span>Disabled<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--frontend-port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--http-settings-port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--http-settings-protocol<span class="w"> </span>Http<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--public-ip-address<span class="w"> </span>appgw-ip<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--priority<span class="w"> </span><span class="m">10</span>
-
-<span class="nv">APPGW_ID</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>network<span class="w"> </span>application-gateway<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="nv">$APPGW_NAME</span><span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;id&quot;</span><span class="w"> </span>--output<span class="w"> </span>tsv<span class="k">)</span>
-</code></pre></div>
+<p>```bash
+az network application-gateway create \
+  --name $APPGW_NAME \
+  --location $LOCATION \
+  --resource-group $RESOURCE_GROUP \
+  --subnet $APPGW_SUBNET_ID \
+  --capacity 2 \
+  --sku Standard_v2 \
+  --http-settings-cookie-based-affinity Disabled \
+  --frontend-port 80 \
+  --http-settings-port 80 \
+  --http-settings-protocol Http \
+  --public-ip-address appgw-ip \
+  --priority 10</p>
+<p>APPGW_ID=$(az network application-gateway show --name $APPGW_NAME --resource-group $RESOURCE_GROUP --query "id" --output tsv)
+```</p>
 </li>
 </ol>
 <h2 id="install-application-gateway-ingress-controller">Install Application Gateway Ingress Controller</h2>
 <ol>
 <li>
 <p>Setup environment variables</p>
-<div class="highlight"><pre><span></span><code><span class="nv">AKS_NAME</span><span class="o">=</span><span class="s1">&#39;&lt;your cluster name&gt;&#39;</span>
-<span class="nv">RESOURCE_GROUP</span><span class="o">=</span><span class="s1">&#39;&lt;your resource group name&gt;&#39;</span>
-<span class="nv">LOCATION</span><span class="o">=</span><span class="s2">&quot;&lt;your cluster location&gt;&quot;</span>
-
-<span class="nv">IDENTITY_RESOURCE_NAME</span><span class="o">=</span><span class="s1">&#39;agic-identity&#39;</span>
-</code></pre></div>
+<p>```bash
+AKS_NAME='<your cluster name>'
+RESOURCE_GROUP='<your resource group name>'
+LOCATION="<your cluster location>"</p>
+<p>IDENTITY_RESOURCE_NAME='agic-identity'
+```</p>
 </li>
 <li>
 <p>Create a user managed identity for AGIC controller and federate the identity as Workload Identity to use in the AKS cluster.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Creating identity </span><span class="nv">$IDENTITY_RESOURCE_NAME</span><span class="s2"> in resource group </span><span class="nv">$RESOURCE_GROUP</span><span class="s2">&quot;</span>
-az<span class="w"> </span>identity<span class="w"> </span>create<span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--name<span class="w"> </span><span class="nv">$IDENTITY_RESOURCE_NAME</span>
-<span class="nv">IDENTITY_PRINCIPAL_ID</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>-g<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>-n<span class="w"> </span><span class="nv">$IDENTITY_RESOURCE_NAME</span><span class="w"> </span>--query<span class="w"> </span>principalId<span class="w"> </span>-otsv<span class="k">)</span><span class="s2">&quot;</span>
-<span class="nv">IDENTITY_CLIENT_ID</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>identity<span class="w"> </span>show<span class="w"> </span>-g<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>-n<span class="w"> </span><span class="nv">$IDENTITY_RESOURCE_NAME</span><span class="w"> </span>--query<span class="w"> </span>clientId<span class="w"> </span>-otsv<span class="k">)</span><span class="s2">&quot;</span>
-
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Waiting 60 seconds to allow for replication of the identity...&quot;</span>
-sleep<span class="w"> </span><span class="m">60</span>
-
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Set up federation with AKS OIDC issuer&quot;</span>
-<span class="nv">AKS_OIDC_ISSUER</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$AKS_NAME</span><span class="s2">&quot;</span><span class="w"> </span>-g<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$RESOURCE_GROUP</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;oidcIssuerProfile.issuerUrl&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span><span class="s2">&quot;</span>
-az<span class="w"> </span>identity<span class="w"> </span>federated-credential<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;agic&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--identity-name<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$IDENTITY_RESOURCE_NAME</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--issuer<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$AKS_OIDC_ISSUER</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--subject<span class="w"> </span><span class="s2">&quot;system:serviceaccount:default:ingress-azure&quot;</span>
-
-<span class="nv">resourceGroupId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>group<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--query<span class="w"> </span>id<span class="w"> </span>-otsv<span class="k">)</span>
-<span class="nv">nodeResourceGroup</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$AKS_NAME</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;nodeResourceGroup&quot;</span><span class="k">)</span>
-<span class="nv">nodeResourceGroupId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>group<span class="w"> </span>show<span class="w"> </span>--name<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>--query<span class="w"> </span>id<span class="w"> </span>-otsv<span class="k">)</span>
-
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Apply role assignments to AGIC identity&quot;</span>
-az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--assignee-object-id<span class="w"> </span><span class="nv">$IDENTITY_PRINCIPAL_ID</span><span class="w"> </span>--assignee-principal-type<span class="w"> </span>ServicePrincipal<span class="w"> </span>--scope<span class="w"> </span><span class="nv">$resourceGroupId</span><span class="w"> </span>--role<span class="w"> </span><span class="s2">&quot;Reader&quot;</span>
-az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--assignee-object-id<span class="w"> </span><span class="nv">$IDENTITY_PRINCIPAL_ID</span><span class="w"> </span>--assignee-principal-type<span class="w"> </span>ServicePrincipal<span class="w"> </span>--scope<span class="w"> </span><span class="nv">$nodeResourceGroupId</span><span class="w"> </span>--role<span class="w"> </span><span class="s2">&quot;Contributor&quot;</span>
-az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w"> </span>create<span class="w"> </span>--assignee-object-id<span class="w"> </span><span class="nv">$IDENTITY_PRINCIPAL_ID</span><span class="w"> </span>--assignee-principal-type<span class="w"> </span>ServicePrincipal<span class="w"> </span>--scope<span class="w"> </span><span class="nv">$APPGW_ID</span><span class="w"> </span>--role<span class="w"> </span><span class="s2">&quot;Contributor&quot;</span>
-</code></pre></div>
+<p>```bash
+echo "Creating identity $IDENTITY_RESOURCE_NAME in resource group $RESOURCE_GROUP"
+az identity create --resource-group $RESOURCE_GROUP --name <span class="arithmatex"><span class="MathJax_Preview">IDENTITY_RESOURCE_NAME
+IDENTITY_PRINCIPAL_ID="</span><script type="math/tex">IDENTITY_RESOURCE_NAME
+IDENTITY_PRINCIPAL_ID="</script></span>(az identity show -g $RESOURCE_GROUP -n <span class="arithmatex"><span class="MathJax_Preview">IDENTITY_RESOURCE_NAME --query principalId -otsv)"
+IDENTITY_CLIENT_ID="</span><script type="math/tex">IDENTITY_RESOURCE_NAME --query principalId -otsv)"
+IDENTITY_CLIENT_ID="</script></span>(az identity show -g $RESOURCE_GROUP -n $IDENTITY_RESOURCE_NAME --query clientId -otsv)"</p>
+<p>echo "Waiting 60 seconds to allow for replication of the identity..."
+sleep 60</p>
+<p>echo "Set up federation with AKS OIDC issuer"
+AKS_OIDC_ISSUER="<span class="arithmatex"><span class="MathJax_Preview">(az aks show -n "</span><script type="math/tex">(az aks show -n "</script></span>AKS_NAME" -g "<span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -o tsv)"
+az identity federated-credential create --name "agic" \
+    --identity-name "</span><script type="math/tex">RESOURCE_GROUP" --query "oidcIssuerProfile.issuerUrl" -o tsv)"
+az identity federated-credential create --name "agic" \
+    --identity-name "</script></span>IDENTITY_RESOURCE_NAME" \
+    --resource-group <span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP \
+    --issuer "</span><script type="math/tex">RESOURCE_GROUP \
+    --issuer "</script></span>AKS_OIDC_ISSUER" \
+    --subject "system:serviceaccount:default:ingress-azure"</p>
+<p>resourceGroupId=$(az group show --name <span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP --query id -otsv)
+nodeResourceGroup=</span><script type="math/tex">RESOURCE_GROUP --query id -otsv)
+nodeResourceGroup=</script></span>(az aks show -n $AKS_NAME -g <span class="arithmatex"><span class="MathJax_Preview">RESOURCE_GROUP -o tsv --query "nodeResourceGroup")
+nodeResourceGroupId=</span><script type="math/tex">RESOURCE_GROUP -o tsv --query "nodeResourceGroup")
+nodeResourceGroupId=</script></span>(az group show --name $nodeResourceGroup --query id -otsv)</p>
+<p>echo "Apply role assignments to AGIC identity"
+az role assignment create --assignee-object-id $IDENTITY_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope $resourceGroupId --role "Reader"
+az role assignment create --assignee-object-id $IDENTITY_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope $nodeResourceGroupId --role "Contributor"
+az role assignment create --assignee-object-id $IDENTITY_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope $APPGW_ID --role "Contributor"
+```</p>
 </li>
 </ol>
 <blockquote>
@@ -358,143 +342,138 @@ az<span class="w"> </span>role<span class="w"> </span>assignment<span class="w">
 </ol>
 <h3 id="for-new-deployments">For new deployments</h3>
 <p>AGIC can be installed by running the following commands:</p>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>aks<span class="w"> </span>get-credentials<span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--name<span class="w"> </span><span class="nv">$AKS_NAME</span>
-
-<span class="c1"># on aks cluster with only linux node pools</span>
-helm<span class="w"> </span>install<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>appgw.applicationGatewayID<span class="o">=</span><span class="nv">$APPGW_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.type<span class="o">=</span>workloadIdentity<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.identityClientID<span class="o">=</span><span class="nv">$IDENTITY_CLIENT_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>rbac.enabled<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.3
-
-<span class="c1"># on aks cluster with windows node pools</span>
-helm<span class="w"> </span>install<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>appgw.applicationGatewayID<span class="o">=</span><span class="nv">$APPGW_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.type<span class="o">=</span>workloadIdentity<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.identityClientID<span class="o">=</span><span class="nv">$IDENTITY_CLIENT_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>rbac.enabled<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>nodeSelector.<span class="s2">&quot;beta\.kubernetes\.io/os&quot;</span><span class="o">=</span>linux<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.3
-</code></pre></div>
+<p>```bash
+  az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME</p>
+<p># on aks cluster with only linux node pools
+  helm install ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+    --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</script></span>IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --version 1.7.3</p>
+<p># on aks cluster with windows node pools
+  helm install ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+    --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</script></span>IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --set nodeSelector."beta.kubernetes.io/os"=linux \
+    --version 1.7.3
+  ```</p>
 <h3 id="for-existing-deployments">For existing deployments</h3>
 <p>AGIC can be upgraded by running the following commands:</p>
-<div class="highlight"><pre><span></span><code>az<span class="w"> </span>aks<span class="w"> </span>get-credentials<span class="w"> </span>--resource-group<span class="w"> </span><span class="nv">$RESOURCE_GROUP</span><span class="w"> </span>--name<span class="w"> </span><span class="nv">$AKS_NAME</span>
-
-<span class="c1"># on aks cluster with only linux node pools</span>
-helm<span class="w"> </span>upgrade<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>appgw.applicationGatewayID<span class="o">=</span><span class="nv">$APPGW_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.type<span class="o">=</span>workloadIdentity<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.identityClientID<span class="o">=</span><span class="nv">$IDENTITY_CLIENT_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>rbac.enabled<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.3
-
-<span class="c1"># on aks cluster with windows node pools</span>
-helm<span class="w"> </span>upgrade<span class="w"> </span>ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>appgw.applicationGatewayID<span class="o">=</span><span class="nv">$APPGW_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.type<span class="o">=</span>workloadIdentity<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>armAuth.identityClientID<span class="o">=</span><span class="nv">$IDENTITY_CLIENT_ID</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>rbac.enabled<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--set<span class="w"> </span>nodeSelector.<span class="s2">&quot;beta\.kubernetes\.io/os&quot;</span><span class="o">=</span>linux<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--version<span class="w"> </span><span class="m">1</span>.7.3
-</code></pre></div>
+<p>```bash
+  az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME</p>
+<p># on aks cluster with only linux node pools
+  helm upgrade ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+    --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</script></span>IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --version 1.7.3</p>
+<p># on aks cluster with windows node pools
+  helm upgrade ingress-azure \
+    oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
+    --set appgw.applicationGatewayID=<span class="arithmatex"><span class="MathJax_Preview">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</span><script type="math/tex">APPGW_ID \
+    --set armAuth.type=workloadIdentity \
+    --set armAuth.identityClientID=</script></span>IDENTITY_CLIENT_ID \
+    --set rbac.enabled=true \
+    --set nodeSelector."beta.kubernetes.io/os"=linux \
+    --version 1.7.3
+  ```</p>
 <h3 id="install-a-sample-app">Install a Sample App</h3>
 <p>Now that we have App Gateway, AKS, and AGIC installed we can install a sample app
 via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt;EOF | kubectl apply -f -</span>
-<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
-<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Pod</span>
-<span class="nt">metadata</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="nt">spec</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mcr.microsoft.com/dotnet/samples:aspnetapp&quot;</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp-image</span>
-<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">containerPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
-<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
-
-<span class="nn">---</span>
-
-<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
-<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Service</span>
-<span class="nt">metadata</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="nt">spec</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">selector</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TCP</span>
-<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
-<span class="w">    </span><span class="nt">targetPort</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
-
-<span class="nn">---</span>
-
-<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span>
-<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span>
-<span class="nt">metadata</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">kubernetes.io/ingress.class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">azure/application-gateway</span>
-<span class="nt">spec</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">http</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">paths</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
-<span class="w">        </span><span class="nt">backend</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">service</span><span class="p">:</span>
-<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aspnetapp</span>
-<span class="w">            </span><span class="nt">port</span><span class="p">:</span>
-<span class="w">              </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
-<span class="w">        </span><span class="nt">pathType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exact</span>
-<span class="l l-Scalar l-Scalar-Plain">EOF</span>
-</code></pre></div>
+<p>```yaml
+  cat &lt;&lt;EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: aspnetapp
+    labels:
+      app: aspnetapp
+  spec:
+    containers:
+    - image: "mcr.microsoft.com/dotnet/samples:aspnetapp"
+      name: aspnetapp-image
+      ports:
+      - containerPort: 8080
+        protocol: TCP</p>
+<hr />
+<p>apiVersion: v1
+  kind: Service
+  metadata:
+    name: aspnetapp
+  spec:
+    selector:
+      app: aspnetapp
+    ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080</p>
+<hr />
+<p>apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: aspnetapp
+    annotations:
+      kubernetes.io/ingress.class: azure/application-gateway
+  spec:
+    rules:
+    - http:
+        paths:
+        - path: /
+          backend:
+            service:
+              name: aspnetapp
+              port:
+                number: 80
+          pathType: Exact
+  EOF
+  ```</p>
 <p>Alternatively you can:</p>
 <ol>
 <li>
 <p>Download the YAML file above:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml<span class="w"> </span>-o<span class="w"> </span>aspnetapp.yaml
-</code></pre></div>
+<p><code>bash
+curl https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/aspnetapp.yaml -o aspnetapp.yaml</code></p>
 </li>
 <li>
 <p>Apply the YAML file:</p>
-<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>aspnetapp.yaml
-</code></pre></div>
+<p><code>bash
+kubectl apply -f aspnetapp.yaml</code></p>
 </li>
 </ol>
 <h2 id="other-examples">Other Examples</h2>
 <p>The <strong><a href="../../tutorials/tutorial.general/">tutorials</a></strong> document contains more examples on how to expose an AKS service via HTTP or HTTPS, to the Internet with App Gateway.</p>
               
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../ingress-v1/" class="btn btn-neutral float-left" title="Ingress V1 Support"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../../tutorials/tutorial.e2e-ssl/" class="btn btn-neutral float-right" title="Tutorial: Setting up E2E SSL">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../../ingress-v1/" class="btn btn-neutral" title="Ingress V1 Support"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+          
         </div>
       </div>
 
@@ -502,24 +481,30 @@ via <a href="https://shell.azure.com/">Azure Cloud Shell</a>:</p>
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../../ingress-v1/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../../tutorials/tutorial.e2e-ssl/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress" class="fa fa-code-fork" style="color: #fcfcfc"> Azure/application-gateway-kubernetes-ingress</a>
+        </span>
+    
+    
+      <span><a href="../../ingress-v1/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../tutorials/tutorial.e2e-ssl/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>

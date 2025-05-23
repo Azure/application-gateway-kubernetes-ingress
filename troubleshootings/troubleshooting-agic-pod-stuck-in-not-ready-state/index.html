@@ -1,137 +1,131 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Troubleshooting agic pod stuck in not ready state - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../docs/css/extra.css" rel="stylesheet" />
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Troubleshooting agic pod stuck in not ready state";
-    var mkdocs_page_input_path = "troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Troubleshooting agic pod stuck in not ready state - Application Gateway Ingress Controller</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../docs/css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Troubleshooting agic pod stuck in not ready state";
+        var mkdocs_page_input_path = "troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
-        <div role="search">
+          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
+        </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../">Troubleshooting Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Troubleshooting agic pod stuck in not ready state</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">How tos</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Troubleshooting Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-addon-identity-not-found/">Troubleshooting agic addon identity not found</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Troubleshooting agic pod stuck in not ready state</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#illustration">Illustration</a>
     </li>
@@ -148,66 +142,53 @@
     <li class="toctree-l2"><a class="reference internal" href="#agic-is-stuck-getting-application-gateway">AGIC is stuck getting Application Gateway</a>
     </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                    </li>
-                </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                  </li>
+              </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Application Gateway Ingress Controller</a>
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Application Gateway Ingress Controller</a>
+        
       </nav>
-
-      
       <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>Troubleshootings &raquo;</li>
-        
-      
-    
-    <li>Troubleshooting agic pod stuck in not ready state</li>
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Troubleshootings</li>
+      <li class="breadcrumb-item active">Troubleshooting agic pod stuck in not ready state</li>
     <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
-      
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/troubleshootings/troubleshooting-agic-pod-stuck-in-not-ready-state.md">Edit on Azure/application-gateway-kubernetes-ingress</a>
     </li>
   </ul>
-  
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
               
                 <h2 id="troubleshooting-agic-pod-stuck-in-not-ready-state">Troubleshooting: AGIC pod stuck in not ready state</h2>
 <blockquote>
@@ -215,14 +196,14 @@
 </blockquote>
 <h3 id="illustration">Illustration</h3>
 <p>If AGIC pod is stuck in ready state, you must be seeing the following:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods
-
-NAME<span class="w">                                   </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE
-&lt;AGIC-POD-NAME&gt;<span class="w">                        </span><span class="m">0</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">0</span><span class="w">          </span>19s
-mic-774b9c5d7b-z4z8p<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
-mic-774b9c5d7b-zrdsm<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
-nmi-pv8ch<span class="w">       </span>
-</code></pre></div>
+<p>```bash
+$ kubectl get pods</p>
+<p>NAME                                   READY   STATUS    RESTARTS   AGE
+<AGIC-POD-NAME>                        0/1     Running   0          19s
+mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
+mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
+nmi-pv8ch     <br />
+```</p>
 <h3 id="common-causes">Common causes</h3>
 <ol>
 <li><a href="#agic-is-stuck-at-creating-authorizer">Stuck at creating authorizer</a></li>
@@ -237,13 +218,13 @@ This identity can be of two types:</p>
 </ol>
 <p>When using User Assigned identity with AGIC, AGIC has a dependency on <a href="https://github.com/Azure/aad-pod-identity"><code>AAD Pod Identity</code></a>.<br />
 When you see your AGIC pod stuck at <code>Creating Authorizer</code> step, then the issue could be related to the setup of the user assigned identity and AAD Pod Identity.</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;AGIC-POD-NAME&gt;
-ERROR:<span class="w"> </span>logging<span class="w"> </span>before<span class="w"> </span>flag.Parse:<span class="w"> </span>I0628<span class="w"> </span><span class="m">18</span>:09:49.947221<span class="w">       </span><span class="m">1</span><span class="w"> </span>utils.go:115<span class="o">]</span><span class="w"> </span>Using<span class="w"> </span>verbosity<span class="w"> </span>level<span class="w"> </span><span class="m">3</span><span class="w"> </span>from<span class="w"> </span>environment<span class="w"> </span>variable<span class="w"> </span>APPGW_VERBOSITY_LEVEL
-I0628<span class="w"> </span><span class="m">18</span>:09:49.987776<span class="w">       </span><span class="m">1</span><span class="w"> </span>environment.go:240<span class="o">]</span><span class="w"> </span>KUBERNETES_WATCHNAMESPACE<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>set.<span class="w"> </span>Watching<span class="w"> </span>all<span class="w"> </span>available<span class="w"> </span>namespaces.
-I0628<span class="w"> </span><span class="m">18</span>:09:49.987861<span class="w">       </span><span class="m">1</span><span class="w"> </span>main.go:128<span class="o">]</span><span class="w"> </span>Application<span class="w"> </span>Gateway<span class="w"> </span>Details:<span class="w"> </span><span class="nv">Subscription</span><span class="o">=</span><span class="s2">&quot;xxxx&quot;</span><span class="w"> </span>Resource<span class="w"> </span><span class="nv">Group</span><span class="o">=</span><span class="s2">&quot;resgp&quot;</span><span class="w"> </span><span class="nv">Name</span><span class="o">=</span><span class="s2">&quot;gateway&quot;</span>
-I0628<span class="w"> </span><span class="m">18</span>:09:49.987873<span class="w">       </span><span class="m">1</span><span class="w"> </span>auth.go:46<span class="o">]</span><span class="w"> </span>Creating<span class="w"> </span>authorizer<span class="w"> </span>from<span class="w"> </span>Azure<span class="w"> </span>Managed<span class="w"> </span>Service<span class="w"> </span>Identity
-I0628<span class="w"> </span><span class="m">18</span>:09:49.987945<span class="w">       </span><span class="m">1</span><span class="w"> </span>httpserver.go:57<span class="o">]</span><span class="w"> </span>Starting<span class="w"> </span>API<span class="w"> </span>Server<span class="w"> </span>on<span class="w"> </span>:8123
-</code></pre></div>
+<p><code>bash
+$ kubectl logs &lt;AGIC-POD-NAME&gt;
+ERROR: logging before flag.Parse: I0628 18:09:49.947221       1 utils.go:115] Using verbosity level 3 from environment variable APPGW_VERBOSITY_LEVEL
+I0628 18:09:49.987776       1 environment.go:240] KUBERNETES_WATCHNAMESPACE is not set. Watching all available namespaces.
+I0628 18:09:49.987861       1 main.go:128] Application Gateway Details: Subscription="xxxx" Resource Group="resgp" Name="gateway"
+I0628 18:09:49.987873       1 auth.go:46] Creating authorizer from Azure Managed Service Identity
+I0628 18:09:49.987945       1 httpserver.go:57] Starting API Server on :8123</code></p>
 <p><code>AAD Pod Identity</code> is responsible for assigning the user assigned identity provided by the user for AGIC as <code>AGIC's Identity</code> to the underlying AKS nodes and setup the IP table rules to allow AGIC to get an AAD token from the Instance Metadata service on the VM. When you install <code>AAD Pod Identity</code> on your AKS cluster, it will deploy two components:</p>
 <ol>
 <li>Managed Identity Controller (MIC): It runs with multiple replicas and one Pod is <strong>elected leader</strong>. It is responsible to do the assignment of the identity to the AKS nodes.</li>
@@ -251,25 +232,25 @@ I0628<span class="w"> </span><span class="m">18</span>:09:49.987945<span class="
 </ol>
 <p>For further reading on how these components work, you can go through <a href="https://github.com/Azure/aad-pod-identity#components">this readme</a>. Here is a <a href="https://github.com/Azure/aad-pod-identity/blob/master/docs/design/concept.png">concept diagram</a> on the project page.</p>
 <p>Now, In order to debug the authorizer issue further, we need to get the logs for <code>mic</code> and <code>nmi</code> pods. These pods usually start with mic and nmi as the prefix. We should first investigate the logs of <code>mic</code> and then <code>nmi</code>.</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods
-
-NAME<span class="w">                                   </span>READY<span class="w">   </span>STATUS<span class="w">    </span>RESTARTS<span class="w">   </span>AGE
-mic-774b9c5d7b-z4z8p<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
-mic-774b9c5d7b-zrdsm<span class="w">                   </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
-nmi-pv8ch<span class="w">                              </span><span class="m">1</span>/1<span class="w">     </span>Running<span class="w">   </span><span class="m">1</span><span class="w">          </span>15m
-</code></pre></div>
+<p>```bash
+$ kubectl get pods</p>
+<p>NAME                                   READY   STATUS    RESTARTS   AGE
+mic-774b9c5d7b-z4z8p                   1/1     Running   1          15m
+mic-774b9c5d7b-zrdsm                   1/1     Running   1          15m
+nmi-pv8ch                              1/1     Running   1          15m
+```</p>
 <h6 id="issue-in-mic-pod">Issue in MIC Pod</h6>
 <p>For <code>mic</code> pod, we will need to find the leader. An easy way to find the leader is by looking at the log size. Leader pod is the one that is actively working.</p>
 <ol>
 <li>
 <p>MIC pod communicates with Azure Resource Manager(ARM) to assign the identity to the AKS nodes. If there are any issues in outbound connectivity, MIC can report TCP timeouts. Check your NSGs, UDRs and Firewall to make sure that you allow outbound traffic to Azure.</p>
-<div class="highlight"><pre><span></span><code>Updating<span class="w"> </span>msis<span class="w"> </span>on<span class="w"> </span>node<span class="w"> </span>aks-agentpool-41724381-vmss,<span class="w"> </span>add<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>del<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>update<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>failed<span class="w"> </span>with<span class="w"> </span>error<span class="w"> </span>azure.BearerAuthorizer#WithAuthorization:<span class="w"> </span>Failed<span class="w"> </span>to<span class="w"> </span>refresh<span class="w"> </span>the<span class="w"> </span>Token<span class="w"> </span><span class="k">for</span><span class="w"> </span>request<span class="w"> </span>to<span class="w"> </span>https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version<span class="o">=</span><span class="m">2019</span>-07-01:<span class="w"> </span><span class="nv">StatusCode</span><span class="o">=</span><span class="m">0</span><span class="w"> </span>--<span class="w"> </span>Original<span class="w"> </span>Error:<span class="w"> </span>adal:<span class="w"> </span>Failed<span class="w"> </span>to<span class="w"> </span>execute<span class="w"> </span>the<span class="w"> </span>refresh<span class="w"> </span>request.<span class="w"> </span><span class="nv">Error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Post &quot;https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0&quot;: dial tcp: i/o timeout&#39;</span>
-</code></pre></div>
+<p><code>bash
+Updating msis on node aks-agentpool-41724381-vmss, add [1], del [1], update[0] failed with error azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/xxxx/resourceGroups/resgp/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-41724381-vmss?api-version=2019-07-01: StatusCode=0 -- Original Error: adal: Failed to execute the refresh request. Error = 'Post "https://login.microsoftonline.com/&lt;tenantId&gt;/oauth2/token?api-version=1.0": dial tcp: i/o timeout'</code></p>
 </li>
 <li>
 <p>You will see the following error if AKS cluster's <code>Service Principal</code> missing <code>Managed Identity Operator</code> access over User Assigned identity. You can follow the role assignment related step in the <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#set-up-aad-pod-identity">brownfield document</a>.</p>
-<div class="highlight"><pre><span></span><code>Updating<span class="w"> </span>msis<span class="w"> </span>on<span class="w"> </span>node<span class="w"> </span>aks-agentpool-32587779-vmss,<span class="w"> </span>add<span class="w"> </span><span class="o">[</span><span class="m">1</span><span class="o">]</span>,<span class="w"> </span>del<span class="w"> </span><span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="w"> </span>failed<span class="w"> </span>with<span class="w"> </span>error<span class="w"> </span>compute.VirtualMachineScaleSetsClient#CreateOrUpdate:<span class="w"> </span>Failure<span class="w"> </span>sending<span class="w"> </span>request:<span class="w"> </span><span class="nv">StatusCode</span><span class="o">=</span><span class="m">403</span><span class="w"> </span>--<span class="w"> </span>Original<span class="w"> </span>Error:<span class="w"> </span><span class="nv">Code</span><span class="o">=</span><span class="s2">&quot;LinkedAuthorizationFailed&quot;</span><span class="w"> </span><span class="nv">Message</span><span class="o">=</span><span class="s2">&quot;The client &#39;&lt;objectID&gt;&#39; with object id &#39;&lt;objectID&gt;&#39; has permission to perform action &#39;Microsoft.Compute/virtualMachineScaleSets/write&#39; on scope &#39;/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss&#39;; however, it does not have permission to perform action &#39;Microsoft.ManagedIdentity/userAssignedIdentities/assign/action&#39; on the linked scope(s) &#39;/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;&#39; or the linked scope(s) are invalid.&quot;</span>
-</code></pre></div>
+<p><code>bash
+Updating msis on node aks-agentpool-32587779-vmss, add [1], del [0] failed with error compute.VirtualMachineScaleSetsClient#CreateOrUpdate: Failure sending request: StatusCode=403 -- Original Error: Code="LinkedAuthorizationFailed" Message="The client '&lt;objectID&gt;' with object id '&lt;objectID&gt;' has permission to perform action 'Microsoft.Compute/virtualMachineScaleSets/write' on scope '/subscriptions/xxxx/resourceGroups/&lt;nodeResourceGroup&gt;/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-32587779-vmss'; however, it does not have permission to perform action 'Microsoft.ManagedIdentity/userAssignedIdentities/assign/action' on the linked scope(s) '/subscriptions/xxxx/resourcegroups/resgp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identityName&gt;' or the linked scope(s) are invalid."</code></p>
 </li>
 </ol>
 <h6 id="issue-in-nmi-pod">Issue in NMI Pod</h6>
@@ -299,29 +280,21 @@ Verify that you have given needed permissions to AGIC's identity:<ol>
 </ol>
               
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" class="btn btn-neutral float-left" title="Troubleshooting agic fails with aad pod identity breakingchange"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../troubleshooting-installing-a-simple-application/" class="btn btn-neutral float-right" title="Troubleshooting installing a simple application">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" class="btn btn-neutral" title="Troubleshooting agic fails with aad pod identity breakingchange"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+          
         </div>
       </div>
 
@@ -329,24 +302,30 @@ Verify that you have given needed permissions to AGIC's identity:<ol>
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../troubleshooting-installing-a-simple-application/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress" class="fa fa-code-fork" style="color: #fcfcfc"> Azure/application-gateway-kubernetes-ingress</a>
+        </span>
+    
+    
+      <span><a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../troubleshooting-installing-a-simple-application/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>

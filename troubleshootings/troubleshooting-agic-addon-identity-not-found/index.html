@@ -1,203 +1,184 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Troubleshooting agic addon identity not found - Application Gateway Ingress Controller</title>
-  <link rel="stylesheet" href="../../css/theme.css" />
-  <link rel="stylesheet" href="../../css/theme_extra.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
-  <link href="../../docs/css/extra.css" rel="stylesheet" />
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Troubleshooting agic addon identity not found";
-    var mkdocs_page_input_path = "troubleshootings/troubleshooting-agic-addon-identity-not-found.md";
-    var mkdocs_page_url = null;
-  </script>
-  
-  <script src="../../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/rust.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script> 
-  
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Troubleshooting agic addon identity not found - Application Gateway Ingress Controller</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../docs/css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Troubleshooting agic addon identity not found";
+        var mkdocs_page_input_path = "troubleshootings/troubleshooting-agic-addon-identity-not-found.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/go.min.js"></script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-        <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller</a>
-        <div role="search">
+          <a href="../.." class="icon icon-home"> Application Gateway Ingress Controller
+        </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
   </form>
 </div>
       </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Tutorials</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Features</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">How tos</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Troubleshootings</span></p>
-                <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../">Troubleshooting Guide</a>
-                    </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Troubleshooting agic addon identity not found</a>
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../annotations/">Annotations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../helm-values-documenation/">Helm Values Configuration Options</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../ingress-v1/">Ingress V1 Support</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../setup/install/">Install</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.e2e-ssl/">Tutorial: Setting up E2E SSL</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/tutorial.general/">Tutorial: Basic</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/agic-reconcile/">Agic reconcile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/appgw-ssl-certificate/">Appgw ssl certificate</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/cookie-affinity/">Cookie affinity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/custom-ingress-class/">Custom Ingress Class</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/multiple-namespaces/">Multiple Namespace Support</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/private-ip/">Using Private IP for internal routing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/probes/">Probes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/rewrite-rule-set-custom-resource/">Rewrite rule set custom resource</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">How tos</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/continuous-deployment/">Continuous Deployment with AKS and AGIC using Azure Pipelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/deploy-AGIC-with-Workload-Identity-using-helm/">How to deploy AGIC via Helm using Workload Identity</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/dns/">Automate DNS updates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/helm-upgrade/">Upgrading AGIC using Helm</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/lets-encrypt/">Certificate issuance with LetsEncrypt.org</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/minimize-downtime-during-deployments/">Minimizing Downtime During Deployments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/networking/">How to setup networking between Application Gateway and AKS</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/prevent-agic-from-overwriting/">Preventing AGIC from removing certain rules</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/scale-applications-using-appgw-metrics/">Scale your Applications using Application Gateway Metrics (Beta)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../how-tos/websockets/">Websockets</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../faq/">Frequrently Asked Questions: [WIP]</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Troubleshootings</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Troubleshooting Guide</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Troubleshooting agic addon identity not found</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#illustration">Illustration</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#resolve-the-issue">Resolve the issue</a>
     </li>
     </ul>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
-                    </li>
-                </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
-                    </li>
-                </ul>
-                <p class="caption"><span class="caption-text">Developers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
-                    </li>
-                    <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
-                    </li>
-                </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/">Troubleshooting agic fails with aad pod identity breakingchange</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-agic-pod-stuck-in-not-ready-state/">Troubleshooting agic pod stuck in not ready state</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../troubleshooting-installing-a-simple-application/">Troubleshooting installing a simple application</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../logging-levels/">Logging Levels</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/build/">Building the controller</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/contribute/">Contribution Guidelines</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/design/">Application Gateway Ingress Controller Design (WIP)</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/developer-guideline/">Application Gateway Ingress Controller Development Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/nightly/">Install the latest nightly build</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../developers/test/">Testing the controller</a>
+                  </li>
+              </ul>
       </div>
     </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../..">Application Gateway Ingress Controller</a>
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Application Gateway Ingress Controller</a>
+        
       </nav>
-
-      
       <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>Troubleshootings &raquo;</li>
-        
-      
-    
-    <li>Troubleshooting agic addon identity not found</li>
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Troubleshootings</li>
+      <li class="breadcrumb-item active">Troubleshooting agic addon identity not found</li>
     <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/troubleshootings/troubleshooting-agic-addon-identity-not-found.md"> Edit on Azure/application-gateway-kubernetes-ingress</a>
-      
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress/edit/master/docs/troubleshootings/troubleshooting-agic-addon-identity-not-found.md">Edit on Azure/application-gateway-kubernetes-ingress</a>
     </li>
   </ul>
-  
   <hr/>
 </div>
-          <div role="main">
-            <div class="section">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
               
                 <h2 id="troubleshooting-agic-addon-identity-not-found">Troubleshooting: AGIC addon, identity not found</h2>
 <blockquote>
@@ -206,45 +187,39 @@
 <h3 id="illustration">Illustration</h3>
 <p>AGIC fails to start due to "Identity not found" even though the User Managed Identity is assigned to the AKS nodes and has the right permissions.</p>
 <p><em><strong>AGIC Pod Logs</strong></em></p>
-<div class="highlight"><pre><span></span><code>E0813<span class="w"> </span><span class="m">15</span>:49:23.529297<span class="w"> </span><span class="m">1</span><span class="w"> </span>client.go:170<span class="o">]</span><span class="w"> </span><span class="nv">Code</span><span class="o">=</span><span class="s2">&quot;ErrorApplicationGatewayForbidden&quot;</span><span class="w"> </span><span class="nv">Message</span><span class="o">=</span><span class="s2">&quot;Unexpected status code &#39;403&#39; while performing a GET on Application Gateway. You can use &#39;az role assignment create --role Reader --scope /subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME --assignee YOUR_AGIC_CLIENTID; az role assignment create --role Contributor --scope /subscriptions/YOUR_RESOURCEGROUP_NAME/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME --assignee YOUR_AGIC_CLIENTID&#39; to assign permissions. AGIC Identity needs atleast has &#39;Contributor&#39; access to Application Gateway &#39;YOUR_APPGW_NAME&#39; and &#39;Reader&#39; access to Application Gateway&#39;s Resource Group &#39;YOUR_RESOURCEGROUP_NAME&#39;.&quot;</span><span class="w"> </span><span class="nv">InnerError</span><span class="o">=</span><span class="s2">&quot;azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = &#39;403&#39;. Response body: failed to get service principal token, error: failed to refresh token, error: adal: Refresh request failed. Status Code = &#39;400&#39;. Response body: {&quot;</span>error<span class="s2">&quot;:&quot;</span>invalid_request<span class="s2">&quot;,&quot;</span>error_description<span class="s2">&quot;:&quot;</span>Identity<span class="w"> </span>not<span class="w"> </span>found<span class="s2">&quot;}</span>
-</code></pre></div>
+<p><code>bash
+E0813 15:49:23.529297 1 client.go:170] Code="ErrorApplicationGatewayForbidden" Message="Unexpected status code '403' while performing a GET on Application Gateway. You can use 'az role assignment create --role Reader --scope /subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME --assignee YOUR_AGIC_CLIENTID; az role assignment create --role Contributor --scope /subscriptions/YOUR_RESOURCEGROUP_NAME/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME --assignee YOUR_AGIC_CLIENTID' to assign permissions. AGIC Identity needs atleast has 'Contributor' access to Application Gateway 'YOUR_APPGW_NAME' and 'Reader' access to Application Gateway's Resource Group 'YOUR_RESOURCEGROUP_NAME'." InnerError="azure.BearerAuthorizer#WithAuthorization: Failed to refresh the Token for request to https://management.azure.com/subscriptions/YOUR_SUBID/resourceGroups/YOUR_RESOURCEGROUP_NAME/providers/Microsoft.Network/applicationGateways/YOUR_APPGW_NAME?api-version=2019-09-01: StatusCode=403 -- Original Error: adal: Refresh request failed. Status Code = '403'. Response body: failed to get service principal token, error: failed to refresh token, error: adal: Refresh request failed. Status Code = '400'. Response body: {"error":"invalid_request","error_description":"Identity not found"}</code></p>
 <h3 id="resolve-the-issue">Resolve the issue</h3>
 <p>Team is working on the <a href="https://github.com/Azure/aad-pod-identity/issues/681">fix</a>, currently to resolve the issue above, agic client identity will need to be reassigned to AKS nodes.
 Please perform the following commands in your <a href="https://shell.azure.com/">Azure Cloud Shell</a>.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">aksClusterName</span><span class="o">=</span><span class="s2">&quot;YOUR_AKS_CLUSTER_NAME&quot;</span>
-<span class="nv">resourceGroup</span><span class="o">=</span><span class="s2">&quot;YOUR_RESOURCEGROUP_NAME&quot;</span>
-<span class="nv">nodeResourceGroup</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksClusterName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$resourceGroup</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;nodeResourceGroup&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
-<span class="nv">aksVmssId</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>vmss<span class="w"> </span>list<span class="w"> </span>-g<span class="w"> </span><span class="nv">$nodeResourceGroup</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;[0].id&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
-<span class="nv">agicIdentity</span><span class="o">=</span><span class="k">$(</span>az<span class="w"> </span>aks<span class="w"> </span>show<span class="w"> </span>-n<span class="w"> </span><span class="nv">$aksClusterName</span><span class="w"> </span>-g<span class="w"> </span><span class="nv">$resourceGroup</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;addonProfiles.ingressApplicationGateway.identity.resourceId&quot;</span><span class="w"> </span>-o<span class="w"> </span>tsv<span class="k">)</span>
-
-az<span class="w"> </span>vmss<span class="w"> </span>identity<span class="w"> </span>remove<span class="w"> </span>--ids<span class="w"> </span><span class="nv">$aksVmssId</span><span class="w"> </span>--identities<span class="w"> </span><span class="nv">$agicIdentity</span>
-az<span class="w"> </span>vmss<span class="w"> </span>identity<span class="w"> </span>assign<span class="w"> </span>--ids<span class="w"> </span><span class="nv">$aksVmssId</span><span class="w"> </span>--identities<span class="w"> </span><span class="nv">$agicIdentity</span>
-</code></pre></div>
+<p>```bash
+aksClusterName="YOUR_AKS_CLUSTER_NAME"
+resourceGroup="YOUR_RESOURCEGROUP_NAME"
+nodeResourceGroup=$(az aks show -n $aksClusterName -g <span class="arithmatex"><span class="MathJax_Preview">resourceGroup --query "nodeResourceGroup" -o tsv)
+aksVmssId=</span><script type="math/tex">resourceGroup --query "nodeResourceGroup" -o tsv)
+aksVmssId=</script></span>(az vmss list -g <span class="arithmatex"><span class="MathJax_Preview">nodeResourceGroup --query "[0].id" -o tsv)
+agicIdentity=</span><script type="math/tex">nodeResourceGroup --query "[0].id" -o tsv)
+agicIdentity=</script></span>(az aks show -n $aksClusterName -g $resourceGroup --query "addonProfiles.ingressApplicationGateway.identity.resourceId" -o tsv)</p>
+<p>az vmss identity remove --ids $aksVmssId --identities $agicIdentity
+az vmss identity assign --ids $aksVmssId --identities $agicIdentity
+```</p>
               
             </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../" class="btn btn-neutral float-left" title="Troubleshooting Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" class="btn btn-neutral float-right" title="Troubleshooting agic fails with aad pod identity breakingchange">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../" class="btn btn-neutral" title="Troubleshooting Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-    
   </div>
 
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+          
         </div>
       </div>
 
@@ -252,24 +227,30 @@ az<span class="w"> </span>vmss<span class="w"> </span>identity<span class="w"> <
 
   </div>
 
-  <div class="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-      
-        <span><a href="../" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Azure/application-gateway-kubernetes-ingress" class="fa fa-code-fork" style="color: #fcfcfc"> Azure/application-gateway-kubernetes-ingress</a>
+        </span>
+    
+    
+      <span><a href="../" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../troubleshooting-agic-fails-with-aad-pod-identity-breakingchange/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js" defer></script>
-      <script src="../../search/main.js" defer></script>
-    <script defer>
-        window.onload = function () {
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
-        };
+        });
     </script>
 
 </body>
