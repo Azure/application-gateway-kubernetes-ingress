@@ -108,7 +108,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: my-ingress
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set

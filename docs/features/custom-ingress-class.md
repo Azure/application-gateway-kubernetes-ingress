@@ -25,7 +25,6 @@ To use a custom ingress class,
     kind: Ingress
     metadata:
     name: go-server-ingress-affinity
-    namespace: test-ag
     spec:
       ingressClassName: arbitrary-class
       rules:
@@ -38,7 +37,3 @@ To use a custom ingress class,
                 port:
                   number: 80
     ```
-
-## Reference
-
-* [Proposal Document](../../proposals\multiple-gateways-single-cluster.md)

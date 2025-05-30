@@ -22,8 +22,6 @@ You need to complete the following tasks prior to deploying AGIC on your cluster
 
 2. Set an AKS cluster for your workload.
 
-    > AKS cluster should have the workload identity feature enabled. [Learn how](../../aks/workload-identity-deploy-cluster.md#update-an-existing-aks-cluster) to enable workload identity on an existing AKS cluster.
-
     If using an existing cluster, ensure you enable Workload Identity support on your AKS cluster.  Workload identities can be enabled via the following:
 
     ```bash
@@ -119,7 +117,7 @@ If using an existing Application Gateway, make sure the following:
       --http-settings-protocol Http \
       --public-ip-address appgw-ip \
       --priority 10
-    
+
     APPGW_ID=$(az network application-gateway show --name $APPGW_NAME --resource-group $RESOURCE_GROUP --query "id" --output tsv)
     ```
 
@@ -183,7 +181,7 @@ AGIC can be installed by running the following commands:
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
     --version 1.7.3
-  
+
   # on aks cluster with windows node pools
   helm install ingress-azure \
     oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
@@ -210,7 +208,7 @@ AGIC can be upgraded by running the following commands:
     --set armAuth.identityClientID=$IDENTITY_CLIENT_ID \
     --set rbac.enabled=true \
     --version 1.7.3
-  
+
   # on aks cluster with windows node pools
   helm upgrade ingress-azure \
     oci://mcr.microsoft.com/azure-application-gateway/charts/ingress-azure \
@@ -242,9 +240,9 @@ via [Azure Cloud Shell](https://shell.azure.com/):
       ports:
       - containerPort: 8080
         protocol: TCP
-  
+
   ---
-  
+
   apiVersion: v1
   kind: Service
   metadata:
@@ -256,9 +254,9 @@ via [Azure Cloud Shell](https://shell.azure.com/):
     - protocol: TCP
       port: 80
       targetPort: 8080
-  
+
   ---
-  
+
   apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
