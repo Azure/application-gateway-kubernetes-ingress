@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.23.6-bookworm
+BUILD_BASE_IMAGE ?= golang:1.24.4-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/cbl-mariner/distroless/base:2.0
 
 REPO ?= appgwreg.azurecr.io
