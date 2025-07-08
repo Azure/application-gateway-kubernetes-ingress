@@ -10,9 +10,11 @@ image:
   tag: 1.9.0
   pullPolicy: Always
 
+# AGIC will use the service account of the pod to authenticate with the Kubernetes API server.
+# When set to false, you will need to handle the volume mounts and permissions for the service account.
+automountServiceAccountToken: true
 
 kubernetes:
-
   # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
   # Accepts one or many comma-separated values
   watchNamespace:
