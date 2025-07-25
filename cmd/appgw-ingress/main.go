@@ -167,11 +167,18 @@ func main() {
 	// Instead we perform a simple GET request to check both that the Application Gateway exists as well as implicitly make sure that AGIC has read access to it.
 	err = azClient.WaitForGetAccessOnGateway(maxRetryCount)
 	if err != nil {
+		deployParams := azure.DeployGatewayParams{
+			SkuName:              env.AppGwSkuName,
+			Zones:                env.AppGwZones,
+			EnableHTTP2:          env.AppGwEnableHTTP2,
+			AutoscaleMinReplicas: env.AppGwAutoscaleMinReplicas,
+			AutoscaleMaxReplicas: env.AppGwAutoscaleMaxReplicas,
+		}
 		if controllererrors.IsErrorCode(err, controllererrors.ErrorApplicationGatewayNotFound) && env.EnableDeployAppGateway {
 			if env.AppGwSubnetID != "" {
-				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID, env.AppGwSkuName)
+				err = azClient.DeployGatewayWithSubnet(env.AppGwSubnetID, deployParams)
 			} else if cpConfig != nil {
-				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(cpConfig.VNetResourceGroup), azure.ResourceName(cpConfig.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix, env.AppGwSkuName)
+				err = azClient.DeployGatewayWithVnet(azure.ResourceGroup(cpConfig.VNetResourceGroup), azure.ResourceName(cpConfig.VNetName), azure.ResourceName(env.AppGwSubnetName), env.AppGwSubnetPrefix, deployParams)
 			}
 
 			if err != nil {

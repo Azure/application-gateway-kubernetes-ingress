@@ -23,6 +23,14 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
+type DeployGatewayParams struct {
+	SkuName              string
+	Zones                []string
+	EnableHTTP2          bool
+	AutoscaleMinReplicas int32
+	AutoscaleMaxReplicas int32
+}
+
 // AzClient is an interface for client to Azure
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
@@ -33,8 +41,8 @@ type AzClient interface {
 	WaitForGetAccessOnGateway(maxRetryCount int) error
 	GetGateway() (n.ApplicationGateway, error)
 	UpdateGateway(*n.ApplicationGateway) error
-	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
-	DeployGatewayWithSubnet(string, string) error
+	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, DeployGatewayParams) error
+	DeployGatewayWithSubnet(string, DeployGatewayParams) error
 	GetSubnet(string) (n.Subnet, error)
 
 	GetPublicIP(string) (n.PublicIPAddress, error)
@@ -308,7 +316,7 @@ func (az *azClient) GetSubnet(subnetID string) (subnet n.Subnet, err error) {
 }
 
 // DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
-func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix, skuName string) (err error) {
+func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string, params DeployGatewayParams) (err error) {
 	vnet, err := az.getVnet(resourceGroupName, vnetName)
 	if err != nil {
 		return
@@ -335,12 +343,12 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		}
 	}
 
-	err = az.DeployGatewayWithSubnet(*subnet.ID, skuName)
+	err = az.DeployGatewayWithSubnet(*subnet.ID, params)
 	return
 }
 
 // DeployGatewayWithSubnet creates Application Gateway within the specifid subnet. Implements AzClient interface.
-func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
+func (az *azClient) DeployGatewayWithSubnet(subnetID string, params DeployGatewayParams) (err error) {
 	klog.Infof("Deploying Gateway")
 
 	// Check if group exists
@@ -352,7 +360,7 @@ func (az *azClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error
 
 	deploymentName := string(az.appGwName)
 	klog.Infof("Starting ARM template deployment: %s", deploymentName)
-	result, err := az.createDeployment(subnetID, skuName)
+	result, err := az.createDeployment(subnetID, params)
 	if err != nil {
 		return
 	}
@@ -435,12 +443,12 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 }
 
 // Create the deployment
-func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.DeploymentExtended, err error) {
-	template := getTemplate()
+func (az *azClient) createDeployment(subnetID string, params DeployGatewayParams) (deployment r.DeploymentExtended, err error) {
+	template := getTemplate(params)
 	if err != nil {
 		return
 	}
-	params := map[string]interface{}{
+	templateParams := map[string]interface{}{
 		"applicationGatewayName": map[string]string{
 			"value": string(az.appGwName),
 		},
@@ -448,7 +456,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 			"value": subnetID,
 		},
 		"applicationGatewaySku": map[string]string{
-			"value": skuName,
+			"value": params.SkuName,
 		},
 	}
 
@@ -459,7 +467,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 		r.Deployment{
 			Properties: &r.DeploymentProperties{
 				Template:   template,
-				Parameters: params,
+				Parameters: templateParams,
 				Mode:       r.DeploymentModeIncremental,
 			},
 		},
@@ -474,7 +482,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 	return deploymentFuture.Result(az.deploymentsClient)
 }
 
-func getTemplate() map[string]interface{} {
+func getTemplate(params DeployGatewayParams) map[string]interface{} {
 	template := `
 	{
 		"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -519,7 +527,7 @@ func getTemplate() map[string]interface{} {
 			{
 				"type": "Microsoft.Network/publicIPAddresses",
 				"name": "[variables('applicationGatewayPublicIpName')]",
-				"apiVersion": "2018-08-01",
+				"apiVersion": "2018-11-01",
 				"location": "[resourceGroup().location]",
 				"sku": {
 					"name": "Standard"
@@ -531,7 +539,7 @@ func getTemplate() map[string]interface{} {
 			{
 				"type": "Microsoft.Network/applicationGateways",
 				"name": "[parameters('applicationGatewayName')]",
-				"apiVersion": "2018-08-01",
+				"apiVersion": "2018-11-01",
 				"location": "[resourceGroup().location]",
 				"tags": {
 					"managed-by-k8s-ingress": "true",
@@ -649,5 +657,32 @@ func getTemplate() map[string]interface{} {
 
 	contents := make(map[string]interface{})
 	json.Unmarshal([]byte(template), &contents)
+
+	// Apply customizations based on params
+	resources := contents["resources"].([]interface{})
+	appGwResource := resources[1].(map[string]interface{})
+	appGwProperties := appGwResource["properties"].(map[string]interface{})
+	sku := appGwProperties["sku"].(map[string]interface{})
+
+	// Handle autoscaling configuration
+	if params.AutoscaleMinReplicas > 0 && params.AutoscaleMaxReplicas > 0 {
+		// Remove static capacity and add autoscale configuration
+		delete(sku, "capacity")
+		appGwProperties["autoscaleConfiguration"] = map[string]interface{}{
+			"minCapacity": params.AutoscaleMinReplicas,
+			"maxCapacity": params.AutoscaleMaxReplicas,
+		}
+	}
+
+	// Add zones if specified
+	if len(params.Zones) > 0 {
+		appGwResource["zones"] = params.Zones
+	}
+
+	// Enable HTTP/2 if specified
+	if params.EnableHTTP2 {
+		appGwProperties["enableHttp2"] = true
+	}
+
 	return contents
 }

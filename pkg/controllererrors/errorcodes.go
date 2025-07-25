@@ -57,6 +57,7 @@ const (
 	ErrorNotAllowedApplicationGatewayID                      ErrorCode = "ErrorNotAllowedApplicationGatewayID"
 	ErrorMissingSubnetInfo                                   ErrorCode = "ErrorMissingSubnetInfo"
 	ErrorInvalidReconcilePeriod                              ErrorCode = "ErrorInvalidReconcilePeriod"
+	ErrorInvalidAutoscaleReplicas                            ErrorCode = "ErrorInvalidAutoscaleReplicas"
 
 	// controller package
 	ErrorFetchingAppGatewayConfig  ErrorCode = "ErrorFetchingAppGatewayConfig"

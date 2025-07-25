@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"k8s.io/klog/v2"
 
@@ -46,6 +47,18 @@ const (
 
 	// AppGwSkuVarName is the sku of the AGW
 	AppGwSkuVarName = "APPGW_SKU_NAME"
+
+	// AppGwZonesVarName is the name of the APPGW_ZONES
+	AppGwZonesVarName = "APPGW_ZONES"
+
+	// AppGwEnableHTTP2VarName is the name of the APPGW_ENABLE_HTTP2
+	AppGwEnableHTTP2VarName = "APPGW_ENABLE_HTTP2"
+
+	// AppGwAutoscaleMinReplicasVarName is the name of the APPGW_AUTOSCALE_MIN_REPLICAS
+	AppGwAutoscaleMinReplicasVarName = "APPGW_AUTOSCALE_MIN_REPLICAS"
+
+	// AppGwAutoscaleMaxReplicasVarName is the name of the APPGW_AUTOSCALE_MAX_REPLICAS
+	AppGwAutoscaleMaxReplicasVarName = "APPGW_AUTOSCALE_MAX_REPLICAS"
 
 	// AuthLocationVarName is the name of the AZURE_AUTH_LOCATION
 	AuthLocationVarName = "AZURE_AUTH_LOCATION"
@@ -143,6 +156,10 @@ type EnvVariables struct {
 	AppGwResourceID             string
 	AppGwSubnetID               string
 	AppGwSkuName                string
+	AppGwZones                  []string
+	AppGwEnableHTTP2            bool
+	AppGwAutoscaleMinReplicas   int32
+	AppGwAutoscaleMaxReplicas   int32
 	AuthLocation                string
 	IngressClass                string
 	IngressClassControllerName  string
@@ -211,6 +228,8 @@ func (env *EnvVariables) Consolidate(cpConfig *azure.CloudProviderConfig) {
 func GetEnv() EnvVariables {
 	usePrivateIP, _ := strconv.ParseBool(os.Getenv(UsePrivateIPVarName))
 	multiClusterMode, _ := strconv.ParseBool(os.Getenv(MultiClusterModeVarName))
+	appGwAutoscaleMinReplicas, _ := strconv.ParseInt(os.Getenv(AppGwAutoscaleMinReplicasVarName), 10, 32)
+	appGwAutoscaleMaxReplicas, _ := strconv.ParseInt(os.Getenv(AppGwAutoscaleMaxReplicasVarName), 10, 32)
 
 	env := EnvVariables{
 		CloudProviderConfigLocation: os.Getenv(CloudProviderConfigLocationVarName),
@@ -223,6 +242,10 @@ func GetEnv() EnvVariables {
 		AppGwResourceID:             os.Getenv(AppGwResourceIDVarName),
 		AppGwSubnetID:               os.Getenv(AppGwSubnetIDVarName),
 		AppGwSkuName:                GetEnvironmentVariable(AppGwSkuVarName, "Standard_v2", skuValidator),
+		AppGwZones:                  strings.Split(os.Getenv(AppGwZonesVarName), ","),
+		AppGwEnableHTTP2:            GetEnvironmentVariable(AppGwEnableHTTP2VarName, "false", boolValidator) == "true",
+		AppGwAutoscaleMinReplicas:   int32(appGwAutoscaleMinReplicas),
+		AppGwAutoscaleMaxReplicas:   int32(appGwAutoscaleMaxReplicas),
 		AuthLocation:                os.Getenv(AuthLocationVarName),
 		IngressClass:                os.Getenv(IngressClassVarName),
 		IngressClassResourceEnabled: GetEnvironmentVariable(IngressClassResourceEnabledVarName, "false", boolValidator) == "true",
@@ -315,6 +338,27 @@ func ValidateEnv(env EnvVariables) error {
 				"Please make sure that RECONCILE_PERIOD_SECONDS (helm var name: .reconcilePeriodSeconds) is an integer. Range: (30 - 300)",
 			)
 		}
+	}
+
+	if env.AppGwAutoscaleMinReplicas > 0 && env.AppGwAutoscaleMaxReplicas == 0 {
+		return controllererrors.NewError(
+			controllererrors.ErrorInvalidAutoscaleReplicas,
+			"Please make sure that APPGW_AUTOSCALE_MAX_REPLICAS (helm var name: .appgw.autoscaleMaxReplicas) is greater than 0 if APPGW_AUTOSCALE_MIN_REPLICAS (helm var name: .appgw.autoscaleMinReplicas) is greater than 0",
+		)
+	}
+
+	if env.AppGwAutoscaleMaxReplicas > 0 && env.AppGwAutoscaleMinReplicas == 0 {
+		return controllererrors.NewError(
+			controllererrors.ErrorInvalidAutoscaleReplicas,
+			"Please make sure that APPGW_AUTOSCALE_MIN_REPLICAS (helm var name: .appgw.autoscaleMinReplicas) is greater than 0 if APPGW_AUTOSCALE_MAX_REPLICAS (helm var name: .appgw.autoscaleMaxReplicas) is greater than 0",
+		)
+	}
+
+	if env.AppGwAutoscaleMinReplicas > 0 && env.AppGwAutoscaleMaxReplicas < env.AppGwAutoscaleMinReplicas {
+		return controllererrors.NewError(
+			controllererrors.ErrorInvalidAutoscaleReplicas,
+			"Please make sure that APPGW_AUTOSCALE_MAX_REPLICAS (helm var name: .appgw.autoscaleMaxReplicas) is greater than or equal to APPGW_AUTOSCALE_MIN_REPLICAS (helm var name: .appgw.autoscaleMinReplicas)",
+		)
 	}
 
 	return nil

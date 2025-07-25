@@ -24,6 +24,18 @@ data:
 {{- if .Values.appgw.usePrivateIP }}
   USE_PRIVATE_IP:        {{ .Values.appgw.usePrivateIP | quote }}
 {{- end }}
+{{- if .Values.appgw.autoscaleMinReplicas }}
+  APPGW_AUTOSCALE_MIN_REPLICAS: {{ .Values.appgw.autoscaleMinReplicas | quote }}
+{{- end }}
+{{- if .Values.appgw.autoscaleMaxReplicas }}
+  APPGW_AUTOSCALE_MAX_REPLICAS: {{ .Values.appgw.autoscaleMaxReplicas | quote }}
+{{- end }}
+{{- if .Values.appgw.zones }}
+  APPGW_ZONES: {{ .Values.appgw.zones | quote }}
+{{- end }}
+{{- if .Values.appgw.enableHTTP2 }}
+  APPGW_ENABLE_HTTP2: {{ .Values.appgw.enableHTTP2 | quote }}
+{{- end }}
 {{- if .Values.appgw.environment }}
   AZURE_ENVIRONMENT:     {{ .Values.appgw.environment | quote }}
 {{- end -}}
