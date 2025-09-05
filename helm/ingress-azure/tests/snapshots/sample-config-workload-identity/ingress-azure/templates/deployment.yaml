@@ -6,7 +6,7 @@ metadata:
   name: release-name-ingress-azure
   labels:
     app: ingress-azure
-    chart: ingress-azure-1.6.0
+    chart: ingress-azure-1.9.3
     heritage: Helm
     release: release-name
 spec:
@@ -30,7 +30,7 @@ spec:
         runAsUser: 0
       containers:
       - name: ingress-azure
-        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
+        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.9.3
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
