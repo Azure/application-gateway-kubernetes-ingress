@@ -89,7 +89,7 @@ func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error
 }
 
 // DeployGatewayWithSubnet runs DeployGatewayFunc
-func (az *FakeAzClient) DeployGatewayWithSubnet(subnetID, skuName string) (err error) {
+func (az *FakeAzClient) DeployGatewayWithSubnet(subnetID string, params DeployGatewayParams) (err error) {
 	if az.DeployGatewayFunc != nil {
 		return az.DeployGatewayFunc(subnetID)
 	}
@@ -97,7 +97,7 @@ func (az *FakeAzClient) DeployGatewayWithSubnet(subnetID, skuName string) (err e
 }
 
 // DeployGatewayWithVnet runs DeployGatewayFunc
-func (az *FakeAzClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix, skuName string) (err error) {
+func (az *FakeAzClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetName ResourceName, subnetName ResourceName, subnetPrefix string, params DeployGatewayParams) (err error) {
 	if az.DeployGatewayFunc != nil {
 		return az.DeployGatewayFunc(subnetPrefix)
 	}
