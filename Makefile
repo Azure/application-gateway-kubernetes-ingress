@@ -15,8 +15,8 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.22.5-bookworm
-BINARY_BASE_IMAGE ?= ubuntu:22.04
+BUILD_BASE_IMAGE ?= golang:1.24.7-bookworm
+BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
@@ -52,6 +52,16 @@ GO_BUILD_VARS = \
 
 GO_LDFLAGS := -s -w $(patsubst %,-X %, $(GO_BUILD_VARS))
 
+build-image:
+	@docker build \
+		--build-arg "BUILD_BASE_IMAGE=$(BUILD_BASE_IMAGE)" \
+		--build-arg "BINARY_BASE_IMAGE=$(BINARY_BASE_IMAGE)" \
+		--build-arg "BUILD_TAG=$(BUILD_TAG)" \
+		--build-arg "BUILD_DATE=$(BUILD_DATE)" \
+		--build-arg "GIT_HASH=$(GIT_HASH)" \
+		$(IMAGE_TAGS) \
+		$(shell pwd)
+
 build-image-multi-arch:
 	@mkdir -p $(shell pwd)/image
 	@docker run --rm --privileged linuxkit/binfmt:v0.8
@@ -81,6 +91,9 @@ lint:
 
 lint-helm:
 	helm lint ./helm/ingress-azure
+
+render-chart:
+	RENDER_SNAPSHOTS="true" go test -tags=unittest ./helm/ingress-azure/tests/...
 
 vet-all: vet vet-unittest vet-e2e
 
@@ -127,3 +140,17 @@ unittest:
 	@gocov-xml < coverage.json > coverage.xml
 	@mkdir coverage
 	@gocov-html < coverage.json > coverage/index.html
+
+publish-official:
+	@echo "Publishing official AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh prod
+	./scripts/release-helm.sh prod
+
+publish-staging:
+	@echo "Publishing staging AGIC"
+	@az acr login -n appgwreg
+	@git pull --rebase
+	./scripts/release-image.sh
+	./scripts/release-helm.sh

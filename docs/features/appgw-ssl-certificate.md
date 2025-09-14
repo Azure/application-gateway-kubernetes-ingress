@@ -9,7 +9,7 @@ This documents assumes you already have the following Azure tools and resources 
 - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) installed on your AKS cluster
 - [Cloud Shell](https://shell.azure.com/) is the Azure shell environment, which has `az` CLI, `kubectl`, and `helm` installed. These tools are required for the commands below.
 
-Please use [Greenfield Deployment](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md) to install nonexistents.
+Please use [Greenfield Deployment](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install.md) to install nonexistents.
 
 To use the new feature, make sure the AGIC version is at least at 1.2.0-rc3
 

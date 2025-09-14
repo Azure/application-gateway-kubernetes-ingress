@@ -47,7 +47,7 @@ The file will contain a JSON blob with the following shape:
 
 ### Deploy Application Gateway and AKS
 
-To deploy a fresh setup, please follow the steps for template deployment in the [greenfield](../setup/install-new.md) documentation.
+To deploy a fresh setup, please follow the steps for template deployment in the [greenfield](../setup/install.md) documentation.
 
 ### Using startup script
 

@@ -56,7 +56,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-overridefrontendport
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/override-frontend-port: "8080"
@@ -92,7 +91,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-path-prefix: "/test/"
@@ -120,7 +118,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-path-prefix: "/"
@@ -150,7 +147,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-hostname: "internal.example.com"
@@ -185,7 +181,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-protocol: "https"
@@ -223,7 +218,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-redirect
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/ssl-redirect: "true"
@@ -284,7 +278,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-certificate
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "name-of-appgw-installed-certificate"
@@ -337,7 +330,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-certificate
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/backend-protocol: "https"
@@ -380,7 +372,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-drain
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/connection-draining: "true"
@@ -415,7 +406,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-affinity
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
@@ -449,7 +439,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-affinity
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/cookie-based-affinity: "true"
@@ -491,7 +480,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/request-timeout: "20"
@@ -530,7 +518,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-timeout
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/use-private-ip: "true"
@@ -577,7 +564,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ad-server-ingress
-  namespace: commerce
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/abcd/resourceGroups/rg/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies/adserver"
@@ -619,7 +605,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
@@ -653,7 +638,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
@@ -692,7 +676,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-hostname: "my-backend-host.custom.app"
@@ -727,7 +710,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-status-codes: "200-399, 401"
@@ -761,7 +743,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-interval: "20"
@@ -795,7 +776,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-timeout: "15"
@@ -829,7 +809,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold: "5"
@@ -863,7 +842,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/rewrite-rule-set: add-custom-response-header
@@ -931,7 +909,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: go-server-ingress-bkprefix
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource: my-rewrite-rule-set
@@ -964,7 +941,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: store-app-ingress
-  namespace: test-ag
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/hostname-extension: "prod-store.app.com"

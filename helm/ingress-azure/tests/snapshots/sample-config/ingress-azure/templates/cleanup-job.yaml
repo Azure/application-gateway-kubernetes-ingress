@@ -19,23 +19,17 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: cleanup
-        image: "mcr.microsoft.com/oss/kubernetes/kubectl:v1.30.5"
-        imagePullPolicy: IfNotPresent
+        image: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress:1.6.0
+        imagePullPolicy: Always
         env:
         - name: AGIC_POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
         command:
-          - "kubectl"
-          - "delete"
-          - "--ignore-not-found"
-          - "--wait"
-          - "-n"
-          - "$(AGIC_POD_NAMESPACE)"
-          - "overlayextensionconfigs.acn.azure.com"
-          - "-l"
-          - "app.kubernetes.io/managed-by=ingress-azure-helm"
+          - "/appgw-ingress"
+          - "--cleanup-oec"
+          - "app.kubernetes.io/managed-by=ingress-appgw-helm"
         securityContext:
           capabilities:
             drop:

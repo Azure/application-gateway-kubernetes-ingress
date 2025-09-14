@@ -27,15 +27,10 @@ RUN make build \
     BUILD_TAG=${BUILD_TAG} \
     BUILD_DATE=${BUILD_DATE} \
     GIT_HASH=${GIT_HASH}
+RUN chmod +x ./bin/appgw-ingress
 
 #RUN ldd ./bin/appgw-ingress 2>&1 | grep 'not a dynamic executable'
 
 FROM $BINARY_BASE_IMAGE AS final
 COPY --from=build /azure/bin/appgw-ingress /appgw-ingress
-RUN apt-get update
-RUN apt-get install -y ca-certificates openssl
-RUN useradd appgw-ingress-user
-RUN chown appgw-ingress-user /appgw-ingress
-USER appgw-ingress-user
-RUN chmod +x /appgw-ingress
 CMD ["/appgw-ingress"]

@@ -15,6 +15,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/controllererrors"
@@ -248,9 +249,6 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 
 	// if route table is not found, then simply add a log and return no error. routeTable will always be initialized.
 	if routeTable.Response.StatusCode == 404 {
-		klog.V(3).Infof("Error getting route table '%s' (this is relevant for AKS clusters using 'Kubenet' network plugin): %s",
-			routeTableID,
-			err.Error())
 		return nil
 	}
 
@@ -298,10 +296,15 @@ func (az *azClient) ApplyRouteTable(subnetID string, routeTableID string) error 
 	return nil
 }
 
-func (az *azClient) GetSubnet(subnetID string) (n.Subnet, error) {
-	_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
-	subnet, err := az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
-	return subnet, err
+func (az *azClient) GetSubnet(subnetID string) (subnet n.Subnet, err error) {
+	_ = utils.Retry(retryCount, retryPause,
+		func() (utils.Retriable, error) {
+			_, subnetResourceGroup, subnetVnetName, subnetName := ParseSubResourceID(subnetID)
+			subnet, err = az.subnetsClient.Get(az.ctx, string(subnetResourceGroup), string(subnetVnetName), string(subnetName), "")
+			return utils.Retriable(true), err
+		})
+
+	return
 }
 
 // DeployGatewayWithVnet creates Application Gateway within the specifid VNet. Implements AzClient interface.
@@ -311,18 +314,24 @@ func (az *azClient) DeployGatewayWithVnet(resourceGroupName ResourceGroup, vnetN
 		return
 	}
 
-	klog.Infof("Checking the Vnet %s for a subnet with prefix %s", vnetName, subnetPrefix)
+	klog.Infof("Checking the Vnet '%s' for a subnet with prefix '%s'.", vnetName, subnetPrefix)
 	subnet, err := az.findSubnet(vnet, subnetName, subnetPrefix)
 	if err != nil {
 		if subnetPrefix == "" {
-			klog.Infof("Unable to find a subnet with subnetName %s. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet %s", subnetName, vnetName)
+			klog.Infof("Unable to find a subnet with subnetName '%s'. Please provide subnetPrefix in order to allow AGIC to create a subnet in Vnet '%s'.", subnetName, vnetName)
 			return
 		}
 
-		klog.Infof("Unable to find a subnet. Creating a subnet %s with prefix %s in Vnet %s", subnetName, subnetPrefix, vnetName)
+		klog.Infof("Unable to find a subnet. Creating a subnet '%s' with prefix '%s' in Vnet '%s'.", subnetName, subnetPrefix, vnetName)
 		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
 		if err != nil {
 			return
+		}
+	} else if subnet.SubnetPropertiesFormat != nil && (subnet.SubnetPropertiesFormat.Delegations == nil || (subnet.SubnetPropertiesFormat.Delegations != nil && len(*subnet.SubnetPropertiesFormat.Delegations) == 0)) {
+		klog.Infof("Subnet '%s' is an existing subnet and subnet delegation to Application Gateway is not found, creating a delegation.", subnetName)
+		subnet, err = az.createSubnet(vnet, subnetName, subnetPrefix)
+		if err != nil {
+			klog.Errorf("Backfill delegation to Application Gateway on existing subnet has failed. Please check the subnet '%s' in vnet '%s'.", subnetName, vnetName)
 		}
 	}
 
@@ -401,6 +410,14 @@ func (az *azClient) createSubnet(vnet n.VirtualNetwork, subnetName ResourceName,
 	subnet = n.Subnet{
 		SubnetPropertiesFormat: &n.SubnetPropertiesFormat{
 			AddressPrefix: &subnetPrefix,
+			Delegations: &[]n.Delegation{
+				{
+					Name: to.StringPtr("Microsoft.Network/applicationGateways"),
+					ServiceDelegationPropertiesFormat: &n.ServiceDelegationPropertiesFormat{
+						ServiceName: to.StringPtr("Microsoft.Network/applicationGateways"),
+					},
+				},
+			},
 		},
 	}
 	subnetFuture, err := az.subnetsClient.CreateOrUpdate(az.ctx, string(resourceGroup), string(vnetName), string(subnetName), subnet)
