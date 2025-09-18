@@ -2,7 +2,7 @@ module github.com/Azure/application-gateway-kubernetes-ingress
 
 go 1.23.2
 
-toolchain go1.24.3
+toolchain go1.24.7
 
 require (
 	github.com/Azure/azure-container-networking v1.6.25
@@ -83,7 +83,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/oauth2 v0.25.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
