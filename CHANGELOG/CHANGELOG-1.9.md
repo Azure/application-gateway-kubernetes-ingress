@@ -3,6 +3,14 @@
   - [Features](#features)
   - [Fixes](#fixes)
 
+# v1.9.2
+
+Version bumped Go used in building the docker images to address CVEs.
+
+# v1.9.1
+
+Version bumped Go dependencies to address CVEs.
+
 # v1.9.0
 
 ## Features
