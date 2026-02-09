@@ -163,7 +163,7 @@ func (er ExistingResources) getHostNamesForRoutingRule(rule n.ApplicationGateway
 			controllererrors.ErrorGeneratingListeners,
 			"[brownfield] Could not find listener %s in index", listenerName,
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return []string{""}, e
 	} else if listener.HostName != nil {
 		return []string{*listener.HostName}, nil

@@ -63,7 +63,7 @@ func (c *appGwConfigBuilder) getIstioDestinationsAndSettingsMap(cbCtx *ConfigBui
 		if service == nil {
 			// Once services are filtered in the istioMatchDestinationIDs function, this should never happen
 			logLine := fmt.Sprintf("Unable to get the service [%s]", destinationID.serviceKey())
-			klog.Errorf(logLine)
+			klog.Error(logLine)
 			// TODO(rhea): add error event
 			pair := serviceBackendPortPair{
 				ServicePort: Port(destinationPortNum),
