@@ -17,7 +17,7 @@ func (c *appGwConfigBuilder) getIstioBackendAddressPool(destinationID istioDesti
 	endpoints, err := c.k8sContext.GetEndpointsByService(destinationID.serviceKey())
 	if err != nil {
 		logLine := fmt.Sprintf("Failed fetching endpoints for service: %s", destinationID.serviceKey())
-		klog.Errorf(logLine)
+		klog.Error(logLine)
 		//TODO(rhea): add recorder event for error
 		return nil
 	}

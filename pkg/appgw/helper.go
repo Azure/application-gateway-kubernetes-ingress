@@ -13,7 +13,7 @@ import (
 
 func serviceBackendPortToStr(port networkingv1.ServiceBackendPort) string {
 	if port.Name != "" {
-		return fmt.Sprintf(port.Name)
+		return port.Name
 	}
 	return fmt.Sprintf("%d", port.Number)
 }

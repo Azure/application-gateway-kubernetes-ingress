@@ -189,7 +189,7 @@ func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 				}
 			}
 
-			klog.Errorf(e.Error())
+			klog.Error(e.Error())
 			if controllererrors.IsErrorCode(e, controllererrors.ErrorApplicationGatewayNotFound) {
 				return utils.Retriable(false), e
 			}
@@ -460,7 +460,7 @@ func (az *azClient) createDeployment(subnetID, skuName string) (deployment r.Dep
 			Properties: &r.DeploymentProperties{
 				Template:   template,
 				Parameters: params,
-				Mode:       r.DeploymentModeIncremental,
+				Mode:       r.Incremental,
 			},
 		},
 	)

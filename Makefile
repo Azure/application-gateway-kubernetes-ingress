@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.23.6-bookworm
+BUILD_BASE_IMAGE ?= golang:1.25.7-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/cbl-mariner/distroless/base:2.0
 
 REPO ?= appgwreg.azurecr.io
@@ -76,7 +76,7 @@ build-image-multi-arch:
 		$(shell pwd)
 
 build:
-	go build -mod=readonly -v -ldflags="$(GO_LDFLAGS)" -v -o ./bin/${GO_BINARY_NAME} ./cmd/appgw-ingress
+	go build -mod=readonly -trimpath -v -ldflags="$(GO_LDFLAGS)" -o ./bin/${GO_BINARY_NAME} ./cmd/appgw-ingress
 
 lint-all: lint lint-helm
 
@@ -130,7 +130,7 @@ test-all: unittest
 
 unittest:
 	@go install github.com/jstemmer/go-junit-report@latest
-	@go install github.com/axw/gocov/gocov@latest
+	@go install github.com/axw/gocov/gocov@v1.1.0
 	@go install github.com/AlekSi/gocov-xml@latest
 	@go install github.com/matm/gocov-html/cmd/gocov-html@latest
 	@go mod tidy
