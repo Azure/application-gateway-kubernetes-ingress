@@ -1,0 +1,53 @@
+# Example: AzureIngressProhibitedTarget with regex pattern matching
+# This example demonstrates how to use the hostnameRegex field to match multiple hostnames
+# using regular expression patterns instead of exact string matching.
+
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibited-staging-environments
+spec:
+  # Match all subdomains under *.staging.example.com
+  # This will prohibit: dev.staging.example.com, api.staging.example.com, etc.
+  hostnameRegex: "^.*\\.staging\\.example\\.com$"
+  paths:
+    - "/admin/*"
+    - "/internal/*"
+---
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibited-test-environments
+spec:
+  # Match all test and qa environments across any domain
+  # This will prohibit: test.example.com, test-api.example.com, qa.example.com, qa-api.example.com
+  hostnameRegex: "^(test|qa).*\\.example\\.com$"
+---
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibited-legacy-system
+spec:
+  # Exact hostname can still be used (backward compatible)
+  hostname: "legacy.contoso.com"
+  paths:
+    - "/old-api/*"
+---
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibited-internal-services
+spec:
+  # Match any hostname ending with .internal
+  # This will prohibit: api.internal, db.internal, cache.internal, etc.
+  hostnameRegex: "^.*\\.internal$"
+
+# Notes:
+# 1. hostnameRegex takes precedence over hostname if both are specified
+# 2. Regex patterns are case-insensitive by default
+# 3. Use standard Go regexp syntax (https://golang.org/pkg/regexp/syntax/)
+# 4. Common patterns:
+#    - ^.*\.domain\.com$ = Match all subdomains of domain.com
+#    - ^(dev|test|qa)- = Match hostnames starting with dev-, test-, or qa-
+#    - ^.*\.internal$ = Match all .internal hostnames
+# 5. Invalid regex patterns will be logged and ignored (target will not be prohibited)

@@ -7,6 +7,7 @@ package brownfield
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 
 	"k8s.io/klog/v2"
@@ -22,8 +23,9 @@ type TargetPath string
 
 // Target uniquely identifies a subset of App Gateway configuration, which AGIC will manage or be prohibited from managing.
 type Target struct {
-	Hostname string     `json:"Hostname,omitempty"`
-	Path     TargetPath `json:"Path,omitempty"`
+	Hostname              string          `json:"Hostname,omitempty"`
+	Path                  TargetPath      `json:"Path,omitempty"`
+	compiledHostnameRegex *regexp.Regexp  // Cache for compiled regex pattern
 }
 
 // IsBlacklisted figures out whether a given Target objects in a list of blacklisted targets.
@@ -31,10 +33,17 @@ func (t Target) IsBlacklisted(blacklist TargetBlacklist) bool {
 	jsonTarget, _ := json.Marshal(t)
 	for _, blTarget := range *blacklist {
 
-		// An empty blacklist hostname indicates that any hostname would be blacklisted.
-		// If host names match - this target is in the blacklist.
-		// AGIC is allowed to create and modify App Gwy config for blank host.
-		hostIsBlacklisted := blTarget.Hostname == "" || strings.EqualFold(t.Hostname, blTarget.Hostname)
+		// Check if blacklisted target has a compiled regex pattern
+		var hostIsBlacklisted bool
+		if blTarget.compiledHostnameRegex != nil {
+			// Use regex matching (case-insensitive)
+			hostIsBlacklisted = blTarget.compiledHostnameRegex.MatchString(t.Hostname)
+		} else {
+			// An empty blacklist hostname indicates that any hostname would be blacklisted.
+			// If host names match - this target is in the blacklist.
+			// AGIC is allowed to create and modify App Gwy config for blank host.
+			hostIsBlacklisted = blTarget.Hostname == "" || strings.EqualFold(t.Hostname, blTarget.Hostname)
+		}
 
 		pathIsBlacklisted := blTarget.Path == "" || blTarget.Path == "/*" || t.Path.lower() == blTarget.Path.lower() || blTarget.Path.contains(t.Path) // TODO(draychev): || t.Path.contains(blTarget.Path)
 
@@ -55,15 +64,38 @@ func GetTargetBlacklist(prohibitedTargets []*ptv1.AzureIngressProhibitedTarget) 
 	// TODO(draychev): make this a method of ExistingResources and memoize it.
 	var target []Target
 	for _, prohibitedTarget := range prohibitedTargets {
+		// Determine hostname and compile regex if needed
+		hostname := prohibitedTarget.Spec.Hostname
+		var compiledRegex *regexp.Regexp
+		
+		// HostnameRegex takes precedence over Hostname
+		if prohibitedTarget.Spec.HostnameRegex != "" {
+			// Compile regex with case-insensitive flag
+			pattern := "(?i)" + prohibitedTarget.Spec.HostnameRegex
+			var err error
+			compiledRegex, err = regexp.Compile(pattern)
+			if err != nil {
+				klog.Errorf("[brownfield] Invalid hostname regex pattern '%s' in prohibited target %s/%s: %v. This target will be ignored.", 
+					prohibitedTarget.Spec.HostnameRegex, 
+					prohibitedTarget.Namespace, 
+					prohibitedTarget.Name, 
+					err)
+				continue // Skip this prohibited target
+			}
+			hostname = "" // Clear hostname when using regex
+		}
+		
 		if len(prohibitedTarget.Spec.Paths) == 0 {
 			target = append(target, Target{
-				Hostname: prohibitedTarget.Spec.Hostname,
+				Hostname:              hostname,
+				compiledHostnameRegex: compiledRegex,
 			})
 		}
 		for _, path := range prohibitedTarget.Spec.Paths {
 			target = append(target, Target{
-				Hostname: prohibitedTarget.Spec.Hostname,
-				Path:     TargetPath(strings.ToLower(path)),
+				Hostname:              hostname,
+				Path:                  TargetPath(strings.ToLower(path)),
+				compiledHostnameRegex: compiledRegex,
 			})
 		}
 	}

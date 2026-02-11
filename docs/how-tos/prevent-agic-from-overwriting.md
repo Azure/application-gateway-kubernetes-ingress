@@ -145,3 +145,83 @@ We can prohibit AGIC from making changes to a subset of configuration.
 3. Modify App Gateway config via portal - add listeners, routing rules, backends etc. The new object we created
 (`manually-configured-staging-environment`) will prohibit AGIC from overwriting App Gateway configuration related to
 `staging.contoso.com`.
+
+## Using Regex Patterns for Hostname Matching
+
+In addition to exact hostname matching, you can use regular expression patterns to match multiple hostnames with a single `AzureIngressProhibitedTarget` resource. This is useful when you need to prohibit AGIC from managing multiple related hostnames.
+
+### Basic Regex Usage
+
+Use the `hostnameRegex` field instead of `hostname` to specify a regex pattern:
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibit-all-staging
+spec:
+  hostnameRegex: "^.*\\.staging\\.contoso\\.com$"
+EOF
+```
+
+This will prohibit AGIC from managing any hostname ending with `.staging.contoso.com`, such as:
+- `api.staging.contoso.com`
+- `web.staging.contoso.com`
+- `dev.api.staging.contoso.com`
+
+### Common Regex Patterns
+
+**Match all subdomains of a domain:**
+```yaml
+spec:
+  hostnameRegex: "^.*\\.example\\.com$"
+```
+
+**Match multiple environment prefixes:**
+```yaml
+spec:
+  hostnameRegex: "^(dev|test|qa).*\\.contoso\\.com$"
+```
+
+**Match all internal services:**
+```yaml
+spec:
+  hostnameRegex: "^.*\\.internal$"
+```
+
+### Important Notes
+
+1. **Precedence**: When both `hostname` and `hostnameRegex` are specified, `hostnameRegex` takes precedence and `hostname` is ignored.
+
+2. **Case-insensitive**: Regex patterns are automatically case-insensitive, so `^api\\.contoso\\.com$` matches both `api.contoso.com` and `API.CONTOSO.COM`.
+
+3. **Regex Syntax**: Use standard [Go regexp syntax](https://golang.org/pkg/regexp/syntax/). Common metacharacters:
+   - `.` - matches any character (use `\\.` to match a literal dot)
+   - `*` - zero or more of the preceding element
+   - `^` - start of string
+   - `$` - end of string
+   - `|` - alternation (OR)
+   - `[]` - character class
+
+4. **Validation**: Invalid regex patterns will be logged as errors and the entire prohibited target will be skipped (ignored). Check AGIC logs if your regex pattern isn't working as expected.
+
+5. **Backward Compatibility**: The existing `hostname` field continues to work as before with exact string matching (case-insensitive). No changes are required for existing configurations.
+
+### Example: Comprehensive Environment Protection
+
+```yaml
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: prohibit-non-production
+spec:
+  hostnameRegex: "^(dev|test|qa|staging).*\\.contoso\\.com$"
+  paths:
+    - "/admin/*"
+    - "/internal/*"
+```
+
+This prohibits AGIC from managing admin and internal paths on any hostname that starts with `dev`, `test`, `qa`, or `staging` and ends with `.contoso.com`.
+
+See [crds/examples/AzureIngressProhibitedTarget-regex.yaml](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/crds/examples/AzureIngressProhibitedTarget-regex.yaml) for more examples.
