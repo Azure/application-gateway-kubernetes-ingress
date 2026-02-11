@@ -46,7 +46,7 @@ func (c AppGwIngressController) ResetAllIngress(appGw *n.ApplicationGateway, cbC
 
 		msg := fmt.Sprintf("Reset IP for Ingress %s/%s. Application Gateway %s is in stopped state", ingress.Namespace, ingress.Name, *appGw.ID)
 		c.recorder.Event(ingress, v1.EventTypeNormal, events.ReasonResetIngressStatus, msg)
-		klog.V(3).Infof(msg)
+		klog.V(3).Info(msg)
 	}
 }
 
