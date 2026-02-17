@@ -76,7 +76,7 @@ build-image-multi-arch:
 		$(shell pwd)
 
 build:
-	go build -mod=readonly -trimpath -v -ldflags="$(GO_LDFLAGS)" -o ./bin/${GO_BINARY_NAME} ./cmd/appgw-ingress
+	CGO_ENABLED=0 go build -mod=readonly -trimpath -v -ldflags="$(GO_LDFLAGS)" -o ./bin/${GO_BINARY_NAME} ./cmd/appgw-ingress
 
 lint-all: lint lint-helm
 
