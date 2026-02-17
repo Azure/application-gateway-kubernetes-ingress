@@ -7,12 +7,10 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.9.5
+  tag: 1.9.6
   pullPolicy: Always
 
-
 kubernetes:
-
   # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
   # Accepts one or many comma-separated values
   watchNamespace:
