@@ -9,7 +9,7 @@ COPY go.mod go.sum /azure/
 RUN go mod download
 
 RUN apt-get update
-RUN apt-get install -y ca-certificates openssl
+RUN apt-get install -y ca-certificates
 
 ARG TARGETOS
 ARG TARGETARCH

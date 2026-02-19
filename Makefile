@@ -16,7 +16,7 @@ GOOS ?= linux
 GARCH ?= arm64
 
 BUILD_BASE_IMAGE ?= golang:1.25.7-bookworm
-BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/minimal:3.0
+BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20260204
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
