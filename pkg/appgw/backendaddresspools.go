@@ -99,7 +99,7 @@ func (c *appGwConfigBuilder) newBackendPoolMap(cbCtx *ConfigBuilderContext) map[
 func (c *appGwConfigBuilder) getBackendAddressPool(backendID backendIdentifier, serviceBackendPair serviceBackendPortPair, addressPools map[string]*n.ApplicationGatewayBackendAddressPool) *n.ApplicationGatewayBackendAddressPool {
 	endpoints, err := c.k8sContext.GetEndpointsByService(backendID.serviceKey())
 	if err != nil {
-		klog.Errorf(err.Error())
+		klog.Error(err.Error())
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonEndpointsEmpty, err.Error())
 		return nil
 	}

@@ -189,7 +189,7 @@ func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 				}
 			}
 
-			klog.Errorf(e.Error())
+			klog.Error(e.Error())
 			if controllererrors.IsErrorCode(e, controllererrors.ErrorApplicationGatewayNotFound) {
 				return utils.Retriable(false), e
 			}

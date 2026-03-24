@@ -22,7 +22,7 @@ func CleanupOverlayExtensionConfigs(k8sClient client.Client, namespace string, a
 		return err
 	}
 
-	klog.Infof("Cleanup completed successfully.")
+	klog.Info("Cleanup completed successfully.")
 	return nil
 }
 

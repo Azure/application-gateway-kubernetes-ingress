@@ -85,7 +85,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate Health Probes",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 
@@ -96,7 +96,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate backend http settings",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 
@@ -108,7 +108,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate backend address pools",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 
@@ -123,7 +123,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate frontend listeners",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 
@@ -135,7 +135,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate rewrite rule sets",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 
@@ -147,7 +147,7 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 			err,
 			"unable to generate request routing rules",
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		return nil, e
 	}
 

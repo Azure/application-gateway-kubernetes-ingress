@@ -38,7 +38,7 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 			err,
 			"unable to get specified AppGateway [%v], check AppGateway identifier", c.appGwIdentifier.AppGwName,
 		)
-		klog.Errorf(e.Error())
+		klog.Error(e.Error())
 		if c.agicPod != nil {
 			c.recorder.Event(c.agicPod, v1.EventTypeWarning, events.ReasonUnableToFetchAppGw, e.Error())
 		}
