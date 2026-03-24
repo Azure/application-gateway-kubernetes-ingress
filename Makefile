@@ -15,7 +15,8 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.25.8-bookworm
+GO_VERSION ?= 1.25.8
+BUILD_BASE_IMAGE ?= golang:$(GO_VERSION)-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20260204
 
 REPO ?= appgwreg.azurecr.io
@@ -154,3 +155,6 @@ publish-staging:
 	@git pull --rebase
 	./scripts/release-image.sh
 	./scripts/release-helm.sh
+
+print-go-version:
+	@echo $(GO_VERSION)
