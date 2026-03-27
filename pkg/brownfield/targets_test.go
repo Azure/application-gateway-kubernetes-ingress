@@ -6,6 +6,8 @@
 package brownfield
 
 import (
+	"regexp"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -150,4 +152,125 @@ var _ = Describe("Test blacklisting targets", func() {
 			Expect(er.getProhibitedHostNames()).To(Equal(expected))
 		})
 	})
+
+	Context("Test hostname regex matching", func() {
+		It("should match hostnames using regex patterns", func() {
+			// Test regex pattern matching for subdomains
+			blacklistWithRegex := []Target{
+				{
+					Hostname:              "",
+					compiledHostnameRegex: compileTestRegex("^.*\\.example\\.com$"),
+				},
+			}
+
+			Expect(Target{Hostname: "api.example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "www.example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "dev.staging.example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeFalse())
+			Expect(Target{Hostname: "notexample.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeFalse())
+		})
+
+		It("should be case-insensitive for regex patterns", func() {
+			blacklistWithRegex := []Target{
+				{
+					Hostname:              "",
+					compiledHostnameRegex: compileTestRegex("^api\\.example\\.com$"),
+				},
+			}
+
+			Expect(Target{Hostname: "api.example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "API.EXAMPLE.COM"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "Api.Example.Com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+		})
+
+		It("should prefer regex over exact match when regex is present", func() {
+			blacklistWithRegex := []Target{
+				{
+					Hostname:              "exact.example.com",
+					compiledHostnameRegex: compileTestRegex("^.*\\.staging\\.com$"),
+				},
+			}
+
+			// Should use regex, not exact match
+			Expect(Target{Hostname: "api.staging.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeTrue())
+			Expect(Target{Hostname: "exact.example.com"}.IsBlacklisted(&blacklistWithRegex)).To(BeFalse())
+		})
+
+		It("should fall back to exact match when no regex is present", func() {
+			blacklistExact := []Target{
+				{
+					Hostname: "exact.example.com",
+				},
+			}
+
+			Expect(Target{Hostname: "exact.example.com"}.IsBlacklisted(&blacklistExact)).To(BeTrue())
+			Expect(Target{Hostname: "EXACT.EXAMPLE.COM"}.IsBlacklisted(&blacklistExact)).To(BeTrue()) // case-insensitive
+			Expect(Target{Hostname: "api.example.com"}.IsBlacklisted(&blacklistExact)).To(BeFalse())
+		})
+	})
+
+	Context("Test GetTargetBlacklist with regex", func() {
+		It("should compile valid regex patterns", func() {
+			prohibitedTargets := []*v1.AzureIngressProhibitedTarget{
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						HostnameRegex: "^.*\\.staging\\.com$",
+						Paths:         []string{"/api/*"},
+					},
+				},
+			}
+
+			blacklist := GetTargetBlacklist(prohibitedTargets)
+			Expect(len(*blacklist)).To(Equal(1))
+			Expect((*blacklist)[0].compiledHostnameRegex).ToNot(BeNil())
+			Expect((*blacklist)[0].Hostname).To(Equal("")) // Hostname should be cleared when using regex
+		})
+
+		It("should skip invalid regex patterns and log error", func() {
+			prohibitedTargets := []*v1.AzureIngressProhibitedTarget{
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						HostnameRegex: "[invalid(regex",
+					},
+				},
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						Hostname: "valid.example.com",
+					},
+				},
+			}
+
+			blacklist := GetTargetBlacklist(prohibitedTargets)
+			// Invalid regex should be skipped, only valid hostname should remain
+			Expect(len(*blacklist)).To(Equal(1))
+			Expect((*blacklist)[0].Hostname).To(Equal("valid.example.com"))
+			Expect((*blacklist)[0].compiledHostnameRegex).To(BeNil())
+		})
+
+		It("should prioritize hostnameRegex over hostname field", func() {
+			prohibitedTargets := []*v1.AzureIngressProhibitedTarget{
+				{
+					Spec: v1.AzureIngressProhibitedTargetSpec{
+						Hostname:      "exact.example.com",
+						HostnameRegex: "^.*\\.example\\.com$",
+					},
+				},
+			}
+
+			blacklist := GetTargetBlacklist(prohibitedTargets)
+			Expect(len(*blacklist)).To(Equal(1))
+			Expect((*blacklist)[0].compiledHostnameRegex).ToNot(BeNil())
+			Expect((*blacklist)[0].Hostname).To(Equal("")) // Should be cleared when regex is used
+
+			// Verify regex matching works
+			Expect(Target{Hostname: "api.example.com"}.IsBlacklisted(blacklist)).To(BeTrue())
+			Expect(Target{Hostname: "exact.example.com"}.IsBlacklisted(blacklist)).To(BeTrue())
+		})
+	})
 })
+
+// Helper function to compile regex patterns for testing
+func compileTestRegex(pattern string) *regexp.Regexp {
+	compiled, _ := regexp.Compile("(?i)" + pattern)
+	return compiled
+}
