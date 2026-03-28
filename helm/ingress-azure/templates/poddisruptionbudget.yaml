@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "application-gateway-kubernetes-ingress.fullname" . }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      release: {{ .Release.Name }}
