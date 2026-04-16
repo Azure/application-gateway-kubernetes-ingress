@@ -110,6 +110,75 @@ var _ = Describe("Overlay CNI", func() {
 		})
 	})
 
+	Context("NodeNetworkConfig has no label but NetworkContainer type is overlay", func() {
+		BeforeEach(func() {
+			azClient.GetSubnetFunc = func(subnetID string) (n.Subnet, error) {
+				return n.Subnet{SubnetPropertiesFormat: &n.SubnetPropertiesFormat{AddressPrefix: to.StringPtr(subnetCIDR)}}, nil
+			}
+			go mockOecReconciler()
+		})
+
+		It("should detect overlay via NetworkContainer type and create OEC", func() {
+			// Create NNC without the overlay label but with overlay NetworkContainer type
+			// This matches the state during Kubenet→Overlay migration
+			config := &nodenetworkconfig_v1alpha.NodeNetworkConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-node-no-label",
+					Namespace: namespace,
+					// No labels at all — exactly what DNC-RC creates during migration
+				},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+				Status: nodenetworkconfig_v1alpha.NodeNetworkConfigStatus{
+					NetworkContainers: []nodenetworkconfig_v1alpha.NetworkContainer{
+						{
+							ID:                 "nc-1",
+							Type:               nodenetworkconfig_v1alpha.Overlay,
+							AssignmentMode:     nodenetworkconfig_v1alpha.Static,
+							PrimaryIP:          "10.244.0.0/24",
+							SubnetName:         "routingdomain_test_overlaysubnet",
+							SubnetAddressSpace: "10.244.0.0/16",
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, config)).To(BeNil())
+
+			Expect(reconciler.Reconcile(ctx)).To(BeNil())
+
+			// Verify OEC was created — proves the fallback detection worked
+			var oec overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			Expect(k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &oec)).To(BeNil())
+			Expect(oec.Spec.ExtensionIPRange).To(Equal(subnetCIDR))
+		})
+
+		It("should not detect overlay when NetworkContainer type is vnet", func() {
+			// Create NNC with vnet type — should not trigger overlay detection
+			config := &nodenetworkconfig_v1alpha.NodeNetworkConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-node-vnet",
+					Namespace: namespace,
+				},
+				Spec: nodenetworkconfig_v1alpha.NodeNetworkConfigSpec{},
+				Status: nodenetworkconfig_v1alpha.NodeNetworkConfigStatus{
+					NetworkContainers: []nodenetworkconfig_v1alpha.NetworkContainer{
+						{
+							ID:   "nc-1",
+							Type: nodenetworkconfig_v1alpha.VNET,
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, config)).To(BeNil())
+
+			Expect(reconciler.Reconcile(ctx)).To(BeNil())
+
+			// Verify OEC was NOT created
+			var oec overlayextensionconfig_v1alpha1.OverlayExtensionConfig
+			err := k8sClient.Get(ctx, ctrl_client.ObjectKey{Name: cni.OverlayExtensionConfigName, Namespace: namespace}, &oec)
+			Expect(err).To(Not(BeNil()))
+		})
+	})
+
 	Context("Handle Overlay CNI cluster", func() {
 		BeforeEach(func() {
 			// Create NodeNetworkConfig so that cluster is considered as overlay CNI

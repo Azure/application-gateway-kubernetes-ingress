@@ -84,12 +84,29 @@ func (r *Reconciler) isClusterOverlayCNI(ctx context.Context) (bool, error) {
 		return false, errors.Wrap(err, "failed to list node network configs")
 	}
 
-	// if any NNCs are overlay then this cluster is using CNI Overlay
+	if len(nodeNetworkConfigs.Items) == 0 {
+		klog.V(3).Infof("No NodeNetworkConfigs found, cluster is not using overlay CNI")
+		return false, nil
+	}
+
+	// Check NNC metadata label first (set after migration completes)
 	for _, nnc := range nodeNetworkConfigs.Items {
 		if val, ok := nnc.Labels[PodNetworkTypeLabel]; ok && val == "overlay" {
 			return true, nil
 		}
 	}
+
+	// Fallback: check NetworkContainer type on status (set by DNC-RC during migration)
+	for _, nnc := range nodeNetworkConfigs.Items {
+		for _, nc := range nnc.Status.NetworkContainers {
+			if nc.Type == nodenetworkconfig_v1alpha.Overlay {
+				klog.Infof("Detected overlay CNI via NetworkContainer type on NNC %s/%s", nnc.Namespace, nnc.Name)
+				return true, nil
+			}
+		}
+	}
+
+	klog.V(3).Infof("NodeNetworkConfigs found (%d) but none indicate overlay CNI", len(nodeNetworkConfigs.Items))
 	return false, nil
 }
 
