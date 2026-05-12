@@ -7,8 +7,9 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.9.9
+  tag: 1.9.10
   pullPolicy: Always
+
 
 kubernetes:
 
@@ -23,7 +24,8 @@ kubernetes:
   multiClusterMode: false
 
   # Specify the scheduling options
-  nodeSelector: {} # disktype: dentro
+  nodeSelector: {}
+    # disktype: dentro
   tolerations: []
   affinity: {}
 
@@ -32,7 +34,8 @@ kubernetes:
     runAsUser: 0
 
   # Container security context
-  containerSecurityContext: {} #readOnlyRootFilesystem: true
+  containerSecurityContext: {}
+    #readOnlyRootFilesystem: true
 
   # Add pod level annotations
   podAnnotations: {}
