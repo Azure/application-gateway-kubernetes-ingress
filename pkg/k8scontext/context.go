@@ -229,8 +229,10 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 	for _, informer := range sharedInformers {
 		go informer.Run(stopChannel)
 		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
-		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing
-		if _, isCRD := crds[informer]; isCRD {
+		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing only.
+		// Production must wait for CRD caches before reconciliation starts. Otherwise, an empty
+		// AzureIngressProhibitedTarget cache can make AGIC overwrite protected brownfield config.
+		if _, isCRD := crds[informer]; omitCRDs && isCRD {
 			continue
 		}
 		hasSynced = append(hasSynced, informer.HasSynced)
