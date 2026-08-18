@@ -7,7 +7,7 @@ verbosityLevel: 3
 
 image:
   repository: mcr.microsoft.com/azure-application-gateway/kubernetes-ingress
-  tag: 1.9.8
+  tag: 1.9.13
   pullPolicy: Always
 
 
@@ -116,3 +116,7 @@ nodeSelector: {}
 # Specify if the cluster is RBAC enabled or not
 rbac:
   enabled: false # true/false
+
+################################################################################
+# Specify if the controller is running as an addon.
+addon: false # true/false

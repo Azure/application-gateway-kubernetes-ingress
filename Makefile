@@ -15,9 +15,9 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-GO_VERSION ?= 1.25.8
+GO_VERSION ?= 1.25.12
 BUILD_BASE_IMAGE ?= golang:$(GO_VERSION)-bookworm
-BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20260204
+BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20260722
 
 REPO ?= appgwreg.azurecr.io
 IMAGE_NAME = public/azure-application-gateway/kubernetes-ingress-staging
