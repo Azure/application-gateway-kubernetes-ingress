@@ -27,6 +27,9 @@ const (
 	// Null means Host specified in the request to Application Gateway is used to connect to the backend.
 	BackendHostNameKey = ApplicationGatewayPrefix + "/backend-hostname"
 
+	// OverrideBackendHostNameKey defines the key to enable/disable host name overriding.
+	OverrideBackendHostNameKey = ApplicationGatewayPrefix + "/override-backend-host"
+
 	// HealthProbeHostKey defines the key for Host which should be used as a target for health probe.
 	HealthProbeHostKey = ApplicationGatewayPrefix + "/health-probe-hostname"
 
@@ -158,9 +161,14 @@ func BackendPathPrefix(ing *networking.Ingress) (string, error) {
 	return parseString(ing, BackendPathPrefixKey)
 }
 
-// BackendHostName override hostname
+// BackendHostName specific domain name to override the backend hostname with
 func BackendHostName(ing *networking.Ingress) (string, error) {
 	return parseString(ing, BackendHostNameKey)
+}
+
+// OverrideBackendHostName whether to override the backend hostname or not
+func OverrideBackendHostName(ing *networking.Ingress) (string, error) {
+	return parseBool(ing, OverrideBackendHostNameKey)
 }
 
 // HealthProbeHostName probe hostname override
