@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
+	"k8s.io/client-go/tools/cache"
 )
 
 type handlers struct {
@@ -63,5 +64,11 @@ func (h handlers) deleteFunc(obj interface{}) {
 }
 
 func getNamespace(obj interface{}) string {
+	if tombstone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
+		obj = tombstone.Obj
+	}
+	if obj == nil {
+		return ""
+	}
 	return reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
 }
