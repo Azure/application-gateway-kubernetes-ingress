@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
@@ -78,6 +79,29 @@ var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 			h.deleteFunc(&pod)
 			Expect(len(h.context.Work)).To(Equal(0))
 			h.updateFunc(&pod, &pod)
+			Expect(len(h.context.Work)).To(Equal(0))
+		})
+
+		ginkgo.It("should not panic when deleteFunc receives a DeletedFinalStateUnknown tombstone", func() {
+			pod := tests.NewPodTestFixture("ns", "pod")
+			ctx.ingressSecretsMap.Insert("ns/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
+
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/pod",
+				Obj: &pod,
+			}
+
+			Expect(func() { h.deleteFunc(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(1))
+		})
+
+		ginkgo.It("should not panic when deleteFunc receives a DeletedFinalStateUnknown tombstone with a nil Obj", func() {
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/pod",
+				Obj: nil,
+			}
+
+			Expect(func() { h.deleteFunc(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(0))
 		})
 	})
