@@ -73,6 +73,33 @@ data:
   ATTACH_WAF_POLICY_TO_LISTENER: {{ .Values.appgw.waf_listener | quote }}
 {{- end }}
 
+{{- if .Values.appgw.entraJWT }}
+{{- /* Fail release on duplicate or invalid Entra JWT config names */ -}}
+{{- $names := dict -}}
+{{- range $i, $cfg := .Values.appgw.entraJWT -}}
+  {{- if not $cfg.name -}}
+    {{- fail (printf "appgw.entraJWT[%d]: name is required" $i) -}}
+  {{- end -}}
+  {{- if not $cfg.tenantId -}}
+    {{- fail (printf "appgw.entraJWT[%d] (%s): tenantId is required" $i $cfg.name) -}}
+  {{- end -}}
+  {{- if not $cfg.clientId -}}
+    {{- fail (printf "appgw.entraJWT[%d] (%s): clientId is required" $i $cfg.name) -}}
+  {{- end -}}
+  {{- if hasKey $names $cfg.name -}}
+    {{- fail (printf "appgw.entraJWT: duplicate name %q" $cfg.name) -}}
+  {{- end -}}
+  {{- $_ := set $names $cfg.name true -}}
+  {{- if and $cfg.unauthorizedAction (and (ne $cfg.unauthorizedAction "Deny") (ne $cfg.unauthorizedAction "Allow")) -}}
+    {{- fail (printf "appgw.entraJWT[%d] (%s): unauthorizedAction must be Deny or Allow" $i $cfg.name) -}}
+  {{- end -}}
+  {{- if and $cfg.audiences (gt (len $cfg.audiences) 5) -}}
+    {{- fail (printf "appgw.entraJWT[%d] (%s): audiences exceeds max of 5" $i $cfg.name) -}}
+  {{- end -}}
+{{- end }}
+  APPGW_ENTRA_JWT_CONFIGS: {{ .Values.appgw.entraJWT | toJson | quote }}
+{{- end }}
+
 {{- if .Values.kubernetes.watchNamespace }}
   KUBERNETES_WATCHNAMESPACE: "{{ .Values.kubernetes.watchNamespace }}"
 {{- end }}

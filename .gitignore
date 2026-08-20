@@ -56,3 +56,4 @@ site/
 # e2e
 testoutput.txt 
 report.xml
+.tools/

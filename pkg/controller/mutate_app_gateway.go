@@ -30,7 +30,7 @@ func (realClock) Now() time.Time { return time.Now() }
 // GetAppGw gets App Gateway config.
 func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.ConfigBuilderContext, error) {
 	// Get current application gateway config
-	appGw, err := c.azClient.GetGateway()
+	appGw, existingJWT, err := c.azClient.GetGateway()
 	c.MetricStore.IncArmAPICallCounter()
 	if err != nil {
 		e := controllererrors.NewErrorWithInnerErrorf(
@@ -53,7 +53,8 @@ func (c AppGwIngressController) GetAppGw() (*n.ApplicationGateway, *appgw.Config
 		DefaultAddressPoolID:  to.StringPtr(c.appGwIdentifier.AddressPoolID(appgw.DefaultBackendAddressPoolName)),
 		DefaultHTTPSettingsID: to.StringPtr(c.appGwIdentifier.HTTPSettingsID(appgw.DefaultBackendHTTPSettingsName)),
 
-		ExistingPortsByNumber: make(map[appgw.Port]n.ApplicationGatewayFrontendPort),
+		ExistingPortsByNumber:       make(map[appgw.Port]n.ApplicationGatewayFrontendPort),
+		ExistingEntraJWTConfigs:     existingJWT,
 	}
 
 	for _, port := range *appGw.FrontendPorts {
@@ -165,7 +166,7 @@ func (c AppGwIngressController) MutateAppGateway(event events.Event, appGw *n.Ap
 	// Initiate deployment
 	klog.V(3).Info("BEGIN AppGateway deployment")
 	defer klog.V(3).Info("END AppGateway deployment")
-	err = c.azClient.UpdateGateway(generatedAppGw)
+	err = c.azClient.UpdateGateway(generatedAppGw, configBuilder.EntraJWTMerge())
 	if err != nil {
 		// Reset cache
 		c.configCache = nil

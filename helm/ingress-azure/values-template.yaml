@@ -81,6 +81,16 @@ appgw: {}
 #   # Whether to force private IP for all the listeners on Application Gateway
 #   usePrivateIP: false
 #   subResourceNamePrefix: "myPrefix"
+#   # Entra JWT validation configs (preview). Each name becomes an App Gateway
+#   # entraJWTValidationConfigs resource. Ingresses attach via
+#   # appgw.ingress.kubernetes.io/entra-jwt-config-name. Duplicate names fail the release.
+#   entraJWT:
+#     - name: ims-jwt
+#       tenantId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#       clientId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#       audiences:
+#         - api://my-api
+#       unauthorizedAction: Deny
 
 ################################################################################
 # Specify the authentication with Azure Resource Manager

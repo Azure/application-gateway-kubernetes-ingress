@@ -11,6 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/azure"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/environment"
 
 	ptv1 "github.com/Azure/application-gateway-kubernetes-ingress/pkg/apis/azureingressprohibitedtarget/v1"
@@ -30,6 +31,9 @@ type ConfigBuilderContext struct {
 	DefaultHTTPSettingsID *string
 
 	ExistingPortsByNumber map[Port]n.ApplicationGatewayFrontendPort
+
+	// ExistingEntraJWTConfigs are JWT configs currently on the Application Gateway (for preserve/upsert).
+	ExistingEntraJWTConfigs []azure.EntraJWTValidationConfig
 }
 
 // InIngressList returns true if an ingress is in the ingress list

@@ -94,6 +94,25 @@ var _ = Describe("Environment", func() {
 
 				Expect(GetEnv()).To(Equal(expected))
 			})
+
+			It("parses APPGW_ENTRA_JWT_CONFIGS JSON", func() {
+				_ = os.Setenv(EntraJWTConfigsVarName, `[{"name":"ims-jwt","tenantId":"t","clientId":"c","audiences":["api://x"],"unauthorizedAction":"Deny"}]`)
+				defer os.Unsetenv(EntraJWTConfigsVarName)
+				env := GetEnv()
+				Expect(env.EntraJWTConfigs).To(HaveLen(1))
+				Expect(env.EntraJWTConfigs[0].Name).To(Equal("ims-jwt"))
+				Expect(env.EntraJWTConfigs[0].TenantID).To(Equal("t"))
+				Expect(env.EntraJWTConfigs[0].ClientID).To(Equal("c"))
+				Expect(env.EntraJWTConfigs[0].Audiences).To(Equal([]string{"api://x"}))
+			})
+
+			It("drops duplicate Entra JWT config names when parsing", func() {
+				_ = os.Setenv(EntraJWTConfigsVarName, `[{"name":"ims-jwt","tenantId":"t1","clientId":"c1"},{"name":"ims-jwt","tenantId":"t2","clientId":"c2"}]`)
+				defer os.Unsetenv(EntraJWTConfigsVarName)
+				env := GetEnv()
+				Expect(env.EntraJWTConfigs).To(HaveLen(1))
+				Expect(env.EntraJWTConfigs[0].TenantID).To(Equal("t1"))
+			})
 		})
 
 		Context("Test ValidateEnv when APPGW_ENABLE_DEPLOY is FALSE", func() {
