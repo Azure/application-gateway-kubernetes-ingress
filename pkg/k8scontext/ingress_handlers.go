@@ -56,13 +56,6 @@ func (h handlers) ingressAdd(obj interface{}) {
 
 func (h handlers) ingressDelete(obj interface{}) {
 	ing, ok := convert.ToIngressV1(obj)
-	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
-		return
-	}
-	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
-		return
-	}
-
 	if !ok {
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
@@ -74,6 +67,13 @@ func (h handlers) ingressDelete(obj interface{}) {
 	if ing == nil {
 		return
 	}
+
+	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
+		return
+	}
+	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
+		return
+	}
 	if !h.context.IsIngressClass(ing) {
 		return
 	}
@@ -82,7 +82,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 
 	h.context.Work <- events.Event{
 		Type:  events.Delete,
-		Value: obj,
+		Value: ing,
 	}
 	h.context.MetricStore.IncK8sAPIEventCounter()
 }

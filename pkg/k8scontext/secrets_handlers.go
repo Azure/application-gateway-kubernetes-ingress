@@ -81,7 +81,14 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 func (h handlers) secretDelete(obj interface{}) {
 	sec, ok := obj.(*v1.Secret)
 	if !ok {
-		klog.Error("error decoding object, invalid type")
+		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
+		if !ok {
+			klog.Error("error decoding object, invalid type")
+			return
+		}
+		sec, _ = tombstone.Obj.(*v1.Secret)
+	}
+	if sec == nil {
 		return
 	}
 
@@ -92,24 +99,12 @@ func (h handlers) secretDelete(obj interface{}) {
 		return
 	}
 
-	if !ok {
-		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-		if !ok {
-			// unable to get from tombstone
-			return
-		}
-		sec, _ = tombstone.Obj.(*v1.Secret)
-	}
-	if sec == nil {
-		return
-	}
-
 	secKey := utils.GetResourceKey(sec.Namespace, sec.Name)
 	h.context.CertificateSecretStore.delete(secKey)
 	if h.context.ingressSecretsMap.ContainsValue(secKey) {
 		h.context.Work <- events.Event{
 			Type:  events.Delete,
-			Value: obj,
+			Value: sec,
 		}
 		h.context.MetricStore.IncK8sAPIEventCounter()
 	}
