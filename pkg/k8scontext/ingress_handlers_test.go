@@ -12,6 +12,7 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -142,6 +143,27 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(1))
 			event := <-h.context.Work
 			Expect(event.Value).To(Equal(ing))
+		})
+
+		ginkgo.It("should queue an ingress delete from a tombstone wrapping an extensions/v1beta1 Ingress", func() {
+			IsNetworkingV1PackageSupported = false
+			ing := &extensionsv1beta1.Ingress{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "ing",
+					Namespace: "ns",
+					Annotations: map[string]string{
+						annotations.IngressClassKey: tests.IngressClassController,
+					},
+				},
+			}
+
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/" + ing.Name,
+				Obj: ing,
+			}
+
+			Expect(func() { h.ingressDelete(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(1))
 		})
 
 		ginkgo.When("using ingress class", func() {
