@@ -82,7 +82,7 @@ var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(0))
 		})
 
-		ginkgo.It("should not panic when deleteFunc receives a DeletedFinalStateUnknown tombstone", func() {
+		ginkgo.It("should queue the unwrapped object when deleteFunc receives a DeletedFinalStateUnknown tombstone", func() {
 			pod := tests.NewPodTestFixture("ns", "pod")
 			ctx.ingressSecretsMap.Insert("ns/ingress", utils.GetResourceKey(pod.Namespace, pod.Name))
 
@@ -93,9 +93,11 @@ var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 
 			Expect(func() { h.deleteFunc(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(1))
+			event := <-h.context.Work
+			Expect(event.Value).To(Equal(&pod))
 		})
 
-		ginkgo.It("should not panic when deleteFunc receives a DeletedFinalStateUnknown tombstone with a nil Obj", func() {
+		ginkgo.It("should drop a DeletedFinalStateUnknown tombstone with a nil Obj", func() {
 			tombstone := cache.DeletedFinalStateUnknown{
 				Key: "ns/pod",
 				Obj: nil,
@@ -103,6 +105,19 @@ var _ = ginkgo.Describe("K8scontext General Cache Handlers", func() {
 
 			Expect(func() { h.deleteFunc(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(0))
+		})
+
+		ginkgo.It("should drop a DeletedFinalStateUnknown tombstone with a nil Obj when watching all namespaces", func() {
+			allNamespacesCtx := NewContext(k8sClient, fake.NewSimpleClientset(), multiClusterFake.NewSimpleClientset(), istioFake.NewSimpleClientset(), []string{}, 1000*time.Second, metricstore.NewFakeMetricStore(), environment.GetFakeEnv())
+			allNamespacesHandlers := handlers{context: allNamespacesCtx}
+
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/pod",
+				Obj: nil,
+			}
+
+			Expect(func() { allNamespacesHandlers.deleteFunc(tombstone) }).ToNot(Panic())
+			Expect(len(allNamespacesHandlers.context.Work)).To(Equal(0))
 		})
 	})
 })
