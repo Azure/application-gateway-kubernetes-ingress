@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 )
 
 type handlers struct {
@@ -48,6 +49,14 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
+	if tombstone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
+		if tombstone.Obj == nil {
+			klog.Errorf("unable to get object from tombstone with key %s", tombstone.Key)
+			return
+		}
+		obj = tombstone.Obj
+	}
+
 	ns := getNamespace(obj)
 	if _, exists := namespacesToIgnore[ns]; exists {
 		return
@@ -64,11 +73,5 @@ func (h handlers) deleteFunc(obj interface{}) {
 }
 
 func getNamespace(obj interface{}) string {
-	if tombstone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
-		obj = tombstone.Obj
-	}
-	if obj == nil {
-		return ""
-	}
 	return reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
 }
