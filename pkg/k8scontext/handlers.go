@@ -49,12 +49,9 @@ func (h handlers) updateFunc(oldObj, newObj interface{}) {
 }
 
 func (h handlers) deleteFunc(obj interface{}) {
-	if tombstone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
-		if tombstone.Obj == nil {
-			klog.Errorf("unable to get object from tombstone with key %s", tombstone.Key)
-			return
-		}
-		obj = tombstone.Obj
+	obj, ok := unwrapTombstone(obj)
+	if !ok {
+		return
 	}
 
 	ns := getNamespace(obj)
@@ -74,4 +71,19 @@ func (h handlers) deleteFunc(obj interface{}) {
 
 func getNamespace(obj interface{}) string {
 	return reflect.ValueOf(obj).Elem().FieldByName("ObjectMeta").FieldByName("Namespace").String()
+}
+
+// unwrapTombstone returns the object a cache.DeletedFinalStateUnknown tombstone wraps, or
+// obj unchanged if it isn't one. ok is false if the tombstone has no recoverable object,
+// in which case the caller should drop the event.
+func unwrapTombstone(obj interface{}) (interface{}, bool) {
+	tombstone, isTombstone := obj.(cache.DeletedFinalStateUnknown)
+	if !isTombstone {
+		return obj, true
+	}
+	if tombstone.Obj == nil {
+		klog.Errorf("unable to get object from tombstone with key %s", tombstone.Key)
+		return nil, false
+	}
+	return tombstone.Obj, true
 }

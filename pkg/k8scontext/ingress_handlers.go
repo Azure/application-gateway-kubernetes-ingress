@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -54,16 +53,12 @@ func (h handlers) ingressAdd(obj interface{}) {
 }
 
 func (h handlers) ingressDelete(obj interface{}) {
+	obj, ok := unwrapTombstone(obj)
+	if !ok {
+		return
+	}
 	ing, ok := convert.ToIngressV1(obj)
 	if !ok {
-		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-		if !ok {
-			// unable to get from tombstone
-			return
-		}
-		ing, _ = convert.ToIngressV1(tombstone.Obj)
-	}
-	if ing == nil {
 		return
 	}
 

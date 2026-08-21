@@ -9,7 +9,6 @@ import (
 	"reflect"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
@@ -79,16 +78,13 @@ func (h handlers) secretUpdate(oldObj, newObj interface{}) {
 }
 
 func (h handlers) secretDelete(obj interface{}) {
+	obj, ok := unwrapTombstone(obj)
+	if !ok {
+		return
+	}
 	sec, ok := obj.(*v1.Secret)
 	if !ok {
-		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-		if !ok {
-			klog.Error("error decoding object, invalid type")
-			return
-		}
-		sec, _ = tombstone.Obj.(*v1.Secret)
-	}
-	if sec == nil {
+		klog.Error("error decoding object, invalid type")
 		return
 	}
 
