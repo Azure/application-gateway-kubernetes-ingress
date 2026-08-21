@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -142,7 +143,7 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 			Expect(func() { h.ingressDelete(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(1))
 			event := <-h.context.Work
-			Expect(event.Value).To(Equal(ing))
+			Expect(event.Value).To(BeIdenticalTo(ing))
 		})
 
 		ginkgo.It("should queue an ingress delete from a tombstone wrapping an extensions/v1beta1 Ingress", func() {
@@ -164,6 +165,22 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			Expect(func() { h.ingressDelete(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(1))
+			event := <-h.context.Work
+			queuedIng, ok := event.Value.(*networking.Ingress)
+			Expect(ok).To(BeTrue())
+			Expect(queuedIng.Namespace).To(Equal(ing.Namespace))
+			Expect(queuedIng.Name).To(Equal(ing.Name))
+		})
+
+		ginkgo.It("should drop a DeletedFinalStateUnknown tombstone wrapping the wrong type", func() {
+			pod := tests.NewPodTestFixture("ns", "pod")
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/pod",
+				Obj: &pod,
+			}
+
+			Expect(func() { h.ingressDelete(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(0))
 		})
 
 		ginkgo.When("using ingress class", func() {

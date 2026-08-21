@@ -97,7 +97,18 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 			Expect(func() { h.secretDelete(tombstone) }).ToNot(Panic())
 			Expect(len(h.context.Work)).To(Equal(1))
 			event := <-h.context.Work
-			Expect(event.Value).To(Equal(secret))
+			Expect(event.Value).To(BeIdenticalTo(secret))
+		})
+
+		ginkgo.It("should drop a DeletedFinalStateUnknown tombstone wrapping the wrong type", func() {
+			pod := tests.NewPodTestFixture("ns", "pod")
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/pod",
+				Obj: &pod,
+			}
+
+			Expect(func() { h.secretDelete(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(0))
 		})
 	})
 })
