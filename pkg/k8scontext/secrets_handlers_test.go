@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
 	multiClusterFake "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/azure_multicluster_crd_client/clientset/versioned/fake"
@@ -81,6 +82,22 @@ var _ = ginkgo.Describe("K8scontext Secrets Cache Handlers", func() {
 			Expect(len(h.context.Work)).To(Equal(0))
 			h.secretUpdate(secret, secret)
 			Expect(len(h.context.Work)).To(Equal(0))
+		})
+
+		ginkgo.It("should queue the unwrapped secret when secretDelete receives a DeletedFinalStateUnknown tombstone", func() {
+			secret := tests.NewSecretTestFixture()
+			secret.Namespace = "ns"
+			ctx.ingressSecretsMap.Insert("ingress", utils.GetResourceKey(secret.Namespace, secret.Name))
+
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/" + secret.Name,
+				Obj: secret,
+			}
+
+			Expect(func() { h.secretDelete(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(1))
+			event := <-h.context.Work
+			Expect(event.Value).To(Equal(secret))
 		})
 	})
 })

@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned/fake"
@@ -126,6 +127,21 @@ var _ = ginkgo.Describe("K8scontext Ingress Cache Handlers", func() {
 
 			// check that map is updated with the new key
 			Expect(h.context.ingressSecretsMap.ContainsValue(secKey)).To(BeTrue())
+		})
+
+		ginkgo.It("should queue the unwrapped ingress when ingressDelete receives a DeletedFinalStateUnknown tombstone", func() {
+			ing := fixtures.GetIngress()
+			ing.Namespace = "ns"
+
+			tombstone := cache.DeletedFinalStateUnknown{
+				Key: "ns/" + ing.Name,
+				Obj: ing,
+			}
+
+			Expect(func() { h.ingressDelete(tombstone) }).ToNot(Panic())
+			Expect(len(h.context.Work)).To(Equal(1))
+			event := <-h.context.Work
+			Expect(event.Value).To(Equal(ing))
 		})
 
 		ginkgo.When("using ingress class", func() {
