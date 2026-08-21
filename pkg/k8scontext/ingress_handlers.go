@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	v1 "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
@@ -62,7 +61,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 			// unable to get from tombstone
 			return
 		}
-		ing, _ = tombstone.Obj.(*networking.Ingress)
+		ing, _ = convert.ToIngressV1(tombstone.Obj)
 	}
 	if ing == nil {
 		return
