@@ -6,8 +6,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/leaderelection"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"os"
 	"os/signal"
 	"strconv"
@@ -224,20 +228,64 @@ func main() {
 		metricStore,
 		env.HTTPServicePort)
 	httpServer.Start()
-
-	if err := appGwIngressController.Start(env); err != nil {
-		errorLine := fmt.Sprint("Could not start AGIC: ", err)
-		if agicPod != nil {
-			recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go runWithLeaderElection(ctx, kubeClient, env, func(ctx context.Context) {
+		if err := appGwIngressController.Start(env); err != nil {
+			errorLine := fmt.Sprint("Could not start AGIC: ", err)
+			if agicPod != nil {
+				recorder.Event(agicPod, v1.EventTypeWarning, events.ReasonARMAuthFailure, errorLine)
+			}
+			klog.Fatal(errorLine)
 		}
-		klog.Fatal(errorLine)
-	}
+	}, appGwIngressController.Stop)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	appGwIngressController.Stop()
 	httpServer.Stop()
 	klog.Info("Goodbye!")
+}
+
+func runWithLeaderElection(ctx context.Context, kubeClient *kubernetes.Clientset, env environment.EnvVariables, start func(ctx context.Context), stop func()) {
+
+	id, err := os.Hostname()
+	if err != nil {
+		klog.Fatalf("Error getting hostname: %v", err)
+	}
+
+	lock := &resourcelock.LeaseLock{
+		LeaseMeta: metav1.ObjectMeta{
+			Name:      env.IngressClassControllerName + "-lease",
+			Namespace: env.AGICPodNamespace,
+		},
+		Client: kubeClient.CoordinationV1(),
+		LockConfig: resourcelock.ResourceLockConfig{
+			Identity: id,
+		},
+	}
+
+	leaderelection.RunOrDie(ctx, leaderelection.LeaderElectionConfig{
+		Lock:            lock,
+		ReleaseOnCancel: true,
+		LeaseDuration:   15 * time.Second,
+		RenewDeadline:   10 * time.Second,
+		RetryPeriod:     2 * time.Second,
+		Callbacks: leaderelection.LeaderCallbacks{
+			OnStartedLeading: func(ctx context.Context) {
+				klog.Infof("Became leader: %s", id)
+				start(ctx)
+			},
+			OnStoppedLeading: func() {
+				klog.Infof("Leader lost: %s", id)
+				stop()
+			},
+			OnNewLeader: func(identity string) {
+				if identity != id {
+					klog.Infof("New leader elected: %s", identity)
+				}
+			},
+		},
+	})
 }
