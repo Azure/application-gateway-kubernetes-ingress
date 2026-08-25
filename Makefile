@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-GO_VERSION ?= 1.25.12
+GO_VERSION ?= 1.25.14
 BUILD_BASE_IMAGE ?= golang:$(GO_VERSION)-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20260722
 
