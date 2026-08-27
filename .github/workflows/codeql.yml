@@ -1,0 +1,50 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: "17 3 * * 3"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze Go
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get Go version from Makefile
+      id: go-version
+      run: |
+        GO_VERSION=$(make -s print-go-version)
+        if [ -z "$GO_VERSION" ]; then echo "Failed to get Go version" && exit 1; fi
+        echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "${{ steps.go-version.outputs.version }}"
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: go
+
+    - name: Build
+      run: make build
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:go"
