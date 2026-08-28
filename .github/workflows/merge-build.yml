@@ -20,14 +20,14 @@ jobs:
     timeout-minutes: 30
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Set up Go workspace
       run: |
         shopt -s extglob
         shopt -s dotglob
       shell: bash
     - name: Install Helm
-      uses: azure/setup-helm@v4.2.0
+      uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
       with:
         version: v3.11.0
     - name: Get Go version from Makefile
@@ -38,7 +38,7 @@ jobs:
         echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Set up Go
-      uses: actions/setup-go@v5.0.1
+      uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
         go-version: "${{ steps.go-version.outputs.version }}"
     - name: Go and Helm lint check
@@ -51,13 +51,13 @@ jobs:
       run: make unittest
     - name: Publish test results
       if: always()
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: test-results
         path: ${{ github.workspace }}/**/report.xml
     - name: Publish code coverage results
       if: always()
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: code-coverage
         path: coverage.xml

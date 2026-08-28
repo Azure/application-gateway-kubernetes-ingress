@@ -29,7 +29,7 @@ jobs:
       BUILD_TAG: latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Get Go version from Makefile
       id: go-version
       run: |
@@ -38,14 +38,14 @@ jobs:
         echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Set up Go
-      uses: actions/setup-go@v5.0.1
+      uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
       with:
         go-version: "${{ steps.go-version.outputs.version }}"
     - name: Build AGIC docker image
       run: make build-image
 
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Uses pinned SHA of v0.35.0
+      uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
       with:
         image-ref: 'appgwreg.azurecr.io/public/azure-application-gateway/kubernetes-ingress-staging:latest'
         format: 'json'
@@ -64,7 +64,7 @@ jobs:
       run: trivy convert --format table trivy-results.json
 
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3.28.2
+      uses: github/codeql-action/upload-sarif@d68b2d4edb4189fd2a5366ac14e72027bd4b37dd # v3.28.2
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
