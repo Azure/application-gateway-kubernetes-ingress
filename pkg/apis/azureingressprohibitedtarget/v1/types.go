@@ -37,6 +37,10 @@ type AzureIngressProhibitedTargetSpec struct {
 	Hostname string `json:"hostname,omitempty"`
 
 	// +optional
+	// Regex pattern for matching hostnames. Takes precedence over hostname field if both are set.
+	HostnameRegex string `json:"hostnameRegex,omitempty"`
+
+	// +optional
 	// Port number of the prohibited target
 	Port int32 `json:"port,omitempty"`
 
