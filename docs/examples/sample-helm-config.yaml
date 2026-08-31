@@ -30,10 +30,9 @@ appgw:
 # Specify the authentication with Azure Resource Manager
 #
 # Two authentication methods are available:
-# - Option 1: AAD-Pod-Identity (https://github.com/Azure/aad-pod-identity)
+# - Option 1: Azure-AD-workload-identity
 armAuth:
-    type: aadPodIdentity
-    identityResourceID: <identityResourceId>
+    type: workloadIdentity
     identityClientID:  <identityClientId>
 
 ## Alternatively you can use Service Principal credentials
