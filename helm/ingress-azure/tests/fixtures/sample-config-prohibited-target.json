@@ -12,6 +12,12 @@
                 "paths": [
                     "/blacklist/*"
                 ]
+            },
+            {
+                "name": "prohibit-another-backend-ns",
+                "paths": [
+                    "/deny/*"
+                ]
             }
         ]
     },
