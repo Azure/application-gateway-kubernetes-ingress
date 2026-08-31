@@ -9,15 +9,18 @@ import (
 	"encoding/base64"
 	"fmt"
 	"sort"
+	"strings"
 
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/brownfield"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/sorter"
+	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/utils"
 )
 
 // getSslCertificates obtains all SSL Certificates for the given Ingress object.
@@ -38,16 +41,91 @@ func (c *appGwConfigBuilder) getSslCertificates(cbCtx *ConfigBuilderContext) *[]
 		sslCertificates = append(sslCertificates, c.newCert(secretID, cert))
 	}
 
-	// Merge certs from k8s ingress with existing appgw certs
+	desiredCertNames := make(map[string]struct{}, len(sslCertificates))
+	for _, cert := range sslCertificates {
+		if cert.Name == nil {
+			continue
+		}
+		desiredCertNames[*cert.Name] = struct{}{}
+	}
+
+	// Certs referenced by the appgw-ssl-certificate annotation point to already-installed certificates on the gateway.
+	// These certs must never be garbage-collected, even if their name matches the AGIC-managed naming pattern.
+	annotatedCertNames := make(map[string]struct{})
+	for _, ingress := range cbCtx.IngressList {
+		certName, _ := annotations.GetAppGwSslCertificate(ingress)
+		if certName == "" {
+			continue
+		}
+		annotatedCertNames[certName] = struct{}{}
+	}
+
+	// Retain only non-AGIC/manual certificates from the existing gateway config.
+	// In brownfield mode, also retain any certificates referenced by blacklisted listeners.
 	if c.appGw.SslCertificates != nil {
-		// MergePools would produce unique list of pools based on Name. Blacklisted pools, which have the same name
-		// as a managed pool would be overwritten.
-		sslCertificates = brownfield.MergeCerts(*c.appGw.SslCertificates, sslCertificates)
+		referencedByBlacklisted := c.sslCertNamesReferencedByBlacklistedListeners(cbCtx)
+		retainedExisting := make([]n.ApplicationGatewaySslCertificate, 0, len(*c.appGw.SslCertificates))
+		for _, existingCert := range *c.appGw.SslCertificates {
+			if existingCert.Name == nil {
+				continue
+			}
+			existingName := *existingCert.Name
+			if _, required := annotatedCertNames[existingName]; required {
+				retainedExisting = append(retainedExisting, existingCert)
+				continue
+			}
+			if _, desired := desiredCertNames[existingName]; desired {
+				// The desired cert will be included (and will overwrite by name if needed).
+				continue
+			}
+
+			if !isAgicManagedSslCertificateName(existingName) {
+				retainedExisting = append(retainedExisting, existingCert)
+				continue
+			}
+
+			if cbCtx.EnvVariables.EnableBrownfieldDeployment {
+				if _, keep := referencedByBlacklisted[existingName]; keep {
+					retainedExisting = append(retainedExisting, existingCert)
+				}
+			}
+		}
+
+		sslCertificates = brownfield.MergeCerts(retainedExisting, sslCertificates)
 	}
 
 	sort.Sort(sorter.ByCertificateName(sslCertificates))
 	c.mem.certs = &sslCertificates
 	return &sslCertificates
+}
+
+func isAgicManagedSslCertificateName(name string) bool {
+	// AGIC-generated certificate names follow secretIdentifier.secretFullName():
+	//   <APPGW_CONFIG_NAME_PREFIX>cert-<namespace>-<secretName>
+	// Preinstalled/manual certificates (including those referenced via appgw-ssl-certificate annotation)
+	// do not follow this pattern and should be retained.
+	return strings.HasPrefix(name, agPrefix+prefixSslCertificate+"-")
+}
+
+func (c *appGwConfigBuilder) sslCertNamesReferencedByBlacklistedListeners(cbCtx *ConfigBuilderContext) map[string]struct{} {
+	result := make(map[string]struct{})
+	if !cbCtx.EnvVariables.EnableBrownfieldDeployment {
+		return result
+	}
+
+	er := brownfield.NewExistingResources(c.appGw, cbCtx.ProhibitedTargets, nil)
+	blacklistedListeners, _ := er.GetBlacklistedListeners()
+	for _, listener := range blacklistedListeners {
+		if listener.SslCertificate == nil || listener.SslCertificate.ID == nil {
+			continue
+		}
+		certName := utils.GetLastChunkOfSlashed(*listener.SslCertificate.ID)
+		if certName == "" {
+			continue
+		}
+		result[certName] = struct{}{}
+	}
+	return result
 }
 
 func (c *appGwConfigBuilder) getSecretToCertificateMap(ingress *networking.Ingress) map[secretIdentifier]*string {
