@@ -53,6 +53,10 @@ coverage.txt
 # Mkdocs
 site/
 
+# Release artifacts
+/image/*.tar
+/ingress-azure-*.tgz
+
 # e2e
 testoutput.txt 
 report.xml
