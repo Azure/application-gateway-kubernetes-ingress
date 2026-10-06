@@ -223,16 +223,17 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		sharedInformers = append(sharedInformers, c.informers.IngressClass)
 	}
 
-	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true
-	if envVariables.EnableBrownfieldDeployment {
-		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
-	}
-
 	// For AGIC to watch for these CRDs the MultiClusterMode env variable must be set to true
 	if envVariables.MultiClusterMode {
 		sharedInformers = []cache.SharedInformer{} //only need to monitor 3 resources
 		sharedInformers = append(sharedInformers, c.informers.MultiClusterIngress)
 		sharedInformers = append(sharedInformers, c.informers.MultiClusterService)
+	}
+
+	// For AGIC to watch for these CRDs the EnableBrownfieldDeploymentVarName env variable must be set to true.
+	// Appended after the MultiClusterMode reset above so that shared mode is protected in every mode.
+	if envVariables.EnableBrownfieldDeployment {
+		sharedInformers = append(sharedInformers, c.informers.AzureIngressProhibitedTarget)
 	}
 
 	if envVariables.EnableIstioIntegration {
@@ -247,28 +248,15 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 			// list/watch without reactors; unit tests that don't stub them pass omitCRDs=true. Production must
 			// wait for CRD caches before reconciliation starts: an empty AzureIngressProhibitedTarget cache
 			// makes AGIC overwrite protected brownfield config.
-			if omitCRDs {
+			if omitCRDs || !c.shouldWaitForCRDCache(informer, gvr, name) {
 				continue
-			}
-
-			if served, err := c.isResourceServed(gvr); err != nil {
-				klog.Warningf("Could not determine whether %s is served by the API server; waiting for its cache to sync: %v", name, err)
-			} else if !served {
-				// Proceeding without prohibited targets would let AGIC take over the whole shared gateway,
-				// so fail closed and keep waiting until the CRD is installed.
-				if informer == c.informers.AzureIngressProhibitedTarget {
-					klog.Errorf("%s is not served by the API server; shared Application Gateway mode requires the AzureIngressProhibitedTarget CRD. AGIC will not reconcile until it is installed.", name)
-				} else {
-					klog.Warningf("%s is not served by the API server (CRD not installed); not waiting for its cache to sync", name)
-					continue
-				}
 			}
 		}
 		hasSynced[name] = informer.HasSynced
 	}
 
 	klog.V(1).Infof("Waiting for initial cache sync of: %s", strings.Join(sortedKeys(hasSynced), ", "))
-	if !waitForNamedCacheSync(stopChannel, hasSynced, cacheSyncLogInterval) {
+	if !waitForNamedCacheSync(stopChannel, hasSynced, cacheSyncLogInterval, logPendingCaches) {
 		e := controllererrors.NewError(
 			controllererrors.ErrorFailedInitialCacheSync,
 			"failed initial sync of resources required for ingress",
