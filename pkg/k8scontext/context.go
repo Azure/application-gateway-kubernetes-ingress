@@ -18,6 +18,7 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -170,7 +171,7 @@ func NewContext(kubeClient kubernetes.Interface, crdClient versioned.Interface, 
 // Run executes informer collection.
 func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables environment.EnvVariables) error {
 	klog.V(1).Infoln("k8s context run started")
-	var hasSynced []cache.InformerSynced
+	hasSynced := map[string]cache.InformerSynced{}
 
 	if c.informers == nil {
 		e := controllererrors.NewError(
@@ -180,16 +181,28 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		c.MetricStore.IncErrorCount(e.Code)
 		return e
 	}
-	crds := map[cache.SharedInformer]interface{}{
-		c.informers.AzureIngressProhibitedTarget: nil,
-		c.informers.IstioGateway:                 nil,
-		c.informers.IstioVirtualService:          nil,
-		c.informers.MultiClusterService:          nil,
-		c.informers.MultiClusterIngress:          nil,
+	crds := map[cache.SharedInformer]schema.GroupVersionResource{
+		c.informers.AzureIngressProhibitedTarget: prohibitedv1.SchemeGroupVersion.WithResource("azureingressprohibitedtargets"),
+		c.informers.IstioGateway:                 v1alpha3.SchemeGroupVersion.WithResource("gateways"),
+		c.informers.IstioVirtualService:          v1alpha3.SchemeGroupVersion.WithResource("virtualservices"),
+		c.informers.MultiClusterService:          multiClusterService.SchemeGroupVersion.WithResource("multiclusterservices"),
+		c.informers.MultiClusterIngress:          multiClusterIngress.SchemeGroupVersion.WithResource("multiclusteringresses"),
 
-		c.informers.AzureApplicationGatewayRewrite: nil,
-		// c.informers.AzureApplicationGatewayBackendPool:          nil,
-		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: nil,
+		c.informers.AzureApplicationGatewayRewrite: agrewritev1beta1.SchemeGroupVersion.WithResource("azureapplicationgatewayrewrites"),
+		// c.informers.AzureApplicationGatewayBackendPool:          ...,
+		// c.informers.AzureApplicationGatewayInstanceUpdateStatus: ...,
+	}
+
+	informerNames := map[cache.SharedInformer]string{
+		c.informers.Endpoints:    "Endpoints",
+		c.informers.Pods:         "Pods",
+		c.informers.Service:      "Service",
+		c.informers.Secret:       "Secret",
+		c.informers.Ingress:      "Ingress",
+		c.informers.IngressClass: "IngressClass",
+	}
+	for informer, gvr := range crds {
+		informerNames[informer] = gvr.GroupResource().String()
 	}
 
 	sharedInformers := []cache.SharedInformer{
@@ -228,18 +241,34 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 
 	for _, informer := range sharedInformers {
 		go informer.Run(stopChannel)
-		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
-		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing only.
-		// Production must wait for CRD caches before reconciliation starts. Otherwise, an empty
-		// AzureIngressProhibitedTarget cache can make AGIC overwrite protected brownfield config.
-		if _, isCRD := crds[informer]; omitCRDs && isCRD {
-			continue
+		name := informerNames[informer]
+		if gvr, isCRD := crds[informer]; isCRD {
+			// The generated fake CRD clientsets register malformed group versions, so they cannot serve
+			// list/watch without reactors; unit tests that don't stub them pass omitCRDs=true. Production must
+			// wait for CRD caches before reconciliation starts: an empty AzureIngressProhibitedTarget cache
+			// makes AGIC overwrite protected brownfield config.
+			if omitCRDs {
+				continue
+			}
+
+			if served, err := c.isResourceServed(gvr); err != nil {
+				klog.Warningf("Could not determine whether %s is served by the API server; waiting for its cache to sync: %v", name, err)
+			} else if !served {
+				// Proceeding without prohibited targets would let AGIC take over the whole shared gateway,
+				// so fail closed and keep waiting until the CRD is installed.
+				if informer == c.informers.AzureIngressProhibitedTarget {
+					klog.Errorf("%s is not served by the API server; shared Application Gateway mode requires the AzureIngressProhibitedTarget CRD. AGIC will not reconcile until it is installed.", name)
+				} else {
+					klog.Warningf("%s is not served by the API server (CRD not installed); not waiting for its cache to sync", name)
+					continue
+				}
+			}
 		}
-		hasSynced = append(hasSynced, informer.HasSynced)
+		hasSynced[name] = informer.HasSynced
 	}
 
-	klog.V(1).Infoln("Waiting for initial cache sync")
-	if !cache.WaitForCacheSync(stopChannel, hasSynced...) {
+	klog.V(1).Infof("Waiting for initial cache sync of: %s", strings.Join(sortedKeys(hasSynced), ", "))
+	if !waitForNamedCacheSync(stopChannel, hasSynced, cacheSyncLogInterval) {
 		e := controllererrors.NewError(
 			controllererrors.ErrorFailedInitialCacheSync,
 			"failed initial sync of resources required for ingress",
