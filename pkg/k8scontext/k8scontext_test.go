@@ -17,7 +17,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
@@ -134,10 +133,6 @@ var _ = ginkgo.Describe("K8scontext", func() {
 		ginkgo.It("Should wait for CRD caches in production", func() {
 			envVariables := environment.GetFakeEnv()
 			envVariables.EnableBrownfieldDeployment = true
-			k8sClient.Discovery().(*fakediscovery.FakeDiscovery).Resources = []*metav1.APIResourceList{
-				{GroupVersion: "appgw.ingress.k8s.io/v1", APIResources: []metav1.APIResource{{Name: "azureingressprohibitedtargets"}}},
-				{GroupVersion: "appgw.ingress.azure.io/v1beta1", APIResources: []metav1.APIResource{{Name: "azureapplicationgatewayrewrites"}}},
-			}
 
 			alreadySynced := make(chan struct{})
 			close(alreadySynced)
