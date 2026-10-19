@@ -19,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	agiccrd "github.com/Azure/application-gateway-kubernetes-ingress/pkg/crd_client/agic_crd_client/clientset/versioned"
@@ -32,6 +33,26 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
 	"github.com/Azure/go-autorest/autorest/to"
 )
+
+type gatedSyncInformer struct {
+	cache.SharedInformer
+	syncAllowed     <-chan struct{}
+	hasSyncedCalled chan struct{}
+}
+
+func (i *gatedSyncInformer) HasSynced() bool {
+	select {
+	case i.hasSyncedCalled <- struct{}{}:
+	default:
+	}
+
+	select {
+	case <-i.syncAllowed:
+		return true
+	default:
+		return false
+	}
+}
 
 var _ = ginkgo.Describe("K8scontext", func() {
 	var k8sClient kubernetes.Interface
@@ -106,6 +127,39 @@ var _ = ginkgo.Describe("K8scontext", func() {
 
 	ginkgo.AfterEach(func() {
 		close(stopChannel)
+	})
+
+	ginkgo.Context("Checking initial cache synchronization", func() {
+		ginkgo.It("Should wait for CRD caches in production", func() {
+			envVariables := environment.GetFakeEnv()
+			envVariables.EnableBrownfieldDeployment = true
+
+			alreadySynced := make(chan struct{})
+			close(alreadySynced)
+			ctxt.informers.AzureApplicationGatewayRewrite = &gatedSyncInformer{
+				SharedInformer: ctxt.informers.AzureApplicationGatewayRewrite,
+				syncAllowed:    alreadySynced,
+			}
+
+			syncAllowed := make(chan struct{})
+			hasSyncedCalled := make(chan struct{}, 1)
+			ctxt.informers.AzureIngressProhibitedTarget = &gatedSyncInformer{
+				SharedInformer:  ctxt.informers.AzureIngressProhibitedTarget,
+				syncAllowed:     syncAllowed,
+				hasSyncedCalled: hasSyncedCalled,
+			}
+
+			runResult := make(chan error, 1)
+			go func() {
+				runResult <- ctxt.Run(stopChannel, false, envVariables)
+			}()
+
+			Eventually(hasSyncedCalled).Should(Receive())
+			Consistently(runResult, 200*time.Millisecond).ShouldNot(Receive())
+
+			close(syncAllowed)
+			Eventually(runResult).Should(Receive(BeNil()))
+		})
 	})
 
 	ginkgo.Context("Checking if we are able to listen to Ingress Resources", func() {
