@@ -230,7 +230,9 @@ func (c *Context) Run(stopChannel chan struct{}, omitCRDs bool, envVariables env
 		go informer.Run(stopChannel)
 		// NOTE: Delyan could not figure out how to make informer.HasSynced == true for the CRDs in unit tests
 		// so until we do that - we omit WaitForCacheSync for CRDs in unit testing
-		if _, isCRD := crds[informer]; isCRD {
+		// Production must wait for prohibited targets to avoid overwriting protected brownfield config.
+		if _, isCRD := crds[informer]; isCRD &&
+			(omitCRDs || informer != c.informers.AzureIngressProhibitedTarget) {
 			continue
 		}
 		hasSynced = append(hasSynced, informer.HasSynced)
