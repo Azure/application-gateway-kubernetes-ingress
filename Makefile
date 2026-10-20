@@ -15,7 +15,7 @@ GO_BINARY_NAME ?= appgw-ingress
 GOOS ?= linux
 GARCH ?= arm64
 
-BUILD_BASE_IMAGE ?= golang:1.27.2-bookworm
+BUILD_BASE_IMAGE ?= golang:1.27.3-bookworm
 BINARY_BASE_IMAGE ?= mcr.microsoft.com/azurelinux/distroless/base:3.0.20261009
 
 REPO ?= appgwreg.azurecr.io
