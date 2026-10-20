@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/annotations"
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/tests"
@@ -166,6 +167,46 @@ var _ = Describe("Test the creation of Backend http settings from Ingress defini
 					// Dummy Failure, This should not happen
 					Expect(23).To(Equal(75), "setting %s is not expected to be created", *setting.Name)
 				}
+			}
+		})
+	})
+
+	Context("ensure backend settings and probes use the same protocol", func() {
+		It("uses the HTTPS default probe when the referenced Service is missing", func() {
+			cb := newConfigBuilderFixture(nil)
+			backend := tests.NewIngressBackendFixture(tests.ServiceName, 443)
+			ing := &networking.Ingress{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      tests.Name,
+					Namespace: tests.Namespace,
+				},
+				Spec: networking.IngressSpec{
+					Rules: []networking.IngressRule{
+						tests.NewIngressRuleFixture(tests.Host, "/", *backend),
+					},
+				},
+			}
+
+			cbCtx := &ConfigBuilderContext{
+				IngressList: []*networking.Ingress{ing},
+			}
+
+			Expect(cb.HealthProbesCollection(cbCtx)).To(Succeed())
+			Expect(cb.BackendHTTPSettingsCollection(cbCtx)).To(Succeed())
+			settings := *cb.appGw.BackendHTTPSettingsCollection
+			Expect(settings).To(HaveLen(2))
+			probes := make(map[string]n.ApplicationGatewayProbe)
+			for _, probe := range *cb.appGw.Probes {
+				probes[*probe.Name] = probe
+			}
+
+			for _, setting := range settings {
+				if *setting.Name == DefaultBackendHTTPSettingsName {
+					continue
+				}
+				Expect(setting.Protocol).To(Equal(n.ApplicationGatewayProtocolHTTPS))
+				Expect(utils.GetLastChunkOfSlashed(*setting.Probe.ID)).To(Equal(defaultProbeName(n.ApplicationGatewayProtocolHTTPS)))
+				Expect(probes[utils.GetLastChunkOfSlashed(*setting.Probe.ID)].Protocol).To(Equal(setting.Protocol))
 			}
 		})
 	})

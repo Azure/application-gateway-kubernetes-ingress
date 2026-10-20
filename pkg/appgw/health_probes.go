@@ -62,8 +62,10 @@ func (c *appGwConfigBuilder) newProbesMap(cbCtx *ConfigBuilderContext) (map[stri
 			probesMap[backendID] = probe
 			healthProbeCollection[*probe.Name] = *probe
 		} else {
+			backendPort, _ := c.resolveBackendPort(backendID)
+			backendProtocol, _ := backendProtocolForPort(backendID.Ingress, backendPort)
 			probesMap[backendID] = &defaultHTTPProbe
-			if protocol, _ := annotations.BackendProtocol(backendID.Ingress); protocol == annotations.HTTPS {
+			if backendProtocol == n.ApplicationGatewayProtocolHTTPS {
 				probesMap[backendID] = &defaultHTTPSProbe
 			}
 		}

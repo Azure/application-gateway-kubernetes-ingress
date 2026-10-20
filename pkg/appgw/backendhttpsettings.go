@@ -13,6 +13,7 @@ import (
 	n "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-03-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	v1 "k8s.io/api/core/v1"
+	networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
 
@@ -239,14 +240,6 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 			RequestTimeout:                 to.Int32Ptr(30),
 		},
 	}
-	_, probesMap := c.newProbesMap(cbCtx)
-
-	if probesMap[backendID] != nil {
-		probeName := probesMap[backendID].Name
-		probeID := c.appGwIdentifier.probeID(*probeName)
-		httpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = resourceRef(probeID)
-	}
-
 	if pathPrefix, err := annotations.BackendPathPrefix(backendID.Ingress); err == nil {
 		httpSettings.Path = to.StringPtr(pathPrefix)
 	} else if !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
@@ -291,19 +284,16 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
-	// when ingress is defined with backend at port 443 but without annotation backend-protocol set to https.
-	if int32(port) == 443 {
-		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
+	protocol, err := backendProtocolForPort(backendID.Ingress, port)
+	httpSettings.Protocol = protocol
+	if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
-	// backend protocol take precedence over port
-	backendProtocol, err := annotations.BackendProtocol(backendID.Ingress)
-	if err == nil && backendProtocol == annotations.HTTPS {
-		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTPS
-	} else if err == nil && backendProtocol == annotations.HTTP {
-		httpSettings.Protocol = n.ApplicationGatewayProtocolHTTP
-	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
-		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	_, probesMap := c.newProbesMap(cbCtx)
+	if probesMap[backendID] != nil {
+		probeName := probesMap[backendID].Name
+		httpSettings.Probe = resourceRef(c.appGwIdentifier.probeID(*probeName))
 	}
 
 	if trustedRootCertificates, err := annotations.GetAppGwTrustedRootCertificate(backendID.Ingress); err == nil {
@@ -333,4 +323,20 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 	}
 
 	return httpSettings
+}
+
+func backendProtocolForPort(ingress *networking.Ingress, port Port) (n.ApplicationGatewayProtocol, error) {
+	protocol := n.ApplicationGatewayProtocolHTTP
+	if port == Port(443) {
+		protocol = n.ApplicationGatewayProtocolHTTPS
+	}
+
+	backendProtocol, err := annotations.BackendProtocol(ingress)
+	if err != nil {
+		return protocol, err
+	}
+	if backendProtocol == annotations.HTTPS {
+		return n.ApplicationGatewayProtocolHTTPS, nil
+	}
+	return n.ApplicationGatewayProtocolHTTP, nil
 }
