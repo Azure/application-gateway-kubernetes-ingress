@@ -31,8 +31,8 @@ type AzClient interface {
 
 	ApplyRouteTable(string, string) error
 	WaitForGetAccessOnGateway(maxRetryCount int) error
-	GetGateway() (n.ApplicationGateway, error)
-	UpdateGateway(*n.ApplicationGateway) error
+	GetGateway() (n.ApplicationGateway, []EntraJWTValidationConfig, error)
+	UpdateGateway(*n.ApplicationGateway, *JWTMergePayload) error
 	DeployGatewayWithVnet(ResourceGroup, ResourceName, ResourceName, string, string) error
 	DeployGatewayWithSubnet(string, string) error
 	GetSubnet(string) (n.Subnet, error)
@@ -200,7 +200,7 @@ func (az *azClient) WaitForGetAccessOnGateway(maxRetryCount int) (err error) {
 	return
 }
 
-func (az *azClient) GetGateway() (gateway n.ApplicationGateway, err error) {
+func (az *azClient) GetGateway() (gateway n.ApplicationGateway, existingJWT []EntraJWTValidationConfig, err error) {
 	err = utils.Retry(retryCount, retryPause,
 		func() (utils.Retriable, error) {
 			gateway, err = az.appGatewaysClient.Get(az.ctx, string(az.resourceGroupName), string(az.appGwName))
@@ -209,10 +209,25 @@ func (az *azClient) GetGateway() (gateway n.ApplicationGateway, err error) {
 			}
 			return utils.Retriable(true), err
 		})
-	return
+	if err != nil {
+		return gateway, nil, err
+	}
+
+	existingJWT, jwtErr := az.extractEntraJWTConfigs()
+	if jwtErr != nil {
+		// JWT GET uses a newer API version; log and continue so AGIC still reconciles without wiping when possible.
+		klog.Warningf("Unable to fetch Entra JWT validation configs (will not preserve existing JWT state this sync): %v", jwtErr)
+	}
+	return gateway, existingJWT, nil
 }
 
-func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
+func (az *azClient) UpdateGateway(appGwObj *n.ApplicationGateway, jwt *JWTMergePayload) (err error) {
+	// Always PUT via JWT-capable API when a merge payload is provided so existing
+	// entraJWTValidationConfigs are not wiped by the older track1 API version.
+	if jwt != nil {
+		return az.updateGatewayWithJWT(appGwObj, jwt)
+	}
+
 	appGwFuture, err := az.appGatewaysClient.CreateOrUpdate(az.ctx, string(az.resourceGroupName), string(az.appGwName), *appGwObj)
 	if err != nil {
 		return

@@ -14,10 +14,10 @@ import (
 )
 
 // GetGatewayFunc is a function type
-type GetGatewayFunc func() (n.ApplicationGateway, error)
+type GetGatewayFunc func() (n.ApplicationGateway, []EntraJWTValidationConfig, error)
 
 // UpdateGatewayFunc is a function type
-type UpdateGatewayFunc func(*n.ApplicationGateway) error
+type UpdateGatewayFunc func(*n.ApplicationGateway, *JWTMergePayload) error
 
 // DeployGatewayFunc is a function type
 type DeployGatewayFunc func(string) error
@@ -59,18 +59,18 @@ func (az *FakeAzClient) SetDuration(retryDuration time.Duration) {
 }
 
 // GetGateway runs GetGatewayFunc and return a gateway
-func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, error) {
+func (az *FakeAzClient) GetGateway() (n.ApplicationGateway, []EntraJWTValidationConfig, error) {
 	if az.GetGatewayFunc != nil {
 		return az.GetGatewayFunc()
 	}
-	return n.ApplicationGateway{}, nil
+	return n.ApplicationGateway{}, nil, nil
 }
 
 // WaitForGetAccessOnGateway runs GetGatewayFunc until it returns a gateway
 func (az *FakeAzClient) WaitForGetAccessOnGateway(maxRetryCount int) error {
 	if az.GetGatewayFunc != nil {
 		for {
-			_, err := az.GetGatewayFunc()
+			_, _, err := az.GetGatewayFunc()
 			if err == nil {
 				return nil
 			}
@@ -81,9 +81,9 @@ func (az *FakeAzClient) WaitForGetAccessOnGateway(maxRetryCount int) error {
 }
 
 // UpdateGateway runs UpdateGatewayFunc and return a gateway
-func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway) (err error) {
+func (az *FakeAzClient) UpdateGateway(appGwObj *n.ApplicationGateway, jwt *JWTMergePayload) (err error) {
 	if az.UpdateGatewayFunc != nil {
-		return az.UpdateGatewayFunc(appGwObj)
+		return az.UpdateGatewayFunc(appGwObj, jwt)
 	}
 	return nil
 }

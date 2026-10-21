@@ -7,6 +7,7 @@
 
 ## Features
 * [#1703](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1703) Application Gateway subnet delegation support
+* Entra JWT validation: Helm `appgw.entraJWT` list creates/upserts App Gateway JWT configs; Ingress annotation `appgw.ingress.kubernetes.io/entra-jwt-config-name` attaches by name. Preserves portal JWT configs not listed in Helm ([#860](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/860), [#1788](https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1788)).
 
 ## How to try:
 ```bash

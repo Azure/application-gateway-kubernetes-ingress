@@ -201,7 +201,7 @@ func main() {
 	}
 
 	// fatal config validations
-	appGw, _ := azClient.GetGateway()
+	appGw, _, _ := azClient.GetGateway()
 	if _, exists := allowedSkus[appGw.Sku.Tier]; !exists {
 		errorLine := fmt.Sprintf("App Gateway SKU Tier %s is not supported by AGIC version %s; (v0.10.0 supports App Gwy v1)", appGw.Sku.Tier, appgw.GetVersion())
 		if agicPod != nil {

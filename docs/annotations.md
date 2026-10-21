@@ -36,6 +36,7 @@ For an Ingress resource to be observed by AGIC it **must be annotated** with `ku
 | [appgw.ingress.kubernetes.io/rewrite-rule-set](#rewrite-rule-set) | `string` | `nil`  |   | `1.5.0-rc1` |
 | [appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource](#rewrite-rule-set-custom-resource) | `string` | `nil`  |   | `1.6.0-rc1` |
 | [appgw.ingress.kubernetes.io/hostname-extension](#hostname-extension) | `string` | `nil` | | `1.4.0` |
+| [appgw.ingress.kubernetes.io/entra-jwt-config-name](#entra-jwt-config-name) | `string` | `nil` | | `1.9.9` |
 
 ## Override Frontend Port
 
@@ -956,4 +957,59 @@ spec:
             name: store-service
             port:
               number: 8080
+```
+
+## Entra JWT Config Name
+
+This annotation attaches a pre-declared Application Gateway [Entra JWT validation](https://learn.microsoft.com/en-us/azure/application-gateway/json-web-token-overview) configuration to the Ingress request routing rule.
+
+JWT configs are **not** created from Ingress annotations. Declare them once in the AGIC Helm values (`appgw.entraJWT`), then reference by name. HTTPS listeners only; HTTP is skipped with a warning.
+
+### Usage
+
+```yaml
+appgw.ingress.kubernetes.io/entra-jwt-config-name: "ims-jwt"
+```
+
+### Helm (create/upsert configs)
+
+```yaml
+appgw:
+  entraJWT:
+    - name: ims-jwt
+      tenantId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      clientId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      audiences:
+        - "api://my-api"
+      unauthorizedAction: Deny
+```
+
+Duplicate `name` values in `appgw.entraJWT` fail the Helm release. Existing Azure JWT configs not listed in Helm are left untouched.
+
+### Example
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/entra-jwt-config-name: "ims-jwt"
+spec:
+  tls:
+  - hosts:
+    - api.example.com
+    secretName: api-tls
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
 ```

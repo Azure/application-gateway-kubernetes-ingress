@@ -6,9 +6,11 @@
 package environment
 
 import (
+	"encoding/json"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"k8s.io/klog/v2"
 
@@ -115,7 +117,19 @@ const (
 
 	// AddonModeVarName is an environment variable to inform if the controller is running as an addon.
 	AddonModeVarName = "ADDON_MODE"
+
+	// EntraJWTConfigsVarName is a JSON array of Entra JWT validation configs managed by Helm.
+	EntraJWTConfigsVarName = "APPGW_ENTRA_JWT_CONFIGS"
 )
+
+// EntraJWTConfig is a Helm-managed Application Gateway Entra JWT validation configuration.
+type EntraJWTConfig struct {
+	Name                 string   `json:"name"`
+	TenantID             string   `json:"tenantId"`
+	ClientID             string   `json:"clientId"`
+	Audiences            []string `json:"audiences,omitempty"`
+	UnauthorizedAction   string   `json:"unauthorizedAction,omitempty"`
+}
 
 const (
 	//DefaultIngressClassController defines the default app gateway ingress value
@@ -166,6 +180,7 @@ type EnvVariables struct {
 	ReconcilePeriodSeconds      string
 	MultiClusterMode            bool
 	AddonMode                   bool
+	EntraJWTConfigs             []EntraJWTConfig
 }
 
 // Consolidate sets defaults and missing values using cpConfig
@@ -246,9 +261,60 @@ func GetEnv() EnvVariables {
 		ReconcilePeriodSeconds:      os.Getenv(ReconcilePeriodSecondsVarName),
 		MultiClusterMode:            multiClusterMode,
 		AddonMode:                   GetEnvironmentVariable(AddonModeVarName, "false", boolValidator) == "true",
+		EntraJWTConfigs:             parseEntraJWTConfigs(os.Getenv(EntraJWTConfigsVarName)),
 	}
 
 	return env
+}
+
+func parseEntraJWTConfigs(raw string) []EntraJWTConfig {
+	raw = strings.TrimSpace(raw)
+	if raw == "" || raw == "[]" || raw == "null" {
+		return nil
+	}
+	var configs []EntraJWTConfig
+	if err := json.Unmarshal([]byte(raw), &configs); err != nil {
+		klog.Errorf("Failed to parse %s: %v", EntraJWTConfigsVarName, err)
+		return nil
+	}
+	var valid []EntraJWTConfig
+	seen := map[string]struct{}{}
+	for _, cfg := range configs {
+		cfg.Name = strings.TrimSpace(cfg.Name)
+		cfg.TenantID = strings.TrimSpace(cfg.TenantID)
+		cfg.ClientID = strings.TrimSpace(cfg.ClientID)
+		cfg.UnauthorizedAction = strings.TrimSpace(cfg.UnauthorizedAction)
+		if cfg.Name == "" || cfg.TenantID == "" || cfg.ClientID == "" {
+			klog.Errorf("Ignoring Entra JWT config with missing name/tenantId/clientId: %+v", cfg)
+			continue
+		}
+		if _, dup := seen[cfg.Name]; dup {
+			klog.Errorf("Ignoring duplicate Entra JWT config name %q", cfg.Name)
+			continue
+		}
+		if cfg.UnauthorizedAction == "" {
+			cfg.UnauthorizedAction = "Deny"
+		}
+		if cfg.UnauthorizedAction != "Deny" && cfg.UnauthorizedAction != "Allow" {
+			klog.Errorf("Ignoring Entra JWT config %q with invalid unauthorizedAction %q", cfg.Name, cfg.UnauthorizedAction)
+			continue
+		}
+		if len(cfg.Audiences) > 5 {
+			klog.Errorf("Ignoring Entra JWT config %q: audiences exceeds max of 5", cfg.Name)
+			continue
+		}
+		var audiences []string
+		for _, a := range cfg.Audiences {
+			a = strings.TrimSpace(a)
+			if a != "" {
+				audiences = append(audiences, a)
+			}
+		}
+		cfg.Audiences = audiences
+		seen[cfg.Name] = struct{}{}
+		valid = append(valid, cfg)
+	}
+	return valid
 }
 
 // ValidateEnv validates environment variables.

@@ -36,6 +36,7 @@ type ConfigBuilder interface {
 	PreBuildValidate(cbCtx *ConfigBuilderContext) error
 	Build(cbCtx *ConfigBuilderContext) (*n.ApplicationGateway, error)
 	PostBuildValidate(cbCtx *ConfigBuilderContext) error
+	EntraJWTMerge() *azure.JWTMergePayload
 }
 
 type memoization struct {
@@ -54,6 +55,7 @@ type memoization struct {
 	certs                        *[]n.ApplicationGatewaySslCertificate
 	redirectConfigs              *[]n.ApplicationGatewayRedirectConfiguration
 	ports                        *[]n.ApplicationGatewayFrontendPort
+	jwtRuleBindings              map[string]string
 }
 
 type appGwConfigBuilder struct {
@@ -63,6 +65,7 @@ type appGwConfigBuilder struct {
 	recorder        record.EventRecorder
 	mem             memoization
 	clock           Clock
+	jwtMerge        *azure.JWTMergePayload
 }
 
 // NewConfigBuilder construct a builder
@@ -151,11 +154,21 @@ func (c *appGwConfigBuilder) Build(cbCtx *ConfigBuilderContext) (*n.ApplicationG
 		return nil, e
 	}
 
+	c.jwtMerge = c.buildEntraJWTMergePayload(cbCtx, c.mem.jwtRuleBindings)
+
 	// Remove unused default pool and settings
 	c.CleanUpUnusedDefaults()
 
 	c.addTags()
 	return &c.appGw, nil
+}
+
+// EntraJWTMerge returns the JWT configs/bindings to merge into the gateway PUT.
+func (c *appGwConfigBuilder) EntraJWTMerge() *azure.JWTMergePayload {
+	if c.jwtMerge == nil {
+		return azure.EmptyJWTMerge()
+	}
+	return c.jwtMerge
 }
 
 type valFunc func(eventRecorder record.EventRecorder, config *n.ApplicationGatewayPropertiesFormat, envVariables environment.EnvVariables, ingressList []*networking.Ingress, serviceList []*v1.Service) error

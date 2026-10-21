@@ -81,6 +81,8 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 	var requestRoutingRules []n.ApplicationGatewayRequestRoutingRule
 	urlPathMaps := c.getPathMaps(cbCtx)
 	priorities := c.getListenerPriorities(cbCtx)
+	jwtByListener := c.resolveListenerJWTBindings(cbCtx)
+	jwtRuleBindings := map[string]string{}
 	for listenerID, urlPathMap := range urlPathMaps {
 		routingRuleName := generateRequestRoutingRuleName(listenerID)
 		httpListener, exists := httpListenersMap[listenerID]
@@ -129,11 +131,17 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 
 		rule.Priority = priorities[listenerID]
 
+		if jwtName, ok := jwtByListener[listenerID]; ok {
+			jwtRuleBindings[routingRuleName] = jwtName
+			klog.V(3).Infof("Attach Entra JWT config %s to request routing rule %s", jwtName, routingRuleName)
+		}
+
 		requestRoutingRules = append(requestRoutingRules, rule)
 	}
 
 	c.mem.routingRules = &requestRoutingRules
 	c.mem.pathMaps = &pathMap
+	c.mem.jwtRuleBindings = jwtRuleBindings
 	return requestRoutingRules, pathMap
 }
 

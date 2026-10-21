@@ -61,6 +61,7 @@ var _ = Describe("Test ingress annotation functions", func() {
 		"appgw.ingress.kubernetes.io/health-probe-unhealthy-threshold":    "3",
 		"appgw.ingress.kubernetes.io/rewrite-rule-set":                    "my-rewrite-rule-set",
 		"appgw.ingress.kubernetes.io/rewrite-rule-set-custom-resource":    "my-rewrite-rule-set-cr",
+		"appgw.ingress.kubernetes.io/entra-jwt-config-name":               "ims-jwt",
 		"kubernetes.io/ingress.class":                                     "azure/application-gateway",
 		"appgw.ingress.istio.io/v1alpha3":                                 "azure/application-gateway",
 		"falseKey":                                                        "false",
@@ -267,6 +268,20 @@ var _ = Describe("Test ingress annotation functions", func() {
 			actual, err := RewriteRuleSetCustomResource(ing)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(Equal("my-rewrite-rule-set-cr"))
+		})
+	})
+
+	Context("test entra-jwt-config-name", func() {
+		It("returns error when ingress has no annotations", func() {
+			ing := &networking.Ingress{}
+			actual, err := EntraJWTConfigName(ing)
+			Expect(err).To(HaveOccurred())
+			Expect(actual).To(Equal(""))
+		})
+		It("returns jwt config name", func() {
+			actual, err := EntraJWTConfigName(ing)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(Equal("ims-jwt"))
 		})
 	})
 

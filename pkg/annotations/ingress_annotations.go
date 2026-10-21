@@ -111,6 +111,10 @@ const (
 
 	// RequestRoutingRulePriority indicates the priority of the Request Routing Rules.
 	RequestRoutingRulePriority = ApplicationGatewayPrefix + "/rule-priority"
+
+	// EntraJWTConfigNameKey references an Entra JWT validation config on Application Gateway by name.
+	// The config must be declared in Helm appgw.entraJWT (or already exist on the gateway).
+	EntraJWTConfigNameKey = ApplicationGatewayPrefix + "/entra-jwt-config-name"
 )
 
 // ProtocolEnum is the type for protocol
@@ -322,6 +326,11 @@ func GetRequestRoutingRulePriority(ing *networking.Ingress) (*int32, error) {
 	}
 
 	return nil, err
+}
+
+// EntraJWTConfigName returns the Entra JWT validation config name referenced by the ingress.
+func EntraJWTConfigName(ing *networking.Ingress) (string, error) {
+	return parseString(ing, EntraJWTConfigNameKey)
 }
 
 func parseBool(ing *networking.Ingress, name string) (bool, error) {
