@@ -30,10 +30,17 @@ jobs:
       uses: azure/setup-helm@v4.2.0
       with:
         version: v3.11.0
+    - name: Get Go version from Makefile
+      id: go-version
+      run: |
+        GO_VERSION=$(make -s print-go-version)
+        if [ -z "$GO_VERSION" ]; then echo "Failed to get Go version" && exit 1; fi
+        echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+
     - name: Set up Go
       uses: actions/setup-go@v5.0.1
       with:
-        go-version: '1.23.6'
+        go-version: "${{ steps.go-version.outputs.version }}"
     - name: Go and Helm lint check
       run: make lint-all
     - name: Go vet
