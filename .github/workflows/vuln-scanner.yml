@@ -22,20 +22,28 @@ jobs:
   trivy_vulnerability_scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions: write-all
+    permissions:
+      contents: read
+      security-events: write
     env:
       BUILD_TAG: latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    - name: Get Go version from Makefile
+      id: go-version
+      run: |
+        GO_VERSION=$(make -s print-go-version)
+        if [ -z "$GO_VERSION" ]; then echo "Failed to get Go version" && exit 1; fi
+        echo "version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+
     - name: Set up Go
       uses: actions/setup-go@v5.0.1
       with:
-        go-version: '1.23.6'
-    
+        go-version: "${{ steps.go-version.outputs.version }}"
     - name: Build AGIC docker image
       run: make build-image
-    
+
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # Uses pinned SHA of v0.35.0
       with:
