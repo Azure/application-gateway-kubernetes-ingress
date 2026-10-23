@@ -24,6 +24,9 @@ spec:
                 hostname:
                   description: "(optional) Hostname of the prohibited target"
                   type: string
+                hostnameRegex:
+                  description: "(optional) Regex pattern for matching hostnames. Takes precedence over hostname field if both are set."
+                  type: string
                 paths:
                   description: "(optional) A list of URL paths, for which the Ingress Controller is prohibited from mutating Application Gateway configuration; Must begin with a / and end with /*"
                   type: array
