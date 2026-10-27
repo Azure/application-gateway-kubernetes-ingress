@@ -23,6 +23,8 @@ import (
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/version"
 )
 
+const applicationGatewayAPIVersion = "2022-09-01"
+
 // AzClient is an interface for client to Azure
 type AzClient interface {
 	SetAuthorizer(authorizer autorest.Authorizer)
@@ -83,6 +85,12 @@ func NewAzClient(subscriptionID SubscriptionID, resourceGroupName ResourceGroup,
 
 		ctx: context.Background(),
 	}
+
+	// The generated SDK package targets 2021-03-01, but newer Application Gateway
+	// features such as additional custom error status codes require 2022-09-01.
+	az.appGatewaysClient.RequestInspector = autorest.WithQueryParameters(map[string]interface{}{
+		"api-version": applicationGatewayAPIVersion,
+	})
 
 	if err := az.appGatewaysClient.AddToUserAgent(userAgent); err != nil {
 		klog.Error("Error adding User Agent to App Gateway client: ", userAgent)

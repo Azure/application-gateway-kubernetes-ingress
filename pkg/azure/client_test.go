@@ -17,9 +17,11 @@ import (
 type FakeSender struct {
 	statusCode int
 	body       *n.ApplicationGateway
+	request    *http.Request
 }
 
 func (fs *FakeSender) Do(request *http.Request) (response *http.Response, err error) {
+	fs.request = request
 	response = &http.Response{
 		StatusCode: fs.statusCode,
 	}
@@ -61,3 +63,20 @@ var _ = DescribeTable("Az Application Gateway failures using authorizer", func(s
 	Entry("403 Error", 403, true),
 	Entry("404 Error", 404, true),
 )
+
+var _ = Describe("Application Gateway API version", func() {
+	It("uses API version 2022-09-01 for Application Gateway requests", func() {
+		azClient := NewAzClient("", "", "", "", "")
+		fakeSender := &FakeSender{
+			statusCode: http.StatusOK,
+			body:       &n.ApplicationGateway{},
+		}
+		azClient.SetSender(fakeSender)
+
+		err := azClient.WaitForGetAccessOnGateway(1)
+
+		Expect(err).To(BeNil())
+		Expect(fakeSender.request).NotTo(BeNil())
+		Expect(fakeSender.request.URL.Query().Get("api-version")).To(Equal(applicationGatewayAPIVersion))
+	})
+})
