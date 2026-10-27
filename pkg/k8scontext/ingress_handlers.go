@@ -4,8 +4,6 @@ import (
 	"reflect"
 
 	v1 "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
 	"github.com/Azure/application-gateway-kubernetes-ingress/pkg/events"
@@ -55,23 +53,19 @@ func (h handlers) ingressAdd(obj interface{}) {
 }
 
 func (h handlers) ingressDelete(obj interface{}) {
+	obj, ok := unwrapTombstone(obj)
+	if !ok {
+		return
+	}
 	ing, ok := convert.ToIngressV1(obj)
+	if !ok {
+		return
+	}
+
 	if _, exists := namespacesToIgnore[ing.Namespace]; exists {
 		return
 	}
 	if _, exists := h.context.namespaces[ing.Namespace]; len(h.context.namespaces) > 0 && !exists {
-		return
-	}
-
-	if !ok {
-		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
-		if !ok {
-			// unable to get from tombstone
-			return
-		}
-		ing, _ = tombstone.Obj.(*networking.Ingress)
-	}
-	if ing == nil {
 		return
 	}
 	if !h.context.IsIngressClass(ing) {
@@ -82,7 +76,7 @@ func (h handlers) ingressDelete(obj interface{}) {
 
 	h.context.Work <- events.Event{
 		Type:  events.Delete,
-		Value: obj,
+		Value: ing,
 	}
 	h.context.MetricStore.IncK8sAPIEventCounter()
 }
