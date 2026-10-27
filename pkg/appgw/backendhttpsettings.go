@@ -321,16 +321,29 @@ func (c *appGwConfigBuilder) generateHTTPSettings(backendID backendIdentifier, p
 		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
 	}
 
-	// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
-	if httpSettings.TrustedRootCertificates != nil {
-		if httpSettings.Protocol == n.ApplicationGatewayProtocolHTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
-			if httpSettings.HostName != nil && len(*httpSettings.HostName) > 0 {
-				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
-			} else {
-				httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(true)
+	if overrideBackendHostName, err := annotations.OverrideBackendHostName(backendID.Ingress); err == nil {
+		if httpSettings.HostName != nil && !overrideBackendHostName {
+			// TODO Warn about pointless setting of hostname
+		} else if httpSettings.HostName != nil && overrideBackendHostName {
+			httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
+		} else if httpSettings.HostName == nil && overrideBackendHostName {
+			httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(true)
+		}
+	} else if err != nil && !controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		c.recorder.Event(backendID.Ingress, v1.EventTypeWarning, events.ReasonInvalidAnnotation, err.Error())
+	} else if err != nil && controllererrors.IsErrorCode(err, controllererrors.ErrorMissingAnnotation) {
+		// When overrideBackendHostName is unset, fallback to original behaviour:
+
+		// To use an HTTP setting with a trusted root certificate, we must either override with a specific domain name or choose "Pick host name from backend target".
+		if httpSettings.TrustedRootCertificates != nil {
+			if httpSettings.Protocol == n.ApplicationGatewayProtocolHTTPS && len(*httpSettings.TrustedRootCertificates) > 0 {
+				if httpSettings.HostName != nil && len(*httpSettings.HostName) > 0 {
+					httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(false)
+				} else {
+					httpSettings.PickHostNameFromBackendAddress = to.BoolPtr(true)
+				}
 			}
 		}
 	}
-
 	return httpSettings
 }
