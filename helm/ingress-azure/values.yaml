@@ -12,6 +12,8 @@ image:
 
 
 kubernetes:
+  # Replicas for AGIC pod
+  replicas: 1
 
   # Namespace(s) AGIC watches; Leaving this blank watches all namespaces;
   # Accepts one or many comma-separated values
