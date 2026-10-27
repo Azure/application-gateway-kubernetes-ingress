@@ -10,7 +10,7 @@ spec:
   paths:
     - /*
 {{- end -}}
-{{- range .Values.appgw.prohibitedTargets -}}
+{{- range .Values.appgw.prohibitedTargets }}
 apiVersion: appgw.ingress.k8s.io/v1
 kind: AzureIngressProhibitedTarget
 metadata:
