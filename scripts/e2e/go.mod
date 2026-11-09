@@ -19,7 +19,7 @@ require (
 
 replace (
 	github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
-	golang.org/x/net => golang.org/x/net v0.61.0
+	golang.org/x/net => golang.org/x/net v0.62.0
 )
 
 require (
