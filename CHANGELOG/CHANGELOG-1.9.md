@@ -1,7 +1,14 @@
 - [How to try](#how-to-try)
+- [v1.9.16](#v1916)
+  - [Fixes](#fixes)
 - [v1.9.0](#v170-rc1)
   - [Features](#features)
   - [Fixes](#fixes)
+
+# v1.9.16
+
+## Fixes
+* [#1820](https://github.com/Azure/application-gateway-kubernetes-ingress/pull/1820) Update `golang.org/x/net` to v0.62.0.
 
 # v1.9.0
 
@@ -36,4 +43,3 @@ helm upgrade \
   --reuse-values
   --version 1.9.0
 ```
-
