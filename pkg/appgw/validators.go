@@ -22,7 +22,7 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 	// TODO(draychev): reuse newBackendIds() to get backendIDs oncehttps://github.com/Azure/application-gateway-kubernetes-ingress/pull/262 is merged
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
-		if ingress.Spec.DefaultBackend != nil {
+		if ingress.Spec.DefaultBackend != nil && ingress.Spec.DefaultBackend.Service != nil {
 			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
@@ -35,6 +35,9 @@ func validateServiceDefinition(eventRecorder record.EventRecorder, config *n.App
 					continue
 				}
 				path := &rule.HTTP.Paths[pathIdx]
+				if path.Backend.Service == nil {
+					continue
+				}
 				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
 			}
 		}
