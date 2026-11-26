@@ -903,7 +903,7 @@ func (c *Context) isServiceReferencedByAnyIngress(service *v1.Service) bool {
 			}
 			for _, path := range rule.HTTP.Paths {
 				// TODO(akshaysngupta) Use service ports
-				if path.Backend.Service.Name == service.Name {
+				if path.Backend.Service != nil && path.Backend.Service.Name == service.Name {
 					return true
 				}
 			}

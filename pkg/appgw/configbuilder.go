@@ -213,10 +213,14 @@ func (c *appGwConfigBuilder) resolvePortName(portName string, backendID *backend
 }
 
 func generateBackendID(ingress *networking.Ingress, rule *networking.IngressRule, path *networking.HTTPIngressPath, backend *networking.IngressBackend) backendIdentifier {
+	serviceName := ""
+	if backend != nil && backend.Service != nil {
+		serviceName = backend.Service.Name
+	}
 	return backendIdentifier{
 		serviceIdentifier: serviceIdentifier{
 			Namespace: ingress.Namespace,
-			Name:      backend.Service.Name,
+			Name:      serviceName,
 		},
 		Ingress: ingress,
 		Rule:    rule,

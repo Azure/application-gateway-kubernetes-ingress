@@ -144,9 +144,13 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range cbCtx.IngressList {
 		if ingress.Spec.DefaultBackend != nil {
-			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
-			klog.V(3).Info("Found default backend:", backendID.serviceKey())
-			backendIDs[backendID] = nil
+			if ingress.Spec.DefaultBackend.Service == nil {
+				klog.Warningf("Ingress %s/%s has DefaultBackend without Service (e.g. Resource backend); skipping unsupported backend", ingress.Namespace, ingress.Name)
+			} else {
+				backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
+				klog.V(3).Info("Found default backend:", backendID.serviceKey())
+				backendIDs[backendID] = nil
+			}
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
@@ -157,6 +161,10 @@ func (c *appGwConfigBuilder) newBackendIdsFiltered(cbCtx *ConfigBuilderContext) 
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
+				if path.Backend.Service == nil {
+					klog.Warningf("Ingress %s/%s path %q has Backend without Service (e.g. Resource backend); skipping unsupported backend", ingress.Namespace, ingress.Name, path.Path)
+					continue
+				}
 				backendID := generateBackendID(ingress, rule, path, &path.Backend)
 				klog.V(3).Info("Found backend:", backendID.serviceKey())
 				backendIDs[backendID] = nil

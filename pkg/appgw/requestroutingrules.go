@@ -139,7 +139,7 @@ func (c *appGwConfigBuilder) getRules(cbCtx *ConfigBuilderContext) ([]n.Applicat
 
 func (c *appGwConfigBuilder) noRulesIngress(cbCtx *ConfigBuilderContext, ingress *networking.Ingress, urlPathMaps *map[listenerIdentifier]*n.ApplicationGatewayURLPathMap) {
 	// There are no Rules. We are dealing with some very rudimentary Ingress definition.
-	if ingress.Spec.DefaultBackend == nil {
+	if ingress.Spec.DefaultBackend == nil || ingress.Spec.DefaultBackend.Service == nil {
 		return
 	}
 	backendID := generateBackendID(ingress, nil, nil, ingress.Spec.DefaultBackend)
@@ -294,7 +294,7 @@ func (c *appGwConfigBuilder) getDefaultFromRule(cbCtx *ConfigBuilderContext, lis
 	backendPools := c.newBackendPoolMap(cbCtx)
 	_, backendHTTPSettingsMap, _, _ := c.getBackendsAndSettingsMap(cbCtx)
 	var defaultRewriteRuleSet *string
-	if defBackend != nil {
+	if defBackend != nil && defBackend.Service != nil {
 		// has default backend
 		defaultBackendID := generateBackendID(ingress, defRule, defPath, defBackend)
 		defaultHTTPSettings := backendHTTPSettingsMap[defaultBackendID]
@@ -399,6 +399,9 @@ func (c *appGwConfigBuilder) getPathRules(cbCtx *ConfigBuilderContext, listenerI
 				klog.Errorf("Will not attach redirect to rule; SSL Redirect does not exist: %s", *redirectRef.ID)
 			}
 
+		}
+		if path.Backend.Service == nil {
+			continue
 		}
 		backendID := generateBackendID(ingress, rule, path, &path.Backend)
 		backendPool := backendPools[backendID]
